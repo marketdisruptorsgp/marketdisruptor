@@ -15,3 +15,6 @@ verify_jwt = false
 [functions.generate-pitch-deck]
 verify_jwt = false
 
+[functions.generate-product-visual]
+verify_jwt = false
+
