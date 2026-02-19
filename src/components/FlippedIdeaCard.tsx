@@ -1,19 +1,60 @@
-import { TrendingUp, ExternalLink, Rocket, Clock, DollarSign, CheckCircle2, Zap } from "lucide-react";
+import { useState } from "react";
+import { TrendingUp, ExternalLink, Rocket, Clock, DollarSign, CheckCircle2, Zap, Sparkles, ImageIcon, RefreshCw } from "lucide-react";
 import type { FlippedIdea } from "@/data/mockProducts";
 import { ScoreBar } from "./ScoreBar";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface FlippedIdeaCardProps {
   idea: FlippedIdea;
   rank: number;
+  productName?: string;
 }
 
-export const FlippedIdeaCard = ({ idea, rank }: FlippedIdeaCardProps) => {
+export const FlippedIdeaCard = ({ idea, rank, productName }: FlippedIdeaCardProps) => {
+  const [mockupImage, setMockupImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const avgScore =
     (idea.scores.feasibility +
       idea.scores.desirability +
       idea.scores.profitability +
       idea.scores.novelty) /
     4;
+
+  const handleGenerateVisual = async () => {
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-product-visual", {
+        body: {
+          ideaName: idea.name,
+          description: idea.description,
+          visualNotes: idea.visualNotes,
+          productName: productName || "vintage product",
+        },
+      });
+
+      if (error || !data?.success) {
+        const msg = data?.error || error?.message || "Image generation failed";
+        if (msg.includes("429") || msg.toLowerCase().includes("rate limit")) {
+          toast.error("Rate limit hit — try again in a moment.");
+        } else if (msg.includes("402") || msg.toLowerCase().includes("credit")) {
+          toast.error("AI credits exhausted. Add credits in Settings → Workspace → Usage.");
+        } else {
+          toast.error("Could not generate visual: " + msg);
+        }
+        return;
+      }
+
+      setMockupImage(data.imageUrl);
+      toast.success("Product visual generated!");
+    } catch (err) {
+      toast.error("Visual generation failed.");
+      console.error(err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <div className="card-intelligence p-5 space-y-4 relative overflow-hidden">
@@ -42,6 +83,74 @@ export const FlippedIdeaCard = ({ idea, rank }: FlippedIdeaCardProps) => {
           </div>
           <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{idea.description}</p>
         </div>
+      </div>
+
+      {/* AI Visual Mockup */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="section-label text-[10px] flex items-center gap-1">
+            <ImageIcon size={10} /> AI Product Visual
+          </p>
+          <button
+            type="button"
+            onClick={handleGenerateVisual}
+            disabled={isGenerating}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{
+              background: isGenerating ? "hsl(var(--muted))" : "hsl(var(--primary))",
+              color: isGenerating ? "hsl(var(--muted-foreground))" : "white",
+              opacity: isGenerating ? 0.8 : 1,
+            }}
+          >
+            {isGenerating ? (
+              <>
+                <RefreshCw size={11} className="animate-spin" />
+                Generating…
+              </>
+            ) : (
+              <>
+                <Sparkles size={11} />
+                {mockupImage ? "Regenerate Visual" : "Generate Visual"}
+              </>
+            )}
+          </button>
+        </div>
+
+        {mockupImage ? (
+          <div className="relative rounded-xl overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+            <img
+              src={mockupImage}
+              alt={`AI mockup of ${idea.name}`}
+              className="w-full object-cover rounded-xl"
+              style={{ maxHeight: "320px", objectPosition: "center" }}
+            />
+            <div
+              className="absolute bottom-0 left-0 right-0 px-3 py-2 text-[10px] font-semibold"
+              style={{ background: "hsl(220 20% 5% / 0.6)", color: "white" }}
+            >
+              ✦ AI-generated concept mockup · {idea.name}
+            </div>
+          </div>
+        ) : (
+          <div
+            className="flex flex-col items-center justify-center gap-2 rounded-xl py-8 text-center cursor-pointer border-2 border-dashed transition-all hover:border-primary/50"
+            style={{ borderColor: "hsl(var(--primary) / 0.2)", background: "hsl(var(--primary-muted))" }}
+            onClick={handleGenerateVisual}
+          >
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ background: "hsl(var(--primary) / 0.15)" }}
+            >
+              <Sparkles size={18} style={{ color: "hsl(var(--primary))" }} />
+            </div>
+            <p className="text-sm font-semibold" style={{ color: "hsl(var(--primary))" }}>
+              Generate AI Product Visual
+            </p>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              Click to generate a concept mockup image of this redesigned product using AI
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Details grid */}

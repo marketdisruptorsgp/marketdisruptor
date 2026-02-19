@@ -1018,7 +1018,7 @@ export default function Index() {
                       </div>
                       <div className="space-y-4">
                         {selectedProduct.flippedIdeas?.map((idea, i) => (
-                          <FlippedIdeaCard key={`${idea.name}-${i}`} idea={idea} rank={i + 1} />
+                          <FlippedIdeaCard key={`${idea.name}-${i}`} idea={idea} rank={i + 1} productName={selectedProduct.name} />
                         ))}
                       </div>
                     </div>
