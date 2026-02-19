@@ -138,7 +138,7 @@ const BUSINESS_EXAMPLES = [
   "HVAC company", "Plumbing company", "Auto repair shop", "Vending machine operator",
 ];
 
-export const BusinessModelAnalysis = () => {
+export const BusinessModelAnalysis = ({ initialData }: { initialData?: BusinessModelAnalysisData | null }) => {
   const [input, setInput] = useState<BusinessModelInput>({
     type: "",
     description: "",
@@ -148,7 +148,7 @@ export const BusinessModelAnalysis = () => {
     painPoints: "",
     notes: "",
   });
-  const [data, setData] = useState<BusinessModelAnalysisData | null>(null);
+  const [data, setData] = useState<BusinessModelAnalysisData | null>(initialData ?? null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"summary" | "operations" | "assumptions" | "tech" | "revenue" | "disruption" | "reinvented">("summary");
 
