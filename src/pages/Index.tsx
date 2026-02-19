@@ -103,7 +103,7 @@ export default function Index() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(sampleProducts[0]);
   const [expandedSection, setExpandedSection] = useState<string>("discovery");
   const [analysisParams, setAnalysisParams] = useState<{
-    category: string; era: string; audience: string; batchSize: number;
+    category: string; era: string; batchSize: number;
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -111,16 +111,16 @@ export default function Index() {
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
 
-  const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; audience: string; batchSize: number }) => {
+  const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; batchSize: number }) => {
     try {
       const avgScore = liveProducts.reduce((acc, p) => acc + p.revivalScore, 0) / liveProducts.length;
-      const title = `${params.era} ${params.category} · ${params.audience}`;
+      const title = `${params.era} ${params.category}`;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any).insert({
         title,
         category: params.category,
         era: params.era,
-        audience: params.audience,
+        audience: "",
         batch_size: params.batchSize,
         products: JSON.parse(JSON.stringify(liveProducts)),
         product_count: liveProducts.length,
@@ -133,10 +133,10 @@ export default function Index() {
     }
   }, []);
 
-  const handleLoadSaved = useCallback((analysis: { products: Product[]; category: string; era: string; audience: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string }) => {
+  const handleLoadSaved = useCallback((analysis: { products: Product[]; category: string; era: string; audience?: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string }) => {
     setProducts(analysis.products);
     setSelectedProduct(analysis.products[0] || null);
-    setAnalysisParams({ category: analysis.category, era: analysis.era, audience: analysis.audience, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
+    setAnalysisParams({ category: analysis.category, era: analysis.era, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
     setExpandedSection("discovery");
     setDetailTab("overview");
     setStep("done");
@@ -151,7 +151,7 @@ export default function Index() {
   };
 
   const handleAnalyze = async (params: {
-    category: string; era: string; audience: string; batchSize: number;
+    category: string; era: string; batchSize: number;
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
   }) => {
     const { customProducts, ...baseParams } = params;
@@ -160,7 +160,7 @@ export default function Index() {
     setErrorMsg("");
     const hasCustom = customProducts && customProducts.length > 0;
     setStepMessage(hasCustom
-      ? `Scraping custom product data + eBay, Etsy, Reddit, Google, TikTok for ${params.era} ${params.category}…`
+      ? `Scraping custom product data + eBay, Etsy, Reddit, Google, TikTok…`
       : `Searching eBay, Etsy, Reddit, Google, TikTok for ${params.era} ${params.category}…`
     );
 
@@ -186,7 +186,6 @@ export default function Index() {
             sources: scrapeData.sources,
             category: params.category,
             era: params.era,
-            audience: params.audience,
             batchSize: params.batchSize,
             customProducts: customProducts?.map(cp => ({
               productName: cp.productName,
@@ -230,8 +229,7 @@ export default function Index() {
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: {
           product,
-          audience: analysisParams.audience,
-          additionalContext: `Focus on ${analysisParams.era} nostalgia and ${analysisParams.category} market trends for ${analysisParams.audience}.`,
+          additionalContext: `Focus on ${analysisParams.era} nostalgia and ${analysisParams.category} market trends.`,
         },
       });
 
