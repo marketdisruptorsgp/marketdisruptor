@@ -103,6 +103,7 @@ export default function Index() {
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>(sampleProducts);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(sampleProducts[0]);
+  const [businessAnalysisData, setBusinessAnalysisData] = useState<unknown>(null);
   const [expandedSection, setExpandedSection] = useState<string>("discovery");
   const [analysisParams, setAnalysisParams] = useState<{
     category: string; era: string; batchSize: number;
@@ -311,7 +312,14 @@ export default function Index() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
-        <AnalysisForm onAnalyze={handleAnalyze} isLoading={isLoading} />
+        <AnalysisForm
+          onAnalyze={handleAnalyze}
+          isLoading={isLoading}
+          onBusinessAnalysis={(data) => {
+            setBusinessAnalysisData(data);
+            toggleSection("businessmodel");
+          }}
+        />
 
         {/* LOADING */}
         {isLoading && (
@@ -1051,7 +1059,7 @@ export default function Index() {
           expanded={expandedSection === "businessmodel"}
           onToggle={() => toggleSection("businessmodel")}
         >
-          <BusinessModelAnalysis />
+          <BusinessModelAnalysis initialData={businessAnalysisData as never} />
         </SectionAccordion>
 
         {/* SAVED ANALYSES */}

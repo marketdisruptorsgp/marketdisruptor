@@ -1,5 +1,7 @@
 import { useState, useRef } from "react";
-import { Sparkles, ChevronDown, Upload, Link, X, Image as ImageIcon, Plus, Telescope } from "lucide-react";
+import { Sparkles, ChevronDown, Upload, Link, X, Image as ImageIcon, Plus, Telescope, Building2, Brain, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CustomProductInput {
   imageFile?: File;
@@ -16,6 +18,7 @@ interface AnalysisFormProps {
     batchSize: number;
     customProducts?: CustomProductInput[];
   }) => void;
+  onBusinessAnalysis?: (data: unknown) => void;
   isLoading: boolean;
 }
 
@@ -28,9 +31,26 @@ const ERAS = [
   "70s", "80s", "80s–90s", "90s", "2000s", "All Eras / Current",
 ];
 
-type Mode = "discover" | "custom";
+type Mode = "discover" | "custom" | "business";
 
-export const AnalysisForm = ({ onAnalyze, isLoading }: AnalysisFormProps) => {
+interface BusinessInput {
+  type: string;
+  description: string;
+  revenueModel: string;
+  size: string;
+  geography: string;
+  painPoints: string;
+  notes: string;
+}
+
+const BUSINESS_EXAMPLES = [
+  "Laundromat", "Car wash", "Dry cleaner", "Storage facility", "Food truck",
+  "Restaurant", "Gym / Fitness studio", "Cleaning service", "Landscaping company",
+  "Distributor / Wholesaler", "Staffing agency", "Freight broker", "Import/Export business",
+  "Accounting firm", "Law firm", "Real estate agency", "HVAC company", "Auto repair shop",
+];
+
+export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: AnalysisFormProps) => {
   const [mode, setMode] = useState<Mode>("discover");
   const [category, setCategory] = useState("Toys & Games");
   const [era, setEra] = useState("80s–90s");
@@ -38,6 +58,10 @@ export const AnalysisForm = ({ onAnalyze, isLoading }: AnalysisFormProps) => {
   const [customProducts, setCustomProducts] = useState<CustomProductInput[]>([{}]);
   const [activeInputTab, setActiveInputTab] = useState<"url" | "image">("url");
   const fileRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [businessInput, setBusinessInput] = useState<BusinessInput>({
+    type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "",
+  });
+  const [businessLoading, setBusinessLoading] = useState(false);
 
   const hasCustomProducts = customProducts.some(
     (cp) => cp.imageDataUrl || cp.productUrl || cp.productName
@@ -83,6 +107,30 @@ export const AnalysisForm = ({ onAnalyze, isLoading }: AnalysisFormProps) => {
     setCustomProducts((prev) => [...prev, {}]);
   };
 
+  const runBusinessAnalysis = async () => {
+    if (!businessInput.type.trim() || !businessInput.description.trim()) {
+      toast.error("Please enter the business type and a description.");
+      return;
+    }
+    setBusinessLoading(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke("business-model-analysis", {
+        body: { businessModel: businessInput },
+      });
+      if (error || !result?.success) {
+        const msg = result?.error || error?.message || "Analysis failed";
+        toast.error("Business model analysis failed: " + msg);
+        return;
+      }
+      onBusinessAnalysis?.(result.analysis);
+      toast.success("Business model analysis complete!");
+    } catch (err) {
+      toast.error("Unexpected error: " + String(err));
+    } finally {
+      setBusinessLoading(false);
+    }
+  };
+
   const inputStyle = {
     border: "1.5px solid hsl(var(--border))",
     background: "hsl(var(--background))",
@@ -94,26 +142,29 @@ export const AnalysisForm = ({ onAnalyze, isLoading }: AnalysisFormProps) => {
       <div>
         <h2 className="text-xl font-bold text-foreground mb-1">Configure Analysis</h2>
         <p className="text-sm text-muted-foreground">Choose how you want to find product opportunities.</p>
+
       </div>
 
       {/* Mode Switcher */}
-      <div className="flex gap-2 p-1 rounded-xl w-full sm:w-auto" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+      <div className="flex gap-1 p-1 rounded-xl w-full" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
         {([
           { id: "discover" as Mode, label: "Discover by Category", icon: Telescope },
           { id: "custom" as Mode, label: "Analyze My Products", icon: Upload },
+          { id: "business" as Mode, label: "Analyze Business Model", icon: Building2 },
         ]).map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
             onClick={() => setMode(id)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all flex-1 justify-center"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all flex-1 justify-center"
             style={{
               background: mode === id ? "hsl(var(--primary))" : "transparent",
               color: mode === id ? "white" : "hsl(var(--muted-foreground))",
             }}
           >
-            <Icon size={14} />
-            {label}
+            <Icon size={13} />
+            <span className="hidden sm:inline">{label}</span>
+            <span className="sm:hidden">{label.split(" ").slice(0, 2).join(" ")}</span>
           </button>
         ))}
       </div>
@@ -300,28 +351,124 @@ export const AnalysisForm = ({ onAnalyze, isLoading }: AnalysisFormProps) => {
         </div>
       )}
 
-      <div className="flex items-center gap-3">
-        <button type="submit" disabled={isLoading} className="btn-primary flex items-center gap-2">
-          {isLoading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Analyzing...
-            </>
-          ) : (
-            <>
-              <Sparkles size={16} />
-              {mode === "custom" && hasCustomProducts
-                ? "Analyze My Products"
-                : `Run Product Intelligence Analysis`}
-            </>
-          )}
-        </button>
-        <p className="text-xs text-muted-foreground">
-          {mode === "discover"
-            ? `Processes ${batchSize} products · Assigns Revival Scores · Generates Flipped Ideas`
-            : `Analyzes ${customProducts.filter(cp => cp.imageDataUrl || cp.productUrl || cp.productName).length || 1} product(s) · Deep custom intelligence report`}
-        </p>
-      </div>
+      {/* MODE C — Analyze Business Model */}
+      {mode === "business" && (
+        <div className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Deconstruct any business model with first-principles reasoning — uncover hidden friction, automation opportunities, and reinvention paths.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Business Type *</label>
+              <input
+                type="text"
+                value={businessInput.type}
+                onChange={(e) => setBusinessInput((p) => ({ ...p, type: e.target.value }))}
+                placeholder="e.g. Laundromat, Freight broker, Law firm…"
+                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                style={inputStyle}
+                list="business-examples"
+              />
+              <datalist id="business-examples">
+                {BUSINESS_EXAMPLES.map((ex) => <option key={ex} value={ex} />)}
+              </datalist>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Revenue Model</label>
+              <input
+                type="text"
+                value={businessInput.revenueModel}
+                onChange={(e) => setBusinessInput((p) => ({ ...p, revenueModel: e.target.value }))}
+                placeholder="e.g. Per-use, monthly contract, hourly…"
+                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Business Description *</label>
+            <textarea
+              value={businessInput.description}
+              onChange={(e) => setBusinessInput((p) => ({ ...p, description: e.target.value }))}
+              placeholder="Describe how the business works today — how customers find you, how transactions happen, what the service/product is, how it's delivered…"
+              rows={3}
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none resize-none"
+              style={inputStyle}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Size / Scale</label>
+              <input type="text" value={businessInput.size}
+                onChange={(e) => setBusinessInput((p) => ({ ...p, size: e.target.value }))}
+                placeholder="e.g. $500k/yr, 10 employees"
+                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Geography</label>
+              <input type="text" value={businessInput.geography}
+                onChange={(e) => setBusinessInput((p) => ({ ...p, geography: e.target.value }))}
+                placeholder="e.g. Suburban US, regional…"
+                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Known Pain Points</label>
+              <input type="text" value={businessInput.painPoints}
+                onChange={(e) => setBusinessInput((p) => ({ ...p, painPoints: e.target.value }))}
+                placeholder="e.g. High labor costs, low margins…"
+                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Additional Context (optional)</label>
+            <input type="text" value={businessInput.notes}
+              onChange={(e) => setBusinessInput((p) => ({ ...p, notes: e.target.value }))}
+              placeholder="Competitive dynamics, owner goals, history…"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={runBusinessAnalysis}
+              disabled={businessLoading || !businessInput.type.trim() || !businessInput.description.trim()}
+              className="btn-primary flex items-center gap-2"
+              style={{ opacity: (businessLoading || !businessInput.type.trim() || !businessInput.description.trim()) ? 0.6 : 1 }}
+            >
+              {businessLoading ? (
+                <><RefreshCw size={15} className="animate-spin" /> Deconstructing…</>
+              ) : (
+                <><Brain size={15} /> Run Business Model Analysis</>
+              )}
+            </button>
+            <p className="text-xs text-muted-foreground">7 strategic dimensions · ~20–40 seconds</p>
+          </div>
+        </div>
+      )}
+
+      {mode !== "business" && (
+        <div className="flex items-center gap-3">
+          <button type="submit" disabled={isLoading} className="btn-primary flex items-center gap-2">
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles size={16} />
+                {mode === "custom" && hasCustomProducts
+                  ? "Analyze My Products"
+                  : `Run Product Intelligence Analysis`}
+              </>
+            )}
+          </button>
+          <p className="text-xs text-muted-foreground">
+            {mode === "discover"
+              ? `Processes ${batchSize} products · Assigns Revival Scores · Generates Flipped Ideas`
+              : `Analyzes ${customProducts.filter(cp => cp.imageDataUrl || cp.productUrl || cp.productName).length || 1} product(s) · Deep custom intelligence report`}
+          </p>
+        </div>
+      )}
     </form>
   );
 };
