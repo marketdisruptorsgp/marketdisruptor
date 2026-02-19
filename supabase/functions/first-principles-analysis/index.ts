@@ -145,7 +145,7 @@ Return ONLY the JSON object.`;
           { role: "user", content: userPrompt },
         ],
         temperature: 0.9,
-        max_tokens: 4000,
+        max_tokens: 8000,
       }),
     });
 
@@ -169,16 +169,26 @@ Return ONLY the JSON object.`;
     const aiData = await response.json();
     const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
 
-    const cleaned = rawText
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```$/, "")
+    // Robust JSON extraction: strip markdown fences, then find first { to last }
+    let cleaned = rawText
+      .replace(/^```(?:json)?\s*/im, "")
+      .replace(/\s*```\s*$/m, "")
       .trim();
+
+    // Find the outermost JSON object in case there's any preamble text
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+    }
 
     let analysis;
     try {
       analysis = JSON.parse(cleaned);
-    } catch {
-      console.error("JSON parse failed:", cleaned.slice(0, 300));
+    } catch (parseErr) {
+      console.error("JSON parse failed:", parseErr);
+      console.error("Raw content (first 500):", cleaned.slice(0, 500));
+      // Last resort: try to fix common truncation by attempting a partial parse
       throw new Error("AI returned invalid JSON. Please retry.");
     }
 
