@@ -90,7 +90,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { rawContent, redditContent, complaintsContent, sources, category, era, audience, batchSize, customProducts } = await req.json();
+    const { rawContent, redditContent, complaintsContent, sources, category, era, batchSize, customProducts } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -234,7 +234,7 @@ CRITICAL RULES:
         ).join("\n")}`
       : "";
 
-    const userPrompt = `Analyze this scraped content about ${eraLabel(era)}${category} products for the ${audience} market.${customProductsContext}
+    const userPrompt = `Analyze this scraped content about ${eraLabel(era)}${category} products.${customProductsContext}
 
 Go DEEP — I need:
 1. Real Reddit community sentiment (what people love, hate, want fixed)

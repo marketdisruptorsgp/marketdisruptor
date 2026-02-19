@@ -16,7 +16,6 @@ interface CustomProduct {
 interface ScrapeRequest {
   category: string;
   era: string;
-  audience: string;
   batchSize: number;
   customProducts?: CustomProduct[];
 }
@@ -80,7 +79,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { category, era, audience, batchSize, customProducts }: ScrapeRequest = await req.json();
+    const { category, era, batchSize, customProducts }: ScrapeRequest = await req.json();
 
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
     if (!FIRECRAWL_API_KEY) {
@@ -96,7 +95,7 @@ serve(async (req) => {
     const queries = [
       `${eraLabel}${category} vintage discontinued products eBay collector value price sold`,
       `site:reddit.com ${eraLabel}${category} nostalgia review complaints "wish they would bring back"`,
-      `${eraLabel}${category} product reviews complaints improvement requests ${audience} nostalgia 2023 2024`,
+      `${eraLabel}${category} product reviews complaints improvement requests nostalgia 2023 2024`,
       `${eraLabel}${category} Etsy vintage products trending handmade revival`,
       `${eraLabel}${category} competitor analysis market trends "best selling" "discontinued" site:amazon.com OR site:ebay.com`,
       `site:reddit.com ${eraLabel}${category} "what happened to" OR "bring back" OR "miss this" community discussion`,
