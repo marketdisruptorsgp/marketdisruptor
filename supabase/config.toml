@@ -1,1 +1,10 @@
 project_id = "vocwbcoocohezvzmjald"
+
+[functions.scrape-products]
+verify_jwt = false
+
+[functions.analyze-products]
+verify_jwt = false
+
+[functions.generate-flip-ideas]
+verify_jwt = false
