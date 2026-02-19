@@ -12,22 +12,22 @@ serve(async (req) => {
   try {
     const { ideaName, description, visualNotes, productName } = await req.json();
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const prompt = `Product concept mockup image: "${ideaName}" — inspired by the classic product "${productName}". 
 Visual style: ${visualNotes || description}. 
 Create a clean, professional product concept render. Show the physical product in a lifestyle or studio context. 
 Modern redesign aesthetic, high quality render, white or gradient background, commercial product photography style.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
+        model: "gemini-2.0-flash-preview-image-generation",
         messages: [{ role: "user", content: prompt }],
         modalities: ["image", "text"],
       }),
