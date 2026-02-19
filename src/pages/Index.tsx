@@ -201,7 +201,17 @@ export default function Index() {
       );
 
       if (analyzeError || !analyzeData?.success) {
-        throw new Error(analyzeData?.error || analyzeError?.message || "Analysis failed");
+        // Try to extract the real error message from the response context
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const context = (analyzeError as any)?.context;
+        let detailedMsg = analyzeData?.error || analyzeError?.message || "Analysis failed";
+        if (context) {
+          try {
+            const parsed = typeof context === "string" ? JSON.parse(context) : await context.json?.();
+            if (parsed?.error) detailedMsg = parsed.error;
+          } catch { /* ignore parse errors */ }
+        }
+        throw new Error(detailedMsg);
       }
 
       const liveProducts: Product[] = analyzeData.products;
