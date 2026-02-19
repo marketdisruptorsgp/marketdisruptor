@@ -6,11 +6,19 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+interface CustomProduct {
+  imageDataUrl?: string;
+  productUrl?: string;
+  productName?: string;
+  notes?: string;
+}
+
 interface ScrapeRequest {
   category: string;
   era: string;
   audience: string;
   batchSize: number;
+  customProducts?: CustomProduct[];
 }
 
 async function firecrawlSearch(query: string, apiKey: string, limit = 5) {
@@ -72,7 +80,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { category, era, audience, batchSize }: ScrapeRequest = await req.json();
+    const { category, era, audience, batchSize, customProducts }: ScrapeRequest = await req.json();
 
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
     if (!FIRECRAWL_API_KEY) {
@@ -86,31 +94,66 @@ serve(async (req) => {
     
     // Deep intelligence queries covering competitor data, community sentiment, complaints, pricing
     const queries = [
-      // Core product discovery
       `${eraLabel}${category} vintage discontinued products eBay collector value price sold`,
-      // Reddit community sentiment & reviews
       `site:reddit.com ${eraLabel}${category} nostalgia review complaints "wish they would bring back"`,
-      // Google community discussions + complaints
       `${eraLabel}${category} product reviews complaints improvement requests ${audience} nostalgia 2023 2024`,
-      // Etsy / vintage market
       `${eraLabel}${category} Etsy vintage products trending handmade revival`,
-      // Competitor & market landscape
       `${eraLabel}${category} competitor analysis market trends "best selling" "discontinued" site:amazon.com OR site:ebay.com`,
-      // Reddit subreddit deep dives
       `site:reddit.com ${eraLabel}${category} "what happened to" OR "bring back" OR "miss this" community discussion`,
-      // TikTok / social sentiment
       `${eraLabel}${category} TikTok viral nostalgia trend "going viral" "gen z" "millennial" 2024`,
-      // Pricing & supplier intel
       `${eraLabel}${category} wholesale supplier manufacturer alibaba minimum order quantity`,
     ];
 
-    console.log(`Running ${queries.length} Firecrawl searches for: ${eraLabel}${category}`);
+    // If custom products/URLs supplied, add targeted searches for them
+    const customSearches: string[] = [];
+    const customScrapedContent: string[] = [];
+    
+    if (customProducts && customProducts.length > 0) {
+      for (const cp of customProducts) {
+        if (cp.productName) {
+          customSearches.push(`"${cp.productName}" product reviews price history suppliers eBay sold`);
+          customSearches.push(`site:reddit.com "${cp.productName}" community sentiment review complaints`);
+        }
+        // Directly scrape custom URLs
+        if (cp.productUrl) {
+          try {
+            const scrapeRes = await fetch("https://api.firecrawl.dev/v1/scrape", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                url: cp.productUrl,
+                formats: ["markdown", "links"],
+              }),
+            });
+            if (scrapeRes.ok) {
+              const scrapeJson = await scrapeRes.json();
+              const md = scrapeJson?.data?.markdown || scrapeJson?.markdown || "";
+              if (md) {
+                customScrapedContent.push(`## Custom Product URL: ${cp.productUrl}\nProduct: ${cp.productName || "Unknown"}\nNotes: ${cp.notes || "None"}\n\n${md.slice(0, 3000)}`);
+              }
+            }
+          } catch (e) {
+            console.error("Failed to scrape custom URL:", cp.productUrl, e);
+          }
+        }
+        // Include image data URL context in the analysis context
+        if (cp.imageDataUrl) {
+          customScrapedContent.push(`## Custom Product Image Provided\nProduct: ${cp.productName || "Unknown"}\nNotes: ${cp.notes || "None"}\n[User uploaded a product image for analysis]`);
+        }
+      }
+    }
+
+    const allQueries = [...queries, ...customSearches];
+    console.log(`Running ${allQueries.length} Firecrawl searches for: ${eraLabel}${category}`);
 
     const searchResults = await Promise.allSettled(
-      queries.map((q) => firecrawlSearch(q, FIRECRAWL_API_KEY, Math.max(3, Math.ceil(batchSize / queries.length))))
+      allQueries.map((q) => firecrawlSearch(q, FIRECRAWL_API_KEY, Math.max(3, Math.ceil(batchSize / allQueries.length))))
     );
 
-    const allMarkdown: string[] = [];
+    const allMarkdown: string[] = [...customScrapedContent];
     const sources: { label: string; url: string }[] = [];
     const redditPosts: string[] = [];
     const complaintSignals: string[] = [];

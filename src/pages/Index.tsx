@@ -9,6 +9,7 @@ import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
+import { PitchDeck } from "@/components/PitchDeck";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -47,6 +48,7 @@ import {
   Heart,
   ShieldAlert,
   Brain,
+  Presentation,
 } from "lucide-react";
 
 const STEPS = [
@@ -105,7 +107,7 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "firstprinciples">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "firstprinciples" | "pitchdeck">("overview");
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -150,16 +152,22 @@ export default function Index() {
 
   const handleAnalyze = async (params: {
     category: string; era: string; audience: string; batchSize: number;
+    customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
   }) => {
-    setAnalysisParams(params);
+    const { customProducts, ...baseParams } = params;
+    setAnalysisParams(baseParams);
     setStep("scraping");
     setErrorMsg("");
-    setStepMessage(`Searching eBay, Etsy, Reddit, Google, TikTok for ${params.era} ${params.category}…`);
+    const hasCustom = customProducts && customProducts.length > 0;
+    setStepMessage(hasCustom
+      ? `Scraping custom product data + eBay, Etsy, Reddit, Google, TikTok for ${params.era} ${params.category}…`
+      : `Searching eBay, Etsy, Reddit, Google, TikTok for ${params.era} ${params.category}…`
+    );
 
     try {
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
         "scrape-products",
-        { body: params }
+        { body: { ...baseParams, customProducts } }
       );
       if (scrapeError || !scrapeData?.success) {
         throw new Error(scrapeData?.error || scrapeError?.message || "Scraping failed");
@@ -180,6 +188,12 @@ export default function Index() {
             era: params.era,
             audience: params.audience,
             batchSize: params.batchSize,
+            customProducts: customProducts?.map(cp => ({
+              productName: cp.productName,
+              productUrl: cp.productUrl,
+              notes: cp.notes,
+              hasImage: !!cp.imageDataUrl,
+            })),
           },
         }
       );
@@ -417,7 +431,7 @@ export default function Index() {
                 <div className="space-y-6">
                   {/* Tab nav */}
                   <div className="flex flex-wrap gap-2 border-b pb-4" style={{ borderColor: "hsl(var(--border))" }}>
-                    {([
+                     {([
                       { id: "overview", label: "Overview", icon: Target },
                       { id: "community", label: "Community Intel", icon: Users },
                       { id: "pricing", label: "Pricing Intel", icon: DollarSign },
@@ -425,6 +439,7 @@ export default function Index() {
                       { id: "action", label: "Action Plan", icon: Rocket },
                       { id: "ideas", label: "Flipped Ideas", icon: Zap },
                       { id: "firstprinciples", label: "First Principles", icon: Brain },
+                      { id: "pitchdeck", label: "Pitch Deck", icon: Presentation },
                     ] as const).map(({ id, label, icon: Icon }) => (
                       <button
                         key={id}
@@ -1014,6 +1029,11 @@ export default function Index() {
                   {/* TAB: FIRST PRINCIPLES */}
                   {detailTab === "firstprinciples" && (
                     <FirstPrinciplesAnalysis product={selectedProduct} />
+                  )}
+
+                  {/* TAB: PITCH DECK */}
+                  {detailTab === "pitchdeck" && (
+                    <PitchDeck product={selectedProduct} />
                   )}
 
                 </div>
