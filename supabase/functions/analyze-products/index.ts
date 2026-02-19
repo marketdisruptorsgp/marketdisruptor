@@ -234,6 +234,12 @@ CRITICAL RULES:
         ).join("\n")}`
       : "";
 
+    // Trim inputs to prevent timeout — keep total prompt under ~25K chars
+    const trimmedRaw = (rawContent || "").slice(0, 12000);
+    const trimmedReddit = (redditContent || "").slice(0, 3000);
+    const trimmedComplaints = (complaintsContent || "").slice(0, 2000);
+    const trimmedSources = (sources || []).slice(0, 15);
+
     const userPrompt = `Analyze this scraped content about ${eraLabel(era)}${category} products.${customProductsContext}
 
 Go DEEP — I need:
@@ -246,16 +252,16 @@ Go DEEP — I need:
 ${customProducts?.length ? "7. IMPORTANT: Include ALL custom products the user uploaded/provided as top-priority analyses" : ""}
 
 MAIN SCRAPED CONTENT (eBay, Etsy, Google, TikTok):
-${rawContent}
+${trimmedRaw}
 
 REDDIT COMMUNITY POSTS (sentiment, complaints, discussions):
-${redditContent || "No Reddit content available"}
+${trimmedReddit || "No Reddit content available"}
 
 COMMUNITY COMPLAINTS & IMPROVEMENT REQUESTS:
-${complaintsContent || "No complaint signals found"}
+${trimmedComplaints || "No complaint signals found"}
 
 DISCOVERED SOURCES:
-${sources.map((s: { label: string; url: string }) => `- ${s.label}: ${s.url}`).join("\n")}
+${trimmedSources.map((s: { label: string; url: string }) => `- ${s.label}: ${s.url}`).join("\n")}
 
 Return ONLY a JSON array. Be specific, cite real companies, real prices, real platforms. Make flippedIdeas address real community pain points.`;
 
@@ -274,7 +280,7 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
           { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 14000,
+        max_tokens: 8000,
       }),
     });
 
