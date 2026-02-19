@@ -15,24 +15,33 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are an expert product innovation strategist who specializes in taking existing or discontinued products and "flipping" their core assumptions to create breakthrough product ideas.
+    const systemPrompt = `You are an expert product innovation strategist and venture market analyst who specializes in taking existing or discontinued products and "flipping" their core assumptions to create breakthrough, commercially viable product ideas.
 
-Your job is to challenge every assumption about how a product is designed, who it's for, how it's priced, and how it's used — then generate 3 bold, commercially viable new product concepts.
+Your flipped ideas must be BOLD, SPECIFIC, and ACTIONABLE — not vague concepts. Include real BOM estimates, real manufacturer sources, real distribution channels, and a concrete 3-phase action plan for each idea.
 
 Respond with ONLY a valid JSON array of flipped idea objects (no markdown, no explanation).
 
-Each object must follow this exact structure:
+Each object must follow this EXACT structure:
 {
   "name": "Short catchy product name",
-  "description": "2-3 sentence concept pitch",
-  "visualNotes": "Physical design, materials, color, form factor notes",
-  "reasoning": "Market + emotional + user psychology reasoning (2-3 sentences)",
-  "feasibilityNotes": "Manufacturing cost, BOM estimate, supply chain, tech required",
+  "description": "2-3 sentence concept pitch with specific details (price point, target user, key differentiator)",
+  "visualNotes": "Physical design, materials, color, form factor, packaging notes — be specific",
+  "reasoning": "Market + emotional + user psychology reasoning with specific data points (2-3 sentences)",
+  "feasibilityNotes": "BOM estimate ($X–$Y), specific manufacturer (name the factory/platform), tech required, MOQ, retail margin",
   "scores": {"feasibility": 8, "desirability": 9, "profitability": 7, "novelty": 9},
-  "risks": "Key risks and how to mitigate them"
+  "risks": "Specific risks with named mitigation strategies",
+  "actionPlan": {
+    "phase1": "First 60 days: 3-4 specific actions with platforms/vendors named",
+    "phase2": "Month 3-6: scale actions with specific channels and metrics",
+    "phase3": "Month 7-18: growth and distribution actions",
+    "timeline": "X months to market",
+    "estimatedInvestment": "$X–$Y",
+    "revenueProjection": "$X ARR at Y units/subscribers in year 1",
+    "channels": ["TikTok Shop", "Amazon FBA", "Shopify DTC", "Kickstarter"]
+  }
 }`;
 
-    const userPrompt = `Generate 3 bold, commercially viable "flipped" product ideas for this product:
+    const userPrompt = `Generate 3 bold, commercially viable "flipped" product ideas for this product.
 
 PRODUCT: ${product.name}
 CATEGORY: ${product.category}
@@ -40,20 +49,30 @@ DESCRIPTION: ${product.description}
 SPECS: ${product.specs}
 ERA: ${product.era}
 TARGET AUDIENCE: ${audience}
+MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
+KEY INSIGHT: ${product.keyInsight || ""}
+
+CURRENT PRICING:
+${product.pricingIntel ? `- Market: ${product.pricingIntel.currentMarketPrice}\n- eBay avg: ${product.pricingIntel.ebayAvgSold}\n- Trend: ${product.pricingIntel.priceDirection}` : "See description"}
 
 CURRENT ASSUMPTIONS TO CHALLENGE:
-${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption}`).join("\n") || "All design, pricing, audience, and usage assumptions"}
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption} → ${a.challenge}`).join("\n") || "All design, pricing, audience, and usage assumptions"}
 
 KNOWN COMPLAINTS/PAIN POINTS:
 ${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => `• ${r.text}`).join("\n") || "General usability and cost concerns"}
 
+TREND CONTEXT:
+${product.trendAnalysis || "Nostalgia-driven market with modern tech expectations"}
+
 ADDITIONAL CONTEXT: ${additionalContext || "Focus on modern market opportunities and emerging consumer trends."}
 
 Rules:
-- Make ideas bold and specific (not vague)
-- Include realistic BOM/cost estimates
+- Make ideas BOLD and SPECIFIC (name real manufacturers, real platforms, real price points)
+- Include BOM cost estimates referencing real supplier categories (Alibaba, Shenzhen factories, etc.)
 - Score all fields as integers 1-10
-- Think about: material inversion, audience flip, pricing model inversion, usage context flip, technology substitution
+- Think about: material inversion, audience flip, pricing model inversion, usage context flip, tech substitution, subscription vs. one-time
+- actionPlan quickWins should be executable THIS WEEK with under $1K
+- Revenue projections must be realistic and math-backed (units × price - COGS)
 
 Return ONLY a JSON array with exactly 3 flipped idea objects.`;
 
@@ -70,7 +89,7 @@ Return ONLY a JSON array with exactly 3 flipped idea objects.`;
           { role: "user", content: userPrompt },
         ],
         temperature: 0.85,
-        max_tokens: 3000,
+        max_tokens: 5000,
       }),
     });
 

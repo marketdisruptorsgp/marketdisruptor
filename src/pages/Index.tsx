@@ -20,12 +20,23 @@ import {
   ExternalLink,
   MessageSquare,
   TrendingUp,
+  TrendingDown,
   ChevronDown,
   ChevronUp,
   Sparkles,
   RefreshCw,
   Globe,
   AlertCircle,
+  DollarSign,
+  Package,
+  Store,
+  Truck,
+  Factory,
+  Rocket,
+  CheckCircle2,
+  Clock,
+  Minus,
+  Lightbulb,
 } from "lucide-react";
 
 const STEPS = [
@@ -37,24 +48,54 @@ const STEPS = [
   { icon: BarChart3, label: "Output & Score" },
 ];
 
-type AnalysisStep =
-  | "idle"
-  | "scraping"
-  | "analyzing"
-  | "done"
-  | "error";
+type AnalysisStep = "idle" | "scraping" | "analyzing" | "done" | "error";
+
+const FALLBACK_IMAGES: Record<string, string> = {
+  "Electronic Toys": "https://images.unsplash.com/photo-1566240258998-c85da43741f2?w=600&h=400&fit=crop",
+  "Instant Photography": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=400&fit=crop",
+  "Photography": "https://images.unsplash.com/photo-1495745966610-2a67f2297e5e?w=600&h=400&fit=crop",
+  "Gaming Hardware": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=400&fit=crop",
+  "Construction Toys": "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600&h=400&fit=crop",
+  "Fashion": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=400&fit=crop",
+  "Kitchen": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop",
+  "Music": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&h=400&fit=crop",
+  "default": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=400&fit=crop",
+};
+
+function getFallback(category: string) {
+  return FALLBACK_IMAGES[category] || FALLBACK_IMAGES["default"];
+}
+
+function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
+  if (trend === "up") return (
+    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-green-600">
+      <TrendingUp size={9} /> Rising
+    </span>
+  );
+  if (trend === "down") return (
+    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-500">
+      <TrendingDown size={9} /> Falling
+    </span>
+  );
+  return (
+    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-yellow-600">
+      <Minus size={9} /> Stable
+    </span>
+  );
+}
 
 export default function Index() {
   const [step, setStep] = useState<AnalysisStep>("idle");
   const [stepMessage, setStepMessage] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>(sampleProducts);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(sampleProducts[0]);
   const [expandedSection, setExpandedSection] = useState<string>("discovery");
   const [analysisParams, setAnalysisParams] = useState<{
     category: string; era: string; audience: string; batchSize: number;
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas">("overview");
 
   const handleAnalyze = async (params: {
     category: string; era: string; audience: string; batchSize: number;
@@ -65,7 +106,6 @@ export default function Index() {
     setStepMessage(`Searching eBay, Etsy, Reddit, TikTok for ${params.era} ${params.category}…`);
 
     try {
-      // Step 1: Scrape
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
         "scrape-products",
         { body: params }
@@ -74,9 +114,8 @@ export default function Index() {
         throw new Error(scrapeData?.error || scrapeError?.message || "Scraping failed");
       }
 
-      // Step 2: Analyze with AI
       setStep("analyzing");
-      setStepMessage("AI analyzing content and generating product intelligence…");
+      setStepMessage("AI building deep product intelligence: pricing, supply chain, trends, action plans…");
 
       const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke(
         "analyze-products",
@@ -102,8 +141,9 @@ export default function Index() {
       setProducts(liveProducts);
       setSelectedProduct(liveProducts[0]);
       setExpandedSection("discovery");
+      setDetailTab("overview");
       setStep("done");
-      toast.success(`Found ${liveProducts.length} products with ${liveProducts.reduce((a, p) => a + (p.flippedIdeas?.length || 0), 0)} flip ideas!`);
+      toast.success(`Found ${liveProducts.length} products with deep intelligence reports!`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Analysis pipeline error:", msg);
@@ -151,6 +191,7 @@ export default function Index() {
     setExpandedSection(expandedSection === section ? "" : section);
 
   const isLoading = step === "scraping" || step === "analyzing";
+  const showResults = step === "done" || (step === "idle" && products.length > 0);
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
@@ -158,7 +199,7 @@ export default function Index() {
       <header className="relative overflow-hidden">
         <div className="absolute inset-0">
           <img src={heroBanner} alt="Product Intelligence AI" className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ background: "hsl(220 20% 5% / 0.72)" }} />
+          <div className="absolute inset-0" style={{ background: "hsl(220 20% 5% / 0.75)" }} />
         </div>
         <div className="relative z-10 max-w-6xl mx-auto px-4 py-16 sm:py-24">
           <div className="flex items-center gap-2 mb-4">
@@ -175,11 +216,11 @@ export default function Index() {
           </div>
           <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4 max-w-3xl">
             Discover, Deconstruct &{" "}
-            <span style={{ color: "hsl(var(--primary-light))" }}>Flip</span> Products
+            <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize</span>
           </h1>
           <p className="text-lg text-white/70 max-w-2xl leading-relaxed">
-            Real-time web intelligence from eBay, Etsy, Reddit & more — powered by Firecrawl + Gemini AI
-            to find high-value innovation opportunities.
+            Deep market intelligence from eBay, Etsy, Reddit & more — pricing, suppliers, vendors,
+            action plans, and AI-generated innovation opportunities.
           </p>
           <div className="mt-10 flex flex-wrap gap-2">
             {STEPS.map((s, i) => {
@@ -201,10 +242,9 @@ export default function Index() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
-        {/* FORM */}
         <AnalysisForm onAnalyze={handleAnalyze} isLoading={isLoading} />
 
-        {/* LOADING STATE */}
+        {/* LOADING */}
         {isLoading && (
           <div className="card-intelligence p-10 flex flex-col items-center justify-center space-y-4">
             <div className="flex gap-1.5">
@@ -223,13 +263,13 @@ export default function Index() {
               </span>
               <span>→</span>
               <span className={`flex items-center gap-1 ${step === "analyzing" ? "text-blue-600 font-semibold" : "opacity-50"}`}>
-                <Sparkles size={12} /> Gemini AI Analysis
+                <Sparkles size={12} /> Deep AI Analysis
               </span>
             </div>
           </div>
         )}
 
-        {/* ERROR STATE */}
+        {/* ERROR */}
         {step === "error" && (
           <div
             className="p-6 rounded-xl flex items-start gap-4"
@@ -240,19 +280,19 @@ export default function Index() {
               <p className="font-semibold text-sm" style={{ color: "hsl(var(--destructive))" }}>Analysis Failed</p>
               <p className="text-sm text-muted-foreground mt-1">{errorMsg}</p>
               <p className="text-xs text-muted-foreground mt-2">
-                Tip: Try a more specific category or reduce batch size. Firecrawl searches real websites in real time.
+                Tip: Try a more specific category or reduce batch size. Showing sample data below.
               </p>
             </div>
           </div>
         )}
 
         {/* RESULTS */}
-        {step === "done" && products.length > 0 && (
+        {showResults && products.length > 0 && (
           <div className="space-y-6">
             {/* Stats bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { label: "Sources Scraped", value: products[0]?.sources?.length ? `${products.reduce((a, p) => a + (p.sources?.length || 0), 0)}` : "–", icon: Globe },
+                { label: "Sources Scraped", value: String(products.reduce((a, p) => a + (p.sources?.length || 0), 0)), icon: Globe },
                 { label: "Products Found", value: String(products.length), icon: Filter },
                 { label: "Flip Ideas", value: String(products.reduce((acc, p) => acc + (p.flippedIdeas?.length || 0), 0)), icon: Zap },
                 { label: "Avg Revival Score", value: (products.reduce((acc, p) => acc + p.revivalScore, 0) / products.length).toFixed(1) + "/10", icon: TrendingUp },
@@ -272,7 +312,7 @@ export default function Index() {
               })}
             </div>
 
-            {/* ── SECTION: DISCOVERY LIST ── */}
+            {/* DISCOVERY LIST */}
             <SectionAccordion
               id="discovery"
               title="Product Discovery List"
@@ -290,207 +330,496 @@ export default function Index() {
                     onClick={() => {
                       setSelectedProduct(product);
                       setExpandedSection("detail");
+                      setDetailTab("overview");
                     }}
                   />
                 ))}
               </div>
             </SectionAccordion>
 
-            {/* ── SECTION: SELECTED PRODUCT DETAIL ── */}
+            {/* PRODUCT DETAIL */}
             {selectedProduct && (
               <SectionAccordion
                 id="detail"
                 title={selectedProduct.name}
-                subtitle="Full deconstruction · Assumptions Map · Flipped Ideas · Confidence Scores"
+                subtitle="Deep intelligence · Pricing · Supply chain · Action plan · Flipped ideas"
                 icon={<Target size={16} style={{ color: "hsl(var(--primary))" }} />}
                 expanded={expandedSection === "detail"}
                 onToggle={() => toggleSection("detail")}
               >
-                <div className="space-y-8">
-                  {/* Product overview */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-1">
-                      <img
-                        src={selectedProduct.image}
-                        alt={selectedProduct.name}
-                        className="w-full rounded-xl object-cover h-52"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop";
-                        }}
-                      />
-                    </div>
-                    <div className="md:col-span-2 space-y-4">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="tag-pill">{selectedProduct.category}</span>
-                        <span className="tag-pill">{selectedProduct.era}</span>
-                        <RevivalScoreBadge score={selectedProduct.revivalScore} size="md" />
-                      </div>
-                      <p className="text-sm text-foreground/80 leading-relaxed">{selectedProduct.description}</p>
-                      <div className="text-xs px-3 py-2 rounded-lg font-mono" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
-                        Specs: {selectedProduct.specs}
-                      </div>
-
-                      {/* Sources */}
-                      <div>
-                        <p className="section-label text-[10px] mb-2">Live Data Sources</p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedProduct.sources?.map((src) => (
-                            <a
-                              key={src.url}
-                              href={src.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="source-link inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs"
-                              style={{ background: "hsl(var(--secondary))", border: "1px solid hsl(var(--border))" }}
-                            >
-                              <ExternalLink size={10} />
-                              {src.label?.slice(0, 40)}
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Confidence scores */}
-                      <div>
-                        <p className="section-label text-[10px] mb-3">Confidence Scores</p>
-                        <div className="grid grid-cols-1 gap-2">
-                          <ScoreBar label="Adoption Likelihood" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
-                          <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
-                          <ScoreBar label="Emotional Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Reviews + Social Signals */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                        <MessageSquare size={12} /> Reviews & Sentiment
-                      </p>
-                      <div className="space-y-2">
-                        {selectedProduct.reviews?.map((review, i) => (
-                          <div
-                            key={i}
-                            className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed"
-                            style={{ background: "hsl(var(--muted))" }}
-                          >
-                            <span
-                              className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                                review.sentiment === "positive"
-                                  ? "bg-green-500"
-                                  : review.sentiment === "negative"
-                                  ? "bg-red-500"
-                                  : "bg-yellow-500"
-                              }`}
-                            />
-                            <span className="text-foreground/80">{review.text}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                        <TrendingUp size={12} /> Social Signals
-                      </p>
-                      <div className="space-y-2">
-                        {selectedProduct.socialSignals?.map((sig, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center justify-between p-3 rounded-lg"
-                            style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.15)" }}
-                          >
-                            <div>
-                              <p className="text-xs font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>{sig.platform}</p>
-                              <p className="text-[11px] text-muted-foreground">{sig.signal}</p>
-                            </div>
-                            <span
-                              className="text-xs font-bold px-2 py-0.5 rounded-full"
-                              style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
-                            >
-                              {sig.volume}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="mt-3">
-                        <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">Competitors</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {selectedProduct.competitors?.map((c) => (
-                            <span key={c} className="tag-pill">{c}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Assumptions Map */}
-                  <div>
-                    <p className="section-label text-[10px] mb-3">Assumptions Map</p>
-                    <AssumptionsMap product={selectedProduct} />
-                  </div>
-
-                  {/* Flipped Ideas */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="section-label text-[10px] flex items-center gap-1">
-                        <Zap size={12} /> Flipped Product Ideas (Ranked)
-                      </p>
+                <div className="space-y-6">
+                  {/* Tab nav */}
+                  <div className="flex flex-wrap gap-2 border-b pb-4" style={{ borderColor: "hsl(var(--border))" }}>
+                    {([
+                      { id: "overview", label: "Overview", icon: Target },
+                      { id: "pricing", label: "Pricing Intel", icon: DollarSign },
+                      { id: "supply", label: "Supply Chain", icon: Package },
+                      { id: "action", label: "Action Plan", icon: Rocket },
+                      { id: "ideas", label: "Flipped Ideas", icon: Zap },
+                    ] as const).map(({ id, label, icon: Icon }) => (
                       <button
-                        onClick={() => handleRegenerateIdeas(selectedProduct)}
-                        disabled={generatingIdeasFor === selectedProduct.id}
+                        key={id}
+                        onClick={() => setDetailTab(id)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                         style={{
-                          background: "hsl(var(--primary-muted))",
-                          color: "hsl(var(--primary))",
-                          border: "1px solid hsl(var(--primary) / 0.3)",
+                          background: detailTab === id ? "hsl(var(--primary))" : "hsl(var(--secondary))",
+                          color: detailTab === id ? "white" : "hsl(var(--foreground))",
+                          border: `1px solid ${detailTab === id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
                         }}
                       >
-                        {generatingIdeasFor === selectedProduct.id ? (
-                          <><RefreshCw size={11} className="animate-spin" /> Generating…</>
-                        ) : (
-                          <><Sparkles size={11} /> Regenerate with AI</>
-                        )}
+                        <Icon size={11} />
+                        {label}
                       </button>
-                    </div>
-                    <div className="space-y-4">
-                      {selectedProduct.flippedIdeas?.map((idea, i) => (
-                        <FlippedIdeaCard key={`${idea.name}-${i}`} idea={idea} rank={i + 1} />
-                      ))}
-                    </div>
+                    ))}
                   </div>
+
+                  {/* TAB: OVERVIEW */}
+                  {detailTab === "overview" && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-1">
+                          <img
+                            src={selectedProduct.image}
+                            alt={selectedProduct.name}
+                            className="w-full rounded-xl object-cover h-52"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = getFallback(selectedProduct.category);
+                            }}
+                          />
+                        </div>
+                        <div className="md:col-span-2 space-y-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="tag-pill">{selectedProduct.category}</span>
+                            <span className="tag-pill">{selectedProduct.era}</span>
+                            <RevivalScoreBadge score={selectedProduct.revivalScore} size="md" />
+                          </div>
+
+                          {selectedProduct.keyInsight && (
+                            <div
+                              className="p-3 rounded-lg text-sm italic leading-relaxed"
+                              style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))", color: "hsl(var(--primary-dark))" }}
+                            >
+                              <p className="text-[10px] font-bold not-italic uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>
+                                <Lightbulb size={10} className="inline mr-1" />Key Insight
+                              </p>
+                              "{selectedProduct.keyInsight}"
+                            </div>
+                          )}
+
+                          <p className="text-sm text-foreground/80 leading-relaxed">{selectedProduct.description}</p>
+                          <div className="text-xs px-3 py-2 rounded-lg font-mono" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+                            {selectedProduct.specs}
+                          </div>
+
+                          {selectedProduct.marketSizeEstimate && (
+                            <div
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
+                              style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.3)" }}
+                            >
+                              <BarChart3 size={12} />
+                              TAM: {selectedProduct.marketSizeEstimate}
+                            </div>
+                          )}
+
+                          <div>
+                            <p className="section-label text-[10px] mb-2">Live Sources</p>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedProduct.sources?.map((src) => (
+                                <a
+                                  key={src.url}
+                                  href={src.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="source-link inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs"
+                                  style={{ background: "hsl(var(--secondary))", border: "1px solid hsl(var(--border))" }}
+                                >
+                                  <ExternalLink size={10} />
+                                  {src.label?.slice(0, 40)}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="section-label text-[10px] mb-3">Confidence Scores</p>
+                            <div className="grid grid-cols-1 gap-2">
+                              <ScoreBar label="Adoption Likelihood" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
+                              <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
+                              <ScoreBar label="Emotional Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Trend analysis */}
+                      {selectedProduct.trendAnalysis && (
+                        <div className="p-4 rounded-xl text-sm leading-relaxed" style={{ background: "hsl(var(--muted))", borderLeft: "4px solid hsl(var(--primary))" }}>
+                          <p className="section-label text-[10px] mb-2 flex items-center gap-1">
+                            <TrendingUp size={11} /> Trend Analysis
+                          </p>
+                          <p className="text-foreground/80">{selectedProduct.trendAnalysis}</p>
+                        </div>
+                      )}
+
+                      {/* Reviews + Social */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                            <MessageSquare size={12} /> Reviews & Sentiment
+                          </p>
+                          <div className="space-y-2">
+                            {selectedProduct.reviews?.map((review, i) => (
+                              <div
+                                key={i}
+                                className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed"
+                                style={{ background: "hsl(var(--muted))" }}
+                              >
+                                <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
+                                <span className="text-foreground/80">{review.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                            <TrendingUp size={12} /> Social Signals
+                          </p>
+                          <div className="space-y-2">
+                            {selectedProduct.socialSignals?.map((sig, i) => (
+                              <div
+                                key={i}
+                                className="flex items-center justify-between p-3 rounded-lg"
+                                style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.15)" }}
+                              >
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-xs font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>{sig.platform}</p>
+                                    <TrendBadge trend={sig.trend} />
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground">{sig.signal}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>
+                                    {sig.volume}
+                                  </span>
+                                  {sig.url && (
+                                    <a href={sig.url} target="_blank" rel="noopener noreferrer">
+                                      <ExternalLink size={11} style={{ color: "hsl(var(--primary))" }} />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="mt-3">
+                            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">Competitors</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {selectedProduct.competitors?.map((c) => (
+                                <span key={c} className="tag-pill">{c}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Assumptions Map */}
+                      <div>
+                        <p className="section-label text-[10px] mb-3">Assumptions Map</p>
+                        <AssumptionsMap product={selectedProduct} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB: PRICING INTEL */}
+                  {detailTab === "pricing" && selectedProduct.pricingIntel && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {[
+                          { label: "Current Market Price", value: selectedProduct.pricingIntel.currentMarketPrice, highlight: false },
+                          { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium, highlight: false },
+                          { label: "eBay Avg Sold", value: selectedProduct.pricingIntel.ebayAvgSold, highlight: true },
+                          { label: "Etsy Avg Sold", value: selectedProduct.pricingIntel.etsyAvgSold, highlight: true },
+                          { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal, highlight: false },
+                          { label: "Price Trend", value: selectedProduct.pricingIntel.priceDirection.toUpperCase(), highlight: true },
+                        ].map((item) => (
+                          <div
+                            key={item.label}
+                            className="p-4 rounded-xl"
+                            style={{
+                              background: item.highlight ? "hsl(var(--primary-muted))" : "hsl(var(--muted))",
+                              border: item.highlight ? "1px solid hsl(var(--primary) / 0.2)" : "1px solid hsl(var(--border))",
+                            }}
+                          >
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{item.label}</p>
+                            <p className="text-sm font-bold" style={{ color: item.highlight ? "hsl(var(--primary-dark))" : "hsl(var(--foreground))" }}>
+                              {item.value}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-4 rounded-xl" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.3)" }}>
+                        <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 30%)" }}>
+                          <DollarSign size={10} className="inline mr-1" />Margin Analysis
+                        </p>
+                        <p className="text-sm" style={{ color: "hsl(142 70% 25%)" }}>{selectedProduct.pricingIntel.margins}</p>
+                      </div>
+
+                      <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))" }}>
+                        <p className="text-[10px] font-bold uppercase tracking-wider mb-2 text-muted-foreground">Full Price Range</p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-extrabold text-foreground">{selectedProduct.pricingIntel.priceRange}</span>
+                          <TrendBadge trend={selectedProduct.pricingIntel.priceDirection as "up" | "down" | "stable"} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {detailTab === "pricing" && !selectedProduct.pricingIntel && (
+                    <p className="text-sm text-muted-foreground text-center py-8">No pricing intelligence available for this product.</p>
+                  )}
+
+                  {/* TAB: SUPPLY CHAIN */}
+                  {detailTab === "supply" && selectedProduct.supplyChain && (
+                    <div className="space-y-6">
+                      {/* Suppliers */}
+                      <SupplySection
+                        title="Suppliers & IP Owners"
+                        icon={<Factory size={14} style={{ color: "hsl(var(--primary))" }} />}
+                        items={selectedProduct.supplyChain.suppliers.map((s) => ({
+                          name: s.name,
+                          badge: s.region,
+                          detail: s.role,
+                          url: s.url,
+                        }))}
+                        color="hsl(var(--primary-muted))"
+                        borderColor="hsl(var(--primary) / 0.3)"
+                      />
+
+                      {/* Manufacturers */}
+                      <SupplySection
+                        title="Manufacturers / OEM"
+                        icon={<Package size={14} style={{ color: "hsl(217 91% 60%)" }} />}
+                        items={selectedProduct.supplyChain.manufacturers.map((m) => ({
+                          name: m.name,
+                          badge: m.region,
+                          detail: `MOQ: ${m.moq}`,
+                          url: m.url,
+                        }))}
+                        color="hsl(217 91% 60% / 0.08)"
+                        borderColor="hsl(217 91% 60% / 0.3)"
+                      />
+
+                      {/* Vendors */}
+                      <SupplySection
+                        title="Vendors & Specialty Sellers"
+                        icon={<Store size={14} style={{ color: "hsl(262 83% 58%)" }} />}
+                        items={selectedProduct.supplyChain.vendors.map((v) => ({
+                          name: v.name,
+                          badge: v.type,
+                          detail: v.notes,
+                          url: v.url,
+                        }))}
+                        color="hsl(262 83% 58% / 0.08)"
+                        borderColor="hsl(262 83% 58% / 0.3)"
+                      />
+
+                      {/* Retailers */}
+                      <div>
+                        <p className="section-label text-[10px] mb-3 flex items-center gap-2">
+                          <Store size={14} style={{ color: "hsl(142 70% 40%)" }} /> Retailers & Market Share
+                        </p>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {selectedProduct.supplyChain.retailers.map((r) => (
+                            <div key={r.name} className="p-3 rounded-xl text-center space-y-1" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+                              <p className="text-xs font-bold text-foreground">{r.name}</p>
+                              <p className="text-[10px] text-muted-foreground">{r.type}</p>
+                              <p className="text-lg font-extrabold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
+                              {r.url && (
+                                <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[10px]" style={{ color: "hsl(var(--primary))" }}>
+                                  <ExternalLink size={9} /> Visit
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Distributors */}
+                      <SupplySection
+                        title="Distributors"
+                        icon={<Truck size={14} style={{ color: "hsl(32 100% 50%)" }} />}
+                        items={selectedProduct.supplyChain.distributors.map((d) => ({
+                          name: d.name,
+                          badge: d.region,
+                          detail: d.notes,
+                          url: d.url,
+                        }))}
+                        color="hsl(32 100% 50% / 0.08)"
+                        borderColor="hsl(32 100% 50% / 0.3)"
+                      />
+                    </div>
+                  )}
+
+                  {detailTab === "supply" && !selectedProduct.supplyChain && (
+                    <p className="text-sm text-muted-foreground text-center py-8">No supply chain data available for this product.</p>
+                  )}
+
+                  {/* TAB: ACTION PLAN */}
+                  {detailTab === "action" && selectedProduct.actionPlan && (
+                    <div className="space-y-6">
+                      <div
+                        className="p-4 rounded-xl text-sm leading-relaxed"
+                        style={{ background: "hsl(var(--primary-muted))", borderLeft: "4px solid hsl(var(--primary))" }}
+                      >
+                        <p className="section-label text-[10px] mb-2">Strategic Direction</p>
+                        <p style={{ color: "hsl(var(--primary-dark))" }}>{selectedProduct.actionPlan.strategy}</p>
+                      </div>
+
+                      {/* Quick Wins */}
+                      <div>
+                        <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                          <Zap size={11} /> Quick Wins (This Week)
+                        </p>
+                        <div className="space-y-2">
+                          {selectedProduct.actionPlan.quickWins.map((win, i) => (
+                            <div
+                              key={i}
+                              className="flex items-start gap-3 p-3 rounded-lg text-sm"
+                              style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.25)" }}
+                            >
+                              <CheckCircle2 size={16} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
+                              <span style={{ color: "hsl(142 70% 25%)" }}>{win}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Phases */}
+                      <div>
+                        <p className="section-label text-[10px] mb-3">Execution Roadmap</p>
+                        <div className="space-y-4">
+                          {selectedProduct.actionPlan.phases.map((phase, i) => (
+                            <div
+                              key={i}
+                              className="p-4 rounded-xl space-y-3"
+                              style={{
+                                background: "hsl(var(--muted))",
+                                border: `1px solid hsl(var(--border))`,
+                                borderLeft: `4px solid ${i === 0 ? "hsl(142 70% 45%)" : i === 1 ? "hsl(var(--primary))" : "hsl(32 100% 50%)"}`,
+                              }}
+                            >
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <h4 className="font-bold text-sm text-foreground">{phase.phase}</h4>
+                                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                                  <span className="flex items-center gap-1"><Clock size={10} /> {phase.timeline}</span>
+                                  <span className="flex items-center gap-1 font-semibold" style={{ color: "hsl(var(--primary))" }}>
+                                    <DollarSign size={10} /> {phase.budget}
+                                  </span>
+                                </div>
+                              </div>
+                              <ul className="space-y-1.5">
+                                {phase.actions.map((action, j) => (
+                                  <li key={j} className="flex items-start gap-2 text-xs text-foreground/80">
+                                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 mt-0.5"
+                                      style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+                                      {j + 1}
+                                    </span>
+                                    {action}
+                                  </li>
+                                ))}
+                              </ul>
+                              <div
+                                className="px-3 py-1.5 rounded-lg text-[11px] font-semibold"
+                                style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary-dark))" }}
+                              >
+                                ✓ Milestone: {phase.milestone}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Summary metrics */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="p-4 rounded-xl text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Total Investment</p>
+                          <p className="text-lg font-extrabold text-foreground">{selectedProduct.actionPlan.totalInvestment}</p>
+                        </div>
+                        <div className="p-4 rounded-xl text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.3)" }}>
+                          <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 35%)" }}>Expected ROI</p>
+                          <p className="text-lg font-extrabold" style={{ color: "hsl(142 70% 28%)" }}>{selectedProduct.actionPlan.expectedROI}</p>
+                        </div>
+                        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+                          <p className="section-label text-[10px] mb-2">Go-To-Market Channels</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedProduct.actionPlan.channels.map((ch) => (
+                              <span key={ch} className="px-2 py-0.5 rounded-full text-[10px] font-medium" style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+                                {ch}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {detailTab === "action" && !selectedProduct.actionPlan && (
+                    <p className="text-sm text-muted-foreground text-center py-8">No action plan available for this product. Try regenerating ideas.</p>
+                  )}
+
+                  {/* TAB: FLIPPED IDEAS */}
+                  {detailTab === "ideas" && (
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="section-label text-[10px] flex items-center gap-1">
+                          <Zap size={12} /> Flipped Product Ideas (Ranked)
+                        </p>
+                        <button
+                          onClick={() => handleRegenerateIdeas(selectedProduct)}
+                          disabled={generatingIdeasFor === selectedProduct.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                          style={{
+                            background: "hsl(var(--primary-muted))",
+                            color: "hsl(var(--primary))",
+                            border: "1px solid hsl(var(--primary) / 0.3)",
+                          }}
+                        >
+                          {generatingIdeasFor === selectedProduct.id ? (
+                            <><RefreshCw size={11} className="animate-spin" /> Generating…</>
+                          ) : (
+                            <><Sparkles size={11} /> Regenerate with AI</>
+                          )}
+                        </button>
+                      </div>
+                      <div className="space-y-4">
+                        {selectedProduct.flippedIdeas?.map((idea, i) => (
+                          <FlippedIdeaCard key={`${idea.name}-${i}`} idea={idea} rank={i + 1} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </SectionAccordion>
             )}
           </div>
         )}
 
-        {/* CTA when idle */}
-        {step === "idle" && (
+        {/* IDLE with no data */}
+        {step === "idle" && products.length === 0 && (
           <div
             className="text-center py-16 space-y-4 rounded-2xl"
             style={{ background: "hsl(var(--secondary))", border: "2px dashed hsl(var(--border))" }}
           >
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
-              style={{ background: "hsl(var(--primary-muted))" }}
-            >
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: "hsl(var(--primary-muted))" }}>
               <Zap size={28} style={{ color: "hsl(var(--primary))" }} />
             </div>
             <h3 className="text-xl font-bold text-foreground">Ready to Discover Hidden Opportunities</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Configure your parameters above and click "Run Product Intelligence Analysis". Firecrawl will
-              scrape live data from eBay, Etsy, Reddit, and more — then Gemini AI will extract products,
-              challenge assumptions, and generate flipped innovation ideas.
+              Configure your parameters above and click "Run Product Intelligence Analysis".
             </p>
-            <div className="flex items-center justify-center gap-6 pt-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><Globe size={12} /> Live web scraping</span>
-              <span className="flex items-center gap-1"><Sparkles size={12} /> AI-powered analysis</span>
-              <span className="flex items-center gap-1"><Zap size={12} /> Sourced & linked</span>
-            </div>
           </div>
         )}
       </main>
@@ -500,6 +829,47 @@ export default function Index() {
           Product Intelligence AI · Powered by Firecrawl + Gemini · Live data from eBay, Etsy, Reddit, TikTok & more
         </p>
       </footer>
+    </div>
+  );
+}
+
+// ── Supply chain section helper ──
+function SupplySection({
+  title, icon, items, color, borderColor,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  items: { name: string; badge: string; detail: string; url?: string }[];
+  color: string;
+  borderColor: string;
+}) {
+  return (
+    <div>
+      <p className="section-label text-[10px] mb-3 flex items-center gap-2">{icon} {title}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {items.map((item) => (
+          <div
+            key={item.name}
+            className="p-3 rounded-xl flex items-start justify-between gap-2"
+            style={{ background: color, border: `1px solid ${borderColor}` }}
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-foreground truncate">{item.name}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{item.detail}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-background/80 text-foreground/70">
+                {item.badge}
+              </span>
+              {item.url && (
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[10px]" style={{ color: "hsl(var(--primary))" }}>
+                  <ExternalLink size={9} /> Link
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
