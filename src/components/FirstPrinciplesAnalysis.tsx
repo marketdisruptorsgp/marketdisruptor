@@ -3,24 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import {
-  Brain,
-  Flame,
-  Zap,
-  ChevronRight,
-  RefreshCw,
-  AlertTriangle,
-  CheckCircle2,
-  Wrench,
-  Lightbulb,
-  Package,
-  DollarSign,
-  Users,
-  Factory,
-  FlipHorizontal,
-  Eye,
-  ArrowRight,
-  Sparkles,
-  ShieldAlert,
+  Brain, Flame, Zap, ChevronRight, RefreshCw, AlertTriangle, CheckCircle2,
+  Wrench, Lightbulb, Package, DollarSign, Users, Factory, FlipHorizontal,
+  Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation,
+  Maximize2, Wifi,
 } from "lucide-react";
 
 interface CoreReality {
@@ -30,11 +16,49 @@ interface CoreReality {
   userHacks: string[];
 }
 
+interface PhysicalDimensions {
+  sizeAnalysis: string;
+  weightAnalysis: string;
+  formFactorAnalysis: string;
+  staticVsDynamic: string;
+  ergonomicGaps: string[];
+  dimensionOpportunities: string[];
+}
+
+interface WorkflowFriction {
+  step: string;
+  friction: string;
+  severity: "high" | "medium" | "low";
+  rootCause: string;
+}
+
+interface UserWorkflow {
+  stepByStep: string[];
+  frictionPoints: WorkflowFriction[];
+  cognitiveLoad: string;
+  contextOfUse: string;
+  workflowOptimizations: string[];
+}
+
+interface MissedTechOpportunity {
+  tech: string;
+  application: string;
+  valueCreated: string;
+}
+
+interface SmartTechAnalysis {
+  currentTechLevel: string;
+  missedOpportunities: MissedTechOpportunity[];
+  whyNotAlreadyDone: string;
+  recommendedIntegration: string;
+}
+
 interface HiddenAssumption {
   assumption: string;
   currentAnswer: string;
   reason: "tradition" | "manufacturing" | "cost" | "physics" | "habit";
   isChallengeable: boolean;
+  challengeIdea?: string;
 }
 
 interface FlippedLogicItem {
@@ -50,8 +74,11 @@ interface RedesignedConcept {
   coreInsight: string;
   radicalDifferences: string[];
   physicalDescription: string;
+  sizeAndWeight: string;
   materials: string[];
+  smartFeatures: string[];
   userExperienceTransformation: string;
+  frictionEliminated: string[];
   whyItHasntBeenDone: string;
   biggestRisk: string;
   manufacturingPath: string;
@@ -61,6 +88,9 @@ interface RedesignedConcept {
 
 interface FirstPrinciplesData {
   coreReality: CoreReality;
+  physicalDimensions: PhysicalDimensions;
+  userWorkflow: UserWorkflow;
+  smartTechAnalysis: SmartTechAnalysis;
   hiddenAssumptions: HiddenAssumption[];
   flippedLogic: FlippedLogicItem[];
   redesignedConcept: RedesignedConcept;
@@ -78,10 +108,16 @@ const REASON_COLORS: Record<string, { bg: string; text: string; label: string }>
   habit: { bg: "hsl(330 80% 55% / 0.1)", text: "hsl(330 80% 40%)", label: "Habit" },
 };
 
+const SEVERITY_COLORS = {
+  high: { bg: "hsl(var(--destructive) / 0.08)", border: "hsl(var(--destructive) / 0.3)", text: "hsl(var(--destructive))" },
+  medium: { bg: "hsl(38 92% 50% / 0.08)", border: "hsl(38 92% 50% / 0.3)", text: "hsl(38 92% 35%)" },
+  low: { bg: "hsl(142 70% 45% / 0.07)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)" },
+};
+
 export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProps) => {
   const [data, setData] = useState<FirstPrinciplesData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeStep, setActiveStep] = useState<"reality" | "assumptions" | "flip" | "concept">("reality");
+  const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept">("reality");
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -112,62 +148,52 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
 
   const steps = [
     { id: "reality" as const, label: "Core Reality", icon: Eye, number: "01" },
-    { id: "assumptions" as const, label: "Hidden Assumptions", icon: Brain, number: "02" },
-    { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal, number: "03" },
-    { id: "concept" as const, label: "Redesigned Concept", icon: Sparkles, number: "04" },
+    { id: "physical" as const, label: "Physical Form", icon: Ruler, number: "02" },
+    { id: "workflow" as const, label: "User Workflow", icon: Navigation, number: "03" },
+    { id: "smarttech" as const, label: "Smart Tech", icon: Cpu, number: "04" },
+    { id: "assumptions" as const, label: "Assumptions", icon: Brain, number: "05" },
+    { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal, number: "06" },
+    { id: "concept" as const, label: "Redesign", icon: Sparkles, number: "07" },
   ];
 
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
-        <div
-          className="w-20 h-20 rounded-2xl flex items-center justify-center"
-          style={{ background: "hsl(var(--primary-muted))" }}
-        >
+        <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: "hsl(var(--primary-muted))" }}>
           <Brain size={36} style={{ color: "hsl(var(--primary))" }} />
         </div>
         <div>
           <h3 className="text-xl font-bold text-foreground mb-2">First Principles Deconstruction</h3>
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-            Challenge every design assumption of <strong>{product.name}</strong>. Uncover the real problem it solves, expose hidden assumptions, and generate a bold redesigned concept from scratch.
+            Radical deep analysis of <strong>{product.name}</strong> — questioning physical form, user workflow friction, smart tech gaps, hidden assumptions, and generating a bold redesign from scratch.
           </p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg">
-          {steps.map((s) => {
-            const Icon = s.icon;
-            return (
-              <div key={s.id} className="p-3 rounded-xl text-center" style={{ background: "hsl(var(--muted))" }}>
-                <Icon size={18} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
-                <p className="text-[10px] font-semibold text-muted-foreground">{s.label}</p>
-              </div>
-            );
-          })}
+          {[
+            { icon: Ruler, label: "Physical Form" },
+            { icon: Navigation, label: "User Workflow" },
+            { icon: Cpu, label: "Smart Tech" },
+            { icon: Sparkles, label: "Redesign" },
+          ].map(({ icon: Icon, label }) => (
+            <div key={label} className="p-3 rounded-xl text-center" style={{ background: "hsl(var(--muted))" }}>
+              <Icon size={18} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
+              <p className="text-[10px] font-semibold text-muted-foreground">{label}</p>
+            </div>
+          ))}
         </div>
         <button
           onClick={runAnalysis}
           disabled={loading}
           className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all"
-          style={{
-            background: "hsl(var(--primary))",
-            color: "white",
-            opacity: loading ? 0.7 : 1,
-          }}
+          style={{ background: "hsl(var(--primary))", color: "white", opacity: loading ? 0.7 : 1 }}
         >
           {loading ? (
-            <>
-              <RefreshCw size={15} className="animate-spin" />
-              Deconstructing {product.name}…
-            </>
+            <><RefreshCw size={15} className="animate-spin" /> Deconstructing {product.name}…</>
           ) : (
-            <>
-              <Brain size={15} />
-              Run First Principles Analysis
-            </>
+            <><Brain size={15} /> Run First Principles Analysis</>
           )}
         </button>
-        <p className="text-[11px] text-muted-foreground">
-          Uses Gemini 2.5 Pro · ~15–30 seconds
-        </p>
+        <p className="text-[11px] text-muted-foreground">Uses Gemini 2.5 Pro · Deep physical + workflow + tech analysis · ~20–40s</p>
       </div>
     );
   }
@@ -212,10 +238,8 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
                 border: `1px solid ${isActive ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
               }}
             >
-              <span
-                className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
-                style={{ background: isActive ? "rgba(255,255,255,0.25)" : "hsl(var(--primary) / 0.1)", color: isActive ? "white" : "hsl(var(--primary))" }}
-              >
+              <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
+                style={{ background: isActive ? "rgba(255,255,255,0.25)" : "hsl(var(--primary) / 0.1)", color: isActive ? "white" : "hsl(var(--primary))" }}>
                 {i + 1}
               </span>
               <Icon size={11} />
@@ -228,57 +252,39 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
       {/* STEP 1: Core Reality */}
       {activeStep === "reality" && (
         <div className="space-y-5">
-          {/* True Problem */}
-          <div
-            className="p-5 rounded-xl"
-            style={{ background: "hsl(var(--primary-muted))", borderLeft: "4px solid hsl(var(--primary))" }}
-          >
+          <div className="p-5 rounded-xl" style={{ background: "hsl(var(--primary-muted))", borderLeft: "4px solid hsl(var(--primary))" }}>
             <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(var(--primary))" }}>
               <Lightbulb size={11} /> The Real Problem Being Solved
             </p>
             <p className="text-sm text-foreground leading-relaxed font-medium">{data.coreReality.trueProblem}</p>
           </div>
-
-          {/* Actual Usage */}
           <div className="p-5 rounded-xl" style={{ background: "hsl(var(--muted))" }}>
-            <p className="section-label text-[10px] mb-2 flex items-center gap-1">
-              <Eye size={11} /> How People Actually Use It
-            </p>
+            <p className="section-label text-[10px] mb-2 flex items-center gap-1"><Eye size={11} /> How People Actually Use It</p>
             <p className="text-sm text-foreground/80 leading-relaxed">{data.coreReality.actualUsage}</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Normalized Frustrations */}
             <div>
               <p className="section-label text-[10px] mb-3 flex items-center gap-1">
                 <ShieldAlert size={11} style={{ color: "hsl(var(--destructive))" }} /> Normalized Frustrations
               </p>
               <div className="space-y-2">
                 {data.coreReality.normalizedFrustrations.map((f, i) => (
-                  <div
-                    key={i}
-                    className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed"
-                    style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}
-                  >
+                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed"
+                    style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
                     <AlertTriangle size={11} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 1 }} />
                     <span className="text-foreground/80">{f}</span>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* User Hacks */}
             <div>
               <p className="section-label text-[10px] mb-3 flex items-center gap-1">
                 <Wrench size={11} style={{ color: "hsl(38 92% 50%)" }} /> Workarounds & Hacks People Create
               </p>
               <div className="space-y-2">
                 {data.coreReality.userHacks.map((h, i) => (
-                  <div
-                    key={i}
-                    className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed"
-                    style={{ background: "hsl(38 92% 50% / 0.07)", border: "1px solid hsl(38 92% 50% / 0.25)" }}
-                  >
+                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed"
+                    style={{ background: "hsl(38 92% 50% / 0.07)", border: "1px solid hsl(38 92% 50% / 0.25)" }}>
                     <ChevronRight size={11} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 1 }} />
                     <span className="text-foreground/80">{h}</span>
                   </div>
@@ -286,18 +292,224 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
               </div>
             </div>
           </div>
+          <button onClick={() => setActiveStep("physical")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
+            style={{ background: "hsl(var(--primary))", color: "white" }}>
+            Next: Physical Form Analysis <ArrowRight size={12} />
+          </button>
+        </div>
+      )}
 
-          <button
-            onClick={() => setActiveStep("assumptions")}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition-all"
-            style={{ background: "hsl(var(--primary))", color: "white" }}
-          >
+      {/* STEP 2: Physical Dimensions */}
+      {activeStep === "physical" && data.physicalDimensions && (
+        <div className="space-y-5">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Questioning every physical property — size, weight, shape, rigidity. Nothing is sacred.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { icon: Ruler, label: "Why This Size?", text: data.physicalDimensions.sizeAnalysis },
+              { icon: Move, label: "Why This Weight?", text: data.physicalDimensions.weightAnalysis },
+              { icon: Maximize2, label: "Why This Form Factor?", text: data.physicalDimensions.formFactorAnalysis },
+              { icon: Zap, label: "Static vs Dynamic", text: data.physicalDimensions.staticVsDynamic },
+            ].map(({ icon: Icon, label, text }) => (
+              <div key={label} className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <Icon size={11} style={{ color: "hsl(var(--primary))" }} /> {label}
+                </p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{text}</p>
+              </div>
+            ))}
+          </div>
+
+          {data.physicalDimensions.ergonomicGaps?.length > 0 && (
+            <div>
+              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                <AlertTriangle size={11} style={{ color: "hsl(var(--destructive))" }} /> Ergonomic Gaps — Where It Fights the Body
+              </p>
+              <div className="space-y-2">
+                {data.physicalDimensions.ergonomicGaps.map((gap, i) => (
+                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
+                    style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+                    <AlertTriangle size={11} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 1 }} />
+                    <span className="text-foreground/80 leading-relaxed">{gap}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.physicalDimensions.dimensionOpportunities?.length > 0 && (
+            <div>
+              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                <Lightbulb size={11} style={{ color: "hsl(142 70% 40%)" }} /> Bold Opportunities from Rethinking Dimensions
+              </p>
+              <div className="space-y-2">
+                {data.physicalDimensions.dimensionOpportunities.map((opp, i) => (
+                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
+                    style={{ background: "hsl(142 70% 45% / 0.07)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
+                    <span className="text-foreground/80 leading-relaxed font-medium">{opp}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button onClick={() => setActiveStep("workflow")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
+            style={{ background: "hsl(var(--primary))", color: "white" }}>
+            Next: User Workflow <ArrowRight size={12} />
+          </button>
+        </div>
+      )}
+
+      {/* STEP 3: User Workflow */}
+      {activeStep === "workflow" && data.userWorkflow && (
+        <div className="space-y-5">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Mapping every step the user takes — before, during, after. Every friction point is a design opportunity.
+          </p>
+
+          {/* Step-by-step flow */}
+          <div>
+            <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+              <Navigation size={11} style={{ color: "hsl(var(--primary))" }} /> Step-by-Step User Journey
+            </p>
+            <div className="flex flex-col gap-0">
+              {data.userWorkflow.stepByStep.map((step, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="flex flex-col items-center">
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0"
+                      style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
+                    {i < data.userWorkflow.stepByStep.length - 1 && (
+                      <div className="w-0.5 h-4 mt-1" style={{ background: "hsl(var(--primary) / 0.25)" }} />
+                    )}
+                  </div>
+                  <p className="text-xs text-foreground/80 leading-relaxed pb-3">{step}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Friction Points */}
+          {data.userWorkflow.frictionPoints?.length > 0 && (
+            <div>
+              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                <AlertTriangle size={11} style={{ color: "hsl(var(--destructive))" }} /> Friction Points — Where Users Struggle
+              </p>
+              <div className="space-y-3">
+                {data.userWorkflow.frictionPoints.map((fp, i) => {
+                  const col = SEVERITY_COLORS[fp.severity] || SEVERITY_COLORS.medium;
+                  return (
+                    <div key={i} className="p-4 rounded-xl" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: col.text }}>{fp.step}</p>
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                          style={{ background: col.bg, color: col.text, border: `1px solid ${col.border}` }}>
+                          {fp.severity}
+                        </span>
+                      </div>
+                      <p className="text-xs text-foreground/80 leading-relaxed mb-1">{fp.friction}</p>
+                      <p className="text-[10px] text-muted-foreground italic">Root cause: {fp.rootCause}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <Brain size={11} /> Cognitive Load
+              </p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.cognitiveLoad}</p>
+            </div>
+            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <Eye size={11} /> Context of Use
+              </p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.contextOfUse}</p>
+            </div>
+          </div>
+
+          {data.userWorkflow.workflowOptimizations?.length > 0 && (
+            <div>
+              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                <Zap size={11} style={{ color: "hsl(142 70% 40%)" }} /> Concrete Workflow Optimizations
+              </p>
+              <div className="space-y-2">
+                {data.userWorkflow.workflowOptimizations.map((opt, i) => (
+                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
+                    style={{ background: "hsl(142 70% 45% / 0.07)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
+                    <span className="text-foreground/80 leading-relaxed">{opt}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button onClick={() => setActiveStep("smarttech")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
+            style={{ background: "hsl(var(--primary))", color: "white" }}>
+            Next: Smart Tech Analysis <ArrowRight size={12} />
+          </button>
+        </div>
+      )}
+
+      {/* STEP 4: Smart Tech */}
+      {activeStep === "smarttech" && data.smartTechAnalysis && (
+        <div className="space-y-5">
+          <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))" }}>
+            <p className="section-label text-[10px] mb-2 flex items-center gap-1">
+              <Cpu size={11} style={{ color: "hsl(271 81% 50%)" }} /> Current Technology Level
+            </p>
+            <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.currentTechLevel}</p>
+          </div>
+
+          {data.smartTechAnalysis.missedOpportunities?.length > 0 && (
+            <div>
+              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                <Wifi size={11} style={{ color: "hsl(var(--primary))" }} /> Missed Smart Tech Opportunities
+              </p>
+              <div className="space-y-3">
+                {data.smartTechAnalysis.missedOpportunities.map((opp, i) => (
+                  <div key={i} className="p-4 rounded-xl" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold"
+                        style={{ background: "hsl(271 81% 56% / 0.15)", color: "hsl(271 81% 40%)" }}>{opp.tech}</span>
+                    </div>
+                    <p className="text-xs font-semibold text-foreground/90 mb-1">{opp.application}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{opp.valueCreated}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <AlertTriangle size={11} /> Why It Hasn't Happened Yet
+              </p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.whyNotAlreadyDone}</p>
+            </div>
+            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
+              <p className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1" style={{ color: "hsl(var(--primary))" }}>
+                <Zap size={11} /> Highest-Leverage Integration
+              </p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.recommendedIntegration}</p>
+            </div>
+          </div>
+
+          <button onClick={() => setActiveStep("assumptions")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
+            style={{ background: "hsl(var(--primary))", color: "white" }}>
             Next: Hidden Assumptions <ArrowRight size={12} />
           </button>
         </div>
       )}
 
-      {/* STEP 2: Hidden Assumptions */}
+      {/* STEP 5: Hidden Assumptions */}
       {activeStep === "assumptions" && (
         <div className="space-y-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
@@ -307,31 +519,17 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
             {data.hiddenAssumptions.map((a, i) => {
               const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
               return (
-                <div
-                  key={i}
-                  className="p-4 rounded-xl"
-                  style={{
-                    background: a.isChallengeable ? "hsl(var(--card))" : "hsl(var(--muted))",
-                    border: `1px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))"}`,
-                  }}
-                >
+                <div key={i} className="p-4 rounded-xl"
+                  style={{ background: a.isChallengeable ? "hsl(var(--card))" : "hsl(var(--muted))", border: `1px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))"}` }}>
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-2">
-                      <span
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0"
-                        style={{ background: "hsl(var(--primary))", color: "white" }}
-                      >
-                        {i + 1}
-                      </span>
+                      <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0"
+                        style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
                       <p className="text-xs font-bold text-foreground">{a.assumption}</p>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <span
-                        className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                        style={{ background: reasonStyle.bg, color: reasonStyle.text }}
-                      >
-                        {reasonStyle.label}
-                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                        style={{ background: reasonStyle.bg, color: reasonStyle.text }}>{reasonStyle.label}</span>
                       {a.isChallengeable ? (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 30%)" }}>
                           ✦ Challengeable
@@ -343,56 +541,45 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
                       )}
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed ml-8">{a.currentAnswer}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed ml-8 mb-2">{a.currentAnswer}</p>
+                  {a.challengeIdea && (
+                    <div className="ml-8 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
+                      <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>Challenge: </span>
+                      <span className="text-foreground/80">{a.challengeIdea}</span>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
-
-          <button
-            onClick={() => setActiveStep("flip")}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition-all"
-            style={{ background: "hsl(var(--primary))", color: "white" }}
-          >
+          <button onClick={() => setActiveStep("flip")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
+            style={{ background: "hsl(var(--primary))", color: "white" }}>
             Next: Flip the Logic <ArrowRight size={12} />
           </button>
         </div>
       )}
 
-      {/* STEP 3: Flip the Logic */}
+      {/* STEP 6: Flip the Logic */}
       {activeStep === "flip" && (
         <div className="space-y-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
             Taking the most limiting assumptions and inverting them. These aren't tweaks — they're structural breaks.
           </p>
           {data.flippedLogic.map((item, i) => (
-            <div
-              key={i}
-              className="rounded-xl overflow-hidden"
-              style={{ border: "1px solid hsl(var(--primary) / 0.2)" }}
-            >
-              {/* Assumption → Flip header */}
+            <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--primary) / 0.2)" }}>
               <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
                 <div className="p-4" style={{ background: "hsl(var(--muted))" }}>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Current Assumption</p>
                   <p className="text-xs text-foreground/80 leading-relaxed">{item.originalAssumption}</p>
                 </div>
-                <div
-                  className="flex items-center justify-center px-3 py-4"
-                  style={{ background: "hsl(var(--primary))" }}
-                >
+                <div className="flex items-center justify-center px-3 py-4" style={{ background: "hsl(var(--primary))" }}>
                   <FlipHorizontal size={16} style={{ color: "white" }} />
                 </div>
                 <div className="p-4" style={{ background: "hsl(var(--primary-muted))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>
-                    Bold Alternative
-                  </p>
-                  <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(var(--primary-dark))" }}>
-                    {item.boldAlternative}
-                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>Bold Alternative</p>
+                  <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(var(--primary-dark))" }}>{item.boldAlternative}</p>
                 </div>
               </div>
-              {/* Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-t" style={{ borderColor: "hsl(var(--border))" }}>
                 <div className="p-4 border-r" style={{ borderColor: "hsl(var(--border))" }}>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Why It Creates Value</p>
@@ -405,28 +592,18 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
               </div>
             </div>
           ))}
-
-          <button
-            onClick={() => setActiveStep("concept")}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg transition-all"
-            style={{ background: "hsl(var(--primary))", color: "white" }}
-          >
+          <button onClick={() => setActiveStep("concept")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
+            style={{ background: "hsl(var(--primary))", color: "white" }}>
             Next: Redesigned Concept <ArrowRight size={12} />
           </button>
         </div>
       )}
 
-      {/* STEP 4: Redesigned Concept */}
+      {/* STEP 7: Redesigned Concept */}
       {activeStep === "concept" && (
         <div className="space-y-5">
-          {/* Hero concept card */}
-          <div
-            className="p-6 rounded-2xl relative overflow-hidden"
-            style={{
-              background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)",
-              color: "white",
-            }}
-          >
+          <div className="p-6 rounded-2xl relative overflow-hidden"
+            style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white" }}>
             <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-10" style={{ background: "white" }} />
             <div className="relative">
               <div className="flex items-center gap-2 mb-3">
@@ -446,11 +623,8 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {data.redesignedConcept.radicalDifferences.map((d, i) => (
-                <div
-                  key={i}
-                  className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                  style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.2)" }}
-                >
+                <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
+                  style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
                   <CheckCircle2 size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
                   <span className="text-foreground/85 leading-relaxed font-medium">{d}</span>
                 </div>
@@ -458,37 +632,73 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
             </div>
           </div>
 
+          {/* Physical + Size + Materials + Smart Features */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Physical Description */}
             <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
-              <p className="section-label text-[10px] flex items-center gap-1">
-                <Package size={11} /> Physical Form
-              </p>
+              <p className="section-label text-[10px] flex items-center gap-1"><Package size={11} /> Physical Form</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.physicalDescription}</p>
+              {data.redesignedConcept.sizeAndWeight && (
+                <div className="mt-2 p-2 rounded-lg" style={{ background: "hsl(var(--primary-muted))" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1" style={{ color: "hsl(var(--primary))" }}>
+                    <Ruler size={9} /> Size & Weight
+                  </p>
+                  <p className="text-xs text-foreground/80">{data.redesignedConcept.sizeAndWeight}</p>
+                </div>
+              )}
             </div>
 
-            {/* Materials */}
-            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
-              <p className="section-label text-[10px] flex items-center gap-1">
-                <Zap size={11} /> Materials & Why
+            <div className="space-y-3">
+              <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+                <p className="section-label text-[10px] flex items-center gap-1"><Zap size={11} /> Materials & Why</p>
+                <div className="space-y-1.5">
+                  {data.redesignedConcept.materials.map((m, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs text-foreground/80">
+                      <span className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold mt-0.5"
+                        style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
+                      {m}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {data.redesignedConcept.smartFeatures?.length > 0 && (
+                <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
+                  <p className="section-label text-[10px] flex items-center gap-1" style={{ color: "hsl(271 81% 40%)" }}>
+                    <Cpu size={11} /> Smart Features
+                  </p>
+                  <div className="space-y-1.5">
+                    {data.redesignedConcept.smartFeatures.map((f, i) => (
+                      <div key={i} className="flex items-start gap-2 text-xs text-foreground/80">
+                        <Wifi size={10} style={{ color: "hsl(271 81% 45%)", flexShrink: 0, marginTop: 1 }} />
+                        {f}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Friction Eliminated */}
+          {data.redesignedConcept.frictionEliminated?.length > 0 && (
+            <div>
+              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)" }} /> Friction Points Eliminated
               </p>
-              <div className="space-y-1.5">
-                {data.redesignedConcept.materials.map((m, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs text-foreground/80">
-                    <span className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold mt-0.5"
-                      style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
-                    {m}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {data.redesignedConcept.frictionEliminated.map((f, i) => (
+                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
+                    style={{ background: "hsl(142 70% 45% / 0.07)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
+                    <span className="text-foreground/80 leading-relaxed">{f}</span>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          )}
 
           {/* UX Transformation */}
-          <div
-            className="p-5 rounded-xl"
-            style={{ background: "hsl(142 70% 45% / 0.07)", borderLeft: "4px solid hsl(142 70% 45%)" }}
-          >
+          <div className="p-5 rounded-xl" style={{ background: "hsl(142 70% 45% / 0.07)", borderLeft: "4px solid hsl(142 70% 45%)" }}>
             <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}>
               <Users size={11} /> User Experience Transformation
             </p>
@@ -496,15 +706,12 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Why it hasn't been done */}
             <div className="p-4 rounded-xl" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
               <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(271 81% 40%)" }}>
                 <Brain size={11} /> Why It Hasn't Been Done
               </p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.whyItHasntBeenDone}</p>
             </div>
-
-            {/* Biggest Risk */}
             <div className="p-4 rounded-xl" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
               <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
                 <AlertTriangle size={11} /> Biggest Risk
@@ -513,24 +720,17 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
             </div>
           </div>
 
-          {/* Commercial details */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="p-4 rounded-xl space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-              <p className="section-label text-[10px] flex items-center gap-1">
-                <Factory size={11} /> Manufacturing Path
-              </p>
+              <p className="section-label text-[10px] flex items-center gap-1"><Factory size={11} /> Manufacturing Path</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.manufacturingPath}</p>
             </div>
             <div className="p-4 rounded-xl space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-              <p className="section-label text-[10px] flex items-center gap-1">
-                <DollarSign size={11} /> Price Point
-              </p>
+              <p className="section-label text-[10px] flex items-center gap-1"><DollarSign size={11} /> Price Point</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.pricePoint}</p>
             </div>
             <div className="p-4 rounded-xl space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-              <p className="section-label text-[10px] flex items-center gap-1">
-                <Users size={11} /> Target Buyer
-              </p>
+              <p className="section-label text-[10px] flex items-center gap-1"><Users size={11} /> Target Buyer</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.targetUser}</p>
             </div>
           </div>

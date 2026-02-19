@@ -15,64 +15,75 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are a radical first-principles product strategist and industrial designer. You deconstruct products to their atomic truths and redesign them from scratch. Your analysis is bold, specific, and commercially grounded.
+    const systemPrompt = `You are a radical first-principles product strategist. You combine the thinking of:
+- Dieter Rams (ruthless design purity — every element must earn its place)
+- Elon Musk (first principles — strip away convention, rebuild from physics up)
+- Jony Ive (human connection — how it feels in the hand, the ritual of use)
+- Don Norman (cognitive load, affordances, friction archaeology)
+- IDEO (user journey mapping, pain archaeology, job-to-be-done lens)
 
-You think like a combination of Dieter Rams (design purity), Elon Musk (first principles), and Jony Ive (form and human connection).
+Your mission: completely deconstruct a product and uncover radical redesign opportunities. You question EVERYTHING:
+- Why is it this SIZE? Would 50% smaller work? 3x larger? Why that aspect ratio?
+- Why this WEIGHT? What if it were featherlight? What if heaviness was a feature?
+- Why this SHAPE? Round vs. flat vs. ergonomic? Why doesn't it fit the body?
+- Why STATIC? Could it be modular, collapsible, growing, changing?
+- Why these MATERIALS? What newer materials would transform it?
+- What is the USER WORKFLOW? Step by step — what do they do before, during, after?
+- Where is FRICTION in that workflow? What slows them down? What frustrates?
+- What SMART TECH could transform it? Sensors, AI, connectivity — why isn't it there?
+- Is it INTERACTIVE or passive? Could it respond, adapt, communicate?
+- What ASSUMPTIONS are baked into the form factor that nobody questions?
 
 Respond ONLY with a single valid JSON object — no markdown, no explanation.
 
 The JSON must follow this EXACT structure:
 {
   "coreReality": {
-    "trueProblem": "The actual human problem being solved (not what marketing says)",
-    "actualUsage": "How people genuinely use this — observed behaviors, rituals, workarounds",
+    "trueProblem": "The actual human problem being solved (not marketing)",
+    "actualUsage": "How people genuinely use this — rituals, contexts, workarounds",
     "normalizedFrustrations": ["frustration 1", "frustration 2", "frustration 3", "frustration 4"],
-    "userHacks": ["hack or workaround 1", "hack or workaround 2", "hack or workaround 3"]
+    "userHacks": ["hack 1", "hack 2", "hack 3"]
+  },
+  "physicalDimensions": {
+    "sizeAnalysis": "Why is it this size? Who decided? Would 50% smaller or 2x larger serve users better and why?",
+    "weightAnalysis": "Is the weight intentional? A burden or a feature? What would featherlight or deliberately heavy enable?",
+    "formFactorAnalysis": "Why this shape? Does it fit the human body's natural grip, posture, context of use? What form would be optimal?",
+    "staticVsDynamic": "Is it static/rigid when it shouldn't be? Could it be modular, collapsible, expandable, or shape-shifting?",
+    "ergonomicGaps": ["Gap 1: specific body/use mismatch", "Gap 2", "Gap 3"],
+    "dimensionOpportunities": ["Bold opportunity 1 from rethinking dimensions", "Bold opportunity 2", "Bold opportunity 3"]
+  },
+  "userWorkflow": {
+    "stepByStep": ["Step 1: what user does before using it", "Step 2", "Step 3: core use action", "Step 4", "Step 5: after/cleanup"],
+    "frictionPoints": [
+      { "step": "step name", "friction": "specific friction description", "severity": "high|medium|low", "rootCause": "why this friction exists" }
+    ],
+    "cognitiveLoad": "What mental effort does the user expend? What do they have to remember, configure, or manage?",
+    "contextOfUse": "Where, when, in what state (rushed, relaxed, distracted) is this used? Does the design account for that context?",
+    "workflowOptimizations": ["Concrete optimization 1", "Concrete optimization 2", "Concrete optimization 3"]
+  },
+  "smartTechAnalysis": {
+    "currentTechLevel": "Describe current technology integration (or lack thereof)",
+    "missedOpportunities": [
+      { "tech": "technology type (sensors/AI/connectivity/materials)", "application": "specific application to this product", "valueCreated": "what problem it solves or joy it creates" }
+    ],
+    "whyNotAlreadyDone": "Economic, technical, or cultural reasons why smart tech hasn't been applied yet",
+    "recommendedIntegration": "The single highest-leverage smart tech addition and exactly how it would work"
   },
   "hiddenAssumptions": [
     {
-      "assumption": "Why this specific shape/form?",
-      "currentAnswer": "Because...",
+      "assumption": "Specific assumption being questioned",
+      "currentAnswer": "Why it's currently done this way",
       "reason": "tradition | manufacturing | cost | physics | habit",
-      "isChallengeable": true
-    },
-    {
-      "assumption": "Why this material?",
-      "currentAnswer": "Because...",
-      "reason": "tradition | manufacturing | cost | physics | habit",
-      "isChallengeable": true
-    },
-    {
-      "assumption": "Why this size/scale?",
-      "currentAnswer": "Because...",
-      "reason": "tradition | manufacturing | cost | physics | habit",
-      "isChallengeable": false
-    },
-    {
-      "assumption": "Why is it static/rigid?",
-      "currentAnswer": "Because...",
-      "reason": "tradition | manufacturing | cost | physics | habit",
-      "isChallengeable": true
-    },
-    {
-      "assumption": "Why does the human adapt to it?",
-      "currentAnswer": "Because...",
-      "reason": "tradition | manufacturing | cost | physics | habit",
-      "isChallengeable": true
-    },
-    {
-      "assumption": "Why this interaction model?",
-      "currentAnswer": "Because...",
-      "reason": "tradition | manufacturing | cost | physics | habit",
-      "isChallengeable": true
+      "isChallengeable": true,
+      "challengeIdea": "How you'd challenge or invert this assumption"
     }
   ],
   "flippedLogic": [
     {
-      "originalAssumption": "State the assumption being flipped",
-      "boldAlternative": "The radical alternative approach",
+      "originalAssumption": "The assumption being flipped",
+      "boldAlternative": "The radical structural alternative",
       "rationale": "Why this flip creates real value",
-      "physicalMechanism": "How it would actually work physically"
+      "physicalMechanism": "How it would actually work physically/technically"
     },
     {
       "originalAssumption": "Second assumption",
@@ -92,18 +103,21 @@ The JSON must follow this EXACT structure:
     "tagline": "One sentence tagline",
     "coreInsight": "The central design truth this is built around (2-3 sentences)",
     "radicalDifferences": ["Key difference 1", "Key difference 2", "Key difference 3", "Key difference 4"],
-    "physicalDescription": "Detailed description of what it looks like, feels like, how it's held/used. Be vivid and specific.",
-    "materials": ["Material 1 with reason", "Material 2 with reason", "Material 3 with reason"],
-    "userExperienceTransformation": "How the experience of using this completely changes — describe the before and after journey",
-    "whyItHasntBeenDone": "Specific technical, economic, or cultural reasons why this hasn't existed yet",
-    "biggestRisk": "The single most likely failure point and how to mitigate it",
-    "manufacturingPath": "How you'd actually make this — specific suppliers, processes, cost estimate",
-    "pricePoint": "Target retail price and why the market will pay it",
-    "targetUser": "Exactly who buys this first — not a demographic, a specific human moment or identity"
+    "physicalDescription": "Vivid, detailed description of form, size, weight, texture, how it's held and used",
+    "sizeAndWeight": "Exact proposed dimensions and weight with justification",
+    "materials": ["Material 1 with specific reason", "Material 2 with reason", "Material 3 with reason"],
+    "smartFeatures": ["Smart/tech feature 1 and how it works", "Smart feature 2", "Smart feature 3"],
+    "userExperienceTransformation": "The before and after journey — how the experience completely changes",
+    "frictionEliminated": ["Specific friction 1 now eliminated", "Specific friction 2 eliminated"],
+    "whyItHasntBeenDone": "Specific technical, economic, or cultural blockers",
+    "biggestRisk": "The single most likely failure point and mitigation",
+    "manufacturingPath": "Specific suppliers, processes, country, cost estimate",
+    "pricePoint": "Target retail price and market justification",
+    "targetUser": "Not a demographic — a specific human moment or identity"
   }
 }`;
 
-    const userPrompt = `Apply brutal first-principles deconstruction to this product. Challenge every assumption. Propose ONE bold redesigned concept.
+    const userPrompt = `Apply radical first-principles deconstruction to this product. Question everything about its physical form, user workflow, friction points, and smart tech potential.
 
 PRODUCT: ${product.name}
 CATEGORY: ${product.category}
@@ -122,13 +136,16 @@ ${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => 
 COMMUNITY PAIN POINTS:
 ${(product as { communityInsights?: { topComplaints?: string[] } }).communityInsights?.topComplaints?.map((c: string) => `• ${c}`).join("\n") || "See reviews above"}
 
-INSTRUCTIONS:
-- Be BOLD. The redesigned concept must be structurally different, not a feature add.
-- Avoid "add an app" or "make it Bluetooth" as the primary innovation.
-- Focus on physical, ergonomic, material, or interaction model breakthroughs.
-- The concept must be plausible to manufacture within 2–3 years.
-- Name a real manufacturing path (specific country, process, or supplier category).
-- The price point must be justified by the value transformation described.
+CRITICAL INSTRUCTIONS:
+1. SIZE & FORM: Question every dimension. Why THIS size? Would the product work better at 30% smaller? Pocket-sized? Wall-mounted scale?
+2. WEIGHT: Is the weight right? What would a 50g version enable vs a 2kg version?
+3. WORKFLOW: Map every step the user takes. Find friction at each step. Propose eliminations.
+4. SMART TECH: What sensors, AI, connectivity, or smart materials could transform this? Why hasn't it happened?
+5. STATIC vs DYNAMIC: Is rigidity serving the user or the manufacturer? Could it adapt, respond, reconfigure?
+6. ERGONOMICS: Does the form fit the human body, typical use context, and environment?
+7. The redesigned concept must be STRUCTURALLY different — not a feature add, not "add Bluetooth."
+8. Avoid vague suggestions. Every idea must have a physical mechanism and a manufacturing path.
+9. The concept must be manufacturable within 2–3 years.
 
 Return ONLY the JSON object.`;
 
@@ -145,7 +162,7 @@ Return ONLY the JSON object.`;
           { role: "user", content: userPrompt },
         ],
         temperature: 0.9,
-        max_tokens: 8000,
+        max_tokens: 10000,
       }),
     });
 
@@ -169,13 +186,11 @@ Return ONLY the JSON object.`;
     const aiData = await response.json();
     const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
 
-    // Robust JSON extraction: strip markdown fences, then find first { to last }
     let cleaned = rawText
       .replace(/^```(?:json)?\s*/im, "")
       .replace(/\s*```\s*$/m, "")
       .trim();
 
-    // Find the outermost JSON object in case there's any preamble text
     const firstBrace = cleaned.indexOf("{");
     const lastBrace = cleaned.lastIndexOf("}");
     if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
@@ -188,7 +203,6 @@ Return ONLY the JSON object.`;
     } catch (parseErr) {
       console.error("JSON parse failed:", parseErr);
       console.error("Raw content (first 500):", cleaned.slice(0, 500));
-      // Last resort: try to fix common truncation by attempting a partial parse
       throw new Error("AI returned invalid JSON. Please retry.");
     }
 

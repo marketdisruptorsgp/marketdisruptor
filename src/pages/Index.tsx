@@ -9,6 +9,7 @@ import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
+import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
 import { PitchDeck } from "@/components/PitchDeck";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ import {
   ShieldAlert,
   Brain,
   Presentation,
+  Building2,
 } from "lucide-react";
 
 const STEPS = [
@@ -1039,6 +1041,18 @@ export default function Index() {
             )}
           </div>
         )}
+
+        {/* BUSINESS MODEL ANALYSIS */}
+        <SectionAccordion
+          id="businessmodel"
+          title="Business Model Deconstruction"
+          subtitle="First-principles analysis for any business — laundromat, distributor, B2B, service business & more"
+          icon={<Building2 size={16} style={{ color: "hsl(var(--primary))" }} />}
+          expanded={expandedSection === "businessmodel"}
+          onToggle={() => toggleSection("businessmodel")}
+        >
+          <BusinessModelAnalysis />
+        </SectionAccordion>
 
         {/* SAVED ANALYSES */}
         <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
