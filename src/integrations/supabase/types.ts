@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      saved_analyses: {
+        Row: {
+          audience: string
+          avg_revival_score: number | null
+          batch_size: number
+          category: string
+          created_at: string
+          era: string
+          id: string
+          product_count: number
+          products: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audience: string
+          avg_revival_score?: number | null
+          batch_size?: number
+          category: string
+          created_at?: string
+          era: string
+          id?: string
+          product_count?: number
+          products?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          avg_revival_score?: number | null
+          batch_size?: number
+          category?: string
+          created_at?: string
+          era?: string
+          id?: string
+          product_count?: number
+          products?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

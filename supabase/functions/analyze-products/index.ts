@@ -6,16 +6,98 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function eraLabel(era: string) {
+  return era === "All Eras / Current" ? "" : `${era} `;
+}
+
+// Search for a real product image using Firecrawl
+async function findProductImage(productName: string, category: string, apiKey: string): Promise<string | null> {
+  try {
+    const queries = [
+      `"${productName}" product image site:ebay.com OR site:amazon.com OR site:wikipedia.org`,
+      `${productName} vintage original photo`,
+    ];
+    
+    for (const query of queries) {
+      const res = await fetch("https://api.firecrawl.dev/v1/search", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query,
+          limit: 3,
+          scrapeOptions: { formats: ["links", "markdown"] },
+        }),
+      });
+      
+      if (!res.ok) continue;
+      const data = await res.json();
+      
+      for (const item of (data?.data || [])) {
+        // Check links array for image URLs
+        const links: string[] = item.links || [];
+        for (const link of links) {
+          if (
+            /\.(jpg|jpeg|png|webp)/i.test(link) &&
+            link.length > 20 &&
+            !link.includes("logo") &&
+            !link.includes("icon") &&
+            !link.includes("favicon") &&
+            !link.includes("banner") &&
+            (link.includes("i.ebayimg") || link.includes("m.media-amazon") || link.includes("upload.wikimedia") || link.includes("etsy.com/il"))
+          ) {
+            console.log(`Found real image for ${productName}: ${link}`);
+            return link;
+          }
+        }
+        
+        // Also extract from markdown — look for ![...](url) patterns
+        const md: string = item.markdown || "";
+        const imgMatches = md.match(/!\[.*?\]\((https?:\/\/[^\s\)]+\.(jpg|jpeg|png|webp))[^\)]*\)/gi);
+        if (imgMatches?.length) {
+          const imgUrl = imgMatches[0].match(/\((https?:\/\/[^\s\)]+)\)/)?.[1];
+          if (imgUrl && !imgUrl.includes("logo") && !imgUrl.includes("icon")) {
+            console.log(`Found markdown image for ${productName}: ${imgUrl}`);
+            return imgUrl;
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Image search error:", e);
+  }
+  return null;
+}
+
+// Category fallback images from Unsplash (verified IDs)
+const CATEGORY_IMAGES: Record<string, string> = {
+  "Electronic Toys": "https://images.unsplash.com/photo-1566240258998-c85da43741f2?w=600&h=400&fit=crop",
+  "Instant Photography": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=400&fit=crop",
+  "Photography": "https://images.unsplash.com/photo-1495745966610-2a67f2297e5e?w=600&h=400&fit=crop",
+  "Gaming Hardware": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=400&fit=crop",
+  "Toys": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop",
+  "Toys & Games": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop",
+  "Fashion": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=400&fit=crop",
+  "Kitchen": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop",
+  "Music": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&h=400&fit=crop",
+  "Electronics": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=400&fit=crop",
+  "default": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=400&fit=crop",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { rawContent, sources, category, era, audience, batchSize } = await req.json();
+    const { rawContent, redditContent, complaintsContent, sources, category, era, audience, batchSize } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are a world-class Product Intelligence AI and venture market analyst. You analyze scraped web content to extract deep, actionable product intelligence — going far beyond surface descriptions into pricing, supply chain, trends, and capitalization strategies.
+    const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+
+    const systemPrompt = `You are a world-class Product Intelligence AI and venture market analyst. You analyze scraped web content (including Reddit community posts, Google discussions, competitor data, and market signals) to extract deep, actionable product intelligence.
 
 You MUST respond with ONLY a valid JSON array (no markdown, no explanation, just raw JSON).
 
@@ -28,20 +110,33 @@ For each product, return an object with this EXACT structure:
   "specs": "Key specs as a short string",
   "revivalScore": 8,
   "era": "90s",
-  "keyInsight": "The single most important non-obvious insight about this product's commercial opportunity (1-2 sentences, be specific and provocative)",
+  "keyInsight": "The single most provocative non-obvious commercial insight about this product — 1-2 sentences, be bold and specific",
   "marketSizeEstimate": "TAM estimate with source/basis",
-  "image": "https://images.unsplash.com/photo-SPECIFIC_RELEVANT_PHOTO_ID?w=600&h=400&fit=crop",
+  "image": "PLACEHOLDER_IMAGE",
   "sources": [{"label": "Source Name", "url": "https://actual-url.com"}],
   "reviews": [
-    {"text": "Specific review text with detail", "sentiment": "positive"},
-    {"text": "Specific complaint with context", "sentiment": "negative"},
-    {"text": "Nuanced observation", "sentiment": "neutral"}
+    {"text": "Specific real review or community quote from scraped content", "sentiment": "positive"},
+    {"text": "Specific real complaint with context — what people hate about it", "sentiment": "negative"},
+    {"text": "Community suggestion or improvement request from Reddit/forums", "sentiment": "neutral"}
   ],
+  "communityInsights": {
+    "redditSentiment": "Overall Reddit community sentiment: what they love, hate, and want changed (2-3 sentences with specific subreddit references)",
+    "topComplaints": ["Specific complaint 1 from community", "Specific complaint 2", "Specific complaint 3"],
+    "improvementRequests": ["Feature/change request 1 from community", "Request 2", "Request 3"],
+    "nostalgiaTriggers": ["What specifically triggers nostalgia", "Core emotional hook", "Community shared memory"],
+    "competitorComplaints": ["What community says is wrong with current alternatives"]
+  },
   "socialSignals": [
     {"platform": "TikTok", "signal": "specific content type", "volume": "~50M views", "trend": "up", "url": "https://tiktok.com/tag/example"},
-    {"platform": "Reddit", "signal": "subreddit activity", "volume": "~50K members", "trend": "stable", "url": "https://reddit.com/r/example"}
+    {"platform": "Reddit", "signal": "subreddit activity", "volume": "~50K members", "trend": "stable", "url": "https://reddit.com/r/example"},
+    {"platform": "Google Trends", "signal": "search interest description", "volume": "Index 78/100", "trend": "up"}
   ],
   "competitors": ["Competitor 1 (price)", "Competitor 2 (price)"],
+  "competitorAnalysis": {
+    "marketLeader": "Who dominates and why",
+    "gaps": ["Gap 1 in current market", "Gap 2", "Gap 3"],
+    "differentiationOpportunity": "Specific angle to win market share"
+  },
   "pricingIntel": {
     "currentMarketPrice": "$X–$Y new retail",
     "collectorPremium": "Vintage/rare condition pricing with context",
@@ -53,32 +148,22 @@ For each product, return an object with this EXACT structure:
     "margins": "Estimated gross margin at X price point"
   },
   "supplyChain": {
-    "suppliers": [
-      {"name": "Supplier Name", "region": "Country/Region", "url": "https://url.com", "role": "What they supply"}
-    ],
-    "manufacturers": [
-      {"name": "Manufacturer", "region": "Country", "url": "https://url.com", "moq": "Min order qty"}
-    ],
-    "vendors": [
-      {"name": "Vendor Name", "type": "Specialty/Mass/Import", "url": "https://url.com", "notes": "Context"}
-    ],
-    "retailers": [
-      {"name": "Retailer", "type": "E-commerce/Mass/Specialty", "url": "https://url.com", "marketShare": "X%"}
-    ],
-    "distributors": [
-      {"name": "Distributor", "region": "Region", "url": "https://url.com", "notes": "Context"}
-    ]
+    "suppliers": [{"name": "Supplier Name", "region": "Country/Region", "url": "https://url.com", "role": "What they supply"}],
+    "manufacturers": [{"name": "Manufacturer", "region": "Country", "url": "https://url.com", "moq": "Min order qty"}],
+    "vendors": [{"name": "Vendor Name", "type": "Specialty/Mass/Import", "url": "https://url.com", "notes": "Context"}],
+    "retailers": [{"name": "Retailer", "type": "E-commerce/Mass/Specialty", "url": "https://url.com", "marketShare": "X%"}],
+    "distributors": [{"name": "Distributor", "region": "Region", "url": "https://url.com", "notes": "Context"}]
   },
-  "trendAnalysis": "Detailed 3-5 sentence trend analysis with specific data points: search volumes, YoY growth rates, key events driving interest, market dynamics",
+  "trendAnalysis": "Detailed 4-5 sentence trend analysis with SPECIFIC data: search volumes, YoY growth rates, Reddit post velocity, key events driving interest, Google Trends index, TikTok view counts, demographic shift data",
   "actionPlan": {
-    "strategy": "2-3 sentence overall strategic direction — be specific about the angle (flip, revive, license, arbitrage, innovate)",
+    "strategy": "2-3 sentence overall strategic direction — be specific about the angle (flip, revive, license, arbitrage, innovate, subscription)",
     "phases": [
       {
         "phase": "Phase 1 Name",
         "timeline": "Month X–Y",
-        "actions": ["Specific action 1 with details", "Specific action 2 with vendors/platforms named"],
+        "actions": ["Specific action 1 with concrete steps", "Action 2 naming real vendors/platforms"],
         "budget": "$X–$Y",
-        "milestone": "Measurable outcome to validate before proceeding"
+        "milestone": "Measurable outcome to validate"
       },
       {
         "phase": "Phase 2 Name",
@@ -97,8 +182,8 @@ For each product, return an object with this EXACT structure:
     ],
     "channels": ["Channel 1", "Channel 2", "Channel 3"],
     "totalInvestment": "$X–$Y",
-    "expectedROI": "X–Yx in Y months based on Y assumptions",
-    "quickWins": ["Immediate action 1 (can do today)", "Immediate action 2", "Immediate action 3"]
+    "expectedROI": "X–Yx in Y months",
+    "quickWins": ["Action someone can take THIS WEEK under $500", "Quick win 2", "Quick win 3"]
   },
   "assumptionsMap": [
     {"assumption": "Core design/market assumption", "challenge": "How this could be flipped/inverted for opportunity"}
@@ -108,7 +193,7 @@ For each product, return an object with this EXACT structure:
       "name": "Idea Name",
       "description": "2-3 sentence concept description with specific details",
       "visualNotes": "Physical design, materials, UX notes",
-      "reasoning": "Market + user + emotional reasoning with data",
+      "reasoning": "Market + user + emotional reasoning with specific data from community sentiment",
       "feasibilityNotes": "BOM estimate, manufacturer sources, tech requirements, unit economics",
       "scores": {"feasibility": 8, "desirability": 9, "profitability": 7, "novelty": 9},
       "risks": "Specific risks with mitigation strategies",
@@ -128,36 +213,46 @@ For each product, return an object with this EXACT structure:
 
 CRITICAL RULES:
 - revivalScore 1-10 based on: emotional resonance + market signals + feasibility + profitability
-- All score fields must be integers 1-10
+- All score fields MUST be integers 1-10
 - Return 3-5 products maximum — quality over quantity
-- For images: use SPECIFIC Unsplash photo IDs that actually match the product (toys, cameras, electronics, games, etc.) — NOT generic tech photos. Use these verified IDs that match categories:
-  * Toys/games: photo-1566240258998-c85da43741f2, photo-1558618666-fcd25c85cd64, photo-1612349317150-e413f6a5b16d
-  * Cameras/photo: photo-1526170375885-4d8ecf77b99f, photo-1518791841217-8f162f1912da, photo-1495745966610-2a67f2297e5e
-  * Gaming hardware: photo-1550745165-9bc0b252726f, photo-1587654780291-39c9404d746b, photo-1493711662062-fa541adb3fc8
-  * Fashion/clothing: photo-1441986300917-64674bd600d8, photo-1490481651871-ab68de25d43d
-  * Kitchen/food: photo-1556909114-f6e7ad7d3136, photo-1585515320310-259814833e62
-  * Electronics/tech: photo-1518770660439-4636190af475, photo-1523275335684-37898b6baf30
-  * Books/media: photo-1481627834876-b7833e8f5570, photo-1507003211169-0a1dd7228f2d
-  * Music: photo-1511671782779-c97d3d27a1d4, photo-1510915361894-db8b60106cb1
+- Set "image" to "PLACEHOLDER_IMAGE" — images will be replaced with real ones after
+- communityInsights MUST be based on real Reddit/Google data from the scraped content, not invented
+- topComplaints MUST be specific real complaints found in the scraped data
+- improvementRequests MUST be real things the community has asked for
+- competitorAnalysis.gaps must be specific market gaps visible in the data
 - Include REAL, working URLs for all sources, retailers, vendors where possible
-- pricingIntel must have SPECIFIC dollar figures based on actual market data from the content
-- supplyChain must name REAL companies (Alibaba suppliers, Amazon, specific distributors)
+- pricingIntel must have SPECIFIC dollar figures from real market data
+- supplyChain must name REAL companies (real Alibaba suppliers, real Amazon, real distributors)
 - actionPlan quickWins must be actions someone could take THIS WEEK with less than $500
-- trendAnalysis must include specific numbers (% growth, view counts, search volume changes)
-- flippedIdeas should have 2-3 per product, each with full actionPlan
-- Be specific about BOM costs, MOQs, and retail price points`;
+- trendAnalysis must include specific numbers (% growth, view counts, search volumes)
+- flippedIdeas should have 2-3 per product and directly address community complaints/requests
+- Be BOLD — the flipped ideas should surprise and inspire, not just iterate`;
 
-    const userPrompt = `Analyze this scraped web content about ${eraLabel(era)}${category} products for the ${audience} market. Extract the top ${Math.min(batchSize, 5)} most revival-worthy, commercially interesting products.
+    const userPrompt = `Analyze this scraped content about ${eraLabel(era)}${category} products for the ${audience} market.
 
-Go DEEP on each product — I need pricing intel, supply chain specifics, trend data with numbers, and a detailed action plan I can actually execute. Be specific about dollar amounts, vendors, platforms, and timelines.
+Go DEEP — I need:
+1. Real Reddit community sentiment (what people love, hate, want fixed)
+2. Actual competitor gaps from community complaints  
+3. Pricing intel with real dollar figures
+4. Supply chain with real company names
+5. Flipped ideas that directly address community pain points
+6. An action plan I can start executing this week
 
-SCRAPED CONTENT:
+MAIN SCRAPED CONTENT (eBay, Etsy, Google, TikTok):
 ${rawContent}
+
+REDDIT COMMUNITY POSTS (sentiment, complaints, discussions):
+${redditContent || "No Reddit content available"}
+
+COMMUNITY COMPLAINTS & IMPROVEMENT REQUESTS:
+${complaintsContent || "No complaint signals found"}
 
 DISCOVERED SOURCES:
 ${sources.map((s: { label: string; url: string }) => `- ${s.label}: ${s.url}`).join("\n")}
 
-Return ONLY a JSON array. Be specific, cite real companies, real prices, real platforms.`;
+Return ONLY a JSON array. Be specific, cite real companies, real prices, real platforms. Make flippedIdeas address real community pain points.`;
+
+    console.log("Calling AI gateway for deep product analysis...");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -166,13 +261,13 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 12000,
+        max_tokens: 14000,
       }),
     });
 
@@ -213,6 +308,37 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
       products = [products];
     }
 
+    // Now fetch real images for each product via Firecrawl
+    if (FIRECRAWL_API_KEY) {
+      console.log(`Searching for real product images for ${products.length} products...`);
+      const imagePromises = products.map(async (product: { name: string; category: string }) => {
+        const realImage = await findProductImage(product.name, product.category, FIRECRAWL_API_KEY);
+        return realImage;
+      });
+      
+      const realImages = await Promise.all(imagePromises);
+      
+      products = products.map((product: { image: string; category: string }, i: number) => {
+        const realImage = realImages[i];
+        const fallback = CATEGORY_IMAGES[product.category] || CATEGORY_IMAGES["default"];
+        return {
+          ...product,
+          image: realImage || fallback,
+          imageSource: realImage ? "firecrawl" : "fallback",
+        };
+      });
+      
+      console.log(`Image search complete. Real images found: ${realImages.filter(Boolean).length}/${products.length}`);
+    } else {
+      // Use category fallbacks if no Firecrawl
+      products = products.map((product: { image: string; category: string }) => ({
+        ...product,
+        image: product.image === "PLACEHOLDER_IMAGE"
+          ? (CATEGORY_IMAGES[product.category] || CATEGORY_IMAGES["default"])
+          : product.image,
+      }));
+    }
+
     return new Response(JSON.stringify({ success: true, products }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -224,7 +350,3 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
     });
   }
 });
-
-function eraLabel(era: string) {
-  return era === "All Eras / Current" ? "" : `${era} `;
-}
