@@ -8,6 +8,7 @@ import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { SavedAnalyses } from "@/components/SavedAnalyses";
+import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -45,6 +46,7 @@ import {
   Wrench,
   Heart,
   ShieldAlert,
+  Brain,
 } from "lucide-react";
 
 const STEPS = [
@@ -103,7 +105,7 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "firstprinciples">("overview");
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -422,6 +424,7 @@ export default function Index() {
                       { id: "supply", label: "Supply Chain", icon: Package },
                       { id: "action", label: "Action Plan", icon: Rocket },
                       { id: "ideas", label: "Flipped Ideas", icon: Zap },
+                      { id: "firstprinciples", label: "First Principles", icon: Brain },
                     ] as const).map(({ id, label, icon: Icon }) => (
                       <button
                         key={id}
@@ -1007,6 +1010,12 @@ export default function Index() {
                       </div>
                     </div>
                   )}
+
+                  {/* TAB: FIRST PRINCIPLES */}
+                  {detailTab === "firstprinciples" && (
+                    <FirstPrinciplesAnalysis product={selectedProduct} />
+                  )}
+
                 </div>
               </SectionAccordion>
             )}
