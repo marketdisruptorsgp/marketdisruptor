@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import heroBanner from "@/assets/hero-banner.jpg";
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 import { AnalysisForm } from "@/components/AnalysisForm";
@@ -7,6 +7,7 @@ import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
+import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -37,6 +38,13 @@ import {
   Clock,
   Minus,
   Lightbulb,
+  Save,
+  Users,
+  ThumbsDown,
+  ThumbsUp,
+  Wrench,
+  Heart,
+  ShieldAlert,
 } from "lucide-react";
 
 const STEPS = [
@@ -95,7 +103,48 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community">("overview");
+  const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; audience: string; batchSize: number }) => {
+    try {
+      const avgScore = liveProducts.reduce((acc, p) => acc + p.revivalScore, 0) / liveProducts.length;
+      const title = `${params.era} ${params.category} · ${params.audience}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from("saved_analyses") as any).insert({
+        title,
+        category: params.category,
+        era: params.era,
+        audience: params.audience,
+        batch_size: params.batchSize,
+        products: JSON.parse(JSON.stringify(liveProducts)),
+        product_count: liveProducts.length,
+        avg_revival_score: Math.round(avgScore * 10) / 10,
+      });
+      setSavedRefreshTrigger((n) => n + 1);
+      toast.success("Analysis auto-saved! Find it in Saved Analyses.");
+    } catch (err) {
+      console.error("Auto-save failed:", err);
+    }
+  }, []);
+
+  const handleLoadSaved = useCallback((analysis: { products: Product[]; category: string; era: string; audience: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string }) => {
+    setProducts(analysis.products);
+    setSelectedProduct(analysis.products[0] || null);
+    setAnalysisParams({ category: analysis.category, era: analysis.era, audience: analysis.audience, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
+    setExpandedSection("discovery");
+    setDetailTab("overview");
+    setStep("done");
+    toast.success("Analysis loaded from saved workspace!");
+  }, []);
+
+  const handleManualSave = async () => {
+    if (!analysisParams || products.length === 0) return;
+    setIsSaving(true);
+    await saveAnalysis(products, analysisParams);
+    setIsSaving(false);
+  };
 
   const handleAnalyze = async (params: {
     category: string; era: string; audience: string; batchSize: number;
@@ -103,7 +152,7 @@ export default function Index() {
     setAnalysisParams(params);
     setStep("scraping");
     setErrorMsg("");
-    setStepMessage(`Searching eBay, Etsy, Reddit, TikTok for ${params.era} ${params.category}…`);
+    setStepMessage(`Searching eBay, Etsy, Reddit, Google, TikTok for ${params.era} ${params.category}…`);
 
     try {
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
@@ -122,6 +171,8 @@ export default function Index() {
         {
           body: {
             rawContent: scrapeData.rawContent,
+            redditContent: scrapeData.redditContent,
+            complaintsContent: scrapeData.complaintsContent,
             sources: scrapeData.sources,
             category: params.category,
             era: params.era,
@@ -144,6 +195,8 @@ export default function Index() {
       setDetailTab("overview");
       setStep("done");
       toast.success(`Found ${liveProducts.length} products with deep intelligence reports!`);
+      // Auto-save to database
+      await saveAnalysis(liveProducts, params);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Analysis pipeline error:", msg);
@@ -290,7 +343,8 @@ export default function Index() {
         {showResults && products.length > 0 && (
           <div className="space-y-6">
             {/* Stats bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
               {[
                 { label: "Sources Scraped", value: String(products.reduce((a, p) => a + (p.sources?.length || 0), 0)), icon: Globe },
                 { label: "Products Found", value: String(products.length), icon: Filter },
@@ -310,7 +364,18 @@ export default function Index() {
                   </div>
                 );
               })}
+              </div>
+              <button
+                onClick={handleManualSave}
+                disabled={isSaving}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: "hsl(var(--primary))", color: "white", opacity: isSaving ? 0.7 : 1 }}
+              >
+                {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+                {isSaving ? "Saving…" : "Save Analysis"}
+              </button>
             </div>
+
 
             {/* DISCOVERY LIST */}
             <SectionAccordion
@@ -352,6 +417,7 @@ export default function Index() {
                   <div className="flex flex-wrap gap-2 border-b pb-4" style={{ borderColor: "hsl(var(--border))" }}>
                     {([
                       { id: "overview", label: "Overview", icon: Target },
+                      { id: "community", label: "Community Intel", icon: Users },
                       { id: "pricing", label: "Pricing Intel", icon: DollarSign },
                       { id: "supply", label: "Supply Chain", icon: Package },
                       { id: "action", label: "Action Plan", icon: Rocket },
@@ -528,6 +594,146 @@ export default function Index() {
                       <div>
                         <p className="section-label text-[10px] mb-3">Assumptions Map</p>
                         <AssumptionsMap product={selectedProduct} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB: COMMUNITY INTEL */}
+                  {detailTab === "community" && (
+                    <div className="space-y-6">
+                      {/* Reddit Sentiment */}
+                      {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; nostalgiaTriggers?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
+                        <>
+                          {(() => {
+                            const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; nostalgiaTriggers?: string[]; competitorComplaints?: string[] } }).communityInsights;
+                            return (
+                              <div className="space-y-5">
+                                {ci.redditSentiment && (
+                                  <div className="p-4 rounded-xl" style={{ background: "hsl(25 90% 50% / 0.08)", border: "1px solid hsl(25 90% 50% / 0.3)" }}>
+                                    <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(25 90% 40%)" }}>
+                                      <MessageSquare size={12} /> Reddit Community Sentiment
+                                    </p>
+                                    <p className="text-sm leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
+                                  </div>
+                                )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {ci.topComplaints?.length ? (
+                                    <div>
+                                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                                        <ThumbsDown size={12} style={{ color: "hsl(var(--destructive))" }} /> Top Complaints
+                                      </p>
+                                      <div className="space-y-2">
+                                        {ci.topComplaints.map((c, i) => (
+                                          <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+                                            <ShieldAlert size={12} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 1 }} />
+                                            <span className="text-foreground/80">{c}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : null}
+                                  {ci.improvementRequests?.length ? (
+                                    <div>
+                                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                                        <Wrench size={12} style={{ color: "hsl(217 91% 60%)" }} /> Community Improvement Requests
+                                      </p>
+                                      <div className="space-y-2">
+                                        {ci.improvementRequests.map((r, i) => (
+                                          <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs" style={{ background: "hsl(217 91% 60% / 0.06)", border: "1px solid hsl(217 91% 60% / 0.25)" }}>
+                                            <Lightbulb size={12} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 1 }} />
+                                            <span className="text-foreground/80">{r}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : null}
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {ci.nostalgiaTriggers?.length ? (
+                                    <div>
+                                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                                        <Heart size={12} style={{ color: "hsl(330 80% 55%)" }} /> Nostalgia Triggers
+                                      </p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {ci.nostalgiaTriggers.map((t, i) => (
+                                          <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: "hsl(330 80% 55% / 0.1)", color: "hsl(330 80% 40%)", border: "1px solid hsl(330 80% 55% / 0.3)" }}>
+                                            {t}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : null}
+                                  {ci.competitorComplaints?.length ? (
+                                    <div>
+                                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                                        <ThumbsUp size={12} style={{ color: "hsl(142 70% 40%)" }} /> Why People Hate Current Alternatives
+                                      </p>
+                                      <div className="space-y-2">
+                                        {ci.competitorComplaints.map((c, i) => (
+                                          <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+                                            <CheckCircle2 size={12} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
+                                            <span className="text-foreground/80">{c}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </>
+                      ) : (
+                        <div className="py-10 text-center">
+                          <Users size={32} className="mx-auto mb-3 opacity-20" />
+                          <p className="text-sm text-muted-foreground">Community insights will appear here after running a live analysis.</p>
+                          <p className="text-xs text-muted-foreground mt-1">Sample data doesn't include Reddit/community scraping.</p>
+                        </div>
+                      )}
+
+                      {/* Reviews + Social Signals */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                            <MessageSquare size={12} /> Reviews & Sentiment
+                          </p>
+                          <div className="space-y-2">
+                            {selectedProduct.reviews?.map((review, i) => (
+                              <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed" style={{ background: "hsl(var(--muted))" }}>
+                                <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
+                                <span className="text-foreground/80">{review.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                            <TrendingUp size={12} /> Social Signals
+                          </p>
+                          <div className="space-y-2">
+                            {selectedProduct.socialSignals?.map((sig, i) => (
+                              <div key={i} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.15)" }}>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-xs font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>{sig.platform}</p>
+                                    <TrendBadge trend={sig.trend} />
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground">{sig.signal}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>
+                                    {sig.volume}
+                                  </span>
+                                  {sig.url && (
+                                    <a href={sig.url} target="_blank" rel="noopener noreferrer">
+                                      <ExternalLink size={11} style={{ color: "hsl(var(--primary))" }} />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -806,6 +1012,9 @@ export default function Index() {
             )}
           </div>
         )}
+
+        {/* SAVED ANALYSES */}
+        <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
 
         {/* IDLE with no data */}
         {step === "idle" && products.length === 0 && (
