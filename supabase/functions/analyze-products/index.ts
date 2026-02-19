@@ -90,7 +90,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { rawContent, redditContent, complaintsContent, sources, category, era, audience, batchSize } = await req.json();
+    const { rawContent, redditContent, complaintsContent, sources, category, era, audience, batchSize, customProducts } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -228,7 +228,13 @@ CRITICAL RULES:
 - flippedIdeas should have 2-3 per product and directly address community complaints/requests
 - Be BOLD — the flipped ideas should surprise and inspire, not just iterate`;
 
-    const userPrompt = `Analyze this scraped content about ${eraLabel(era)}${category} products for the ${audience} market.
+    const customProductsContext = customProducts && customProducts.length > 0
+      ? `\n\nCUSTOM PRODUCTS UPLOADED BY USER (PRIORITIZE THESE IN ANALYSIS):\n${customProducts.map((cp: { productName?: string; productUrl?: string; notes?: string; hasImage?: boolean }) =>
+          `- Name: ${cp.productName || "Unknown"}\n  URL: ${cp.productUrl || "None"}\n  Notes: ${cp.notes || "None"}\n  Has Image: ${cp.hasImage ? "Yes (user uploaded)" : "No"}`
+        ).join("\n")}`
+      : "";
+
+    const userPrompt = `Analyze this scraped content about ${eraLabel(era)}${category} products for the ${audience} market.${customProductsContext}
 
 Go DEEP — I need:
 1. Real Reddit community sentiment (what people love, hate, want fixed)
@@ -237,6 +243,7 @@ Go DEEP — I need:
 4. Supply chain with real company names
 5. Flipped ideas that directly address community pain points
 6. An action plan I can start executing this week
+${customProducts?.length ? "7. IMPORTANT: Include ALL custom products the user uploaded/provided as top-priority analyses" : ""}
 
 MAIN SCRAPED CONTENT (eBay, Etsy, Google, TikTok):
 ${rawContent}
