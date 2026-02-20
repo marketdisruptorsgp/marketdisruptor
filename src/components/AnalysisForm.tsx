@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Sparkles, ChevronDown, Upload, Link, X, Image as ImageIcon, Plus, Telescope, Building2, Brain, RefreshCw } from "lucide-react";
+import { Sparkles, Upload, Link, X, Image as ImageIcon, Plus, Telescope, Building2, Brain, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -175,27 +175,35 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
           {/* Category */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Product Category</label>
-            <div className="relative">
-              <select value={category} onChange={(e) => setCategory(e.target.value)}
-                className="w-full appearance-none rounded-lg px-3 py-2.5 text-sm font-medium pr-8 focus:outline-none focus:ring-2 transition-all"
-                style={inputStyle}>
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
-            </div>
+            <input
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="e.g. Toys & Games, Kitchen Gadgets…"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+              style={inputStyle}
+              list="category-suggestions"
+            />
+            <datalist id="category-suggestions">
+              {CATEGORIES.map((c) => <option key={c} value={c} />)}
+            </datalist>
           </div>
 
           {/* Era */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Era / Nostalgia Focus</label>
-            <div className="relative">
-              <select value={era} onChange={(e) => setEra(e.target.value)}
-                className="w-full appearance-none rounded-lg px-3 py-2.5 text-sm font-medium pr-8 focus:outline-none focus:ring-2 transition-all"
-                style={inputStyle}>
-                {ERAS.map((e) => <option key={e} value={e}>{e}</option>)}
-              </select>
-              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
-            </div>
+            <input
+              type="text"
+              value={era}
+              onChange={(e) => setEra(e.target.value)}
+              placeholder="e.g. 80s, 90s, 2000s, Current…"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+              style={inputStyle}
+              list="era-suggestions"
+            />
+            <datalist id="era-suggestions">
+              {ERAS.map((e) => <option key={e} value={e} />)}
+            </datalist>
           </div>
 
           {/* Batch size */}
