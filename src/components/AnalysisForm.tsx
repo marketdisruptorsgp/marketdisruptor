@@ -435,6 +435,36 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
               className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
           </div>
           <div className="flex items-center gap-3">
+            {businessLoading && (
+              <div className="rounded-xl p-4 space-y-3" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    {[0,1,2].map(i => (
+                      <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: "hsl(var(--primary))", animationDelay: `${i * 0.15}s` }} />
+                    ))}
+                  </div>
+                  <span className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Gemini AI — Business Model Analysis</span>
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full animate-pulse" style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>Running</span>
+                </div>
+                <div className="space-y-2">
+                  {[
+                    { label: "Mapping customer journey & friction points", icon: "🔍" },
+                    { label: "Deconstructing cost structure & revenue leaks", icon: "💰" },
+                    { label: "Identifying automation & tech leverage", icon: "⚡" },
+                    { label: "Building reinvented business model", icon: "🚀" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{item.icon}</span>
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+                  <div className="h-full rounded-full" style={{ background: "hsl(var(--primary))", animation: "progress-indeterminate 1.8s ease-in-out infinite", width: "40%" }} />
+                </div>
+                <p className="text-[10px] text-muted-foreground">⏱ Typically takes 20–45 seconds</p>
+              </div>
+            )}
             <button
               type="button"
               onClick={runBusinessAnalysis}

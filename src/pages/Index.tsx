@@ -66,6 +66,12 @@ const STEPS = [
 
 type AnalysisStep = "idle" | "scraping" | "analyzing" | "done" | "error";
 
+const PIPELINE_STEPS = [
+  { id: "scraping",   icon: Globe,     label: "Web Scraping",      detail: "Crawling eBay, Etsy, Reddit, Google & TikTok for live market data" },
+  { id: "analyzing",  icon: Brain,     label: "AI Analysis",       detail: "Building pricing intel, supply chain, trend analysis & action plans" },
+  { id: "done",       icon: CheckCircle2, label: "Complete",       detail: "Results ready!" },
+];
+
 const FALLBACK_IMAGES: Record<string, string> = {
   "Electronic Toys": "https://images.unsplash.com/photo-1566240258998-c85da43741f2?w=600&h=400&fit=crop",
   "Instant Photography": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=400&fit=crop",
@@ -181,6 +187,10 @@ export default function Index() {
     );
 
     try {
+      setStepMessage(hasCustom
+        ? "Scraping your product URLs + eBay, Etsy, Reddit, Google, TikTok…"
+        : `Crawling eBay, Etsy, Reddit, Google & TikTok for ${params.era} ${params.category} products…`
+      );
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
         "scrape-products",
         { body: { ...baseParams, customProducts } }
@@ -190,7 +200,7 @@ export default function Index() {
       }
 
       setStep("analyzing");
-      setStepMessage("AI building deep product intelligence: pricing, supply chain, trends, action plans…");
+      setStepMessage("Gemini AI building deep intelligence: pricing, supply chain, trends, flip ideas & action plans…");
 
       const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke(
         "analyze-products",
@@ -344,28 +354,115 @@ export default function Index() {
           }}
         />
 
-        {/* LOADING */}
+        {/* LOADING — rich step tracker */}
         {isLoading && (
-          <div className="card-intelligence p-10 flex flex-col items-center justify-center space-y-4">
-            <div className="flex gap-1.5">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-3 h-3 rounded-full animate-bounce"
-                  style={{ background: "hsl(var(--primary))", animationDelay: `${i * 0.12}s` }}
-                />
-              ))}
+          <div className="card-intelligence p-8 space-y-8">
+            {/* Header pulse */}
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="w-2.5 h-2.5 rounded-full animate-bounce"
+                    style={{ background: "hsl(var(--primary))", animationDelay: `${i * 0.15}s` }}
+                  />
+                ))}
+              </div>
+              <p className="font-bold text-foreground text-sm">Analysis Running…</p>
             </div>
-            <p className="font-semibold text-foreground">{stepMessage}</p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className={`flex items-center gap-1 ${step === "scraping" ? "text-blue-600 font-semibold" : "opacity-50"}`}>
-                <Globe size={12} /> Firecrawl Web Scraping
-              </span>
-              <span>→</span>
-              <span className={`flex items-center gap-1 ${step === "analyzing" ? "text-blue-600 font-semibold" : "opacity-50"}`}>
-                <Sparkles size={12} /> Deep AI Analysis
-              </span>
+
+            {/* Step pipeline */}
+            <div className="space-y-3">
+              {PIPELINE_STEPS.filter(s => s.id !== "done").map((ps, idx) => {
+                const Icon = ps.icon;
+                const isActive = step === ps.id;
+                const isDone = (step === "analyzing" && ps.id === "scraping");
+                return (
+                  <div key={ps.id} className="flex items-start gap-4">
+                    {/* Connector line + icon */}
+                    <div className="flex flex-col items-center">
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all"
+                        style={{
+                          background: isDone
+                            ? "hsl(142 71% 45% / 0.15)"
+                            : isActive
+                            ? "hsl(var(--primary))"
+                            : "hsl(var(--muted))",
+                          border: `2px solid ${isDone ? "hsl(142 71% 45%)" : isActive ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+                        }}
+                      >
+                        {isDone
+                          ? <CheckCircle2 size={17} style={{ color: "hsl(142 71% 45%)" }} />
+                          : <Icon size={17} style={{ color: isActive ? "white" : "hsl(var(--muted-foreground))" }} />
+                        }
+                      </div>
+                      {idx < PIPELINE_STEPS.filter(s => s.id !== "done").length - 1 && (
+                        <div
+                          className="w-0.5 mt-1 flex-1 min-h-[20px]"
+                          style={{ background: isDone ? "hsl(142 71% 45% / 0.4)" : "hsl(var(--border))" }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Text */}
+                    <div className="pt-1 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-sm font-bold"
+                          style={{
+                            color: isDone
+                              ? "hsl(142 71% 45%)"
+                              : isActive
+                              ? "hsl(var(--primary))"
+                              : "hsl(var(--muted-foreground))",
+                          }}
+                        >
+                          {ps.label}
+                        </span>
+                        {isDone && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "hsl(142 71% 45% / 0.15)", color: "hsl(142 71% 45%)" }}>
+                            Done
+                          </span>
+                        )}
+                        {isActive && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse" style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+                            Running
+                          </span>
+                        )}
+                      </div>
+                      {isActive && (
+                        <>
+                          <p className="text-xs text-muted-foreground mt-0.5">{stepMessage}</p>
+                          {/* Animated progress bar */}
+                          <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+                            <div
+                              className="h-full rounded-full animate-pulse"
+                              style={{
+                                background: "hsl(var(--primary))",
+                                width: "60%",
+                                animation: "progress-indeterminate 1.8s ease-in-out infinite",
+                              }}
+                            />
+                          </div>
+                        </>
+                      )}
+                      {!isActive && !isDone && (
+                        <p className="text-xs text-muted-foreground mt-0.5">{ps.detail}</p>
+                      )}
+                      {isDone && (
+                        <p className="text-xs mt-0.5" style={{ color: "hsl(142 71% 45% / 0.8)" }}>Data collected — building AI intelligence report</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+
+            {/* Estimated time note */}
+            <p className="text-[11px] text-muted-foreground text-center">
+              ⏱ Deep analysis typically takes 30–90 seconds. Hang tight!
+            </p>
           </div>
         )}
 
