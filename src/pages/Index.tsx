@@ -1263,25 +1263,43 @@ export default function Index() {
           </div>
         )}
 
-        {/* BUSINESS MODEL ANALYSIS */}
-        <SectionAccordion
-          id="businessmodel"
-          title="Business Model Deconstruction"
-          subtitle="First-principles analysis for any business — laundromat, distributor, B2B, service business & more"
-          icon={<Building2 size={16} style={{ color: "hsl(var(--primary))" }} />}
-          expanded={expandedSection === "businessmodel"}
-          onToggle={() => toggleSection("businessmodel")}
-        >
-          <BusinessModelAnalysis initialData={businessAnalysisData as never} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
-        </SectionAccordion>
+        {/* BUSINESS MODEL ANALYSIS — shown only when active */}
+        {(businessAnalysisData || expandedSection === "businessmodel") && (
+          <SectionAccordion
+            id="businessmodel"
+            title="Business Model Deconstruction"
+            subtitle="First-principles analysis for any business — laundromat, distributor, B2B, service business & more"
+            icon={<Building2 size={16} style={{ color: "hsl(var(--primary))" }} />}
+            expanded={expandedSection === "businessmodel"}
+            onToggle={() => toggleSection("businessmodel")}
+          >
+            <BusinessModelAnalysis initialData={businessAnalysisData as never} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
+          </SectionAccordion>
+        )}
 
-        {/* SAVED ANALYSES */}
-        <ContextualTip
-          id="saved-tip-1"
-          message="🗂️ Your workspace: Every analysis auto-saves here. Click any entry to instantly reload it — your data never expires and is private to you."
-          color="hsl(142 70% 38%)"
-        />
-        <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
+        {/* SAVED ANALYSES — elevated, prominent workspace section */}
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ border: "2px solid hsl(var(--primary) / 0.2)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.12)" }}
+        >
+          {/* Header bar */}
+          <div
+            className="px-5 py-3 flex items-center gap-3"
+            style={{ background: "hsl(var(--primary))" }}
+          >
+            <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
+              <Save size={14} style={{ color: "white" }} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-white leading-tight">Your Analysis Workspace</p>
+              <p className="text-[11px] text-white/70">All analyses auto-save · Click any to reload instantly</p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: "hsl(0 0% 100% / 0.15)", color: "white" }}>
+              Auto-saved
+            </span>
+          </div>
+          <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
+        </div>
 
         {/* IDLE with no data */}
         {step === "idle" && products.length === 0 && (
