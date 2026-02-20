@@ -76,12 +76,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut({ scope: "local" });
+    try {
+      await supabase.auth.signOut();
+    } catch (_) {
+      // ignore errors, we'll clear state regardless
+    }
     setUser(null);
     setSession(null);
     setProfile(null);
-    // Force reload to clear any cached session state
-    window.location.href = "/";
+    // Force a full page reload to wipe all cached auth state
+    window.location.replace(window.location.origin + "/");
   };
 
   return (
