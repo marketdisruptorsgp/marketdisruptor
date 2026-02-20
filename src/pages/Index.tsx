@@ -12,6 +12,7 @@ import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
 import { PitchDeck } from "@/components/PitchDeck";
+import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { UserHeader } from "@/components/UserHeader";
 import WelcomeModal from "@/components/WelcomeModal";
 import { ContextualTip } from "@/components/ContextualTip";
@@ -58,6 +59,7 @@ import {
   Presentation,
   Building2,
   FileDown,
+  ScrollText,
 } from "lucide-react";
 
 const STEPS = [
@@ -124,7 +126,7 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "firstprinciples" | "pitchdeck">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "firstprinciples" | "pitchdeck" | "patents">("overview");
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => {
@@ -628,15 +630,16 @@ export default function Index() {
                       { id: "ideas", label: "Flipped Ideas", icon: Zap },
                       { id: "firstprinciples", label: "First Principles", icon: Brain },
                       { id: "pitchdeck", label: "Pitch Deck", icon: Presentation },
+                      { id: "patents", label: "Patent Intel", icon: ScrollText },
                     ] as const).map(({ id, label, icon: Icon }) => (
                       <button
                         key={id}
                         onClick={() => setDetailTab(id)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                         style={{
-                          background: detailTab === id ? "hsl(var(--primary))" : "hsl(var(--secondary))",
+                          background: detailTab === id ? (id === "patents" ? "hsl(271 81% 55%)" : "hsl(var(--primary))") : "hsl(var(--secondary))",
                           color: detailTab === id ? "white" : "hsl(var(--foreground))",
-                          border: `1px solid ${detailTab === id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+                          border: `1px solid ${detailTab === id ? (id === "patents" ? "hsl(271 81% 55%)" : "hsl(var(--primary))") : "hsl(var(--border))"}`,
                         }}
                       >
                         <Icon size={11} />
@@ -1222,6 +1225,11 @@ export default function Index() {
                   {/* TAB: PITCH DECK */}
                   {detailTab === "pitchdeck" && (
                     <PitchDeck product={selectedProduct} />
+                  )}
+
+                  {/* TAB: PATENT INTELLIGENCE */}
+                  {detailTab === "patents" && (
+                    <PatentIntelligence product={selectedProduct} />
                   )}
 
                 </div>
