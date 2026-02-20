@@ -155,14 +155,29 @@ export default function Index() {
     }
   }, []);
 
-  const handleLoadSaved = useCallback((analysis: { products: Product[]; category: string; era: string; audience?: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string }) => {
-    setProducts(analysis.products);
-    setSelectedProduct(analysis.products[0] || null);
-    setAnalysisParams({ category: analysis.category, era: analysis.era, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
-    setExpandedSection("discovery");
-    setDetailTab("overview");
-    setStep("done");
-    toast.success("Analysis loaded from saved workspace!");
+  const handleLoadSaved = useCallback((analysis: { products: Product[]; category: string; era: string; audience?: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string; analysis_type?: string; analysis_data?: unknown }) => {
+    if (analysis.analysis_type === "business_model") {
+      setBusinessAnalysisData(analysis.analysis_data as never);
+      setExpandedSection("businessmodel");
+      toast.success("Business model analysis loaded!");
+    } else if (analysis.analysis_type === "first_principles") {
+      if (analysis.products && analysis.products.length > 0) {
+        setProducts(analysis.products);
+        setSelectedProduct(analysis.products[0]);
+        setStep("done");
+      }
+      setExpandedSection("discovery");
+      setDetailTab("firstprinciples");
+      toast.success("First principles analysis loaded — re-run to see full results.");
+    } else {
+      setProducts(analysis.products);
+      setSelectedProduct(analysis.products[0] || null);
+      setAnalysisParams({ category: analysis.category, era: analysis.era, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
+      setExpandedSection("discovery");
+      setDetailTab("overview");
+      setStep("done");
+      toast.success("Analysis loaded from saved workspace!");
+    }
   }, []);
 
   const handleManualSave = async () => {
@@ -1167,7 +1182,7 @@ export default function Index() {
 
                   {/* TAB: FIRST PRINCIPLES */}
                   {detailTab === "firstprinciples" && (
-                    <FirstPrinciplesAnalysis product={selectedProduct} />
+                    <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
                   )}
 
                   {/* TAB: PITCH DECK */}
@@ -1190,7 +1205,7 @@ export default function Index() {
           expanded={expandedSection === "businessmodel"}
           onToggle={() => toggleSection("businessmodel")}
         >
-          <BusinessModelAnalysis initialData={businessAnalysisData as never} />
+          <BusinessModelAnalysis initialData={businessAnalysisData as never} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
         </SectionAccordion>
 
         {/* SAVED ANALYSES */}

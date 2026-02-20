@@ -114,10 +114,32 @@ const SEVERITY_COLORS = {
   low: { bg: "hsl(142 70% 45% / 0.07)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)" },
 };
 
-export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProps) => {
+export const FirstPrinciplesAnalysis = ({ product, onSaved }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
   const [data, setData] = useState<FirstPrinciplesData | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept">("reality");
+
+  const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from("saved_analyses") as any).insert({
+        title: `${product.name} — First Principles`,
+        category: product.category || "Product",
+        era: product.era || "Unknown",
+        audience: "",
+        batch_size: 1,
+        products: [],
+        product_count: 0,
+        avg_revival_score: null,
+        analysis_type: "first_principles",
+        analysis_data: JSON.parse(JSON.stringify(analysisData)),
+      });
+      onSaved?.();
+      toast.success("First principles analysis saved to workspace!");
+    } catch (err) {
+      console.error("Save failed:", err);
+    }
+  };
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -139,6 +161,7 @@ export const FirstPrinciplesAnalysis = ({ product }: FirstPrinciplesAnalysisProp
       setData(result.analysis);
       setActiveStep("reality");
       toast.success("First principles analysis complete!");
+      await saveToWorkspace(result.analysis);
     } catch (err) {
       toast.error("Unexpected error: " + String(err));
     } finally {
