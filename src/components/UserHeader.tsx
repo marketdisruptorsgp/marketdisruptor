@@ -1,17 +1,30 @@
-import { useState } from "react";
-import { LogOut, User, ChevronDown, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { LogOut, ChevronDown, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export function UserHeader() {
   const { profile, signOut } = useAuth();
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Click-outside detection — no z-index battles with a backdrop
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
 
   if (!profile) return null;
 
   const initials = profile.first_name.slice(0, 2).toUpperCase();
 
   return (
-    <div className="relative">
+    <div ref={containerRef} style={{ position: "relative" }}>
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
@@ -34,8 +47,18 @@ export function UserHeader() {
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-52 rounded-xl shadow-xl z-50 overflow-hidden"
-          style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}
+          style={{
+            position: "absolute",
+            right: 0,
+            top: "calc(100% + 8px)",
+            width: "13rem",
+            borderRadius: "0.75rem",
+            boxShadow: "0 20px 40px -10px rgba(0,0,0,0.35)",
+            overflow: "hidden",
+            zIndex: 9999,
+            background: "hsl(var(--background))",
+            border: "1px solid hsl(var(--border))",
+          }}
         >
           <div className="p-3 border-b" style={{ borderColor: "hsl(var(--border))" }}>
             <div className="flex items-center gap-2 mb-1">
@@ -54,11 +77,6 @@ export function UserHeader() {
             Sign Out
           </button>
         </div>
-      )}
-
-      {/* Backdrop */}
-      {open && (
-        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
       )}
     </div>
   );

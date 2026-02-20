@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, useRef, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -29,6 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  // Prevents onAuthStateChange from re-establishing a session we just cleared
+  const signingOut = useRef(false);
 
   const fetchOrCreateProfile = async (userId: string, showWelcome = false) => {
     const { data } = await supabase
@@ -68,10 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // While signing out, ignore all events so the session can't sneak back in
+      if (signingOut.current) return;
+
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        // Only show welcome toast on an actual sign-in event (magic link click), not on token refresh or initial load
         const isSignIn = event === "SIGNED_IN";
         fetchOrCreateProfile(session.user.id, isSignIn);
       } else {
@@ -81,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (signingOut.current) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) fetchOrCreateProfile(session.user.id, false);
@@ -91,16 +96,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
+    signingOut.current = true;
+
+    // Wipe all Supabase session keys from localStorage so nothing can revive the session
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("sb-"))
+      .forEach((k) => localStorage.removeItem(k));
+
     try {
       await supabase.auth.signOut();
     } catch (_) {
-      // ignore errors, we'll clear state regardless
+      // best effort — local keys are already cleared
     }
+
+    // Clear React state — AppRoutes sees user=null and shows AuthPage immediately
     setUser(null);
     setSession(null);
     setProfile(null);
-    // Force a full page reload to wipe all cached auth state
-    window.location.replace(window.location.origin + "/");
+
+    signingOut.current = false;
   };
 
   return (
