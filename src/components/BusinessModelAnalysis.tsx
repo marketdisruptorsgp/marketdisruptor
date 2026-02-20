@@ -139,7 +139,7 @@ const BUSINESS_EXAMPLES = [
   "HVAC company", "Plumbing company", "Auto repair shop", "Vending machine operator",
 ];
 
-export const BusinessModelAnalysis = ({ initialData }: { initialData?: BusinessModelAnalysisData | null }) => {
+export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: BusinessModelAnalysisData | null; onSaved?: () => void }) => {
   const [input, setInput] = useState<BusinessModelInput>({
     type: "",
     description: "",
@@ -152,6 +152,28 @@ export const BusinessModelAnalysis = ({ initialData }: { initialData?: BusinessM
   const [data, setData] = useState<BusinessModelAnalysisData | null>(initialData ?? null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"summary" | "operations" | "assumptions" | "tech" | "revenue" | "disruption" | "reinvented">("summary");
+
+  const saveToWorkspace = async (analysisData: BusinessModelAnalysisData, businessType: string) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from("saved_analyses") as any).insert({
+        title: businessType,
+        category: "Business Model",
+        era: "Present",
+        audience: "",
+        batch_size: 1,
+        products: [],
+        product_count: 0,
+        avg_revival_score: null,
+        analysis_type: "business_model",
+        analysis_data: JSON.parse(JSON.stringify(analysisData)),
+      });
+      onSaved?.();
+      toast.success("Business model analysis saved to workspace!");
+    } catch (err) {
+      console.error("Save failed:", err);
+    }
+  };
 
   const runAnalysis = async () => {
     if (!input.type.trim() || !input.description.trim()) {
@@ -177,6 +199,7 @@ export const BusinessModelAnalysis = ({ initialData }: { initialData?: BusinessM
       setData(result.analysis);
       setActiveTab("summary");
       toast.success("Business model analysis complete!");
+      await saveToWorkspace(result.analysis, input.type);
     } catch (err) {
       toast.error("Unexpected error: " + String(err));
     } finally {

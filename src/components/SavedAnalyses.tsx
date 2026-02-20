@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Clock, Trash2, ChevronRight, Database, RotateCcw, Search } from "lucide-react";
+import { Clock, Trash2, ChevronRight, Database, RotateCcw, Search, ShoppingBag, Building2, Microscope } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 
 interface SavedAnalysis {
@@ -15,12 +15,35 @@ interface SavedAnalysis {
   product_count: number;
   avg_revival_score: number;
   created_at: string;
+  analysis_type?: string;
+  analysis_data?: unknown;
 }
 
 interface SavedAnalysesProps {
   onLoad: (analysis: SavedAnalysis) => void;
   refreshTrigger?: number;
 }
+
+const TYPE_CONFIG = {
+  product: {
+    label: "Products",
+    icon: ShoppingBag,
+    color: "hsl(var(--primary))",
+    bgColor: "hsl(var(--primary) / 0.1)",
+  },
+  business_model: {
+    label: "Business Model",
+    icon: Building2,
+    color: "hsl(217 91% 45%)",
+    bgColor: "hsl(217 91% 45% / 0.1)",
+  },
+  first_principles: {
+    label: "First Principles",
+    icon: Microscope,
+    color: "hsl(271 81% 55%)",
+    bgColor: "hsl(271 81% 55% / 0.1)",
+  },
+} as const;
 
 export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
@@ -70,6 +93,9 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
     const d = new Date(iso);
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   };
+
+  const getTypeConfig = (type?: string) =>
+    TYPE_CONFIG[(type as keyof typeof TYPE_CONFIG) ?? "product"] ?? TYPE_CONFIG.product;
 
   return (
     <div className="card-intelligence p-5 space-y-4">
@@ -126,69 +152,87 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
         </div>
       ) : (
         <div className="space-y-2 max-h-80 overflow-y-auto">
-          {filtered.map((analysis) => (
-            <button
-              key={analysis.id}
-              onClick={() => onLoad(analysis)}
-              className="w-full text-left p-3 rounded-xl transition-all group hover:scale-[1.01]"
-              style={{
-                background: "hsl(var(--muted))",
-                border: "1px solid hsl(var(--border))",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--primary) / 0.5)";
-                (e.currentTarget as HTMLElement).style.background = "hsl(var(--primary-muted))";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--border))";
-                (e.currentTarget as HTMLElement).style.background = "hsl(var(--muted))";
-              }}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-foreground truncate">{analysis.title}</p>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <span
-                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                      style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary-dark))" }}
+          {filtered.map((analysis) => {
+            const cfg = getTypeConfig(analysis.analysis_type);
+            const TypeIcon = cfg.icon;
+            return (
+              <button
+                key={analysis.id}
+                onClick={() => onLoad(analysis)}
+                className="w-full text-left p-3 rounded-xl transition-all group hover:scale-[1.01]"
+                style={{
+                  background: "hsl(var(--muted))",
+                  border: "1px solid hsl(var(--border))",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--primary) / 0.5)";
+                  (e.currentTarget as HTMLElement).style.background = "hsl(var(--primary-muted))";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--border))";
+                  (e.currentTarget as HTMLElement).style.background = "hsl(var(--muted))";
+                }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span
+                        className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                        style={{ background: cfg.bgColor, color: cfg.color }}
+                      >
+                        <TypeIcon size={9} />
+                        {cfg.label}
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-foreground truncate">{analysis.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span
+                        className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                        style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary-dark))" }}
+                      >
+                        {analysis.category}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{analysis.era}</span>
+                      {analysis.product_count > 0 && (
+                        <>
+                          <span className="text-[10px] text-muted-foreground">·</span>
+                          <span className="text-[10px] text-muted-foreground">{analysis.product_count} products</span>
+                        </>
+                      )}
+                      {analysis.avg_revival_score && (
+                        <>
+                          <span className="text-[10px] text-muted-foreground">·</span>
+                          <span
+                            className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                            style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary-dark))" }}
+                          >
+                            ⚡ {analysis.avg_revival_score}/10
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Clock size={9} className="text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground">{formatDate(analysis.created_at)}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={(e) => handleDelete(analysis.id, e)}
+                      className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100"
+                      title="Delete"
                     >
-                      {analysis.category}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">{analysis.era}</span>
-                    <span className="text-[10px] text-muted-foreground">·</span>
-                    <span className="text-[10px] text-muted-foreground">{analysis.product_count} products</span>
-                    {analysis.avg_revival_score && (
-                      <>
-                        <span className="text-[10px] text-muted-foreground">·</span>
-                        <span
-                          className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                          style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary-dark))" }}
-                        >
-                          ⚡ {analysis.avg_revival_score}/10
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Clock size={9} className="text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground">{formatDate(analysis.created_at)}</span>
+                      <Trash2 size={11} className="text-red-500" />
+                    </button>
+                    <ChevronRight size={13} style={{ color: "hsl(var(--primary))" }} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    onClick={(e) => handleDelete(analysis.id, e)}
-                    className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100"
-                    title="Delete"
-                  >
-                    <Trash2 size={11} className="text-red-500" />
-                  </button>
-                  <ChevronRight size={13} style={{ color: "hsl(var(--primary))" }} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
+

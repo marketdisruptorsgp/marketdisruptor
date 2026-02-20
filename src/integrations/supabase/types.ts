@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       saved_analyses: {
         Row: {
+          analysis_data: Json | null
+          analysis_type: string
           audience: string
           avg_revival_score: number | null
           batch_size: number
@@ -29,6 +31,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          analysis_data?: Json | null
+          analysis_type?: string
           audience: string
           avg_revival_score?: number | null
           batch_size?: number
@@ -42,6 +46,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          analysis_data?: Json | null
+          analysis_type?: string
           audience?: string
           avg_revival_score?: number | null
           batch_size?: number
