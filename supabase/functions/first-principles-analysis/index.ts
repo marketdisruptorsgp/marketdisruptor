@@ -156,13 +156,13 @@ Return ONLY the JSON object.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.9,
-        max_tokens: 10000,
+        temperature: 0.7,
+        max_tokens: 12000,
       }),
     });
 
@@ -191,6 +191,7 @@ Return ONLY the JSON object.`;
       .replace(/\s*```\s*$/m, "")
       .trim();
 
+    // Extract JSON object — find first { and last }
     const firstBrace = cleaned.indexOf("{");
     const lastBrace = cleaned.lastIndexOf("}");
     if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {

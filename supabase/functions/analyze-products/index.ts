@@ -279,8 +279,8 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.7,
-        max_tokens: 8000,
+        temperature: 0.6,
+        max_tokens: 16000,
       }),
     });
 
@@ -304,17 +304,45 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
     const aiData = await response.json();
     const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
 
-    const cleaned = rawText
+    // Strip markdown code fences
+    let cleaned = rawText
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/\s*```$/, "")
       .trim();
+
+    // Extract JSON array portion — find first [ and last ]
+    const firstBracket = cleaned.indexOf("[");
+    const lastBracket = cleaned.lastIndexOf("]");
+    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+      cleaned = cleaned.slice(firstBracket, lastBracket + 1);
+    }
 
     let products;
     try {
       products = JSON.parse(cleaned);
     } catch {
-      console.error("JSON parse failed, raw:", cleaned.slice(0, 500));
-      throw new Error("AI returned invalid JSON. Please retry.");
+      // If JSON is truncated, try to salvage any complete product objects
+      console.error("JSON parse failed, attempting salvage. Raw:", cleaned.slice(0, 300));
+      // Try to find complete objects by matching balanced braces
+      const salvaged: unknown[] = [];
+      let depth = 0;
+      let start = -1;
+      for (let i = 0; i < cleaned.length; i++) {
+        if (cleaned[i] === "{") { if (depth === 0) start = i; depth++; }
+        else if (cleaned[i] === "}") {
+          depth--;
+          if (depth === 0 && start !== -1) {
+            try { salvaged.push(JSON.parse(cleaned.slice(start, i + 1))); } catch { /* skip incomplete */ }
+            start = -1;
+          }
+        }
+      }
+      if (salvaged.length > 0) {
+        console.log(`Salvaged ${salvaged.length} product(s) from truncated JSON`);
+        products = salvaged;
+      } else {
+        throw new Error("AI returned invalid JSON. Please retry.");
+      }
     }
 
     if (!Array.isArray(products)) {
