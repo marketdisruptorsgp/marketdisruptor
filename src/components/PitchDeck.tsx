@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
@@ -26,6 +26,7 @@ import {
   Clock,
   Star,
   AlertTriangle,
+  Download,
 } from "lucide-react";
 
 interface FinancialModel {
@@ -116,6 +117,216 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
   const [data, setData] = useState<PitchDeckData | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState<SlideTab>("pitch");
+  const printRef = useRef<HTMLDivElement | null>(null);
+
+  const handleDownloadPDF = () => {
+    if (!data) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) { toast.error("Allow pop-ups to download PDF."); return; }
+
+    const sections: { title: string; html: string }[] = [
+      {
+        title: "Elevator Pitch & Highlights",
+        html: `
+          <h2 style="color:#6366f1;font-size:22px;margin-bottom:8px">${data.elevatorPitch}</h2>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+            <div style="padding:14px;background:#fef2f2;border-left:4px solid #ef4444;border-radius:8px">
+              <p style="color:#ef4444;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:6px">THE PROBLEM</p>
+              <p style="font-size:13px;line-height:1.6">${data.problemStatement}</p>
+            </div>
+            <div style="padding:14px;background:#f0fdf4;border-left:4px solid #22c55e;border-radius:8px">
+              <p style="color:#16a34a;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:6px">THE SOLUTION</p>
+              <p style="font-size:13px;line-height:1.6">${data.solutionStatement}</p>
+            </div>
+          </div>
+          <div style="margin-top:16px;padding:14px;background:#fffbeb;border-left:4px solid #f59e0b;border-radius:8px">
+            <p style="color:#b45309;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:6px">WHY NOW?</p>
+            <p style="font-size:13px;line-height:1.6">${data.whyNow}</p>
+          </div>
+          <h3 style="margin-top:20px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280">Investor Highlights</h3>
+          ${data.investorHighlights.map(h => `<p style="margin:4px 0;font-size:13px;padding-left:12px;border-left:3px solid #6366f1">⚡ ${h}</p>`).join("")}
+          <h3 style="margin-top:20px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280">Competitive Advantages</h3>
+          ${data.competitiveAdvantages.map(a => `<p style="margin:4px 0;font-size:13px;padding-left:12px;border-left:3px solid #8b5cf6">→ ${a}</p>`).join("")}
+          ${data.customerPersona ? `
+          <h3 style="margin-top:20px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280">Ideal Customer: ${data.customerPersona.name}</h3>
+          <p style="font-size:13px"><strong>Age:</strong> ${data.customerPersona.age}</p>
+          <p style="font-size:13px"><strong>Buying Behavior:</strong> ${data.customerPersona.buyingBehavior}</p>
+          <p style="font-size:13px"><strong>Price Willingness:</strong> ${data.customerPersona.willingness}</p>
+          <p style="font-size:13px"><strong>Pain Points:</strong> ${data.customerPersona.painPoints.join(", ")}</p>
+          ` : ""}
+        `,
+      },
+      {
+        title: "Market Opportunity",
+        html: `
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+            <div style="text-align:center;padding:16px;background:#f5f3ff;border-radius:8px">
+              <p style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:4px">TAM</p>
+              <p style="font-size:18px;font-weight:900;color:#6366f1">${data.marketOpportunity.tam}</p>
+            </div>
+            <div style="text-align:center;padding:16px;background:#eff6ff;border-radius:8px">
+              <p style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:4px">SAM</p>
+              <p style="font-size:18px;font-weight:900;color:#3b82f6">${data.marketOpportunity.sam}</p>
+            </div>
+            <div style="text-align:center;padding:16px;background:#f0fdf4;border-radius:8px">
+              <p style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:4px">SOM</p>
+              <p style="font-size:18px;font-weight:900;color:#22c55e">${data.marketOpportunity.som}</p>
+            </div>
+          </div>
+          <p style="font-size:13px"><strong>Growth Rate:</strong> ${data.marketOpportunity.growthRate}</p>
+          <h3 style="margin-top:16px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280">Key Market Drivers</h3>
+          ${data.marketOpportunity.keyDrivers.map((d, i) => `<p style="margin:4px 0;font-size:13px"><strong>${i + 1}.</strong> ${d}</p>`).join("")}
+        `,
+      },
+      {
+        title: "Financial Model",
+        html: `
+          <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:8px">Unit Economics</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+            ${[
+              ["COGS", data.financialModel.unitEconomics.cogs],
+              ["Retail Price", data.financialModel.unitEconomics.retailPrice],
+              ["Gross Margin", data.financialModel.unitEconomics.grossMargin],
+              ["Contribution Margin", data.financialModel.unitEconomics.contributionMargin],
+              ["Payback Period", data.financialModel.unitEconomics.paybackPeriod],
+            ].map(([l, v]) => `<div style="text-align:center;padding:10px;background:#f9fafb;border-radius:6px"><p style="font-size:9px;font-weight:700;color:#6b7280;margin-bottom:2px">${l}</p><p style="font-size:13px;font-weight:900">${v}</p></div>`).join("")}
+          </div>
+          <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:8px">Revenue Scenarios (Year 1)</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+            ${(["Conservative::#3b82f6", "Base Case::#6366f1", "Optimistic::#22c55e"] as const).map((entry, idx) => {
+              const [label, color] = entry.split("::");
+              const scenarios = [data.financialModel.scenarios.conservative, data.financialModel.scenarios.base, data.financialModel.scenarios.optimistic];
+              const s = scenarios[idx];
+              return `<div style="padding:12px;background:#f9fafb;border-top:3px solid ${color};border-radius:8px">
+                <p style="font-size:11px;font-weight:700;color:${color};margin-bottom:6px">${label}</p>
+                <p style="font-size:12px"><strong>Units:</strong> ${s.units}</p>
+                <p style="font-size:12px"><strong>Revenue:</strong> ${s.revenue}</p>
+                <p style="font-size:12px"><strong>Profit:</strong> ${s.profit}</p>
+                <p style="font-size:11px;color:#6b7280;margin-top:6px">${s.assumptions}</p>
+              </div>`;
+            }).join("")}
+          </div>
+          <p style="font-size:13px"><strong>Pricing Strategy:</strong> ${data.financialModel.pricingStrategy}</p>
+          <p style="font-size:13px;margin-top:6px"><strong>Break-Even:</strong> ${data.financialModel.breakEvenAnalysis}</p>
+          <p style="font-size:13px;margin-top:6px"><strong>Funding Ask:</strong> ${data.financialModel.fundingAsk}</p>
+          <p style="font-size:13px;margin-top:4px"><strong>Use of Funds:</strong> ${data.financialModel.useOfFunds.join(" · ")}</p>
+          <p style="font-size:13px;margin-top:6px"><strong>Exit Strategy:</strong> ${data.financialModel.exitStrategy}</p>
+        `,
+      },
+      {
+        title: "Suppliers & Distributors",
+        html: `
+          <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:8px">Manufacturers & Suppliers</h3>
+          ${data.supplierContacts.map(s => `
+            <div style="margin-bottom:12px;padding:12px;background:#f9fafb;border-left:3px solid #6366f1;border-radius:6px">
+              <p style="font-weight:700;font-size:13px">${s.name} <span style="font-size:11px;color:#6366f1;font-weight:400">${s.role}</span></p>
+              <p style="font-size:12px;color:#6b7280">${s.region}${s.email ? ` · ${s.email}` : ""}${s.phone ? ` · ${s.phone}` : ""}${s.moq ? ` · MOQ: ${s.moq}` : ""}${s.leadTime ? ` · Lead: ${s.leadTime}` : ""}</p>
+              <p style="font-size:12px;margin-top:4px">${s.notes}</p>
+            </div>
+          `).join("")}
+          <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:16px 0 8px">Distributors & Logistics</h3>
+          ${data.distributorContacts.map(d => `
+            <div style="margin-bottom:12px;padding:12px;background:#f9fafb;border-left:3px solid #3b82f6;border-radius:6px">
+              <p style="font-weight:700;font-size:13px">${d.name} <span style="font-size:11px;color:#3b82f6;font-weight:400">${d.role}</span></p>
+              <p style="font-size:12px;color:#6b7280">${d.region}${d.email ? ` · ${d.email}` : ""}${d.moq ? ` · Min Shipment: ${d.moq}` : ""}${d.leadTime ? ` · Onboarding: ${d.leadTime}` : ""}</p>
+              <p style="font-size:12px;margin-top:4px">${d.notes}</p>
+            </div>
+          `).join("")}
+        `,
+      },
+      {
+        title: "Go-to-Market Strategy",
+        html: `
+          <div style="margin-bottom:12px;padding:12px;background:#f0fdf4;border-left:4px solid #22c55e;border-radius:6px">
+            <p style="font-size:11px;font-weight:700;color:#16a34a;margin-bottom:4px">Phase 1: Launch</p>
+            <p style="font-size:13px;line-height:1.6">${data.gtmStrategy.phase1}</p>
+          </div>
+          <div style="margin-bottom:12px;padding:12px;background:#f5f3ff;border-left:4px solid #6366f1;border-radius:6px">
+            <p style="font-size:11px;font-weight:700;color:#4f46e5;margin-bottom:4px">Phase 2: Scale</p>
+            <p style="font-size:13px;line-height:1.6">${data.gtmStrategy.phase2}</p>
+          </div>
+          <div style="margin-bottom:16px;padding:12px;background:#fffbeb;border-left:4px solid #f59e0b;border-radius:6px">
+            <p style="font-size:11px;font-weight:700;color:#b45309;margin-bottom:4px">Phase 3: Dominate</p>
+            <p style="font-size:13px;line-height:1.6">${data.gtmStrategy.phase3}</p>
+          </div>
+          <p style="font-size:13px"><strong>Key Channels:</strong> ${data.gtmStrategy.keyChannels.join(" · ")}</p>
+          <p style="font-size:13px;margin-top:6px"><strong>Launch Budget:</strong> ${data.gtmStrategy.launchBudget}</p>
+        `,
+      },
+      {
+        title: "Key Metrics & Risk Matrix",
+        html: `
+          <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:8px">Key Success Metrics</h3>
+          ${data.keyMetrics.map(m => `
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;padding:10px;background:#f9fafb;border-radius:6px">
+              <div>
+                <p style="font-weight:700;font-size:13px">${m.metric}</p>
+                <p style="font-size:12px;color:#6b7280">${m.why}</p>
+              </div>
+              <span style="padding:4px 10px;background:#6366f1;color:white;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;margin-left:12px">${m.target}</span>
+            </div>
+          `).join("")}
+          <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin:16px 0 8px">Risk Matrix</h3>
+          ${data.risks.map(r => {
+            const c = r.severity === "high" ? "#ef4444" : r.severity === "medium" ? "#f59e0b" : "#22c55e";
+            return `
+              <div style="margin-bottom:10px;border:1px solid ${c}30;border-radius:6px;overflow:hidden">
+                <div style="padding:8px 12px;background:${c}10;display:flex;align-items:center;gap:8px">
+                  <span style="padding:2px 8px;background:${c}25;color:${c};border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase">${r.severity}</span>
+                  <p style="font-size:12px;font-weight:700">${r.risk}</p>
+                </div>
+                <div style="padding:8px 12px;background:#f9fafb">
+                  <p style="font-size:12px;color:#374151">✓ ${r.mitigation}</p>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        `,
+      },
+    ];
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Pitch Deck — ${product.name}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    body { color: #111827; background: white; padding: 0; }
+    .cover { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 48px 40px; page-break-after: always; }
+    .cover h1 { font-size: 32px; font-weight: 900; margin-bottom: 8px; }
+    .cover .sub { font-size: 14px; opacity: 0.75; margin-bottom: 4px; }
+    .cover .badge { display: inline-block; margin-top: 20px; padding: 6px 16px; background: rgba(255,255,255,0.15); border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .section { padding: 32px 40px; page-break-after: always; }
+    .section:last-child { page-break-after: auto; }
+    .section-title { font-size: 20px; font-weight: 900; color: #4f46e5; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; gap: 8px; }
+    .section-title::before { content: ""; display: block; width: 4px; height: 20px; background: #4f46e5; border-radius: 2px; }
+    @media print { .section { page-break-after: always; } }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <p class="sub">INVESTOR PITCH DECK</p>
+    <h1>${product.name}</h1>
+    <p class="sub">${product.category} · ${product.era} · Revival Score ${product.revivalScore}/10</p>
+    <p class="sub" style="margin-top:12px;max-width:500px;line-height:1.6;font-size:13px">${product.description}</p>
+    <span class="badge">Confidential · Generated by Product Intelligence AI</span>
+  </div>
+  ${sections.map(s => `
+    <div class="section">
+      <div class="section-title">${s.title}</div>
+      ${s.html}
+    </div>
+  `).join("")}
+</body>
+</html>`;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  };
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -195,12 +406,20 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
             <p className="text-[11px] text-muted-foreground">{product.name}</p>
           </div>
         </div>
-        <button onClick={runAnalysis} disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-          style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
-          {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
-          Regenerate
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleDownloadPDF}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: "hsl(var(--primary))", color: "white" }}>
+            <Download size={11} />
+            Download PDF
+          </button>
+          <button onClick={runAnalysis} disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
+            {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+            Regenerate
+          </button>
+        </div>
       </div>
 
       {/* Slide nav */}
