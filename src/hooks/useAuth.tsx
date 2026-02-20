@@ -29,13 +29,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchOrCreateProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
       .select("user_id, first_name")
       .eq("user_id", userId)
       .single();
-    if (data) setProfile(data as Profile);
+
+    if (data) {
+      setProfile(data as Profile);
+    } else {
+      // No profile yet — try to create one using the pending first name from localStorage
+      const pendingName = localStorage.getItem("pending_first_name");
+      if (pendingName) {
+        const { data: newProfile } = await supabase
+          .from("profiles")
+          .insert({ user_id: userId, first_name: pendingName })
+          .select("user_id, first_name")
+          .single();
+        localStorage.removeItem("pending_first_name");
+        if (newProfile) setProfile(newProfile as Profile);
+      }
+    }
   };
 
   useEffect(() => {
@@ -43,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchOrCreateProfile(session.user.id);
       } else {
         setProfile(null);
       }
@@ -53,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
+      if (session?.user) fetchOrCreateProfile(session.user.id);
       setLoading(false);
     });
 
@@ -65,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
-    // Force reload to clear any cached anonymous session state
+    // Force reload to clear any cached session state
     window.location.href = "/";
   };
 
