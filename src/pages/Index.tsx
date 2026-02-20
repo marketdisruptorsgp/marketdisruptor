@@ -117,7 +117,18 @@ export default function Index() {
   const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; batchSize: number }) => {
     try {
       const avgScore = liveProducts.reduce((acc, p) => acc + p.revivalScore, 0) / liveProducts.length;
-      const title = `${params.era} ${params.category}`;
+      // Build a meaningful title from actual product names
+      const productNames = liveProducts.map(p => p.name);
+      let title: string;
+      if (productNames.length === 1) {
+        title = productNames[0];
+      } else if (productNames.length === 2) {
+        title = `${productNames[0]} & ${productNames[1]}`;
+      } else if (productNames.length <= 4) {
+        title = productNames.slice(0, -1).join(", ") + " & " + productNames[productNames.length - 1];
+      } else {
+        title = `${productNames[0]}, ${productNames[1]}, ${productNames[2]} +${productNames.length - 3} more`;
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any).insert({
         title,
