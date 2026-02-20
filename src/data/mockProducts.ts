@@ -91,6 +91,9 @@ export interface Product {
   actionPlan?: ActionPlan;
   marketSizeEstimate?: string;
   keyInsight?: string;
+  // Patent intelligence (persisted per product)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  patentData?: any;
 }
 
 export const sampleProducts: Product[] = [

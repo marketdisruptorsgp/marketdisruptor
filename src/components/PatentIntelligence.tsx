@@ -67,6 +67,7 @@ interface PatentData {
 
 interface Props {
   product: Product;
+  onSave?: (patentData: PatentData) => void;
 }
 
 const RISK_CONFIG = {
@@ -137,8 +138,11 @@ function ExpandableCard({
   );
 }
 
-export function PatentIntelligence({ product }: Props) {
-  const [patentData, setPatentData] = useState<PatentData | null>(null);
+export function PatentIntelligence({ product, onSave }: Props) {
+  const [patentData, setPatentData] = useState<PatentData | null>(
+    // Restore persisted patent data from product if available
+    (product.patentData as PatentData | null) ?? null
+  );
   const [loading, setLoading] = useState(false);
 
   const runAnalysis = async () => {
@@ -157,7 +161,8 @@ export function PatentIntelligence({ product }: Props) {
       }
 
       setPatentData(data.patentData);
-      toast.success("Patent intelligence loaded!");
+      onSave?.(data.patentData);
+      toast.success("Patent intelligence loaded & saved!");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load patent data";
       toast.error(msg);

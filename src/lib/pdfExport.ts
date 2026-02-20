@@ -798,3 +798,244 @@ export function downloadBusinessModelPDF(businessType: string, data: any) {
 
   doc.save(`${businessType.replace(/[^a-z0-9]/gi, "_")}_business_model.pdf`);
 }
+
+// ── Patent Intelligence PDF ──────────────────────────────────
+const PURPLE: [number, number, number] = [109, 40, 217];   // hsl(271 81% 55%)
+const BLUE: [number, number, number]   = [37, 99, 235];    // hsl(217 91% 45%)
+const TEAL: [number, number, number]   = [20, 184, 166];   // teal accent
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function downloadPatentPDF(product: Product, patentData: any) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+  // ── Cover ──────────────────────────────────────────────────
+  fill(doc, PURPLE);
+  doc.rect(0, 0, PAGE_W, 90, "F");
+  doc.setFillColor(124, 58, 237);
+  doc.rect(0, 70, PAGE_W, 20, "F");
+
+  doc.setFontSize(8); doc.setFont("helvetica", "bold");
+  rgb(doc, [221, 214, 254]);
+  doc.text("PRODUCT INTELLIGENCE AI — PATENT INTELLIGENCE REPORT", ML, 20);
+
+  doc.setFontSize(22); doc.setFont("helvetica", "bold");
+  rgb(doc, WHITE);
+  const nameLines = doc.splitTextToSize(product.name, CW);
+  doc.text(nameLines, ML, 36);
+
+  doc.setFontSize(9); doc.setFont("helvetica", "normal");
+  rgb(doc, [221, 214, 254]);
+  doc.text(`${product.category} · ${product.era} · IP Landscape Score ${patentData.landscapeScore}/10`, ML, 36 + nameLines.length * 9 + 4);
+
+  let bx = ML;
+  ["Expired IP Goldmines", "Patent Gaps", "Active Moats", "Innovation Angles"].forEach(t => {
+    bx = pill(doc, t, bx, 80, [124, 58, 237] as [number,number,number], WHITE);
+  });
+
+  doc.setFontSize(7); rgb(doc, GRAY);
+  doc.text(`Generated ${new Date().toLocaleDateString()} · Confidential`, ML, PAGE_H - 10);
+
+  let y = 106;
+
+  // ── Scores ─────────────────────────────────────────────────
+  y = sectionTitle(doc, "IP Landscape Scores", y);
+
+  const scores = [
+    { label: "IP Landscape Clarity", score: patentData.landscapeScore, col: PURPLE },
+    { label: "Innovation Opportunity", score: patentData.opportunityScore, col: GREEN },
+  ];
+  const sw = CW / 2 - 4;
+  scores.forEach(({ label, score, col }, i) => {
+    const cx = ML + i * (sw + 8);
+    label_text(doc, label, cx, y, 8);
+    const barY = y + 6;
+    stroke(doc, [230, 230, 230]); doc.setLineWidth(0);
+    doc.setFillColor(240, 240, 240);
+    doc.roundedRect(cx, barY, sw, 5, 2.5, 2.5, "F");
+    fill(doc, col);
+    doc.roundedRect(cx, barY, sw * score / 10, 5, 2.5, 2.5, "F");
+    rgb(doc, DARK); doc.setFontSize(8); doc.setFont("helvetica", "bold");
+    doc.text(`${score}/10`, cx + sw + 2, barY + 4);
+  });
+  y += 18;
+
+  // Thicket Risk
+  const riskColors = { low: GREEN, medium: AMBER, high: RED };
+  const riskLabels = { low: "LOW RISK", medium: "MEDIUM RISK", high: "HIGH RISK" };
+  const rColor = riskColors[patentData.thicketRisk as keyof typeof riskColors] || AMBER;
+  const rLabel = riskLabels[patentData.thicketRisk as keyof typeof riskLabels] || "MEDIUM RISK";
+  y = checkY(doc, y, 20);
+  fill(doc, rColor); doc.roundedRect(ML, y - 3, CW, 14, 2, 2, "F");
+  doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, WHITE);
+  doc.text(`Patent Thicket Risk: ${rLabel}`, ML + 4, y + 4);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+  const rLines = doc.splitTextToSize(patentData.thicketRiskExplanation, CW - 8);
+  doc.text(rLines, ML + 4, y + 9);
+  y += Math.max(14, rLines.length * 3.5 + 10) + 4;
+
+  // Summary
+  y = checkY(doc, y, 16);
+  label_text(doc, "Strategic Summary", ML, y, 8); y += 5;
+  y = body(doc, patentData.summary, ML, y, CW) + 8;
+
+  // ── Expired Goldmines ──────────────────────────────────────
+  if (patentData.expiredGoldmines?.length) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Expired IP Goldmines — FREE TO USE", y);
+    doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, GRAY);
+    doc.text("These patents have expired — the underlying technology is now public domain.", ML, y); y += 6;
+
+    patentData.expiredGoldmines.forEach((item: {
+      title: string; originalHolder: string; expiredYear: number;
+      whatItCovers: string; commercialOpportunity: string;
+      exampleApplication: string; estimatedValue: string;
+    }) => {
+      y = checkY(doc, y, 30);
+      fill(doc, [236, 253, 245]); stroke(doc, [34, 197, 94]);
+      doc.setDrawColor(34, 197, 94); doc.setLineWidth(0.3);
+      doc.rect(ML, y - 2, CW, 3, "F");
+      doc.setLineWidth(0.2);
+
+      doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+      doc.text(item.title, ML, y + 3); y += 7;
+      doc.setFontSize(7.5); doc.setFont("helvetica", "normal"); rgb(doc, GRAY);
+      doc.text(`Originally by ${item.originalHolder} · Expired ${item.expiredYear}`, ML, y); y += 5;
+
+      label_text(doc, "What's covered", ML, y, 7); y += 4;
+      y = body(doc, item.whatItCovers, ML + 2, y, CW - 2, 8) + 3;
+
+      fill(doc, GREEN); doc.setFillColor(220, 252, 231);
+      const oppLines = doc.splitTextToSize(item.commercialOpportunity, CW - 8);
+      doc.rect(ML, y - 1, CW, oppLines.length * 3.5 + 5, "F");
+      doc.setFontSize(7.5); doc.setFont("helvetica", "bold"); rgb(doc, [21, 128, 61]);
+      doc.text("💰 Commercial Opportunity", ML + 3, y + 3);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
+      doc.text(oppLines, ML + 3, y + 7);
+      y += oppLines.length * 3.5 + 9;
+
+      doc.setFontSize(7.5); doc.setFont("helvetica", "italic"); rgb(doc, GRAY);
+      const exLines = doc.splitTextToSize(`Example: "${item.exampleApplication}"`, CW - 3);
+      doc.text(exLines, ML, y); y += exLines.length * 3.2 + 2;
+      doc.text(`If still active, this IP would cost ~${item.estimatedValue} to license — now free.`, ML, y);
+      y += 8;
+    });
+  }
+
+  // ── Patent White Space ─────────────────────────────────────
+  if (patentData.patentGaps?.length) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Patent White Space — UNPROTECTED AREAS", y);
+
+    patentData.patentGaps.forEach((gap: {
+      gap: string; why: string; opportunity: string;
+      urgency: string; estimatedFilingCost: string;
+    }) => {
+      y = checkY(doc, y, 24);
+      const urgColor = gap.urgency === "high" ? RED : gap.urgency === "medium" ? AMBER : GREEN;
+      pill(doc, gap.urgency.toUpperCase() + " URGENCY", ML, y, urgColor, WHITE);
+      y += 6;
+      doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+      const gLines = doc.splitTextToSize(gap.gap, CW - 3);
+      doc.text(gLines, ML, y); y += gLines.length * 3.8 + 3;
+
+      const cw3 = CW / 3;
+      ["Why nobody's filed", "Opportunity", "Filing Cost"].forEach((lbl, i) => {
+        const cx = ML + i * cw3;
+        label_text(doc, lbl, cx, y, 6.5);
+        doc.setFontSize(7.5); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const val = i === 0 ? gap.why : i === 1 ? gap.opportunity : gap.estimatedFilingCost;
+        const vLines = doc.splitTextToSize(val, cw3 - 3);
+        doc.text(vLines, cx, y + 4);
+      });
+      y += 18;
+    });
+  }
+
+  // ── Innovation Angles ──────────────────────────────────────
+  if (patentData.innovationAngles?.length) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Patent-Powered Innovation Angles", y);
+
+    patentData.innovationAngles.forEach((angle: {
+      angle: string; basedOn: string; description: string;
+      defensibility: string; competitiveAdvantage: string;
+      investmentNeeded: string; marketPotential: string;
+    }, idx: number) => {
+      y = checkY(doc, y, 30);
+      fill(doc, AMBER); doc.setFillColor(254, 243, 199);
+      doc.roundedRect(ML, y - 3, CW, 4, 0, 0, "F");
+      doc.setFontSize(10); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+      doc.text(`${idx + 1}. ${angle.angle}`, ML + 2, y + 2); y += 8;
+      doc.setFontSize(7.5); doc.setFont("helvetica", "italic"); rgb(doc, GRAY);
+      doc.text(`Based on: ${angle.basedOn}`, ML, y); y += 5;
+      y = body(doc, angle.description, ML, y, CW, 8) + 4;
+
+      const metrics = [
+        ["Defensibility", angle.defensibility],
+        ["Competitive Edge", angle.competitiveAdvantage],
+        ["Investment", angle.investmentNeeded],
+        ["Market Potential", angle.marketPotential],
+      ];
+      const mw = CW / 4;
+      metrics.forEach(([lbl, val], i) => {
+        const cx = ML + i * mw;
+        label_text(doc, lbl, cx, y, 6.5);
+        const vLines = doc.splitTextToSize(String(val), mw - 3);
+        doc.setFontSize(7.5); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(vLines, cx, y + 4);
+      });
+      y += 16;
+    });
+  }
+
+  // ── Key Holders ────────────────────────────────────────────
+  if (patentData.keyHolders?.length) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Key Patent Holders & IP Moats", y);
+
+    patentData.keyHolders.forEach((holder: {
+      name: string; patentCount: number; dominance: string;
+      focus: string; threat: string; opportunity: string;
+    }) => {
+      y = checkY(doc, y, 22);
+      const domColor = holder.dominance === "high" ? RED : holder.dominance === "medium" ? AMBER : GREEN;
+      pill(doc, holder.dominance.toUpperCase(), ML, y, domColor, WHITE);
+      doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+      doc.text(holder.name, ML + 24, y);
+      doc.setFontSize(7.5); doc.setFont("helvetica", "normal"); rgb(doc, GRAY);
+      doc.text(`${holder.patentCount} patents · ${holder.focus}`, ML + 24, y + 4);
+      y += 9;
+      label_text(doc, "Threat", ML, y, 6.5);
+      const thLines = doc.splitTextToSize(holder.threat, CW / 2 - 3);
+      doc.setFontSize(7.5); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+      doc.text(thLines, ML, y + 4);
+      label_text(doc, "Opportunity", ML + CW / 2, y, 6.5);
+      const opLines = doc.splitTextToSize(holder.opportunity, CW / 2 - 3);
+      doc.text(opLines, ML + CW / 2, y + 4);
+      y += Math.max(thLines.length, opLines.length) * 3.5 + 8;
+    });
+  }
+
+  // ── Quick Actions ──────────────────────────────────────────
+  if (patentData.quickActions?.length) {
+    y = checkY(doc, y, 20);
+    y = sectionTitle(doc, "Quick IP Actions", y);
+    patentData.quickActions.forEach((action: string) => {
+      y = checkY(doc, y, 7);
+      rgb(doc, PURPLE); doc.setFontSize(8); doc.setFont("helvetica", "normal");
+      const aLines = doc.splitTextToSize(`→ ${action}`, CW - 3);
+      rgb(doc, DARK); doc.text(aLines, ML, y);
+      y += aLines.length * 3.5 + 3;
+    });
+  }
+
+  doc.save(`${product.name.replace(/[^a-z0-9]/gi, "_")}_patent_intelligence.pdf`);
+}
+
+// Helper to keep label function clean
+function label_text(doc: jsPDF, text: string, x: number, y: number, size = 7) {
+  doc.setFontSize(size);
+  doc.setFont("helvetica", "bold");
+  rgb(doc, GRAY);
+  doc.text(text.toUpperCase(), x, y);
+}
