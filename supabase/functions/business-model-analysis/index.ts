@@ -133,13 +133,13 @@ Return ONLY the JSON object.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.85,
-        max_tokens: 12000,
+        temperature: 0.5,
+        max_tokens: 16000,
       }),
     });
 
