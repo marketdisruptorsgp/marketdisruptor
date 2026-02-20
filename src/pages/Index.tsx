@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import heroBanner from "@/assets/hero-banner.jpg";
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
@@ -12,8 +12,13 @@ import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
 import { PitchDeck } from "@/components/PitchDeck";
+import { UserHeader } from "@/components/UserHeader";
+import WelcomeModal from "@/components/WelcomeModal";
+import { ContextualTip } from "@/components/ContextualTip";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
 import {
   Zap,
   Search,
@@ -107,6 +112,7 @@ function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
 }
 
 export default function Index() {
+  const { user, profile } = useAuth();
   const [step, setStep] = useState<AnalysisStep>("idle");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -121,11 +127,18 @@ export default function Index() {
   const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "firstprinciples" | "pitchdeck">("overview");
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !localStorage.getItem("welcomed_" + (user?.id ?? ""));
+  });
+
+  const handleCloseWelcome = () => {
+    localStorage.setItem("welcomed_" + (user?.id ?? ""), "1");
+    setShowWelcome(false);
+  };
 
   const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; batchSize: number }) => {
     try {
       const avgScore = liveProducts.reduce((acc, p) => acc + p.revivalScore, 0) / liveProducts.length;
-      // Build a meaningful title from actual product names
       const productNames = liveProducts.map(p => p.name);
       let title: string;
       if (productNames.length === 1) {
@@ -139,6 +152,7 @@ export default function Index() {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any).insert({
+        user_id: user?.id,
         title,
         category: params.category,
         era: params.era,
@@ -149,11 +163,11 @@ export default function Index() {
         avg_revival_score: Math.round(avgScore * 10) / 10,
       });
       setSavedRefreshTrigger((n) => n + 1);
-      toast.success("Analysis auto-saved! Find it in Saved Analyses.");
+      toast.success("Analysis auto-saved!");
     } catch (err) {
       console.error("Auto-save failed:", err);
     }
-  }, []);
+  }, [user?.id]);
 
   const handleLoadSaved = useCallback((analysis: { products: Product[]; category: string; era: string; audience?: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string; analysis_type?: string; analysis_data?: unknown }) => {
     if (analysis.analysis_type === "business_model") {
@@ -313,34 +327,48 @@ export default function Index() {
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
+      {/* Welcome Modal */}
+      {showWelcome && profile && (
+        <WelcomeModal firstName={profile.first_name} onClose={handleCloseWelcome} />
+      )}
+
       {/* HERO */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0">
           <img src={heroBanner} alt="Product Intelligence AI" className="w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: "hsl(220 20% 5% / 0.75)" }} />
         </div>
-        <div className="relative z-10 max-w-6xl mx-auto px-4 py-16 sm:py-24">
-          <div className="flex items-center gap-2 mb-4">
-            <Zap size={18} style={{ color: "hsl(var(--primary-light))" }} />
-            <span className="text-sm font-semibold tracking-wider uppercase" style={{ color: "hsl(var(--primary-light))" }}>
-              Product Intelligence AI
-            </span>
+        {/* Top nav bar with user */}
+        <div className="relative z-10 border-b" style={{ borderColor: "hsl(var(--primary) / 0.15)" }}>
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap size={15} style={{ color: "hsl(var(--primary-light))" }} />
+              <span className="text-xs font-bold tracking-widest uppercase text-white/70">Product Intelligence AI</span>
+            </div>
+            <UserHeader />
+          </div>
+        </div>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-12 sm:py-20">
+          <div className="flex items-center gap-2 mb-3">
             <span
-              className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+              className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
               style={{ background: "hsl(var(--primary))", color: "white" }}
             >
               Live Data
             </span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4 max-w-3xl">
-            Discover, Deconstruct &{" "}
-            <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize</span>
+          <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-3 max-w-3xl">
+            {profile ? (
+              <>Hey <span style={{ color: "hsl(var(--primary-light))" }}>{profile.first_name}</span> — what are we uncovering today?</>
+            ) : (
+              <>Discover, Deconstruct & <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize</span></>
+            )}
           </h1>
           <p className="text-lg text-white/70 max-w-2xl leading-relaxed">
             Deep market intelligence from eBay, Etsy, Reddit & more — pricing, suppliers, vendors,
             action plans, and AI-generated innovation opportunities.
           </p>
-          <div className="mt-10 flex flex-wrap gap-2">
+          <div className="mt-8 flex flex-wrap gap-2">
             {STEPS.map((s, i) => {
               const Icon = s.icon;
               return (
@@ -360,6 +388,11 @@ export default function Index() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
+        <ContextualTip
+          id="discovery-tip-1"
+          message={`💡 Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
+        />
+
         <AnalysisForm
           onAnalyze={handleAnalyze}
           isLoading={isLoading}
@@ -368,6 +401,7 @@ export default function Index() {
             toggleSection("businessmodel");
           }}
         />
+
 
         {/* LOADING — rich step tracker */}
         {isLoading && (
@@ -1209,6 +1243,11 @@ export default function Index() {
         </SectionAccordion>
 
         {/* SAVED ANALYSES */}
+        <ContextualTip
+          id="saved-tip-1"
+          message="🗂️ Your workspace: Every analysis auto-saves here. Click any entry to instantly reload it — your data never expires and is private to you."
+          color="hsl(142 70% 38%)"
+        />
         <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
 
         {/* IDLE with no data */}
@@ -1220,9 +1259,11 @@ export default function Index() {
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: "hsl(var(--primary-muted))" }}>
               <Zap size={28} style={{ color: "hsl(var(--primary))" }} />
             </div>
-            <h3 className="text-xl font-bold text-foreground">Ready to Discover Hidden Opportunities</h3>
+            <h3 className="text-xl font-bold text-foreground">
+              {profile ? `${profile.first_name}, what are you uncovering today?` : "Ready to Discover Hidden Opportunities"}
+            </h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Configure your parameters above and click "Run Product Intelligence Analysis".
+              Pick a category, an era, and let the AI surface what the market is missing. Your analysis auto-saves automatically.
             </p>
           </div>
         )}
@@ -1231,6 +1272,7 @@ export default function Index() {
       <footer className="border-t mt-12 py-8 text-center" style={{ borderColor: "hsl(var(--border))" }}>
         <p className="text-xs text-muted-foreground">
           Product Intelligence AI · Powered by Firecrawl + Gemini · Live data from eBay, Etsy, Reddit, TikTok & more
+          {profile && <> · Signed in as <strong>{profile.first_name}</strong></>}
         </p>
       </footer>
     </div>

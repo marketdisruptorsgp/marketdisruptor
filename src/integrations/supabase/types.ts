@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_analyses: {
         Row: {
           analysis_data: Json | null
@@ -29,6 +53,7 @@ export type Database = {
           products: Json
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           analysis_data?: Json | null
@@ -44,6 +69,7 @@ export type Database = {
           products?: Json
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           analysis_data?: Json | null
@@ -59,6 +85,7 @@ export type Database = {
           products?: Json
           title?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
