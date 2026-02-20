@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import heroBanner from "@/assets/hero-banner.jpg";
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
+import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { AnalysisForm } from "@/components/AnalysisForm";
 import { ProductCard } from "@/components/ProductCard";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
@@ -51,6 +52,7 @@ import {
   Brain,
   Presentation,
   Building2,
+  FileDown,
 } from "lucide-react";
 
 const STEPS = [
@@ -410,15 +412,26 @@ export default function Index() {
                 );
               })}
               </div>
-              <button
-                onClick={handleManualSave}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                style={{ background: "hsl(var(--primary))", color: "white", opacity: isSaving ? 0.7 : 1 }}
-              >
-                {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-                {isSaving ? "Saving…" : "Save Analysis"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct)}
+                  disabled={!selectedProduct}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                  style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", opacity: selectedProduct ? 1 : 0.5 }}
+                >
+                  <FileDown size={14} />
+                  Download PDF
+                </button>
+                <button
+                  onClick={handleManualSave}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                  style={{ background: "hsl(var(--primary))", color: "white", opacity: isSaving ? 0.7 : 1 }}
+                >
+                  {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+                  {isSaving ? "Saving…" : "Save Analysis"}
+                </button>
+              </div>
             </div>
 
 
