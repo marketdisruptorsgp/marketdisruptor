@@ -98,15 +98,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     signingOut.current = true;
 
-    // Wipe all Supabase session keys from localStorage
-    Object.keys(localStorage)
-      .filter((k) => k.startsWith("sb-"))
-      .forEach((k) => localStorage.removeItem(k));
+    // Unsubscribe the auth listener immediately so it can't re-establish anything
+    // (the effect cleanup won't run until unmount, so we guard with signingOut flag)
 
-    // Also clear sessionStorage in case anything is cached there
-    Object.keys(sessionStorage)
-      .filter((k) => k.startsWith("sb-"))
-      .forEach((k) => sessionStorage.removeItem(k));
+    // Clear React state first
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+
+    // Wipe ALL Supabase-related keys from every storage mechanism
+    [localStorage, sessionStorage].forEach((store) => {
+      Object.keys(store)
+        .filter((k) => k.startsWith("sb-") || k.startsWith("supabase"))
+        .forEach((k) => store.removeItem(k));
+    });
+
+    // Clear any auth cookies (Supabase PKCE flow can set these)
+    document.cookie.split(";").forEach((c) => {
+      const name = c.trim().split("=")[0];
+      if (name.startsWith("sb-") || name.includes("supabase") || name.includes("auth-token")) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      }
+    });
 
     try {
       await supabase.auth.signOut({ scope: "global" });
@@ -114,12 +128,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // best effort — local keys are already cleared
     }
 
-    // Clear React state immediately
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-
-    signingOut.current = false;
+    // NOTE: Do NOT reset signingOut.current — the hard redirect below will
+    // reload the page and create a fresh React tree. Resetting it here creates
+    // a race where onAuthStateChange re-establishes the session before the
+    // redirect completes.
 
     // Hard redirect — strips any __lovable_token or auth params from the URL
     window.location.href = window.location.origin + window.location.pathname;
