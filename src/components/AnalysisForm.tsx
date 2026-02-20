@@ -9,6 +9,8 @@ interface CustomProductInput {
   productUrl?: string;
   productName?: string;
   notes?: string;
+  urls?: string[];
+  images?: { file: File; dataUrl: string }[];
 }
 
 interface AnalysisFormProps {
@@ -58,22 +60,33 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
   const [customProducts, setCustomProducts] = useState<CustomProductInput[]>([{}]);
   const [activeInputTab, setActiveInputTab] = useState<"url" | "image">("url");
   const fileRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [customUrls, setCustomUrls] = useState<string[]>([""]);
+  const [customImages, setCustomImages] = useState<{ file: File; dataUrl: string }[]>([]);
+  const [customName, setCustomName] = useState("");
+  const [customNotes, setCustomNotes] = useState("");
+  const multiImageRef = useRef<HTMLInputElement | null>(null);
   const [businessInput, setBusinessInput] = useState<BusinessInput>({
     type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "",
   });
   const [businessLoading, setBusinessLoading] = useState(false);
 
-  const hasCustomProducts = customProducts.some(
-    (cp) => cp.imageDataUrl || cp.productUrl || cp.productName
-  );
+  const hasCustomProducts = customUrls.some(u => u.trim()) || customImages.length > 0 || customName.trim();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "custom") {
-      const filled = customProducts.filter(
-        (cp) => cp.imageDataUrl || cp.productUrl || cp.productName
-      );
-      onAnalyze({ category: "Custom", era: "All Eras / Current", batchSize: filled.length || 1, customProducts: filled });
+      // Build a single custom product with all URLs and images
+      const filled: CustomProductInput[] = [{
+        productName: customName,
+        notes: customNotes,
+        urls: customUrls.filter(u => u.trim()),
+        images: customImages,
+        // Keep legacy fields for backwards compat with edge function
+        productUrl: customUrls.find(u => u.trim()) || "",
+        imageDataUrl: customImages[0]?.dataUrl,
+        imageFile: customImages[0]?.file,
+      }];
+      onAnalyze({ category: "Custom", era: "All Eras / Current", batchSize: 1, customProducts: filled });
     } else {
       onAnalyze({ category, era, batchSize });
     }
@@ -368,138 +381,128 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
 
       {/* MODE B — Analyze My Products */}
       {mode === "custom" && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-xs text-muted-foreground">
-            Add product images or URLs — AI will run deep intelligence reports exclusively on these products.
+            Provide up to <strong>3 product URLs</strong> and <strong>5 images</strong> — AI uses all of them for a comprehensive intelligence report.
           </p>
 
-          {/* Input type tabs */}
-          <div className="flex gap-2">
-            {([
-              { id: "url" as const, label: "Product URLs", icon: Link },
-              { id: "image" as const, label: "Upload Images", icon: ImageIcon },
-            ]).map(({ id, label, icon: Icon }) => (
-              <button key={id} type="button"
-                onClick={() => setActiveInputTab(id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                style={{
-                  background: activeInputTab === id ? "hsl(var(--primary))" : "hsl(var(--secondary))",
-                  color: activeInputTab === id ? "white" : "hsl(var(--foreground))",
-                  border: `1px solid ${activeInputTab === id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-                }}>
-                <Icon size={11} />{label}
-              </button>
-            ))}
+          {/* Product Name */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Product / Topic Name</label>
+            <input type="text" value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder="e.g. Nintendo Game Boy (1989)"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+              style={inputStyle} />
           </div>
 
-          <div className="space-y-3">
-            {customProducts.map((cp, index) => (
-              <div key={index} className="p-4 rounded-xl space-y-3 relative"
-                style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-
-                {customProducts.length > 1 && (
-                  <button type="button" onClick={() => removeCustomProduct(index)}
-                    className="absolute top-2 right-2 p-1 rounded-full hover:bg-red-100 transition-colors">
-                    <X size={12} className="text-red-500" />
-                  </button>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Product Name */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Product Name</label>
-                    <input type="text" value={cp.productName || ""}
-                      onChange={(e) => updateCustomProduct(index, "productName", e.target.value)}
-                      placeholder="e.g. Nintendo Game Boy (1989)"
-                      className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
-                      style={inputStyle} />
-                  </div>
-
-                  {/* URL or Image based on active tab */}
-                  {activeInputTab === "url" ? (
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Product URL (Amazon, eBay, any site)
-                      </label>
-                      <div className="relative">
-                        <Link size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                        <input type="url" value={cp.productUrl || ""}
-                          onChange={(e) => updateCustomProduct(index, "productUrl", e.target.value)}
-                          placeholder="https://amazon.com/dp/..."
-                          className="w-full rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none"
-                          style={inputStyle} />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Product Image
-                      </label>
-                      {cp.imageDataUrl ? (
-                        <div className="relative inline-block">
-                          <img src={cp.imageDataUrl} alt="uploaded"
-                            className="h-16 w-24 object-cover rounded-lg" />
-                          <button type="button"
-                            onClick={() => {
-                              setCustomProducts(prev => {
-                                const next = [...prev];
-                                next[index] = { ...next[index], imageFile: undefined, imageDataUrl: undefined };
-                                return next;
-                              });
-                            }}
-                            className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                            style={{ background: "hsl(var(--destructive))" }}>
-                            <X size={10} style={{ color: "white" }} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div
-                          className="flex items-center justify-center h-16 rounded-lg cursor-pointer border-2 border-dashed transition-colors"
-                          style={{ borderColor: "hsl(var(--primary) / 0.3)", background: "hsl(var(--primary-muted))" }}
-                          onClick={() => fileRefs.current[index]?.click()}
-                        >
-                          <div className="flex items-center gap-2">
-                            <ImageIcon size={14} style={{ color: "hsl(var(--primary))" }} />
-                            <span className="text-xs font-medium" style={{ color: "hsl(var(--primary))" }}>
-                              Click to upload
-                            </span>
-                          </div>
-                          <input
-                            ref={(el) => { fileRefs.current[index] = el; }}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleImageFile(index, file);
-                            }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Notes */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Context / Notes (optional)
-                  </label>
-                  <input type="text" value={cp.notes || ""}
-                    onChange={(e) => updateCustomProduct(index, "notes", e.target.value)}
-                    placeholder="e.g. Found at a garage sale — want to know revival potential…"
-                    className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+          {/* URLs Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Link size={11} /> Product URLs ({customUrls.filter(u => u.trim()).length}/3)
+              </label>
+            </div>
+            {customUrls.map((url, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <div className="relative flex-1">
+                  <Link size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input type="url" value={url}
+                    onChange={(e) => {
+                      setCustomUrls(prev => {
+                        const next = [...prev];
+                        next[i] = e.target.value;
+                        return next;
+                      });
+                    }}
+                    placeholder={`URL ${i + 1} — Amazon, eBay, any site…`}
+                    className="w-full rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none"
                     style={inputStyle} />
                 </div>
+                {customUrls.length > 1 && (
+                  <button type="button" onClick={() => setCustomUrls(prev => prev.filter((_, j) => j !== i))}
+                    className="p-1.5 rounded-lg transition-colors hover:bg-destructive/10">
+                    <X size={12} className="text-destructive" />
+                  </button>
+                )}
               </div>
             ))}
+            {customUrls.length < 3 && (
+              <button type="button" onClick={() => setCustomUrls(prev => [...prev, ""])}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+                style={{ border: "1.5px dashed hsl(var(--border))", color: "hsl(var(--primary))" }}>
+                <Plus size={10} /> Add URL
+              </button>
+            )}
           </div>
 
-          <button type="button" onClick={addCustomProduct}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all w-full justify-center"
-            style={{ border: "1.5px dashed hsl(var(--primary) / 0.4)", color: "hsl(var(--primary))", background: "hsl(var(--primary-muted))" }}>
-            <Plus size={12} /> Add Another Product
-          </button>
+          {/* Images Section */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <ImageIcon size={11} /> Product Images ({customImages.length}/5)
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {customImages.map((img, i) => (
+                <div key={i} className="relative">
+                  <img src={img.dataUrl} alt={`upload ${i + 1}`}
+                    className="h-20 w-28 object-cover rounded-xl"
+                    style={{ border: "1.5px solid hsl(var(--border))" }} />
+                  <button type="button"
+                    onClick={() => setCustomImages(prev => prev.filter((_, j) => j !== i))}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
+                    style={{ background: "hsl(var(--destructive))" }}>
+                    <X size={10} style={{ color: "white" }} />
+                  </button>
+                </div>
+              ))}
+              {customImages.length < 5 && (
+                <div
+                  className="flex flex-col items-center justify-center h-20 w-28 rounded-xl cursor-pointer border-2 border-dashed transition-colors"
+                  style={{ borderColor: "hsl(var(--primary) / 0.3)", background: "hsl(var(--primary-muted))" }}
+                  onClick={() => multiImageRef.current?.click()}
+                >
+                  <ImageIcon size={16} style={{ color: "hsl(var(--primary))" }} />
+                  <span className="text-[10px] font-medium mt-1" style={{ color: "hsl(var(--primary))" }}>
+                    + Add
+                  </span>
+                  <input
+                    ref={multiImageRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      const remaining = 5 - customImages.length;
+                      files.slice(0, remaining).forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          setCustomImages(prev => {
+                            if (prev.length >= 5) return prev;
+                            return [...prev, { file, dataUrl: ev.target?.result as string }];
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                      if (e.target) e.target.value = "";
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Context / Notes (optional)
+            </label>
+            <input type="text" value={customNotes}
+              onChange={(e) => setCustomNotes(e.target.value)}
+              placeholder="e.g. Found at a garage sale — want to know revival potential…"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+              style={inputStyle} />
+          </div>
         </div>
       )}
 
