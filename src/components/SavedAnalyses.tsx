@@ -148,6 +148,12 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-foreground truncate">{analysis.title}</p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <span
+                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                      style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary-dark))" }}
+                    >
+                      {analysis.category}
+                    </span>
                     <span className="text-[10px] text-muted-foreground">{analysis.era}</span>
                     <span className="text-[10px] text-muted-foreground">·</span>
                     <span className="text-[10px] text-muted-foreground">{analysis.product_count} products</span>
