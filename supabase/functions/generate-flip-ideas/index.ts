@@ -88,8 +88,8 @@ Return ONLY a JSON array with exactly 3 flipped idea objects.`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.85,
-        max_tokens: 5000,
+        temperature: 0.5,
+        max_tokens: 12000,
       }),
     });
 
@@ -113,17 +113,42 @@ Return ONLY a JSON array with exactly 3 flipped idea objects.`;
     const aiData = await response.json();
     const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
 
-    const cleaned = rawText
+    let cleaned = rawText
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/\s*```$/, "")
       .trim();
+
+    // Extract JSON array — find first [ and last ]
+    const firstBracket = cleaned.indexOf("[");
+    const lastBracket = cleaned.lastIndexOf("]");
+    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+      cleaned = cleaned.slice(firstBracket, lastBracket + 1);
+    }
 
     let ideas;
     try {
       ideas = JSON.parse(cleaned);
     } catch {
       console.error("JSON parse failed:", cleaned.slice(0, 300));
-      throw new Error("AI returned invalid JSON. Please retry.");
+      // Attempt to salvage complete objects from truncated JSON
+      const salvaged: unknown[] = [];
+      let depth = 0, start = -1;
+      for (let i = 0; i < cleaned.length; i++) {
+        if (cleaned[i] === "{") { if (depth === 0) start = i; depth++; }
+        else if (cleaned[i] === "}") {
+          depth--;
+          if (depth === 0 && start !== -1) {
+            try { salvaged.push(JSON.parse(cleaned.slice(start, i + 1))); } catch { /* skip */ }
+            start = -1;
+          }
+        }
+      }
+      if (salvaged.length > 0) {
+        console.log(`Salvaged ${salvaged.length} idea(s) from truncated JSON`);
+        ideas = salvaged;
+      } else {
+        throw new Error("AI returned invalid JSON. Please retry.");
+      }
     }
 
     if (!Array.isArray(ideas)) ideas = [ideas];
