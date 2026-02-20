@@ -98,23 +98,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     signingOut.current = true;
 
-    // Wipe all Supabase session keys from localStorage so nothing can revive the session
+    // Wipe all Supabase session keys from localStorage
     Object.keys(localStorage)
       .filter((k) => k.startsWith("sb-"))
       .forEach((k) => localStorage.removeItem(k));
 
+    // Also clear sessionStorage in case anything is cached there
+    Object.keys(sessionStorage)
+      .filter((k) => k.startsWith("sb-"))
+      .forEach((k) => sessionStorage.removeItem(k));
+
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: "global" });
     } catch (_) {
       // best effort — local keys are already cleared
     }
 
-    // Clear React state — AppRoutes sees user=null and shows AuthPage immediately
+    // Clear React state immediately
     setUser(null);
     setSession(null);
     setProfile(null);
 
     signingOut.current = false;
+
+    // Hard redirect — strips any __lovable_token or auth params from the URL
+    window.location.href = window.location.origin + window.location.pathname;
   };
 
   return (
