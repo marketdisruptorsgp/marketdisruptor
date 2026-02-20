@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import heroBanner from "@/assets/hero-banner.jpg";
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
-import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
+import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
 import { AnalysisForm } from "@/components/AnalysisForm";
 import { ProductCard } from "@/components/ProductCard";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
@@ -1229,7 +1229,32 @@ export default function Index() {
 
                   {/* TAB: PATENT INTELLIGENCE */}
                   {detailTab === "patents" && (
-                    <PatentIntelligence product={selectedProduct} />
+                    <div className="space-y-4">
+                      {selectedProduct.patentData && (
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                            style={{ background: "hsl(271 81% 55%)", color: "white" }}
+                          >
+                            <FileDown size={14} />
+                            Download Patent PDF
+                          </button>
+                        </div>
+                      )}
+                      <PatentIntelligence
+                        product={selectedProduct}
+                        onSave={(patentData) => {
+                          const updated = products.map(p =>
+                            p.id === selectedProduct.id ? { ...p, patentData } : p
+                          );
+                          setProducts(updated);
+                          setSelectedProduct({ ...selectedProduct, patentData });
+                          // Persist updated products to DB
+                          if (analysisParams) saveAnalysis(updated, analysisParams);
+                        }}
+                      />
+                    </div>
                   )}
 
                 </div>
