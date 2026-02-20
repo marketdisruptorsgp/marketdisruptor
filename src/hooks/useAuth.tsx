@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 interface Profile {
   user_id: string;
@@ -29,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchOrCreateProfile = async (userId: string) => {
+  const fetchOrCreateProfile = async (userId: string, showWelcome = false) => {
     const { data } = await supabase
       .from("profiles")
       .select("user_id, first_name")
@@ -38,8 +39,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (data) {
       setProfile(data as Profile);
+      if (showWelcome) {
+        toast.success(`Welcome back, ${data.first_name}! 👋 Your workspace is ready.`, {
+          duration: 4000,
+        });
+      }
     } else {
-      // No profile yet — try to create one using the pending first name from localStorage
+      // No profile yet — new user, create from pending first name in localStorage
       const pendingName = localStorage.getItem("pending_first_name");
       if (pendingName) {
         const { data: newProfile } = await supabase
@@ -48,17 +54,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .select("user_id, first_name")
           .single();
         localStorage.removeItem("pending_first_name");
-        if (newProfile) setProfile(newProfile as Profile);
+        if (newProfile) {
+          setProfile(newProfile as Profile);
+          if (showWelcome) {
+            toast.success(`Let's go, ${newProfile.first_name}! 🚀 Your workspace is all set.`, {
+              duration: 4000,
+            });
+          }
+        }
       }
     }
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchOrCreateProfile(session.user.id);
+        // Only show welcome toast on an actual sign-in event (magic link click), not on token refresh or initial load
+        const isSignIn = event === "SIGNED_IN";
+        fetchOrCreateProfile(session.user.id, isSignIn);
       } else {
         setProfile(null);
       }
@@ -68,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchOrCreateProfile(session.user.id);
+      if (session?.user) fetchOrCreateProfile(session.user.id, false);
       setLoading(false);
     });
 
