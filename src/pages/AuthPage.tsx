@@ -12,10 +12,7 @@ const FEATURES = [
 ];
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "signup">("signup");
   const [firstName, setFirstName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const inputStyle = {
@@ -24,7 +21,7 @@ export default function AuthPage() {
     color: "hsl(var(--foreground))",
     borderRadius: "0.75rem",
     padding: "0.75rem 1rem",
-    fontSize: "0.9rem",
+    fontSize: "1rem",
     width: "100%",
     outline: "none",
     transition: "border-color 0.2s",
@@ -32,27 +29,21 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
-    if (mode === "signup" && !firstName.trim()) {
-      toast.error("Please enter your first name!");
+    if (!firstName.trim()) {
+      toast.error("Tell us your name first!");
       return;
     }
     setLoading(true);
     try {
-      if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        if (data.user) {
-          await supabase.from("profiles").insert({
-            user_id: data.user.id,
-            first_name: firstName.trim(),
-          });
-        }
-        toast.success(`Welcome aboard, ${firstName}! Let's find something incredible. 🚀`);
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      if (data.user) {
+        await supabase.from("profiles").insert({
+          user_id: data.user.id,
+          first_name: firstName.trim(),
+        });
       }
+      toast.success(`Let's go, ${firstName.trim()}! 🚀`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(msg);
@@ -70,7 +61,6 @@ export default function AuthPage() {
           <div className="absolute inset-0" style={{ background: "hsl(220 20% 5% / 0.85)" }} />
         </div>
         <div className="relative z-10 p-12 flex flex-col justify-between h-full">
-          {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
               <Zap size={16} className="text-white" />
@@ -78,7 +68,6 @@ export default function AuthPage() {
             <span className="text-white font-bold text-lg">Product Intelligence AI</span>
           </div>
 
-          {/* Main pitch */}
           <div className="space-y-8">
             <div>
               <h1 className="text-5xl font-extrabold text-white leading-tight mb-4">
@@ -109,16 +98,15 @@ export default function AuthPage() {
             </div>
           </div>
 
-          {/* Bottom quote */}
           <p className="text-white/40 text-xs italic">
             "The best opportunities are in the gap between what was and what could be."
           </p>
         </div>
       </div>
 
-      {/* Right: Auth Form */}
+      {/* Right: Name Entry */}
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8">
+        <div className="w-full max-w-md space-y-10">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 lg:hidden">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
@@ -127,110 +115,45 @@ export default function AuthPage() {
             <span className="font-bold text-lg" style={{ color: "hsl(var(--foreground))" }}>Product Intelligence AI</span>
           </div>
 
-          {/* Header */}
           <div>
-            <h2 className="text-3xl font-extrabold" style={{ color: "hsl(var(--foreground))" }}>
-              {mode === "signup" ? "Create your workspace" : "Welcome back"}
+            <h2 className="text-4xl font-extrabold mb-2" style={{ color: "hsl(var(--foreground))" }}>
+              What's your name?
             </h2>
-            <p className="text-sm mt-2" style={{ color: "hsl(var(--muted-foreground))" }}>
-              {mode === "signup"
-                ? "Your personal intelligence lab awaits."
-                : "Your analyses are saved and ready to pick up."}
+            <p className="text-base" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Your personal workspace will be ready instantly — all your analyses auto-save and persist.
             </p>
           </div>
 
-          {/* Toggle */}
-          <div className="flex rounded-xl p-1 gap-1" style={{ background: "hsl(var(--muted))" }}>
-            {(["signup", "login"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className="flex-1 py-2 text-sm font-semibold rounded-lg transition-all"
-                style={mode === m
-                  ? { background: "hsl(var(--primary))", color: "white" }
-                  : { color: "hsl(var(--muted-foreground))" }
-                }
-              >
-                {m === "signup" ? "Get Started" : "Sign In"}
-              </button>
-            ))}
-          </div>
-
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === "signup" && (
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
-                  First Name <span style={{ color: "hsl(var(--primary))" }}>*</span>
-                </label>
-                <input
-                  style={inputStyle}
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="What should we call you?"
-                  autoFocus
-                  onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
-                  onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
-                />
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
-                Email
-              </label>
-              <input
-                type="email"
-                style={inputStyle}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                autoFocus={mode === "login"}
-                onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
-                onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
-                Password
-              </label>
-              <input
-                type="password"
-                style={inputStyle}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
-                onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
-              />
-            </div>
+            <input
+              style={inputStyle}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="e.g. Alex, Jordan, Sam…"
+              autoFocus
+              onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
+              onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
+            />
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all mt-2"
+              disabled={loading || !firstName.trim()}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-base transition-all"
               style={{
-                background: loading ? "hsl(var(--muted))" : "hsl(var(--primary))",
-                color: loading ? "hsl(var(--muted-foreground))" : "white",
+                background: loading || !firstName.trim() ? "hsl(var(--muted))" : "hsl(var(--primary))",
+                color: loading || !firstName.trim() ? "hsl(var(--muted-foreground))" : "white",
               }}
             >
               {loading ? (
-                <><Loader2 size={15} className="animate-spin" /> {mode === "signup" ? "Creating your workspace..." : "Signing in..."}</>
+                <><Loader2 size={16} className="animate-spin" /> Setting up your workspace…</>
               ) : (
-                <>{mode === "signup" ? "Start Discovering" : "Let's Go"} <ArrowRight size={15} /></>
+                <>Start Discovering <ArrowRight size={16} /></>
               )}
             </button>
           </form>
 
-          <p className="text-xs text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
-            Your analyses auto-save and persist between sessions.{" "}
-            {mode === "signup" ? "Already have an account? " : "Don't have an account? "}
-            <button
-              onClick={() => setMode(mode === "signup" ? "login" : "signup")}
-              className="font-semibold underline"
-              style={{ color: "hsl(var(--primary))" }}
-            >
-              {mode === "signup" ? "Sign in" : "Get started free"}
-            </button>
+          <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+            No password needed. Your session persists automatically — just come back and pick up where you left off.
           </p>
         </div>
       </div>
