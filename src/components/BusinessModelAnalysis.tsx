@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { downloadBusinessModelPDF } from "@/lib/pdfExport";
 import {
   Brain, RefreshCw, ArrowRight, Building2, Zap, DollarSign, Shield,
   AlertTriangle, CheckCircle2, Lightbulb, Users, BarChart3, Cpu,
   TrendingUp, Target, Rocket, Clock, ChevronRight, FlipHorizontal,
-  Wrench, Eye, Package, Factory, Layers,
+  Wrench, Eye, Package, Factory, Layers, FileDown,
 } from "lucide-react";
 
 interface BusinessModelInput {
@@ -354,13 +355,22 @@ export const BusinessModelAnalysis = ({ initialData }: { initialData?: BusinessM
             <p className="text-[11px] text-muted-foreground">{input.type}</p>
           </div>
         </div>
-        <button
-          onClick={() => { setData(null); setInput({ type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "" }); }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-          style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-        >
-          New Analysis
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => downloadBusinessModelPDF(input.type || "Business Model", data)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: "hsl(var(--primary))", color: "white" }}
+          >
+            <FileDown size={12} /> Download PDF
+          </button>
+          <button
+            onClick={() => { setData(null); setInput({ type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "" }); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+          >
+            New Analysis
+          </button>
+        </div>
       </div>
 
       {/* Tab nav */}

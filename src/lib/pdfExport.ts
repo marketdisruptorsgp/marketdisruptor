@@ -511,3 +511,290 @@ export function downloadPitchDeckPDF(product: Product, deck: any) {
 
   doc.save(`${product.name.replace(/[^a-z0-9]/gi, "_")}_pitch_deck.pdf`);
 }
+
+// ── Business Model Deconstruction PDF ───────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function downloadBusinessModelPDF(businessType: string, data: any) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+  // Cover
+  fill(doc, PRIMARY);
+  doc.rect(0, 0, PAGE_W, 90, "F");
+  doc.setFillColor(99, 102, 241);
+  doc.rect(0, 70, PAGE_W, 20, "F");
+
+  doc.setFontSize(8); doc.setFont("helvetica", "bold");
+  rgb(doc, [199, 210, 254]);
+  doc.text("PRODUCT INTELLIGENCE AI — BUSINESS MODEL DECONSTRUCTION", ML, 20);
+
+  doc.setFontSize(22); doc.setFont("helvetica", "bold");
+  rgb(doc, WHITE);
+  const titleLines = doc.splitTextToSize(businessType, CW);
+  doc.text(titleLines, ML, 38);
+
+  doc.setFontSize(9); doc.setFont("helvetica", "normal");
+  rgb(doc, [199, 210, 254]);
+  doc.text("First-Principles Business Model Analysis", ML, 38 + titleLines.length * 9 + 4);
+
+  let bx = ML;
+  ["Business Reality", "Operations Audit", "Tech Leverage", "Revenue Reinvention", "Disruption Map", "Reinvented Model"].forEach(t => {
+    bx = pill(doc, t, bx, 80, [99, 102, 241] as [number,number,number], WHITE);
+  });
+
+  doc.setFontSize(7); rgb(doc, GRAY);
+  doc.text(`Generated ${new Date().toLocaleDateString()} · Confidential`, ML, PAGE_H - 10);
+
+  let y = 106;
+
+  // ── 01 Business Reality ──────────────────────────────────
+  y = sectionTitle(doc, "01 · Business Reality", y);
+  const bs = data.businessSummary;
+  if (bs) {
+    label(doc, "True Job To Be Done", ML, y); y += 5;
+    y = body(doc, bs.trueJobToBeDone, ML, y, CW, 10) + 5;
+    y = checkY(doc, y, 14);
+    label(doc, "How Money Flows Today", ML, y); y += 5;
+    y = body(doc, bs.currentModel, ML, y, CW) + 4;
+    y = checkY(doc, y, 14);
+    label(doc, "Market Position", ML, y); y += 5;
+    y = body(doc, bs.marketPosition, ML, y, CW) + 4;
+    if (bs.hiddenStrengths?.length) {
+      label(doc, "Hidden Strengths", ML, y); y += 5;
+      bs.hiddenStrengths.forEach((s: string) => {
+        y = checkY(doc, y, 7);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, GREEN);
+        const lines = doc.splitTextToSize(`✓ ${s}`, CW - 4);
+        rgb(doc, DARK); doc.text(lines, ML + 4, y);
+        y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+  }
+
+  // ── 02 Operations Audit ──────────────────────────────────
+  y = checkY(doc, y, 30);
+  y = sectionTitle(doc, "02 · Operations Audit", y);
+  const oa = data.operationalAudit;
+  if (oa) {
+    if (oa.customerJourney?.length) {
+      label(doc, "Customer Journey", ML, y); y += 5;
+      oa.customerJourney.forEach((step: string, i: number) => {
+        y = checkY(doc, y, 7);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`${i + 1}. ${step}`, CW - 3);
+        doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+    if (oa.frictionPoints?.length) {
+      label(doc, "Friction Points", ML, y); y += 5;
+      oa.frictionPoints.forEach((fp: { stage: string; friction: string; impact: string; rootCause: string }) => {
+        y = checkY(doc, y, 14);
+        const impactC: [number,number,number] = fp.impact === "high" ? RED : fp.impact === "medium" ? AMBER : GREEN;
+        pill(doc, `${fp.stage} · ${fp.impact?.toUpperCase()}`, ML, y, impactC, WHITE);
+        y += 5;
+        y = body(doc, fp.friction, ML + 2, y, CW - 2) + 2;
+        doc.setFontSize(7.5); doc.setFont("helvetica", "italic"); rgb(doc, GRAY);
+        const rcLines = doc.splitTextToSize(`Root cause: ${fp.rootCause}`, CW - 4);
+        doc.text(rcLines, ML + 2, y); y += rcLines.length * 3.2 + 4;
+      });
+      y += 2;
+    }
+    if (oa.costStructure) {
+      const cs = oa.costStructure;
+      y = checkY(doc, y, 14);
+      label(doc, "Biggest Cost Drivers", ML, y); y += 5;
+      cs.biggestCostDrivers?.forEach((d: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`• ${d}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+      label(doc, "Fixed vs Variable Analysis", ML, y); y += 5;
+      y = body(doc, cs.fixedVsVariable, ML, y, CW) + 4;
+      if (cs.eliminationCandidates?.length) {
+        label(doc, "Cost Elimination Candidates", ML, y); y += 5;
+        cs.eliminationCandidates.forEach((c: string) => {
+          y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, RED);
+          const lines = doc.splitTextToSize(`✕ ${c}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+        });
+        y += 3;
+      }
+    }
+    if (oa.revenueLeaks?.length) {
+      y = checkY(doc, y, 14);
+      label(doc, "Revenue Leaks", ML, y); y += 5;
+      oa.revenueLeaks.forEach((l: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, AMBER);
+        const lines = doc.splitTextToSize(`⚠ ${l}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+  }
+
+  // ── 03 Hidden Assumptions ────────────────────────────────
+  if (data.hiddenAssumptions?.length) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "03 · Hidden Assumptions", y);
+    data.hiddenAssumptions.forEach((ha: { assumption: string; currentAnswer: string; category: string; challengeIdea: string }) => {
+      y = checkY(doc, y, 18);
+      doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+      doc.text(`"${ha.assumption}"`, ML, y); y += 5;
+      doc.setFontSize(7.5); doc.setFont("helvetica", "italic"); rgb(doc, GRAY);
+      const caLines = doc.splitTextToSize(`Why it exists: ${ha.currentAnswer}`, CW - 3);
+      doc.text(caLines, ML + 2, y); y += caLines.length * 3.2 + 2;
+      doc.setFont("helvetica", "normal"); rgb(doc, PRIMARY);
+      const ciLines = doc.splitTextToSize(`→ Challenge: ${ha.challengeIdea}`, CW - 3);
+      doc.text(ciLines, ML + 2, y); y += ciLines.length * 3.5 + 5;
+    });
+  }
+
+  // ── 04 Tech Leverage ─────────────────────────────────────
+  if (data.technologyLeverage) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "04 · Technology Leverage", y);
+    const tl = data.technologyLeverage;
+    label(doc, "Current Tech Level", ML, y); y += 5;
+    y = body(doc, tl.currentTechLevel, ML, y, CW) + 4;
+    if (tl.automationOpportunities?.length) {
+      label(doc, "Automation Opportunities", ML, y); y += 5;
+      tl.automationOpportunities.forEach((ao: { process: string; technology: string; costSaving: string; implementationDifficulty: string }) => {
+        y = checkY(doc, y, 14);
+        const diffC: [number,number,number] = ao.implementationDifficulty === "easy" ? GREEN : ao.implementationDifficulty === "medium" ? AMBER : RED;
+        pill(doc, ao.implementationDifficulty?.toUpperCase(), ML, y, diffC, WHITE);
+        y += 5;
+        doc.setFontSize(8.5); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(ao.process, ML + 2, y); y += 4;
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, PRIMARY);
+        doc.text(`→ ${ao.technology}`, ML + 2, y); y += 4;
+        doc.setFontSize(7.5); rgb(doc, GREEN);
+        doc.text(`Saving: ${ao.costSaving}`, ML + 2, y); y += 5;
+      });
+      y += 2;
+    }
+    if (tl.aiOpportunities?.length) {
+      label(doc, "AI Opportunities", ML, y); y += 5;
+      tl.aiOpportunities.forEach((ai: string) => {
+        y = checkY(doc, y, 7); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`⚡ ${ai}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+    if (tl.platformOpportunity) {
+      label(doc, "Platform Opportunity", ML, y); y += 5;
+      y = body(doc, tl.platformOpportunity, ML, y, CW) + 5;
+    }
+  }
+
+  // ── 05 Revenue Reinvention ───────────────────────────────
+  if (data.revenueReinvention) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "05 · Revenue Reinvention", y);
+    const rr = data.revenueReinvention;
+    label(doc, "Current Revenue Mix", ML, y); y += 5;
+    y = body(doc, rr.currentRevenueMix, ML, y, CW) + 4;
+    if (rr.untappedStreams?.length) {
+      label(doc, "Untapped Revenue Streams", ML, y); y += 5;
+      rr.untappedStreams.forEach((us: { stream: string; mechanism: string; estimatedSize: string; effort: string }) => {
+        y = checkY(doc, y, 16);
+        const effortC: [number,number,number] = us.effort === "low" ? GREEN : us.effort === "medium" ? AMBER : RED;
+        pill(doc, us.effort?.toUpperCase() + " effort", ML, y, effortC, WHITE);
+        y += 5;
+        doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(us.stream, ML + 2, y); y += 4;
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, GRAY);
+        doc.text(`Est. size: ${us.estimatedSize}`, ML + 2, y); y += 4;
+        const mLines = doc.splitTextToSize(us.mechanism, CW - 4);
+        rgb(doc, DARK); doc.text(mLines, ML + 2, y); y += mLines.length * 3.5 + 4;
+      });
+    }
+    label(doc, "Pricing Redesign", ML, y); y += 5;
+    y = body(doc, rr.pricingRedesign, ML, y, CW) + 4;
+    if (rr.bundleOpportunities?.length) {
+      label(doc, "Bundle Opportunities", ML, y); y += 5;
+      rr.bundleOpportunities.forEach((b: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, PRIMARY);
+        const lines = doc.splitTextToSize(`→ ${b}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+  }
+
+  // ── 06 Disruption Map ────────────────────────────────────
+  if (data.disruptionAnalysis) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "06 · Disruption Map", y);
+    const da = data.disruptionAnalysis;
+    if (da.vulnerabilities?.length) {
+      label(doc, "Vulnerabilities", ML, y); y += 5;
+      da.vulnerabilities.forEach((v: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, RED);
+        const lines = doc.splitTextToSize(`⚠ ${v}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+    label(doc, "Disruptor Profile", ML, y); y += 5;
+    y = body(doc, da.disruptorProfile, ML, y, CW) + 4;
+    if (da.defenseMoves?.length) {
+      label(doc, "Defense Moves", ML, y); y += 5;
+      da.defenseMoves.forEach((m: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, GREEN);
+        const lines = doc.splitTextToSize(`✓ ${m}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+    label(doc, "Attack Moves (If Starting From Scratch)", ML, y); y += 5;
+    y = body(doc, da.attackMoves, ML, y, CW) + 5;
+  }
+
+  // ── 07 Reinvented Model ──────────────────────────────────
+  if (data.reinventedModel) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "07 · Reinvented Model", y);
+    const rm = data.reinventedModel;
+    doc.setFontSize(14); doc.setFont("helvetica", "bold"); rgb(doc, PRIMARY);
+    doc.text(rm.modelName, ML, y); y += 7;
+    label(doc, "Core Shift", ML, y); y += 5;
+    y = body(doc, rm.coreShift, ML, y, CW, 10) + 5;
+    label(doc, "New Value Proposition", ML, y); y += 5;
+    y = body(doc, rm.newValueProposition, ML, y, CW) + 4;
+    label(doc, "Economic Transformation", ML, y); y += 5;
+    y = body(doc, rm.economicTransformation, ML, y, CW) + 4;
+    if (rm.keyChanges?.length) {
+      label(doc, "Key Changes", ML, y); y += 5;
+      rm.keyChanges.forEach((c: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`→ ${c}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+    if (rm.implementationRoadmap?.length) {
+      y = checkY(doc, y, 20);
+      label(doc, "Implementation Roadmap", ML, y); y += 5;
+      rm.implementationRoadmap.forEach((ph: { phase: string; actions: string[]; milestone: string }) => {
+        y = checkY(doc, y, 18);
+        doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, PRIMARY);
+        doc.text(ph.phase, ML, y); y += 4;
+        ph.actions?.forEach((a: string) => {
+          y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+          const lines = doc.splitTextToSize(`• ${a}`, CW - 4); doc.text(lines, ML + 2, y); y += lines.length * 3.5 + 1;
+        });
+        doc.setFontSize(7.5); rgb(doc, GREEN);
+        doc.text(`✓ Milestone: ${ph.milestone}`, ML + 2, y); y += 6;
+      });
+    }
+    label(doc, "Estimated ROI", ML, y); y += 5;
+    doc.setFontSize(10); doc.setFont("helvetica", "bold"); rgb(doc, GREEN);
+    doc.text(rm.estimatedROI, ML, y); y += 6;
+    label(doc, "Biggest Risk", ML, y); y += 5;
+    y = body(doc, rm.biggestRisk, ML, y, CW) + 4;
+    if (rm.requiredCapabilities?.length) {
+      label(doc, "Required Capabilities", ML, y); y += 5;
+      rm.requiredCapabilities.forEach((c: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`• ${c}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+    }
+  }
+
+  doc.save(`${businessType.replace(/[^a-z0-9]/gi, "_")}_business_model.pdf`);
+}
