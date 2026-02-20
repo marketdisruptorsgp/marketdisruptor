@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { downloadBusinessModelPDF } from "@/lib/pdfExport";
 import {
@@ -140,6 +141,7 @@ const BUSINESS_EXAMPLES = [
 ];
 
 export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: BusinessModelAnalysisData | null; onSaved?: () => void }) => {
+  const { user } = useAuth();
   const [input, setInput] = useState<BusinessModelInput>({
     type: "",
     description: "",
@@ -157,6 +159,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any).insert({
+        user_id: user?.id,
         title: businessType,
         category: "Business Model",
         era: "Present",

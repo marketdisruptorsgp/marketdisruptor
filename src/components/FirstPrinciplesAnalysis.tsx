@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import {
@@ -115,6 +116,7 @@ const SEVERITY_COLORS = {
 };
 
 export const FirstPrinciplesAnalysis = ({ product, onSaved }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
+  const { user } = useAuth();
   const [data, setData] = useState<FirstPrinciplesData | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept">("reality");
@@ -123,6 +125,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved }: FirstPrinciplesAna
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any).insert({
+        user_id: user?.id,
         title: `${product.name} — First Principles`,
         category: product.category || "Product",
         era: product.era || "Unknown",
