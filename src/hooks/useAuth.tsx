@@ -61,10 +61,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
     setUser(null);
     setSession(null);
     setProfile(null);
+    // Force reload to clear any cached anonymous session state
+    window.location.href = "/";
   };
 
   return (
