@@ -109,8 +109,8 @@ function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
 export default function Index() {
   const [step, setStep] = useState<AnalysisStep>("idle");
   const [stepMessage, setStepMessage] = useState("");
-  const [products, setProducts] = useState<Product[]>(sampleProducts);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(sampleProducts[0]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [businessAnalysisData, setBusinessAnalysisData] = useState<unknown>(null);
   const [expandedSection, setExpandedSection] = useState<string>("discovery");
   const [analysisParams, setAnalysisParams] = useState<{
@@ -294,7 +294,7 @@ export default function Index() {
     setExpandedSection(expandedSection === section ? "" : section);
 
   const isLoading = step === "scraping" || step === "analyzing";
-  const showResults = step === "done" || (step === "idle" && products.length > 0);
+  const showResults = step === "done";
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
