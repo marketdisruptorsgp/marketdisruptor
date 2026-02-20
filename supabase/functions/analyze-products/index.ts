@@ -234,11 +234,11 @@ CRITICAL RULES:
         ).join("\n")}`
       : "";
 
-    // Trim inputs to prevent timeout — keep total prompt under ~25K chars
-    const trimmedRaw = (rawContent || "").slice(0, 12000);
-    const trimmedReddit = (redditContent || "").slice(0, 3000);
-    const trimmedComplaints = (complaintsContent || "").slice(0, 2000);
-    const trimmedSources = (sources || []).slice(0, 15);
+    // Generous content limits for high-quality analysis
+    const trimmedRaw = (rawContent || "").slice(0, 18000);
+    const trimmedReddit = (redditContent || "").slice(0, 5000);
+    const trimmedComplaints = (complaintsContent || "").slice(0, 3500);
+    const trimmedSources = (sources || []).slice(0, 20);
 
     const userPrompt = `Analyze this scraped content about ${eraLabel(era)}${category} products.${customProductsContext}
 
@@ -267,22 +267,42 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
 
     console.log("Calling AI gateway for deep product analysis...");
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.6,
-        max_tokens: 16000,
-      }),
-    });
+    // Retry AI call up to 2 times on transient errors
+    let response: Response | null = null;
+    let lastAiError = "";
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${GEMINI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gemini-2.5-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            temperature: 0.6,
+            max_tokens: 20000,
+          }),
+        });
+        if (response.ok || response.status === 402 || response.status === 429) break;
+        lastAiError = `status ${response.status}`;
+        if (attempt < 1) {
+          console.log(`AI attempt ${attempt + 1} failed (${lastAiError}), retrying in 3s…`);
+          await new Promise(r => setTimeout(r, 3000));
+        }
+      } catch (fetchErr) {
+        lastAiError = String(fetchErr);
+        if (attempt < 1) {
+          console.log(`AI fetch error attempt ${attempt + 1}: ${lastAiError}, retrying…`);
+          await new Promise(r => setTimeout(r, 3000));
+        }
+      }
+    }
+    if (!response) throw new Error(`AI gateway unreachable after retries: ${lastAiError}`);
 
     if (!response.ok) {
       if (response.status === 429) {
