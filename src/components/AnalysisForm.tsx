@@ -142,130 +142,168 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
     label: string;
     tagline: string;
     description: string;
+    bullets: string[];
     icon: React.ElementType;
     accent: string;
     accentLight: string;
-    badge: string;
   }[] = [
     {
       id: "discover",
       label: "Discover by Category",
       tagline: "Market Intelligence",
-      description: "Find hidden gems across any product category & era. AI scrapes eBay, Etsy, Reddit & more.",
+      description: "Let AI surface hidden gems from any product category & era.",
+      bullets: ["Scrapes eBay, Etsy, Reddit & TikTok", "Revival scores + flip ideas", "Up to 50 products at once"],
       icon: Telescope,
       accent: "hsl(var(--primary))",
       accentLight: "hsl(var(--primary-muted))",
-      badge: "Most Popular",
     },
     {
       id: "custom",
       label: "Analyze My Products",
       tagline: "Deep Product Audit",
-      description: "Upload images or paste URLs. Get a full revival potential & pricing intelligence report.",
+      description: "Upload images or paste URLs for a full intelligence report on your specific items.",
+      bullets: ["Works with photos or product URLs", "Pricing, supply chain & action plan", "Revival potential scoring"],
       icon: Upload,
       accent: "hsl(217 91% 38%)",
       accentLight: "hsl(214 95% 93%)",
-      badge: "Custom",
     },
     {
       id: "business",
       label: "Business Model Analysis",
       tagline: "Strategic Reinvention",
-      description: "Deconstruct any business with first-principles reasoning. Uncover hidden leverage & reinvention paths.",
+      description: "Deconstruct any business with first-principles reasoning.",
+      bullets: ["7 strategic dimensions", "Hidden leverage & automation gaps", "Full reinvention blueprint"],
       icon: Building2,
       accent: "hsl(271 81% 55%)",
       accentLight: "hsl(271 81% 95%)",
-      badge: "Advanced",
     },
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Mode Selection Cards */}
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Choose your analysis mode
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {MODE_OPTIONS.map(({ id, label, tagline, description, icon: Icon, accent, accentLight, badge }) => {
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Mode Selection */}
+      <div className="space-y-4">
+        {/* Heading */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px" style={{ background: "hsl(var(--border))" }} />
+          <div className="text-center">
+            <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: "hsl(var(--primary))" }}>
+              Step 1
+            </p>
+            <h2 className="text-2xl font-extrabold text-foreground leading-tight">
+              What do you want to analyze?
+            </h2>
+          </div>
+          <div className="flex-1 h-px" style={{ background: "hsl(var(--border))" }} />
+        </div>
+
+        {/* Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {MODE_OPTIONS.map(({ id, label, tagline, description, bullets, icon: Icon, accent, accentLight }) => {
             const isActive = mode === id;
             return (
               <button
                 key={id}
                 type="button"
                 onClick={() => setMode(id)}
-                className="relative text-left p-4 rounded-2xl transition-all duration-200 group focus:outline-none"
+                className="relative text-left rounded-2xl transition-all duration-200 focus:outline-none overflow-hidden"
                 style={{
+                  border: `2.5px solid ${isActive ? accent : "hsl(var(--border))"}`,
+                  boxShadow: isActive
+                    ? `0 12px 32px -6px ${accent}50, 0 0 0 1px ${accent}20`
+                    : "0 2px 8px 0 hsl(220 20% 5% / 0.07)",
+                  transform: isActive ? "translateY(-3px) scale(1.01)" : "translateY(0) scale(1)",
                   background: isActive ? accent : "hsl(var(--card))",
-                  border: `2px solid ${isActive ? accent : "hsl(var(--border))"}`,
-                  boxShadow: isActive ? `0 8px 24px -4px ${accent}40` : "0 1px 4px 0 hsl(220 20% 5% / 0.06)",
-                  transform: isActive ? "translateY(-2px)" : "translateY(0)",
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
                     (e.currentTarget as HTMLElement).style.borderColor = accent;
                     (e.currentTarget as HTMLElement).style.background = accentLight;
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) {
                     (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--border))";
                     (e.currentTarget as HTMLElement).style.background = "hsl(var(--card))";
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
                   }
                 }}
               >
-                {/* Badge */}
-                <span
-                  className="absolute top-3 right-3 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider"
-                  style={{
-                    background: isActive ? "hsl(0 0% 100% / 0.2)" : accentLight,
-                    color: isActive ? "white" : accent,
-                  }}
-                >
-                  {badge}
-                </span>
-
-                {/* Icon */}
+                {/* Top accent strip */}
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                  style={{
-                    background: isActive ? "hsl(0 0% 100% / 0.15)" : accentLight,
-                  }}
-                >
-                  <Icon size={20} style={{ color: isActive ? "white" : accent }} />
-                </div>
+                  className="h-1 w-full"
+                  style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : accent }}
+                />
 
-                {/* Tagline */}
-                <p
-                  className="text-[10px] font-bold uppercase tracking-widest mb-0.5"
-                  style={{ color: isActive ? "hsl(0 0% 100% / 0.7)" : accent }}
-                >
-                  {tagline}
-                </p>
+                <div className="p-5">
+                  {/* Icon + check row */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                      style={{
+                        background: isActive ? "hsl(0 0% 100% / 0.18)" : accentLight,
+                      }}
+                    >
+                      <Icon size={24} style={{ color: isActive ? "white" : accent }} />
+                    </div>
 
-                {/* Title */}
-                <p
-                  className="text-sm font-extrabold leading-tight mb-1.5"
-                  style={{ color: isActive ? "white" : "hsl(var(--foreground))" }}
-                >
-                  {label}
-                </p>
-
-                {/* Description */}
-                <p
-                  className="text-[11px] leading-relaxed"
-                  style={{ color: isActive ? "hsl(0 0% 100% / 0.75)" : "hsl(var(--muted-foreground))" }}
-                >
-                  {description}
-                </p>
-
-                {/* Active indicator */}
-                {isActive && (
-                  <div className="mt-3 flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white/60" />
-                    <span className="text-[10px] font-bold text-white/70">Selected</span>
+                    {/* Selection circle */}
+                    <div
+                      className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{
+                        border: `2px solid ${isActive ? "hsl(0 0% 100% / 0.6)" : "hsl(var(--border))"}`,
+                        background: isActive ? "hsl(0 0% 100% / 0.2)" : "transparent",
+                      }}
+                    >
+                      {isActive && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                      )}
+                    </div>
                   </div>
-                )}
+
+                  {/* Tagline */}
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-widest mb-1"
+                    style={{ color: isActive ? "hsl(0 0% 100% / 0.65)" : accent }}
+                  >
+                    {tagline}
+                  </p>
+
+                  {/* Title */}
+                  <p
+                    className="text-base font-extrabold leading-tight mb-2"
+                    style={{ color: isActive ? "white" : "hsl(var(--foreground))" }}
+                  >
+                    {label}
+                  </p>
+
+                  {/* Description */}
+                  <p
+                    className="text-xs leading-relaxed mb-3"
+                    style={{ color: isActive ? "hsl(0 0% 100% / 0.72)" : "hsl(var(--muted-foreground))" }}
+                  >
+                    {description}
+                  </p>
+
+                  {/* Bullets */}
+                  <ul className="space-y-1">
+                    {bullets.map((b) => (
+                      <li key={b} className="flex items-center gap-1.5">
+                        <div
+                          className="w-1 h-1 rounded-full flex-shrink-0"
+                          style={{ background: isActive ? "hsl(0 0% 100% / 0.5)" : accent }}
+                        />
+                        <span
+                          className="text-[11px]"
+                          style={{ color: isActive ? "hsl(0 0% 100% / 0.65)" : "hsl(var(--muted-foreground))" }}
+                        >
+                          {b}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </button>
             );
           })}
