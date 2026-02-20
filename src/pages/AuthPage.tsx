@@ -179,8 +179,8 @@ export default function AuthPage() {
           </div>
 
           <div>
-            <h2 className="text-4xl font-extrabold mb-2" style={{ color: "hsl(var(--foreground))" }}>
-              Welcome back — or hello!
+          <h2 className="text-4xl font-extrabold mb-2" style={{ color: "hsl(var(--foreground))" }}>
+              Your next big idea starts here.
             </h2>
             <p className="text-base" style={{ color: "hsl(var(--muted-foreground))" }}>
               Enter your name and email. We'll send you a magic link — your workspace auto-saves and persists every time you return.
