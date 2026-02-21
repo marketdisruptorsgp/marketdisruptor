@@ -2,7 +2,8 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import type { Product } from "@/data/mockProducts";
+import type { Product, FlippedIdea } from "@/data/mockProducts";
+import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
 import {
   Brain, Flame, Zap, ChevronRight, RefreshCw, AlertTriangle, CheckCircle2,
   Wrench, Lightbulb, Package, DollarSign, Users, Factory, FlipHorizontal,
@@ -99,6 +100,9 @@ interface FirstPrinciplesData {
 
 interface FirstPrinciplesAnalysisProps {
   product: Product;
+  flippedIdeas?: FlippedIdea[];
+  onRegenerateIdeas?: () => void;
+  generatingIdeas?: boolean;
 }
 
 const REASON_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -115,18 +119,18 @@ const SEVERITY_COLORS = {
   low: { bg: "hsl(142 70% 45% / 0.07)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)" },
 };
 
-export const FirstPrinciplesAnalysis = ({ product, onSaved }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
+export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
   const { user } = useAuth();
   const [data, setData] = useState<FirstPrinciplesData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept">("reality");
+  const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas">("reality");
 
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any).insert({
         user_id: user?.id,
-        title: `${product.name} — First Principles`,
+        title: `${product.name} — Disrupt`,
         category: product.category || "Product",
         era: product.era || "Unknown",
         audience: "",
@@ -180,6 +184,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved }: FirstPrinciplesAna
     { id: "assumptions" as const, label: "Assumptions", icon: Brain, number: "05" },
     { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal, number: "06" },
     { id: "concept" as const, label: "Redesign", icon: Sparkles, number: "07" },
+    { id: "ideas" as const, label: "Flipped Ideas", icon: Zap, number: "08" },
   ];
 
   if (!data) {
@@ -189,9 +194,9 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved }: FirstPrinciplesAna
           <Brain size={36} style={{ color: "hsl(var(--primary))" }} />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-foreground mb-2">First Principles Deconstruction</h3>
+          <h3 className="text-xl font-bold text-foreground mb-2">Disrupt Analysis</h3>
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-            Radical deep analysis of <strong>{product.name}</strong> — questioning physical form, user workflow friction, smart tech gaps, hidden assumptions, and generating a bold redesign from scratch.
+            Radical deep analysis of <strong>{product.name}</strong> — questioning physical form, user workflow friction, smart tech gaps, hidden assumptions, generating bold redesigns and flipped product ideas.
           </p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg">
@@ -213,10 +218,10 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved }: FirstPrinciplesAna
           className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all"
           style={{ background: "hsl(var(--primary))", color: "white", opacity: loading ? 0.7 : 1 }}
         >
-          {loading ? (
+           {loading ? (
             <><RefreshCw size={15} className="animate-spin" /> Deconstructing {product.name}…</>
           ) : (
-            <><Brain size={15} /> Run First Principles Analysis</>
+            <><Brain size={15} /> Run Disrupt Analysis</>
           )}
         </button>
         <p className="text-[11px] text-muted-foreground">Uses Gemini 2.5 Pro · Deep physical + workflow + tech analysis · ~20–40s</p>
@@ -233,7 +238,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved }: FirstPrinciplesAna
             <Brain size={15} style={{ color: "white" }} />
           </div>
           <div>
-            <h3 className="font-bold text-foreground text-sm">First Principles Analysis</h3>
+            <h3 className="font-bold text-foreground text-sm">Disrupt Analysis</h3>
             <p className="text-[11px] text-muted-foreground">{product.name}</p>
           </div>
         </div>
@@ -760,6 +765,51 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved }: FirstPrinciplesAna
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.targetUser}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* STEP 8: Flipped Ideas */}
+      {activeStep === "ideas" && (
+        <div className="space-y-5">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            AI-generated product reinvention ideas ranked by viability — click regenerate for fresh concepts.
+          </p>
+          {flippedIdeas && flippedIdeas.length > 0 ? (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="section-label text-[10px] flex items-center gap-1">
+                  <Zap size={12} /> Flipped Product Ideas (Ranked)
+                </p>
+                {onRegenerateIdeas && (
+                  <button
+                    onClick={onRegenerateIdeas}
+                    disabled={generatingIdeas}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                    style={{
+                      background: "hsl(var(--primary-muted))",
+                      color: "hsl(var(--primary))",
+                      border: "1px solid hsl(var(--primary) / 0.3)",
+                    }}
+                  >
+                    {generatingIdeas ? (
+                      <><RefreshCw size={11} className="animate-spin" /> Generating…</>
+                    ) : (
+                      <><Sparkles size={11} /> Regenerate with AI</>
+                    )}
+                  </button>
+                )}
+              </div>
+              <div className="space-y-4">
+                {flippedIdeas.map((idea, i) => (
+                  <FlippedIdeaCard key={`${idea.name}-${i}`} idea={idea} rank={i + 1} productName={product.name} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12 text-sm text-muted-foreground">
+              No flipped ideas available yet. Run the intelligence report first to generate ideas.
+            </div>
+          )}
         </div>
       )}
     </div>
