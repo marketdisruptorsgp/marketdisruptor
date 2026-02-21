@@ -39,6 +39,21 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Owner override — unlimited access
+    if (user.email === "steven.palubiak@yahoo.com") {
+      logStep("Owner override — granting disruptor tier");
+      return new Response(JSON.stringify({
+        subscribed: true,
+        tier: "disruptor",
+        product_id: "owner_override",
+        subscription_end: null,
+        usage: { total: 0, monthly: 0 },
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Get usage count
     const currentPeriod = new Date();
     currentPeriod.setDate(1);

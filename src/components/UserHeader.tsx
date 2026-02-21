@@ -67,7 +67,7 @@ export function UserHeader() {
             borderRadius: "0.75rem",
             boxShadow: "0 20px 40px -10px rgba(0,0,0,0.35)",
             overflow: "hidden",
-            zIndex: 9999,
+            zIndex: 99999,
             background: "hsl(var(--background))",
             border: "1px solid hsl(var(--border))",
           }}
@@ -94,7 +94,7 @@ export function UserHeader() {
               style={{ color: "hsl(var(--foreground))" }}
             >
               <CreditCard size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
-              {subscribed ? "View Plans" : "Upgrade Plan"}
+              {subscribed ? "View Plans" : "View Upgrade Options"}
             </button>
 
             {subscribed && (

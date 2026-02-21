@@ -523,26 +523,26 @@ export default function Index() {
             <UserHeader />
           </div>
         </div>
-        <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 sm:py-14">
+        <div className="relative z-[1] max-w-6xl mx-auto px-4 py-10 sm:py-14">
           {/* Usage badge */}
           <div className="flex items-center gap-2 mb-4">
             <span
               className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
               style={{
                 background: tier === "disruptor" ? "hsl(38 92% 50% / 0.15)" : tier === "builder" ? "hsl(var(--primary) / 0.15)" : "hsl(0 0% 100% / 0.08)",
-                color: tier === "disruptor" ? "hsl(38 92% 60%)" : tier === "builder" ? "hsl(var(--primary-light))" : "white/60",
+                color: tier === "disruptor" ? "hsl(38 92% 60%)" : tier === "builder" ? "hsl(var(--primary-light))" : "hsl(0 0% 100% / 0.85)",
                 border: `1px solid ${tier === "disruptor" ? "hsl(38 92% 50% / 0.3)" : tier === "builder" ? "hsl(var(--primary) / 0.3)" : "hsl(0 0% 100% / 0.1)"}`,
               }}
             >
               {TIERS[tier].name} Plan{remainingAnalyses() !== null ? ` · ${remainingAnalyses()} analyses left` : " · Unlimited"}
             </span>
-            {tier === "explorer" && (
+            {tier !== "disruptor" && (
               <button
-                onClick={() => setShowPaywall(true)}
+                onClick={() => window.location.href = "/pricing"}
                 className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all hover:scale-105"
                 style={{ background: "hsl(var(--primary))", color: "white" }}
               >
-                Upgrade
+                View Plan Options
               </button>
             )}
           </div>
@@ -597,7 +597,7 @@ export default function Index() {
                       }}
                       className="flex-1 flex items-center justify-center gap-2.5 px-4 py-4 text-sm font-bold transition-all relative"
                        style={{
-                        color: isActive ? "white" : "hsl(0 0% 100% / 0.85)",
+                        color: isActive ? "white" : "hsl(0 0% 100% / 0.5)",
                         background: isActive ? `${tab.accent}` : "transparent",
                         borderRight: "1px solid hsl(0 0% 100% / 0.25)",
                         boxShadow: isActive ? `inset 0 -3px 0 0 white` : "none",
