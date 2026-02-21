@@ -755,7 +755,7 @@ export default function Index() {
               <div className="max-w-6xl mx-auto flex items-center gap-0">
                 {[
                   { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent, ref: resultsRef },
-                  { step: 3, label: "First Principles", icon: Brain, color: "hsl(271 81% 55%)", ref: step3Ref },
+                  { step: 3, label: "Disrupt", icon: Brain, color: "hsl(271 81% 55%)", ref: step3Ref },
                   { step: 4, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))", ref: step4Ref },
                 ].map((s, i, arr) => {
                   const SIcon = s.icon;
@@ -900,7 +900,6 @@ export default function Index() {
                       { id: "pricing", label: "Pricing Intel", icon: DollarSign },
                       { id: "supply", label: "Supply Chain", icon: Package },
                       { id: "action", label: "Action Plan", icon: Rocket },
-                      { id: "ideas", label: "Flipped Ideas", icon: Zap },
                       { id: "patents", label: "Patent Intel", icon: ScrollText },
                     ] as const).map(({ id, label, icon: Icon }) => {
                       const isActive = detailTab === id;
@@ -1471,37 +1470,6 @@ export default function Index() {
                     <p className="text-sm text-muted-foreground text-center py-8">No action plan available for this product. Try regenerating ideas.</p>
                   )}
 
-                  {/* TAB: FLIPPED IDEAS */}
-                  {detailTab === "ideas" && (
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="section-label text-[10px] flex items-center gap-1">
-                          <Zap size={12} /> Flipped Product Ideas (Ranked)
-                        </p>
-                        <button
-                          onClick={() => handleRegenerateIdeas(selectedProduct)}
-                          disabled={generatingIdeasFor === selectedProduct.id}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                          style={{
-                            background: "hsl(var(--primary-muted))",
-                            color: "hsl(var(--primary))",
-                            border: "1px solid hsl(var(--primary) / 0.3)",
-                          }}
-                        >
-                          {generatingIdeasFor === selectedProduct.id ? (
-                            <><RefreshCw size={11} className="animate-spin" /> Generating…</>
-                          ) : (
-                            <><Sparkles size={11} /> Regenerate with AI</>
-                          )}
-                        </button>
-                      </div>
-                      <div className="space-y-4">
-                        {selectedProduct.flippedIdeas?.map((idea, i) => (
-                          <FlippedIdeaCard key={`${idea.name}-${i}`} idea={idea} rank={i + 1} productName={selectedProduct.name} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   {/* First Principles & Pitch Deck moved to standalone sections below */}
 
@@ -1555,12 +1523,12 @@ export default function Index() {
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(271 81% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
                     <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(271 81% 55%)" }}>3</div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-extrabold text-foreground">First Principles Deep Dive</h2>
-                      <p className="text-sm text-muted-foreground">Deconstructing <strong className="text-foreground">{selectedProduct.name}</strong> — questioning every assumption to uncover radical reinvention opportunities.</p>
+                      <h2 className="text-lg font-extrabold text-foreground">Disrupt</h2>
+                      <p className="text-sm text-muted-foreground">Deconstructing <strong className="text-foreground">{selectedProduct.name}</strong> — questioning every assumption and generating radical reinvention ideas.</p>
                     </div>
                   </div>
                   <div className="p-5" style={{ background: "hsl(var(--card))" }}>
-                    <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
+                    <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} flippedIdeas={selectedProduct.flippedIdeas} onRegenerateIdeas={() => handleRegenerateIdeas(selectedProduct)} generatingIdeas={generatingIdeasFor === selectedProduct.id} />
                   </div>
                 </div>
               </div>
