@@ -442,8 +442,8 @@ export default function Index() {
             )}
           </h1>
           <p className="text-lg text-white/60 max-w-2xl leading-relaxed">
-            Welcome! Developed by <span className="text-white font-semibold">SGP Capital</span>, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up.{" "}
-            <span className="text-white/40">We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life.</span>
+            Developed by <span className="text-white font-semibold">SGP Capital</span>, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up.{" "}
+            <span className="text-white/40">We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life. Scroll below to begin your analysis!</span>
           </p>
           <div className="mt-8 flex flex-wrap gap-2">
             {STEPS.map((s, i) => {
