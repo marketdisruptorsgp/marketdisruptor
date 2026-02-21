@@ -233,7 +233,7 @@ export default function Index() {
       }
       setMainTab("discover");
       setActiveMode("discover");
-      setExpandedSection("discovery");
+      setExpandedSection("detail");
       setDetailTab("overview");
       setActiveStep(3);
       toast.success("First principles analysis loaded — re-run to see full results.");
@@ -246,7 +246,7 @@ export default function Index() {
       const isCustom = analysis.category === "Custom" || analysis.era === "All Eras / Current";
       setMainTab(isCustom ? "custom" : "discover");
       setActiveMode(isCustom ? "custom" : "discover");
-      setExpandedSection("discovery");
+      setExpandedSection("detail");
       setDetailTab("overview");
       setStep("done");
       toast.success("Analysis loaded from saved workspace!");
