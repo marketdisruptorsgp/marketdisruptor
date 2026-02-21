@@ -662,50 +662,75 @@ export default function Index() {
         )}
 
         {/* RESULTS */}
-        {showResults && products.length > 0 && (
-          <div ref={resultsRef} className="space-y-6">
-            {/* Stats bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
-              {[
-                { label: "Sources Scraped", value: String(products.reduce((a, p) => a + (p.sources?.length || 0), 0)), icon: Globe },
-                { label: "Products Found", value: String(products.length), icon: Filter },
-                { label: "Flip Ideas", value: String(products.reduce((acc, p) => acc + (p.flippedIdeas?.length || 0), 0)), icon: Zap },
-                { label: "Avg Revival Score", value: (products.reduce((acc, p) => acc + p.revivalScore, 0) / products.length).toFixed(1) + "/10", icon: TrendingUp },
-              ].map((stat) => {
-                const Icon = stat.icon;
-                return (
-                  <div key={stat.label} className="card-intelligence p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary-muted))" }}>
-                      <Icon size={18} style={{ color: "hsl(var(--primary))" }} />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-extrabold text-foreground leading-none">{stat.value}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
-                    </div>
+        {showResults && products.length > 0 && (() => {
+          const isCustomMode = analysisParams?.category === "Custom";
+          const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
+          const modeAccentLight = isCustomMode ? "hsl(214 95% 93%)" : "hsl(var(--primary-muted))";
+          const modeLabel = isCustomMode ? "Product Deep Audit" : "Market Intelligence";
+          const totalSources = products.reduce((a, p) => a + (p.sources?.length || 0), 0);
+          const totalIdeas = products.reduce((acc, p) => acc + (p.flippedIdeas?.length || 0), 0);
+          const avgScore = (products.reduce((acc, p) => acc + p.revivalScore, 0) / products.length).toFixed(1);
+
+          return (
+          <div ref={resultsRef} className="space-y-5">
+            {/* ── STEP 2 BANNER ── */}
+            <div className="rounded-2xl overflow-hidden" style={{ border: `2px solid ${modeAccent}30`, boxShadow: `0 4px 24px -4px ${modeAccent}18` }}>
+              <div className="px-5 py-4 flex items-start gap-4" style={{ background: `linear-gradient(135deg, ${modeAccentLight} 0%, hsl(var(--card)) 100%)` }}>
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: modeAccent }}>
+                  2
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h2 className="text-lg font-extrabold text-foreground">Your Intelligence Report is Ready</h2>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white" style={{ background: modeAccent }}>{modeLabel}</span>
                   </div>
-                );
-              })}
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    AI has scraped <strong className="text-foreground">{totalSources} live sources</strong>, analyzed <strong className="text-foreground">{products.length} product{products.length > 1 ? "s" : ""}</strong>, and generated <strong className="text-foreground">{totalIdeas} flip ideas</strong> with an average revival score of <strong style={{ color: modeAccent }}>{avgScore}/10</strong>.
+                  </p>
+                  <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: `${modeAccent}10`, border: `1px solid ${modeAccent}20` }}>
+                    <Sparkles size={14} className="flex-shrink-0 mt-0.5" style={{ color: modeAccent }} />
+                    <p className="text-xs font-medium" style={{ color: modeAccent }}>
+                      Click a product below, then explore each tab — <strong>Overview → Community Intel → Pricing → Supply Chain → Action Plan → Flipped Ideas → First Principles → Pitch Deck → Patent Intel</strong> — for progressively deeper insights.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct)}
+                    disabled={!selectedProduct}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+                    style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", opacity: selectedProduct ? 1 : 0.5 }}
+                  >
+                    <FileDown size={12} /> PDF
+                  </button>
+                  <button
+                    onClick={handleManualSave}
+                    disabled={isSaving}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all text-white"
+                    style={{ background: modeAccent, opacity: isSaving ? 0.7 : 1 }}
+                  >
+                    {isSaving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
+                    {isSaving ? "Saving…" : "Save"}
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct)}
-                  disabled={!selectedProduct}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                  style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", opacity: selectedProduct ? 1 : 0.5 }}
-                >
-                  <FileDown size={14} />
-                  Download PDF
-                </button>
-                <button
-                  onClick={handleManualSave}
-                  disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                  style={{ background: "hsl(var(--primary))", color: "white", opacity: isSaving ? 0.7 : 1 }}
-                >
-                  {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-                  {isSaving ? "Saving…" : "Save Analysis"}
-                </button>
+              {/* Compact inline stats */}
+              <div className="px-5 py-2.5 flex flex-wrap items-center gap-4 text-xs" style={{ borderTop: `1px solid ${modeAccent}15`, background: "hsl(var(--card))" }}>
+                {[
+                  { icon: Globe, label: "Sources", value: String(totalSources) },
+                  { icon: Filter, label: "Products", value: String(products.length) },
+                  { icon: Zap, label: "Flip Ideas", value: String(totalIdeas) },
+                  { icon: TrendingUp, label: "Avg Score", value: avgScore + "/10" },
+                ].map((s) => {
+                  const SIcon = s.icon;
+                  return (
+                    <div key={s.label} className="flex items-center gap-1.5">
+                      <SIcon size={12} style={{ color: modeAccent }} />
+                      <span className="font-bold text-foreground">{s.value}</span>
+                      <span className="text-muted-foreground">{s.label}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -1388,7 +1413,8 @@ export default function Index() {
               </SectionAccordion>
             )}
           </div>
-        )}
+          );
+        })()}
 
         {/* BUSINESS MODEL ANALYSIS — shown only when active */}
         {(businessAnalysisData || expandedSection === "businessmodel") && (
