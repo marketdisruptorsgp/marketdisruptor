@@ -98,60 +98,58 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
     TYPE_CONFIG[(type as keyof typeof TYPE_CONFIG) ?? "product"] ?? TYPE_CONFIG.product;
 
   return (
-    <div className="card-intelligence p-5 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Database size={15} style={{ color: "hsl(var(--primary))" }} />
-          <h3 className="font-bold text-sm text-foreground">Saved Analyses</h3>
+    <div className="space-y-4">
+      {/* Search + count bar */}
+      <div className="flex items-center gap-3">
+        {analyses.length > 3 && (
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, category, or era..."
+              className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+              style={{
+                border: "1.5px solid hsl(var(--border))",
+                background: "hsl(var(--background))",
+                color: "hsl(var(--foreground))",
+              }}
+            />
+          </div>
+        )}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <span
-            className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+            className="px-2.5 py-1 rounded-lg text-xs font-bold"
             style={{ background: "hsl(var(--primary))", color: "white" }}
           >
-            {analyses.length}
+            {analyses.length} saved
           </span>
+          <button
+            onClick={fetchAnalyses}
+            className="p-2 rounded-lg transition-colors hover:bg-muted"
+            title="Refresh"
+          >
+            <RotateCcw size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
+          </button>
         </div>
-        <button
-          onClick={fetchAnalyses}
-          className="p-1.5 rounded-lg transition-colors hover:bg-muted"
-          title="Refresh"
-        >
-          <RotateCcw size={12} style={{ color: "hsl(var(--muted-foreground))" }} />
-        </button>
       </div>
 
-      {analyses.length > 3 && (
-        <div className="relative">
-          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search analyses..."
-            className="w-full pl-7 pr-3 py-1.5 text-xs rounded-lg focus:outline-none"
-            style={{
-              border: "1px solid hsl(var(--border))",
-              background: "hsl(var(--muted))",
-              color: "hsl(var(--foreground))",
-            }}
-          />
-        </div>
-      )}
-
       {loading ? (
-        <div className="flex items-center justify-center py-6">
-          <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
+        <div className="flex items-center justify-center py-10">
+          <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-6 text-center">
-          <Database size={24} className="mx-auto mb-2 opacity-20" />
-          <p className="text-xs text-muted-foreground">
+        <div className="py-10 text-center">
+          <Database size={28} className="mx-auto mb-3 opacity-20" />
+          <p className="text-sm text-muted-foreground">
             {analyses.length === 0
-              ? "No saved analyses yet. Run your first analysis above!"
+              ? "No saved analyses yet. Run your first analysis to get started!"
               : "No results match your search."}
           </p>
         </div>
       ) : (
-        <div className="space-y-2 max-h-80 overflow-y-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {filtered.map((analysis) => {
             const cfg = getTypeConfig(analysis.analysis_type);
             const TypeIcon = cfg.icon;
@@ -159,72 +157,72 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
               <button
                 key={analysis.id}
                 onClick={() => onLoad(analysis)}
-                className="w-full text-left p-3 rounded-xl transition-all group hover:scale-[1.01]"
+                className="w-full text-left p-4 rounded-xl transition-all group hover:scale-[1.01] hover:shadow-md"
                 style={{
-                  background: "hsl(var(--muted))",
-                  border: "1px solid hsl(var(--border))",
+                  background: "hsl(var(--card))",
+                  border: "2px solid hsl(var(--border))",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--primary) / 0.5)";
-                  (e.currentTarget as HTMLElement).style.background = "hsl(var(--primary-muted))";
+                  (e.currentTarget as HTMLElement).style.borderColor = cfg.color;
+                  (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px -4px ${cfg.color}30`;
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--border))";
-                  (e.currentTarget as HTMLElement).style.background = "hsl(var(--muted))";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
                 }}
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-0.5">
+                    {/* Type badge */}
+                    <div className="flex items-center gap-2 mb-2">
                       <span
-                        className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                        className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
                         style={{ background: cfg.bgColor, color: cfg.color }}
                       >
-                        <TypeIcon size={9} />
+                        <TypeIcon size={10} />
                         {cfg.label}
                       </span>
+                      {analysis.avg_revival_score && (
+                        <span
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}
+                        >
+                          {analysis.avg_revival_score}/10
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs font-bold text-foreground truncate">{analysis.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    {/* Title */}
+                    <p className="text-sm font-bold text-foreground leading-snug mb-1.5 line-clamp-2">{analysis.title}</p>
+                    {/* Meta row */}
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                        style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary-dark))" }}
+                        className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                        style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}
                       >
                         {analysis.category}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">{analysis.era}</span>
+                      <span className="text-[11px] text-muted-foreground">{analysis.era}</span>
                       {analysis.product_count > 0 && (
-                        <>
-                          <span className="text-[10px] text-muted-foreground">·</span>
-                          <span className="text-[10px] text-muted-foreground">{analysis.product_count} products</span>
-                        </>
-                      )}
-                      {analysis.avg_revival_score && (
-                        <>
-                          <span className="text-[10px] text-muted-foreground">·</span>
-                          <span
-                            className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                            style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary-dark))" }}
-                          >
-                            ⚡ {analysis.avg_revival_score}/10
-                          </span>
-                        </>
+                        <span className="text-[11px] text-muted-foreground">{analysis.product_count} products</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Clock size={9} className="text-muted-foreground" />
-                      <span className="text-[10px] text-muted-foreground">{formatDate(analysis.created_at)}</span>
+                    {/* Date */}
+                    <div className="flex items-center gap-1 mt-2">
+                      <Clock size={10} className="text-muted-foreground" />
+                      <span className="text-[11px] text-muted-foreground">{formatDate(analysis.created_at)}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Actions */}
+                  <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                    <ChevronRight size={16} style={{ color: cfg.color }} className="opacity-40 group-hover:opacity-100 transition-opacity" />
                     <button
                       onClick={(e) => handleDelete(analysis.id, e)}
-                      className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100"
+                      className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: "hsl(var(--destructive))" }}
                       title="Delete"
                     >
-                      <Trash2 size={11} className="text-red-500" />
+                      <Trash2 size={13} />
                     </button>
-                    <ChevronRight size={13} style={{ color: "hsl(var(--primary))" }} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </div>
               </button>

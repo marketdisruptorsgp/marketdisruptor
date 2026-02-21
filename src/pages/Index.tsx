@@ -828,8 +828,15 @@ export default function Index() {
                 onToggle={() => toggleSection("detail")}
               >
                 <div className="space-y-6">
+                  {/* Tab guidance */}
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(var(--primary) / 0.08)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
+                    <Sparkles size={13} className="flex-shrink-0" style={{ color: "hsl(var(--primary))" }} />
+                    <p className="text-xs font-medium" style={{ color: "hsl(var(--primary))" }}>
+                      Click each tab below to explore deeper intelligence layers for this product.
+                    </p>
+                  </div>
                   {/* Tab nav */}
-                  <div className="flex flex-wrap gap-2 border-b pb-4" style={{ borderColor: "hsl(var(--border))" }}>
+                  <div className="flex flex-wrap gap-2">
                      {([
                       { id: "overview", label: "Overview", icon: Target },
                       { id: "community", label: "Community Intel", icon: Users },
@@ -840,21 +847,26 @@ export default function Index() {
                       { id: "firstprinciples", label: "First Principles", icon: Brain },
                       { id: "pitchdeck", label: "Pitch Deck", icon: Presentation },
                       { id: "patents", label: "Patent Intel", icon: ScrollText },
-                    ] as const).map(({ id, label, icon: Icon }) => (
-                      <button
-                        key={id}
-                        onClick={() => setDetailTab(id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                        style={{
-                          background: detailTab === id ? (id === "patents" ? "hsl(271 81% 55%)" : "hsl(var(--primary))") : "hsl(var(--secondary))",
-                          color: detailTab === id ? "white" : "hsl(var(--foreground))",
-                          border: `1px solid ${detailTab === id ? (id === "patents" ? "hsl(271 81% 55%)" : "hsl(var(--primary))") : "hsl(var(--border))"}`,
-                        }}
-                      >
-                        <Icon size={11} />
-                        {label}
-                      </button>
-                    ))}
+                    ] as const).map(({ id, label, icon: Icon }) => {
+                      const isActive = detailTab === id;
+                      const activeColor = id === "patents" ? "hsl(271 81% 55%)" : "hsl(var(--primary))";
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => setDetailTab(id)}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all"
+                          style={{
+                            background: isActive ? activeColor : "hsl(var(--card))",
+                            color: isActive ? "white" : "hsl(var(--foreground))",
+                            border: `2px solid ${isActive ? activeColor : "hsl(var(--border))"}`,
+                            boxShadow: isActive ? `0 2px 8px -2px ${activeColor}60` : "none",
+                          }}
+                        >
+                          <Icon size={13} />
+                          {label}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   {/* TAB: OVERVIEW */}
