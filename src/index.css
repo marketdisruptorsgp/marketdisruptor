@@ -60,9 +60,11 @@
     --gradient-hero: linear-gradient(135deg, hsl(217 91% 50%) 0%, hsl(213 97% 62%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(214 95% 97%) 100%);
     --gradient-blue-subtle: linear-gradient(180deg, hsl(214 95% 97%) 0%, hsl(0 0% 100%) 100%);
-    --shadow-card: 0 1px 3px 0 hsl(220 20% 5% / 0.08), 0 4px 16px -2px hsl(217 91% 50% / 0.08);
-    --shadow-card-hover: 0 8px 24px -4px hsl(217 91% 50% / 0.2), 0 2px 8px -2px hsl(220 20% 5% / 0.1);
+    --gradient-section: linear-gradient(180deg, hsl(220 14% 98%) 0%, hsl(0 0% 100%) 100%);
+    --shadow-card: 0 1px 3px 0 hsl(220 20% 5% / 0.06), 0 4px 16px -2px hsl(217 91% 50% / 0.06);
+    --shadow-card-hover: 0 8px 24px -4px hsl(217 91% 50% / 0.15), 0 2px 8px -2px hsl(220 20% 5% / 0.08);
     --shadow-primary: 0 4px 16px -2px hsl(217 91% 50% / 0.4);
+    --shadow-section: 0 1px 2px 0 hsl(220 20% 5% / 0.04), 0 1px 8px -1px hsl(217 91% 50% / 0.04);
   }
 
   .dark {
@@ -113,15 +115,40 @@
 
 @layer components {
   .card-intelligence {
-    background: hsl(var(--card));
+    background: var(--gradient-card);
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
   }
   .card-intelligence:hover {
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-2px);
+    border-color: hsl(var(--primary) / 0.25);
+  }
+
+  /* Professional section panel for analysis content */
+  .section-panel {
+    background: var(--gradient-section);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-section);
+    padding: 1.25rem;
+  }
+
+  /* Insight callout — key insight, trend analysis, TAM */
+  .insight-callout {
+    position: relative;
+    background: hsl(var(--primary) / 0.04);
+    border: 1px solid hsl(var(--primary) / 0.12);
+    border-left: 3px solid hsl(var(--primary));
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+  }
+  .insight-callout--success {
+    background: hsl(var(--success) / 0.05);
+    border-color: hsl(var(--success) / 0.15);
+    border-left-color: hsl(var(--success));
   }
 
   .score-badge-high {
@@ -144,6 +171,7 @@
     @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
     background: hsl(var(--primary-muted));
     color: hsl(var(--primary-dark));
+    border: 1px solid hsl(var(--primary) / 0.12);
   }
 
   .source-link {
@@ -179,6 +207,19 @@
   .section-label {
     @apply text-xs font-bold uppercase tracking-widest;
     color: hsl(var(--primary));
+    letter-spacing: 0.08em;
+  }
+
+  /* Divider with label */
+  .section-divider {
+    @apply flex items-center gap-3 my-5;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: hsl(var(--border));
   }
 }
 
