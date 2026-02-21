@@ -64,6 +64,7 @@ import {
   Telescope,
   Upload,
   Database,
+  ArrowLeft,
 } from "lucide-react";
 
 const STEPS = [
@@ -209,10 +210,15 @@ export default function Index() {
     }
   }, [user?.id]);
 
+  const [loadedFromSaved, setLoadedFromSaved] = useState(false);
+
   const handleLoadSaved = useCallback((analysis: { products: Product[]; category: string; era: string; audience?: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string; analysis_type?: string; analysis_data?: unknown }) => {
+    setLoadedFromSaved(true);
     if (analysis.analysis_type === "business_model") {
       setBusinessAnalysisData(analysis.analysis_data as never);
       setExpandedSection("businessmodel");
+      setMainTab("business");
+      setActiveMode("business");
       toast.success("Business model analysis loaded!");
       setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     } else if (analysis.analysis_type === "first_principles") {
@@ -221,17 +227,25 @@ export default function Index() {
         setSelectedProduct(analysis.products[0]);
         setStep("done");
       }
+      setMainTab("discover");
+      setActiveMode("discover");
       setExpandedSection("discovery");
       setDetailTab("firstprinciples");
       toast.success("First principles analysis loaded — re-run to see full results.");
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     } else {
       setProducts(analysis.products);
       setSelectedProduct(analysis.products[0] || null);
       setAnalysisParams({ category: analysis.category, era: analysis.era, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
+      // Switch to correct tab based on whether it was a custom analysis
+      const isCustom = analysis.category === "Custom" || analysis.era === "All Eras / Current";
+      setMainTab(isCustom ? "custom" : "discover");
+      setActiveMode(isCustom ? "custom" : "discover");
       setExpandedSection("discovery");
       setDetailTab("overview");
       setStep("done");
       toast.success("Analysis loaded from saved workspace!");
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     }
   }, []);
 
@@ -731,6 +745,24 @@ export default function Index() {
 
           return (
           <div ref={resultsRef} className="space-y-5">
+            {/* ── BACK TO SAVED PROJECTS ── */}
+            {loadedFromSaved && (
+              <button
+                onClick={() => {
+                  setMainTab("saved");
+                  setLoadedFromSaved(false);
+                  setStep("idle");
+                  setProducts([]);
+                  setSelectedProduct(null);
+                  setBusinessAnalysisData(null);
+                }}
+                className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                style={{ color: "hsl(var(--primary))" }}
+              >
+                <ArrowLeft size={16} />
+                Back to Saved Projects
+              </button>
+            )}
             {/* ── STEP 2 BANNER ── */}
             <div className="rounded-2xl overflow-hidden" style={{ border: `2px solid ${modeAccent}30`, boxShadow: `0 4px 24px -4px ${modeAccent}18` }}>
               <div className="px-5 py-4 flex items-start gap-4" style={{ background: `linear-gradient(135deg, ${modeAccentLight} 0%, hsl(var(--card)) 100%)` }}>
@@ -1489,6 +1521,21 @@ export default function Index() {
         {/* BUSINESS MODEL ANALYSIS — shown only when active */}
         {(businessAnalysisData || expandedSection === "businessmodel") && (
           <div ref={businessResultsRef}>
+            {loadedFromSaved && (
+              <button
+                onClick={() => {
+                  setMainTab("saved");
+                  setLoadedFromSaved(false);
+                  setBusinessAnalysisData(null);
+                  setExpandedSection("discovery");
+                }}
+                className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80 mb-4"
+                style={{ color: "hsl(var(--primary))" }}
+              >
+                <ArrowLeft size={16} />
+                Back to Saved Projects
+              </button>
+            )}
             <SectionAccordion
               id="businessmodel"
               title="Business Model Deconstruction"
