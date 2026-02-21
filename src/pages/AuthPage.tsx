@@ -181,22 +181,69 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex" style={{ background: "hsl(var(--background))" }}>
+    <div className="min-h-screen flex" style={{ background: "hsl(220 20% 5%)" }}>
       <HeroPanel />
 
-      {/* Right: Sign In Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-10">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-              <Zap size={16} className="text-white" />
+      {/* Right: Sign In Form — dark themed for mobile & desktop */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 relative overflow-hidden">
+        {/* Subtle gradient overlay for depth */}
+        <div className="absolute inset-0 lg:hidden" style={{ background: "linear-gradient(165deg, hsl(220 30% 8%) 0%, hsl(220 20% 5%) 50%, hsl(217 40% 10%) 100%)" }} />
+        {/* Desktop right panel stays slightly lighter */}
+        <div className="absolute inset-0 hidden lg:block" style={{ background: "hsl(var(--background))" }} />
+
+        <div className="relative z-10 w-full max-w-md space-y-8">
+          {/* Mobile hero section */}
+          <div className="lg:hidden space-y-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+                <Zap size={16} className="text-white" />
+              </div>
+              <span className="font-bold text-lg text-white">Market Disruptor</span>
             </div>
-            <span className="font-bold text-lg" style={{ color: "hsl(var(--foreground))" }}>Market Disruptor</span>
+
+            <div>
+              <h1 className="text-3xl font-extrabold text-white leading-tight mb-3">
+                Uncover the next{" "}
+                <span style={{ color: "hsl(var(--primary-light))" }}>big thing</span>{" "}
+                hiding in plain sight.
+              </h1>
+              <p className="text-sm text-white/60 leading-relaxed">
+                Products that once dominated markets don't just disappear — they evolve. 
+                Your job is to find them first.
+              </p>
+            </div>
+
+            {/* Mobile feature cards */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {FEATURES.map(({ icon: Icon, label, desc }) => (
+                <div
+                  key={label}
+                  className="rounded-xl p-3 space-y-1.5"
+                  style={{ background: "hsl(var(--primary) / 0.08)", border: "1px solid hsl(var(--primary) / 0.15)" }}
+                >
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{ background: "hsl(var(--primary) / 0.2)" }}
+                  >
+                    <Icon size={14} style={{ color: "hsl(var(--primary-light))" }} />
+                  </div>
+                  <p className="text-white font-semibold text-xs leading-tight">{label}</p>
+                  <p className="text-white/45 text-[10px] leading-snug">{desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div>
-          <h2 className="text-4xl font-extrabold mb-2" style={{ color: "hsl(var(--foreground))" }}>
+          {/* Divider on mobile */}
+          <div className="lg:hidden flex items-center gap-3">
+            <div className="flex-1 h-px" style={{ background: "hsl(var(--primary) / 0.2)" }} />
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--primary) / 0.5)" }}>Get Started</span>
+            <div className="flex-1 h-px" style={{ background: "hsl(var(--primary) / 0.2)" }} />
+          </div>
+
+          {/* Desktop-only logo & heading */}
+          <div className="hidden lg:block">
+            <h2 className="text-4xl font-extrabold mb-2" style={{ color: "hsl(var(--foreground))" }}>
               Your next big idea starts here.
             </h2>
             <p className="text-base" style={{ color: "hsl(var(--muted-foreground))" }}>
@@ -204,13 +251,20 @@ export default function AuthPage() {
             </p>
           </div>
 
+          {/* Mobile heading for form */}
+          <div className="lg:hidden">
+            <h2 className="text-xl font-extrabold text-white mb-1">Sign in to your workspace</h2>
+            <p className="text-xs text-white/50">Magic link — no password needed, ever.</p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
+              <label className="text-xs font-bold uppercase tracking-wider lg:text-muted-foreground text-white/50">
                 First Name
               </label>
               <input
                 style={inputStyle}
+                className="lg:bg-background lg:text-foreground lg:border-border"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="e.g. Alex, Jordan, Sam…"
@@ -221,11 +275,12 @@ export default function AuthPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>
+              <label className="text-xs font-bold uppercase tracking-wider lg:text-muted-foreground text-white/50">
                 Email Address
               </label>
               <input
                 style={inputStyle}
+                className="lg:bg-background lg:text-foreground lg:border-border"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -240,8 +295,9 @@ export default function AuthPage() {
               disabled={loading || !firstName.trim() || !email.trim()}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-base transition-all"
               style={{
-                background: loading || !firstName.trim() || !email.trim() ? "hsl(var(--muted))" : "hsl(var(--primary))",
-                color: loading || !firstName.trim() || !email.trim() ? "hsl(var(--muted-foreground))" : "white",
+                background: loading || !firstName.trim() || !email.trim() ? "hsl(220 20% 15%)" : "hsl(var(--primary))",
+                color: loading || !firstName.trim() || !email.trim() ? "hsl(220 10% 40%)" : "white",
+                boxShadow: !loading && firstName.trim() && email.trim() ? "0 4px 16px -2px hsl(217 91% 50% / 0.4)" : "none",
               }}
             >
               {loading ? (
@@ -252,7 +308,7 @@ export default function AuthPage() {
             </button>
           </form>
 
-          <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+          <p className="text-xs lg:text-muted-foreground text-white/35 text-center">
             No password needed. Click the link in your email and you're in — every time.
           </p>
         </div>
