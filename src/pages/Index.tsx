@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+
 import heroBanner from "@/assets/hero-banner.jpg";
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
@@ -137,6 +138,8 @@ export default function Index() {
   const [loadingLog, setLoadingLog] = useState<{ text: string; ts: number }[]>([]);
   const loadingStartRef = useRef<number>(0);
   const logTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const businessResultsRef = useRef<HTMLDivElement>(null);
 
   const pushLog = useCallback((text: string) => {
     setLoadingLog(prev => [...prev.slice(-12), { text, ts: Date.now() }]);
@@ -206,6 +209,7 @@ export default function Index() {
       setBusinessAnalysisData(analysis.analysis_data as never);
       setExpandedSection("businessmodel");
       toast.success("Business model analysis loaded!");
+      setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     } else if (analysis.analysis_type === "first_principles") {
       if (analysis.products && analysis.products.length > 0) {
         setProducts(analysis.products);
@@ -346,6 +350,8 @@ export default function Index() {
       setStep("done");
       toast.success(`Found ${liveProducts.length} products with deep intelligence reports!`);
       await saveAnalysis(liveProducts, params);
+      // Auto-scroll to results
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Analysis pipeline error:", msg);
@@ -469,9 +475,33 @@ export default function Index() {
           onBusinessAnalysis={(data) => {
             setBusinessAnalysisData(data);
             toggleSection("businessmodel");
+            setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
           }}
         />
 
+
+        {/* SAVED ANALYSES — always visible right below form */}
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ border: "2px solid hsl(var(--primary) / 0.2)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.12)" }}
+        >
+          <div
+            className="px-5 py-3 flex items-center gap-3"
+            style={{ background: "hsl(var(--primary))" }}
+          >
+            <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
+              <Save size={14} style={{ color: "white" }} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-white leading-tight">Your Analysis Workspace</p>
+              <p className="text-[11px] text-white/70">All analyses auto-save · Click any to reload instantly</p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: "hsl(0 0% 100% / 0.15)", color: "white" }}>
+              Auto-saved
+            </span>
+          </div>
+          <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
+        </div>
 
         {/* LOADING — rich live tracker */}
         {isLoading && (() => {
@@ -633,7 +663,7 @@ export default function Index() {
 
         {/* RESULTS */}
         {showResults && products.length > 0 && (
-          <div className="space-y-6">
+          <div ref={resultsRef} className="space-y-6">
             {/* Stats bar */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
@@ -1362,41 +1392,20 @@ export default function Index() {
 
         {/* BUSINESS MODEL ANALYSIS — shown only when active */}
         {(businessAnalysisData || expandedSection === "businessmodel") && (
-          <SectionAccordion
-            id="businessmodel"
-            title="Business Model Deconstruction"
-            subtitle="First-principles analysis for any business — laundromat, distributor, B2B, service business & more"
-            icon={<Building2 size={16} style={{ color: "hsl(var(--primary))" }} />}
-            expanded={expandedSection === "businessmodel"}
-            onToggle={() => toggleSection("businessmodel")}
-          >
-            <BusinessModelAnalysis initialData={businessAnalysisData as never} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
-          </SectionAccordion>
+          <div ref={businessResultsRef}>
+            <SectionAccordion
+              id="businessmodel"
+              title="Business Model Deconstruction"
+              subtitle="First-principles analysis for any business — laundromat, distributor, B2B, service business & more"
+              icon={<Building2 size={16} style={{ color: "hsl(var(--primary))" }} />}
+              expanded={expandedSection === "businessmodel"}
+              onToggle={() => toggleSection("businessmodel")}
+            >
+              <BusinessModelAnalysis initialData={businessAnalysisData as never} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
+            </SectionAccordion>
+          </div>
         )}
 
-        {/* SAVED ANALYSES — elevated, prominent workspace section */}
-        <div
-          className="rounded-2xl overflow-hidden"
-          style={{ border: "2px solid hsl(var(--primary) / 0.2)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.12)" }}
-        >
-          {/* Header bar */}
-          <div
-            className="px-5 py-3 flex items-center gap-3"
-            style={{ background: "hsl(var(--primary))" }}
-          >
-            <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
-              <Save size={14} style={{ color: "white" }} />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-white leading-tight">Your Analysis Workspace</p>
-              <p className="text-[11px] text-white/70">All analyses auto-save · Click any to reload instantly</p>
-            </div>
-            <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: "hsl(0 0% 100% / 0.15)", color: "white" }}>
-              Auto-saved
-            </span>
-          </div>
-          <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
-        </div>
 
         {/* IDLE with no data */}
         {step === "idle" && products.length === 0 && (
