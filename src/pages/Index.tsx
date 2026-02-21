@@ -479,8 +479,8 @@ export default function Index() {
             { id: "saved" as const, label: "Saved Projects", icon: Database, accent: "hsl(var(--primary))" },
           ];
           return (
-            <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-card)", background: "hsl(var(--card))" }}>
-              <div className="flex border-b" style={{ borderColor: "hsl(var(--border))" }}>
+            <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--border))", boxShadow: "var(--shadow-card)", background: "hsl(var(--card))" }}>
+              <div className="flex" style={{ background: "hsl(220 25% 6%)" }}>
                 {TABS.map((tab) => {
                   const isActive = mainTab === tab.id;
                   const Icon = tab.icon;
@@ -493,19 +493,16 @@ export default function Index() {
                           setActiveMode(tab.id as AnalysisMode);
                         }
                       }}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-4 text-sm font-bold transition-all relative"
+                      className="flex-1 flex items-center justify-center gap-2.5 px-4 py-4 text-sm font-bold transition-all relative"
                       style={{
-                        color: isActive ? tab.accent : "hsl(var(--muted-foreground))",
-                        background: isActive ? `${tab.accent}08` : "transparent",
+                        color: isActive ? "white" : "hsl(0 0% 100% / 0.45)",
+                        background: isActive ? `${tab.accent}` : "transparent",
                       }}
                     >
-                      <Icon size={16} />
+                      <Icon size={17} />
                       <span className="hidden sm:inline">{tab.label}</span>
                       {tab.id === "saved" && (
                         <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "hsl(var(--success))" }} />
-                      )}
-                      {isActive && (
-                        <div className="absolute bottom-0 left-2 right-2 h-[3px] rounded-t-full" style={{ background: tab.accent }} />
                       )}
                     </button>
                   );
