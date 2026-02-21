@@ -549,9 +549,8 @@ export default function Index() {
           <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4">
             Analyze, Deconstruct, <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize!</span>
           </h1>
-          <p className="text-lg text-white/60 leading-relaxed">
-            Developed by <span className="text-white font-semibold">SGP Capital</span>, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up.{" "}
-            <span className="text-white/40">We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life. Scroll below to begin your analysis!</span>
+          <p className="text-lg text-white leading-relaxed">
+            Developed by SGP Capital, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up. We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life. Scroll below to begin your analysis!
           </p>
           <div className="mt-8 flex flex-wrap gap-2">
             {STEPS.map((s, i) => {
