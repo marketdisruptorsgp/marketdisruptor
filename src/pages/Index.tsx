@@ -906,52 +906,61 @@ export default function Index() {
                   {detailTab === "overview" && (
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Product image with refined frame */}
                         <div className="md:col-span-1">
-                          <img
-                            src={selectedProduct.image}
-                            alt={selectedProduct.name}
-                            className="w-full rounded-xl object-cover h-52"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = getFallback(selectedProduct.category);
-                            }}
-                          />
+                          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-section)" }}>
+                            <img
+                              src={selectedProduct.image}
+                              alt={selectedProduct.name}
+                              className="w-full object-cover h-56"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = getFallback(selectedProduct.category);
+                              }}
+                            />
+                          </div>
                         </div>
                         <div className="md:col-span-2 space-y-4">
+                          {/* Tags & score */}
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="tag-pill">{selectedProduct.category}</span>
                             <span className="tag-pill">{selectedProduct.era}</span>
                             <RevivalScoreBadge score={selectedProduct.revivalScore} size="md" />
                           </div>
 
+                          {/* Key Insight — professional callout */}
                           {selectedProduct.keyInsight && (
-                            <div
-                              className="p-3 rounded-lg text-sm italic leading-relaxed"
-                              style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))", color: "hsl(var(--primary-dark))" }}
-                            >
-                              <p className="text-[10px] font-bold not-italic uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>
-                                <Lightbulb size={10} className="inline mr-1" />Key Insight
+                            <div className="insight-callout">
+                              <p className="section-label text-[10px] mb-1.5 flex items-center gap-1 not-italic">
+                                <Lightbulb size={10} /> Key Insight
                               </p>
-                              "{selectedProduct.keyInsight}"
+                              <p className="text-sm italic leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.85)" }}>
+                                "{selectedProduct.keyInsight}"
+                              </p>
                             </div>
                           )}
 
-                          <p className="text-sm text-foreground/80 leading-relaxed">{selectedProduct.description}</p>
-                          <div className="text-xs px-3 py-2 rounded-lg font-mono" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+                          <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{selectedProduct.description}</p>
+
+                          {/* Specs */}
+                          <div className="text-xs px-3.5 py-2.5 rounded-lg font-mono" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}>
                             {selectedProduct.specs}
                           </div>
 
+                          {/* TAM */}
                           {selectedProduct.marketSizeEstimate && (
-                            <div
-                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
-                              style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.3)" }}
-                            >
-                              <BarChart3 size={12} />
-                              TAM: {selectedProduct.marketSizeEstimate}
+                            <div className="insight-callout--success insight-callout">
+                              <div className="flex items-start gap-2">
+                                <BarChart3 size={14} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--success))" }} />
+                                <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(142 70% 28%)" }}>
+                                  TAM: {selectedProduct.marketSizeEstimate}
+                                </p>
+                              </div>
                             </div>
                           )}
 
-                          <div>
-                            <p className="section-label text-[10px] mb-2">Live Sources</p>
+                          {/* Live Sources */}
+                          <div className="section-panel">
+                            <p className="section-label text-[10px] mb-2.5">Live Sources</p>
                             <div className="flex flex-wrap gap-2">
                               {selectedProduct.sources?.map((src) => (
                                 <a
@@ -959,8 +968,8 @@ export default function Index() {
                                   href={src.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="source-link inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs"
-                                  style={{ background: "hsl(var(--secondary))", border: "1px solid hsl(var(--border))" }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                                  style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.12)" }}
                                 >
                                   <ExternalLink size={10} />
                                   {src.label?.slice(0, 40)}
@@ -969,9 +978,10 @@ export default function Index() {
                             </div>
                           </div>
 
-                          <div>
+                          {/* Confidence Scores */}
+                          <div className="section-panel">
                             <p className="section-label text-[10px] mb-3">Confidence Scores</p>
-                            <div className="grid grid-cols-1 gap-2">
+                            <div className="grid grid-cols-1 gap-3">
                               <ScoreBar label="Adoption Likelihood" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
                               <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
                               <ScoreBar label="Emotional Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
@@ -982,17 +992,17 @@ export default function Index() {
 
                       {/* Trend analysis */}
                       {selectedProduct.trendAnalysis && (
-                        <div className="p-4 rounded-xl text-sm leading-relaxed" style={{ background: "hsl(var(--muted))", borderLeft: "4px solid hsl(var(--primary))" }}>
+                        <div className="insight-callout">
                           <p className="section-label text-[10px] mb-2 flex items-center gap-1">
                             <TrendingUp size={11} /> Trend Analysis
                           </p>
-                          <p className="text-foreground/80">{selectedProduct.trendAnalysis}</p>
+                          <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{selectedProduct.trendAnalysis}</p>
                         </div>
                       )}
 
                       {/* Reviews + Social */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="section-panel">
                           <p className="section-label text-[10px] mb-3 flex items-center gap-1">
                             <MessageSquare size={12} /> Reviews & Sentiment
                           </p>
@@ -1000,17 +1010,17 @@ export default function Index() {
                             {selectedProduct.reviews?.map((review, i) => (
                               <div
                                 key={i}
-                                className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed"
-                                style={{ background: "hsl(var(--muted))" }}
+                                className="flex gap-2.5 items-start p-3 rounded-lg text-xs leading-relaxed"
+                                style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
                               >
                                 <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
-                                <span className="text-foreground/80">{review.text}</span>
+                                <span style={{ color: "hsl(var(--foreground) / 0.8)" }}>{review.text}</span>
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        <div>
+                        <div className="section-panel">
                           <p className="section-label text-[10px] mb-3 flex items-center gap-1">
                             <TrendingUp size={12} /> Social Signals
                           </p>
@@ -1019,7 +1029,7 @@ export default function Index() {
                               <div
                                 key={i}
                                 className="flex items-center justify-between p-3 rounded-lg"
-                                style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.15)" }}
+                                style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.1)" }}
                               >
                                 <div>
                                   <div className="flex items-center gap-2">
@@ -1042,7 +1052,7 @@ export default function Index() {
                             ))}
                           </div>
 
-                          <div className="mt-3">
+                          <div className="mt-4 pt-3" style={{ borderTop: "1px solid hsl(var(--border))" }}>
                             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">Competitors</p>
                             <div className="flex flex-wrap gap-1.5">
                               {selectedProduct.competitors?.map((c) => (
@@ -1054,7 +1064,7 @@ export default function Index() {
                       </div>
 
                       {/* Assumptions Map */}
-                      <div>
+                      <div className="section-panel">
                         <p className="section-label text-[10px] mb-3">Assumptions Map</p>
                         <AssumptionsMap product={selectedProduct} />
                       </div>
