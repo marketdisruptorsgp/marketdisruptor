@@ -495,8 +495,9 @@ export default function Index() {
                       }}
                       className="flex-1 flex items-center justify-center gap-2.5 px-4 py-4 text-sm font-bold transition-all relative"
                       style={{
-                        color: isActive ? "white" : "hsl(0 0% 100% / 0.45)",
+                        color: isActive ? "white" : "hsl(0 0% 100% / 0.85)",
                         background: isActive ? `${tab.accent}` : "transparent",
+                        borderRight: "1px solid hsl(0 0% 100% / 0.12)",
                       }}
                     >
                       <Icon size={17} />
