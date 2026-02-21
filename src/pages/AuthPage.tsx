@@ -73,7 +73,7 @@ export default function AuthPage() {
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
             <Zap size={16} className="text-white" />
           </div>
-          <span className="text-white font-bold text-lg">Product Intelligence AI</span>
+          <span className="text-white font-bold text-lg">Market Disruptor</span>
         </div>
 
         <div className="space-y-8">
@@ -143,7 +143,7 @@ export default function AuthPage() {
                 What to look for
               </p>
               <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>
-                The email will come from <span className="font-semibold" style={{ color: "hsl(var(--primary))" }}>Product Intelligence AI</span> (hello@marketdisruptor.sgpcapital.com) with the subject line <span className="font-semibold">"Your Magic Link"</span>.
+                The email will come from <span className="font-semibold" style={{ color: "hsl(var(--primary))" }}>Market Disruptor</span> (hello@marketdisruptor.sgpcapital.com) with the subject line <span className="font-semibold">"Your Magic Link"</span>.
               </p>
               <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
                 Don't see it? Check your spam or promotions folder. The link expires in 1 hour.
@@ -192,7 +192,7 @@ export default function AuthPage() {
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
               <Zap size={16} className="text-white" />
             </div>
-            <span className="font-bold text-lg" style={{ color: "hsl(var(--foreground))" }}>Product Intelligence AI</span>
+            <span className="font-bold text-lg" style={{ color: "hsl(var(--foreground))" }}>Market Disruptor</span>
           </div>
 
           <div>
