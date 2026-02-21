@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 
 
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
@@ -136,6 +136,9 @@ export default function Index() {
   const [errorMsg, setErrorMsg] = useState("");
   const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "patents">("overview");
   const [activeStep, setActiveStep] = useState(2);
+  const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([2]));
+  const [showExitPrompt, setShowExitPrompt] = useState(false);
+  const [pendingExitAction, setPendingExitAction] = useState<(() => void) | null>(null);
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => {
@@ -372,6 +375,7 @@ export default function Index() {
       setExpandedSection("discovery");
       setDetailTab("overview");
       setStep("done");
+      setVisitedSteps(new Set([2]));
       toast.success(`Found ${liveProducts.length} products with deep intelligence reports!`);
       await saveAnalysis(liveProducts, params);
       // Auto-scroll to results
@@ -432,6 +436,56 @@ export default function Index() {
       {/* Welcome Modal */}
       {showWelcome && profile && (
         <WelcomeModal firstName={profile.first_name} onClose={handleCloseWelcome} />
+      )}
+
+      {/* Exit-Intent Prompt */}
+      {showExitPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "hsl(220 20% 5% / 0.6)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl" style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}>
+            <div className="h-1.5" style={{ background: "linear-gradient(90deg, hsl(271 81% 55%), hsl(var(--primary)))" }} />
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "hsl(271 81% 55% / 0.12)" }}>
+                  <Sparkles size={18} style={{ color: "hsl(271 81% 55%)" }} />
+                </div>
+                <h3 className="text-lg font-extrabold text-foreground">You haven't explored everything!</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+                You still have{" "}
+                {[3, 4].filter(s => !visitedSteps.has(s)).map(s => s === 3 ? <strong key={s} style={{ color: "hsl(271 81% 55%)" }}>Disrupt</strong> : <strong key={s} style={{ color: "hsl(var(--primary))" }}>Pitch Deck</strong>).reduce<React.ReactNode[]>((acc, el, i) => i === 0 ? [el] : [...acc, " and ", el], [])}
+                {" "}waiting for you — these are the most powerful sections.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowExitPrompt(false);
+                    const firstUnvisited = [3, 4].find(s => !visitedSteps.has(s));
+                    if (firstUnvisited) {
+                      setActiveStep(firstUnvisited);
+                      setVisitedSteps(prev => new Set([...prev, firstUnvisited]));
+                    }
+                    setPendingExitAction(null);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                  style={{ background: "hsl(271 81% 55%)", boxShadow: "0 4px 12px -4px hsl(271 81% 55% / 0.4)" }}
+                >
+                  Show Me
+                </button>
+                <button
+                  onClick={() => {
+                    setShowExitPrompt(false);
+                    if (pendingExitAction) pendingExitAction();
+                    setPendingExitAction(null);
+                  }}
+                  className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                  style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}
+                >
+                  Leave anyway
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* HERO */}
@@ -768,16 +822,22 @@ export default function Index() {
                       <button
                         onClick={() => {
                           setActiveStep(s.step);
+                          setVisitedSteps(prev => new Set([...prev, s.step]));
                         }}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full justify-center"
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full justify-center relative ${!isCurrent && !visitedSteps.has(s.step) ? "animate-pulse-subtle" : ""}`}
                         style={{
-                          background: isCurrent ? s.color : isPast ? `color-mix(in srgb, ${s.color} 12%, transparent)` : "hsl(var(--muted))",
-                          color: isCurrent ? "white" : isPast ? s.color : "hsl(var(--muted-foreground))",
-                          boxShadow: isCurrent ? `0 4px 16px -4px ${s.color}50` : "none",
-                          border: isCurrent ? `2px solid ${s.color}` : isPast ? `2px solid ${s.color}30` : "2px solid hsl(var(--border))",
+                          background: isCurrent ? s.color : isPast ? `color-mix(in srgb, ${s.color} 12%, transparent)` : !visitedSteps.has(s.step) ? `color-mix(in srgb, ${s.color} 8%, hsl(var(--muted)))` : "hsl(var(--muted))",
+                          color: isCurrent ? "white" : isPast ? s.color : !visitedSteps.has(s.step) ? s.color : "hsl(var(--muted-foreground))",
+                          boxShadow: isCurrent ? `0 4px 16px -4px ${s.color}50` : !visitedSteps.has(s.step) ? `0 0 12px -2px ${s.color}30, 0 0 0 1px ${s.color}20` : "none",
+                          border: isCurrent ? `2px solid ${s.color}` : isPast ? `2px solid ${s.color}30` : !visitedSteps.has(s.step) ? `2px solid ${s.color}40` : "2px solid hsl(var(--border))",
                         }}
                       >
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-extrabold flex-shrink-0" style={{ background: isCurrent ? "hsl(0 0% 100% / 0.25)" : isPast ? s.color : "hsl(var(--border))", color: isCurrent || isPast ? "white" : "hsl(var(--muted-foreground))" }}>
+                        {!isCurrent && !visitedSteps.has(s.step) && (
+                          <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider text-white z-10" style={{ background: s.color, boxShadow: `0 2px 8px -2px ${s.color}60` }}>
+                            Explore
+                          </span>
+                        )}
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-extrabold flex-shrink-0" style={{ background: isCurrent ? "hsl(0 0% 100% / 0.25)" : isPast ? s.color : !visitedSteps.has(s.step) ? `color-mix(in srgb, ${s.color} 20%, transparent)` : "hsl(var(--border))", color: isCurrent || isPast ? "white" : !visitedSteps.has(s.step) ? s.color : "hsl(var(--muted-foreground))" }}>
                           {isPast ? "✓" : s.step}
                         </span>
                         <SIcon size={14} className="hidden sm:block flex-shrink-0" />
@@ -800,12 +860,25 @@ export default function Index() {
             {loadedFromSaved && (
               <button
                 onClick={() => {
-                  setMainTab("saved");
-                  setLoadedFromSaved(false);
-                  setStep("idle");
-                  setProducts([]);
-                  setSelectedProduct(null);
-                  setBusinessAnalysisData(null);
+                  const unvisited = [3, 4].filter(s => !visitedSteps.has(s));
+                  if (unvisited.length > 0) {
+                    setPendingExitAction(() => () => {
+                      setMainTab("saved");
+                      setLoadedFromSaved(false);
+                      setStep("idle");
+                      setProducts([]);
+                      setSelectedProduct(null);
+                      setBusinessAnalysisData(null);
+                    });
+                    setShowExitPrompt(true);
+                  } else {
+                    setMainTab("saved");
+                    setLoadedFromSaved(false);
+                    setStep("idle");
+                    setProducts([]);
+                    setSelectedProduct(null);
+                    setBusinessAnalysisData(null);
+                  }
                 }}
                 className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
                 style={{ color: "hsl(var(--primary))" }}
