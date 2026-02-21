@@ -174,7 +174,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
     },
     {
       id: "custom",
-      label: "Analyze My Products",
+      label: "Analyze A Product",
       tagline: "Deep Product Audit",
       description: "Drop in URLs or photos of any product — AI scrapes the pages, reads the images, and builds a full commercial intelligence dossier.",
       behindTheScenes: "Each URL is scraped for pricing, reviews & specs. Images are analyzed with vision AI. All data feeds into a unified market report.",
@@ -747,7 +747,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
               <>
                 <Sparkles size={16} />
                 {mode === "custom" && hasCustomProducts
-                  ? "Analyze My Products"
+                  ? "Analyze A Product"
                   : `Run Product Intelligence Analysis`}
               </>
             )}

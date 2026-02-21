@@ -441,8 +441,8 @@ export default function Index() {
             )}
           </h1>
           <p className="text-lg text-white/70 max-w-2xl leading-relaxed">
-            Deep market intelligence from eBay, Etsy, Reddit & more — pricing, suppliers, vendors,
-            action plans, and AI-generated innovation opportunities.
+            AI-powered product intelligence that challenges every assumption, flips conventional thinking,
+            and uncovers hidden opportunities — from pricing and supply chains to first-principles reinvention.
           </p>
           <div className="mt-8 flex flex-wrap gap-2">
             {STEPS.map((s, i) => {
