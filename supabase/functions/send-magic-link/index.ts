@@ -17,15 +17,15 @@ function buildEmailHtml(firstName: string, magicLink: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Your Magic Link</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0a;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:#f0f4f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f4f8;padding:40px 20px;">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#141414;border-radius:16px;border:1px solid #262626;overflow:hidden;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border-radius:16px;border:1px solid #dbeafe;overflow:hidden;box-shadow:0 4px 24px -4px rgba(37,99,235,0.08);">
           
           <!-- Header gradient bar -->
           <tr>
-            <td style="height:4px;background:linear-gradient(90deg,#f59e0b,#ef4444,#8b5cf6,#3b82f6);"></td>
+            <td style="height:4px;background:linear-gradient(90deg,#2563eb,#3b82f6,#60a5fa);"></td>
           </tr>
 
           <!-- Logo + Brand -->
@@ -33,10 +33,10 @@ function buildEmailHtml(firstName: string, magicLink: string): string {
             <td style="padding:32px 32px 0;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="width:36px;height:36px;background-color:#f59e0b;border-radius:10px;text-align:center;vertical-align:middle;">
-                    <span style="font-size:18px;">⚡</span>
+                  <td style="width:36px;height:36px;background-color:#2563eb;border-radius:10px;text-align:center;vertical-align:middle;">
+                    <span style="font-size:16px;color:#ffffff;font-weight:bold;">PI</span>
                   </td>
-                  <td style="padding-left:10px;font-size:16px;font-weight:700;color:#ffffff;">
+                  <td style="padding-left:10px;font-size:16px;font-weight:700;color:#0f172a;">
                     Product Intelligence AI
                   </td>
                 </tr>
@@ -47,10 +47,10 @@ function buildEmailHtml(firstName: string, magicLink: string): string {
           <!-- Main content -->
           <tr>
             <td style="padding:28px 32px;">
-              <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#ffffff;line-height:1.3;">
+              <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0f172a;line-height:1.3;">
                 Hey ${firstName}, you're one click away.
               </h1>
-              <p style="margin:0 0 24px;font-size:15px;color:#a1a1aa;line-height:1.6;">
+              <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
                 Your workspace is ready. Click below to jump straight in — no password needed, ever.
               </p>
 
@@ -58,40 +58,40 @@ function buildEmailHtml(firstName: string, magicLink: string): string {
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center" style="padding:4px 0 28px;">
-                    <a href="${magicLink}" target="_blank" style="display:inline-block;background-color:#f59e0b;color:#0a0a0a;font-size:16px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:12px;letter-spacing:0.02em;">
-                      Open My Workspace →
+                    <a href="${magicLink}" target="_blank" style="display:inline-block;background-color:#2563eb;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:12px;letter-spacing:0.02em;box-shadow:0 4px 16px -2px rgba(37,99,235,0.4);">
+                      Open My Workspace
                     </a>
                   </td>
                 </tr>
               </table>
 
               <!-- Divider -->
-              <hr style="border:none;border-top:1px solid #262626;margin:0 0 24px;">
+              <hr style="border:none;border-top:1px solid #e2e8f0;margin:0 0 24px;">
 
               <!-- What's waiting -->
-              <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.08em;">
+              <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#0f172a;text-transform:uppercase;letter-spacing:0.08em;">
                 What's waiting for you inside
               </p>
 
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:8px;">
                 <tr>
-                  <td style="padding:8px 0;font-size:14px;color:#d4d4d8;line-height:1.5;">
-                    🔍 &nbsp;<strong style="color:#ffffff;">AI Product Intelligence</strong> — Deep-dive any product with live market data from eBay, Etsy, Reddit & more
+                  <td style="padding:8px 0;font-size:14px;color:#475569;line-height:1.5;">
+                    <strong style="color:#0f172a;">AI Product Intelligence</strong> — Deep-dive any product with live market data from eBay, Etsy, Reddit and more
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:8px 0;font-size:14px;color:#d4d4d8;line-height:1.5;">
-                    🧠 &nbsp;<strong style="color:#ffffff;">First Principles Analysis</strong> — Challenge every assumption, flip conventional thinking, uncover hidden opportunities
+                  <td style="padding:8px 0;font-size:14px;color:#475569;line-height:1.5;">
+                    <strong style="color:#0f172a;">First Principles Analysis</strong> — Challenge every assumption, flip conventional thinking, uncover hidden opportunities
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:8px 0;font-size:14px;color:#d4d4d8;line-height:1.5;">
-                    💡 &nbsp;<strong style="color:#ffffff;">Innovation Engine</strong> — AI-generated product concepts with feasibility scores, action plans & revenue projections
+                  <td style="padding:8px 0;font-size:14px;color:#475569;line-height:1.5;">
+                    <strong style="color:#0f172a;">Innovation Engine</strong> — AI-generated product concepts with feasibility scores, action plans and revenue projections
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:8px 0;font-size:14px;color:#d4d4d8;line-height:1.5;">
-                    📊 &nbsp;<strong style="color:#ffffff;">Pricing & Supply Chain Intel</strong> — Suppliers, vendors, margins, and go-to-market strategies ready to execute
+                  <td style="padding:8px 0;font-size:14px;color:#475569;line-height:1.5;">
+                    <strong style="color:#0f172a;">Pricing and Supply Chain Intel</strong> — Suppliers, vendors, margins, and go-to-market strategies ready to execute
                   </td>
                 </tr>
               </table>
@@ -101,10 +101,10 @@ function buildEmailHtml(firstName: string, magicLink: string): string {
           <!-- Footer -->
           <tr>
             <td style="padding:0 32px 28px;">
-              <p style="margin:0 0 12px;font-size:12px;color:#52525b;line-height:1.5;">
-                🔒 Privacy by design — all connections are TLS encrypted, analysis runs in isolated serverless functions, and your data is never sold, shared, or used for training.
+              <p style="margin:0 0 12px;font-size:12px;color:#94a3b8;line-height:1.5;">
+                Privacy by design — all connections are TLS encrypted, analysis runs in isolated serverless functions, and your data is never sold, shared, or used for training.
               </p>
-              <p style="margin:0;font-size:11px;color:#3f3f46;">
+              <p style="margin:0;font-size:11px;color:#94a3b8;">
                 If you didn't request this link, you can safely ignore this email.
               </p>
             </td>
@@ -112,7 +112,16 @@ function buildEmailHtml(firstName: string, magicLink: string): string {
 
           <!-- Bottom gradient bar -->
           <tr>
-            <td style="height:3px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#ef4444,#f59e0b);"></td>
+            <td style="height:3px;background:linear-gradient(90deg,#60a5fa,#3b82f6,#2563eb);"></td>
+          </tr>
+        </table>
+
+        <!-- Branding footer -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;padding:20px 0;">
+          <tr>
+            <td align="center" style="font-size:11px;color:#94a3b8;">
+              Developed by SGP Capital
+            </td>
           </tr>
         </table>
       </td>
