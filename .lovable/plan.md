@@ -1,48 +1,32 @@
 
-## Simplify the Analysis Form: Two Distinct Modes
 
-The goal is to make the form feel like a clean choice between two modes — not one form with both sections always visible together.
+## Add a Bold Explainer Section Above the Mode Selection
 
 ### What's Changing
 
-**1. Remove the "Audience / Market" field**
-The `audience` state, its label, and its input are removed. The `onAnalyze` callback signature will drop `audience` as a parameter, and all downstream references in `Index.tsx` and edge functions will be updated to remove it.
+A new prominent "guidance banner" will be inserted directly above the "Step 1" heading. It will serve as a quick orientation for users, explaining what the three modes do and why the platform is powerful -- all in a scannable, visually bold format.
 
-**2. Replace the "always visible + collapsible" layout with a two-mode toggle**
-Instead of showing the Category / Era / Batch Size grid at the top AND the custom upload section below it, the form will present two mutually exclusive modes:
+### Design
 
-```text
-┌─────────────────────────────────────────────────────┐
-│  How do you want to analyze?                        │
-│                                                     │
-│  [ Discover by Category ]  [ Analyze My Products ]  │
-└─────────────────────────────────────────────────────┘
-```
+The section will appear between the pro-tip area and the "Step 1" heading, styled as a high-contrast card with:
 
-- **Mode A — "Discover by Category"** (default): Shows the Category, Era, and Batch Size fields. The custom product section is hidden entirely.
-- **Mode B — "Analyze My Products"**: Shows only the custom product upload/URL section. The Category/Era/Batch Size fields are hidden entirely.
+- A bold headline like **"Choose Your Analysis Path"**
+- A short paragraph explaining that each mode uses a different AI pipeline and data strategy, so picking the right one matters
+- Three compact inline summaries (icon + mode name + one-liner) arranged horizontally, giving users an at-a-glance comparison before they scroll to the full cards
+- A subtle "behind the scenes" note mentioning live web scraping, vision AI, and strategic deconstruction to build credibility
 
-When Mode B is active and has products added, the submit button label updates to "Analyze My Products". When Mode A is active, it says "Run Product Intelligence Analysis" (with batch size count in the subtitle).
+The styling will use the existing design language: bold black text, muted supporting copy, and a light background with a subtle border -- keeping it distinct from the mode cards below but visually connected.
 
 ### Technical Details
 
-**Files to modify:**
-- `src/components/AnalysisForm.tsx` — Primary change. Replace `showCustom` toggle + grid layout with a `mode: "discover" | "custom"` state. Remove `audience` state and prop.
-- `src/pages/Index.tsx` — Remove `audience` from the `onAnalyze` call params and any places it's passed to edge functions.
-- `supabase/functions/scrape-products/index.ts` — Remove `audience` from the destructured request body.
-- `supabase/functions/analyze-products/index.ts` — Remove `audience` from prompt context (AI infers audience naturally from product data).
+**File to modify:** `src/components/AnalysisForm.tsx`
 
-### UX Flow
+- Insert a new `div` block inside the form, before the "Step 1" heading area (around line 202)
+- The block will contain:
+  - A large, bold heading (`text-xl font-extrabold`)
+  - A 1-2 sentence subtitle in muted text explaining the choice
+  - A 3-column mini-summary row, each with the mode's icon, name, and a single short sentence (e.g., "AI scrapes marketplaces to find hidden gems", "Drop URLs + photos for a full product audit", "Deconstruct any business model from first principles")
+  - A small footer line like: "Powered by live web scraping, vision AI, and multi-model strategic analysis"
+- All content is static -- no new state or logic needed
+- Uses existing icon imports (`Telescope`, `Upload`, `Building2`) and tailwind classes
 
-**Mode A (Discover):**
-- Category dropdown
-- Era dropdown  
-- Batch Size slider
-- Submit → scrapes + analyzes {batchSize} products from that category/era
-
-**Mode B (My Products):**
-- URL tab / Image tab toggle
-- One or more product entries (name + url/image + notes)
-- Submit → analyzes only those specific products
-
-The toggle between modes uses a pill-style switcher at the top of the form, clearly communicating that these are two separate paths — not additive inputs.
