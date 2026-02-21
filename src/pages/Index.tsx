@@ -516,7 +516,7 @@ export default function Index() {
           </div>
           <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4 max-w-3xl">
             {profile ? (
-              <>Hey <span style={{ color: "hsl(var(--primary-light))" }}>{profile.first_name}</span> — what are we uncovering today?</>
+              <>Analyze, Deconstruct, <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize!</span></>
             ) : (
               <>Discover, Deconstruct & <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize</span></>
             )}
