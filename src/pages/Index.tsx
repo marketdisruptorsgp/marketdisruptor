@@ -442,8 +442,8 @@ export default function Index() {
             )}
           </h1>
           <p className="text-lg text-white/60 max-w-2xl leading-relaxed">
-            We scrape <span className="text-white font-semibold">every marketplace, community & supplier directory in real-time</span> — then our AI tears each product apart to its atoms: pricing, supply chains, community sentiment, patent landscapes, and untapped angles nobody else sees.{" "}
-            <span className="text-white/40">The result? Actionable intelligence that turns overlooked products into high-margin opportunities.</span>
+            Welcome! Developed by <span className="text-white font-semibold">SGP Capital</span>, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up.{" "}
+            <span className="text-white/40">We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life.</span>
           </p>
           <div className="mt-8 flex flex-wrap gap-2">
             {STEPS.map((s, i) => {
