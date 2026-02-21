@@ -811,24 +811,15 @@ export default function Index() {
             )}
             {/* ── STEP 2 BANNER ── */}
             <div className="rounded-2xl overflow-hidden" style={{ border: `2px solid ${modeAccent}30`, boxShadow: `0 4px 24px -4px ${modeAccent}18` }}>
-              <div className="px-5 py-4 flex items-start gap-4" style={{ background: `linear-gradient(135deg, ${modeAccentLight} 0%, hsl(var(--card)) 100%)` }}>
+              <div className="px-5 py-4 flex items-center gap-4" style={{ background: `linear-gradient(135deg, ${modeAccentLight} 0%, hsl(var(--card)) 100%)` }}>
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: modeAccent }}>
                   2
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h2 className="text-lg font-extrabold text-foreground">Your Intelligence Report is Ready</h2>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white" style={{ background: modeAccent }}>{modeLabel}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    AI has scraped <strong className="text-foreground">{totalSources} live sources</strong>, analyzed <strong className="text-foreground">{products.length} product{products.length > 1 ? "s" : ""}</strong>, and generated <strong className="text-foreground">{totalIdeas} flip ideas</strong> with an average revival score of <strong style={{ color: modeAccent }}>{avgScore}/10</strong>.
+                  <h2 className="text-lg font-extrabold text-foreground">Intelligence Report</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {products.length} product{products.length > 1 ? "s" : ""} · {totalSources} sources · {totalIdeas} flip ideas · <strong style={{ color: modeAccent }}>{avgScore}/10</strong> avg score
                   </p>
-                  <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: `${modeAccent}10`, border: `1px solid ${modeAccent}20` }}>
-                    <Sparkles size={14} className="flex-shrink-0 mt-0.5" style={{ color: modeAccent }} />
-                    <p className="text-xs font-medium" style={{ color: modeAccent }}>
-                      Click a product below, then explore each tab — <strong>Overview → Community Intel → Pricing → Supply Chain → Action Plan → Flipped Ideas → First Principles → Pitch Deck → Patent Intel</strong> — for progressively deeper insights.
-                    </p>
-                  </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
@@ -849,24 +840,6 @@ export default function Index() {
                     {isSaving ? "Saving…" : "Save"}
                   </button>
                 </div>
-              </div>
-              {/* Compact inline stats */}
-              <div className="px-5 py-2.5 flex flex-wrap items-center gap-4 text-xs" style={{ borderTop: `1px solid ${modeAccent}15`, background: "hsl(var(--card))" }}>
-                {[
-                  { icon: Globe, label: "Sources", value: String(totalSources) },
-                  { icon: Filter, label: "Products", value: String(products.length) },
-                  { icon: Zap, label: "Flip Ideas", value: String(totalIdeas) },
-                  { icon: TrendingUp, label: "Avg Score", value: avgScore + "/10" },
-                ].map((s) => {
-                  const SIcon = s.icon;
-                  return (
-                    <div key={s.label} className="flex items-center gap-1.5">
-                      <SIcon size={12} style={{ color: modeAccent }} />
-                      <span className="font-bold text-foreground">{s.value}</span>
-                      <span className="text-muted-foreground">{s.label}</span>
-                    </div>
-                  );
-                })}
               </div>
             </div>
 
