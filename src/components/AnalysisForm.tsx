@@ -198,6 +198,52 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Explainer Banner */}
+      <div className="rounded-2xl border border-border bg-muted/40 p-5 space-y-4">
+        <div className="text-center space-y-1.5">
+          <h2 className="text-xl font-extrabold text-foreground font-display tracking-tight">
+            Choose Your Analysis Path
+          </h2>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Each mode runs a different AI pipeline — pick the one that matches what you have and what you want to learn.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.12)" }}>
+              <Telescope className="w-4 h-4" style={{ color: "hsl(var(--primary))" }} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-foreground">Reinvent Nostalgic Products</p>
+              <p className="text-xs text-muted-foreground leading-snug mt-0.5">AI scrapes live marketplaces to find hidden gems, then scores each for revival potential.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50% / 0.12)" }}>
+              <Upload className="w-4 h-4" style={{ color: "hsl(38 92% 50%)" }} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-foreground">Analyze Your Products</p>
+              <p className="text-xs text-muted-foreground leading-snug mt-0.5">Drop URLs or photos for a full AI product audit — vision AI reads packaging, labels, and listings.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(271 81% 55% / 0.12)" }}>
+              <Building2 className="w-4 h-4" style={{ color: "hsl(271 81% 55%)" }} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-foreground">First Principles Analysis</p>
+              <p className="text-xs text-muted-foreground leading-snug mt-0.5">Deconstruct any business model from first principles — maps cost structures, leverage, and reinvention paths.</p>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-[11px] text-muted-foreground text-center tracking-wide">
+          Powered by live web scraping, vision AI, and multi-model strategic analysis
+        </p>
+      </div>
+
       {/* Mode Selection */}
       <div className="space-y-4">
         {/* Heading */}
