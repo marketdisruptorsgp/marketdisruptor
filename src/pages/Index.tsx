@@ -766,7 +766,6 @@ export default function Index() {
                       <button
                         onClick={() => {
                           setActiveStep(s.step);
-                          s.ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                         }}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full justify-center"
                         style={{
@@ -813,7 +812,9 @@ export default function Index() {
                 Back to Saved Projects
               </button>
             )}
-            {/* ── STEP 2 BANNER ── */}
+            {/* ── STEP 2: INTELLIGENCE REPORT ── */}
+            {activeStep === 2 && (
+            <>
             <div className="rounded-2xl overflow-hidden" style={{ border: `2px solid ${modeAccent}30`, boxShadow: `0 4px 24px -4px ${modeAccent}18` }}>
               <div className="px-5 py-4 flex items-center gap-4" style={{ background: `linear-gradient(135deg, ${modeAccentLight} 0%, hsl(var(--card)) 100%)` }}>
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: modeAccent }}>
@@ -847,56 +848,31 @@ export default function Index() {
               </div>
             </div>
 
-            {/* ── BIG "JUMP TO STEP 3" BANNER ── */}
-            <button
-              onClick={() => {
-                setActiveStep(3);
-                step3Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-              className="w-full rounded-2xl px-6 py-5 flex items-center gap-4 text-left transition-all hover:scale-[1.005] hover:shadow-lg group"
-              style={{
-                background: "linear-gradient(135deg, hsl(271 81% 55%) 0%, hsl(271 81% 42%) 100%)",
-                boxShadow: "0 8px 32px -8px hsl(271 81% 55% / 0.4)",
-              }}
-            >
-              <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl" style={{ background: "hsl(0 0% 100% / 0.2)", color: "white" }}>
-                3
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-extrabold text-base sm:text-lg leading-tight">
-                  🧠 Continue to First Principles Deep Dive
-                </p>
-                <p className="text-white/75 text-xs sm:text-sm mt-1 leading-relaxed">
-                  Deconstruct every inherited assumption about this product — materials, form factor, pricing, workflow — and uncover radical reinvention opportunities competitors can't see.
-                </p>
-              </div>
-              <ChevronDown size={24} className="flex-shrink-0 text-white/60 group-hover:translate-y-1 transition-transform" />
-            </button>
-
-            {/* DISCOVERY LIST */}
-            <SectionAccordion
-              id="discovery"
-              title="Product Discovery List"
-              subtitle={`${products.length} prioritized candidates · Sorted by Revival Score · Click to analyze`}
-              icon={<Search size={16} style={{ color: "hsl(var(--primary))" }} />}
-              expanded={expandedSection === "discovery"}
-              onToggle={() => toggleSection("discovery")}
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* ── PRODUCT SELECTOR ── */}
+            {products.length > 1 && (
+              <div className="flex flex-wrap gap-2">
                 {products.map((product) => (
-                  <ProductCard
+                  <button
                     key={product.id}
-                    product={product}
-                    isSelected={selectedProduct?.id === product.id}
                     onClick={() => {
                       setSelectedProduct(product);
                       setExpandedSection("detail");
                       setDetailTab("overview");
                     }}
-                  />
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                    style={{
+                      background: selectedProduct?.id === product.id ? modeAccent : "hsl(var(--muted))",
+                      color: selectedProduct?.id === product.id ? "white" : "hsl(var(--foreground))",
+                      border: `2px solid ${selectedProduct?.id === product.id ? modeAccent : "hsl(var(--border))"}`,
+                    }}
+                  >
+                    <RevivalScoreBadge score={product.revivalScore} size="sm" />
+                    {product.name}
+                  </button>
                 ))}
               </div>
-            </SectionAccordion>
+            )}
+
 
             {/* PRODUCT DETAIL */}
             {selectedProduct && (
@@ -1558,112 +1534,68 @@ export default function Index() {
                       />
                     </div>
                   )}
-                  {/* ── CONTINUE TO STEP 3 CTA ── */}
-                  <div className="mt-6 pt-5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                    <button
-                      onClick={() => {
-                        setActiveStep(3);
-                        step3Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                      }}
-                      className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-sm font-bold transition-all hover:scale-[1.01]"
-                      style={{ background: "hsl(271 81% 55% / 0.08)", border: "2px solid hsl(271 81% 55% / 0.25)", color: "hsl(271 81% 55%)" }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-7 h-7 rounded-full text-xs font-extrabold text-white" style={{ background: "hsl(271 81% 55%)" }}>3</span>
-                        <div className="text-left">
-                          <p className="font-extrabold">Continue → First Principles Deep Dive</p>
-                          <p className="text-[11px] font-normal" style={{ color: "hsl(var(--muted-foreground))" }}>Deconstruct every assumption. Uncover radical reinvention opportunities.</p>
-                        </div>
-                      </div>
-                      <ChevronDown size={18} />
-                    </button>
-                  </div>
-
                 </div>
               </SectionAccordion>
             )}
+            </>
+            )}
+
+            {/* ── STEP 3: FIRST PRINCIPLES DEEP DIVE ── */}
+            {activeStep === 3 && selectedProduct && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setActiveStep(2)}
+                  className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: "hsl(271 81% 55%)" }}
+                >
+                  <ArrowLeft size={16} />
+                  Back to Intelligence Report
+                </button>
+                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(271 81% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(271 81% 55% / 0.1)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(271 81% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(271 81% 55%)" }}>3</div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-extrabold text-foreground">First Principles Deep Dive</h2>
+                      <p className="text-sm text-muted-foreground">Deconstructing <strong className="text-foreground">{selectedProduct.name}</strong> — questioning every assumption to uncover radical reinvention opportunities.</p>
+                    </div>
+                  </div>
+                  <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+                    <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 4: PITCH DECK ── */}
+            {activeStep === 4 && selectedProduct && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setActiveStep(2)}
+                  className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: "hsl(var(--primary))" }}
+                >
+                  <ArrowLeft size={16} />
+                  Back to Intelligence Report
+                </button>
+                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.1)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(var(--primary))" }}>4</div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-extrabold text-foreground">Investor Pitch Deck</h2>
+                      <p className="text-sm text-muted-foreground">Professional pitch deck for <strong className="text-foreground">{selectedProduct.name}</strong> — TAM/SAM/SOM, unit economics, go-to-market strategy.</p>
+                    </div>
+                  </div>
+                  <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+                    <PitchDeck product={selectedProduct} />
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
           );
         })()}
 
-        {/* ── STEP 3: FIRST PRINCIPLES DEEP DIVE ── */}
-        {step === "done" && selectedProduct && mainTab !== "saved" && mainTab !== "business" && (
-          <div ref={step3Ref} className="scroll-mt-20 rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(271 81% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(271 81% 55% / 0.1)" }}>
-            <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(271 81% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(271 81% 55%)" }}>
-                3
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h2 className="text-lg font-extrabold text-foreground">First Principles Deep Dive</h2>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white" style={{ background: "hsl(271 81% 55%)" }}>Radical Reinvention</span>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Go beyond surface-level analysis. First Principles deconstructs <strong className="text-foreground">{selectedProduct.name}</strong> down to its core reality — questioning every assumption about physical form, workflow, materials, and technology — to uncover <strong style={{ color: "hsl(271 81% 55%)" }}>structurally innovative</strong> redesign opportunities that competitors can't see.
-                </p>
-                <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(271 81% 55% / 0.08)", border: "1px solid hsl(271 81% 55% / 0.15)" }}>
-                  <Brain size={14} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(271 81% 55%)" }} />
-                  <p className="text-xs font-medium" style={{ color: "hsl(271 81% 55%)" }}>
-                    This is where the real alpha lives. The AI applies a <strong>Dieter Rams × Elon Musk</strong> lens to question every inherited assumption and generate radical alternatives.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="p-5 space-y-5" style={{ background: "hsl(var(--card))" }}>
-              <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
-              {/* ── CONTINUE TO STEP 4 CTA ── */}
-              <div className="pt-5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                <button
-                  onClick={() => {
-                    setActiveStep(4);
-                    step4Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                  className="w-full rounded-2xl px-6 py-5 flex items-center gap-4 text-left transition-all hover:scale-[1.005] hover:shadow-lg group"
-                  style={{
-                    background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(217 91% 35%) 100%)",
-                    boxShadow: "0 8px 32px -8px hsl(var(--primary) / 0.4)",
-                  }}
-                >
-                  <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl" style={{ background: "hsl(0 0% 100% / 0.2)", color: "white" }}>
-                    4
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-extrabold text-base sm:text-lg leading-tight">
-                      🚀 Continue to Investor Pitch Deck
-                    </p>
-                    <p className="text-white/75 text-xs sm:text-sm mt-1 leading-relaxed">
-                      Generate a launch-ready pitch deck with TAM/SAM/SOM, unit economics, competitive moats, and go-to-market strategy — ready to present.
-                    </p>
-                  </div>
-                  <ChevronDown size={24} className="flex-shrink-0 text-white/60 group-hover:translate-y-1 transition-transform" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── STEP 4: PITCH DECK ── */}
-        {step === "done" && selectedProduct && mainTab !== "saved" && mainTab !== "business" && (
-          <div ref={step4Ref} className="scroll-mt-20 rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.1)" }}>
-            <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(var(--primary))" }}>
-                4
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h2 className="text-lg font-extrabold text-foreground">Investor Pitch Deck</h2>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white" style={{ background: "hsl(var(--primary))" }}>Launch Ready</span>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Generate a professional investor-grade pitch deck for <strong className="text-foreground">{selectedProduct.name}</strong> — complete with market sizing (TAM/SAM/SOM), unit economics, go-to-market strategy, and real supplier contacts. Ready to present or export as PDF.
-                </p>
-              </div>
-            </div>
-            <div className="p-5" style={{ background: "hsl(var(--card))" }}>
-              <PitchDeck product={selectedProduct} />
-            </div>
-          </div>
-        )}
 
         {(businessAnalysisData || expandedSection === "businessmodel") && (
           <div ref={businessResultsRef}>
