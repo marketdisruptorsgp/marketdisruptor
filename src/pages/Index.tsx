@@ -439,7 +439,7 @@ export default function Index() {
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap size={15} style={{ color: "hsl(var(--primary-light))" }} />
-              <span className="text-xs font-bold tracking-widest uppercase text-white/70">Product Intelligence AI</span>
+              <span className="text-xs font-bold tracking-widest uppercase text-white/70">Market Disruptor</span>
             </div>
             <UserHeader />
           </div>
@@ -1555,7 +1555,7 @@ export default function Index() {
 
       <footer className="border-t mt-12 py-8 text-center" style={{ borderColor: "hsl(var(--border))" }}>
         <p className="text-xs text-muted-foreground">
-          Product Intelligence AI · Powered by Firecrawl + Gemini · Live data from eBay, Etsy, Reddit, TikTok & more
+          Market Disruptor · Powered by Firecrawl + Gemini · Live data from eBay, Etsy, Reddit, TikTok & more
           {profile && <> · Signed in as <strong>{profile.first_name}</strong></>}
         </p>
       </footer>

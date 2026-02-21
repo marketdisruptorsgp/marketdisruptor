@@ -79,7 +79,7 @@ function addCover(doc: jsPDF, product: Product, subtitle = "") {
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   rgb(doc, [199, 210, 254]);
-  doc.text("PRODUCT INTELLIGENCE AI — ANALYSIS REPORT", ML, 20);
+  doc.text("MARKET DISRUPTOR — ANALYSIS REPORT", ML, 20);
 
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
@@ -525,7 +525,7 @@ export function downloadBusinessModelPDF(businessType: string, data: any) {
 
   doc.setFontSize(8); doc.setFont("helvetica", "bold");
   rgb(doc, [199, 210, 254]);
-  doc.text("PRODUCT INTELLIGENCE AI — BUSINESS MODEL DECONSTRUCTION", ML, 20);
+  doc.text("MARKET DISRUPTOR — BUSINESS MODEL DECONSTRUCTION", ML, 20);
 
   doc.setFontSize(22); doc.setFont("helvetica", "bold");
   rgb(doc, WHITE);
@@ -816,7 +816,7 @@ export function downloadPatentPDF(product: Product, patentData: any) {
 
   doc.setFontSize(8); doc.setFont("helvetica", "bold");
   rgb(doc, [221, 214, 254]);
-  doc.text("PRODUCT INTELLIGENCE AI — PATENT INTELLIGENCE REPORT", ML, 20);
+  doc.text("MARKET DISRUPTOR — PATENT INTELLIGENCE REPORT", ML, 20);
 
   doc.setFontSize(22); doc.setFont("helvetica", "bold");
   rgb(doc, WHITE);

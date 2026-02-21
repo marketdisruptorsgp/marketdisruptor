@@ -37,7 +37,7 @@ function buildEmailHtml(firstName: string, magicLink: string): string {
                     <span style="font-size:16px;color:#ffffff;font-weight:bold;">PI</span>
                   </td>
                   <td style="padding-left:10px;font-size:16px;font-weight:700;color:#0f172a;">
-                    Product Intelligence AI
+                    Market Disruptor
                   </td>
                 </tr>
               </table>
@@ -196,7 +196,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Product Intelligence AI <hello@marketdisruptor.sgpcapital.com>",
+        from: "Market Disruptor <hello@marketdisruptor.sgpcapital.com>",
         to: [email.trim()],
         subject: "Your Magic Link",
         html: buildEmailHtml(safeName, finalLink),
