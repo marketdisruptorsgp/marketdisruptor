@@ -1549,7 +1549,42 @@ export default function Index() {
           </div>
         )}
 
-
+        {/* ── SGP CAPITAL CTA ── */}
+        {(step === "done" || businessAnalysisData) && (
+          <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+            <div className="px-6 py-6 flex flex-col sm:flex-row items-center gap-5">
+              <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+                <Rocket size={24} className="text-white" />
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-lg font-extrabold text-foreground mb-1">Ready to Bring This to Life?</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  SGP Capital helps entrepreneurs and investors turn market intelligence into real businesses. From product sourcing to launch strategy — let's build together.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-2 flex-shrink-0">
+                <a
+                  href="https://sgpcapital.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 flex items-center gap-2"
+                  style={{ background: "hsl(var(--primary))" }}
+                >
+                  <Globe size={14} />
+                  Visit SGP Capital
+                </a>
+                <a
+                  href="mailto:hello@sgpcapital.com"
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2"
+                  style={{ border: "1.5px solid hsl(var(--primary))", color: "hsl(var(--primary))" }}
+                >
+                  <Users size={14} />
+                  Get in Touch
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
 
@@ -1557,6 +1592,13 @@ export default function Index() {
         <p className="text-xs text-muted-foreground">
           Market Disruptor · Powered by Firecrawl + Gemini · Live data from eBay, Etsy, Reddit, TikTok & more
           {profile && <> · Signed in as <strong>{profile.first_name}</strong></>}
+        </p>
+        <p className="text-xs mt-2">
+          <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80" style={{ color: "hsl(var(--primary))" }}>
+            Built by SGP Capital
+          </a>
+          <span className="text-muted-foreground"> · </span>
+          <a href="mailto:hello@sgpcapital.com" className="text-muted-foreground hover:underline">hello@sgpcapital.com</a>
         </p>
       </footer>
     </div>
