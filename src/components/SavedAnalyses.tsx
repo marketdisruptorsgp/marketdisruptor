@@ -161,6 +161,7 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
                 style={{
                   background: "hsl(var(--card))",
                   border: "2px solid hsl(var(--border))",
+                  borderLeft: `4px solid ${cfg.color}`,
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.borderColor = cfg.color;

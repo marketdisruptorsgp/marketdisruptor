@@ -160,7 +160,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any).insert({
         user_id: user?.id,
-        title: businessType,
+        title: `${businessType} — Business Model`,
         category: "Business Model",
         era: "Present",
         audience: "",
