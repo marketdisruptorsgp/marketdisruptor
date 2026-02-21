@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Zap, Sparkles, Brain, TrendingUp, Eye, ArrowRight, Loader2, Mail, CheckCircle2 } from "lucide-react";
+import { Zap, Sparkles, Brain, TrendingUp, Eye, ArrowRight, Loader2, Mail, CheckCircle2, Lock, KeyRound } from "lucide-react";
 import heroBanner from "@/assets/hero-banner.jpg";
 
 const FEATURES = [
@@ -23,40 +23,55 @@ const inputStyle = {
   transition: "border-color 0.2s",
 } as React.CSSProperties;
 
+type AuthMode = "magic" | "password";
+
 export default function AuthPage() {
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [mode, setMode] = useState<AuthMode>("magic");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName.trim()) {
-      toast.error("Please enter your first name!");
-      return;
-    }
-    if (!email.trim()) {
-      toast.error("Please enter your email address!");
-      return;
-    }
+    if (!firstName.trim()) { toast.error("Please enter your first name!"); return; }
+    if (!email.trim()) { toast.error("Please enter your email address!"); return; }
     setLoading(true);
     try {
-      // Store first name in localStorage so we can save it to profile after magic link auth
       localStorage.setItem("pending_first_name", firstName.trim());
-
       const { data, error } = await supabase.functions.invoke("send-magic-link", {
-        body: {
-          email: email.trim(),
-          firstName: firstName.trim(),
-          redirectTo: window.location.origin,
-        },
+        body: { email: email.trim(), firstName: firstName.trim(), redirectTo: window.location.origin },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setSent(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      toast.error(msg);
+      toast.error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) { toast.error("Please enter your email address!"); return; }
+    if (!password.trim()) { toast.error("Please enter your password!"); return; }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
+      if (error) {
+        if (error.message.includes("Invalid login")) {
+          toast.error("Invalid email or password. If you haven't set a password yet, use the magic link to sign in first, then set one from your profile.");
+        } else {
+          toast.error(error.message);
+        }
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -164,7 +179,7 @@ export default function AuthPage() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={14} style={{ color: "hsl(var(--primary))" }} />
-                <p className="text-xs font-semibold" style={{ color: "hsl(var(--foreground))" }}>No password to remember — ever</p>
+                <p className="text-xs font-semibold" style={{ color: "hsl(var(--foreground))" }}>Set a password later for even faster logins</p>
               </div>
             </div>
             <button
@@ -184,11 +199,9 @@ export default function AuthPage() {
     <div className="min-h-screen flex" style={{ background: "hsl(220 20% 5%)" }}>
       <HeroPanel />
 
-      {/* Right: Sign In Form — dark themed for mobile & desktop */}
+      {/* Right: Sign In Form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 relative overflow-hidden">
-        {/* Subtle gradient overlay for depth */}
         <div className="absolute inset-0 lg:hidden" style={{ background: "linear-gradient(165deg, hsl(220 30% 8%) 0%, hsl(220 20% 5%) 50%, hsl(217 40% 10%) 100%)" }} />
-        {/* Desktop right panel stays slightly lighter */}
         <div className="absolute inset-0 hidden lg:block" style={{ background: "hsl(var(--background))" }} />
 
         <div className="relative z-10 w-full max-w-md space-y-8">
@@ -213,7 +226,6 @@ export default function AuthPage() {
               </p>
             </div>
 
-            {/* Mobile feature cards */}
             <div className="grid grid-cols-2 gap-2.5">
               {FEATURES.map(({ icon: Icon, label, desc }) => (
                 <div
@@ -241,75 +253,146 @@ export default function AuthPage() {
             <div className="flex-1 h-px" style={{ background: "hsl(var(--primary) / 0.2)" }} />
           </div>
 
-          {/* Desktop-only logo & heading */}
+          {/* Desktop-only heading */}
           <div className="hidden lg:block">
             <h2 className="text-4xl font-extrabold mb-2" style={{ color: "hsl(var(--foreground))" }}>
-              Your next big idea starts here.
+              {mode === "magic" ? "Your next big idea starts here." : "Welcome back."}
             </h2>
             <p className="text-base" style={{ color: "hsl(var(--muted-foreground))" }}>
-              Enter your name and email. We'll send you a magic link — your workspace auto-saves and persists every time you return.
+              {mode === "magic"
+                ? "Enter your name and email. We'll send you a magic link — your workspace auto-saves and persists every time you return."
+                : "Sign in with your email and password to jump straight into your workspace."}
             </p>
           </div>
 
-          {/* Mobile heading for form */}
+          {/* Mobile heading */}
           <div className="lg:hidden">
-            <h2 className="text-xl font-extrabold text-white mb-1">Sign in to your workspace</h2>
-            <p className="text-xs text-white/50">Magic link — no password needed, ever.</p>
+            <h2 className="text-xl font-extrabold text-white mb-1">
+              {mode === "magic" ? "Sign in to your workspace" : "Welcome back"}
+            </h2>
+            <p className="text-xs text-white/50">
+              {mode === "magic" ? "Magic link — no password needed." : "Sign in with your password."}
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider lg:text-muted-foreground text-white/50">
-                First Name
-              </label>
-              <input
-                style={inputStyle}
-                className="lg:bg-background lg:text-foreground lg:border-border"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="e.g. Alex, Jordan, Sam…"
-                autoFocus
-                onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
-                onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider lg:text-muted-foreground text-white/50">
-                Email Address
-              </label>
-              <input
-                style={inputStyle}
-                className="lg:bg-background lg:text-foreground lg:border-border"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
-                onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
-              />
-            </div>
-
+          {/* Mode toggle */}
+          <div className="flex rounded-xl overflow-hidden" style={{ border: "1.5px solid hsl(var(--border))", background: "hsl(var(--muted) / 0.3)" }}>
             <button
-              type="submit"
-              disabled={loading || !firstName.trim() || !email.trim()}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-base transition-all"
+              type="button"
+              onClick={() => setMode("magic")}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wider transition-all"
               style={{
-                background: loading || !firstName.trim() || !email.trim() ? "hsl(220 20% 15%)" : "hsl(var(--primary))",
-                color: loading || !firstName.trim() || !email.trim() ? "hsl(220 10% 40%)" : "white",
-                boxShadow: !loading && firstName.trim() && email.trim() ? "0 4px 16px -2px hsl(217 91% 50% / 0.4)" : "none",
+                background: mode === "magic" ? "hsl(var(--primary))" : "transparent",
+                color: mode === "magic" ? "white" : "hsl(var(--muted-foreground))",
               }}
             >
-              {loading ? (
-                <><Loader2 size={16} className="animate-spin" /> Sending magic link…</>
-              ) : (
-                <>Send Magic Link <ArrowRight size={16} /></>
-              )}
+              <Mail size={14} /> Magic Link
             </button>
-          </form>
+            <button
+              type="button"
+              onClick={() => setMode("password")}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wider transition-all"
+              style={{
+                background: mode === "password" ? "hsl(var(--primary))" : "transparent",
+                color: mode === "password" ? "white" : "hsl(var(--muted-foreground))",
+              }}
+            >
+              <Lock size={14} /> Password
+            </button>
+          </div>
+
+          {mode === "magic" ? (
+            <form onSubmit={handleMagicLink} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider lg:text-muted-foreground text-white/50">First Name</label>
+                <input
+                  style={inputStyle}
+                  className="lg:bg-background lg:text-foreground lg:border-border"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="e.g. Alex, Jordan, Sam…"
+                  autoFocus
+                  onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
+                  onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider lg:text-muted-foreground text-white/50">Email Address</label>
+                <input
+                  style={inputStyle}
+                  className="lg:bg-background lg:text-foreground lg:border-border"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
+                  onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || !firstName.trim() || !email.trim()}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-base transition-all"
+                style={{
+                  background: loading || !firstName.trim() || !email.trim() ? "hsl(220 20% 15%)" : "hsl(var(--primary))",
+                  color: loading || !firstName.trim() || !email.trim() ? "hsl(220 10% 40%)" : "white",
+                  boxShadow: !loading && firstName.trim() && email.trim() ? "0 4px 16px -2px hsl(217 91% 50% / 0.4)" : "none",
+                }}
+              >
+                {loading ? <><Loader2 size={16} className="animate-spin" /> Sending magic link…</> : <>Send Magic Link <ArrowRight size={16} /></>}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handlePasswordLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider lg:text-muted-foreground text-white/50">Email Address</label>
+                <input
+                  style={inputStyle}
+                  className="lg:bg-background lg:text-foreground lg:border-border"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoFocus
+                  onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
+                  onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider lg:text-muted-foreground text-white/50">Password</label>
+                <input
+                  style={inputStyle}
+                  className="lg:bg-background lg:text-foreground lg:border-border"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Your password"
+                  onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
+                  onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || !email.trim() || !password.trim()}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-base transition-all"
+                style={{
+                  background: loading || !email.trim() || !password.trim() ? "hsl(220 20% 15%)" : "hsl(var(--primary))",
+                  color: loading || !email.trim() || !password.trim() ? "hsl(220 10% 40%)" : "white",
+                  boxShadow: !loading && email.trim() && password.trim() ? "0 4px 16px -2px hsl(217 91% 50% / 0.4)" : "none",
+                }}
+              >
+                {loading ? <><Loader2 size={16} className="animate-spin" /> Signing in…</> : <>Sign In <ArrowRight size={16} /></>}
+              </button>
+              <p className="text-xs text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
+                Don't have a password yet? Switch to <button type="button" onClick={() => setMode("magic")} className="underline font-semibold" style={{ color: "hsl(var(--primary))" }}>Magic Link</button> to sign in, then set one from your profile.
+              </p>
+            </form>
+          )}
 
           <p className="text-xs lg:text-muted-foreground text-white/35 text-center">
-            No password needed. Click the link in your email and you're in — every time.
+            {mode === "magic"
+              ? "No password needed. Click the link in your email and you're in."
+              : "Forgot your password? Use a magic link to sign in and reset it from your profile."}
           </p>
         </div>
       </div>
