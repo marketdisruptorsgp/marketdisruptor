@@ -65,6 +65,7 @@ import {
   Upload,
   Database,
   ArrowLeft,
+  ChevronRight,
 } from "lucide-react";
 
 const STEPS = [
@@ -133,7 +134,8 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "firstprinciples" | "pitchdeck" | "patents">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "patents">("overview");
+  const [activeStep, setActiveStep] = useState(2);
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => {
@@ -145,6 +147,8 @@ export default function Index() {
   const loadingStartRef = useRef<number>(0);
   const logTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const step3Ref = useRef<HTMLDivElement>(null);
+  const step4Ref = useRef<HTMLDivElement>(null);
   const businessResultsRef = useRef<HTMLDivElement>(null);
 
   const pushLog = useCallback((text: string) => {
@@ -230,7 +234,8 @@ export default function Index() {
       setMainTab("discover");
       setActiveMode("discover");
       setExpandedSection("discovery");
-      setDetailTab("firstprinciples");
+      setDetailTab("overview");
+      setActiveStep(3);
       toast.success("First principles analysis loaded — re-run to see full results.");
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     } else {
@@ -745,6 +750,47 @@ export default function Index() {
 
           return (
           <div ref={resultsRef} className="space-y-5">
+            {/* ── STICKY STEP NAVIGATOR ── */}
+            <div className="sticky top-0 z-30 -mx-4 px-4 py-2.5" style={{ background: "hsl(var(--background) / 0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid hsl(var(--border))" }}>
+              <div className="max-w-6xl mx-auto flex items-center gap-1 sm:gap-2">
+                {[
+                  { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent, ref: resultsRef },
+                  { step: 3, label: "First Principles", icon: Brain, color: "hsl(271 81% 55%)", ref: step3Ref },
+                  { step: 4, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))", ref: step4Ref },
+                ].map((s, i, arr) => {
+                  const SIcon = s.icon;
+                  const isCurrent = activeStep === s.step;
+                  return (
+                    <div key={s.step} className="flex items-center gap-1 sm:gap-2 flex-1">
+                      <button
+                        onClick={() => {
+                          setActiveStep(s.step);
+                          s.ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
+                        className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all w-full justify-center"
+                        style={{
+                          background: isCurrent ? s.color : "hsl(var(--muted))",
+                          color: isCurrent ? "white" : "hsl(var(--muted-foreground))",
+                          boxShadow: isCurrent ? `0 2px 12px -3px ${s.color}50` : "none",
+                          border: isCurrent ? `1.5px solid ${s.color}` : "1.5px solid hsl(var(--border))",
+                        }}
+                      >
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-extrabold flex-shrink-0" style={{ background: isCurrent ? "hsl(0 0% 100% / 0.25)" : "hsl(var(--border))", color: isCurrent ? "white" : "hsl(var(--muted-foreground))" }}>
+                          {s.step}
+                        </span>
+                        <SIcon size={13} className="hidden sm:block" />
+                        <span className="hidden sm:inline">{s.label}</span>
+                        <span className="sm:hidden text-[10px]">{s.label.split(" ")[0]}</span>
+                      </button>
+                      {i < arr.length - 1 && (
+                        <ChevronRight size={14} className="flex-shrink-0" style={{ color: "hsl(var(--muted-foreground))" }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* ── BACK TO SAVED PROJECTS ── */}
             {loadedFromSaved && (
               <button
@@ -1510,6 +1556,26 @@ export default function Index() {
                       />
                     </div>
                   )}
+                  {/* ── CONTINUE TO STEP 3 CTA ── */}
+                  <div className="mt-6 pt-5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                    <button
+                      onClick={() => {
+                        setActiveStep(3);
+                        step3Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
+                      className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-sm font-bold transition-all hover:scale-[1.01]"
+                      style={{ background: "hsl(271 81% 55% / 0.08)", border: "2px solid hsl(271 81% 55% / 0.25)", color: "hsl(271 81% 55%)" }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center justify-center w-7 h-7 rounded-full text-xs font-extrabold text-white" style={{ background: "hsl(271 81% 55%)" }}>3</span>
+                        <div className="text-left">
+                          <p className="font-extrabold">Continue → First Principles Deep Dive</p>
+                          <p className="text-[11px] font-normal" style={{ color: "hsl(var(--muted-foreground))" }}>Deconstruct every assumption. Uncover radical reinvention opportunities.</p>
+                        </div>
+                      </div>
+                      <ChevronDown size={18} />
+                    </button>
+                  </div>
 
                 </div>
               </SectionAccordion>
@@ -1520,7 +1586,7 @@ export default function Index() {
 
         {/* ── STEP 3: FIRST PRINCIPLES DEEP DIVE ── */}
         {step === "done" && selectedProduct && mainTab !== "saved" && mainTab !== "business" && (
-          <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(271 81% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(271 81% 55% / 0.1)" }}>
+          <div ref={step3Ref} className="scroll-mt-20 rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(271 81% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(271 81% 55% / 0.1)" }}>
             <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(271 81% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
               <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(271 81% 55%)" }}>
                 3
@@ -1541,15 +1607,35 @@ export default function Index() {
                 </div>
               </div>
             </div>
-            <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+            <div className="p-5 space-y-5" style={{ background: "hsl(var(--card))" }}>
               <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
+              {/* ── CONTINUE TO STEP 4 CTA ── */}
+              <div className="pt-5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                <button
+                  onClick={() => {
+                    setActiveStep(4);
+                    step4Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-sm font-bold transition-all hover:scale-[1.01]"
+                  style={{ background: "hsl(var(--primary) / 0.08)", border: "2px solid hsl(var(--primary) / 0.25)", color: "hsl(var(--primary))" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center justify-center w-7 h-7 rounded-full text-xs font-extrabold text-white" style={{ background: "hsl(var(--primary))" }}>4</span>
+                    <div className="text-left">
+                      <p className="font-extrabold">Continue → Investor Pitch Deck</p>
+                      <p className="text-[11px] font-normal" style={{ color: "hsl(var(--muted-foreground))" }}>Generate a launch-ready pitch deck with TAM/SAM/SOM, unit economics & go-to-market strategy.</p>
+                    </div>
+                  </div>
+                  <ChevronDown size={18} />
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* ── STEP 4: PITCH DECK ── */}
         {step === "done" && selectedProduct && mainTab !== "saved" && mainTab !== "business" && (
-          <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.1)" }}>
+          <div ref={step4Ref} className="scroll-mt-20 rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.1)" }}>
             <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
               <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(var(--primary))" }}>
                 4
