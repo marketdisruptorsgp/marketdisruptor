@@ -1574,7 +1574,7 @@ export default function Index() {
                   Visit SGP Capital
                 </a>
                 <a
-                  href="mailto:hello@sgpcapital.com"
+                  href="mailto:steven@sgpcapital.com"
                   className="px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2"
                   style={{ border: "1.5px solid hsl(var(--primary))", color: "hsl(var(--primary))" }}
                 >
@@ -1589,16 +1589,13 @@ export default function Index() {
       </main>
 
       <footer className="border-t mt-12 py-8 text-center" style={{ borderColor: "hsl(var(--border))" }}>
-        <p className="text-xs text-muted-foreground">
-          Market Disruptor · Powered by Firecrawl + Gemini · Live data from eBay, Etsy, Reddit, TikTok & more
-          {profile && <> · Signed in as <strong>{profile.first_name}</strong></>}
-        </p>
         <p className="text-xs mt-2">
           <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80" style={{ color: "hsl(var(--primary))" }}>
             Built by SGP Capital
           </a>
           <span className="text-muted-foreground"> · </span>
-          <a href="mailto:hello@sgpcapital.com" className="text-muted-foreground hover:underline">hello@sgpcapital.com</a>
+          <a href="mailto:steven@sgpcapital.com" className="text-muted-foreground hover:underline">steven@sgpcapital.com</a>
+          {profile && <span className="text-muted-foreground"> · Signed in as <strong className="text-foreground">{profile.first_name}</strong></span>}
         </p>
       </footer>
     </div>
