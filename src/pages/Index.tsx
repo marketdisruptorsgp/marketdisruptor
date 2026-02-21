@@ -505,23 +505,11 @@ export default function Index() {
             <UserHeader />
           </div>
         </div>
-        <div className="relative z-10 max-w-6xl mx-auto px-4 py-12 sm:py-20">
-          <div className="flex items-center gap-2 mb-3">
-            <span
-              className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-              style={{ background: "hsl(var(--primary))", color: "white" }}
-            >
-              Live Data
-            </span>
-          </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4 max-w-3xl">
-            {profile ? (
-              <>Analyze, Deconstruct, <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize!</span></>
-            ) : (
-              <>Discover, Deconstruct & <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize</span></>
-            )}
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 sm:py-14">
+          <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4">
+            Analyze, Deconstruct, <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize!</span>
           </h1>
-          <p className="text-lg text-white/60 max-w-2xl leading-relaxed">
+          <p className="text-lg text-white/60 leading-relaxed">
             Developed by <span className="text-white font-semibold">SGP Capital</span>, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up.{" "}
             <span className="text-white/40">We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life. Scroll below to begin your analysis!</span>
           </p>
