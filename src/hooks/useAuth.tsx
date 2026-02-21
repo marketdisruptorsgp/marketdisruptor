@@ -103,37 +103,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setProfile(null);
 
-    // Sign out via Supabase FIRST (while session keys still exist in storage)
+    // Sign out via Supabase — try local scope first (more reliable), then global
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (_) {
+      // best effort
+    }
     try {
       await supabase.auth.signOut({ scope: "global" });
     } catch (_) {
       // best effort
     }
 
-    // NOW wipe all Supabase-related keys from every storage mechanism
-    // (after signOut so the client can't re-persist them)
+    // Wipe ALL storage keys — be aggressive
     [localStorage, sessionStorage].forEach((store) => {
-      Object.keys(store)
-        .filter((k) => k.startsWith("sb-") || k.startsWith("supabase"))
-        .forEach((k) => store.removeItem(k));
+      const keysToRemove = Object.keys(store).filter(
+        (k) => k.startsWith("sb-") || k.includes("supabase") || k.includes("auth")
+      );
+      keysToRemove.forEach((k) => store.removeItem(k));
     });
 
     // Clear any auth cookies (Supabase PKCE flow can set these)
     document.cookie.split(";").forEach((c) => {
       const name = c.trim().split("=")[0];
       if (name.startsWith("sb-") || name.includes("supabase") || name.includes("auth-token")) {
+        // Clear for all possible path/domain combos
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`;
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.location.hostname}`;
       }
     });
 
-    // NOTE: Do NOT reset signingOut.current — the hard redirect below will
-    // reload the page and create a fresh React tree. Resetting it here creates
-    // a race where onAuthStateChange re-establishes the session before the
-    // redirect completes.
+    // Small delay to ensure storage is flushed before redirect
+    await new Promise((r) => setTimeout(r, 100));
 
-    // Hard redirect — strips any __lovable_token or auth params from the URL
-    window.location.href = window.location.origin + window.location.pathname;
+    // Use replace to prevent back-button from re-authenticating
+    // Strip any query params that might contain tokens
+    window.location.replace(window.location.origin + window.location.pathname);
   };
 
   return (
