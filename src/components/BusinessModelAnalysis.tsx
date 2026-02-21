@@ -267,9 +267,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
                 placeholder="e.g. Laundromat, Freight broker, Law firm…"
                 className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
                 style={inputStyle}
-                list="business-examples"
+                list="business-examples-standalone"
               />
-              <datalist id="business-examples">
+              <datalist id="business-examples-standalone">
                 {BUSINESS_EXAMPLES.map((ex) => <option key={ex} value={ex} />)}
               </datalist>
             </div>
@@ -335,15 +335,16 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Additional Context (optional)</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Website / URL (optional)</label>
             <input
-              type="text"
+              type="url"
               value={input.notes}
               onChange={(e) => setInput((p) => ({ ...p, notes: e.target.value }))}
-              placeholder="Anything else that's relevant — competitive dynamics, owner goals, history…"
+              placeholder="Paste a company website, Yelp listing, LinkedIn page, or any URL for extra context…"
               className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
               style={inputStyle}
             />
+            <p className="text-[10px] text-muted-foreground">AI will use the URL for additional business context</p>
           </div>
 
           <button

@@ -426,14 +426,17 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 <option value={category}>{category}</option>
               )}
             </select>
-            <input
-              type="text"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="Or type a custom category…"
-              className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
-              style={{ ...inputStyle, borderStyle: "dashed" }}
-            />
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
+              <input
+                type="text"
+                value={!CATEGORIES.includes(category) ? category : ""}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="Type any category — e.g. 'Vintage Watches', 'Arcade Machines'…"
+                className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
+                style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(var(--primary) / 0.04)" }}
+              />
+            </div>
           </div>
 
           {/* Era */}
@@ -453,14 +456,17 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 <option value={era}>{era}</option>
               )}
             </select>
-            <input
-              type="text"
-              value={era}
-              onChange={(e) => setEra(e.target.value)}
-              placeholder="Or type a custom era…"
-              className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
-              style={{ ...inputStyle, borderStyle: "dashed" }}
-            />
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
+              <input
+                type="text"
+                value={!ERAS.includes(era) ? era : ""}
+                onChange={(e) => setEra(e.target.value)}
+                placeholder="Type any era — e.g. '1950s', 'Y2K', 'Pre-digital'…"
+                className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
+                style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(var(--primary) / 0.04)" }}
+              />
+            </div>
           </div>
 
           {/* Batch size */}
@@ -630,14 +636,17 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                   <option value={businessInput.type}>{businessInput.type}</option>
                 )}
               </select>
-              <input
-                type="text"
-                value={businessInput.type}
-                onChange={(e) => setBusinessInput((p) => ({ ...p, type: e.target.value }))}
-                placeholder="Or type a custom business…"
-                className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
-                style={{ ...inputStyle, borderStyle: "dashed" }}
-              />
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
+                <input
+                  type="text"
+                  value={!BUSINESS_EXAMPLES.includes(businessInput.type) ? businessInput.type : ""}
+                  onChange={(e) => setBusinessInput((p) => ({ ...p, type: e.target.value }))}
+                  placeholder="Type any business — e.g. 'SaaS startup', 'Pet grooming'…"
+                  className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
+                  style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(271 81% 55% / 0.04)" }}
+                />
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Revenue Model</label>
@@ -686,11 +695,14 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Additional Context (optional)</label>
-            <input type="text" value={businessInput.notes}
+            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider flex items-center gap-1.5">
+              <Link size={11} /> Website / URLs (optional)
+            </label>
+            <input type="url" value={businessInput.notes}
               onChange={(e) => setBusinessInput((p) => ({ ...p, notes: e.target.value }))}
-              placeholder="Competitive dynamics, owner goals, history…"
+              placeholder="Paste a company website, Yelp listing, LinkedIn page, or any URL for extra context…"
               className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+            <p className="text-[10px] text-muted-foreground">AI will scrape the page for additional business context</p>
           </div>
           <div className="flex items-center gap-3">
             {businessLoading && (
