@@ -489,7 +489,7 @@ export default function Index() {
       )}
 
       {/* HERO */}
-      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(220 25% 6%) 0%, hsl(220 30% 12%) 50%, hsl(220 25% 8%) 100%)" }}>
+      <header className="relative" style={{ background: "linear-gradient(135deg, hsl(220 25% 6%) 0%, hsl(220 30% 12%) 50%, hsl(220 25% 8%) 100%)" }}>
         {/* Subtle gradient orbs for depth */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-[0.07]" style={{ background: "radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)" }} />
