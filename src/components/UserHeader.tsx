@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, ChevronDown, Sparkles, CreditCard, Crown, ArrowRight } from "lucide-react";
+import { LogOut, ChevronDown, Sparkles, CreditCard, Crown, ArrowRight, KeyRound, Loader2, X, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, TIERS } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export function UserHeader() {
   const { profile, signOut } = useAuth();
@@ -10,6 +12,10 @@ export function UserHeader() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [loadingPortal, setLoadingPortal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,91 +41,200 @@ export function UserHeader() {
     setOpen(false);
   };
 
-  return (
-    <div ref={containerRef} style={{ position: "relative" }}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
-        style={{
-          background: open ? "hsl(var(--primary-muted))" : "hsl(var(--muted))",
-          border: "1px solid hsl(var(--border))",
-        }}
-      >
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-          style={{ background: "hsl(var(--primary))" }}
-        >
-          {initials}
-        </div>
-        <span className="text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
-          {profile.first_name}
-        </span>
-        <ChevronDown size={13} style={{ color: "hsl(var(--muted-foreground))", transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }} />
-      </button>
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords don't match.");
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success("Password set! You can now sign in with your email and password.");
+      setShowPasswordModal(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to set password");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
 
-      {open && (
-        <div
+  const inputStyle: React.CSSProperties = {
+    border: "1.5px solid hsl(var(--border))",
+    background: "hsl(var(--muted))",
+    color: "hsl(var(--foreground))",
+    borderRadius: "0.5rem",
+    padding: "0.6rem 0.75rem",
+    fontSize: "0.875rem",
+    width: "100%",
+    outline: "none",
+  };
+
+  return (
+    <>
+      <div ref={containerRef} style={{ position: "relative" }}>
+        <button
+          onClick={() => setOpen(!open)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
           style={{
-            position: "absolute",
-            right: 0,
-            top: "calc(100% + 8px)",
-            width: "14rem",
-            borderRadius: "0.75rem",
-            boxShadow: "0 20px 40px -10px rgba(0,0,0,0.35)",
-            overflow: "hidden",
-            zIndex: 99999,
-            background: "hsl(var(--background))",
+            background: open ? "hsl(var(--primary-muted))" : "hsl(var(--muted))",
             border: "1px solid hsl(var(--border))",
           }}
         >
-          <div className="p-3 border-b" style={{ borderColor: "hsl(var(--border))" }}>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles size={12} style={{ color: "hsl(var(--primary))" }} />
-              <p className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Your Workspace</p>
-            </div>
-            <p className="text-sm font-bold" style={{ color: "hsl(var(--foreground))" }}>{profile.first_name}</p>
-            <div className="flex items-center gap-1.5 mt-1">
-              <Crown size={10} style={{ color: tierConfig.color }} />
-              <p className="text-[10px] font-semibold" style={{ color: tierConfig.color }}>
-                {tierConfig.name} Plan
-                {remainingAnalyses() !== null && ` · ${remainingAnalyses()} left`}
-              </p>
-            </div>
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
+            style={{ background: "hsl(var(--primary))" }}
+          >
+            {initials}
           </div>
+          <span className="text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+            {profile.first_name}
+          </span>
+          <ChevronDown size={13} style={{ color: "hsl(var(--muted-foreground))", transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }} />
+        </button>
 
-          <div className="py-1">
-            <button
-              onClick={() => { setOpen(false); navigate("/pricing"); }}
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted text-left"
-              style={{ color: "hsl(var(--foreground))" }}
-            >
-              <CreditCard size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
-              {subscribed ? "View Plans" : "View Upgrade Options"}
-            </button>
+        {open && (
+          <div
+            style={{
+              position: "absolute",
+              right: 0,
+              top: "calc(100% + 8px)",
+              width: "14rem",
+              borderRadius: "0.75rem",
+              boxShadow: "0 20px 40px -10px rgba(0,0,0,0.35)",
+              overflow: "hidden",
+              zIndex: 99999,
+              background: "hsl(var(--background))",
+              border: "1px solid hsl(var(--border))",
+            }}
+          >
+            <div className="p-3 border-b" style={{ borderColor: "hsl(var(--border))" }}>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles size={12} style={{ color: "hsl(var(--primary))" }} />
+                <p className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Your Workspace</p>
+              </div>
+              <p className="text-sm font-bold" style={{ color: "hsl(var(--foreground))" }}>{profile.first_name}</p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Crown size={10} style={{ color: tierConfig.color }} />
+                <p className="text-[10px] font-semibold" style={{ color: tierConfig.color }}>
+                  {tierConfig.name} Plan
+                  {remainingAnalyses() !== null && ` · ${remainingAnalyses()} left`}
+                </p>
+              </div>
+            </div>
 
-            {subscribed && (
+            <div className="py-1">
               <button
-                onClick={handleManage}
-                disabled={loadingPortal}
+                onClick={() => { setOpen(false); navigate("/pricing"); }}
                 className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted text-left"
                 style={{ color: "hsl(var(--foreground))" }}
               >
-                <ArrowRight size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
-                Manage Subscription
+                <CreditCard size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
+                {subscribed ? "View Plans" : "View Upgrade Options"}
               </button>
-            )}
 
-            <button
-              onClick={() => { setOpen(false); signOut(); }}
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted text-left"
-              style={{ color: "hsl(var(--foreground))" }}
-            >
-              <LogOut size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
-              Sign Out
-            </button>
+              {subscribed && (
+                <button
+                  onClick={handleManage}
+                  disabled={loadingPortal}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted text-left"
+                  style={{ color: "hsl(var(--foreground))" }}
+                >
+                  <ArrowRight size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
+                  Manage Subscription
+                </button>
+              )}
+
+              <button
+                onClick={() => { setOpen(false); setShowPasswordModal(true); }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted text-left"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
+                <KeyRound size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
+                Set / Change Password
+              </button>
+
+              <button
+                onClick={() => { setOpen(false); signOut(); }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted text-left"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
+                <LogOut size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Set Password Modal */}
+      {showPasswordModal && (
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 100000, background: "hsl(0 0% 0% / 0.6)", backdropFilter: "blur(4px)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowPasswordModal(false); }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-6 space-y-5"
+            style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", boxShadow: "0 20px 60px -15px rgba(0,0,0,0.4)" }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <KeyRound size={18} style={{ color: "hsl(var(--primary))" }} />
+                <h3 className="text-lg font-bold" style={{ color: "hsl(var(--foreground))" }}>Set Password</h3>
+              </div>
+              <button onClick={() => setShowPasswordModal(false)} className="p-1 rounded-lg hover:bg-muted transition-colors">
+                <X size={16} style={{ color: "hsl(var(--muted-foreground))" }} />
+              </button>
+            </div>
+            <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Set a password so you can sign in faster next time — no magic link needed.
+            </p>
+            <form onSubmit={handleSetPassword} className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>New Password</label>
+                <input
+                  style={inputStyle}
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
+                  autoFocus
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Confirm Password</label>
+                <input
+                  style={inputStyle}
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={savingPassword || !newPassword || !confirmPassword}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all"
+                style={{
+                  background: savingPassword || !newPassword || !confirmPassword ? "hsl(var(--muted))" : "hsl(var(--primary))",
+                  color: savingPassword || !newPassword || !confirmPassword ? "hsl(var(--muted-foreground))" : "white",
+                  boxShadow: !savingPassword && newPassword && confirmPassword ? "0 4px 16px -2px hsl(217 91% 50% / 0.4)" : "none",
+                }}
+              >
+                {savingPassword ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : <><Check size={14} /> Save Password</>}
+              </button>
+            </form>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
