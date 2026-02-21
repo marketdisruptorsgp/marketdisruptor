@@ -870,6 +870,31 @@ export default function Index() {
               </div>
             </div>
 
+            {/* ── BIG "JUMP TO STEP 3" BANNER ── */}
+            <button
+              onClick={() => {
+                setActiveStep(3);
+                step3Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="w-full rounded-2xl px-6 py-5 flex items-center gap-4 text-left transition-all hover:scale-[1.005] hover:shadow-lg group"
+              style={{
+                background: "linear-gradient(135deg, hsl(271 81% 55%) 0%, hsl(271 81% 42%) 100%)",
+                boxShadow: "0 8px 32px -8px hsl(271 81% 55% / 0.4)",
+              }}
+            >
+              <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl" style={{ background: "hsl(0 0% 100% / 0.2)", color: "white" }}>
+                3
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-extrabold text-base sm:text-lg leading-tight">
+                  🧠 Continue to First Principles Deep Dive
+                </p>
+                <p className="text-white/75 text-xs sm:text-sm mt-1 leading-relaxed">
+                  Deconstruct every inherited assumption about this product — materials, form factor, pricing, workflow — and uncover radical reinvention opportunities competitors can't see.
+                </p>
+              </div>
+              <ChevronDown size={24} className="flex-shrink-0 text-white/60 group-hover:translate-y-1 transition-transform" />
+            </button>
 
             {/* DISCOVERY LIST */}
             <SectionAccordion
@@ -1616,17 +1641,24 @@ export default function Index() {
                     setActiveStep(4);
                     step4Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                   }}
-                  className="w-full flex items-center justify-between px-5 py-4 rounded-xl text-sm font-bold transition-all hover:scale-[1.01]"
-                  style={{ background: "hsl(var(--primary) / 0.08)", border: "2px solid hsl(var(--primary) / 0.25)", color: "hsl(var(--primary))" }}
+                  className="w-full rounded-2xl px-6 py-5 flex items-center gap-4 text-left transition-all hover:scale-[1.005] hover:shadow-lg group"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(217 91% 35%) 100%)",
+                    boxShadow: "0 8px 32px -8px hsl(var(--primary) / 0.4)",
+                  }}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center justify-center w-7 h-7 rounded-full text-xs font-extrabold text-white" style={{ background: "hsl(var(--primary))" }}>4</span>
-                    <div className="text-left">
-                      <p className="font-extrabold">Continue → Investor Pitch Deck</p>
-                      <p className="text-[11px] font-normal" style={{ color: "hsl(var(--muted-foreground))" }}>Generate a launch-ready pitch deck with TAM/SAM/SOM, unit economics & go-to-market strategy.</p>
-                    </div>
+                  <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl" style={{ background: "hsl(0 0% 100% / 0.2)", color: "white" }}>
+                    4
                   </div>
-                  <ChevronDown size={18} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-extrabold text-base sm:text-lg leading-tight">
+                      🚀 Continue to Investor Pitch Deck
+                    </p>
+                    <p className="text-white/75 text-xs sm:text-sm mt-1 leading-relaxed">
+                      Generate a launch-ready pitch deck with TAM/SAM/SOM, unit economics, competitive moats, and go-to-market strategy — ready to present.
+                    </p>
+                  </div>
+                  <ChevronDown size={24} className="flex-shrink-0 text-white/60 group-hover:translate-y-1 transition-transform" />
                 </button>
               </div>
             </div>
