@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
-import heroBanner from "@/assets/hero-banner.jpg";
+
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
 import { AnalysisForm } from "@/components/AnalysisForm";
@@ -409,13 +409,14 @@ export default function Index() {
       )}
 
       {/* HERO */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={heroBanner} alt="Product Intelligence AI" className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ background: "hsl(220 20% 5% / 0.75)" }} />
+      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(220 25% 6%) 0%, hsl(220 30% 12%) 50%, hsl(220 25% 8%) 100%)" }}>
+        {/* Subtle gradient orbs for depth */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-[0.07]" style={{ background: "radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)" }} />
+          <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full opacity-[0.05]" style={{ background: "radial-gradient(circle, hsl(217 91% 50%) 0%, transparent 70%)" }} />
         </div>
         {/* Top nav bar with user */}
-        <div className="relative z-10 border-b" style={{ borderColor: "hsl(var(--primary) / 0.15)" }}>
+        <div className="relative z-10 border-b" style={{ borderColor: "hsl(0 0% 100% / 0.06)" }}>
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap size={15} style={{ color: "hsl(var(--primary-light))" }} />
@@ -433,16 +434,16 @@ export default function Index() {
               Live Data
             </span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-3 max-w-3xl">
+          <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4 max-w-3xl">
             {profile ? (
               <>Hey <span style={{ color: "hsl(var(--primary-light))" }}>{profile.first_name}</span> — what are we uncovering today?</>
             ) : (
               <>Discover, Deconstruct & <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize</span></>
             )}
           </h1>
-          <p className="text-lg text-white/70 max-w-2xl leading-relaxed">
-            AI-powered product intelligence that challenges every assumption, flips conventional thinking,
-            and uncovers hidden opportunities — from pricing and supply chains to first-principles reinvention.
+          <p className="text-lg text-white/60 max-w-2xl leading-relaxed">
+            We scrape <span className="text-white font-semibold">every marketplace, community & supplier directory in real-time</span> — then our AI tears each product apart to its atoms: pricing, supply chains, community sentiment, patent landscapes, and untapped angles nobody else sees.{" "}
+            <span className="text-white/40">The result? Actionable intelligence that turns overlooked products into high-margin opportunities.</span>
           </p>
           <div className="mt-8 flex flex-wrap gap-2">
             {STEPS.map((s, i) => {
@@ -451,7 +452,7 @@ export default function Index() {
                 <div
                   key={s.label}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium"
-                  style={{ background: "hsl(var(--primary) / 0.2)", color: "white", border: "1px solid hsl(var(--primary) / 0.4)" }}
+                  style={{ background: "hsl(0 0% 100% / 0.06)", color: "white", border: "1px solid hsl(0 0% 100% / 0.1)" }}
                 >
                   <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: "hsl(var(--primary))" }}>{i + 1}</span>
                   <Icon size={13} />
@@ -480,27 +481,28 @@ export default function Index() {
         />
 
 
-        {/* SAVED ANALYSES — always visible right below form */}
-        <div
-          className="rounded-2xl overflow-hidden"
-          style={{ border: "2px solid hsl(var(--primary) / 0.2)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.12)" }}
-        >
-          <div
-            className="px-5 py-3 flex items-center gap-3"
-            style={{ background: "hsl(var(--primary))" }}
-          >
-            <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
-              <Save size={14} style={{ color: "white" }} />
+        {/* SAVED ANALYSES — prominent dedicated section */}
+        <div className="relative">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+                <Save size={16} style={{ color: "white" }} />
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-foreground">Your Saved Projects</h2>
+                <p className="text-xs text-muted-foreground">All analyses auto-save · Click any to reload instantly</p>
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-white leading-tight">Your Analysis Workspace</p>
-              <p className="text-[11px] text-white/70">All analyses auto-save · Click any to reload instantly</p>
-            </div>
-            <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: "hsl(0 0% 100% / 0.15)", color: "white" }}>
-              Auto-saved
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold" style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))" }}>
+              <CheckCircle2 size={12} /> Auto-saved
             </span>
           </div>
-          <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{ border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
+          >
+            <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
+          </div>
         </div>
 
         {/* LOADING — rich live tracker */}
