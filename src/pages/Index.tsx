@@ -751,8 +751,8 @@ export default function Index() {
           return (
           <div ref={resultsRef} className="space-y-5">
             {/* ── STICKY STEP NAVIGATOR ── */}
-            <div className="sticky top-0 z-30 -mx-4 px-4 py-2.5" style={{ background: "hsl(var(--background) / 0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid hsl(var(--border))" }}>
-              <div className="max-w-6xl mx-auto flex items-center gap-1 sm:gap-2">
+            <div className="sticky top-0 z-30 -mx-4 px-4 py-3" style={{ background: "hsl(var(--background) / 0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid hsl(var(--border))" }}>
+              <div className="max-w-6xl mx-auto flex items-center gap-0">
                 {[
                   { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent, ref: resultsRef },
                   { step: 3, label: "First Principles", icon: Brain, color: "hsl(271 81% 55%)", ref: step3Ref },
@@ -760,30 +760,34 @@ export default function Index() {
                 ].map((s, i, arr) => {
                   const SIcon = s.icon;
                   const isCurrent = activeStep === s.step;
+                  const isPast = activeStep > s.step;
                   return (
-                    <div key={s.step} className="flex items-center gap-1 sm:gap-2 flex-1">
+                    <div key={s.step} className="flex items-center flex-1 min-w-0">
                       <button
                         onClick={() => {
                           setActiveStep(s.step);
                           s.ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                         }}
-                        className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all w-full justify-center"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full justify-center"
                         style={{
-                          background: isCurrent ? s.color : "hsl(var(--muted))",
-                          color: isCurrent ? "white" : "hsl(var(--muted-foreground))",
-                          boxShadow: isCurrent ? `0 2px 12px -3px ${s.color}50` : "none",
-                          border: isCurrent ? `1.5px solid ${s.color}` : "1.5px solid hsl(var(--border))",
+                          background: isCurrent ? s.color : isPast ? `color-mix(in srgb, ${s.color} 12%, transparent)` : "hsl(var(--muted))",
+                          color: isCurrent ? "white" : isPast ? s.color : "hsl(var(--muted-foreground))",
+                          boxShadow: isCurrent ? `0 4px 16px -4px ${s.color}50` : "none",
+                          border: isCurrent ? `2px solid ${s.color}` : isPast ? `2px solid ${s.color}30` : "2px solid hsl(var(--border))",
                         }}
                       >
-                        <span className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-extrabold flex-shrink-0" style={{ background: isCurrent ? "hsl(0 0% 100% / 0.25)" : "hsl(var(--border))", color: isCurrent ? "white" : "hsl(var(--muted-foreground))" }}>
-                          {s.step}
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-extrabold flex-shrink-0" style={{ background: isCurrent ? "hsl(0 0% 100% / 0.25)" : isPast ? s.color : "hsl(var(--border))", color: isCurrent || isPast ? "white" : "hsl(var(--muted-foreground))" }}>
+                          {isPast ? "✓" : s.step}
                         </span>
-                        <SIcon size={13} className="hidden sm:block" />
-                        <span className="hidden sm:inline">{s.label}</span>
-                        <span className="sm:hidden text-[10px]">{s.label.split(" ")[0]}</span>
+                        <SIcon size={14} className="hidden sm:block flex-shrink-0" />
+                        <span className="hidden sm:inline truncate">{s.label}</span>
+                        <span className="sm:hidden text-[11px]">Step {s.step}</span>
                       </button>
                       {i < arr.length - 1 && (
-                        <ChevronRight size={14} className="flex-shrink-0" style={{ color: "hsl(var(--muted-foreground))" }} />
+                        <div className="flex-shrink-0 mx-1 flex items-center">
+                          <div className="w-6 h-0.5 rounded-full" style={{ background: isPast ? s.color : "hsl(var(--border))" }} />
+                          <ChevronRight size={16} className="flex-shrink-0 -ml-0.5" style={{ color: isPast ? s.color : "hsl(var(--muted-foreground))" }} />
+                        </div>
                       )}
                     </div>
                   );
