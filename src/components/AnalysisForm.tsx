@@ -155,6 +155,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
     label: string;
     tagline: string;
     description: string;
+    behindTheScenes: string;
     bullets: string[];
     icon: React.ElementType;
     accent: string;
@@ -164,8 +165,9 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
       id: "discover",
       label: "Discover by Category",
       tagline: "Market Intelligence",
-      description: "Let AI surface hidden gems from any product category & era.",
-      bullets: ["Scrapes eBay, Etsy, Reddit & TikTok", "Revival scores + flip ideas", "Up to 50 products at once"],
+      description: "AI crawls the live web — eBay sold listings, Etsy trends, Reddit communities, and TikTok viral signals — to find undervalued products with comeback potential.",
+      behindTheScenes: "Firecrawl scrapes 8+ data sources simultaneously, then Gemini AI scores each product across feasibility, desirability & profitability.",
+      bullets: ["Live web scraping across marketplaces", "Revival scoring + flip ideas with BOM estimates", "Up to 50 products analyzed per batch"],
       icon: Telescope,
       accent: "hsl(var(--primary))",
       accentLight: "hsl(var(--primary-muted))",
@@ -174,8 +176,9 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
       id: "custom",
       label: "Analyze My Products",
       tagline: "Deep Product Audit",
-      description: "Upload images or paste URLs for a full intelligence report on your specific items.",
-      bullets: ["Works with photos or product URLs", "Pricing, supply chain & action plan", "Revival potential scoring"],
+      description: "Drop in URLs or photos of any product — AI scrapes the pages, reads the images, and builds a full commercial intelligence dossier.",
+      behindTheScenes: "Each URL is scraped for pricing, reviews & specs. Images are analyzed with vision AI. All data feeds into a unified market report.",
+      bullets: ["Scrapes up to 3 URLs + analyzes 5 images", "Pricing intel, supply chain & action plan", "Competitive landscape + revival scoring"],
       icon: Upload,
       accent: "hsl(217 91% 38%)",
       accentLight: "hsl(214 95% 93%)",
@@ -184,8 +187,9 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
       id: "business",
       label: "Business Model Analysis",
       tagline: "Strategic Reinvention",
-      description: "Deconstruct any business with first-principles reasoning.",
-      bullets: ["7 strategic dimensions", "Hidden leverage & automation gaps", "Full reinvention blueprint"],
+      description: "Deconstruct any business from first principles — AI maps customer journeys, cost structures, and automation opportunities to find hidden leverage.",
+      behindTheScenes: "Gemini Pro analyzes your business across 7 strategic dimensions: customer journey, cost structure, tech leverage, competition, and reinvention paths.",
+      bullets: ["7-dimension strategic deconstruction", "Hidden leverage & automation gaps identified", "Full reinvention blueprint with financials"],
       icon: Building2,
       accent: "hsl(271 81% 55%)",
       accentLight: "hsl(271 81% 95%)",
@@ -212,119 +216,165 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
 
         {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {MODE_OPTIONS.map(({ id, label, tagline, description, bullets, icon: Icon, accent, accentLight }) => {
+          {MODE_OPTIONS.map(({ id, label, tagline, description, behindTheScenes, bullets, icon: Icon, accent, accentLight }) => {
             const isActive = mode === id;
             return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setMode(id)}
-                className="relative text-left rounded-2xl transition-all duration-200 focus:outline-none overflow-hidden"
-                style={{
-                  border: `2.5px solid ${isActive ? accent : "hsl(var(--border))"}`,
-                  boxShadow: isActive
-                    ? `0 12px 32px -6px ${accent}50, 0 0 0 1px ${accent}20`
-                    : "0 2px 8px 0 hsl(220 20% 5% / 0.07)",
-                  transform: isActive ? "translateY(-3px) scale(1.01)" : "translateY(0) scale(1)",
-                  background: isActive ? accent : "hsl(var(--card))",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.borderColor = accent;
-                    (e.currentTarget as HTMLElement).style.background = accentLight;
-                    (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--border))";
-                    (e.currentTarget as HTMLElement).style.background = "hsl(var(--card))";
-                    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                  }
-                }}
-              >
-                {/* Top accent strip */}
-                <div
-                  className="h-1 w-full"
-                  style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : accent }}
-                />
+              <div key={id} className="relative flex flex-col">
+                <button
+                  type="button"
+                  onClick={() => setMode(id)}
+                  className="relative text-left rounded-2xl transition-all duration-200 focus:outline-none overflow-hidden flex-1"
+                  style={{
+                    border: `2.5px solid ${isActive ? accent : "hsl(var(--border))"}`,
+                    boxShadow: isActive
+                      ? `0 12px 32px -6px ${accent}50, 0 0 0 1px ${accent}20`
+                      : "0 2px 8px 0 hsl(220 20% 5% / 0.07)",
+                    transform: isActive ? "translateY(-3px) scale(1.01)" : "translateY(0) scale(1)",
+                    background: isActive ? accent : "hsl(var(--card))",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLElement).style.borderColor = accent;
+                      (e.currentTarget as HTMLElement).style.background = accentLight;
+                      (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--border))";
+                      (e.currentTarget as HTMLElement).style.background = "hsl(var(--card))";
+                      (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                    }
+                  }}
+                >
+                  {/* Top accent strip */}
+                  <div
+                    className="h-1 w-full"
+                    style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : accent }}
+                  />
 
-                <div className="p-5">
-                  {/* Icon + check row */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                      style={{
-                        background: isActive ? "hsl(0 0% 100% / 0.18)" : accentLight,
-                      }}
-                    >
-                      <Icon size={24} style={{ color: isActive ? "white" : accent }} />
+                  <div className="p-5">
+                    {/* Icon + check row */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                        style={{
+                          background: isActive ? "hsl(0 0% 100% / 0.18)" : accentLight,
+                        }}
+                      >
+                        <Icon size={24} style={{ color: isActive ? "white" : accent }} />
+                      </div>
+
+                      {/* Selection circle */}
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{
+                          border: `2px solid ${isActive ? "hsl(0 0% 100% / 0.6)" : "hsl(var(--border))"}`,
+                          background: isActive ? "hsl(0 0% 100% / 0.2)" : "transparent",
+                        }}
+                      >
+                        {isActive && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                        )}
+                      </div>
                     </div>
 
-                    {/* Selection circle */}
+                    {/* Tagline */}
+                    <p
+                      className="text-[10px] font-bold uppercase tracking-widest mb-1"
+                      style={{ color: isActive ? "hsl(0 0% 100% / 0.65)" : accent }}
+                    >
+                      {tagline}
+                    </p>
+
+                    {/* Title */}
+                    <p
+                      className="text-base font-extrabold leading-tight mb-2"
+                      style={{ color: isActive ? "white" : "hsl(var(--foreground))" }}
+                    >
+                      {label}
+                    </p>
+
+                    {/* Description */}
+                    <p
+                      className="text-xs leading-relaxed mb-3"
+                      style={{ color: isActive ? "hsl(0 0% 100% / 0.8)" : "hsl(var(--muted-foreground))" }}
+                    >
+                      {description}
+                    </p>
+
+                    {/* Bullets */}
+                    <ul className="space-y-1.5 mb-3">
+                      {bullets.map((b) => (
+                        <li key={b} className="flex items-start gap-1.5">
+                          <div
+                            className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1"
+                            style={{ background: isActive ? "hsl(0 0% 100% / 0.5)" : accent }}
+                          />
+                          <span
+                            className="text-[11px] leading-snug"
+                            style={{ color: isActive ? "hsl(0 0% 100% / 0.7)" : "hsl(var(--muted-foreground))" }}
+                          >
+                            {b}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Behind the scenes */}
                     <div
-                      className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                      className="rounded-lg px-3 py-2"
                       style={{
-                        border: `2px solid ${isActive ? "hsl(0 0% 100% / 0.6)" : "hsl(var(--border))"}`,
-                        background: isActive ? "hsl(0 0% 100% / 0.2)" : "transparent",
+                        background: isActive ? "hsl(0 0% 100% / 0.1)" : "hsl(var(--muted) / 0.5)",
+                        border: `1px solid ${isActive ? "hsl(0 0% 100% / 0.15)" : "hsl(var(--border))"}`,
                       }}
                     >
-                      {isActive && (
-                        <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                      )}
+                      <p
+                        className="text-[9px] font-bold uppercase tracking-wider mb-0.5"
+                        style={{ color: isActive ? "hsl(0 0% 100% / 0.5)" : "hsl(var(--muted-foreground))" }}
+                      >
+                        ⚙️ How it works
+                      </p>
+                      <p
+                        className="text-[10px] leading-relaxed"
+                        style={{ color: isActive ? "hsl(0 0% 100% / 0.65)" : "hsl(var(--muted-foreground))" }}
+                      >
+                        {behindTheScenes}
+                      </p>
                     </div>
                   </div>
+                </button>
 
-                  {/* Tagline */}
-                  <p
-                    className="text-[10px] font-bold uppercase tracking-widest mb-1"
-                    style={{ color: isActive ? "hsl(0 0% 100% / 0.65)" : accent }}
-                  >
-                    {tagline}
-                  </p>
-
-                  {/* Title */}
-                  <p
-                    className="text-base font-extrabold leading-tight mb-2"
-                    style={{ color: isActive ? "white" : "hsl(var(--foreground))" }}
-                  >
-                    {label}
-                  </p>
-
-                  {/* Description */}
-                  <p
-                    className="text-xs leading-relaxed mb-3"
-                    style={{ color: isActive ? "hsl(0 0% 100% / 0.72)" : "hsl(var(--muted-foreground))" }}
-                  >
-                    {description}
-                  </p>
-
-                  {/* Bullets */}
-                  <ul className="space-y-1">
-                    {bullets.map((b) => (
-                      <li key={b} className="flex items-center gap-1.5">
-                        <div
-                          className="w-1 h-1 rounded-full flex-shrink-0"
-                          style={{ background: isActive ? "hsl(0 0% 100% / 0.5)" : accent }}
-                        />
-                        <span
-                          className="text-[11px]"
-                          style={{ color: isActive ? "hsl(0 0% 100% / 0.65)" : "hsl(var(--muted-foreground))" }}
-                        >
-                          {b}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </button>
+                {/* Visual connector arrow from active card to form */}
+                {isActive && (
+                  <div className="flex justify-center -mb-3 relative z-10">
+                    <div
+                      className="w-4 h-4 rotate-45 rounded-sm"
+                      style={{
+                        background: accent,
+                        marginTop: "-8px",
+                        boxShadow: `0 4px 12px -2px ${accent}40`,
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* Active mode form area */}
-      <div className="card-intelligence p-5 space-y-5">
+      {/* Active mode form area — visually connected */}
+      {(() => {
+        const activeMode = MODE_OPTIONS.find(m => m.id === mode)!;
+        return (
+          <div
+            className="card-intelligence p-5 space-y-5 relative"
+            style={{
+              borderTop: `3px solid ${activeMode.accent}`,
+              marginTop: "-4px",
+            }}
+          >
 
       {/* MODE A — Discover by Category */}
       {mode === "discover" && (
@@ -654,7 +704,9 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
           </p>
         </div>
       )}
-      </div>{/* end active mode form area */}
+      </div>
+        );
+      })()}
     </form>
   );
 };
