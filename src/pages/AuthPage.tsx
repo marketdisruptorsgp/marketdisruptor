@@ -127,20 +127,36 @@ export default function AuthPage() {
             </div>
             <div>
               <h2 className="text-3xl font-extrabold mb-3" style={{ color: "hsl(var(--foreground))" }}>
-                Check your inbox, {firstName}!
+                Check your inbox, {firstName}.
               </h2>
               <p className="text-base leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-                We sent a magic link to <span className="font-semibold" style={{ color: "hsl(var(--foreground))" }}>{email}</span>.
-                Click it to jump straight into your workspace — no password needed.
+                We sent a secure sign-in link to <span className="font-semibold" style={{ color: "hsl(var(--foreground))" }}>{email}</span>.
+                Click the link in the email to access your workspace instantly — no password required.
               </p>
             </div>
+
+            <div
+              className="rounded-xl p-5 text-left space-y-3"
+              style={{ background: "hsl(var(--primary) / 0.05)", border: "1px solid hsl(var(--primary) / 0.15)" }}
+            >
+              <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>
+                What to look for
+              </p>
+              <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>
+                The email will come from <span className="font-semibold" style={{ color: "hsl(var(--primary))" }}>Product Intelligence AI</span> (hello@marketdisruptor.sgpcapital.com) with the subject line <span className="font-semibold">"Your Magic Link"</span>.
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+                Don't see it? Check your spam or promotions folder. The link expires in 1 hour.
+              </p>
+            </div>
+
             <div
               className="rounded-xl p-4 text-left space-y-2"
               style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
             >
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={14} style={{ color: "hsl(var(--primary))" }} />
-                <p className="text-xs font-semibold" style={{ color: "hsl(var(--foreground))" }}>Your analyses will persist across sessions</p>
+                <p className="text-xs font-semibold" style={{ color: "hsl(var(--foreground))" }}>Your analyses persist across sessions</p>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={14} style={{ color: "hsl(var(--primary))" }} />
