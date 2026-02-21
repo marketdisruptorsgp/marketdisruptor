@@ -473,9 +473,9 @@ export default function Index() {
         {/* ── TOP-LEVEL TAB BAR ── */}
         {(() => {
           const TABS = [
-            { id: "discover" as const, label: "Discover Products", icon: Telescope, accent: "hsl(var(--primary))" },
+            { id: "discover" as const, label: "Reinvent Nostalgic Products", icon: Telescope, accent: "hsl(var(--primary))" },
             { id: "custom" as const, label: "Analyze A Product", icon: Upload, accent: "hsl(217 91% 38%)" },
-            { id: "business" as const, label: "Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
+            { id: "business" as const, label: "Business Model Analysis", icon: Building2, accent: "hsl(271 81% 55%)" },
             { id: "saved" as const, label: "Saved Projects", icon: Database, accent: "hsl(var(--primary))" },
           ];
           return (
