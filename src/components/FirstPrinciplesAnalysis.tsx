@@ -101,7 +101,7 @@ interface FirstPrinciplesData {
 interface FirstPrinciplesAnalysisProps {
   product: Product;
   flippedIdeas?: FlippedIdea[];
-  onRegenerateIdeas?: () => void;
+  onRegenerateIdeas?: (userContext?: string) => void;
   generatingIdeas?: boolean;
 }
 
@@ -124,6 +124,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [data, setData] = useState<FirstPrinciplesData | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas">("reality");
+  const [userContext, setUserContext] = useState("");
 
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
     try {
@@ -772,8 +773,31 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {activeStep === "ideas" && (
         <div className="space-y-5">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            AI-generated product reinvention ideas ranked by viability — click regenerate for fresh concepts.
+            AI-generated product reinvention ideas ranked by viability — add your own context below to steer the AI, then regenerate.
           </p>
+
+          {/* User context input */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Lightbulb size={11} style={{ color: "hsl(var(--primary))" }} /> Guide the AI (optional)
+            </label>
+            <textarea
+              value={userContext}
+              onChange={(e) => setUserContext(e.target.value)}
+              placeholder="e.g. Focus on eco-friendly materials, target Gen Z audience, keep price under $30, emphasize subscription model…"
+              className="w-full rounded-xl px-4 py-3 text-sm leading-relaxed resize-none transition-all focus:outline-none"
+              style={{
+                background: "hsl(var(--muted))",
+                border: "2px dashed hsl(var(--border))",
+                color: "hsl(var(--foreground))",
+                minHeight: "80px",
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(var(--primary))"; e.currentTarget.style.borderStyle = "solid"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--border))"; e.currentTarget.style.borderStyle = "dashed"; }}
+            />
+            <p className="text-[10px] text-muted-foreground">Share your goals, target audience, price range, materials preference, or any feedback on existing ideas.</p>
+          </div>
+
           {flippedIdeas && flippedIdeas.length > 0 ? (
             <>
               <div className="flex items-center justify-between">
@@ -782,7 +806,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 </p>
                 {onRegenerateIdeas && (
                   <button
-                    onClick={onRegenerateIdeas}
+                    onClick={() => onRegenerateIdeas(userContext || undefined)}
                     disabled={generatingIdeas}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                     style={{

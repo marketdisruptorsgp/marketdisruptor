@@ -386,15 +386,17 @@ export default function Index() {
     }
   };
 
-  const handleRegenerateIdeas = async (product: Product) => {
+  const handleRegenerateIdeas = async (product: Product, userContext?: string) => {
     if (!analysisParams) return;
     setGeneratingIdeasFor(product.id);
 
     try {
+      const baseContext = `Focus on ${analysisParams.era} nostalgia and ${analysisParams.category} market trends.`;
+      const fullContext = userContext ? `${baseContext}\n\nUser's additional guidance: ${userContext}` : baseContext;
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: {
           product,
-          additionalContext: `Focus on ${analysisParams.era} nostalgia and ${analysisParams.category} market trends.`,
+          additionalContext: fullContext,
         },
       });
 
@@ -1528,7 +1530,7 @@ export default function Index() {
                     </div>
                   </div>
                   <div className="p-5" style={{ background: "hsl(var(--card))" }}>
-                    <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} flippedIdeas={selectedProduct.flippedIdeas} onRegenerateIdeas={() => handleRegenerateIdeas(selectedProduct)} generatingIdeas={generatingIdeasFor === selectedProduct.id} />
+                    <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} flippedIdeas={selectedProduct.flippedIdeas} onRegenerateIdeas={(ctx) => handleRegenerateIdeas(selectedProduct, ctx)} generatingIdeas={generatingIdeasFor === selectedProduct.id} />
                   </div>
                 </div>
               </div>
