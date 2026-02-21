@@ -44,14 +44,15 @@ export default function AuthPage() {
       // Store first name in localStorage so we can save it to profile after magic link auth
       localStorage.setItem("pending_first_name", firstName.trim());
 
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: { first_name: firstName.trim() },
+      const { data, error } = await supabase.functions.invoke("send-magic-link", {
+        body: {
+          email: email.trim(),
+          firstName: firstName.trim(),
+          redirectTo: window.location.origin,
         },
       });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       setSent(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
