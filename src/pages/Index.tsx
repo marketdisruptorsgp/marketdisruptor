@@ -18,8 +18,10 @@ import { UserHeader } from "@/components/UserHeader";
 import WelcomeModal from "@/components/WelcomeModal";
 import { ContextualTip } from "@/components/ContextualTip";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription, TIERS } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import PaywallModal from "@/components/PaywallModal";
 
 import {
   Zap,
@@ -121,6 +123,8 @@ function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
 
 export default function Index() {
   const { user, profile } = useAuth();
+  const { canAnalyze, remainingAnalyses, tier, usage, checkSubscription } = useSubscription();
+  const [showPaywall, setShowPaywall] = useState(false);
   const [step, setStep] = useState<AnalysisStep>("idle");
   const [mainTab, setMainTab] = useState<"discover" | "custom" | "business" | "saved">("discover");
   const [activeMode, setActiveMode] = useState<AnalysisMode>("discover");
@@ -268,6 +272,12 @@ export default function Index() {
     category: string; era: string; batchSize: number;
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
   }) => {
+    // Check usage limit before proceeding
+    if (!canAnalyze()) {
+      setShowPaywall(true);
+      return;
+    }
+
     const { customProducts, ...baseParams } = params;
     setAnalysisParams(baseParams);
     setStep("scraping");
@@ -377,6 +387,11 @@ export default function Index() {
       setStep("done");
       setVisitedSteps(new Set([2]));
       toast.success(`Found ${liveProducts.length} products with deep intelligence reports!`);
+      // Increment usage count
+      try {
+        await supabase.rpc("increment_usage", { p_user_id: user?.id });
+        await checkSubscription();
+      } catch (_) { /* best effort */ }
       await saveAnalysis(liveProducts, params);
       // Auto-scroll to results
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
@@ -488,6 +503,9 @@ export default function Index() {
         </div>
       )}
 
+      {/* Paywall Modal */}
+      {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
+
       {/* HERO */}
       <header className="relative" style={{ background: "linear-gradient(135deg, hsl(220 25% 6%) 0%, hsl(220 30% 12%) 50%, hsl(220 25% 8%) 100%)" }}>
         {/* Subtle gradient orbs for depth */}
@@ -506,6 +524,28 @@ export default function Index() {
           </div>
         </div>
         <div className="relative z-10 max-w-6xl mx-auto px-4 py-10 sm:py-14">
+          {/* Usage badge */}
+          <div className="flex items-center gap-2 mb-4">
+            <span
+              className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
+              style={{
+                background: tier === "disruptor" ? "hsl(38 92% 50% / 0.15)" : tier === "builder" ? "hsl(var(--primary) / 0.15)" : "hsl(0 0% 100% / 0.08)",
+                color: tier === "disruptor" ? "hsl(38 92% 60%)" : tier === "builder" ? "hsl(var(--primary-light))" : "white/60",
+                border: `1px solid ${tier === "disruptor" ? "hsl(38 92% 50% / 0.3)" : tier === "builder" ? "hsl(var(--primary) / 0.3)" : "hsl(0 0% 100% / 0.1)"}`,
+              }}
+            >
+              {TIERS[tier].name} Plan{remainingAnalyses() !== null ? ` · ${remainingAnalyses()} analyses left` : " · Unlimited"}
+            </span>
+            {tier === "explorer" && (
+              <button
+                onClick={() => setShowPaywall(true)}
+                className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all hover:scale-105"
+                style={{ background: "hsl(var(--primary))", color: "white" }}
+              >
+                Upgrade
+              </button>
+            )}
+          </div>
           <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4">
             Analyze, Deconstruct, <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize!</span>
           </h1>

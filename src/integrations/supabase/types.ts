@@ -89,12 +89,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_usage: {
+        Row: {
+          analysis_count: number
+          created_at: string
+          id: string
+          period_start: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_count?: number
+          created_at?: string
+          id?: string
+          period_start?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_count?: number
+          created_at?: string
+          id?: string
+          period_start?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_usage: { Args: { p_user_id: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never
