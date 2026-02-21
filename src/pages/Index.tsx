@@ -877,8 +877,6 @@ export default function Index() {
                       { id: "supply", label: "Supply Chain", icon: Package },
                       { id: "action", label: "Action Plan", icon: Rocket },
                       { id: "ideas", label: "Flipped Ideas", icon: Zap },
-                      { id: "firstprinciples", label: "First Principles", icon: Brain },
-                      { id: "pitchdeck", label: "Pitch Deck", icon: Presentation },
                       { id: "patents", label: "Patent Intel", icon: ScrollText },
                     ] as const).map(({ id, label, icon: Icon }) => {
                       const isActive = detailTab === id;
@@ -1481,15 +1479,7 @@ export default function Index() {
                     </div>
                   )}
 
-                  {/* TAB: FIRST PRINCIPLES */}
-                  {detailTab === "firstprinciples" && (
-                    <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
-                  )}
-
-                  {/* TAB: PITCH DECK */}
-                  {detailTab === "pitchdeck" && (
-                    <PitchDeck product={selectedProduct} />
-                  )}
+                  {/* First Principles & Pitch Deck moved to standalone sections below */}
 
                   {/* TAB: PATENT INTELLIGENCE */}
                   {detailTab === "patents" && (
@@ -1528,7 +1518,58 @@ export default function Index() {
           );
         })()}
 
-        {/* BUSINESS MODEL ANALYSIS — shown only when active */}
+        {/* ── STEP 3: FIRST PRINCIPLES DEEP DIVE ── */}
+        {step === "done" && selectedProduct && mainTab !== "saved" && mainTab !== "business" && (
+          <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(271 81% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(271 81% 55% / 0.1)" }}>
+            <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(271 81% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(271 81% 55%)" }}>
+                3
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h2 className="text-lg font-extrabold text-foreground">First Principles Deep Dive</h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white" style={{ background: "hsl(271 81% 55%)" }}>Radical Reinvention</span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Go beyond surface-level analysis. First Principles deconstructs <strong className="text-foreground">{selectedProduct.name}</strong> down to its core reality — questioning every assumption about physical form, workflow, materials, and technology — to uncover <strong style={{ color: "hsl(271 81% 55%)" }}>structurally innovative</strong> redesign opportunities that competitors can't see.
+                </p>
+                <div className="mt-2 flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(271 81% 55% / 0.08)", border: "1px solid hsl(271 81% 55% / 0.15)" }}>
+                  <Brain size={14} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(271 81% 55%)" }} />
+                  <p className="text-xs font-medium" style={{ color: "hsl(271 81% 55%)" }}>
+                    This is where the real alpha lives. The AI applies a <strong>Dieter Rams × Elon Musk</strong> lens to question every inherited assumption and generate radical alternatives.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+              <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 4: PITCH DECK ── */}
+        {step === "done" && selectedProduct && mainTab !== "saved" && mainTab !== "business" && (
+          <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.1)" }}>
+            <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(var(--primary))" }}>
+                4
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h2 className="text-lg font-extrabold text-foreground">Investor Pitch Deck</h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white" style={{ background: "hsl(var(--primary))" }}>Launch Ready</span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Generate a professional investor-grade pitch deck for <strong className="text-foreground">{selectedProduct.name}</strong> — complete with market sizing (TAM/SAM/SOM), unit economics, go-to-market strategy, and real supplier contacts. Ready to present or export as PDF.
+                </p>
+              </div>
+            </div>
+            <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+              <PitchDeck product={selectedProduct} />
+            </div>
+          </div>
+        )}
+
         {(businessAnalysisData || expandedSection === "businessmodel") && (
           <div ref={businessResultsRef}>
             {loadedFromSaved && (
