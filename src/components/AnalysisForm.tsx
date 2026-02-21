@@ -22,6 +22,8 @@ interface AnalysisFormProps {
   }) => void;
   onBusinessAnalysis?: (data: unknown) => void;
   isLoading: boolean;
+  mode?: Mode;
+  onModeChange?: (mode: Mode) => void;
 }
 
 const CATEGORIES = [
@@ -52,8 +54,12 @@ const BUSINESS_EXAMPLES = [
   "Accounting firm", "Law firm", "Real estate agency", "HVAC company", "Auto repair shop",
 ];
 
-export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: AnalysisFormProps) => {
-  const [mode, setMode] = useState<Mode>("discover");
+export { type Mode as AnalysisMode };
+
+export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: externalMode, onModeChange }: AnalysisFormProps) => {
+  const [internalMode, setInternalMode] = useState<Mode>("discover");
+  const mode = externalMode ?? internalMode;
+  const setMode = (m: Mode) => { onModeChange ? onModeChange(m) : setInternalMode(m); };
   const [category, setCategory] = useState("Toys & Games");
   const [era, setEra] = useState("80s–90s");
   const [batchSize, setBatchSize] = useState(10);

@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
-import { AnalysisForm } from "@/components/AnalysisForm";
+import { AnalysisForm, type AnalysisMode } from "@/components/AnalysisForm";
 import { ProductCard } from "@/components/ProductCard";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
@@ -61,6 +61,9 @@ import {
   Building2,
   FileDown,
   ScrollText,
+  Telescope,
+  Upload,
+  Database,
 } from "lucide-react";
 
 const STEPS = [
@@ -117,6 +120,8 @@ function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
 export default function Index() {
   const { user, profile } = useAuth();
   const [step, setStep] = useState<AnalysisStep>("idle");
+  const [mainTab, setMainTab] = useState<"discover" | "custom" | "business" | "saved">("discover");
+  const [activeMode, setActiveMode] = useState<AnalysisMode>("discover");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -465,45 +470,97 @@ export default function Index() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
-        <ContextualTip
-          id="discovery-tip-1"
-          message={`💡 Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
-        />
-
-        <AnalysisForm
-          onAnalyze={handleAnalyze}
-          isLoading={isLoading}
-          onBusinessAnalysis={(data) => {
-            setBusinessAnalysisData(data);
-            toggleSection("businessmodel");
-            setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
-          }}
-        />
-
-
-        {/* SAVED ANALYSES — prominent dedicated section */}
-        <div className="relative">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-                <Save size={16} style={{ color: "white" }} />
+        {/* ── TOP-LEVEL TAB BAR ── */}
+        {(() => {
+          const TABS = [
+            { id: "discover" as const, label: "Discover Products", icon: Telescope, accent: "hsl(var(--primary))" },
+            { id: "custom" as const, label: "Analyze A Product", icon: Upload, accent: "hsl(217 91% 38%)" },
+            { id: "business" as const, label: "Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
+            { id: "saved" as const, label: "Saved Projects", icon: Database, accent: "hsl(var(--primary))" },
+          ];
+          return (
+            <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-card)", background: "hsl(var(--card))" }}>
+              <div className="flex border-b" style={{ borderColor: "hsl(var(--border))" }}>
+                {TABS.map((tab) => {
+                  const isActive = mainTab === tab.id;
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setMainTab(tab.id);
+                        if (tab.id !== "saved") {
+                          setActiveMode(tab.id as AnalysisMode);
+                        }
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-4 text-sm font-bold transition-all relative"
+                      style={{
+                        color: isActive ? tab.accent : "hsl(var(--muted-foreground))",
+                        background: isActive ? `${tab.accent}08` : "transparent",
+                      }}
+                    >
+                      <Icon size={16} />
+                      <span className="hidden sm:inline">{tab.label}</span>
+                      {tab.id === "saved" && (
+                        <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "hsl(var(--success))" }} />
+                      )}
+                      {isActive && (
+                        <div className="absolute bottom-0 left-2 right-2 h-[3px] rounded-t-full" style={{ background: tab.accent }} />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-              <div>
-                <h2 className="text-xl font-extrabold text-foreground">Your Saved Projects</h2>
-                <p className="text-xs text-muted-foreground">All analyses auto-save · Click any to reload instantly</p>
+
+              <div className="p-5">
+                {mainTab !== "saved" && (
+                  <>
+                    <ContextualTip
+                      id="discovery-tip-1"
+                      message={`💡 Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
+                    />
+                    <div className="mt-4">
+                      <AnalysisForm
+                        onAnalyze={handleAnalyze}
+                        isLoading={isLoading}
+                        mode={activeMode}
+                        onModeChange={(m) => {
+                          setActiveMode(m);
+                          setMainTab(m as typeof mainTab);
+                        }}
+                        onBusinessAnalysis={(data) => {
+                          setBusinessAnalysisData(data);
+                          toggleSection("businessmodel");
+                          setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {mainTab === "saved" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+                          <Save size={16} style={{ color: "white" }} />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-extrabold text-foreground">Your Saved Projects</h2>
+                          <p className="text-xs text-muted-foreground">All analyses auto-save · Click any to reload instantly</p>
+                        </div>
+                      </div>
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold" style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))" }}>
+                        <CheckCircle2 size={12} /> Auto-saved
+                      </span>
+                    </div>
+                    <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
+                  </div>
+                )}
               </div>
             </div>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold" style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))" }}>
-              <CheckCircle2 size={12} /> Auto-saved
-            </span>
-          </div>
-          <div
-            className="rounded-2xl overflow-hidden"
-            style={{ border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-card)" }}
-          >
-            <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
-          </div>
-        </div>
+          );
+        })()}
 
         {/* LOADING — rich live tracker */}
         {isLoading && (() => {
