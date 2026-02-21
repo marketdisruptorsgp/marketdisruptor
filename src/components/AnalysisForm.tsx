@@ -163,7 +163,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
   }[] = [
     {
       id: "discover",
-      label: "Discover by Category",
+      label: "Reinvent Nostalgic Products",
       tagline: "Market Intelligence",
       description: "AI crawls the live web — eBay sold listings, Etsy trends, Reddit communities, and TikTok viral signals — to find undervalued products with comeback potential.",
       behindTheScenes: "Firecrawl scrapes 8+ data sources simultaneously, then Gemini AI scores each product across feasibility, desirability & profitability.",
@@ -369,10 +369,13 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
         const activeMode = MODE_OPTIONS.find(m => m.id === mode)!;
         return (
           <div
-            className="card-intelligence p-5 space-y-5 relative"
+            className="rounded-2xl p-5 space-y-5 relative"
             style={{
+              border: `2px solid ${activeMode.accent}`,
               borderTop: `3px solid ${activeMode.accent}`,
-              marginTop: "-4px",
+              marginTop: "-8px",
+              background: `linear-gradient(180deg, ${activeMode.accentLight} 0%, hsl(var(--card)) 40%)`,
+              boxShadow: `0 4px 20px -4px ${activeMode.accent}20`,
             }}
           >
 
@@ -382,35 +385,55 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
           {/* Category */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Product Category</label>
+            <select
+              value={CATEGORIES.includes(category) ? category : "__custom__"}
+              onChange={(e) => {
+                if (e.target.value === "__custom__") return;
+                setCategory(e.target.value);
+              }}
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none relative z-50"
+              style={{ ...inputStyle, WebkitAppearance: "menulist" }}
+            >
+              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              {!CATEGORIES.includes(category) && category && (
+                <option value={category}>{category}</option>
+              )}
+            </select>
             <input
               type="text"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              placeholder="e.g. Toys & Games, Kitchen Gadgets…"
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
-              style={inputStyle}
-              list="category-suggestions"
+              placeholder="Or type a custom category…"
+              className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
+              style={{ ...inputStyle, borderStyle: "dashed" }}
             />
-            <datalist id="category-suggestions">
-              {CATEGORIES.map((c) => <option key={c} value={c} />)}
-            </datalist>
           </div>
 
           {/* Era */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Era / Nostalgia Focus</label>
+            <select
+              value={ERAS.includes(era) ? era : "__custom__"}
+              onChange={(e) => {
+                if (e.target.value === "__custom__") return;
+                setEra(e.target.value);
+              }}
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none relative z-50"
+              style={{ ...inputStyle, WebkitAppearance: "menulist" }}
+            >
+              {ERAS.map((e) => <option key={e} value={e}>{e}</option>)}
+              {!ERAS.includes(era) && era && (
+                <option value={era}>{era}</option>
+              )}
+            </select>
             <input
               type="text"
               value={era}
               onChange={(e) => setEra(e.target.value)}
-              placeholder="e.g. 80s, 90s, 2000s, Current…"
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
-              style={inputStyle}
-              list="era-suggestions"
+              placeholder="Or type a custom era…"
+              className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
+              style={{ ...inputStyle, borderStyle: "dashed" }}
             />
-            <datalist id="era-suggestions">
-              {ERAS.map((e) => <option key={e} value={e} />)}
-            </datalist>
           </div>
 
           {/* Batch size */}
@@ -565,18 +588,29 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading }: Analy
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Business Type *</label>
+              <select
+                value={BUSINESS_EXAMPLES.includes(businessInput.type) ? businessInput.type : "__custom__"}
+                onChange={(e) => {
+                  if (e.target.value === "__custom__") return;
+                  setBusinessInput((p) => ({ ...p, type: e.target.value }));
+                }}
+                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none relative z-50"
+                style={{ ...inputStyle, WebkitAppearance: "menulist" }}
+              >
+                <option value="">Select a business type…</option>
+                {BUSINESS_EXAMPLES.map((ex) => <option key={ex} value={ex}>{ex}</option>)}
+                {businessInput.type && !BUSINESS_EXAMPLES.includes(businessInput.type) && (
+                  <option value={businessInput.type}>{businessInput.type}</option>
+                )}
+              </select>
               <input
                 type="text"
                 value={businessInput.type}
                 onChange={(e) => setBusinessInput((p) => ({ ...p, type: e.target.value }))}
-                placeholder="e.g. Laundromat, Freight broker, Law firm…"
-                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
-                style={inputStyle}
-                list="business-examples"
+                placeholder="Or type a custom business…"
+                className="w-full rounded-lg px-3 py-2 text-xs focus:outline-none"
+                style={{ ...inputStyle, borderStyle: "dashed" }}
               />
-              <datalist id="business-examples">
-                {BUSINESS_EXAMPLES.map((ex) => <option key={ex} value={ex} />)}
-              </datalist>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Revenue Model</label>
