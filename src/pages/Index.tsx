@@ -1489,23 +1489,7 @@ export default function Index() {
         )}
 
 
-        {/* IDLE with no data */}
-        {step === "idle" && products.length === 0 && (
-          <div
-            className="text-center py-16 space-y-4 rounded-2xl"
-            style={{ background: "hsl(var(--secondary))", border: "2px dashed hsl(var(--border))" }}
-          >
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: "hsl(var(--primary-muted))" }}>
-              <Zap size={28} style={{ color: "hsl(var(--primary))" }} />
-            </div>
-            <h3 className="text-xl font-bold text-foreground">
-              {profile ? `${profile.first_name}, what are you uncovering today?` : "Ready to Discover Hidden Opportunities"}
-            </h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Pick a category, an era, and let the AI surface what the market is missing. Your analysis auto-saves automatically.
-            </p>
-          </div>
-        )}
+
       </main>
 
       <footer className="border-t mt-12 py-8 text-center" style={{ borderColor: "hsl(var(--border))" }}>
