@@ -217,6 +217,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
     color: "hsl(var(--foreground))",
   } as React.CSSProperties;
 
+  const scrollToSteps = () => setTimeout(() => document.querySelector('[data-bma-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+
   const tabs = [
     { id: "summary" as const, label: "Business Reality", icon: Eye, number: "01" },
     { id: "operations" as const, label: "Operations Audit", icon: Wrench, number: "02" },
@@ -226,6 +228,16 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
     { id: "disruption" as const, label: "Disruption Map", icon: Shield, number: "06" },
     { id: "reinvented" as const, label: "Reinvented Model", icon: Rocket, number: "07" },
   ];
+
+  const STEP_COLORS: Record<string, string> = {
+    summary: "hsl(var(--primary))",
+    operations: "hsl(200 80% 50%)",
+    assumptions: "hsl(271 81% 55%)",
+    tech: "hsl(35 90% 50%)",
+    revenue: "hsl(142 70% 40%)",
+    disruption: "hsl(350 80% 55%)",
+    reinvented: "hsl(180 70% 40%)",
+  };
 
   if (!data) {
     return (
@@ -401,28 +413,32 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
         </div>
       </div>
 
-      {/* Tab nav */}
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((t, i) => {
+      {/* Step nav */}
+      <div data-bma-steps className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
+        {tabs.map((t) => {
           const Icon = t.icon;
           const isActive = activeTab === t.id;
+          const color = STEP_COLORS[t.id] || "hsl(var(--primary))";
           return (
             <button
               key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+              onClick={() => { setActiveTab(t.id); scrollToSteps(); }}
+              className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
               style={{
-                background: isActive ? "hsl(var(--primary))" : "hsl(var(--muted))",
-                color: isActive ? "white" : "hsl(var(--muted-foreground))",
-                border: `1px solid ${isActive ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+                background: isActive ? color : "hsl(var(--muted))",
+                color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
+                border: isActive ? `2px solid ${color}` : "2px solid hsl(var(--border))",
+                boxShadow: isActive ? `0 4px 12px -2px ${color}50` : "none",
+                transform: isActive ? "scale(1.03)" : "scale(1)",
               }}
             >
-              <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
-                style={{ background: isActive ? "rgba(255,255,255,0.25)" : "hsl(var(--primary) / 0.1)", color: isActive ? "white" : "hsl(var(--primary))" }}>
-                {i + 1}
-              </span>
-              <Icon size={11} />
-              {t.label}
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
+                <Icon size={16} style={{ color: isActive ? "white" : color }} />
+              </div>
+              <span className="text-center leading-tight text-[10px]">{t.label}</span>
+              {!isActive && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse" style={{ background: color }} />
+              )}
             </button>
           );
         })}
@@ -469,9 +485,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
             </div>
           </div>
 
-          <button onClick={() => setActiveTab("operations")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
-            style={{ background: "hsl(var(--primary))", color: "white" }}>
-            Next: Operations Audit <ArrowRight size={12} />
+          <button onClick={() => { setActiveTab("operations"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(200 80% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(200 80% 50% / 0.4)" }}>
+            Next: Operations Audit <ArrowRight size={14} />
           </button>
         </div>
       )}
@@ -574,9 +590,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
             </div>
           </div>
 
-          <button onClick={() => setActiveTab("assumptions")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
-            style={{ background: "hsl(var(--primary))", color: "white" }}>
-            Next: Hidden Assumptions <ArrowRight size={12} />
+          <button onClick={() => { setActiveTab("assumptions"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(271 81% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(271 81% 55% / 0.4)" }}>
+            Next: Hidden Assumptions <ArrowRight size={14} />
           </button>
         </div>
       )}
@@ -622,9 +638,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
               );
             })}
           </div>
-          <button onClick={() => setActiveTab("tech")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
-            style={{ background: "hsl(var(--primary))", color: "white" }}>
-            Next: Tech Leverage <ArrowRight size={12} />
+          <button onClick={() => { setActiveTab("tech"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(35 90% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(35 90% 50% / 0.4)" }}>
+            Next: Tech Leverage <ArrowRight size={14} />
           </button>
         </div>
       )}
@@ -689,9 +705,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
             <InsightRating sectionId="biz-platform" compact />
           </div>
 
-          <button onClick={() => setActiveTab("revenue")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
-            style={{ background: "hsl(var(--primary))", color: "white" }}>
-            Next: Revenue Reinvention <ArrowRight size={12} />
+          <button onClick={() => { setActiveTab("revenue"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(142 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(142 70% 40% / 0.4)" }}>
+            Next: Revenue Reinvention <ArrowRight size={14} />
           </button>
         </div>
       )}
@@ -754,9 +770,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
             </div>
           </div>
 
-          <button onClick={() => setActiveTab("disruption")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
-            style={{ background: "hsl(var(--primary))", color: "white" }}>
-            Next: Disruption Map <ArrowRight size={12} />
+          <button onClick={() => { setActiveTab("disruption"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(350 80% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(350 80% 55% / 0.4)" }}>
+            Next: Disruption Map <ArrowRight size={14} />
           </button>
         </div>
       )}
@@ -814,9 +830,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
             <InsightRating sectionId="biz-attack" compact />
           </div>
 
-          <button onClick={() => setActiveTab("reinvented")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
-            style={{ background: "hsl(var(--primary))", color: "white" }}>
-            Next: Reinvented Model <ArrowRight size={12} />
+          <button onClick={() => { setActiveTab("reinvented"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(180 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(180 70% 40% / 0.4)" }}>
+            Next: Reinvented Model <ArrowRight size={14} />
           </button>
         </div>
       )}
@@ -922,6 +938,13 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
                   <p key={i} className="text-xs text-foreground/80">• {c}</p>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div className="text-center py-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold"
+              style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+              <CheckCircle2 size={14} /> All Business Model sections explored!
             </div>
           </div>
         </div>
