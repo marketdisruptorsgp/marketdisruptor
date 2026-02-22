@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Zap, ArrowRight, Loader2, Mail, CheckCircle2, Lock, Upload, Briefcase, Building2, Telescope } from "lucide-react";
+import { Zap, Sparkles, Brain, TrendingUp, Eye, ArrowRight, Loader2, Mail, CheckCircle2, Lock, KeyRound } from "lucide-react";
 import heroBanner from "@/assets/hero-banner.jpg";
 
 const FEATURES = [
-  { icon: Upload, label: "Disrupt This Product", desc: "Drop URLs or photos — AI builds a full commercial intelligence dossier", accent: "hsl(217 91% 38%)" },
-  { icon: Briefcase, label: "Disrupt This Service", desc: "Map the competitive landscape and uncover growth opportunities", accent: "hsl(340 75% 50%)" },
-  { icon: Building2, label: "Disrupt The Business Model", desc: "Deconstruct any business across 7 strategic dimensions", accent: "hsl(271 81% 55%)" },
-  { icon: Telescope, label: "Disrupt This Nostalgia", desc: "Find undervalued products with real comeback potential", accent: "hsl(217 91% 50%)" },
+  { icon: Brain, label: "AI Product Intelligence", desc: "Deep-dive any discontinued product with live market data" },
+  { icon: TrendingUp, label: "Revival Score Engine", desc: "Predict what's hot before the market catches on" },
+  { icon: Sparkles, label: "Flip Ideas Generator", desc: "Turn old assumptions into bold new product concepts" },
+  { icon: Eye, label: "First Principles Analysis", desc: "Deconstruct and redesign from the ground up" },
 ];
 
 const inputStyle = {
@@ -104,13 +104,13 @@ export default function AuthPage() {
             </p>
           </div>
           <div className="space-y-4">
-            {FEATURES.map(({ icon: Icon, label, desc, accent }) => (
+            {FEATURES.map(({ icon: Icon, label, desc }) => (
               <div key={label} className="flex items-start gap-4">
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: `${accent}25`, border: `1px solid ${accent}40` }}
+                  style={{ background: "hsl(var(--primary) / 0.25)", border: "1px solid hsl(var(--primary) / 0.4)" }}
                 >
-                  <Icon size={16} style={{ color: accent }} />
+                  <Icon size={16} style={{ color: "hsl(var(--primary-light))" }} />
                 </div>
                 <div>
                   <p className="text-white font-semibold text-sm">{label}</p>
@@ -227,17 +227,17 @@ export default function AuthPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-2.5">
-              {FEATURES.map(({ icon: Icon, label, desc, accent }) => (
+              {FEATURES.map(({ icon: Icon, label, desc }) => (
                 <div
                   key={label}
                   className="rounded-xl p-3 space-y-1.5"
-                  style={{ background: `${accent}12`, border: `1px solid ${accent}20` }}
+                  style={{ background: "hsl(var(--primary) / 0.08)", border: "1px solid hsl(var(--primary) / 0.15)" }}
                 >
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: `${accent}25` }}
+                    style={{ background: "hsl(var(--primary) / 0.2)" }}
                   >
-                    <Icon size={14} style={{ color: accent }} />
+                    <Icon size={14} style={{ color: "hsl(var(--primary-light))" }} />
                   </div>
                   <p className="text-white font-semibold text-xs leading-tight">{label}</p>
                   <p className="text-white/45 text-[10px] leading-snug">{desc}</p>
