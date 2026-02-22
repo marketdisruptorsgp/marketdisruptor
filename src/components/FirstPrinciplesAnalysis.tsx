@@ -325,10 +325,16 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </button>
         </div>
         {/* User suggestions for re-run */}
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-            <Lightbulb size={11} style={{ color: "hsl(var(--primary))" }} /> Guide the AI (optional)
-          </label>
+        <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)", borderLeft: "4px solid hsl(var(--primary))" }}>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.15)" }}>
+              <Lightbulb size={14} style={{ color: "hsl(var(--primary))" }} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-foreground">Steer the AI</p>
+              <p className="text-[10px] text-muted-foreground">Add your own direction, then hit Re-run above</p>
+            </div>
+          </div>
           <textarea
             value={rerunSuggestions}
             onChange={(e) => setRerunSuggestions(e.target.value)}
@@ -336,14 +342,13 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             className="w-full rounded-xl px-4 py-3 text-sm leading-relaxed resize-none transition-all focus:outline-none"
             rows={2}
             style={{
-              background: "hsl(var(--muted))",
-              border: "2px dashed hsl(var(--border))",
+              background: "hsl(var(--background))",
+              border: "2px solid hsl(var(--primary) / 0.2)",
               color: "hsl(var(--foreground))",
             }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(var(--primary))"; e.currentTarget.style.borderStyle = "solid"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--border))"; e.currentTarget.style.borderStyle = "dashed"; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(var(--primary))"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--primary) / 0.2)"; }}
           />
-          <p className="text-[10px] text-muted-foreground">Add suggestions to steer the analysis direction, then hit Re-run.</p>
         </div>
       </div>
 
@@ -935,25 +940,30 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </p>
 
           {/* User context input */}
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Lightbulb size={11} style={{ color: "hsl(var(--primary))" }} /> Guide the AI (optional)
-            </label>
+          <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.2)", borderLeft: "4px solid hsl(38 92% 50%)" }}>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50% / 0.15)" }}>
+                <Lightbulb size={14} style={{ color: "hsl(38 92% 50%)" }} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground">Steer the Ideas</p>
+                <p className="text-[10px] text-muted-foreground">Share your goals, then regenerate below</p>
+              </div>
+            </div>
             <textarea
               value={userContext}
               onChange={(e) => setUserContext(e.target.value)}
               placeholder="e.g. Focus on eco-friendly materials, target Gen Z audience, keep price under $30, emphasize subscription model…"
               className="w-full rounded-xl px-4 py-3 text-sm leading-relaxed resize-none transition-all focus:outline-none"
               style={{
-                background: "hsl(var(--muted))",
-                border: "2px dashed hsl(var(--border))",
+                background: "hsl(var(--background))",
+                border: "2px solid hsl(38 92% 50% / 0.2)",
                 color: "hsl(var(--foreground))",
                 minHeight: "80px",
               }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(var(--primary))"; e.currentTarget.style.borderStyle = "solid"; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--border))"; e.currentTarget.style.borderStyle = "dashed"; }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(38 92% 50%)"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(38 92% 50% / 0.2)"; }}
             />
-            <p className="text-[10px] text-muted-foreground">Share your goals, target audience, price range, materials preference, or any feedback on existing ideas.</p>
           </div>
 
           {flippedIdeas && flippedIdeas.length > 0 ? (
