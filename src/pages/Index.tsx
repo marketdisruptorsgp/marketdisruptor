@@ -17,6 +17,7 @@ import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { UserHeader } from "@/components/UserHeader";
 import WelcomeModal from "@/components/WelcomeModal";
 import { ContextualTip } from "@/components/ContextualTip";
+import MobileTour from "@/components/MobileTour";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, TIERS } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -481,6 +482,9 @@ export default function Index() {
         <WelcomeModal firstName={profile.first_name} onClose={handleCloseWelcome} />
       )}
 
+      {/* Mobile Guided Tour */}
+      {user && !showWelcome && <MobileTour userId={user.id} />}
+
       {/* Exit-Intent Prompt */}
       {showExitPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "hsl(220 20% 5% / 0.6)", backdropFilter: "blur(4px)" }}>
@@ -548,7 +552,9 @@ export default function Index() {
               <Zap size={15} style={{ color: "hsl(var(--primary-light))" }} />
               <span className="text-xs font-bold tracking-widest uppercase text-white/70">Market Disruptor</span>
             </div>
-            <UserHeader />
+            <div data-tour="user-menu">
+              <UserHeader />
+            </div>
           </div>
         </div>
         <div className="relative z-[1] max-w-6xl mx-auto px-4 py-10 sm:py-14">
@@ -610,7 +616,7 @@ export default function Index() {
           ];
           return (
             <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--border))", boxShadow: "var(--shadow-card)", background: "hsl(var(--card))" }}>
-              <div className="flex" style={{ background: "hsl(220 25% 6%)" }}>
+              <div className="flex" data-tour="tabs" style={{ background: "hsl(220 25% 6%)" }}>
                 {TABS.map((tab) => {
                   const isActive = mainTab === tab.id;
                   const Icon = tab.icon;
@@ -648,7 +654,7 @@ export default function Index() {
                       id="discovery-tip-1"
                       message={`💡 Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
                     />
-                    <div className="mt-4">
+                    <div className="mt-4" data-tour="analysis-form">
                       <AnalysisForm
                         onAnalyze={handleAnalyze}
                         isLoading={isLoading}
