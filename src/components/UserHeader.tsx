@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, ChevronDown, Sparkles, CreditCard, Crown, ArrowRight, KeyRound, Loader2, X, Check, Share2, Copy, Gift } from "lucide-react";
+import { LogOut, ChevronDown, Sparkles, CreditCard, Crown, ArrowRight, KeyRound, Loader2, X, Check, Share2, Copy, Gift, Mail, Send } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, TIERS } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,10 @@ export function UserHeader() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -64,6 +68,27 @@ export function UserHeader() {
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl);
     toast.success("Referral link copied!");
+  };
+
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recipientEmail) return;
+    setSendingEmail(true);
+    setEmailSent(false);
+    try {
+      const { error } = await supabase.functions.invoke("send-referral-email", {
+        body: { recipientEmail, recipientName, shareUrl },
+      });
+      if (error) throw error;
+      setEmailSent(true);
+      toast.success("Invitation sent!");
+      setRecipientEmail("");
+      setRecipientName("");
+    } catch {
+      toast.error("Failed to send email. Try again.");
+    } finally {
+      setSendingEmail(false);
+    }
   };
 
   const handleManage = async () => {
@@ -323,6 +348,46 @@ export function UserHeader() {
               >
                 <Copy size={14} /> Copy Link
               </button>
+            </div>
+
+            {/* Send via Email */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Mail size={14} style={{ color: "hsl(var(--primary))" }} />
+                <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Or Send via Email</label>
+              </div>
+              <form onSubmit={handleSendEmail} className="space-y-2">
+                <input
+                  style={inputStyle}
+                  type="text"
+                  placeholder="Their name (optional)"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                />
+                <input
+                  style={inputStyle}
+                  type="email"
+                  placeholder="Their email address"
+                  value={recipientEmail}
+                  onChange={(e) => { setRecipientEmail(e.target.value); setEmailSent(false); }}
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={sendingEmail || !recipientEmail}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all"
+                  style={{
+                    background: emailSent ? "hsl(142 71% 45%)" : sendingEmail || !recipientEmail ? "hsl(var(--muted))" : "hsl(var(--primary))",
+                    color: sendingEmail || !recipientEmail ? "hsl(var(--muted-foreground))" : "white",
+                    boxShadow: !sendingEmail && recipientEmail ? "0 4px 16px -2px hsl(217 91% 50% / 0.4)" : "none",
+                  }}
+                >
+                  {sendingEmail ? <><Loader2 size={14} className="animate-spin" /> Sending…</> : emailSent ? <><Check size={14} /> Sent!</> : <><Send size={14} /> Send Branded Invitation</>}
+                </button>
+              </form>
+              <p className="text-[11px] leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+                We'll send them a beautifully branded email explaining the platform with your referral link included.
+              </p>
             </div>
 
             {referralStats.count > 0 && (
