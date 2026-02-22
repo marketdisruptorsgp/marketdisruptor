@@ -19,6 +19,8 @@ serve(async (req) => {
 
 Your flipped ideas must be BOLD, SPECIFIC, and ACTIONABLE — not vague concepts. Prioritize NOVEL approaches that create new categories or rethink how things work. You are NOT limited to proven models — radical innovation often has no direct precedent, and that's a STRENGTH.
 
+IMPORTANT: Not everything needs to be flipped. If parts of the current product/service already work well (pricing model, core feature, delivery method, audience), CALL THAT OUT and build on it. The best flips preserve what's strong and reinvent what's broken.
+
 THE DIFFERENCE BETWEEN A GOOD IDEA AND A GREAT ONE:
 - BAD: "A smart version with an app" (generic, no specifics)
 - GOOD: "A $39 modular version sold via TikTok Shop targeting the specific grip frustration that r/smartphones discusses weekly. BOM $4.20 via Shenzhen suppliers, 78% margin, breakeven at 890 units."
@@ -36,6 +38,7 @@ Each object must follow this EXACT structure:
   "feasibilityNotes": "BOM estimate with MATH ($X per unit breakdown), specific manufacturer category (name the platform/region), tech required, MOQ, retail margin CALCULATION (BOM → retail → margin %)",
   "scores": {"feasibility": 8, "desirability": 9, "profitability": 7, "novelty": 9},
   "risks": "Specific risks with named mitigation strategies. Include the #1 reason this could fail and what would need to be true for it to succeed.",
+  "preservedStrengths": "What elements of the CURRENT product/service this idea intentionally KEEPS and builds on (and why they're worth keeping). If everything is new, explain why a clean break is better.",
   "whyNow": "The specific market shift, tech unlock, or cultural moment that makes this viable RIGHT NOW",
   "analogousSuccess": "A real company/product that proved a similar model works (with data), OR 'Novel approach' with explanation of why no precedent exists and why that's an opportunity",
   "demandSignal": "Evidence of demand: community complaints, cultural shifts, adjacent market growth, behavioral trends, or search/social signals",

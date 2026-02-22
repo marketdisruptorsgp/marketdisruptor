@@ -31,6 +31,7 @@ CRITICAL RULES:
 3. For NOVEL concepts with no direct competitors, evaluate based on: customer behavior change required, technical complexity, market timing, and adjacent market signals — don't penalize innovation for being unprecedented.
 4. Blue Team should be genuinely constructive — find the real reasons this COULD work, including structural advantages of being first-to-market or creating a new category.
 5. If the concept is truly novel, compare to ADJACENT category successes (e.g., how Airbnb had no direct competitor but could be compared to Couchsurfing + hotels).
+6. IMPORTANT: If parts of the CURRENT product/service already have strong market fit, feasibility, or user loyalty, explicitly call that out. Not everything needs to change — identify what should be PRESERVED and what should be EVOLVED vs completely reinvented.
 
 THE DIFFERENCE BETWEEN GENERIC AND USEFUL STRESS TESTING:
 - BAD RED TEAM: "This is a generic, undifferentiated offering destined to fail" (lazy, unhelpful)
@@ -87,6 +88,12 @@ The JSON must follow this EXACT structure:
     "Recommendation 2 — a specific pivot option if the primary strategy fails",
     "Recommendation 3 — the cheapest way to validate demand before investing ($X budget, Y timeline)"
   ],
+  "currentApproachAssessment": {
+    "keepAsIs": ["Element of current product/service that should NOT change — explain why it already has strong market fit or feasibility"],
+    "adaptNotReplace": ["Element that should be evolved/improved but not completely replaced — explain what to change and what to keep"],
+    "fullyReinvent": ["Element that genuinely needs to be rethought from scratch — explain why the current approach is fundamentally broken"],
+    "verdict": "Overall: should this be a radical reinvention, a strategic evolution, or a focused improvement on specific weak points? Be honest — sometimes the current approach is 70% right."
+  },
   "blindSpots": [
     "Critical blind spot 1 — be specific about what data is missing and where to find it",
     "Blind spot 2",

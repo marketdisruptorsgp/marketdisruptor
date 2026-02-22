@@ -37,6 +37,11 @@ Respond ONLY with a single valid JSON object — no markdown, no explanation.
 
 The JSON must follow this EXACT structure:
 {
+  "currentStrengths": {
+    "whatWorks": ["Specific element of current product/service that is already strong and should be preserved — explain WHY it works", "Strong element 2", "Strong element 3"],
+    "competitiveAdvantages": ["Current advantage 1 that would be costly or risky to abandon", "Advantage 2"],
+    "keepVsAdapt": "Honest assessment: which aspects should remain as-is, which should be adapted (not replaced), and which should be completely rethought. Be specific about WHY."
+  },
   "coreReality": {
     "trueProblem": "The actual human problem being solved (not marketing)",
     "actualUsage": "How customers genuinely interact with this service — behaviors, workarounds, complaints",
@@ -126,6 +131,11 @@ Respond ONLY with a single valid JSON object — no markdown, no explanation.
 
 The JSON must follow this EXACT structure:
 {
+  "currentStrengths": {
+    "whatWorks": ["Specific element of current product that is already strong and should be preserved — explain WHY it works", "Strong element 2", "Strong element 3"],
+    "competitiveAdvantages": ["Current advantage 1 that would be costly or risky to abandon", "Advantage 2"],
+    "keepVsAdapt": "Honest assessment: which aspects should remain as-is, which should be adapted (not replaced), and which should be completely rethought. Be specific about WHY."
+  },
   "coreReality": {
     "trueProblem": "The actual human problem being solved (not marketing)",
     "actualUsage": "How people genuinely use this — rituals, contexts, workarounds",

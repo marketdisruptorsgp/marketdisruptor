@@ -46,6 +46,13 @@ interface ConfidenceScore {
   reasoning: string;
 }
 
+interface CurrentApproachAssessment {
+  keepAsIs: string[];
+  adaptNotReplace: string[];
+  fullyReinvent: string[];
+  verdict: string;
+}
+
 interface ValidationData {
   redTeam: { verdict: string; arguments: RedTeamArg[]; killShot: string };
   blueTeam: { verdict: string; arguments: BlueTeamArg[]; moonshot: string };
@@ -53,6 +60,7 @@ interface ValidationData {
   feasibilityChecklist: FeasibilityItem[];
   confidenceScores: Record<string, ConfidenceScore>;
   strategicRecommendations?: string[];
+  currentApproachAssessment?: CurrentApproachAssessment;
   blindSpots: string[];
 }
 
@@ -329,6 +337,55 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             ))}
           </div>
         ) : null}
+
+        {/* Current Approach Assessment */}
+        {data.currentApproachAssessment && (
+          <div className="space-y-3">
+            <p className="section-label text-[10px] flex items-center gap-1">
+              <Shield size={11} style={{ color: "hsl(var(--primary))" }} /> Current Approach Assessment
+            </p>
+            {data.currentApproachAssessment.keepAsIs?.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(142 70% 35%)" }}>✓ Keep As-Is</p>
+                {data.currentApproachAssessment.keepAsIs.map((item, i) => (
+                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
+                    style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
+                    <span className="text-foreground/80 leading-relaxed">{item}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {data.currentApproachAssessment.adaptNotReplace?.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(38 92% 40%)" }}>↻ Adapt & Evolve</p>
+                {data.currentApproachAssessment.adaptNotReplace.map((item, i) => (
+                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
+                    style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.2)" }}>
+                    <RefreshCw size={11} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 1 }} />
+                    <span className="text-foreground/80 leading-relaxed">{item}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {data.currentApproachAssessment.fullyReinvent?.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>⚡ Fully Reinvent</p>
+                {data.currentApproachAssessment.fullyReinvent.map((item, i) => (
+                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
+                    style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+                    <Flame size={11} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 1 }} />
+                    <span className="text-foreground/80 leading-relaxed">{item}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="p-4 rounded-xl" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--primary))" }}>Overall Verdict</p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{data.currentApproachAssessment.verdict}</p>
+            </div>
+          </div>
+        )}
 
         {/* Blind Spots */}
         {data.blindSpots?.length > 0 && (
