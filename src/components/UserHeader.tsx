@@ -61,9 +61,13 @@ export function UserHeader() {
     setShowShareModal(true);
   };
 
+  const shareMessage1 = `Check this out — Market Disruptor by SGP Capital. It's an AI platform that scrapes live market data and breaks down any product or business to find hidden opportunities. Revival scores, supply chain intel, flip ideas, pitch decks — all generated in seconds.\n\n${shareUrl}`;
+
+  const shareMessage2 = `^ That link gives you 5 extra analyses for free. I've been using it to find undervalued products and the AI insights are insane — it pulls from eBay, Etsy, Reddit, Google & TikTok in real time.`;
+
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("Share link copied!");
+    navigator.clipboard.writeText(shareMessage1 + "\n\n" + shareMessage2);
+    toast.success("Share messages copied!");
   };
 
   const handleManage = async () => {
@@ -307,30 +311,30 @@ export function UserHeader() {
               </p>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Your Share Link</label>
-              <div className="flex gap-2">
-                <input
-                  readOnly
-                  value={shareUrl}
-                  className="flex-1 text-xs font-mono"
-                  style={{
-                    border: "1.5px solid hsl(var(--border))",
-                    background: "hsl(var(--muted))",
-                    color: "hsl(var(--foreground))",
-                    borderRadius: "0.5rem",
-                    padding: "0.6rem 0.75rem",
-                    outline: "none",
-                  }}
-                />
-                <button
-                  onClick={handleCopyLink}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-sm transition-all"
-                  style={{ background: "hsl(var(--primary))", color: "white", boxShadow: "0 2px 8px -2px hsl(217 91% 50% / 0.4)" }}
-                >
-                  <Copy size={14} /> Copy
-                </button>
+            <div className="space-y-3">
+              <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Message 1 — The Pitch</label>
+              <div
+                className="rounded-xl p-3 text-xs leading-relaxed whitespace-pre-wrap"
+                style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
+              >
+                {shareMessage1}
               </div>
+
+              <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Message 2 — The Follow-Up</label>
+              <div
+                className="rounded-xl p-3 text-xs leading-relaxed whitespace-pre-wrap"
+                style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
+              >
+                {shareMessage2}
+              </div>
+
+              <button
+                onClick={handleCopyLink}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all"
+                style={{ background: "hsl(var(--primary))", color: "white", boxShadow: "0 4px 16px -2px hsl(217 91% 50% / 0.4)" }}
+              >
+                <Copy size={14} /> Copy Both Messages
+              </button>
             </div>
 
             {referralStats.count > 0 && (
