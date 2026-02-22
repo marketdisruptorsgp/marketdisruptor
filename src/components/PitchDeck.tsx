@@ -28,6 +28,7 @@ import {
   Star,
   AlertTriangle,
   Download,
+  ChevronRight,
 } from "lucide-react";
 
 interface FinancialModel {
@@ -365,6 +366,10 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               </div>
             </div>
           )}
+          <button onClick={() => setActiveSlide("market")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(142 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(142 70% 40% / 0.4)" }}>
+            Next: Market <ChevronRight size={14} />
+          </button>
         </div>
       )}
 
@@ -411,6 +416,10 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               ))}
             </div>
           </div>
+          <button onClick={() => setActiveSlide("financials")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(35 90% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(35 90% 50% / 0.4)" }}>
+            Next: Financials <ChevronRight size={14} />
+          </button>
         </div>
       )}
 
@@ -523,6 +532,10 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               <p className="text-xs text-foreground/80">{data.financialModel.exitStrategy}</p>
             </div>
           </div>
+          <button onClick={() => setActiveSlide("suppliers")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(271 81% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(271 81% 55% / 0.4)" }}>
+            Next: Suppliers & Contacts <ChevronRight size={14} />
+          </button>
         </div>
       )}
 
@@ -552,6 +565,10 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               ))}
             </div>
           </div>
+          <button onClick={() => setActiveSlide("gtm")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(350 80% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(350 80% 55% / 0.4)" }}>
+            Next: Go-to-Market <ChevronRight size={14} />
+          </button>
         </div>
       )}
 
@@ -596,6 +613,10 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               </p>
             </div>
           </div>
+          <button onClick={() => setActiveSlide("risks")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(200 80% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(200 80% 50% / 0.4)" }}>
+            Next: Risks & Metrics <ChevronRight size={14} />
+          </button>
         </div>
       )}
 
@@ -656,6 +677,11 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
                 );
               })}
             </div>
+          </div>
+          <div className="text-center py-3">
+            <span className="text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 35%)" }}>
+              <CheckCircle2 size={12} /> All pitch deck sections explored!
+            </span>
           </div>
         </div>
       )}
