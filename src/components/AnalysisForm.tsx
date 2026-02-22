@@ -57,97 +57,100 @@ const BUSINESS_EXAMPLES = [
 // Steps config per mode
 const MODE_STEPS: Record<Mode, { label: string; detail: string }[]> = {
   discover: [
-    { label: "Configure Search", detail: "Choose category, era, and batch size for targeted discovery" },
-    { label: "AI Web Scraping", detail: "Simultaneously crawls eBay sold listings, Etsy trends, Reddit communities, TikTok viral signals, Google Shopping & Alibaba supplier databases" },
-    { label: "Multi-Model Deep Analysis", detail: "Gemini 2.5 Flash cross-references all scraped data — pricing intelligence, community sentiment, supply chain mapping & competitive landscape" },
-    { label: "Results & Action Plans", detail: "Revival Potential Scores (1–10), flipped product ideas with BOM estimates, 3-phase execution roadmaps with budget & ROI projections" },
+    { label: "Configure Search", detail: "Choose category, era, and batch size to focus the intelligence sweep across your target market" },
+    { label: "Broad Internet Intelligence Gathering", detail: "Crawls far beyond the URLs you provide — simultaneously scraping eBay sold listings, Etsy marketplace trends, Reddit community discussions, TikTok viral signals, Google Shopping, Alibaba supplier databases, patent registries (USPTO, Google Patents, Lens.org), forum complaint threads, and niche collector communities across the open web" },
+    { label: "Multi-Model Critical Analysis", detail: "Advanced AI cross-references all scraped intelligence, then systematically challenges every assumption — questioning why a product failed, whether the original market thesis was flawed, what user friction points were never addressed, and what the data actually says vs. what conventional wisdom assumes. Nothing is taken at face value." },
+    { label: "Results, Flipped Ideas & Action Plans", detail: "Revival Potential Scores (1–10) across 6 dimensions, radically reinvented product concepts with BOM estimates, patent landscape analysis identifying public-domain goldmines and IP risks, and a 3-phase execution roadmap with budget and ROI projections" },
   ],
   custom: [
-    { label: "Provide Product Info", detail: "Add up to 3 URLs and 5 product images for maximum intelligence coverage" },
-    { label: "AI Scraping & Vision Analysis", detail: "Each URL is scraped for pricing, reviews & specs. Vision AI reads product images to extract features, quality signals & design patterns" },
-    { label: "Intelligence Report Generation", detail: "Cross-references market pricing, collector premiums, supplier data (MOQs, OEMs), Reddit sentiment & complaint signals into a unified dossier" },
-    { label: "Strategic Action Plan", detail: "Revival score, flip ideas with cost breakdowns, competitive gaps, and a 3-phase go-to-market roadmap with budget estimates" },
+    { label: "Provide Product Info", detail: "Your URLs and images are just the starting point — AI uses them as seeds to crawl outward across the broader internet for related market data, competitor products, community sentiment, and patent filings" },
+    { label: "Deep Web Crawl & Vision Analysis", detail: "Beyond scraping your URLs for pricing, reviews and specs, the system crawls related listings, competitor pages, Reddit threads, forum complaints, and patent databases. Vision AI reads product images to extract design patterns, quality signals, and manufacturing clues" },
+    { label: "Assumption-Challenging Intelligence Report", detail: "AI doesn't just report what it finds — it questions why the product is priced that way, whether the supply chain is actually optimal, what customer friction points are being ignored, and what the patent landscape reveals about untapped innovation angles. Every assumption is interrogated." },
+    { label: "Strategic Action Plan", detail: "Revival score, flipped product concepts that challenge the original design thesis, cost breakdowns, patent gap opportunities, competitive blind spots, and a 3-phase go-to-market roadmap with financial projections" },
   ],
   service: [
-    { label: "Describe the Service", detail: "Add website URLs, Yelp/Google listings, screenshots, and context for comprehensive analysis" },
-    { label: "AI Scraping & Market Analysis", detail: "Scrapes service pages, reviews, pricing structures & competitor sites. Analyzes screenshots with vision AI for positioning insights" },
-    { label: "Competitive Intelligence", detail: "Maps pricing models across competitors, identifies underserved segments, analyzes customer complaints & feature gaps in the market" },
-    { label: "Growth Strategy Blueprint", detail: "Customer pain points, pricing optimization opportunities, expansion strategies, and an actionable scaling roadmap with financial projections" },
+    { label: "Describe the Service", detail: "Your URLs and screenshots seed a broader intelligence sweep — AI crawls outward to find competitor sites, review platforms, pricing comparisons, industry forums, and regulatory filings across the open web" },
+    { label: "Broad Market Intelligence Crawl", detail: "Scrapes far beyond the pages you provide — pulling competitor pricing structures, customer reviews across Yelp, Google, Trustpilot, industry-specific forums, social media sentiment, and workflow/engagement patterns. Vision AI analyzes screenshots for positioning and UX friction" },
+    { label: "Critical Competitive Analysis", detail: "Maps pricing models across the full competitive landscape, identifies user journey friction points and engagement drop-offs, challenges assumptions about what customers actually value vs. what the market assumes they want, and surfaces underserved segments the competition has overlooked" },
+    { label: "Growth Strategy Blueprint", detail: "Customer pain points reframed as opportunities, pricing optimization based on real competitor data, user engagement and retention strategies, expansion paths the market hasn't considered, and an actionable scaling roadmap with financial projections" },
   ],
   business: [
-    { label: "Describe Your Business", detail: "Business type, revenue model, scale, geography, pain points — the more detail, the deeper the analysis" },
-    { label: "7-Dimension Strategic Deconstruction", detail: "AI analyzes customer journey friction, cost structure inefficiencies, tech leverage opportunities, competitive moats, automation gaps, pricing power & reinvention paths" },
-    { label: "Reinvention Blueprint", detail: "Complete strategic overhaul plan with financial projections, automation priorities, competitive repositioning, and a phased implementation timeline" },
+    { label: "Describe Your Business", detail: "Business type, revenue model, scale, geography, pain points — the more detail you provide, the deeper the AI can deconstruct and challenge your existing model" },
+    { label: "7-Dimension First-Principles Deconstruction", detail: "AI strips the business down to its fundamental truths and rebuilds from scratch — analyzing customer journey friction, cost structure inefficiencies, technology leverage gaps, competitive moats, automation opportunities, pricing power, user engagement patterns, and reinvention paths. Every assumption about how the business 'should' work is questioned." },
+    { label: "Reinvention Blueprint", detail: "A complete strategic overhaul plan that challenges the status quo — identifying hidden revenue opportunities, automation priorities that eliminate friction, competitive repositioning strategies, patent and IP considerations, and a phased implementation timeline with financial projections" },
   ],
 };
 
 // Capability stats per mode  
-const MODE_CAPABILITIES: Record<Mode, { icon: string; stat: string; label: string }[]> = {
+const MODE_CAPABILITIES: Record<Mode, { stat: string; label: string }[]> = {
   discover: [
-    { icon: "🌐", stat: "8+", label: "Data sources scraped simultaneously" },
-    { icon: "🧠", stat: "3", label: "AI models working in parallel" },
-    { icon: "📊", stat: "50+", label: "Data points per product analyzed" },
-    { icon: "⚡", stat: "10K+", label: "Market signals processed per batch" },
-    { icon: "🔍", stat: "6", label: "Scoring dimensions per product" },
+    { stat: "8+", label: "Live data sources crawled simultaneously across the open web" },
+    { stat: "3 AI Models", label: "Working in parallel — scraping, reasoning, and scoring" },
+    { stat: "50+", label: "Data points analyzed per product including patent filings" },
+    { stat: "10K+", label: "Market signals processed and cross-referenced per batch" },
+    { stat: "6 Dimensions", label: "Feasibility, desirability, profitability, IP landscape, community demand, assumption validity" },
   ],
   custom: [
-    { icon: "👁️", stat: "Vision AI", label: "Reads & analyzes product images" },
-    { icon: "🕸️", stat: "Deep Scrape", label: "Extracts pricing, reviews & specs" },
-    { icon: "📈", stat: "50+", label: "Market data points per product" },
-    { icon: "🏭", stat: "Supply Chain", label: "Supplier & manufacturer mapping" },
-    { icon: "💡", stat: "3-Phase", label: "Execution roadmap with ROI" },
+    { stat: "Vision AI", label: "Reads product images to extract design, quality, and manufacturing signals" },
+    { stat: "Broad Crawl", label: "Goes far beyond your URLs — scrapes competitors, forums, patents, and communities" },
+    { stat: "50+", label: "Market data points per product from real transaction and listing data" },
+    { stat: "Patent Scan", label: "USPTO, Google Patents, and Lens.org for IP opportunities and risks" },
+    { stat: "3-Phase Plan", label: "Execution roadmap with assumption-tested financials and ROI" },
   ],
   service: [
-    { icon: "🏪", stat: "Multi-Source", label: "Website, Yelp, Google, LinkedIn" },
-    { icon: "👁️", stat: "Vision AI", label: "Screenshot & visual analysis" },
-    { icon: "🎯", stat: "Gap Analysis", label: "Identifies underserved segments" },
-    { icon: "💰", stat: "Pricing Intel", label: "Competitor pricing breakdown" },
-    { icon: "📋", stat: "Action Plan", label: "Scaling roadmap with financials" },
+    { stat: "Multi-Source", label: "Crawls beyond your links — competitor sites, Yelp, Google, forums, social media" },
+    { stat: "Vision AI", label: "Analyzes screenshots for UX patterns, positioning, and friction points" },
+    { stat: "Friction Map", label: "Identifies user workflow bottlenecks and engagement drop-off points" },
+    { stat: "Pricing Intel", label: "Real competitor pricing structures, not estimates — scraped from live data" },
+    { stat: "Critical Lens", label: "Challenges market assumptions and surfaces what competitors are missing" },
   ],
   business: [
-    { icon: "🔬", stat: "7 Dimensions", label: "Strategic deconstruction depth" },
-    { icon: "🤖", stat: "Gemini Pro", label: "Advanced reasoning engine" },
-    { icon: "⚙️", stat: "Automation", label: "Tech leverage gap detection" },
-    { icon: "💎", stat: "Hidden Value", label: "Untapped revenue opportunities" },
-    { icon: "🗺️", stat: "Blueprint", label: "Full reinvention plan" },
+    { stat: "7 Dimensions", label: "Deep strategic deconstruction from first principles" },
+    { stat: "Gemini Pro", label: "Advanced multi-step reasoning engine for complex business logic" },
+    { stat: "Friction Analysis", label: "Maps every user engagement and workflow pain point" },
+    { stat: "Assumption Audit", label: "Systematically questions every belief about how the business works" },
+    { stat: "Full Blueprint", label: "Reinvention plan with IP considerations and financial modeling" },
   ],
 };
 
 const MODE_WHAT_YOU_GET: Record<Mode, string[]> = {
   discover: [
-    "Revival Potential Score (1–10) for every product discovered",
-    "Flipped product concepts with bill-of-materials cost estimates",
-    "Real-time pricing intelligence from eBay sold listings & Etsy",
-    "Community sentiment analysis from Reddit, TikTok & Google trends",
-    "Supply chain data — suppliers, MOQs, manufacturers & distributors",
-    "3-phase execution roadmap with budget estimates & ROI projections",
-    "Patent landscape overview for each product category",
+    "Revival Potential Score (1–10) across 6 scoring dimensions for every product discovered",
+    "Flipped product concepts that challenge the original design thesis, with bill-of-materials cost estimates",
+    "Real-time pricing intelligence from eBay sold listings, Etsy, and collector marketplaces",
+    "Community sentiment analysis from Reddit, TikTok, and Google trends — not just what people say, but what they actually buy",
+    "Supply chain mapping — verified suppliers, MOQs, manufacturers, and distributor networks",
+    "Patent landscape analysis from USPTO, Google Patents, and Lens.org — expired patents (public-domain goldmines), active IP moats (legal risks), and innovation gaps",
+    "User engagement and friction analysis — why the original product lost traction and what was never fixed",
+    "Assumption-challenged 3-phase execution roadmap with budget estimates and ROI projections",
   ],
   custom: [
-    "Full commercial intelligence dossier for your specific product",
-    "Pricing analysis — market averages, collector premiums & trends",
-    "Supply chain mapping — OEMs, suppliers, MOQs & cost breakdowns",
-    "Competitive landscape — who's selling what, at what price, and where",
-    "Community complaints & feature requests from Reddit & forums",
-    "Flipped product ideas — reinvented versions with BOM estimates",
-    "Actionable 3-phase go-to-market plan with financial projections",
+    "Full commercial intelligence dossier built from broad internet crawling, not just your URLs",
+    "Pricing analysis — real market averages, collector premiums, and trend trajectories from live data",
+    "Supply chain mapping — OEMs, suppliers, MOQs, cost breakdowns, and alternative sourcing paths",
+    "Competitive landscape — who is selling what, at what price, where, and what gaps they are leaving open",
+    "Patent intelligence — expired IP you can leverage, active patents to avoid, and innovation angles in the white space",
+    "Community complaints and feature requests from Reddit, forums, and review sites — the unfiltered truth about what users actually want",
+    "Flipped product ideas that question every assumption about the original design and market positioning",
+    "Actionable 3-phase go-to-market plan with financial projections stress-tested against real data",
   ],
   service: [
-    "Service market positioning analysis vs. direct competitors",
-    "Pricing model breakdown — how competitors charge & where gaps exist",
-    "Customer pain point mapping from reviews & complaint data",
-    "Underserved market segments & expansion opportunities",
-    "Competitive moat analysis — what differentiates winners from losers",
-    "Growth strategy with customer acquisition channels & costs",
-    "Financial projections for scaling scenarios",
+    "Service market positioning analysis against the full competitive landscape, not just obvious competitors",
+    "Pricing model breakdown — how every competitor charges, where pricing gaps exist, and what customers are actually willing to pay",
+    "User journey friction mapping — where customers drop off, what causes frustration, and what engagement patterns reveal",
+    "Underserved market segments and expansion opportunities the competition has not considered",
+    "Competitive moat analysis — what actually differentiates winners from losers in this space",
+    "Assumption-challenged growth strategy with customer acquisition channels, costs, and retention mechanics",
+    "Financial projections for scaling scenarios grounded in real market data",
   ],
   business: [
-    "Customer journey friction map — every pain point identified",
-    "Cost structure deconstruction — where money leaks & where to cut",
-    "Technology leverage audit — automation & AI opportunities",
-    "Competitive repositioning strategy with defensible moat plan",
-    "Revenue optimization paths you haven't considered",
-    "Complete reinvention blueprint with phased implementation timeline",
+    "Customer journey friction map — every engagement pain point identified and ranked by impact",
+    "Cost structure deconstruction — where money leaks, what assumptions are inflating costs, and where to cut without losing value",
+    "Technology leverage audit — automation and AI opportunities with implementation difficulty ratings",
+    "User workflow analysis — how people actually interact with the business vs. how you think they do",
+    "Competitive repositioning strategy with a defensible moat plan built on first-principles reasoning",
+    "Revenue optimization paths you have not considered, surfaced by challenging every assumption about your pricing and delivery model",
+    "Complete reinvention blueprint with patent/IP considerations and a phased implementation timeline",
   ],
 };
 
@@ -400,7 +403,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-center" style={{ color: modeOption.accent }}>
                 What Powers This Analysis
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
                 {capabilities.map((cap, i) => (
                   <div
                     key={i}
@@ -410,8 +413,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                       border: `1px solid ${modeOption.accent}15`,
                     }}
                   >
-                    <span className="text-lg">{cap.icon}</span>
-                    <p className="text-sm font-extrabold text-foreground mt-1">{cap.stat}</p>
+                    <p className="text-sm font-extrabold text-foreground">{cap.stat}</p>
                     <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{cap.label}</p>
                   </div>
                 ))}
@@ -471,16 +473,16 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               className="rounded-xl p-4 text-center max-w-xl mx-auto"
               style={{ background: "hsl(var(--muted) / 0.5)", border: "1px solid hsl(var(--border))" }}
             >
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">⚙️ Behind the Scenes</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Behind the Scenes</p>
               <p className="text-xs text-muted-foreground leading-relaxed">{modeOption.behindTheScenes}</p>
             </div>
 
             {/* Trust signals */}
             <div className="flex flex-wrap items-center justify-center gap-4 text-[10px] text-muted-foreground">
-              <span className="flex items-center gap-1">🔒 TLS encrypted</span>
-              <span className="flex items-center gap-1">🚫 No data retained by AI</span>
-              <span className="flex items-center gap-1">🛡️ Row-level security</span>
-              <span className="flex items-center gap-1">⚡ Serverless isolation</span>
+              <span className="flex items-center gap-1">TLS encrypted</span>
+              <span className="flex items-center gap-1">No data retained by AI</span>
+              <span className="flex items-center gap-1">Row-level security</span>
+              <span className="flex items-center gap-1">Serverless isolation</span>
             </div>
 
             {/* CTA */}
@@ -599,7 +601,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                   )}
                 </select>
                 <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">or</span>
                   <input
                     type="text"
                     value={!CATEGORIES.includes(category) ? category : ""}
@@ -627,7 +629,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                   )}
                 </select>
                 <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">or</span>
                   <input
                     type="text"
                     value={!ERAS.includes(era) ? era : ""}
@@ -914,7 +916,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                     )}
                   </select>
                   <div className="relative">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">or</span>
                     <input
                       type="text"
                       value={!BUSINESS_EXAMPLES.includes(businessInput.type) ? businessInput.type : ""}
@@ -995,13 +997,13 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                     </div>
                     <div className="space-y-2">
                       {[
-                        { label: "Mapping customer journey & friction points", icon: "🔍" },
-                        { label: "Deconstructing cost structure & revenue leaks", icon: "💰" },
-                        { label: "Identifying automation & tech leverage", icon: "⚡" },
-                        { label: "Building reinvented business model", icon: "🚀" },
+                        { label: "Mapping customer journey and friction points", marker: "1" },
+                        { label: "Deconstructing cost structure and revenue leaks", marker: "2" },
+                        { label: "Identifying automation and tech leverage", marker: "3" },
+                        { label: "Building reinvented business model", marker: "4" },
                       ].map((item, i) => (
                         <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{item.icon}</span>
+                          <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold" style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>{item.marker}</span>
                           <span>{item.label}</span>
                         </div>
                       ))}
@@ -1168,7 +1170,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                       border: "1px solid hsl(var(--border))",
                     }}
                   >
-                    <p className="text-[9px] font-bold uppercase tracking-wider mb-0.5 text-muted-foreground">⚙️ How it works</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider mb-0.5 text-muted-foreground">How it works</p>
                     <p className="text-[10px] leading-relaxed text-muted-foreground">{behindTheScenes}</p>
                   </div>
                 </div>
