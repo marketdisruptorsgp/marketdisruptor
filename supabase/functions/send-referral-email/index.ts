@@ -57,23 +57,23 @@ function buildReferralEmailHtml(
               <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#e6edf3;line-height:1.25;letter-spacing:-0.02em;">
                 ${from} invited you to join Market Disruptor
               </h1>
-              <p style="margin:0 0 20px;font-size:15px;color:#8b949e;line-height:1.7;">
-                Hi ${to}, you've received an invitation to a proprietary product intelligence platform used by entrepreneurs, investors, and product teams to identify high-potential market opportunities.
+              <p style="margin:0 0 20px;font-size:15px;color:#e6edf3;line-height:1.7;">
+                Hi ${to}, you've been invited to a proprietary intelligence platform built for entrepreneurs, investors, and product teams who want to see what everyone else is missing.
               </p>
 
-              <p style="margin:0 0 20px;font-size:15px;color:#c9d1d9;line-height:1.7;">
-                Powered by deep web crawling, vision AI, and multi-model strategic analysis, Market Disruptor challenges every assumption about a product — why it exists in its current form, whether the pricing model is right, what friction users have normalized, and what a version rebuilt from scratch would look like. Complete with supply chain intelligence, patent analysis, and investor-ready pitch decks.
+              <p style="margin:0 0 20px;font-size:15px;color:#e6edf3;line-height:1.7;">
+                Market Disruptor uses <strong style="color:#ffffff;">proprietary multi-model AI</strong>, real-time web crawling, computer vision, and structured reasoning to deconstruct any product, service, or business model — then rebuild it from scratch. It doesn't summarize. It challenges every assumption: pricing architecture, supply chain logic, patent landscapes, competitive blind spots, and normalized friction that incumbents ignore.
               </p>
 
-              <p style="margin:0 0 24px;font-size:15px;color:#c9d1d9;line-height:1.7;">
-                You get a completely new take on any market — not a summary. Give it a try.
+              <p style="margin:0 0 24px;font-size:15px;color:#e6edf3;line-height:1.7;">
+                The result is a <strong style="color:#ffffff;">completely original strategic perspective</strong> — with investor-ready pitch decks, first-principles analysis, and actionable disruption paths. Not a report. A new way to see the market.
               </p>
 
               <!-- CTA -->
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center" style="padding:4px 0 28px;">
-                    <a href="\${shareUrl}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.02em;box-shadow:0 4px 24px -4px rgba(37,99,235,0.5);text-transform:uppercase;">
+                    <a href="${shareUrl}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.02em;box-shadow:0 4px 24px -4px rgba(37,99,235,0.5);text-transform:uppercase;">
                       Click Here to Start Disrupting
                     </a>
                   </td>
@@ -106,10 +106,10 @@ function buildReferralEmailHtml(
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:20px;">
                 <tr>
                   <td style="border-left:3px solid #3b82f6;padding:0 0 0 16px;">
-                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#e6edf3;letter-spacing:-0.01em;">Disrupt This Product</p>
-                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Deep-crawl any physical product across the web with vision AI</p>
-                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Surface real pricing intel, demand signals, and competitor gaps</p>
-                    <p style="margin:0;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Generate reimagined product concepts with feasibility scores</p>
+                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-0.01em;">Disrupt This Product</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Proprietary AI crawls the open web, marketplaces, and review platforms using computer vision to extract specs, pricing, and sentiment at scale</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Multi-model reasoning cross-references supply chain data, competitor positioning, and demand signals to surface gaps incumbents don't see</p>
+                    <p style="margin:0;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Generates reimagined product concepts with feasibility scores, cost modeling, and go-to-market blueprints</p>
                   </td>
                 </tr>
               </table>
@@ -118,10 +118,10 @@ function buildReferralEmailHtml(
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:20px;">
                 <tr>
                   <td style="border-left:3px solid #8b5cf6;padding:0 0 0 16px;">
-                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#e6edf3;letter-spacing:-0.01em;">Disrupt This Service</p>
-                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Deconstruct any service business — pricing, delivery, and margins</p>
-                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Identify inefficiencies customers have normalized</p>
-                    <p style="margin:0;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Model alternative revenue structures and untapped channels</p>
+                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-0.01em;">Disrupt This Service</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Deconstructs any service business — pricing tiers, delivery mechanics, and margin structures — using structured reasoning across multiple AI models</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Identifies normalized inefficiencies and friction points that customers accept but shouldn't have to</p>
+                    <p style="margin:0;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Models alternative revenue architectures, channel strategies, and automation opportunities backed by real market data</p>
                   </td>
                 </tr>
               </table>
@@ -130,10 +130,10 @@ function buildReferralEmailHtml(
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:20px;">
                 <tr>
                   <td style="border-left:3px solid #f59e0b;padding:0 0 0 16px;">
-                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#e6edf3;letter-spacing:-0.01em;">Disrupt The Business Model</p>
-                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Break apart any business model and rebuild it from first principles</p>
-                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; AI-driven strategic alternatives with revenue projections</p>
-                    <p style="margin:0;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Investor-ready pitch decks generated in seconds</p>
+                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-0.01em;">Disrupt The Business Model</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; First-principles deconstruction powered by advanced AI reasoning — breaks apart assumptions about value chains, pricing logic, and competitive moats</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Generates strategic alternatives with revenue projections, unit economics, and risk assessments using multi-source data fusion</p>
+                    <p style="margin:0;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Outputs investor-ready pitch decks and patent landscape analysis in seconds — not hours</p>
                   </td>
                 </tr>
               </table>
@@ -142,10 +142,10 @@ function buildReferralEmailHtml(
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:4px;">
                 <tr>
                   <td style="border-left:3px solid #22c55e;padding:0 0 0 16px;">
-                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#e6edf3;letter-spacing:-0.01em;">Disrupt This Nostalgia</p>
-                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Surface forgotten products from any era with cultural context</p>
-                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Score revival potential using modern market signals</p>
-                    <p style="margin:0;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Uncover hidden demand for products people didn't know they missed</p>
+                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-0.01em;">Disrupt This Nostalgia</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Surfaces forgotten products from any era using AI-powered cultural and commercial context analysis across historical data sources</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Scores revival potential against modern market demand, consumer trends, and manufacturing feasibility</p>
+                    <p style="margin:0;font-size:13px;color:#e6edf3;line-height:1.6;">&#8226; Uncovers latent demand for products people didn't know they missed — with actionable relaunch strategies</p>
                   </td>
                 </tr>
               </table>
