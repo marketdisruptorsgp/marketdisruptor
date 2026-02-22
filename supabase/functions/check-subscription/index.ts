@@ -69,11 +69,13 @@ serve(async (req) => {
     // Get total lifetime usage for explorer tier
     const { data: totalUsage } = await supabaseClient
       .from("user_usage")
-      .select("analysis_count")
+      .select("analysis_count, bonus_analyses")
       .eq("user_id", user.id);
 
-    const totalAnalyses = totalUsage?.reduce((sum, row) => sum + row.analysis_count, 0) ?? 0;
+    const totalAnalyses = totalUsage?.reduce((sum: number, row: any) => sum + row.analysis_count, 0) ?? 0;
+    const totalBonus = totalUsage?.reduce((sum: number, row: any) => sum + (row.bonus_analyses || 0), 0) ?? 0;
     const monthlyAnalyses = usageData?.analysis_count ?? 0;
+    const monthlyBonus = usageData?.bonus_analyses ?? 0;
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -85,7 +87,7 @@ serve(async (req) => {
         tier: "explorer",
         product_id: null,
         subscription_end: null,
-        usage: { total: totalAnalyses, monthly: monthlyAnalyses },
+        usage: { total: totalAnalyses, monthly: monthlyAnalyses, bonus: totalBonus, monthlyBonus },
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -122,7 +124,7 @@ serve(async (req) => {
       tier,
       product_id: productId,
       subscription_end: subscriptionEnd,
-      usage: { total: totalAnalyses, monthly: monthlyAnalyses },
+      usage: { total: totalAnalyses, monthly: monthlyAnalyses, bonus: totalBonus, monthlyBonus },
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

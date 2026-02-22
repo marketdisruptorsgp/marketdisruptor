@@ -51,7 +51,7 @@ function buildEmailHtml(firstName: string, magicLink: string): string {
                 Hey ${firstName}, you're one click away.
               </h1>
               <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
-                Your workspace is ready. Click below to jump straight in — no password needed, ever.
+                Your workspace is ready. Click below to jump straight in — instant, secure access.
               </p>
 
               <!-- CTA Button -->
