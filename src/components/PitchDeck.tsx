@@ -220,19 +220,44 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
       </div>
 
       {/* Slide nav */}
-      <div className="flex flex-wrap gap-2">
-        {SLIDE_TABS.map(({ id, label, icon: Icon }) => (
-          <button key={id} onClick={() => setActiveSlide(id)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
-            style={{
-              background: activeSlide === id ? "hsl(var(--primary))" : "hsl(var(--muted))",
-              color: activeSlide === id ? "white" : "hsl(var(--muted-foreground))",
-              border: `1px solid ${activeSlide === id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-            }}>
-            <Icon size={11} />{label}
-          </button>
-        ))}
-      </div>
+      {(() => {
+        const TAB_COLORS: Record<string, string> = {
+          pitch: "hsl(var(--primary))",
+          market: "hsl(142 70% 40%)",
+          financials: "hsl(35 90% 50%)",
+          suppliers: "hsl(271 81% 55%)",
+          gtm: "hsl(350 80% 55%)",
+          risks: "hsl(200 80% 50%)",
+        };
+        return (
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {SLIDE_TABS.map(({ id, label, icon: Icon }) => {
+            const isActive = activeSlide === id;
+            const color = TAB_COLORS[id] || "hsl(var(--primary))";
+            return (
+              <button key={id} onClick={() => setActiveSlide(id)}
+                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
+                style={{
+                  background: isActive ? color : "hsl(var(--muted))",
+                  color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
+                  border: isActive ? `2px solid ${color}` : "2px solid hsl(var(--border))",
+                  boxShadow: isActive ? `0 4px 12px -2px ${color}50` : "none",
+                  transform: isActive ? "scale(1.03)" : "scale(1)",
+                }}
+              >
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
+                  <Icon size={16} style={{ color: isActive ? "white" : color }} />
+                </div>
+                <span className="text-center leading-tight text-[10px]">{label}</span>
+                {!isActive && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse" style={{ background: color }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+        );
+      })()}
 
       {/* SLIDE: ELEVATOR PITCH */}
       {activeSlide === "pitch" && (
