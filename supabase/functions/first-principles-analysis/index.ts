@@ -11,11 +11,99 @@ serve(async (req) => {
 
   try {
     const { product } = await req.json();
-
+    const isService = product.category === "Service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are a radical first-principles product strategist. You combine the thinking of:
+    const systemPrompt = isService
+      ? `You are a radical first-principles service strategist. You combine the thinking of:
+- Clayton Christensen (jobs-to-be-done, disruptive innovation)
+- Elon Musk (first principles — strip away convention, rebuild from fundamentals)
+- Don Norman (cognitive load, affordances, friction archaeology)
+- IDEO (customer journey mapping, pain archaeology)
+- Alex Hormozi (offer design, pricing psychology, operational leverage)
+
+Your mission: completely deconstruct a SERVICE and uncover radical redesign opportunities. You question EVERYTHING:
+- What is the CUSTOMER JOURNEY? Step by step — what do they do before, during, after?
+- Where is FRICTION in that journey? What slows them down? What frustrates?
+- What is the DELIVERY MODEL? In-person, remote, hybrid? Why? Could it be flipped?
+- What is the PRICING MODEL? Per-use, subscription, retainer? What if it were completely different?
+- What OPERATIONAL BOTTLENECKS exist? What limits scale?
+- What SMART TECH could transform delivery? AI, automation, platforms — why isn't it there?
+- What ASSUMPTIONS are baked into how this service operates that nobody questions?
+- What would a 10x BETTER version look like if built from scratch today?
+
+Respond ONLY with a single valid JSON object — no markdown, no explanation.
+
+The JSON must follow this EXACT structure:
+{
+  "coreReality": {
+    "trueProblem": "The actual human problem being solved (not marketing)",
+    "actualUsage": "How customers genuinely interact with this service — behaviors, workarounds, complaints",
+    "normalizedFrustrations": ["frustration 1", "frustration 2", "frustration 3", "frustration 4"],
+    "userHacks": ["hack 1 — workarounds customers use", "hack 2", "hack 3"]
+  },
+  "physicalDimensions": {
+    "sizeAnalysis": "Service scope analysis — is it too narrow or too broad? What would a focused or expanded version look like?",
+    "weightAnalysis": "Service burden — how much effort does the customer bear vs. the provider? What if the burden shifted?",
+    "formFactorAnalysis": "Delivery format — in-person, remote, async, hybrid? What format would best fit customer context?",
+    "staticVsDynamic": "Is the service rigid when it shouldn't be? Could it adapt, personalize, or reconfigure per customer?",
+    "ergonomicGaps": ["Gap 1: specific customer-experience mismatch", "Gap 2", "Gap 3"],
+    "dimensionOpportunities": ["Bold opportunity 1 from rethinking service scope", "Bold opportunity 2", "Bold opportunity 3"]
+  },
+  "userWorkflow": {
+    "stepByStep": ["Step 1: how customer discovers/books the service", "Step 2: onboarding", "Step 3: core service delivery", "Step 4: follow-up", "Step 5: retention/rebooking"],
+    "frictionPoints": [
+      { "step": "step name", "friction": "specific friction description", "severity": "high|medium|low", "rootCause": "why this friction exists" }
+    ],
+    "cognitiveLoad": "What mental effort does the customer expend? What do they have to research, decide, coordinate, or manage?",
+    "contextOfUse": "When, in what state (urgent, planned, stressed, relaxed) do customers seek this? Does the service design account for that?",
+    "workflowOptimizations": ["Concrete optimization 1", "Concrete optimization 2", "Concrete optimization 3"]
+  },
+  "smartTechAnalysis": {
+    "currentTechLevel": "Describe current technology integration (or lack thereof) in service delivery",
+    "missedOpportunities": [
+      { "tech": "technology type (AI/automation/platform/analytics)", "application": "specific application to this service", "valueCreated": "what problem it solves or efficiency it creates" }
+    ],
+    "whyNotAlreadyDone": "Economic, technical, or cultural reasons why smart tech hasn't been applied yet",
+    "recommendedIntegration": "The single highest-leverage tech addition and exactly how it would transform the service"
+  },
+  "hiddenAssumptions": [
+    {
+      "assumption": "Specific assumption being questioned about how service is delivered",
+      "currentAnswer": "Why it's currently done this way",
+      "reason": "tradition | manufacturing | cost | physics | habit",
+      "isChallengeable": true,
+      "challengeIdea": "How you'd challenge or invert this assumption"
+    }
+  ],
+  "flippedLogic": [
+    {
+      "originalAssumption": "The assumption being flipped",
+      "boldAlternative": "The radical structural alternative",
+      "rationale": "Why this flip creates real value",
+      "physicalMechanism": "How it would actually work operationally/technically"
+    }
+  ],
+  "redesignedConcept": {
+    "conceptName": "Short punchy name for the reinvented service",
+    "tagline": "One sentence tagline",
+    "coreInsight": "The central service truth this is built around (2-3 sentences)",
+    "radicalDifferences": ["Key difference 1", "Key difference 2", "Key difference 3", "Key difference 4"],
+    "physicalDescription": "Vivid description of the service experience — how it feels, flows, what the customer sees and does",
+    "sizeAndWeight": "Service scope and commitment level — time, pricing tiers, engagement model",
+    "materials": ["Key capability 1 needed to deliver", "Key capability 2", "Key capability 3"],
+    "smartFeatures": ["Tech/automation feature 1 and how it works", "Smart feature 2", "Smart feature 3"],
+    "userExperienceTransformation": "The before and after journey — how the customer experience completely changes",
+    "frictionEliminated": ["Specific friction 1 now eliminated", "Specific friction 2 eliminated"],
+    "whyItHasntBeenDone": "Specific technical, economic, or cultural blockers",
+    "biggestRisk": "The single most likely failure point and mitigation",
+    "manufacturingPath": "Specific implementation path — hires, tools, platforms, cost estimate",
+    "pricePoint": "Target pricing model and market justification",
+    "targetUser": "Not a demographic — a specific human moment, need, or identity"
+  }
+}`
+      : `You are a radical first-principles product strategist. You combine the thinking of:
 - Dieter Rams (ruthless design purity — every element must earn its place)
 - Elon Musk (first principles — strip away convention, rebuild from physics up)
 - Jony Ive (human connection — how it feels in the hand, the ritual of use)
@@ -117,7 +205,37 @@ The JSON must follow this EXACT structure:
   }
 }`;
 
-    const userPrompt = `Apply radical first-principles deconstruction to this product. Question everything about its physical form, user workflow, friction points, and smart tech potential.
+    const userPrompt = isService
+      ? `Apply radical first-principles deconstruction to this SERVICE. Question everything about its delivery model, customer journey, operational friction, and technology potential.
+
+SERVICE: ${product.name}
+CATEGORY: ${product.category}
+DESCRIPTION: ${product.description}
+KEY INSIGHT: ${product.keyInsight || "None provided"}
+MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
+
+KNOWN CUSTOMER COMPLAINTS:
+${product.reviews?.filter((r: { sentiment: string }) => r.sentiment === "negative").map((r: { text: string }) => `• ${r.text}`).join("\n") || "General friction points"}
+
+EXISTING ASSUMPTIONS IDENTIFIED:
+${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption} → current challenge: ${a.challenge}`).join("\n") || "None pre-identified"}
+
+COMMUNITY PAIN POINTS:
+${(product as { communityInsights?: { topComplaints?: string[] } }).communityInsights?.topComplaints?.map((c: string) => `• ${c}`).join("\n") || "See reviews above"}
+
+CRITICAL INSTRUCTIONS:
+1. SCOPE: Question the service scope. Too narrow? Too broad? What would a laser-focused or expanded version look like?
+2. DELIVERY: Is the delivery format optimal? In-person vs remote vs async vs hybrid — what fits best?
+3. CUSTOMER JOURNEY: Map every step the customer takes. Find friction at each step. Propose eliminations.
+4. SMART TECH: What AI, automation, platforms, or analytics could transform delivery? Why hasn't it happened?
+5. OPERATIONAL LEVERAGE: Where are the bottlenecks that prevent scaling? What if they were removed?
+6. PRICING: Is the pricing model optimal? What if it were subscription, per-outcome, freemium, or tiered differently?
+7. The redesigned concept must be STRUCTURALLY different — not a minor tweak.
+8. Avoid vague suggestions. Every idea must have an operational mechanism and implementation path.
+9. The concept must be implementable within 12–18 months.
+
+Return ONLY the JSON object.`
+      : `Apply radical first-principles deconstruction to this product. Question everything about its physical form, user workflow, friction points, and smart tech potential.
 
 PRODUCT: ${product.name}
 CATEGORY: ${product.category}

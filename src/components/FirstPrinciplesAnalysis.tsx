@@ -130,6 +130,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [data, setData] = useState<FirstPrinciplesData | null>(null);
   const [loading, setLoading] = useState(false);
   const [patentLoading, setPatentLoading] = useState(false);
+  const isService = product.category === "Service";
   const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas" | "patents">("reality");
   const [userContext, setUserContext] = useState("");
 
@@ -158,25 +159,31 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
   const runAnalysis = async () => {
     setLoading(true);
-    setPatentLoading(true);
+    if (!isService) setPatentLoading(true);
     try {
-      // Run both analyses in parallel
-      const [fpResult, patentResult] = await Promise.allSettled([
+      // Run FP analysis always; patent analysis only for non-service modes
+      const promises: Promise<unknown>[] = [
         supabase.functions.invoke("first-principles-analysis", {
           body: { product },
         }),
-        supabase.functions.invoke("patent-analysis", {
-          body: {
-            productName: product.name,
-            category: product.category,
-            era: product.era,
-          },
-        }),
-      ]);
+      ];
+      if (!isService) {
+        promises.push(
+          supabase.functions.invoke("patent-analysis", {
+            body: {
+              productName: product.name,
+              category: product.category,
+              era: product.era,
+            },
+          })
+        );
+      }
+      const results = await Promise.allSettled(promises);
 
       // Handle first principles result
+      const fpResult = results[0];
       if (fpResult.status === "fulfilled") {
-        const { data: result, error } = fpResult.value;
+        const { data: result, error } = fpResult.value as { data: { success: boolean; analysis: FirstPrinciplesData; error?: string }; error: { message: string } | null };
         if (error || !result?.success) {
           const msg = result?.error || error?.message || "Analysis failed";
           if (msg.includes("Rate limit") || msg.includes("429")) {
@@ -196,12 +203,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         toast.error("Disrupt analysis failed: " + String(fpResult.reason));
       }
 
-      // Handle patent result
-      if (patentResult.status === "fulfilled") {
-        const { data: patData, error: patError } = patentResult.value;
-        if (!patError && patData?.success) {
-          onPatentSave?.(patData.patentData);
-          toast.success("Patent intelligence loaded!");
+      // Handle patent result (only if we ran it)
+      if (!isService && results[1]) {
+        const patentResult = results[1];
+        if (patentResult.status === "fulfilled") {
+          const { data: patData, error: patError } = patentResult.value as { data: { success: boolean; patentData: unknown }; error: { message: string } | null };
+          if (!patError && patData?.success) {
+            onPatentSave?.(patData.patentData);
+            toast.success("Patent intelligence loaded!");
+          }
         }
       }
     } catch (err) {
@@ -212,17 +222,18 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     }
   };
 
-  const steps = [
+  const allSteps = [
     { id: "reality" as const, label: "Core Reality", icon: Eye, number: "01" },
-    { id: "physical" as const, label: "Physical Form", icon: Ruler, number: "02" },
-    { id: "workflow" as const, label: "User Workflow", icon: Navigation, number: "03" },
-    { id: "smarttech" as const, label: "Smart Tech", icon: Cpu, number: "04" },
-    { id: "assumptions" as const, label: "Assumptions", icon: Brain, number: "05" },
-    { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal, number: "06" },
-    { id: "concept" as const, label: "Redesign", icon: Sparkles, number: "07" },
-    { id: "ideas" as const, label: "Flipped Ideas", icon: Zap, number: "08" },
-    { id: "patents" as const, label: "Patent Intel", icon: ScrollText, number: "09" },
+    ...(!isService ? [{ id: "physical" as const, label: "Physical Form", icon: Ruler, number: "02" }] : []),
+    { id: "workflow" as const, label: isService ? "Customer Journey" : "User Workflow", icon: Navigation, number: isService ? "02" : "03" },
+    { id: "smarttech" as const, label: "Smart Tech", icon: Cpu, number: isService ? "03" : "04" },
+    { id: "assumptions" as const, label: "Assumptions", icon: Brain, number: isService ? "04" : "05" },
+    { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal, number: isService ? "05" : "06" },
+    { id: "concept" as const, label: "Redesign", icon: Sparkles, number: isService ? "06" : "07" },
+    { id: "ideas" as const, label: "Flipped Ideas", icon: Zap, number: isService ? "07" : "08" },
+    ...(!isService ? [{ id: "patents" as const, label: "Patent Intel", icon: ScrollText, number: "09" }] : []),
   ];
+  const steps = allSteps;
 
   if (!data) {
     return (
@@ -233,17 +244,26 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <div>
           <h3 className="text-xl font-bold text-foreground mb-2">Disrupt Analysis</h3>
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-            Radical deep analysis of <strong>{product.name}</strong> — questioning physical form, user workflow friction, smart tech gaps, hidden assumptions, generating bold redesigns, flipped product ideas, and <strong>patent intelligence</strong>.
+            {isService ? (
+              <>Radical deep analysis of <strong>{product.name}</strong> — questioning customer journey, operational friction, smart tech gaps, hidden assumptions, and generating bold service reinvention ideas.</>
+            ) : (
+              <>Radical deep analysis of <strong>{product.name}</strong> — questioning physical form, user workflow friction, smart tech gaps, hidden assumptions, generating bold redesigns, flipped product ideas, and <strong>patent intelligence</strong>.</>
+            )}
           </p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 max-w-xl">
-          {[
+        <div className={`grid grid-cols-2 ${isService ? "sm:grid-cols-4" : "sm:grid-cols-5"} gap-3 max-w-xl`}>
+          {(isService ? [
+            { icon: Navigation, label: "Customer Journey" },
+            { icon: Cpu, label: "Smart Tech" },
+            { icon: Sparkles, label: "Redesign" },
+            { icon: Swords, label: "Red vs Blue" },
+          ] : [
             { icon: Ruler, label: "Physical Form" },
             { icon: Navigation, label: "User Workflow" },
             { icon: Cpu, label: "Smart Tech" },
             { icon: Sparkles, label: "Redesign" },
             { icon: Swords, label: "Red vs Blue" },
-          ].map(({ icon: Icon, label }) => (
+          ]).map(({ icon: Icon, label }) => (
             <div key={label} className="p-3 rounded-xl text-center" style={{ background: "hsl(var(--muted))" }}>
               <Icon size={18} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
               <p className="text-[10px] font-semibold text-muted-foreground">{label}</p>
@@ -262,7 +282,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             <><Brain size={15} /> Run Disrupt Analysis</>
           )}
         </button>
-        <p className="text-[11px] text-muted-foreground">Uses Gemini 2.5 Pro + Patent APIs · Deep analysis + patent intelligence · ~30–60s</p>
+        <p className="text-[11px] text-muted-foreground">
+          {isService
+            ? "Uses Gemini 2.5 Pro · Deep service analysis · ~30–60s"
+            : "Uses Gemini 2.5 Pro + Patent APIs · Deep analysis + patent intelligence · ~30–60s"
+          }
+        </p>
       </div>
     );
   }
@@ -904,15 +929,24 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               No flipped ideas available yet. Run the intelligence report first to generate ideas.
             </div>
           )}
-          <button onClick={() => { setActiveStep("patents"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(271 81% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(271 81% 55% / 0.4)" }}>
-            Next: Patent Intelligence <ArrowRight size={14} />
-          </button>
+          {!isService ? (
+            <button onClick={() => { setActiveStep("patents"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+              style={{ background: "hsl(271 81% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(271 81% 55% / 0.4)" }}>
+              Next: Patent Intelligence <ArrowRight size={14} />
+            </button>
+          ) : (
+            <div className="text-center py-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold"
+                style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+                <CheckCircle2 size={14} /> All Disrupt sections explored!
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* STEP 9: Patent Intelligence */}
-      {activeStep === "patents" && (
+      {activeStep === "patents" && !isService && (
         <div className="space-y-4">
           {product.patentData && (
             <div className="flex justify-end">
