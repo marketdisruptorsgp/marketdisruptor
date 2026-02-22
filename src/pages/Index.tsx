@@ -563,9 +563,9 @@ export default function Index() {
             <span
               className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
               style={{
-                background: tier === "disruptor" ? "hsl(38 92% 50% / 0.15)" : tier === "builder" ? "hsl(var(--primary) / 0.15)" : "hsl(0 0% 100% / 0.08)",
-                color: tier === "disruptor" ? "hsl(38 92% 60%)" : tier === "builder" ? "hsl(var(--primary-light))" : "hsl(0 0% 100% / 0.85)",
-                border: `1px solid ${tier === "disruptor" ? "hsl(38 92% 50% / 0.3)" : tier === "builder" ? "hsl(var(--primary) / 0.3)" : "hsl(0 0% 100% / 0.1)"}`,
+                background: tier === "disruptor" ? "hsl(142 71% 45% / 0.15)" : tier === "builder" ? "hsl(var(--primary) / 0.15)" : "hsl(0 0% 100% / 0.08)",
+                color: tier === "disruptor" ? "hsl(142 71% 55%)" : tier === "builder" ? "hsl(var(--primary-light))" : "hsl(0 0% 100% / 0.85)",
+                border: `1px solid ${tier === "disruptor" ? "hsl(142 71% 45% / 0.3)" : tier === "builder" ? "hsl(var(--primary) / 0.3)" : "hsl(0 0% 100% / 0.1)"}`,
               }}
             >
               {TIERS[tier].name} Plan{remainingAnalyses() !== null ? ` · ${remainingAnalyses()} analyses left` : " · Unlimited"}
