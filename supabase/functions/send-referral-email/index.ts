@@ -24,12 +24,11 @@ function buildReferralEmailHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thought you'd get a ton of value from this! - ${from}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d1117;padding:40px 20px;">
+<body style="margin:0;padding:0;background-color:#080b10;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#080b10;padding:40px 20px;">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#161b22;border-radius:16px;border:1px solid #21262d;overflow:hidden;box-shadow:0 8px 32px -8px rgba(0,0,0,0.5);">
-
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#0d1117;border-radius:16px;border:1px solid #1b2130;overflow:hidden;box-shadow:0 8px 32px -8px rgba(0,0,0,0.6);">
           <!-- Top accent bar -->
           <tr>
             <td style="height:4px;background:linear-gradient(90deg,#2563eb,#3b82f6,#60a5fa);"></td>
@@ -90,7 +89,7 @@ function buildReferralEmailHtml(
               </table>
 
               <!-- Divider -->
-              <hr style="border:none;border-top:1px solid #21262d;margin:0 0 32px;">
+              <hr style="border:none;border-top:1px solid #161b22;margin:0 0 32px;">
 
               <!-- Analysis Modes Header -->
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
@@ -175,7 +174,7 @@ function buildReferralEmailHtml(
           <!-- Footer -->
           <tr>
             <td style="padding:0 36px 28px;">
-              <hr style="border:none;border-top:1px solid #21262d;margin:0 0 20px;">
+              <hr style="border:none;border-top:1px solid #161b22;margin:0 0 20px;">
               <p style="margin:0 0 8px;font-size:14px;color:#ffffff;line-height:1.7;font-weight:700;">
                 🔒 Privacy &amp; Security
               </p>
