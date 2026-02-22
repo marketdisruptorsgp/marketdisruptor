@@ -68,6 +68,7 @@ import {
   Upload,
   Database,
   ArrowLeft,
+  ChevronLeft,
   ChevronRight,
   Briefcase,
 } from "lucide-react";
@@ -412,7 +413,7 @@ export default function Index() {
 
       setProducts(liveProducts);
       setSelectedProduct(liveProducts[0]);
-      setExpandedSection("discovery");
+      setExpandedSection("detail");
       setDetailTab("overview");
       setStep("done");
       setVisitedSteps(new Set([2]));
@@ -1040,38 +1041,48 @@ export default function Index() {
               >
                 <div className="space-y-6">
                   {/* Tab guidance */}
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(var(--primary) / 0.08)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
-                    <Sparkles size={13} className="flex-shrink-0" style={{ color: "hsl(var(--primary))" }} />
-                    <p className="text-xs font-medium" style={{ color: "hsl(var(--primary))" }}>
-                      Click each tab below to explore deeper intelligence layers for this product.
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.12), hsl(var(--primary) / 0.05))", border: "2px solid hsl(var(--primary) / 0.2)" }}>
+                    <Sparkles size={15} className="flex-shrink-0" style={{ color: "hsl(var(--primary))" }} />
+                    <p className="text-sm font-bold" style={{ color: "hsl(var(--primary))" }}>
+                      👇 Tap each section below for deeper intelligence layers
                     </p>
                   </div>
                   {/* Tab nav */}
-                  <div className="flex flex-wrap gap-2">
-                     {([
-                      { id: "overview", label: "Overview", icon: Target },
-                      { id: "community", label: "Community Intel", icon: Users },
-                      { id: "pricing", label: "Pricing Intel", icon: DollarSign },
-                      { id: "supply", label: "Supply Chain", icon: Package },
-                      { id: "action", label: "Action Plan", icon: Rocket },
-                      { id: "patents", label: "Patent Intel", icon: ScrollText },
-                    ] as const).map(({ id, label, icon: Icon }) => {
+                  {(() => {
+                    const DETAIL_TABS = [
+                      { id: "overview" as const, label: "Overview", icon: Target, color: "hsl(var(--primary))" },
+                      { id: "community" as const, label: "Community Intel", icon: Users, color: "hsl(200 80% 50%)" },
+                      { id: "pricing" as const, label: "Pricing Intel", icon: DollarSign, color: "hsl(142 70% 40%)" },
+                      { id: "supply" as const, label: "Supply Chain", icon: Package, color: "hsl(35 90% 50%)" },
+                      { id: "action" as const, label: "Action Plan", icon: Rocket, color: "hsl(350 80% 55%)" },
+                      { id: "patents" as const, label: "Patent Intel", icon: ScrollText, color: "hsl(271 81% 55%)" },
+                    ];
+                    const currentIdx = DETAIL_TABS.findIndex(t => t.id === detailTab);
+                    return (
+                    <>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {DETAIL_TABS.map(({ id, label, icon: Icon, color }) => {
                       const isActive = detailTab === id;
-                      const activeColor = id === "patents" ? "hsl(271 81% 55%)" : "hsl(var(--primary))";
                       return (
                         <button
                           key={id}
                           onClick={() => setDetailTab(id)}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all"
+                          className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
                           style={{
-                            background: isActive ? activeColor : "hsl(var(--card))",
-                            color: isActive ? "white" : "hsl(var(--foreground))",
-                            border: `2px solid ${isActive ? activeColor : "hsl(var(--border))"}`,
-                            boxShadow: isActive ? `0 2px 8px -2px ${activeColor}60` : "none",
+                            background: isActive ? color : "hsl(var(--muted))",
+                            color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
+                            border: isActive ? `2px solid ${color}` : "2px solid hsl(var(--border))",
+                            boxShadow: isActive ? `0 4px 12px -2px ${color}50` : "none",
+                            transform: isActive ? "scale(1.03)" : "scale(1)",
                           }}
                         >
-                          <Icon size={13} />
-                          {label}
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
+                            <Icon size={16} style={{ color: isActive ? "white" : color }} />
+                          </div>
+                          <span className="text-center leading-tight text-[11px]">{label}</span>
+                          {!isActive && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse" style={{ background: color }} />
+                          )}
                         </button>
                       );
                     })}
@@ -1656,6 +1667,41 @@ export default function Index() {
                       />
                     </div>
                   )}
+
+                  {/* Next / Previous section nav */}
+                  <div className="flex items-center justify-between pt-4 mt-4" style={{ borderTop: "2px solid hsl(var(--border))" }}>
+                    {currentIdx > 0 ? (
+                      <button
+                        onClick={() => setDetailTab(DETAIL_TABS[currentIdx - 1].id)}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                        style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "2px solid hsl(var(--border))" }}
+                      >
+                        <ChevronLeft size={16} />
+                        {DETAIL_TABS[currentIdx - 1].label}
+                      </button>
+                    ) : <div />}
+                    {currentIdx < DETAIL_TABS.length - 1 ? (
+                      <button
+                        onClick={() => setDetailTab(DETAIL_TABS[currentIdx + 1].id)}
+                        className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all"
+                        style={{
+                          background: DETAIL_TABS[currentIdx + 1].color,
+                          color: "white",
+                          boxShadow: `0 4px 12px -2px ${DETAIL_TABS[currentIdx + 1].color}50`,
+                        }}
+                      >
+                        Next: {DETAIL_TABS[currentIdx + 1].label}
+                        <ChevronRight size={16} />
+                      </button>
+                    ) : (
+                      <span className="text-xs font-bold px-3 py-2 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 35%)" }}>
+                        ✓ All sections explored!
+                      </span>
+                    )}
+                  </div>
+                  </>
+                    );
+                  })()}
                 </div>
               </SectionAccordion>
             )}
