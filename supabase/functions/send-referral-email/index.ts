@@ -74,7 +74,7 @@ function buildReferralEmailHtml(
                 <tr>
                   <td align="center" style="padding:4px 0 28px;">
                     <a href="\${shareUrl}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.02em;box-shadow:0 4px 24px -4px rgba(37,99,235,0.5);text-transform:uppercase;">
-                      Click Here to Start Exploring
+                      Click Here to Start Disrupting
                     </a>
                   </td>
                 </tr>
