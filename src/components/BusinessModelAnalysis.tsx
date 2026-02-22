@@ -156,6 +156,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
   const [data, setData] = useState<BusinessModelAnalysisData | null>(initialData ?? null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"summary" | "operations" | "assumptions" | "tech" | "revenue" | "disruption" | "reinvented">("summary");
+  const [userSuggestions, setUserSuggestions] = useState("");
 
   const saveToWorkspace = async (analysisData: BusinessModelAnalysisData, businessType: string) => {
     try {
@@ -193,7 +194,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke("business-model-analysis", {
-        body: { businessModel: input },
+        body: { businessModel: input, userSuggestions: userSuggestions || undefined },
       });
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Analysis failed";
@@ -413,31 +414,59 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
     <div className="space-y-6">
       {/* Header — only show when not in renderMode */}
       {!renderMode && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-              <Building2 size={15} style={{ color: "white" }} />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+                <Building2 size={15} style={{ color: "white" }} />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground text-sm">Business Model Deconstruction</h3>
+                <p className="text-[11px] text-muted-foreground">{input.type}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-foreground text-sm">Business Model Deconstruction</h3>
-              <p className="text-[11px] text-muted-foreground">{input.type}</p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => downloadBusinessModelPDF(input.type || "Business Model", data)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{ background: "hsl(var(--primary))", color: "white" }}
+              >
+                <FileDown size={12} /> Download PDF
+              </button>
+              <button
+                onClick={runAnalysis}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+              >
+                {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+                Re-run
+              </button>
+              <button
+                onClick={() => { setData(null); setUserSuggestions(""); setInput({ type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "" }); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+              >
+                New Analysis
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => downloadBusinessModelPDF(input.type || "Business Model", data)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={{ background: "hsl(var(--primary))", color: "white" }}
-            >
-              <FileDown size={12} /> Download PDF
-            </button>
-            <button
-              onClick={() => { setData(null); setInput({ type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "" }); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-            >
-              New Analysis
-            </button>
+          {/* User suggestions for re-run */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Lightbulb size={11} style={{ color: "hsl(var(--primary))" }} /> Guide the AI (optional)
+            </label>
+            <textarea
+              value={userSuggestions}
+              onChange={(e) => setUserSuggestions(e.target.value)}
+              placeholder="e.g. Focus on automation opportunities, explore franchise model, consider vertical integration, target enterprise clients…"
+              className="w-full rounded-xl px-4 py-2.5 text-sm leading-relaxed resize-none transition-all focus:outline-none"
+              rows={2}
+              style={{ background: "hsl(var(--muted))", border: "2px dashed hsl(var(--border))", color: "hsl(var(--foreground))" }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(var(--primary))"; e.currentTarget.style.borderStyle = "solid"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--border))"; e.currentTarget.style.borderStyle = "dashed"; }}
+            />
+            <p className="text-[10px] text-muted-foreground">Add suggestions and hit Re-run to steer the analysis direction.</p>
           </div>
         </div>
       )}

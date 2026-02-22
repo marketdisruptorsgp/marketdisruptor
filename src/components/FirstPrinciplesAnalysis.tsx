@@ -140,6 +140,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const isService = product.category === "Service";
   const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas" | "patents">("reality");
   const [userContext, setUserContext] = useState("");
+  const [rerunSuggestions, setRerunSuggestions] = useState("");
 
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
     try {
@@ -171,7 +172,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       // Run FP analysis always; patent analysis only for non-service modes
       const promises: Promise<unknown>[] = [
         supabase.functions.invoke("first-principles-analysis", {
-          body: { product },
+          body: { product, userSuggestions: rerunSuggestions || undefined },
         }),
       ];
       if (!isService) {
@@ -302,25 +303,48 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   return (
     <div className="space-y-6">
       {/* Header + re-run */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-            <Brain size={15} style={{ color: "white" }} />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+              <Brain size={15} style={{ color: "white" }} />
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground text-sm">Disrupt Analysis</h3>
+              <p className="text-[11px] text-muted-foreground">{product.name}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-foreground text-sm">Disrupt Analysis</h3>
-            <p className="text-[11px] text-muted-foreground">{product.name}</p>
-          </div>
+          <button
+            onClick={runAnalysis}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+          >
+            {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+            Re-run
+          </button>
         </div>
-        <button
-          onClick={runAnalysis}
-          disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-          style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-        >
-          {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
-          Re-run
-        </button>
+        {/* User suggestions for re-run */}
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Lightbulb size={11} style={{ color: "hsl(var(--primary))" }} /> Guide the AI (optional)
+          </label>
+          <textarea
+            value={rerunSuggestions}
+            onChange={(e) => setRerunSuggestions(e.target.value)}
+            placeholder="e.g. Focus on sustainability, explore modular design, consider subscription model, target commercial users…"
+            className="w-full rounded-xl px-4 py-3 text-sm leading-relaxed resize-none transition-all focus:outline-none"
+            rows={2}
+            style={{
+              background: "hsl(var(--muted))",
+              border: "2px dashed hsl(var(--border))",
+              color: "hsl(var(--foreground))",
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(var(--primary))"; e.currentTarget.style.borderStyle = "solid"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--border))"; e.currentTarget.style.borderStyle = "dashed"; }}
+          />
+          <p className="text-[10px] text-muted-foreground">Add suggestions to steer the analysis direction, then hit Re-run.</p>
+        </div>
       </div>
 
       {/* Step nav */}

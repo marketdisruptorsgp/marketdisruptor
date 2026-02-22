@@ -107,12 +107,13 @@ const SCORE_LABELS: Record<string, { label: string; icon: typeof Brain }> = {
 export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
+  const [userSuggestions, setUserSuggestions] = useState("");
 
   const runValidation = async () => {
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke("critical-validation", {
-        body: { product, analysisData },
+        body: { product, analysisData, userSuggestions: userSuggestions || undefined },
       });
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Validation failed";
@@ -154,6 +155,26 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             </div>
           ))}
         </div>
+        {/* Guide the AI */}
+        <div className="w-full max-w-md text-left space-y-1.5">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Eye size={11} style={{ color: "hsl(350 80% 55%)" }} /> Guide the Stress Test (optional)
+          </label>
+          <textarea
+            value={userSuggestions}
+            onChange={(e) => setUserSuggestions(e.target.value)}
+            placeholder="e.g. Focus on pricing pressure from Chinese competitors, test the subscription model assumption, consider regulatory risks…"
+            className="w-full rounded-xl px-4 py-3 text-sm leading-relaxed resize-none transition-all focus:outline-none"
+            rows={2}
+            style={{
+              background: "hsl(var(--muted))",
+              border: "2px dashed hsl(var(--border))",
+              color: "hsl(var(--foreground))",
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55%)"; e.currentTarget.style.borderStyle = "solid"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--border))"; e.currentTarget.style.borderStyle = "dashed"; }}
+          />
+        </div>
         <button
           onClick={runValidation}
           disabled={loading}
@@ -174,6 +195,33 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   if (activeTab === "debate") {
     return (
       <div className="space-y-6">
+        {/* Re-run with suggestions */}
+        <div className="space-y-2 p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Eye size={11} style={{ color: "hsl(350 80% 55%)" }} /> Guide the Stress Test
+            </label>
+            <button
+              onClick={runValidation}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{ background: "hsl(350 80% 55%)", color: "white", opacity: loading ? 0.7 : 1 }}
+            >
+              {loading ? <><RefreshCw size={11} className="animate-spin" /> Re-running…</> : <><RefreshCw size={11} /> Re-run Stress Test</>}
+            </button>
+          </div>
+          <textarea
+            value={userSuggestions}
+            onChange={(e) => setUserSuggestions(e.target.value)}
+            placeholder="e.g. Focus more on regulatory risks, test pricing at $X, consider partnership model…"
+            className="w-full rounded-xl px-4 py-2.5 text-sm leading-relaxed resize-none transition-all focus:outline-none"
+            rows={2}
+            style={{ background: "hsl(var(--background))", border: "2px dashed hsl(var(--border))", color: "hsl(var(--foreground))" }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55%)"; e.currentTarget.style.borderStyle = "solid"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--border))"; e.currentTarget.style.borderStyle = "dashed"; }}
+          />
+          <p className="text-[10px] text-muted-foreground">Add suggestions and re-run to steer the stress test direction.</p>
+        </div>
         {/* Red Team */}
         <div className="space-y-4">
           <div className="p-4 rounded-xl" style={{ background: "hsl(var(--destructive) / 0.06)", borderLeft: "4px solid hsl(var(--destructive))" }}>
