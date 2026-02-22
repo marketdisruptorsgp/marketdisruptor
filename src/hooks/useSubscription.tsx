@@ -16,7 +16,7 @@ export const TIERS = {
       "Pitch deck generation",
       "Standard AI models",
     ],
-    color: "hsl(var(--muted-foreground))",
+    color: "hsl(142 71% 45%)",
   },
   builder: {
     name: "Builder",
@@ -33,7 +33,7 @@ export const TIERS = {
       "Pitch deck generation",
       "Standard AI models",
     ],
-    color: "hsl(var(--primary))",
+    color: "hsl(142 71% 45%)",
   },
   disruptor: {
     name: "Disruptor",

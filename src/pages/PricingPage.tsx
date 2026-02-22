@@ -83,8 +83,8 @@ export default function PricingPage() {
                     ? "linear-gradient(165deg, hsl(142 30% 10%) 0%, hsl(220 25% 10%) 100%)"
                     : "hsl(220 20% 11%)",
                   border: `1.5px solid ${
+                    isCurrent ? "hsl(142 71% 45% / 0.4)" :
                     isDisruptor ? "hsl(142 60% 35% / 0.35)" :
-                    isCurrent ? "hsl(var(--primary) / 0.4)" :
                     "hsl(0 0% 100% / 0.06)"
                   }`,
                 }}
@@ -92,7 +92,7 @@ export default function PricingPage() {
                 {isCurrent && (
                   <span
                     className="absolute -top-3 left-5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                    style={{ background: "hsl(var(--primary))", color: "white" }}
+                    style={{ background: "hsl(142 71% 45%)", color: "white" }}
                   >
                     Your Plan
                   </span>
