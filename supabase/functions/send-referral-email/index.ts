@@ -71,57 +71,54 @@ function buildReferralEmailHtml(
               </p>
 
               <!-- Analysis Modes -->
-              <p style="margin:0 0 16px;font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.1em;">
-                Three Distinct Analysis Modes
-              </p>
-
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
-                <!-- Mode 1: Product Discovery -->
                 <tr>
-                  <td style="padding:0 0 12px;">
-                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.02) 100%);border:1px solid rgba(37,99,235,0.2);border-radius:12px;overflow:hidden;">
+                  <td style="padding:0 0 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.02) 100%);border:1px solid rgba(37,99,235,0.2);border-radius:10px;overflow:hidden;">
+                      <tr><td style="height:3px;background:linear-gradient(90deg,#2563eb,#3b82f6);"></td></tr>
                       <tr>
-                        <td style="padding:4px 0 0;background:linear-gradient(90deg,#2563eb,#3b82f6);height:3px;"></td>
-                      </tr>
-                      <tr>
-                        <td style="padding:16px 20px;">
-                          <p style="margin:0 0 2px;font-size:11px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:0.08em;">Mode 01</p>
-                          <p style="margin:0 0 6px;font-size:16px;font-weight:800;color:#e6edf3;letter-spacing:-0.01em;">Product Discovery</p>
-                          <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.6;">Enter a category and era. Proprietary crawling pipelines surface pricing intelligence, demand signals, and competitive gaps across entire markets.</p>
+                        <td style="padding:14px 18px;">
+                          <p style="margin:0 0 4px;font-size:15px;font-weight:800;color:#e6edf3;">Disrupt This Product</p>
+                          <p style="margin:0;font-size:12px;color:#8b949e;line-height:1.5;">Crawl, analyze, and challenge any physical product with pricing intel and demand signals.</p>
                         </td>
                       </tr>
                     </table>
                   </td>
                 </tr>
-                <!-- Mode 2: Product Deep Dive -->
                 <tr>
-                  <td style="padding:0 0 12px;">
-                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(139,92,246,0.08) 0%,rgba(139,92,246,0.02) 100%);border:1px solid rgba(139,92,246,0.2);border-radius:12px;overflow:hidden;">
+                  <td style="padding:0 0 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(139,92,246,0.08) 0%,rgba(139,92,246,0.02) 100%);border:1px solid rgba(139,92,246,0.2);border-radius:10px;overflow:hidden;">
+                      <tr><td style="height:3px;background:linear-gradient(90deg,#7c3aed,#8b5cf6);"></td></tr>
                       <tr>
-                        <td style="padding:4px 0 0;background:linear-gradient(90deg,#7c3aed,#8b5cf6);height:3px;"></td>
-                      </tr>
-                      <tr>
-                        <td style="padding:16px 20px;">
-                          <p style="margin:0 0 2px;font-size:11px;font-weight:700;color:#8b5cf6;text-transform:uppercase;letter-spacing:0.08em;">Mode 02</p>
-                          <p style="margin:0 0 6px;font-size:16px;font-weight:800;color:#e6edf3;letter-spacing:-0.01em;">Product Deep Dive</p>
-                          <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.6;">Multiple analytical lenses on any product: first principles deconstruction, flip ideas, supply chain mapping, patent analysis, and auto-generated pitch decks.</p>
+                        <td style="padding:14px 18px;">
+                          <p style="margin:0 0 4px;font-size:15px;font-weight:800;color:#e6edf3;">Disrupt This Service</p>
+                          <p style="margin:0;font-size:12px;color:#8b949e;line-height:1.5;">Deconstruct any service business — cost structures, inefficiencies, and untapped revenue.</p>
                         </td>
                       </tr>
                     </table>
                   </td>
                 </tr>
-                <!-- Mode 3: Business Model -->
+                <tr>
+                  <td style="padding:0 0 10px;">
+                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(245,158,11,0.08) 0%,rgba(245,158,11,0.02) 100%);border:1px solid rgba(245,158,11,0.2);border-radius:10px;overflow:hidden;">
+                      <tr><td style="height:3px;background:linear-gradient(90deg,#d97706,#f59e0b);"></td></tr>
+                      <tr>
+                        <td style="padding:14px 18px;">
+                          <p style="margin:0 0 4px;font-size:15px;font-weight:800;color:#e6edf3;">Disrupt The Business Model</p>
+                          <p style="margin:0;font-size:12px;color:#8b949e;line-height:1.5;">Break apart any business model and rebuild it with AI-driven strategic alternatives.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
                 <tr>
                   <td style="padding:0;">
-                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(245,158,11,0.08) 0%,rgba(245,158,11,0.02) 100%);border:1px solid rgba(245,158,11,0.2);border-radius:12px;overflow:hidden;">
+                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(34,197,94,0.08) 0%,rgba(34,197,94,0.02) 100%);border:1px solid rgba(34,197,94,0.2);border-radius:10px;overflow:hidden;">
+                      <tr><td style="height:3px;background:linear-gradient(90deg,#16a34a,#22c55e);"></td></tr>
                       <tr>
-                        <td style="padding:4px 0 0;background:linear-gradient(90deg,#d97706,#f59e0b);height:3px;"></td>
-                      </tr>
-                      <tr>
-                        <td style="padding:16px 20px;">
-                          <p style="margin:0 0 2px;font-size:11px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.08em;">Mode 03</p>
-                          <p style="margin:0 0 6px;font-size:16px;font-weight:800;color:#e6edf3;letter-spacing:-0.01em;">Business Model Analysis</p>
-                          <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.6;">Deconstruct any real-world business. The AI breaks down cost structures, flags inefficiencies, and reveals untapped revenue streams.</p>
+                        <td style="padding:14px 18px;">
+                          <p style="margin:0 0 4px;font-size:15px;font-weight:800;color:#e6edf3;">Disrupt This Nostalgia</p>
+                          <p style="margin:0;font-size:12px;color:#8b949e;line-height:1.5;">Surface forgotten products from any era and uncover modern revival opportunities.</p>
                         </td>
                       </tr>
                     </table>
