@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
+
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { AnalysisForm, type AnalysisMode } from "@/components/AnalysisForm";
 import { ProductCard } from "@/components/ProductCard";
@@ -505,7 +505,7 @@ export default function Index() {
   const showResults = step === "done";
 
   return (
-    <div className="min-h-screen pb-20 sm:pb-0" style={{ background: "hsl(var(--background))" }}>
+    <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
       {/* Welcome Modal */}
       {showWelcome && profile && (
         <WelcomeModal firstName={profile.first_name} onClose={handleCloseWelcome} />
@@ -585,7 +585,7 @@ export default function Index() {
           ];
           return (
             <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--border))", boxShadow: "var(--shadow-card)", background: "hsl(var(--card))" }}>
-              <div className="hidden sm:grid grid-cols-5" data-tour="tabs" style={{ background: "hsl(220 25% 6%)" }}>
+              <div className="grid grid-cols-5" data-tour="tabs" style={{ background: "hsl(220 25% 6%)" }}>
                 {TABS.map((tab) => {
                   const isActive = mainTab === tab.id;
                   const Icon = tab.icon;
@@ -628,20 +628,6 @@ export default function Index() {
                 })}
               </div>
 
-              {/* Mobile: show active mode header */}
-              {(() => {
-                const activeTabData = TABS.find(t => t.id === mainTab);
-                if (!activeTabData) return null;
-                const ActiveIcon = activeTabData.icon;
-                return (
-                  <div className="sm:hidden flex items-center gap-3 px-4 py-3" style={{ background: activeTabData.accent }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
-                      <ActiveIcon size={16} className="text-white" />
-                    </div>
-                    <span className="text-sm font-bold text-white">{activeTabData.label}</span>
-                  </div>
-                );
-              })()}
 
               <div className="p-5">
                 {mainTab !== "saved" && (
@@ -2014,21 +2000,6 @@ export default function Index() {
         </p>
       </footer>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav
-        activeTab={mainTab}
-        onTabChange={(tab) => {
-          setMainTab(tab);
-          if (tab !== "saved") {
-            setActiveMode(tab as AnalysisMode);
-          }
-          // Scroll to content area
-          const contentArea = document.querySelector('[data-tour="tabs"]')?.closest('.rounded-2xl');
-          if (contentArea) {
-            contentArea.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-        }}
-      />
     </div>
   );
 }
