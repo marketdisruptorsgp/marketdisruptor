@@ -9,7 +9,7 @@ import { downloadPatentPDF } from "@/lib/pdfExport";
 import {
   Brain, Flame, Zap, ChevronRight, RefreshCw, AlertTriangle, CheckCircle2,
   Wrench, Lightbulb, Package, DollarSign, Users, Factory, FlipHorizontal,
-  Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation,
+  Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation, Shield,
   Maximize2, Wifi, ScrollText, FileDown, Swords,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
@@ -92,7 +92,14 @@ interface RedesignedConcept {
   targetUser: string;
 }
 
+interface CurrentStrengths {
+  whatWorks: string[];
+  competitiveAdvantages: string[];
+  keepVsAdapt: string;
+}
+
 interface FirstPrinciplesData {
+  currentStrengths?: CurrentStrengths;
   coreReality: CoreReality;
   physicalDimensions: PhysicalDimensions;
   userWorkflow: UserWorkflow;
@@ -367,6 +374,38 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {/* STEP 1: Core Reality */}
       {activeStep === "reality" && (
         <div className="space-y-5">
+          {/* Current Strengths */}
+          {data.currentStrengths && (
+            <div className="p-5 rounded-xl space-y-3" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+              <p className="section-label text-[10px] mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 35%)" }}>
+                <Shield size={11} /> What's Already Working
+              </p>
+              <div className="space-y-2">
+                {data.currentStrengths.whatWorks.map((item, i) => (
+                  <div key={i} className="flex gap-2 items-start text-xs leading-relaxed">
+                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+                    <span className="text-foreground/80">{item}</span>
+                  </div>
+                ))}
+              </div>
+              {data.currentStrengths.competitiveAdvantages?.length > 0 && (
+                <div className="space-y-1.5 pt-2" style={{ borderTop: "1px solid hsl(142 70% 45% / 0.15)" }}>
+                  <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(142 70% 35%)" }}>Competitive Advantages to Preserve</p>
+                  {data.currentStrengths.competitiveAdvantages.map((adv, i) => (
+                    <div key={i} className="flex gap-2 items-start text-xs leading-relaxed">
+                      <Shield size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+                      <span className="text-foreground/80">{adv}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="p-3 rounded-lg text-xs leading-relaxed" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--primary))" }}>Keep vs. Adapt vs. Rethink</p>
+                <p className="text-foreground/80">{data.currentStrengths.keepVsAdapt}</p>
+              </div>
+            </div>
+          )}
+
           <div className="p-5 rounded-xl" style={{ background: "hsl(var(--primary-muted))", borderLeft: "4px solid hsl(var(--primary))" }}>
             <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(var(--primary))" }}>
               <Lightbulb size={11} /> The Real Problem Being Solved

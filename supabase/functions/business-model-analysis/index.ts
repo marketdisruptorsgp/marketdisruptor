@@ -42,7 +42,9 @@ The JSON must follow this EXACT structure:
     "trueJobToBeDone": "What customers are actually hiring this business to do (not what it thinks it does)",
     "currentModel": "How money flows today — revenue sources, cost structure, margin drivers",
     "marketPosition": "Who it competes with and why customers choose it (or don't)",
-    "hiddenStrengths": ["Underutilized asset or advantage 1", "Advantage 2", "Advantage 3"]
+    "hiddenStrengths": ["Underutilized asset or advantage 1", "Advantage 2", "Advantage 3"],
+    "whatAlreadyWorks": ["Element of current model that already has strong market fit or competitive advantage — explain WHY it works and should be preserved", "Working element 2"],
+    "keepVsChange": "Honest assessment: which parts of the business model are fundamentally sound and should be kept, which should be adapted, and which need radical change. Sometimes the answer is 'most of it works, fix these 2 things.'"
   },
   "operationalAudit": {
     "customerJourney": ["Step 1: how customer discovers/decides", "Step 2", "Step 3: transaction", "Step 4: fulfillment", "Step 5: retention or churn"],
