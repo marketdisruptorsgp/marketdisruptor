@@ -55,83 +55,26 @@ function buildReferralEmailHtml(
           <tr>
             <td style="padding:28px 36px 32px;">
               <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#e6edf3;line-height:1.25;letter-spacing:-0.02em;">
-                ${from} invited you to join Market Disruptor
+                ${from} thinks you need to see this
               </h1>
-              <p style="margin:0 0 24px;font-size:15px;color:#8b949e;line-height:1.7;">
-                Hi ${to}, you've received an invitation to a proprietary product intelligence platform used by entrepreneurs, investors, and product teams to identify high-potential market opportunities.
-              </p>
-
-              <!-- Value proposition -->
-              <p style="margin:0 0 20px;font-size:15px;color:#c9d1d9;line-height:1.7;">
-                Powered by deep web crawling, vision AI, and multi-model strategic analysis, Market Disruptor challenges every assumption about a product — why it exists in its current form, whether the pricing model is right, what friction users have normalized, and what a version rebuilt from scratch would look like. Complete with supply chain intelligence, patent analysis, and investor-ready pitch decks.
+              <p style="margin:0 0 20px;font-size:15px;color:#8b949e;line-height:1.7;">
+                Hi ${to}, you've been invited to a proprietary intelligence platform that flips conventional product thinking on its head.
               </p>
 
               <p style="margin:0 0 20px;font-size:15px;color:#c9d1d9;line-height:1.7;">
-                You get a completely new take on any market — not a summary. Give it a try.
+                Most tools summarize markets. This one tears them apart. Powered by deep web crawling, vision AI, and multi-model strategic analysis, it challenges every assumption about a product — why it exists in its current form, whether the pricing model is actually right, what friction users have normalized, and what a version rebuilt from scratch would look like.
               </p>
 
-              <!-- Analysis Modes -->
-              <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
-                <tr>
-                  <td style="padding:0 0 10px;">
-                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.02) 100%);border:1px solid rgba(37,99,235,0.2);border-radius:10px;overflow:hidden;">
-                      <tr><td style="height:3px;background:linear-gradient(90deg,#2563eb,#3b82f6);"></td></tr>
-                      <tr>
-                        <td style="padding:14px 18px;">
-                          <p style="margin:0 0 4px;font-size:15px;font-weight:800;color:#e6edf3;">Disrupt This Product</p>
-                          <p style="margin:0;font-size:12px;color:#8b949e;line-height:1.5;">Crawl, analyze, and challenge any physical product with pricing intel and demand signals.</p>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:0 0 10px;">
-                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(139,92,246,0.08) 0%,rgba(139,92,246,0.02) 100%);border:1px solid rgba(139,92,246,0.2);border-radius:10px;overflow:hidden;">
-                      <tr><td style="height:3px;background:linear-gradient(90deg,#7c3aed,#8b5cf6);"></td></tr>
-                      <tr>
-                        <td style="padding:14px 18px;">
-                          <p style="margin:0 0 4px;font-size:15px;font-weight:800;color:#e6edf3;">Disrupt This Service</p>
-                          <p style="margin:0;font-size:12px;color:#8b949e;line-height:1.5;">Deconstruct any service business — cost structures, inefficiencies, and untapped revenue.</p>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:0 0 10px;">
-                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(245,158,11,0.08) 0%,rgba(245,158,11,0.02) 100%);border:1px solid rgba(245,158,11,0.2);border-radius:10px;overflow:hidden;">
-                      <tr><td style="height:3px;background:linear-gradient(90deg,#d97706,#f59e0b);"></td></tr>
-                      <tr>
-                        <td style="padding:14px 18px;">
-                          <p style="margin:0 0 4px;font-size:15px;font-weight:800;color:#e6edf3;">Disrupt The Business Model</p>
-                          <p style="margin:0;font-size:12px;color:#8b949e;line-height:1.5;">Break apart any business model and rebuild it with AI-driven strategic alternatives.</p>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:0;">
-                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(34,197,94,0.08) 0%,rgba(34,197,94,0.02) 100%);border:1px solid rgba(34,197,94,0.2);border-radius:10px;overflow:hidden;">
-                      <tr><td style="height:3px;background:linear-gradient(90deg,#16a34a,#22c55e);"></td></tr>
-                      <tr>
-                        <td style="padding:14px 18px;">
-                          <p style="margin:0 0 4px;font-size:15px;font-weight:800;color:#e6edf3;">Disrupt This Nostalgia</p>
-                          <p style="margin:0;font-size:12px;color:#8b949e;line-height:1.5;">Surface forgotten products from any era and uncover modern revival opportunities.</p>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
+              <p style="margin:0 0 24px;font-size:15px;color:#c9d1d9;line-height:1.7;">
+                You get a completely new take — not a summary. Complete with supply chain intelligence, patent analysis, and investor-ready pitch decks generated in seconds. Give it a try.
+              </p>
 
               <!-- CTA -->
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center" style="padding:4px 0 28px;">
-                    <a href="${shareUrl}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.02em;box-shadow:0 4px 24px -4px rgba(37,99,235,0.5);text-transform:uppercase;">
-                      Click Here to Start Disrupting
+                    <a href="\${shareUrl}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.02em;box-shadow:0 4px 24px -4px rgba(37,99,235,0.5);text-transform:uppercase;">
+                      Click Here to Start Exploring
                     </a>
                   </td>
                 </tr>
@@ -145,7 +88,7 @@ function buildReferralEmailHtml(
                       You both receive 5 bonus analyses
                     </p>
                     <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.6;">
-                      Sign up through this link and you'll each receive 5 additional product analyses. No credit card required.
+                      Sign up through this link and you'll each receive 5 additional analyses. No credit card required.
                     </p>
                   </td>
                 </tr>
@@ -170,12 +113,6 @@ function buildReferralEmailHtml(
                   <td style="padding:8px 0;border-bottom:1px solid #21262d;">
                     <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">First Principles Deconstruction</p>
                     <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Questions why a product exists in its current form and rebuilds it from scratch</p>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:8px 0;border-bottom:1px solid #21262d;">
-                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Innovation Engine</p>
-                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">AI-generated product concepts with feasibility scores and revenue projections</p>
                   </td>
                 </tr>
                 <tr>
