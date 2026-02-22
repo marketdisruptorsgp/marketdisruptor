@@ -70,12 +70,71 @@ function buildReferralEmailHtml(
                 You get a completely new take on any market — not a summary. Give it a try.
               </p>
 
+              <!-- Analysis Modes -->
+              <p style="margin:0 0 16px;font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.1em;">
+                Three Distinct Analysis Modes
+              </p>
+
+              <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
+                <!-- Mode 1: Product Discovery -->
+                <tr>
+                  <td style="padding:0 0 12px;">
+                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(37,99,235,0.08) 0%,rgba(37,99,235,0.02) 100%);border:1px solid rgba(37,99,235,0.2);border-radius:12px;overflow:hidden;">
+                      <tr>
+                        <td style="padding:4px 0 0;background:linear-gradient(90deg,#2563eb,#3b82f6);height:3px;"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:16px 20px;">
+                          <p style="margin:0 0 2px;font-size:11px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:0.08em;">Mode 01</p>
+                          <p style="margin:0 0 6px;font-size:16px;font-weight:800;color:#e6edf3;letter-spacing:-0.01em;">Product Discovery</p>
+                          <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.6;">Enter a category and era. Proprietary crawling pipelines surface pricing intelligence, demand signals, and competitive gaps across entire markets.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- Mode 2: Product Deep Dive -->
+                <tr>
+                  <td style="padding:0 0 12px;">
+                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(139,92,246,0.08) 0%,rgba(139,92,246,0.02) 100%);border:1px solid rgba(139,92,246,0.2);border-radius:12px;overflow:hidden;">
+                      <tr>
+                        <td style="padding:4px 0 0;background:linear-gradient(90deg,#7c3aed,#8b5cf6);height:3px;"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:16px 20px;">
+                          <p style="margin:0 0 2px;font-size:11px;font-weight:700;color:#8b5cf6;text-transform:uppercase;letter-spacing:0.08em;">Mode 02</p>
+                          <p style="margin:0 0 6px;font-size:16px;font-weight:800;color:#e6edf3;letter-spacing:-0.01em;">Product Deep Dive</p>
+                          <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.6;">Multiple analytical lenses on any product: first principles deconstruction, flip ideas, supply chain mapping, patent analysis, and auto-generated pitch decks.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- Mode 3: Business Model -->
+                <tr>
+                  <td style="padding:0;">
+                    <table cellpadding="0" cellspacing="0" width="100%" style="background:linear-gradient(135deg,rgba(245,158,11,0.08) 0%,rgba(245,158,11,0.02) 100%);border:1px solid rgba(245,158,11,0.2);border-radius:12px;overflow:hidden;">
+                      <tr>
+                        <td style="padding:4px 0 0;background:linear-gradient(90deg,#d97706,#f59e0b);height:3px;"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:16px 20px;">
+                          <p style="margin:0 0 2px;font-size:11px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.08em;">Mode 03</p>
+                          <p style="margin:0 0 6px;font-size:16px;font-weight:800;color:#e6edf3;letter-spacing:-0.01em;">Business Model Analysis</p>
+                          <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.6;">Deconstruct any real-world business. The AI breaks down cost structures, flags inefficiencies, and reveals untapped revenue streams.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
               <!-- CTA -->
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
-                  <td align="center" style="padding:8px 0 28px;">
-                    <a href="${shareUrl}" target="_blank" style="display:inline-block;background-color:#2563eb;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:14px 44px;border-radius:12px;letter-spacing:0.01em;box-shadow:0 4px 20px -4px rgba(37,99,235,0.45);">
-                      Get Started — It's Free
+                  <td align="center" style="padding:4px 0 28px;">
+                    <a href="${shareUrl}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.02em;box-shadow:0 4px 24px -4px rgba(37,99,235,0.5);text-transform:uppercase;">
+                      Click Here to Start Disrupting
                     </a>
                   </td>
                 </tr>
@@ -100,7 +159,7 @@ function buildReferralEmailHtml(
 
               <!-- Capabilities -->
               <p style="margin:0 0 16px;font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.1em;">
-                Platform Capabilities
+                What Powers It
               </p>
 
               <table cellpadding="0" cellspacing="0" width="100%">
