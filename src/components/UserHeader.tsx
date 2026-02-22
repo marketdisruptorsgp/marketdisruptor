@@ -61,13 +61,9 @@ export function UserHeader() {
     setShowShareModal(true);
   };
 
-  const shareMessage1 = `Check this out — Market Disruptor by SGP Capital. It's an AI platform that scrapes live market data and breaks down any product or business to find hidden opportunities. Revival scores, supply chain intel, flip ideas, pitch decks — all generated in seconds.\n\n${shareUrl}`;
-
-  const shareMessage2 = `^ That link gives you 5 extra analyses for free. I've been using it to find undervalued products and the AI insights are insane — it pulls from eBay, Etsy, Reddit, Google & TikTok in real time.`;
-
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareMessage1 + "\n\n" + shareMessage2);
-    toast.success("Share messages copied!");
+    navigator.clipboard.writeText(shareUrl);
+    toast.success("Referral link copied!");
   };
 
   const handleManage = async () => {
@@ -118,22 +114,22 @@ export function UserHeader() {
       <div ref={containerRef} style={{ position: "relative" }}>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl transition-all hover:shadow-md"
           style={{
-            background: open ? "hsl(var(--primary-muted))" : "hsl(var(--muted))",
-            border: "1px solid hsl(var(--border))",
+            background: open ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.12)",
+            border: open ? "1.5px solid hsl(var(--primary))" : "1.5px solid hsl(var(--primary) / 0.4)",
           }}
         >
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-            style={{ background: "hsl(var(--primary))" }}
+            style={{ background: open ? "hsl(var(--primary-foreground) / 0.2)" : "hsl(var(--primary))" }}
           >
             {initials}
           </div>
-          <span className="text-sm font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+          <span className="text-sm font-bold" style={{ color: open ? "white" : "hsl(var(--primary))" }}>
             {profile.first_name}
           </span>
-          <ChevronDown size={13} style={{ color: "hsl(var(--muted-foreground))", transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }} />
+          <ChevronDown size={14} style={{ color: open ? "white" : "hsl(var(--primary))", transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }} />
         </button>
 
         {open && (
@@ -312,20 +308,12 @@ export function UserHeader() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Message 1 — The Pitch</label>
+              <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Your Referral Link</label>
               <div
-                className="rounded-xl p-3 text-xs leading-relaxed whitespace-pre-wrap"
+                className="rounded-xl p-3 text-sm font-mono break-all"
                 style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
               >
-                {shareMessage1}
-              </div>
-
-              <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Message 2 — The Follow-Up</label>
-              <div
-                className="rounded-xl p-3 text-xs leading-relaxed whitespace-pre-wrap"
-                style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
-              >
-                {shareMessage2}
+                {shareUrl}
               </div>
 
               <button
@@ -333,7 +321,7 @@ export function UserHeader() {
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all"
                 style={{ background: "hsl(var(--primary))", color: "white", boxShadow: "0 4px 16px -2px hsl(217 91% 50% / 0.4)" }}
               >
-                <Copy size={14} /> Copy Both Messages
+                <Copy size={14} /> Copy Link
               </button>
             </div>
 
