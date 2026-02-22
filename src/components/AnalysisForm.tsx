@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Sparkles, Upload, Link, X, Image as ImageIcon, Plus, Telescope, Building2, Brain, RefreshCw } from "lucide-react";
+import { Sparkles, Upload, Link, X, Image as ImageIcon, Plus, Telescope, Building2, Brain, RefreshCw, Briefcase } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -35,7 +35,7 @@ const ERAS = [
   "70s", "80s", "80s–90s", "90s", "2000s", "All Eras / Current",
 ];
 
-type Mode = "discover" | "custom" | "business";
+type Mode = "discover" | "custom" | "service" | "business";
 
 interface BusinessInput {
   type: string;
@@ -80,19 +80,17 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === "custom") {
-      // Build a single custom product with all URLs and images
+    if (mode === "custom" || mode === "service") {
       const filled: CustomProductInput[] = [{
         productName: customName,
-        notes: customNotes,
+        notes: mode === "service" ? `[SERVICE ANALYSIS] ${customNotes}` : customNotes,
         urls: customUrls.filter(u => u.trim()),
         images: customImages,
-        // Keep legacy fields for backwards compat with edge function
         productUrl: customUrls.find(u => u.trim()) || "",
         imageDataUrl: customImages[0]?.dataUrl,
         imageFile: customImages[0]?.file,
       }];
-      onAnalyze({ category: "Custom", era: "All Eras / Current", batchSize: 1, customProducts: filled });
+      onAnalyze({ category: mode === "service" ? "Service" : "Custom", era: "All Eras / Current", batchSize: 1, customProducts: filled });
     } else {
       onAnalyze({ category, era, batchSize });
     }
@@ -188,6 +186,17 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
       icon: Upload,
       accent: "hsl(217 91% 38%)",
       accentLight: "hsl(214 95% 93%)",
+    },
+    {
+      id: "service" as Mode,
+      label: "Analyze A Service",
+      tagline: "Service Intelligence",
+      description: "Drop in URLs, screenshots, or describe any service — AI analyzes pricing models, competitive landscape, customer pain points, and growth opportunities.",
+      behindTheScenes: "URLs are scraped for service details, reviews & pricing. All data feeds into a unified service intelligence report with actionable recommendations.",
+      bullets: ["Scrapes up to 3 URLs + analyzes 5 images", "Pricing models, competitor mapping & gaps", "Customer pain points + growth strategies"],
+      icon: Briefcase,
+      accent: "hsl(340 75% 50%)",
+      accentLight: "hsl(340 75% 95%)",
     },
     {
       id: "business",
@@ -612,7 +621,132 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
         </div>
       )}
 
-      {/* MODE C — Analyze Business Model */}
+      {/* MODE C — Analyze A Service */}
+      {mode === "service" && (
+        <div className="space-y-5">
+          <p className="text-xs text-muted-foreground">
+            Provide up to <strong>3 URLs</strong> (website, Yelp, LinkedIn) and <strong>5 screenshots</strong> — AI analyzes the service's market position, pricing, and growth opportunities.
+          </p>
+
+          {/* Service Name */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Service / Company Name</label>
+            <input type="text" value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder="e.g. Joe's Mobile Car Detailing, CloudKitchen NYC…"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+              style={inputStyle} />
+          </div>
+
+          {/* URLs Section */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Link size={11} /> Service URLs ({customUrls.filter(u => u.trim()).length}/3)
+            </label>
+            {customUrls.map((url, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <div className="relative flex-1">
+                  <Link size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input type="url" value={url}
+                    onChange={(e) => {
+                      setCustomUrls(prev => {
+                        const next = [...prev];
+                        next[i] = e.target.value;
+                        return next;
+                      });
+                    }}
+                    placeholder={`URL ${i + 1} — Website, Yelp, Google Maps, LinkedIn…`}
+                    className="w-full rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none"
+                    style={inputStyle} />
+                </div>
+                {customUrls.length > 1 && (
+                  <button type="button" onClick={() => setCustomUrls(prev => prev.filter((_, j) => j !== i))}
+                    className="p-1.5 rounded-lg transition-colors hover:bg-destructive/10">
+                    <X size={12} className="text-destructive" />
+                  </button>
+                )}
+              </div>
+            ))}
+            {customUrls.length < 3 && (
+              <button type="button" onClick={() => setCustomUrls(prev => [...prev, ""])}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+                style={{ border: "1.5px dashed hsl(var(--border))", color: "hsl(340 75% 50%)" }}>
+                <Plus size={10} /> Add URL
+              </button>
+            )}
+          </div>
+
+          {/* Images Section */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <ImageIcon size={11} /> Screenshots / Images ({customImages.length}/5)
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {customImages.map((img, i) => (
+                <div key={i} className="relative">
+                  <img src={img.dataUrl} alt={`upload ${i + 1}`}
+                    className="h-20 w-28 object-cover rounded-xl"
+                    style={{ border: "1.5px solid hsl(var(--border))" }} />
+                  <button type="button"
+                    onClick={() => setCustomImages(prev => prev.filter((_, j) => j !== i))}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
+                    style={{ background: "hsl(var(--destructive))" }}>
+                    <X size={10} style={{ color: "white" }} />
+                  </button>
+                </div>
+              ))}
+              {customImages.length < 5 && (
+                <div
+                  className="flex flex-col items-center justify-center h-20 w-28 rounded-xl cursor-pointer border-2 border-dashed transition-colors"
+                  style={{ borderColor: "hsl(340 75% 50% / 0.3)", background: "hsl(340 75% 95%)" }}
+                  onClick={() => multiImageRef.current?.click()}
+                >
+                  <ImageIcon size={16} style={{ color: "hsl(340 75% 50%)" }} />
+                  <span className="text-[10px] font-medium mt-1" style={{ color: "hsl(340 75% 50%)" }}>
+                    + Add
+                  </span>
+                  <input
+                    ref={multiImageRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      const remaining = 5 - customImages.length;
+                      files.slice(0, remaining).forEach(file => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          setCustomImages(prev => {
+                            if (prev.length >= 5) return prev;
+                            return [...prev, { file, dataUrl: ev.target?.result as string }];
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                      if (e.target) e.target.value = "";
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Context / Notes (optional)
+            </label>
+            <input type="text" value={customNotes}
+              onChange={(e) => setCustomNotes(e.target.value)}
+              placeholder="e.g. Interested in scaling this service, want to understand pricing gaps…"
+              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+              style={inputStyle} />
+          </div>
+        </div>
+      )}
+
+      {/* MODE D — Analyze Business Model */}
       {mode === "business" && (
         <div className="space-y-4">
           <p className="text-xs text-muted-foreground">
@@ -766,6 +900,8 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 <Sparkles size={16} />
                 {mode === "custom" && hasCustomProducts
                   ? "Analyze A Product"
+                  : mode === "service"
+                  ? "Analyze A Service"
                   : `Run Product Intelligence Analysis`}
               </>
             )}
@@ -773,6 +909,8 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
           <p className="text-xs text-muted-foreground">
             {mode === "discover"
               ? `Processes ${batchSize} products · Assigns Revival Scores · Generates Flipped Ideas`
+              : mode === "service"
+              ? "Analyzes service · Pricing, competition & growth opportunities"
               : `Analyzes ${customProducts.filter(cp => cp.imageDataUrl || cp.productUrl || cp.productName).length || 1} product(s) · Deep custom intelligence report`}
           </p>
         </div>
