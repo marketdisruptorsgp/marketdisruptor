@@ -9,6 +9,7 @@ import {
   TrendingUp, Target, Rocket, Clock, ChevronRight, FlipHorizontal,
   Wrench, Eye, Package, Factory, Layers, FileDown,
 } from "lucide-react";
+import { InsightRating } from "./InsightRating";
 
 interface BusinessModelInput {
   type: string;
@@ -435,6 +436,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
               <Target size={11} /> True Job To Be Done
             </p>
             <p className="text-sm text-foreground leading-relaxed font-medium">{data.businessSummary.trueJobToBeDone}</p>
+            <InsightRating sectionId="biz-jtbd" compact />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -615,6 +617,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
                       <span className="text-foreground/80">{a.challengeIdea}</span>
                     </div>
                   )}
+                  <div className="ml-8"><InsightRating sectionId={`biz-assumption-${i}`} compact /></div>
                 </div>
               );
             })}
@@ -683,6 +686,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
               <Layers size={11} /> Platform / Marketplace Opportunity
             </p>
             <p className="text-xs text-foreground/80 leading-relaxed">{data.technologyLeverage.platformOpportunity}</p>
+            <InsightRating sectionId="biz-platform" compact />
           </div>
 
           <button onClick={() => setActiveTab("revenue")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
@@ -731,6 +735,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
               <FlipHorizontal size={11} /> Bold Pricing Model Redesign
             </p>
             <p className="text-xs text-foreground/80 leading-relaxed">{data.revenueReinvention.pricingRedesign}</p>
+            <InsightRating sectionId="biz-pricing" compact />
           </div>
 
           {/* Bundle Opportunities */}
@@ -781,6 +786,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
               <AlertTriangle size={11} /> The Startup That Could Kill This Business
             </p>
             <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis.disruptorProfile}</p>
+            <InsightRating sectionId="biz-disruptor" compact />
           </div>
 
           {/* Defense Moves */}
@@ -805,6 +811,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
               <Rocket size={11} /> If You Were Disrupting This From Scratch With $1M…
             </p>
             <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis.attackMoves}</p>
+            <InsightRating sectionId="biz-attack" compact />
           </div>
 
           <button onClick={() => setActiveTab("reinvented")} className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
@@ -828,6 +835,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
               </div>
               <h2 className="text-2xl font-black mb-1">{data.reinventedModel.modelName}</h2>
               <p className="text-xs leading-relaxed opacity-80 max-w-2xl">{data.reinventedModel.coreShift}</p>
+              <InsightRating sectionId="biz-reinvented" compact />
             </div>
           </div>
 

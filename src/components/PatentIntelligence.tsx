@@ -8,6 +8,7 @@ import {
   FileSearch, Microscope, Star,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
+import { InsightRating } from "./InsightRating";
 
 interface PatentData {
   summary: string;
@@ -301,9 +302,10 @@ export function PatentIntelligence({ product, onSave }: Props) {
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Example product</p>
-                  <p className="text-xs text-foreground/80 italic">"{item.exampleApplication}"</p>
+                <p className="text-xs text-foreground/80 italic">"{item.exampleApplication}"</p>
                 </div>
                 <p className="text-[10px] text-muted-foreground">If still active, this IP would cost ~{item.estimatedValue} to license — now yours for free.</p>
+                <InsightRating sectionId={`patent-goldmine-${i}`} compact />
               </div>
             </div>
           ))}
@@ -371,6 +373,7 @@ export function PatentIntelligence({ product, onSave }: Props) {
                 </div>
               </div>
               <p className="text-sm leading-relaxed text-foreground/80">{angle.description}</p>
+              <InsightRating sectionId={`patent-angle-${i}`} compact />
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Defensibility</p>
