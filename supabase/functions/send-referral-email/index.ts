@@ -188,43 +188,6 @@ function buildReferralEmailHtml(
             </td>
           </tr>
 
-          <!-- Example Output Previews -->
-          <tr>
-            <td style="padding:0 36px 28px;">
-              <hr style="border:none;border-top:1px solid #21262d;margin:0 0 24px;">
-              <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.15em;text-align:center;">
-                Example Outputs
-              </p>
-              <p style="margin:0 0 24px;font-size:18px;font-weight:800;color:#ffffff;text-align:center;line-height:1.4;">
-                Just a simple example of some of what you'll gain access to
-              </p>
-
-              <!-- 1. Market Sizing -->
-              <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#93c5fd;text-transform:uppercase;letter-spacing:0.1em;">Investor Pitch Deck &mdash; Market Sizing</p>
-              <a href="https://vocwbcoocohezvzmjald.supabase.co/storage/v1/object/public/email-assets/email-preview-market-sizing.jpg" target="_blank" style="display:block;margin-bottom:20px;">
-                <img src="https://vocwbcoocohezvzmjald.supabase.co/storage/v1/object/public/email-assets/email-preview-market-sizing.jpg" alt="TAM SAM SOM Market Sizing Dashboard" width="488" style="width:100%;max-width:488px;border-radius:10px;border:1px solid #21262d;display:block;" />
-              </a>
-
-              <!-- 2. Flipped Product Idea -->
-              <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:0.1em;">Flipped Product Idea &mdash; Score Breakdown</p>
-              <a href="https://vocwbcoocohezvzmjald.supabase.co/storage/v1/object/public/email-assets/email-preview-flipped-idea.jpg" target="_blank" style="display:block;margin-bottom:20px;">
-                <img src="https://vocwbcoocohezvzmjald.supabase.co/storage/v1/object/public/email-assets/email-preview-flipped-idea.jpg" alt="RetroPrint AI Film Subscription Score Bars" width="488" style="width:100%;max-width:488px;border-radius:10px;border:1px solid #21262d;display:block;" />
-              </a>
-
-              <!-- 3. Patent Intelligence -->
-              <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:0.1em;">Patent Intelligence &mdash; Expired IP Goldmine</p>
-              <a href="https://vocwbcoocohezvzmjald.supabase.co/storage/v1/object/public/email-assets/email-preview-patent-intel.jpg" target="_blank" style="display:block;margin-bottom:20px;">
-                <img src="https://vocwbcoocohezvzmjald.supabase.co/storage/v1/object/public/email-assets/email-preview-patent-intel.jpg" alt="Expired Patent Goldmine Analysis" width="488" style="width:100%;max-width:488px;border-radius:10px;border:1px solid #21262d;display:block;" />
-              </a>
-
-              <!-- 4. Assumptions Map -->
-              <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:0.1em;">Assumptions Map &mdash; The Flip</p>
-              <a href="https://vocwbcoocohezvzmjald.supabase.co/storage/v1/object/public/email-assets/email-preview-assumptions.jpg" target="_blank" style="display:block;margin-bottom:4px;">
-                <img src="https://vocwbcoocohezvzmjald.supabase.co/storage/v1/object/public/email-assets/email-preview-assumptions.jpg" alt="Assumptions Flip Mechanic" width="488" style="width:100%;max-width:488px;border-radius:10px;border:1px solid #21262d;display:block;" />
-              </a>
-            </td>
-          </tr>
-
           <!-- Bottom accent bar -->
           <tr>
             <td style="height:3px;background:linear-gradient(90deg,#60a5fa,#3b82f6,#2563eb);"></td>
