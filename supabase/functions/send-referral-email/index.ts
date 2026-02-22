@@ -18,17 +18,25 @@ function buildReferralEmailHtml(
   const to = safe(recipientName || "there");
 
   return `<!DOCTYPE html>
-<html>
+<html style="background-color:#080b10;" bgcolor="#080b10">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
   <title>Thought you'd get a ton of value from this! - ${from}</title>
+  <style>
+    :root { color-scheme: dark; supported-color-schemes: dark; }
+    body, html { background-color: #080b10 !important; }
+    .dark-bg { background-color: #080b10 !important; }
+    .card-bg { background-color: #0d1117 !important; }
+  </style>
 </head>
-<body style="margin:0;padding:0;background-color:#080b10;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#080b10;padding:40px 20px;">
+<body class="dark-bg" bgcolor="#080b10" style="margin:0;padding:0;background-color:#080b10;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#080b10" class="dark-bg" style="background-color:#080b10;padding:40px 20px;">
     <tr>
-      <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#0d1117;border-radius:16px;border:1px solid #1b2130;overflow:hidden;box-shadow:0 8px 32px -8px rgba(0,0,0,0.6);">
+      <td align="center" bgcolor="#080b10" class="dark-bg" style="background-color:#080b10;">
+        <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#0d1117" class="card-bg" style="max-width:560px;background-color:#0d1117;border-radius:16px;border:1px solid #1b2130;overflow:hidden;box-shadow:0 8px 32px -8px rgba(0,0,0,0.6);">
           <!-- Top accent bar -->
           <tr>
             <td style="height:4px;background:linear-gradient(90deg,#2563eb,#3b82f6,#60a5fa);"></td>
@@ -194,9 +202,9 @@ function buildReferralEmailHtml(
         </table>
 
         <!-- Branding footer -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;padding:24px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#080b10" style="max-width:560px;padding:24px 0;background-color:#080b10;">
           <tr>
-            <td align="center" style="font-size:11px;color:#484f58;">
+            <td align="center" bgcolor="#080b10" style="font-size:11px;color:#484f58;background-color:#080b10;">
               Developed by SGP Capital
             </td>
           </tr>
