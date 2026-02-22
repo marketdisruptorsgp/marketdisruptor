@@ -7,9 +7,10 @@ import {
   Brain, RefreshCw, ArrowRight, Building2, Zap, DollarSign, Shield,
   AlertTriangle, CheckCircle2, Lightbulb, Users, BarChart3, Cpu,
   TrendingUp, Target, Rocket, Clock, ChevronRight, FlipHorizontal,
-  Wrench, Eye, Package, Factory, Layers, FileDown,
+  Wrench, Eye, Package, Factory, Layers, FileDown, Swords, ClipboardCheck,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
+import { CriticalValidation } from "./CriticalValidation";
 
 interface BusinessModelInput {
   type: string;
@@ -154,7 +155,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
   });
   const [data, setData] = useState<BusinessModelAnalysisData | null>(initialData ?? null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"summary" | "operations" | "assumptions" | "tech" | "revenue" | "disruption" | "reinvented">("summary");
+  const [activeTab, setActiveTab] = useState<"summary" | "operations" | "assumptions" | "tech" | "revenue" | "disruption" | "reinvented" | "debate" | "validate">("summary");
+  const [validationData, setValidationData] = useState<unknown>(null);
 
   const saveToWorkspace = async (analysisData: BusinessModelAnalysisData, businessType: string) => {
     try {
@@ -227,6 +229,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
     { id: "revenue" as const, label: "Revenue Reinvention", icon: DollarSign, number: "05" },
     { id: "disruption" as const, label: "Disruption Map", icon: Shield, number: "06" },
     { id: "reinvented" as const, label: "Reinvented Model", icon: Rocket, number: "07" },
+    { id: "debate" as const, label: "Red vs Blue", icon: Swords, number: "08" },
+    { id: "validate" as const, label: "Validate", icon: ClipboardCheck, number: "09" },
   ];
 
   const STEP_COLORS: Record<string, string> = {
@@ -237,6 +241,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
     revenue: "hsl(142 70% 40%)",
     disruption: "hsl(350 80% 55%)",
     reinvented: "hsl(180 70% 40%)",
+    debate: "hsl(330 80% 50%)",
+    validate: "hsl(142 70% 40%)",
   };
 
   if (!data) {
@@ -414,7 +420,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
       </div>
 
       {/* Step nav */}
-      <div data-bma-steps className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
+      <div data-bma-steps className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
         {tabs.map((t) => {
           const Icon = t.icon;
           const isActive = activeTab === t.id;
@@ -941,6 +947,40 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
             </div>
           </div>
 
+          <button onClick={() => { setActiveTab("debate"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(330 80% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(330 80% 50% / 0.4)" }}>
+            Next: Red vs Blue Debate <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* STEP 8: Red vs Blue Debate */}
+      {activeTab === "debate" && (
+        <div className="space-y-4">
+          <CriticalValidation
+            product={{ name: input.type || "Business Model", category: "Business Model" }}
+            analysisData={data}
+            activeTab="debate"
+            externalData={validationData}
+            onDataLoaded={setValidationData}
+          />
+          <button onClick={() => { setActiveTab("validate"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(142 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(142 70% 40% / 0.4)" }}>
+            Next: Validate & Score <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* STEP 9: Validate */}
+      {activeTab === "validate" && (
+        <div className="space-y-4">
+          <CriticalValidation
+            product={{ name: input.type || "Business Model", category: "Business Model" }}
+            analysisData={data}
+            activeTab="validate"
+            externalData={validationData}
+            onDataLoaded={setValidationData}
+          />
           <div className="text-center py-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold"
               style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
