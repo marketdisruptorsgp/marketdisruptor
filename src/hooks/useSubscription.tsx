@@ -52,7 +52,7 @@ export const TIERS = {
       "Deeper insights",
       "High-quality illustrations",
     ],
-    color: "hsl(38 92% 50%)",
+    color: "hsl(142 71% 45%)",
   },
 } as const;
 

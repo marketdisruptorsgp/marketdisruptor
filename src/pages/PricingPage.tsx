@@ -80,10 +80,10 @@ export default function PricingPage() {
                 className="rounded-2xl p-6 flex flex-col relative"
                 style={{
                   background: isDisruptor
-                    ? "linear-gradient(165deg, hsl(38 40% 10%) 0%, hsl(220 25% 10%) 100%)"
+                    ? "linear-gradient(165deg, hsl(142 30% 10%) 0%, hsl(220 25% 10%) 100%)"
                     : "hsl(220 20% 11%)",
                   border: `1.5px solid ${
-                    isDisruptor ? "hsl(38 80% 40% / 0.35)" :
+                    isDisruptor ? "hsl(142 60% 35% / 0.35)" :
                     isCurrent ? "hsl(var(--primary) / 0.4)" :
                     "hsl(0 0% 100% / 0.06)"
                   }`,
@@ -100,7 +100,7 @@ export default function PricingPage() {
                 {isDisruptor && !isCurrent && (
                   <span
                     className="absolute -top-3 left-5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                    style={{ background: "hsl(38 92% 50%)", color: "hsl(220 20% 5%)" }}
+                    style={{ background: "hsl(142 71% 45%)", color: "white" }}
                   >
                     Most Popular
                   </span>
@@ -147,14 +147,19 @@ export default function PricingPage() {
                         : "Unlimited — Active"}
                     </div>
                     {subscribed && (
-                      <button
-                        onClick={handleManage}
-                        disabled={loadingPortal}
-                        className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all hover:bg-white/10"
-                        style={{ border: "1px solid hsl(0 0% 100% / 0.1)", color: "hsl(0 0% 100% / 0.6)" }}
-                      >
-                        {loadingPortal ? <Loader2 size={13} className="animate-spin" /> : "Manage Subscription"}
-                      </button>
+                      <>
+                        <button
+                          onClick={handleManage}
+                          disabled={loadingPortal}
+                          className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all hover:bg-white/10"
+                          style={{ border: "1px solid hsl(0 0% 100% / 0.1)", color: "hsl(0 0% 100% / 0.6)" }}
+                        >
+                          {loadingPortal ? <Loader2 size={13} className="animate-spin" /> : "Manage Subscription"}
+                        </button>
+                        <p className="text-[10px] text-center leading-relaxed" style={{ color: "hsl(0 0% 100% / 0.35)" }}>
+                          Billed monthly · Cancel anytime from Manage Subscription · No refunds for partial months
+                        </p>
+                      </>
                     )}
                   </div>
                 ) : isUpgrade ? (
@@ -163,10 +168,10 @@ export default function PricingPage() {
                     disabled={loadingTier === key}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all hover:scale-[1.02]"
                     style={{
-                      background: isDisruptor ? "hsl(38 92% 50%)" : "hsl(var(--primary))",
-                      color: isDisruptor ? "hsl(220 20% 5%)" : "white",
+                      background: isDisruptor ? "hsl(142 71% 45%)" : "hsl(var(--primary))",
+                      color: "white",
                       boxShadow: isDisruptor
-                        ? "0 4px 20px -4px hsl(38 92% 50% / 0.4)"
+                        ? "0 4px 20px -4px hsl(142 71% 45% / 0.4)"
                         : "0 4px 20px -4px hsl(217 91% 50% / 0.4)",
                     }}
                   >
@@ -189,10 +194,13 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* Bottom FAQ-like section */}
-        <div className="text-center">
+        {/* Bottom policy section */}
+        <div className="text-center space-y-2">
           <p className="text-xs text-white/30">
-            All plans include secure payment via Stripe · Cancel anytime · Instant activation · Your data never expires
+            All plans include secure payment via Stripe · Instant activation · Your data never expires
+          </p>
+          <p className="text-xs text-white/30">
+            Billed monthly · Cancel anytime by clicking "Manage Subscription" above · No refunds for partial billing periods
           </p>
         </div>
       </div>
