@@ -97,34 +97,55 @@ function buildReferralEmailHtml(
               <!-- Divider -->
               <hr style="border:none;border-top:1px solid #21262d;margin:0 0 24px;">
 
-              <!-- Capabilities -->
-              <p style="margin:0 0 16px;font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.1em;">
-                What Powers It
+              <!-- Analysis Modes -->
+              <p style="margin:0 0 20px;font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.1em;">
+                Four Ways to Uncover Opportunity
               </p>
 
-              <table cellpadding="0" cellspacing="0" width="100%">
+              <!-- Mode 1: Disrupt This Product -->
+              <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:20px;">
                 <tr>
-                  <td style="padding:8px 0;border-bottom:1px solid #21262d;">
-                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Multi-Model AI Pipelines</p>
-                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Proprietary analysis engine with deep web crawling and vision AI</p>
+                  <td style="border-left:3px solid #3b82f6;padding:0 0 0 16px;">
+                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#e6edf3;letter-spacing:-0.01em;">Disrupt This Product</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Deep-crawl any physical product across the web with vision AI</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Surface real pricing intel, demand signals, and competitor gaps</p>
+                    <p style="margin:0;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Generate reimagined product concepts with feasibility scores</p>
                   </td>
                 </tr>
+              </table>
+
+              <!-- Mode 2: Disrupt This Service -->
+              <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:20px;">
                 <tr>
-                  <td style="padding:8px 0;border-bottom:1px solid #21262d;">
-                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">First Principles Deconstruction</p>
-                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Questions why a product exists in its current form and rebuilds it from scratch</p>
+                  <td style="border-left:3px solid #8b5cf6;padding:0 0 0 16px;">
+                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#e6edf3;letter-spacing:-0.01em;">Disrupt This Service</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Deconstruct any service business — pricing, delivery, and margins</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Identify inefficiencies customers have normalized</p>
+                    <p style="margin:0;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Model alternative revenue structures and untapped channels</p>
                   </td>
                 </tr>
+              </table>
+
+              <!-- Mode 3: Disrupt The Business Model -->
+              <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:20px;">
                 <tr>
-                  <td style="padding:8px 0;border-bottom:1px solid #21262d;">
-                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Supply Chain & Patent Intel</p>
-                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Suppliers, margins, patent landscape, and go-to-market strategies</p>
+                  <td style="border-left:3px solid #f59e0b;padding:0 0 0 16px;">
+                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#e6edf3;letter-spacing:-0.01em;">Disrupt The Business Model</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Break apart any business model and rebuild it from first principles</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; AI-driven strategic alternatives with revenue projections</p>
+                    <p style="margin:0;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Investor-ready pitch decks generated in seconds</p>
                   </td>
                 </tr>
+              </table>
+
+              <!-- Mode 4: Disrupt This Nostalgia -->
+              <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:4px;">
                 <tr>
-                  <td style="padding:8px 0;">
-                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Pitch Deck Generator</p>
-                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Investor-ready presentations created in seconds from analysis data</p>
+                  <td style="border-left:3px solid #22c55e;padding:0 0 0 16px;">
+                    <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#e6edf3;letter-spacing:-0.01em;">Disrupt This Nostalgia</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Surface forgotten products from any era with cultural context</p>
+                    <p style="margin:0 0 4px;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Score revival potential using modern market signals</p>
+                    <p style="margin:0;font-size:13px;color:#c9d1d9;line-height:1.6;">&#8226; Uncover hidden demand for products people didn't know they missed</p>
                   </td>
                 </tr>
               </table>
