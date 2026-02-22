@@ -382,11 +382,11 @@ export function UserHeader() {
                     boxShadow: !sendingEmail && recipientEmail ? "0 4px 16px -2px hsl(217 91% 50% / 0.4)" : "none",
                   }}
                 >
-                  {sendingEmail ? <><Loader2 size={14} className="animate-spin" /> Sending…</> : emailSent ? <><Check size={14} /> Sent!</> : <><Send size={14} /> Send Branded Invitation</>}
+                  {sendingEmail ? <><Loader2 size={14} className="animate-spin" /> Sending...</> : emailSent ? <><Check size={14} /> Sent</> : <><Send size={14} /> Send Invitation</>}
                 </button>
               </form>
               <p className="text-[11px] leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
-                We'll send them a beautifully branded email explaining the platform with your referral link included.
+                We'll send them a professionally designed email explaining the platform with your referral link included.
               </p>
             </div>
 
