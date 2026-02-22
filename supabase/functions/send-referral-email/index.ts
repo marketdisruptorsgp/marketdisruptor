@@ -28,36 +28,23 @@ function buildReferralEmailHtml(
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d1117;padding:40px 20px;">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background-color:#161b22;border-radius:16px;border:1px solid #21262d;overflow:hidden;box-shadow:0 8px 32px -8px rgba(0,0,0,0.5);">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#161b22;border-radius:16px;border:1px solid #21262d;overflow:hidden;box-shadow:0 8px 32px -8px rgba(0,0,0,0.5);">
 
-          <!-- Top gradient bar -->
+          <!-- Top accent bar -->
           <tr>
             <td style="height:4px;background:linear-gradient(90deg,#2563eb,#3b82f6,#60a5fa);"></td>
           </tr>
 
           <!-- Logo -->
           <tr>
-            <td style="padding:28px 32px 0;">
+            <td style="padding:32px 36px 0;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="width:36px;height:36px;background-color:#2563eb;border-radius:10px;text-align:center;vertical-align:middle;">
+                  <td style="width:38px;height:38px;background-color:#2563eb;border-radius:10px;text-align:center;vertical-align:middle;">
                     <span style="font-size:14px;color:#ffffff;font-weight:bold;">MD</span>
                   </td>
-                  <td style="padding-left:10px;font-size:16px;font-weight:700;color:#e6edf3;">
+                  <td style="padding-left:12px;font-size:17px;font-weight:700;color:#e6edf3;letter-spacing:-0.01em;">
                     Market Disruptor
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Invitation badge -->
-          <tr>
-            <td style="padding:20px 32px 0;">
-              <table cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="background-color:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.25);border-radius:20px;padding:6px 14px;">
-                    <span style="font-size:12px;font-weight:700;color:#60a5fa;letter-spacing:0.03em;">🎁 Personal Invitation from ${from}</span>
                   </td>
                 </tr>
               </table>
@@ -66,34 +53,39 @@ function buildReferralEmailHtml(
 
           <!-- Main content -->
           <tr>
-            <td style="padding:20px 32px 28px;">
-              <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#e6edf3;line-height:1.3;">
-                Hey ${to}, ${from} thinks you'll love this.
+            <td style="padding:28px 36px 32px;">
+              <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#e6edf3;line-height:1.25;letter-spacing:-0.02em;">
+                ${from} invited you to join Market Disruptor
               </h1>
               <p style="margin:0 0 24px;font-size:15px;color:#8b949e;line-height:1.7;">
-                Market Disruptor is an AI-powered product intelligence platform that scrapes live market data, deconstructs any product to its first principles, and generates actionable business opportunities — complete with supply chains, pricing intel, and investor-ready pitch decks.
+                Hi ${to}, you've received an invitation to an AI-powered product intelligence platform used by entrepreneurs, investors, and product teams to identify high-potential market opportunities.
+              </p>
+
+              <!-- Value proposition -->
+              <p style="margin:0 0 20px;font-size:15px;color:#c9d1d9;line-height:1.7;">
+                Market Disruptor analyzes live market data across eBay, Etsy, Reddit, Google, and TikTok to deconstruct any product to its first principles and generate actionable business strategies — complete with supply chain intelligence, pricing data, and investor-ready pitch decks.
               </p>
 
               <!-- CTA -->
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
-                  <td align="center" style="padding:4px 0 28px;">
-                    <a href="${shareUrl}" target="_blank" style="display:inline-block;background-color:#2563eb;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.02em;box-shadow:0 4px 20px -4px rgba(37,99,235,0.5);">
-                      Claim Your Free Analyses →
+                  <td align="center" style="padding:8px 0 28px;">
+                    <a href="${shareUrl}" target="_blank" style="display:inline-block;background-color:#2563eb;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:14px 44px;border-radius:12px;letter-spacing:0.01em;box-shadow:0 4px 20px -4px rgba(37,99,235,0.45);">
+                      Get Started — It's Free
                     </a>
                   </td>
                 </tr>
               </table>
 
               <!-- Bonus callout -->
-              <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
+              <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
                 <tr>
                   <td style="background:linear-gradient(135deg,rgba(34,197,94,0.08) 0%,rgba(34,197,94,0.02) 100%);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:16px 20px;">
                     <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#4ade80;">
-                      🎉 You both get +5 bonus analyses
+                      You both receive 5 bonus analyses
                     </p>
-                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">
-                      Sign up through this link and you'll each receive 5 extra product analyses on top of the free tier. No credit card required.
+                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.6;">
+                      Sign up through this link and you'll each receive 5 additional product analyses. No credit card required.
                     </p>
                   </td>
                 </tr>
@@ -102,40 +94,40 @@ function buildReferralEmailHtml(
               <!-- Divider -->
               <hr style="border:none;border-top:1px solid #21262d;margin:0 0 24px;">
 
-              <!-- Features -->
-              <p style="margin:0 0 14px;font-size:11px;font-weight:700;color:#e6edf3;text-transform:uppercase;letter-spacing:0.1em;">
-                What you'll get access to
+              <!-- Capabilities -->
+              <p style="margin:0 0 16px;font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.1em;">
+                Platform Capabilities
               </p>
 
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
-                  <td style="padding:10px 0;font-size:14px;color:#8b949e;line-height:1.6;">
-                    <span style="color:#60a5fa;font-weight:700;">⚡ AI Product Intelligence</span><br/>
-                    Deep-dive any product with live market data from eBay, Etsy, Reddit, Google &amp; TikTok
+                  <td style="padding:8px 0;border-bottom:1px solid #21262d;">
+                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">AI Product Intelligence</p>
+                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Deep-dive analysis with live market data across major platforms</p>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:10px 0;font-size:14px;color:#8b949e;line-height:1.6;">
-                    <span style="color:#60a5fa;font-weight:700;">🧠 First Principles Analysis</span><br/>
-                    Challenge every assumption, flip conventional thinking, uncover hidden opportunities
+                  <td style="padding:8px 0;border-bottom:1px solid #21262d;">
+                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">First Principles Analysis</p>
+                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Challenge assumptions, invert conventional thinking, uncover hidden opportunities</p>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:10px 0;font-size:14px;color:#8b949e;line-height:1.6;">
-                    <span style="color:#60a5fa;font-weight:700;">✨ Innovation Engine</span><br/>
-                    AI-generated product concepts with feasibility scores, action plans &amp; revenue projections
+                  <td style="padding:8px 0;border-bottom:1px solid #21262d;">
+                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Innovation Engine</p>
+                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">AI-generated product concepts with feasibility scores and revenue projections</p>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:10px 0;font-size:14px;color:#8b949e;line-height:1.6;">
-                    <span style="color:#60a5fa;font-weight:700;">📊 Supply Chain Intel</span><br/>
-                    Suppliers, vendors, margins, and go-to-market strategies ready to execute
+                  <td style="padding:8px 0;border-bottom:1px solid #21262d;">
+                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Supply Chain Intelligence</p>
+                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Suppliers, margins, and go-to-market strategies ready to execute</p>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:10px 0;font-size:14px;color:#8b949e;line-height:1.6;">
-                    <span style="color:#60a5fa;font-weight:700;">📑 Pitch Deck Generator</span><br/>
-                    Investor-ready presentations created in seconds from your analysis data
+                  <td style="padding:8px 0;">
+                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Pitch Deck Generator</p>
+                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Investor-ready presentations created in seconds from analysis data</p>
                   </td>
                 </tr>
               </table>
@@ -144,24 +136,25 @@ function buildReferralEmailHtml(
 
           <!-- Footer -->
           <tr>
-            <td style="padding:0 32px 24px;">
-              <p style="margin:0 0 12px;font-size:12px;color:#484f58;line-height:1.5;">
-                Privacy by design — all connections are TLS encrypted, analysis runs in isolated serverless functions, and your data is never sold, shared, or used for training.
+            <td style="padding:0 36px 28px;">
+              <hr style="border:none;border-top:1px solid #21262d;margin:0 0 20px;">
+              <p style="margin:0 0 8px;font-size:12px;color:#484f58;line-height:1.6;">
+                All connections are TLS encrypted. Analysis runs in isolated serverless functions. Your data is never sold, shared, or used for training.
               </p>
               <p style="margin:0;font-size:11px;color:#484f58;">
-                You received this because ${from} invited you. If you're not interested, no action is needed.
+                You received this email because ${from} invited you. No action is needed if you're not interested.
               </p>
             </td>
           </tr>
 
-          <!-- Bottom gradient bar -->
+          <!-- Bottom accent bar -->
           <tr>
             <td style="height:3px;background:linear-gradient(90deg,#60a5fa,#3b82f6,#2563eb);"></td>
           </tr>
         </table>
 
         <!-- Branding footer -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;padding:20px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;padding:24px 0;">
           <tr>
             <td align="center" style="font-size:11px;color:#484f58;">
               Developed by SGP Capital
@@ -194,7 +187,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify the caller
     const token = authHeader.replace("Bearer ", "");
     const {
       data: { user },
@@ -220,14 +212,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get sender's name
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("first_name")
       .eq("user_id", user.id)
       .single();
 
-    const senderName = profile?.first_name || "A friend";
+    const senderName = profile?.first_name || "A colleague";
 
     const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -238,7 +229,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: "Market Disruptor <hello@marketdisruptor.sgpcapital.com>",
         to: [recipientEmail.trim()],
-        subject: `${senderName} invited you to Market Disruptor — claim your free analyses`,
+        subject: `${senderName} invited you to Market Disruptor`,
         html: buildReferralEmailHtml(senderName, recipientName?.trim() || "", shareUrl),
       }),
     });
