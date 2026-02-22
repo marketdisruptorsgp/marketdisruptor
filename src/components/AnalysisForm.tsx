@@ -161,9 +161,10 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   const mode = externalMode ?? internalMode;
   const setMode = (m: Mode) => { onModeChange ? onModeChange(m) : setInternalMode(m); };
   
-  // Two-phase flow: "select" (cards) → "confirm" (dialog) → "form" (dedicated screen)
-  const [phase, setPhase] = useState<"select" | "confirm" | "form">("select");
-  const [pendingMode, setPendingMode] = useState<Mode | null>(null);
+  // Two-phase flow: "confirm" (dialog) → "form" (dedicated screen)
+  // Tabs handle mode selection, so we skip the "select" phase
+  const [phase, setPhase] = useState<"select" | "confirm" | "form">(externalMode ? "confirm" : "select");
+  const [pendingMode, setPendingMode] = useState<Mode | null>(externalMode || null);
   const prevExternalMode = useRef(externalMode);
 
   // When external mode changes (tab clicked), jump to confirm phase
