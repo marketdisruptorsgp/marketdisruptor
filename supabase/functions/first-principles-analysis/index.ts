@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product } = await req.json();
+    const { product, userSuggestions } = await req.json();
     const isService = product.category === "Service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -293,7 +293,7 @@ Return ONLY the JSON object.`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: finalPrompt },
         ],
         temperature: 0.7,
         max_tokens: 12000,
