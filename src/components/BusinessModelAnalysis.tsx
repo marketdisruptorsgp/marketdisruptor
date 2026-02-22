@@ -12,7 +12,7 @@ import {
 import { InsightRating } from "./InsightRating";
 
 
-interface BusinessModelInput {
+export interface BusinessModelInput {
   type: string;
   description: string;
   revenueModel?: string;
@@ -57,7 +57,7 @@ interface HiddenAssumption {
   challengeIdea: string;
 }
 
-interface BusinessModelAnalysisData {
+export interface BusinessModelAnalysisData {
   businessSummary: {
     trueJobToBeDone: string;
     currentModel: string;
@@ -142,7 +142,7 @@ const BUSINESS_EXAMPLES = [
   "HVAC company", "Plumbing company", "Auto repair shop", "Vending machine operator",
 ];
 
-export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: BusinessModelAnalysisData | null; onSaved?: () => void }) => {
+export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnalysisComplete }: { initialData?: BusinessModelAnalysisData | null; onSaved?: () => void; renderMode?: "report" | "disrupt"; onAnalysisComplete?: (data: BusinessModelAnalysisData, input: BusinessModelInput) => void }) => {
   const { user } = useAuth();
   const [input, setInput] = useState<BusinessModelInput>({
     type: "",
@@ -209,6 +209,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
       setData(result.analysis);
       setActiveTab("summary");
       toast.success("Business model analysis complete!");
+      onAnalysisComplete?.(result.analysis, input);
       await saveToWorkspace(result.analysis, input.type);
     } catch (err) {
       toast.error("Unexpected error: " + String(err));
@@ -225,7 +226,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
 
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-bma-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
 
-  const tabs = [
+  const allTabs = [
     { id: "summary" as const, label: "Business Reality", icon: Eye, number: "01" },
     { id: "operations" as const, label: "Operations Audit", icon: Wrench, number: "02" },
     { id: "assumptions" as const, label: "Hidden Assumptions", icon: Brain, number: "03" },
@@ -233,8 +234,16 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
     { id: "revenue" as const, label: "Revenue Reinvention", icon: DollarSign, number: "05" },
     { id: "disruption" as const, label: "Disruption Map", icon: Shield, number: "06" },
     { id: "reinvented" as const, label: "Reinvented Model", icon: Rocket, number: "07" },
-    { id: "reinvented" as const, label: "Reinvented Model", icon: Rocket, number: "07" },
   ];
+
+  const REPORT_TAB_IDS = ["summary", "operations", "assumptions", "tech", "revenue"];
+  const DISRUPT_TAB_IDS = ["disruption", "reinvented"];
+
+  const tabs = renderMode === "report"
+    ? allTabs.filter(t => REPORT_TAB_IDS.includes(t.id))
+    : renderMode === "disrupt"
+    ? allTabs.filter(t => DISRUPT_TAB_IDS.includes(t.id))
+    : allTabs;
 
   const STEP_COLORS: Record<string, string> = {
     summary: "hsl(var(--primary))",
@@ -245,6 +254,11 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
     disruption: "hsl(350 80% 55%)",
     reinvented: "hsl(180 70% 40%)",
   };
+
+  // When in renderMode, skip form entirely — parent controls visibility
+  if (!data && renderMode) {
+    return null;
+  }
 
   if (!data) {
     return (
@@ -389,36 +403,44 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
     );
   }
 
+  // Set initial activeTab based on renderMode on first render
+  const initialTab = renderMode === "disrupt" ? "disruption" : renderMode === "report" ? "summary" : activeTab;
+  if (initialTab !== activeTab && renderMode && (renderMode === "disrupt" ? !["disruption", "reinvented"].includes(activeTab) : !REPORT_TAB_IDS.includes(activeTab))) {
+    setActiveTab(initialTab as typeof activeTab);
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-            <Building2 size={15} style={{ color: "white" }} />
+      {/* Header — only show when not in renderMode */}
+      {!renderMode && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+              <Building2 size={15} style={{ color: "white" }} />
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground text-sm">Business Model Deconstruction</h3>
+              <p className="text-[11px] text-muted-foreground">{input.type}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-foreground text-sm">Business Model Deconstruction</h3>
-            <p className="text-[11px] text-muted-foreground">{input.type}</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => downloadBusinessModelPDF(input.type || "Business Model", data)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{ background: "hsl(var(--primary))", color: "white" }}
+            >
+              <FileDown size={12} /> Download PDF
+            </button>
+            <button
+              onClick={() => { setData(null); setInput({ type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "" }); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+            >
+              New Analysis
+            </button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => downloadBusinessModelPDF(input.type || "Business Model", data)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-            style={{ background: "hsl(var(--primary))", color: "white" }}
-          >
-            <FileDown size={12} /> Download PDF
-          </button>
-          <button
-            onClick={() => { setData(null); setInput({ type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "" }); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-            style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-          >
-            New Analysis
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Step nav */}
       <div data-bma-steps className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">

@@ -11,7 +11,7 @@ import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
-import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
+import { BusinessModelAnalysis, type BusinessModelInput, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { UserHeader } from "@/components/UserHeader";
@@ -134,7 +134,12 @@ export default function Index() {
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [businessAnalysisData, setBusinessAnalysisData] = useState<unknown>(null);
+  const [businessAnalysisData, setBusinessAnalysisData] = useState<BusinessModelAnalysisData | null>(null);
+  const [businessModelInput, setBusinessModelInput] = useState<BusinessModelInput | null>(null);
+  const [businessActiveStep, setBusinessActiveStep] = useState(2);
+  const [businessVisitedSteps, setBusinessVisitedSteps] = useState<Set<number>>(new Set([2]));
+  const [businessStressTestData, setBusinessStressTestData] = useState<unknown>(null);
+  const [businessStressTestTab, setBusinessStressTestTab] = useState<"debate" | "validate">("debate");
   const [expandedSection, setExpandedSection] = useState<string>("discovery");
   const [analysisParams, setAnalysisParams] = useState<{
     category: string; era: string; batchSize: number;
@@ -262,8 +267,12 @@ export default function Index() {
   const handleLoadSaved = useCallback((analysis: { products: Product[]; category: string; era: string; audience?: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string; analysis_type?: string; analysis_data?: unknown }) => {
     setLoadedFromSaved(true);
     if (analysis.analysis_type === "business_model") {
-      setBusinessAnalysisData(analysis.analysis_data as never);
-      setExpandedSection("businessmodel");
+      setBusinessAnalysisData(analysis.analysis_data as BusinessModelAnalysisData);
+      // Try to extract input from title (format: "Type — Business Model")
+      const titleParts = (analysis.title || "").split(" — ");
+      setBusinessModelInput({ type: titleParts[0] || "Business", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "" });
+      setBusinessActiveStep(2);
+      setBusinessVisitedSteps(new Set([2]));
       setMainTab("business");
       setActiveMode("business");
       toast.success("Business model analysis loaded!");
@@ -699,7 +708,7 @@ export default function Index() {
                           setMainTab(m as typeof mainTab);
                         }}
                         onBusinessAnalysis={(data) => {
-                          setBusinessAnalysisData(data);
+                          setBusinessAnalysisData(data as BusinessModelAnalysisData);
                           toggleSection("businessmodel");
                           setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
                         }}
@@ -1909,33 +1918,299 @@ export default function Index() {
         })()}
 
 
-        {(businessAnalysisData || expandedSection === "businessmodel") && (
-          <div ref={businessResultsRef}>
+        {businessAnalysisData && (() => {
+          const bizAccent = "hsl(271 81% 55%)";
+          const bizAccentLight = "hsl(271 81% 55% / 0.06)";
+          const bizName = businessModelInput?.type || "Business Model";
+
+          // Synthetic product for Stress Test and Pitch Deck
+          const bizSyntheticProduct: Product = {
+            id: "biz-model",
+            name: bizName,
+            category: "Business Model",
+            era: "Present",
+            image: "",
+            description: businessAnalysisData.businessSummary?.trueJobToBeDone || businessModelInput?.description || "",
+            specs: businessModelInput?.description || "",
+            revivalScore: 75,
+            keyInsight: businessAnalysisData.businessSummary?.currentModel || "",
+            sources: [],
+            reviews: [],
+            socialSignals: [],
+            competitors: [],
+            assumptionsMap: (businessAnalysisData.hiddenAssumptions || []).map((a: { assumption: string; challengeIdea: string }) => ({ assumption: a.assumption, challenge: a.challengeIdea })),
+            flippedIdeas: [],
+            confidenceScores: { adoptionLikelihood: 7, feasibility: 7, emotionalResonance: 6 },
+            marketSizeEstimate: businessAnalysisData.revenueReinvention?.currentRevenueMix,
+          };
+
+          return (
+          <div ref={businessResultsRef} className="space-y-5">
+            {/* ── STICKY STEP NAVIGATOR ── */}
+            <div className="sticky top-0 z-30 -mx-4 px-4 py-3" style={{ background: "hsl(var(--background) / 0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid hsl(var(--border))" }}>
+              <div className="max-w-6xl mx-auto flex items-center gap-0">
+                {[
+                  { step: 2, label: "Intelligence Report", icon: Target, color: bizAccent, ref: businessResultsRef },
+                  { step: 3, label: "Disrupt", icon: Brain, color: "hsl(350 80% 55%)", ref: step3Ref },
+                  { step: 4, label: "Stress Test", icon: Swords, color: "hsl(38 92% 50%)", ref: step4Ref },
+                  { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))", ref: step5Ref },
+                ].map((s, i, arr) => {
+                  const SIcon = s.icon;
+                  const isCurrent = businessActiveStep === s.step;
+                  const isPast = businessActiveStep > s.step;
+                  return (
+                    <div key={s.step} className="flex items-center flex-1 min-w-0">
+                      <button
+                        onClick={() => {
+                          setBusinessActiveStep(s.step);
+                          setBusinessVisitedSteps(prev => new Set([...prev, s.step]));
+                          setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full justify-center relative ${!isCurrent && !businessVisitedSteps.has(s.step) ? "animate-pulse-subtle" : ""}`}
+                        style={{
+                          background: isCurrent ? s.color : isPast ? `color-mix(in srgb, ${s.color} 12%, transparent)` : !businessVisitedSteps.has(s.step) ? `color-mix(in srgb, ${s.color} 8%, hsl(var(--muted)))` : "hsl(var(--muted))",
+                          color: isCurrent ? "white" : isPast ? s.color : !businessVisitedSteps.has(s.step) ? s.color : "hsl(var(--muted-foreground))",
+                          boxShadow: isCurrent ? `0 4px 16px -4px ${s.color}50` : !businessVisitedSteps.has(s.step) ? `0 0 12px -2px ${s.color}30, 0 0 0 1px ${s.color}20` : "none",
+                          border: isCurrent ? `2px solid ${s.color}` : isPast ? `2px solid ${s.color}30` : !businessVisitedSteps.has(s.step) ? `2px solid ${s.color}40` : "2px solid hsl(var(--border))",
+                        }}
+                      >
+                        {!isCurrent && !businessVisitedSteps.has(s.step) && (
+                          <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider text-white z-10" style={{ background: s.color, boxShadow: `0 2px 8px -2px ${s.color}60` }}>
+                            Explore
+                          </span>
+                        )}
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-extrabold flex-shrink-0" style={{ background: isCurrent ? "hsl(0 0% 100% / 0.25)" : isPast ? s.color : !businessVisitedSteps.has(s.step) ? `color-mix(in srgb, ${s.color} 20%, transparent)` : "hsl(var(--border))", color: isCurrent || isPast ? "white" : !businessVisitedSteps.has(s.step) ? s.color : "hsl(var(--muted-foreground))" }}>
+                          {isPast ? "✓" : s.step}
+                        </span>
+                        <SIcon size={14} className="hidden sm:block flex-shrink-0" />
+                        <span className="hidden sm:inline truncate">{s.label}</span>
+                        <span className="sm:hidden text-[11px]">{s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : s.step === 4 ? "Stress" : "Pitch"}</span>
+                      </button>
+                      {i < arr.length - 1 && (
+                        <div className="flex-shrink-0 mx-1 flex items-center">
+                          <div className="w-6 h-0.5 rounded-full" style={{ background: isPast ? s.color : "hsl(var(--border))" }} />
+                          <ChevronRight size={16} className="flex-shrink-0 -ml-0.5" style={{ color: isPast ? s.color : "hsl(var(--muted-foreground))" }} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── BACK TO SAVED PROJECTS ── */}
             {loadedFromSaved && (
               <button
                 onClick={() => {
                   setMainTab("saved");
                   setLoadedFromSaved(false);
                   setBusinessAnalysisData(null);
-                  setExpandedSection("discovery");
+                  setBusinessModelInput(null);
                 }}
-                className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80 mb-4"
-                style={{ color: "hsl(var(--primary))" }}
+                className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                style={{ color: bizAccent }}
               >
                 <ArrowLeft size={16} />
                 Back to Saved Projects
               </button>
             )}
-            <SectionAccordion
-              id="businessmodel"
-              title="Business Model Deconstruction"
-              subtitle="First-principles analysis for any business — laundromat, distributor, B2B, service business & more"
-              icon={<Building2 size={16} style={{ color: "hsl(var(--primary))" }} />}
-              expanded={expandedSection === "businessmodel"}
-              onToggle={() => toggleSection("businessmodel")}
-            >
-              <BusinessModelAnalysis initialData={businessAnalysisData as never} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
-            </SectionAccordion>
+
+            {/* ── STEP 2: INTELLIGENCE REPORT ── */}
+            {businessActiveStep === 2 && (
+              <div className="space-y-4">
+                <div className="rounded-2xl overflow-hidden" style={{ border: `2px solid ${bizAccent}30`, boxShadow: `0 4px 24px -4px ${bizAccent}18` }}>
+                  <div className="px-5 py-4 flex items-center gap-4" style={{ background: `linear-gradient(135deg, ${bizAccentLight} 0%, hsl(var(--card)) 100%)` }}>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: bizAccent }}>2</div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-extrabold text-foreground">Intelligence Report</h2>
+                      <p className="text-sm text-muted-foreground">Deep business model deconstruction for <strong className="text-foreground">{bizName}</strong></p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+                        style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+                      >
+                        <FileDown size={12} /> PDF
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+                    <BusinessModelAnalysis initialData={businessAnalysisData} renderMode="report" onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
+                  </div>
+                </div>
+
+                {/* ── CTA: Continue to Steps 3, 4 & 5 ── */}
+                <div className="space-y-3">
+                  <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
+                    Ready for more?
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button
+                      onClick={() => { setBusinessActiveStep(3); setBusinessVisitedSteps(prev => new Set([...prev, 3])); setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
+                      className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
+                      style={{ background: "linear-gradient(135deg, hsl(350 80% 55%) 0%, hsl(350 80% 45%) 100%)", color: "white", boxShadow: "0 6px 20px -4px hsl(350 80% 55% / 0.5)", border: "2px solid hsl(350 80% 65% / 0.4)" }}
+                    >
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Brain size={20} /></div>
+                      <div>
+                        <div className="text-sm">Step 3 → Disrupt</div>
+                        <div className="text-xs font-normal opacity-80">Disruption map & reinvented model</div>
+                      </div>
+                      <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                    </button>
+                    <button
+                      onClick={() => { setBusinessActiveStep(4); setBusinessVisitedSteps(prev => new Set([...prev, 4])); setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
+                      className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
+                      style={{ background: "linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(38 92% 40%) 100%)", color: "white", boxShadow: "0 6px 20px -4px hsl(38 92% 50% / 0.5)", border: "2px solid hsl(38 92% 60% / 0.4)" }}
+                    >
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Swords size={20} /></div>
+                      <div>
+                        <div className="text-sm">Step 4 → Stress Test</div>
+                        <div className="text-xs font-normal opacity-80">Red Team vs Blue Team validation</div>
+                      </div>
+                      <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                    </button>
+                    <button
+                      onClick={() => { setBusinessActiveStep(5); setBusinessVisitedSteps(prev => new Set([...prev, 5])); setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
+                      className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
+                      style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white", boxShadow: "var(--shadow-primary)", border: "2px solid hsl(var(--primary-light) / 0.4)" }}
+                    >
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Presentation size={20} /></div>
+                      <div>
+                        <div className="text-sm">Step 5 → Pitch Deck</div>
+                        <div className="text-xs font-normal opacity-80">Auto-generate an investor-ready pitch</div>
+                      </div>
+                      <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 3: DISRUPT ── */}
+            {businessActiveStep === 3 && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setBusinessActiveStep(2)}
+                  className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: "hsl(350 80% 55%)" }}
+                >
+                  <ArrowLeft size={16} />
+                  Back to Intelligence Report
+                </button>
+                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(350 80% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(350 80% 55% / 0.1)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(350 80% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(350 80% 55%)" }}>3</div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-extrabold text-foreground">Disrupt</h2>
+                      <p className="text-sm text-muted-foreground">Disruption vulnerabilities and reinvented model for <strong className="text-foreground">{bizName}</strong></p>
+                    </div>
+                  </div>
+                  <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+                    <BusinessModelAnalysis initialData={businessAnalysisData} renderMode="disrupt" onSaved={() => setSavedRefreshTrigger((n) => n + 1)} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 4: STRESS TEST ── */}
+            {businessActiveStep === 4 && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setBusinessActiveStep(2)}
+                  className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: "hsl(38 92% 50%)" }}
+                >
+                  <ArrowLeft size={16} />
+                  Back to Intelligence Report
+                </button>
+                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(38 92% 50% / 0.25)", boxShadow: "0 4px 24px -4px hsl(38 92% 50% / 0.1)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(38 92% 50% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(38 92% 50%)" }}>4</div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-extrabold text-foreground">Stress Test</h2>
+                      <p className="text-sm text-muted-foreground">Red Team vs Blue Team critical validation for <strong className="text-foreground">{bizName}</strong></p>
+                    </div>
+                  </div>
+                  <div className="p-5 space-y-6" style={{ background: "hsl(var(--card))" }}>
+                    <div className="flex gap-2">
+                      {[
+                        { id: "debate" as const, label: "Red vs Blue Debate", icon: Swords },
+                        { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
+                      ].map(tab => {
+                        const isActive = businessStressTestTab === tab.id;
+                        const TabIcon = tab.icon;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => setBusinessStressTestTab(tab.id)}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                            style={{
+                              background: isActive ? "hsl(38 92% 50%)" : "hsl(var(--muted))",
+                              color: isActive ? "white" : "hsl(var(--muted-foreground))",
+                              border: isActive ? "2px solid hsl(38 92% 50%)" : "2px solid hsl(var(--border))",
+                            }}
+                          >
+                            <TabIcon size={14} />
+                            {tab.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <CriticalValidation
+                      product={{ name: bizName, category: "Business Model" }}
+                      analysisData={businessAnalysisData}
+                      activeTab={businessStressTestTab}
+                      externalData={businessStressTestData}
+                      onDataLoaded={setBusinessStressTestData}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 5: PITCH DECK ── */}
+            {businessActiveStep === 5 && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setBusinessActiveStep(2)}
+                  className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: "hsl(var(--primary))" }}
+                >
+                  <ArrowLeft size={16} />
+                  Back to Intelligence Report
+                </button>
+                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.1)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-extrabold text-foreground">Pitch Deck</h2>
+                      <p className="text-sm text-muted-foreground">Auto-generated investor-ready pitch for <strong className="text-foreground">{bizName}</strong></p>
+                    </div>
+                  </div>
+                  <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+                    <PitchDeck product={bizSyntheticProduct} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          );
+        })()}
+
+        {/* ── Business Model Form (when no results yet) ── */}
+        {!businessAnalysisData && mainTab === "business" && (
+          <div ref={businessResultsRef}>
+            <BusinessModelAnalysis
+              onSaved={() => setSavedRefreshTrigger((n) => n + 1)}
+              onAnalysisComplete={(data, input) => {
+                setBusinessAnalysisData(data);
+                setBusinessModelInput(input);
+                setBusinessActiveStep(2);
+                setBusinessVisitedSteps(new Set([2]));
+                setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+              }}
+            />
           </div>
         )}
 
