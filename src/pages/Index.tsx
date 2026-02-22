@@ -12,6 +12,7 @@ import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
+import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { UserHeader } from "@/components/UserHeader";
 import WelcomeModal from "@/components/WelcomeModal";
@@ -60,6 +61,7 @@ import {
   ShieldAlert,
   Brain,
   Presentation,
+  Swords,
   Building2,
   FileDown,
   Telescope,
@@ -157,6 +159,9 @@ export default function Index() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const step3Ref = useRef<HTMLDivElement>(null);
   const step4Ref = useRef<HTMLDivElement>(null);
+  const step5Ref = useRef<HTMLDivElement>(null);
+  const [stressTestData, setStressTestData] = useState<unknown>(null);
+  const [stressTestTab, setStressTestTab] = useState<"debate" | "validate">("debate");
   const businessResultsRef = useRef<HTMLDivElement>(null);
   const sectionTabsRef = useRef<HTMLDivElement>(null);
 
@@ -187,7 +192,7 @@ export default function Index() {
 
   // Site-exit engagement: prompt users who haven't explored key areas
   useEffect(() => {
-    const hasUnvisited = step === "done" && [3, 4].some(s => !visitedSteps.has(s));
+    const hasUnvisited = step === "done" && [3, 4, 5].some(s => !visitedSteps.has(s));
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnvisited) {
@@ -511,14 +516,14 @@ export default function Index() {
               </div>
               <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
                 You still have{" "}
-                {[3, 4].filter(s => !visitedSteps.has(s)).map(s => s === 3 ? <strong key={s} style={{ color: "hsl(271 81% 55%)" }}>Disrupt</strong> : <strong key={s} style={{ color: "hsl(var(--primary))" }}>Pitch Deck</strong>).reduce<React.ReactNode[]>((acc, el, i) => i === 0 ? [el] : [...acc, " and ", el], [])}
+                {[3, 4, 5].filter(s => !visitedSteps.has(s)).map(s => s === 3 ? <strong key={s} style={{ color: "hsl(271 81% 55%)" }}>Disrupt</strong> : s === 4 ? <strong key={s} style={{ color: "hsl(350 80% 55%)" }}>Stress Test</strong> : <strong key={s} style={{ color: "hsl(var(--primary))" }}>Pitch Deck</strong>).reduce<React.ReactNode[]>((acc, el, i) => i === 0 ? [el] : [...acc, " and ", el], [])}
                 {" "}waiting for you — these are the most powerful sections.
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => {
                     setShowExitPrompt(false);
-                    const firstUnvisited = [3, 4].find(s => !visitedSteps.has(s));
+                    const firstUnvisited = [3, 4, 5].find(s => !visitedSteps.has(s));
                     if (firstUnvisited) {
                       setActiveStep(firstUnvisited);
                       setVisitedSteps(prev => new Set([...prev, firstUnvisited]));
@@ -903,7 +908,8 @@ export default function Index() {
                 {[
                   { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent, ref: resultsRef },
                   { step: 3, label: "Disrupt", icon: Brain, color: "hsl(271 81% 55%)", ref: step3Ref },
-                  { step: 4, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))", ref: step4Ref },
+                  { step: 4, label: "Stress Test", icon: Swords, color: "hsl(350 80% 55%)", ref: step4Ref },
+                  { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))", ref: step5Ref },
                 ].map((s, i, arr) => {
                   const SIcon = s.icon;
                   const isCurrent = activeStep === s.step;
@@ -934,7 +940,7 @@ export default function Index() {
                         </span>
                         <SIcon size={14} className="hidden sm:block flex-shrink-0" />
                         <span className="hidden sm:inline truncate">{s.label}</span>
-                        <span className="sm:hidden text-[11px]">{s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : "Pitch"}</span>
+                        <span className="sm:hidden text-[11px]">{s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : s.step === 4 ? "Stress" : "Pitch"}</span>
                       </button>
                       {i < arr.length - 1 && (
                         <div className="flex-shrink-0 mx-1 flex items-center">
@@ -952,7 +958,7 @@ export default function Index() {
             {loadedFromSaved && (
               <button
                 onClick={() => {
-                  const unvisited = [3, 4].filter(s => !visitedSteps.has(s));
+                  const unvisited = [3, 4, 5].filter(s => !visitedSteps.has(s));
                   if (unvisited.length > 0) {
                     setPendingExitAction(() => () => {
                       setMainTab("saved");
@@ -1689,12 +1695,12 @@ export default function Index() {
                     )}
                   </div>
 
-                  {/* ── CTA: Continue to Step 3 & 4 ── */}
+                  {/* ── CTA: Continue to Step 3, 4 & 5 ── */}
                   <div className="mt-6 space-y-3">
                     <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
                       Ready for more?
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <button
                         onClick={() => {
                           setActiveStep(3);
@@ -1726,6 +1732,29 @@ export default function Index() {
                         }}
                         className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
                         style={{
+                          background: "linear-gradient(135deg, hsl(350 80% 55%) 0%, hsl(350 80% 45%) 100%)",
+                          color: "white",
+                          boxShadow: "0 6px 20px -4px hsl(350 80% 55% / 0.5)",
+                          border: "2px solid hsl(350 80% 65% / 0.4)",
+                        }}
+                      >
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
+                          <Swords size={20} />
+                        </div>
+                        <div>
+                          <div className="text-sm">Step 4 → Stress Test</div>
+                          <div className="text-xs font-normal opacity-80">Red Team vs Blue Team critical validation</div>
+                        </div>
+                        <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveStep(5);
+                          setVisitedSteps(prev => new Set([...prev, 5]));
+                          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                        }}
+                        className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
+                        style={{
                           background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)",
                           color: "white",
                           boxShadow: "var(--shadow-primary)",
@@ -1736,7 +1765,7 @@ export default function Index() {
                           <Presentation size={20} />
                         </div>
                         <div>
-                          <div className="text-sm">Step 4 → Pitch Deck</div>
+                          <div className="text-sm">Step 5 → Pitch Deck</div>
                           <div className="text-xs font-normal opacity-80">Auto-generate an investor-ready pitch</div>
                         </div>
                         <ChevronRight size={20} className="ml-auto flex-shrink-0" />
@@ -1792,8 +1821,65 @@ export default function Index() {
               </div>
             )}
 
-            {/* ── STEP 4: PITCH DECK ── */}
+            {/* ── STEP 4: STRESS TEST ── */}
             {activeStep === 4 && selectedProduct && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setActiveStep(2)}
+                  className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: "hsl(350 80% 55%)" }}
+                >
+                  <ArrowLeft size={16} />
+                  Back to Intelligence Report
+                </button>
+                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(350 80% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(350 80% 55% / 0.1)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(350 80% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(350 80% 55%)" }}>4</div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-extrabold text-foreground">Stress Test</h2>
+                      <p className="text-sm text-muted-foreground">Red Team vs Blue Team critical validation for <strong className="text-foreground">{selectedProduct.name}</strong> — counter-examples, feasibility, confidence scoring.</p>
+                    </div>
+                  </div>
+                  <div className="p-5 space-y-6" style={{ background: "hsl(var(--card))" }}>
+                    {/* Sub-tabs for Debate and Validate */}
+                    <div className="flex gap-2">
+                      {[
+                        { id: "debate" as const, label: "Red vs Blue Debate", icon: Swords },
+                        { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
+                      ].map(tab => {
+                        const isActive = (stressTestTab) === tab.id;
+                        const TabIcon = tab.icon;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => setStressTestTab(tab.id)}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                            style={{
+                              background: isActive ? "hsl(350 80% 55%)" : "hsl(var(--muted))",
+                              color: isActive ? "white" : "hsl(var(--muted-foreground))",
+                              border: isActive ? "2px solid hsl(350 80% 55%)" : "2px solid hsl(var(--border))",
+                            }}
+                          >
+                            <TabIcon size={14} />
+                            {tab.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <CriticalValidation
+                      product={selectedProduct}
+                      analysisData={selectedProduct}
+                      activeTab={stressTestTab}
+                      externalData={stressTestData}
+                      onDataLoaded={setStressTestData}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 5: PITCH DECK ── */}
+            {activeStep === 5 && selectedProduct && (
               <div className="space-y-4">
                 <button
                   onClick={() => setActiveStep(2)}
@@ -1805,7 +1891,7 @@ export default function Index() {
                 </button>
                 <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.1)" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(var(--primary))" }}>4</div>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
                     <div className="flex-1 min-w-0">
                       <h2 className="text-lg font-extrabold text-foreground">Investor Pitch Deck</h2>
                       <p className="text-sm text-muted-foreground">Professional pitch deck for <strong className="text-foreground">{selectedProduct.name}</strong> — TAM/SAM/SOM, unit economics, go-to-market strategy.</p>

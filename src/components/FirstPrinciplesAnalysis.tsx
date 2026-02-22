@@ -10,10 +10,10 @@ import {
   Brain, Flame, Zap, ChevronRight, RefreshCw, AlertTriangle, CheckCircle2,
   Wrench, Lightbulb, Package, DollarSign, Users, Factory, FlipHorizontal,
   Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation,
-  Maximize2, Wifi, ScrollText, FileDown, Swords, ClipboardCheck,
+  Maximize2, Wifi, ScrollText, FileDown, Swords,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
-import { CriticalValidation } from "./CriticalValidation";
+
 
 interface CoreReality {
   trueProblem: string;
@@ -130,9 +130,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [data, setData] = useState<FirstPrinciplesData | null>(null);
   const [loading, setLoading] = useState(false);
   const [patentLoading, setPatentLoading] = useState(false);
-  const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas" | "patents" | "debate" | "validate">("reality");
+  const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas" | "patents">("reality");
   const [userContext, setUserContext] = useState("");
-  const [validationData, setValidationData] = useState<unknown>(null);
 
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
     try {
@@ -223,8 +222,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     { id: "concept" as const, label: "Redesign", icon: Sparkles, number: "07" },
     { id: "ideas" as const, label: "Flipped Ideas", icon: Zap, number: "08" },
     { id: "patents" as const, label: "Patent Intel", icon: ScrollText, number: "09" },
-    { id: "debate" as const, label: "Red vs Blue", icon: Swords, number: "10" },
-    { id: "validate" as const, label: "Validate", icon: ClipboardCheck, number: "11" },
   ];
 
   if (!data) {
@@ -935,28 +932,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               onPatentSave?.(patentData);
             }}
           />
-          <button onClick={() => { setActiveStep("debate"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(350 80% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(350 80% 55% / 0.4)" }}>
-            Next: Red vs Blue Debate <ArrowRight size={14} />
-          </button>
-        </div>
-      )}
-
-      {/* STEP 10: Red vs Blue Debate */}
-      {activeStep === "debate" && (
-        <div className="space-y-4">
-          <CriticalValidation product={product} analysisData={data} activeTab="debate" externalData={validationData} onDataLoaded={setValidationData} />
-          <button onClick={() => { setActiveStep("validate"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(142 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(142 70% 40% / 0.4)" }}>
-            Next: Validate & Score <ArrowRight size={14} />
-          </button>
-        </div>
-      )}
-
-      {/* STEP 11: Validate */}
-      {activeStep === "validate" && (
-        <div className="space-y-4">
-          <CriticalValidation product={product} analysisData={data} activeTab="validate" externalData={validationData} onDataLoaded={setValidationData} />
           <div className="text-center py-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold"
               style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
