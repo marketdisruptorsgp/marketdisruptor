@@ -255,31 +255,49 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       </div>
 
       {/* Step nav */}
-      <div className="flex flex-wrap gap-2">
-        {steps.map((s, i) => {
-          const Icon = s.icon;
-          const isActive = activeStep === s.id;
-          return (
-            <button
-              key={s.id}
-              onClick={() => setActiveStep(s.id)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
-              style={{
-                background: isActive ? "hsl(var(--primary))" : "hsl(var(--muted))",
-                color: isActive ? "white" : "hsl(var(--muted-foreground))",
-                border: `1px solid ${isActive ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-              }}
-            >
-              <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
-                style={{ background: isActive ? "rgba(255,255,255,0.25)" : "hsl(var(--primary) / 0.1)", color: isActive ? "white" : "hsl(var(--primary))" }}>
-                {i + 1}
-              </span>
-              <Icon size={11} />
-              {s.label}
-            </button>
-          );
-        })}
-      </div>
+      {(() => {
+        const STEP_COLORS: Record<string, string> = {
+          reality: "hsl(var(--primary))",
+          physical: "hsl(200 80% 50%)",
+          workflow: "hsl(142 70% 40%)",
+          smarttech: "hsl(35 90% 50%)",
+          assumptions: "hsl(271 81% 55%)",
+          flip: "hsl(350 80% 55%)",
+          concept: "hsl(180 70% 40%)",
+          ideas: "hsl(38 92% 50%)",
+        };
+        return (
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+          {steps.map((s, i) => {
+            const Icon = s.icon;
+            const isActive = activeStep === s.id;
+            const color = STEP_COLORS[s.id] || "hsl(var(--primary))";
+            return (
+              <button
+                key={s.id}
+                onClick={() => setActiveStep(s.id)}
+                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
+                style={{
+                  background: isActive ? color : "hsl(var(--muted))",
+                  color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
+                  border: isActive ? `2px solid ${color}` : "2px solid hsl(var(--border))",
+                  boxShadow: isActive ? `0 4px 12px -2px ${color}50` : "none",
+                  transform: isActive ? "scale(1.03)" : "scale(1)",
+                }}
+              >
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
+                  <Icon size={16} style={{ color: isActive ? "white" : color }} />
+                </div>
+                <span className="text-center leading-tight text-[10px]">{s.label}</span>
+                {!isActive && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse" style={{ background: color }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+        );
+      })()}
 
       {/* STEP 1: Core Reality */}
       {activeStep === "reality" && (
