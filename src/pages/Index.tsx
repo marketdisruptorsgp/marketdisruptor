@@ -594,10 +594,10 @@ export default function Index() {
         {/* ── TOP-LEVEL TAB BAR ── */}
         {(() => {
           const TABS = [
-            { id: "custom" as const, label: "Analyze A Product", icon: Upload, accent: "hsl(217 91% 38%)" },
-            { id: "service" as const, label: "Analyze A Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
-            { id: "business" as const, label: "Business Model Analysis", icon: Building2, accent: "hsl(271 81% 55%)" },
-            { id: "discover" as const, label: "Reinvent Nostalgic Products", icon: Telescope, accent: "hsl(var(--primary))" },
+            { id: "custom" as const, label: "Disrupt This Product", icon: Upload, accent: "hsl(217 91% 38%)" },
+            { id: "service" as const, label: "Disrupt This Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
+            { id: "business" as const, label: "Disrupt The Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
+            { id: "discover" as const, label: "Disrupt This Memory", icon: Telescope, accent: "hsl(var(--primary))" },
             { id: "saved" as const, label: "Saved Projects", icon: Database, accent: "hsl(var(--primary))" },
           ];
           return (
