@@ -10,8 +10,10 @@ import {
   Brain, Flame, Zap, ChevronRight, RefreshCw, AlertTriangle, CheckCircle2,
   Wrench, Lightbulb, Package, DollarSign, Users, Factory, FlipHorizontal,
   Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation,
-  Maximize2, Wifi, ScrollText, FileDown,
+  Maximize2, Wifi, ScrollText, FileDown, Swords, ClipboardCheck,
 } from "lucide-react";
+import { InsightRating } from "./InsightRating";
+import { CriticalValidation } from "./CriticalValidation";
 
 interface CoreReality {
   trueProblem: string;
@@ -127,8 +129,9 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [data, setData] = useState<FirstPrinciplesData | null>(null);
   const [loading, setLoading] = useState(false);
   const [patentLoading, setPatentLoading] = useState(false);
-  const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas" | "patents">("reality");
+  const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas" | "patents" | "debate" | "validate">("reality");
   const [userContext, setUserContext] = useState("");
+  const [validationData, setValidationData] = useState<unknown>(null);
 
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
     try {
@@ -219,6 +222,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     { id: "concept" as const, label: "Redesign", icon: Sparkles, number: "07" },
     { id: "ideas" as const, label: "Flipped Ideas", icon: Zap, number: "08" },
     { id: "patents" as const, label: "Patent Intel", icon: ScrollText, number: "09" },
+    { id: "debate" as const, label: "Red vs Blue", icon: Swords, number: "10" },
+    { id: "validate" as const, label: "Validate", icon: ClipboardCheck, number: "11" },
   ];
 
   if (!data) {
@@ -239,7 +244,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             { icon: Navigation, label: "User Workflow" },
             { icon: Cpu, label: "Smart Tech" },
             { icon: Sparkles, label: "Redesign" },
-            { icon: ScrollText, label: "Patent Intel" },
+            { icon: Swords, label: "Red vs Blue" },
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="p-3 rounded-xl text-center" style={{ background: "hsl(var(--muted))" }}>
               <Icon size={18} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
@@ -300,9 +305,11 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           concept: "hsl(180 70% 40%)",
           ideas: "hsl(38 92% 50%)",
           patents: "hsl(271 81% 55%)",
+          debate: "hsl(350 80% 55%)",
+          validate: "hsl(142 70% 40%)",
         };
         return (
-        <div className="grid grid-cols-3 sm:grid-cols-9 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-11 gap-2">
           {steps.map((s, i) => {
             const Icon = s.icon;
             const isActive = activeStep === s.id;
@@ -342,6 +349,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <Lightbulb size={11} /> The Real Problem Being Solved
             </p>
             <p className="text-sm text-foreground leading-relaxed font-medium">{data.coreReality.trueProblem}</p>
+            <InsightRating sectionId="core-reality" />
           </div>
           <div className="p-5 rounded-xl" style={{ background: "hsl(var(--muted))" }}>
             <p className="section-label text-[10px] mb-2 flex items-center gap-1"><Eye size={11} /> How People Actually Use It</p>
@@ -698,6 +706,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <h2 className="text-2xl font-black mb-1">{data.redesignedConcept.conceptName}</h2>
               <p className="text-sm opacity-85 font-medium mb-4">{data.redesignedConcept.tagline}</p>
               <p className="text-xs leading-relaxed opacity-80 max-w-2xl">{data.redesignedConcept.coreInsight}</p>
+              <InsightRating sectionId="concept-insight" compact />
             </div>
           </div>
 
@@ -919,6 +928,34 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               onPatentSave?.(patentData);
             }}
           />
+          <button onClick={() => setActiveStep("debate")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(350 80% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(350 80% 55% / 0.4)" }}>
+            Next: Red vs Blue Debate <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* STEP 10: Red vs Blue Debate */}
+      {activeStep === "debate" && (
+        <div className="space-y-4">
+          <CriticalValidation product={product} analysisData={data} activeTab="debate" externalData={validationData} onDataLoaded={setValidationData} />
+          <button onClick={() => setActiveStep("validate")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            style={{ background: "hsl(142 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(142 70% 40% / 0.4)" }}>
+            Next: Validate & Score <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* STEP 11: Validate */}
+      {activeStep === "validate" && (
+        <div className="space-y-4">
+          <CriticalValidation product={product} analysisData={data} activeTab="validate" externalData={validationData} onDataLoaded={setValidationData} />
+          <div className="text-center py-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold"
+              style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+              <CheckCircle2 size={14} /> All Disrupt sections explored!
+            </div>
+          </div>
         </div>
       )}
     </div>

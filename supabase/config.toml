@@ -21,3 +21,6 @@ verify_jwt = false
 [functions.business-model-analysis]
 verify_jwt = false
 
+[functions.critical-validation]
+verify_jwt = false
+
