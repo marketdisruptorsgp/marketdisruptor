@@ -14,10 +14,13 @@ import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { BusinessModelAnalysis, type BusinessModelInput, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
-import { UserHeader } from "@/components/UserHeader";
 import WelcomeModal from "@/components/WelcomeModal";
 import { ContextualTip } from "@/components/ContextualTip";
 import MobileTour from "@/components/MobileTour";
+import { HeroSection } from "@/components/HeroSection";
+import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
+import { LoadingTracker } from "@/components/LoadingTracker";
+import { StepNavigator, type StepConfig } from "@/components/StepNavigator";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, TIERS } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -565,77 +568,11 @@ export default function Index() {
       {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
 
       {/* HERO */}
-      <header className="relative" style={{ background: "linear-gradient(135deg, hsl(220 25% 6%) 0%, hsl(220 30% 12%) 50%, hsl(220 25% 8%) 100%)" }}>
-        {/* Subtle gradient orbs for depth */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-[0.07]" style={{ background: "radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)" }} />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full opacity-[0.05]" style={{ background: "radial-gradient(circle, hsl(217 91% 50%) 0%, transparent 70%)" }} />
-        </div>
-        {/* Top nav bar with user */}
-        <div className="relative z-10 border-b" style={{ borderColor: "hsl(0 0% 100% / 0.06)" }}>
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Zap size={15} style={{ color: "hsl(var(--primary-light))" }} />
-              <span className="text-xs font-bold tracking-widest uppercase text-white/70">Market Disruptor</span>
-            </div>
-            <div data-tour="user-menu">
-              <UserHeader />
-            </div>
-          </div>
-        </div>
-        <div className="relative z-[1] max-w-6xl mx-auto px-4 py-10 sm:py-14">
-          {/* Usage badge */}
-          <div className="flex items-center gap-2 mb-4">
-            <span
-              className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
-              style={{
-                background: "hsl(142 71% 45% / 0.15)",
-                color: "hsl(142 71% 55%)",
-                border: "1px solid hsl(142 71% 45% / 0.3)",
-              }}
-            >
-              {TIERS[tier].name} Plan{remainingAnalyses() !== null ? ` · ${remainingAnalyses()} analyses left` : " · Unlimited"}
-            </span>
-            {tier !== "disruptor" && (
-              <button
-                onClick={() => window.location.href = "/pricing"}
-                className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all hover:scale-105"
-                style={{ background: "hsl(var(--primary))", color: "white" }}
-              >
-                View Plan Options
-              </button>
-            )}
-          </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4">
-            Analyze, Deconstruct, <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize!</span>
-          </h1>
-          <p className="text-lg text-white leading-relaxed">
-            Developed by SGP Capital, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up. We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life. Scroll below to begin your analysis!
-          </p>
-        </div>
-      </header>
+      <HeroSection tier={tier} remainingAnalyses={remainingAnalyses()} profileFirstName={profile?.first_name} />
 
       <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
         {/* ── DISRUPTION PATH BANNER ── */}
-        <div className="rounded-2xl border border-primary/20 px-6 py-8 text-center space-y-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary-muted)) 0%, hsl(var(--secondary)) 100%)" }}>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground font-display tracking-tight">
-            Choose Your Disruption Path
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Each mode runs a different AI pipeline. Pick the one that matches what you have and what you want to learn.
-          </p>
-          <p className="text-xs sm:text-sm text-muted-foreground/70 max-w-2xl mx-auto leading-relaxed">
-            Powered by deep web crawling, vision AI, and multi-model strategic analysis that challenges every assumption and helps you uncover new routes to market.
-          </p>
-          <div className="flex items-start justify-center gap-2.5 pt-2 max-w-2xl mx-auto text-left">
-            <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5" style={{ background: "hsl(var(--success) / 0.15)" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="hsl(var(--success))" className="w-3 h-3"><path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" /></svg>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              <span className="font-semibold text-foreground">Privacy by design:</span> All connections use TLS encryption in transit. Analysis runs in isolated serverless functions that process your data and discard it after responding — nothing is logged or retained by AI providers. When you choose to save an analysis, it's encrypted at rest and scoped exclusively to your account via row-level security policies. We never sell, share, or train on your data.
-            </p>
-          </div>
-        </div>
+        <DisruptionPathBanner />
 
         {/* ── TOP-LEVEL TAB BAR ── */}
         {(() => {
@@ -742,145 +679,13 @@ export default function Index() {
         })()}
 
         {/* LOADING — rich live tracker */}
-        {isLoading && (() => {
-          const isScraping = step === "scraping";
-          const isAnalyzing = step === "analyzing";
-          // Total estimated time: ~35s scrape + ~55s analyze = ~90s
-          const SCRAPE_EST = 35;
-          const ANALYZE_EST = 55;
-          const totalEst = SCRAPE_EST + ANALYZE_EST;
-          // Progress: scraping counts as first 35s, analyzing as last 55s
-          const effectiveElapsed = isScraping
-            ? Math.min(elapsedSeconds, SCRAPE_EST)
-            : Math.min(SCRAPE_EST + elapsedSeconds, totalEst);
-          const progressPct = Math.min(97, Math.round((effectiveElapsed / totalEst) * 100));
-          const remaining = Math.max(0, totalEst - effectiveElapsed);
-          const remainingLabel = remaining > 60
-            ? `~${Math.ceil(remaining / 60)}m ${remaining % 60}s`
-            : remaining > 0 ? `~${remaining}s` : "Almost done…";
-
-          const SCRAPE_SOURCES = [
-            { icon: "🛍️", label: "eBay", detail: "Sold listings, collector pricing, bid history" },
-            { icon: "🌿", label: "Etsy", detail: "Vintage revival trends, handmade alternatives" },
-            { icon: "💬", label: "Reddit", detail: "Community sentiment, nostalgia signals, complaints" },
-            { icon: "📱", label: "TikTok / Google", detail: "Viral trends, search volume signals" },
-            { icon: "🏭", label: "Alibaba / Wholesale", detail: "Suppliers, MOQs, manufacturer sources" },
-          ];
-          const ANALYZE_TASKS = [
-            { icon: "🧠", label: "AI Reasoning", detail: "Gemini 2.5 Flash parsing all collected data" },
-            { icon: "💰", label: "Pricing Intel", detail: "Real market prices, collector premiums, margins" },
-            { icon: "📦", label: "Supply Chain", detail: "Mapping real suppliers, manufacturers, distributors" },
-            { icon: "⚡", label: "Flip Ideas", detail: "Generating innovations from community pain points" },
-            { icon: "🎯", label: "Action Plans", detail: "Revival scoring + week-one execution steps" },
-            { icon: "🖼️", label: "Product Images", detail: "Finding real images from eBay, Amazon, Wikipedia" },
-          ];
-
-          return (
-            <div className="card-intelligence overflow-hidden">
-              {/* Top header bar */}
-              <div className="px-6 pt-6 pb-4" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-1">
-                      {[0, 1, 2].map(i => (
-                        <div key={i} className="w-2 h-2 rounded-full animate-bounce"
-                          style={{ background: "hsl(var(--primary))", animationDelay: `${i * 0.18}s` }} />
-                      ))}
-                    </div>
-                    <p className="font-extrabold text-foreground text-base">
-                      {isScraping ? "Collecting Market Data…" : "AI Building Your Report…"}
-                    </p>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse"
-                      style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}>
-                      {isScraping ? "SCRAPING" : "ANALYZING"}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-foreground">{progressPct}%</p>
-                    <p className="text-[10px] text-muted-foreground">{remainingLabel} left</p>
-                  </div>
-                </div>
-                {/* Progress bar */}
-                <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                  <div className="h-full rounded-full transition-all duration-1000"
-                    style={{ width: `${progressPct}%`, background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-light)))" }} />
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-[10px] text-muted-foreground">⏱ {elapsedSeconds}s elapsed</span>
-                  <span className="text-[10px] text-muted-foreground">Typical range: 45–120 seconds</span>
-                </div>
-              </div>
-
-              {/* Two column: phases + live log */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-0" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
-                {/* Phase checklist */}
-                <div className="p-5 space-y-3" style={{ borderRight: "1px solid hsl(var(--border))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(var(--primary))" }}>
-                    {isScraping ? "Data Sources" : "AI Tasks"}
-                  </p>
-                  {(isScraping ? SCRAPE_SOURCES : ANALYZE_TASKS).map((item, i) => (
-                    <div key={item.label} className="flex items-start gap-2.5">
-                      <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-xs"
-                        style={{ background: "hsl(var(--primary-muted))" }}>
-                        {item.icon}
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-foreground leading-tight">{item.label}</p>
-                        <p className="text-[10px] text-muted-foreground">{item.detail}</p>
-                      </div>
-                      <div className="ml-auto flex-shrink-0 mt-0.5">
-                        <div className="w-3 h-3 rounded-full border-2 border-t-transparent animate-spin"
-                          style={{ borderColor: `hsl(var(--primary) / ${i === 0 ? 1 : 0.3})`, borderTopColor: "transparent" }} />
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Phase 2 upcoming */}
-                  {isScraping && (
-                    <div className="mt-4 pt-3" style={{ borderTop: "1px dashed hsl(var(--border))" }}>
-                      <p className="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-foreground">Up Next</p>
-                      <div className="flex items-center gap-2 opacity-40">
-                        <Brain size={13} style={{ color: "hsl(271 81% 55%)" }} />
-                        <span className="text-xs text-muted-foreground">Gemini AI Deep Analysis</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Live activity log */}
-                <div className="p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(var(--primary))" }}>
-                    Live Activity
-                  </p>
-                  <div className="space-y-1.5 font-mono max-h-48 overflow-y-auto">
-                    {loadingLog.length === 0 ? (
-                      <p className="text-xs text-muted-foreground animate-pulse">Initializing…</p>
-                    ) : (
-                      [...loadingLog].reverse().map((entry, i) => (
-                        <div key={entry.ts} className={`flex items-start gap-1.5 transition-opacity ${i === 0 ? "opacity-100" : "opacity-50"}`}>
-                          <span className="text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">
-                            {Math.floor((Date.now() - entry.ts) / 1000) < 2 ? "now" : `${Math.floor((Date.now() - entry.ts) / 1000)}s`}
-                          </span>
-                          <span className="text-[11px] text-foreground leading-relaxed">{entry.text}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="px-6 py-3 flex items-center justify-between" style={{ background: "hsl(var(--muted))" }}>
-                <p className="text-[11px] text-muted-foreground">
-                  🔒 Your analysis is private — auto-saves to your workspace when complete
-                </p>
-                <p className="text-[11px] font-semibold" style={{ color: "hsl(var(--primary))" }}>
-                  {isScraping ? "Phase 1 of 2" : "Phase 2 of 2"}
-                </p>
-              </div>
-            </div>
-          );
-        })()}
+        {isLoading && (
+          <LoadingTracker
+            step={step as "scraping" | "analyzing"}
+            elapsedSeconds={elapsedSeconds}
+            loadingLog={loadingLog}
+          />
+        )}
 
         {/* ERROR */}
         {step === "error" && (
@@ -912,56 +717,21 @@ export default function Index() {
           return (
           <div ref={resultsRef} className="space-y-5">
             {/* ── STICKY STEP NAVIGATOR ── */}
-            <div className="sticky top-0 z-30 -mx-4 px-4 py-3" style={{ background: "hsl(var(--background) / 0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid hsl(var(--border))" }}>
-              <div className="max-w-6xl mx-auto flex items-center gap-0">
-                {[
-                  { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent, ref: resultsRef },
-                  { step: 3, label: "Disrupt", icon: Brain, color: "hsl(271 81% 55%)", ref: step3Ref },
-                  { step: 4, label: "Stress Test", icon: Swords, color: "hsl(350 80% 55%)", ref: step4Ref },
-                  { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))", ref: step5Ref },
-                ].map((s, i, arr) => {
-                  const SIcon = s.icon;
-                  const isCurrent = activeStep === s.step;
-                  const isPast = activeStep > s.step;
-                  return (
-                    <div key={s.step} className="flex items-center flex-1 min-w-0">
-                      <button
-                        onClick={() => {
-                          setActiveStep(s.step);
-                          setVisitedSteps(prev => new Set([...prev, s.step]));
-                          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full justify-center relative ${!isCurrent && !visitedSteps.has(s.step) ? "animate-pulse-subtle" : ""}`}
-                        style={{
-                          background: isCurrent ? s.color : isPast ? `color-mix(in srgb, ${s.color} 12%, transparent)` : !visitedSteps.has(s.step) ? `color-mix(in srgb, ${s.color} 8%, hsl(var(--muted)))` : "hsl(var(--muted))",
-                          color: isCurrent ? "white" : isPast ? s.color : !visitedSteps.has(s.step) ? s.color : "hsl(var(--muted-foreground))",
-                          boxShadow: isCurrent ? `0 4px 16px -4px ${s.color}50` : !visitedSteps.has(s.step) ? `0 0 12px -2px ${s.color}30, 0 0 0 1px ${s.color}20` : "none",
-                          border: isCurrent ? `2px solid ${s.color}` : isPast ? `2px solid ${s.color}30` : !visitedSteps.has(s.step) ? `2px solid ${s.color}40` : "2px solid hsl(var(--border))",
-                        }}
-                      >
-                        {!isCurrent && !visitedSteps.has(s.step) && (
-                          <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider text-white z-10" style={{ background: s.color, boxShadow: `0 2px 8px -2px ${s.color}60` }}>
-                            Explore
-                          </span>
-                        )}
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-extrabold flex-shrink-0" style={{ background: isCurrent ? "hsl(0 0% 100% / 0.25)" : isPast ? s.color : !visitedSteps.has(s.step) ? `color-mix(in srgb, ${s.color} 20%, transparent)` : "hsl(var(--border))", color: isCurrent || isPast ? "white" : !visitedSteps.has(s.step) ? s.color : "hsl(var(--muted-foreground))" }}>
-                          {isPast ? "✓" : s.step}
-                        </span>
-                        <SIcon size={14} className="hidden sm:block flex-shrink-0" />
-                        <span className="hidden sm:inline truncate">{s.label}</span>
-                        <span className="sm:hidden text-[11px]">{s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : s.step === 4 ? "Stress" : "Pitch"}</span>
-                      </button>
-                      {i < arr.length - 1 && (
-                        <div className="flex-shrink-0 mx-1 flex items-center">
-                          <div className="w-6 h-0.5 rounded-full" style={{ background: isPast ? s.color : "hsl(var(--border))" }} />
-                          <ChevronRight size={16} className="flex-shrink-0 -ml-0.5" style={{ color: isPast ? s.color : "hsl(var(--muted-foreground))" }} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <StepNavigator
+              steps={[
+                { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent },
+                { step: 3, label: "Disrupt", icon: Brain, color: "hsl(271 81% 55%)" },
+                { step: 4, label: "Stress Test", icon: Swords, color: "hsl(350 80% 55%)" },
+                { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))" },
+              ]}
+              activeStep={activeStep}
+              visitedSteps={visitedSteps}
+              onStepChange={(s) => {
+                setActiveStep(s);
+                setVisitedSteps(prev => new Set([...prev, s]));
+                setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+              }}
+            />
 
             {/* ── BACK TO SAVED PROJECTS ── */}
             {loadedFromSaved && (
@@ -1947,56 +1717,21 @@ export default function Index() {
           return (
           <div ref={businessResultsRef} className="space-y-5">
             {/* ── STICKY STEP NAVIGATOR ── */}
-            <div className="sticky top-0 z-30 -mx-4 px-4 py-3" style={{ background: "hsl(var(--background) / 0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid hsl(var(--border))" }}>
-              <div className="max-w-6xl mx-auto flex items-center gap-0">
-                {[
-                  { step: 2, label: "Intelligence Report", icon: Target, color: bizAccent, ref: businessResultsRef },
-                  { step: 3, label: "Disrupt", icon: Brain, color: "hsl(350 80% 55%)", ref: step3Ref },
-                  { step: 4, label: "Stress Test", icon: Swords, color: "hsl(38 92% 50%)", ref: step4Ref },
-                  { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))", ref: step5Ref },
-                ].map((s, i, arr) => {
-                  const SIcon = s.icon;
-                  const isCurrent = businessActiveStep === s.step;
-                  const isPast = businessActiveStep > s.step;
-                  return (
-                    <div key={s.step} className="flex items-center flex-1 min-w-0">
-                      <button
-                        onClick={() => {
-                          setBusinessActiveStep(s.step);
-                          setBusinessVisitedSteps(prev => new Set([...prev, s.step]));
-                          setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full justify-center relative ${!isCurrent && !businessVisitedSteps.has(s.step) ? "animate-pulse-subtle" : ""}`}
-                        style={{
-                          background: isCurrent ? s.color : isPast ? `color-mix(in srgb, ${s.color} 12%, transparent)` : !businessVisitedSteps.has(s.step) ? `color-mix(in srgb, ${s.color} 8%, hsl(var(--muted)))` : "hsl(var(--muted))",
-                          color: isCurrent ? "white" : isPast ? s.color : !businessVisitedSteps.has(s.step) ? s.color : "hsl(var(--muted-foreground))",
-                          boxShadow: isCurrent ? `0 4px 16px -4px ${s.color}50` : !businessVisitedSteps.has(s.step) ? `0 0 12px -2px ${s.color}30, 0 0 0 1px ${s.color}20` : "none",
-                          border: isCurrent ? `2px solid ${s.color}` : isPast ? `2px solid ${s.color}30` : !businessVisitedSteps.has(s.step) ? `2px solid ${s.color}40` : "2px solid hsl(var(--border))",
-                        }}
-                      >
-                        {!isCurrent && !businessVisitedSteps.has(s.step) && (
-                          <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider text-white z-10" style={{ background: s.color, boxShadow: `0 2px 8px -2px ${s.color}60` }}>
-                            Explore
-                          </span>
-                        )}
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-extrabold flex-shrink-0" style={{ background: isCurrent ? "hsl(0 0% 100% / 0.25)" : isPast ? s.color : !businessVisitedSteps.has(s.step) ? `color-mix(in srgb, ${s.color} 20%, transparent)` : "hsl(var(--border))", color: isCurrent || isPast ? "white" : !businessVisitedSteps.has(s.step) ? s.color : "hsl(var(--muted-foreground))" }}>
-                          {isPast ? "✓" : s.step}
-                        </span>
-                        <SIcon size={14} className="hidden sm:block flex-shrink-0" />
-                        <span className="hidden sm:inline truncate">{s.label}</span>
-                        <span className="sm:hidden text-[11px]">{s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : s.step === 4 ? "Stress" : "Pitch"}</span>
-                      </button>
-                      {i < arr.length - 1 && (
-                        <div className="flex-shrink-0 mx-1 flex items-center">
-                          <div className="w-6 h-0.5 rounded-full" style={{ background: isPast ? s.color : "hsl(var(--border))" }} />
-                          <ChevronRight size={16} className="flex-shrink-0 -ml-0.5" style={{ color: isPast ? s.color : "hsl(var(--muted-foreground))" }} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <StepNavigator
+              steps={[
+                { step: 2, label: "Intelligence Report", icon: Target, color: bizAccent },
+                { step: 3, label: "Disrupt", icon: Brain, color: "hsl(350 80% 55%)" },
+                { step: 4, label: "Stress Test", icon: Swords, color: "hsl(38 92% 50%)" },
+                { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))" },
+              ]}
+              activeStep={businessActiveStep}
+              visitedSteps={businessVisitedSteps}
+              onStepChange={(s) => {
+                setBusinessActiveStep(s);
+                setBusinessVisitedSteps(prev => new Set([...prev, s]));
+                setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+              }}
+            />
 
             {/* ── BACK TO SAVED PROJECTS ── */}
             {loadedFromSaved && (
