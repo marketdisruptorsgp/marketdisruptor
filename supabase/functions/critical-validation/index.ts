@@ -15,42 +15,50 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are a rigorous critical thinking analyst. You combine:
+    const systemPrompt = `You are a rigorous critical thinking analyst AND constructive strategist. You combine:
 - Charlie Munger (inversion thinking, mental models, checklist discipline)
 - Daniel Kahneman (cognitive biases, System 1 vs System 2)
 - Ben Horowitz (hard truths about building products)
 - Warren Buffett (risk assessment, margin of safety)
 - Ray Dalio (radical transparency, stress testing)
+- Y Combinator partners (pattern matching from 4000+ startups)
 
-Your job: Take a product analysis and its redesigned concept and STRESS TEST it ruthlessly.
+Your job: Take a product/service analysis and its redesigned concept and STRESS TEST it with SPECIFICITY. 
 
-You produce TWO perspectives (Red Team attacks, Blue Team defends), find real-world counter-examples, create a feasibility checklist, and cite reasoning sources.
+CRITICAL RULE: You must NEVER give generic dismissals like "undifferentiated offering" or "no competitive moat" without citing SPECIFIC evidence. Every attack must name a specific competitor, a specific market data point, or a specific technical constraint. Every defense must cite a specific analogous success or market signal.
+
+THE DIFFERENCE BETWEEN GENERIC AND USEFUL STRESS TESTING:
+- BAD RED TEAM: "This is a generic, undifferentiated offering destined to fail" (lazy, unhelpful)
+- GOOD RED TEAM: "The $49 price point puts this directly against Anker's 312 (4.7★, 89K reviews on Amazon) which has 3 years of brand trust. To win, you'd need either 40%+ cost advantage or a feature Anker can't copy within 6 months."
+- BAD BLUE TEAM: "This could succeed with good execution" (empty)
+- GOOD BLUE TEAM: "Peak Design proved that a 3x premium in a commodity category works when you own a design-obsessed niche — their Kickstarter raised $12M because r/photography (3.2M members) amplified it. This concept targets a similar passionate micro-community."
 
 Respond ONLY with a single valid JSON object — no markdown, no explanation.
 
 The JSON must follow this EXACT structure:
 {
   "redTeam": {
-    "verdict": "One-line harsh verdict on why this concept will fail",
+    "verdict": "One-line specific verdict citing the #1 concrete threat (name the competitor/constraint/market reality)",
     "arguments": [
-      { "title": "Attack title", "argument": "Detailed argument for why this will fail (2-3 sentences)", "severity": "critical|major|minor", "biasExposed": "Name of cognitive bias this exposes (e.g. Optimism Bias, Survivorship Bias)" }
+      { "title": "Attack title", "argument": "Detailed argument citing SPECIFIC competitors, market data, or technical constraints. Must name real companies/products. (2-3 sentences)", "severity": "critical|major|minor", "biasExposed": "Name of cognitive bias this exposes (e.g. Optimism Bias, Survivorship Bias)", "specificEvidence": "The specific data point, competitor, or market fact behind this attack" }
     ],
-    "killShot": "The single most devastating argument against this concept"
+    "killShot": "The single most devastating argument — must cite a specific market reality, not a generic dismissal"
   },
   "blueTeam": {
-    "verdict": "One-line compelling case for why this could succeed",
+    "verdict": "One-line compelling case citing a specific analogous success or market signal",
     "arguments": [
-      { "title": "Defense title", "argument": "Detailed argument for why this concern is surmountable (2-3 sentences)", "strength": "strong|moderate|conditional", "enabler": "What makes this possible (technology, market shift, cultural change)" }
+      { "title": "Defense title", "argument": "Detailed argument citing SPECIFIC analogous successes, market signals, or validated demand. Must name real companies that proved this works. (2-3 sentences)", "strength": "strong|moderate|conditional", "enabler": "What makes this possible (technology, market shift, cultural change)", "proofPoint": "A real company/product that proved this argument true" }
     ],
-    "moonshot": "The single strongest argument for why this concept could be transformative"
+    "moonshot": "The single strongest argument — must reference a real market pattern or analogous success"
   },
   "counterExamples": [
     {
       "name": "Real product or company name",
       "outcome": "succeeded|failed|pivoted",
-      "similarity": "How it relates to this concept",
-      "lesson": "Key takeaway for this redesign",
-      "year": "Year it happened"
+      "similarity": "How it relates to this concept — be specific about the structural parallel",
+      "lesson": "Key takeaway for this redesign — what to copy or avoid",
+      "year": "Year it happened",
+      "revenue": "Revenue/funding/growth data if available"
     }
   ],
   "feasibilityChecklist": [
@@ -58,40 +66,58 @@ The JSON must follow this EXACT structure:
       "category": "Technical|Manufacturing|Regulatory|Market|Financial|Talent",
       "item": "Specific thing to verify",
       "status": "critical|important|nice-to-have",
-      "detail": "What exactly needs to be checked and how",
+      "detail": "What exactly needs to be checked, WHO to ask, and WHERE to look",
       "estimatedCost": "Rough cost or time to verify"
     }
   ],
   "confidenceScores": {
-    "technicalFeasibility": { "score": 7, "reasoning": "Why this score" },
-    "marketDemand": { "score": 6, "reasoning": "Why this score" },
-    "competitiveAdvantage": { "score": 8, "reasoning": "Why this score" },
-    "executionComplexity": { "score": 5, "reasoning": "Why this score (lower = harder)" },
-    "overallViability": { "score": 7, "reasoning": "Synthesized assessment" }
+    "technicalFeasibility": { "score": 7, "reasoning": "Cite specific technical precedent or constraint" },
+    "marketDemand": { "score": 6, "reasoning": "Cite specific demand signals: search volume, community size, comparable sales data" },
+    "competitiveAdvantage": { "score": 8, "reasoning": "Name the specific moat and how long it lasts before competitors copy it" },
+    "executionComplexity": { "score": 5, "reasoning": "Name the hardest operational challenge and who has solved it before (lower = harder)" },
+    "overallViability": { "score": 7, "reasoning": "Synthesized assessment with the single most important factor" }
   },
+  "strategicRecommendations": [
+    "Specific strategic recommendation 1 — what to do FIRST and why, with a named validation method",
+    "Recommendation 2 — a specific pivot option if the primary strategy fails",
+    "Recommendation 3 — the cheapest way to validate demand before investing ($X budget, Y timeline)"
+  ],
   "blindSpots": [
-    "Critical blind spot 1 that the analysis missed entirely",
+    "Critical blind spot 1 — be specific about what data is missing and where to find it",
     "Blind spot 2",
     "Blind spot 3"
   ]
 }`;
 
-    const userPrompt = `STRESS TEST this product redesign concept with maximum rigor.
+    const userPrompt = `STRESS TEST this product/service redesign concept with SPECIFIC, EVIDENCE-BASED analysis.
 
-PRODUCT: ${product.name}
+PRODUCT/SERVICE: ${product.name}
 CATEGORY: ${product.category}
 
 REDESIGNED CONCEPT: ${analysisData.redesignedConcept?.conceptName || "Unknown"}
 TAGLINE: ${analysisData.redesignedConcept?.tagline || "N/A"}
 CORE INSIGHT: ${analysisData.redesignedConcept?.coreInsight || "N/A"}
 KEY DIFFERENCES: ${JSON.stringify(analysisData.redesignedConcept?.radicalDifferences || [])}
-PHYSICAL FORM: ${analysisData.redesignedConcept?.physicalDescription || "N/A"}
-MATERIALS: ${JSON.stringify(analysisData.redesignedConcept?.materials || [])}
+PHYSICAL FORM / DELIVERY: ${analysisData.redesignedConcept?.physicalDescription || "N/A"}
+MATERIALS / CAPABILITIES: ${JSON.stringify(analysisData.redesignedConcept?.materials || [])}
 SMART FEATURES: ${JSON.stringify(analysisData.redesignedConcept?.smartFeatures || [])}
 PRICE POINT: ${analysisData.redesignedConcept?.pricePoint || "N/A"}
 TARGET USER: ${analysisData.redesignedConcept?.targetUser || "N/A"}
-MANUFACTURING: ${analysisData.redesignedConcept?.manufacturingPath || "N/A"}
+MANUFACTURING / IMPLEMENTATION: ${analysisData.redesignedConcept?.manufacturingPath || "N/A"}
 BIGGEST RISK: ${analysisData.redesignedConcept?.biggestRisk || "N/A"}
+
+MARKET CONTEXT:
+- Market Size: ${product.marketSizeEstimate || "Unknown"}
+- Key Insight: ${product.keyInsight || "N/A"}
+- Trend Analysis: ${product.trendAnalysis || "N/A"}
+- Competitors: ${JSON.stringify(product.competitors || [])}
+- Competitor Gaps: ${JSON.stringify((product as { competitorAnalysis?: { gaps?: string[] } }).competitorAnalysis?.gaps || [])}
+- Pricing Intel: ${JSON.stringify(product.pricingIntel || {})}
+
+COMMUNITY DATA:
+- Top Complaints: ${JSON.stringify((product as { communityInsights?: { topComplaints?: string[] } }).communityInsights?.topComplaints || [])}
+- Improvement Requests: ${JSON.stringify((product as { communityInsights?: { improvementRequests?: string[] } }).communityInsights?.improvementRequests || [])}
+- Social Signals: ${JSON.stringify(product.socialSignals || [])}
 
 HIDDEN ASSUMPTIONS IDENTIFIED:
 ${analysisData.hiddenAssumptions?.map((a: { assumption: string }) => "• " + a.assumption).join("\n") || "None"}
@@ -100,14 +126,15 @@ FLIPPED LOGIC:
 ${analysisData.flippedLogic?.map((f: { originalAssumption: string; boldAlternative: string }) => "• " + f.originalAssumption + " → " + f.boldAlternative).join("\n") || "None"}
 
 CRITICAL INSTRUCTIONS:
-1. RED TEAM: Be BRUTAL. Find every way this fails. Name specific cognitive biases at play.
-2. BLUE TEAM: Be HONEST but compelling. Only defend what's genuinely defensible.
-3. COUNTER-EXAMPLES: Use REAL companies/products — no fabrication. Include year.
-4. FEASIBILITY CHECKLIST: Actionable items with cost estimates. Cover regulatory, technical, market.
-5. CONFIDENCE SCORES: 1-10, evidence-based. Don't default to middle scores.
-6. BLIND SPOTS: What did the original analysis completely miss?
-7. Provide 4-6 arguments for both Red and Blue teams.
-8. Provide 3-5 counter-examples, 6-10 feasibility items, and 3-4 blind spots.
+1. RED TEAM: Be SPECIFIC. Every attack must name a real competitor, cite a real market data point, or identify a specific technical constraint. NO generic dismissals.
+2. BLUE TEAM: Be EVIDENCE-BASED. Every defense must cite a real analogous success (company name, revenue/growth data, year).
+3. COUNTER-EXAMPLES: Use REAL companies/products — no fabrication. Include year AND revenue/funding data. Pick examples that are STRUCTURALLY similar, not just thematically similar.
+4. FEASIBILITY CHECKLIST: Actionable items with cost estimates. Tell me WHO to call, WHERE to look, WHAT to test.
+5. CONFIDENCE SCORES: 1-10, evidence-based. Each score must cite specific evidence. Don't default to middle scores — take a position.
+6. STRATEGIC RECOMMENDATIONS: Give 3 specific next steps, including the CHEAPEST way to validate demand (under $500).
+7. BLIND SPOTS: What data is missing? Where would you find it?
+8. Provide 4-6 arguments for both Red and Blue teams.
+9. Provide 3-5 counter-examples, 6-10 feasibility items, and 3-4 blind spots.
 
 Return ONLY the JSON object.`;
 
