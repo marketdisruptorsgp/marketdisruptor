@@ -160,6 +160,7 @@ export default function Index() {
   const step3Ref = useRef<HTMLDivElement>(null);
   const step4Ref = useRef<HTMLDivElement>(null);
   const businessResultsRef = useRef<HTMLDivElement>(null);
+  const sectionTabsRef = useRef<HTMLDivElement>(null);
 
   const pushLog = useCallback((text: string) => {
     setLoadingLog(prev => [...prev.slice(-12), { text, ts: Date.now() }]);
@@ -903,6 +904,7 @@ export default function Index() {
                         onClick={() => {
                           setActiveStep(s.step);
                           setVisitedSteps(prev => new Set([...prev, s.step]));
+                          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
                         }}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all w-full justify-center relative ${!isCurrent && !visitedSteps.has(s.step) ? "animate-pulse-subtle" : ""}`}
                         style={{
@@ -1060,7 +1062,7 @@ export default function Index() {
                     const currentIdx = DETAIL_TABS.findIndex(t => t.id === detailTab);
                     return (
                     <>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  <div ref={sectionTabsRef} className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                     {DETAIL_TABS.map(({ id, label, icon: Icon, color }) => {
                       const isActive = detailTab === id;
                       return (
@@ -1672,7 +1674,10 @@ export default function Index() {
                   <div className="flex items-center justify-between pt-4 mt-4" style={{ borderTop: "2px solid hsl(var(--border))" }}>
                     {currentIdx > 0 ? (
                       <button
-                        onClick={() => setDetailTab(DETAIL_TABS[currentIdx - 1].id)}
+                        onClick={() => {
+                          setDetailTab(DETAIL_TABS[currentIdx - 1].id);
+                          setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                        }}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
                         style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "2px solid hsl(var(--border))" }}
                       >
@@ -1682,7 +1687,10 @@ export default function Index() {
                     ) : <div />}
                     {currentIdx < DETAIL_TABS.length - 1 ? (
                       <button
-                        onClick={() => setDetailTab(DETAIL_TABS[currentIdx + 1].id)}
+                        onClick={() => {
+                          setDetailTab(DETAIL_TABS[currentIdx + 1].id);
+                          setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                        }}
                         className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all"
                         style={{
                           background: DETAIL_TABS[currentIdx + 1].color,
@@ -1698,6 +1706,61 @@ export default function Index() {
                         ✓ All sections explored!
                       </span>
                     )}
+                  </div>
+
+                  {/* ── CTA: Continue to Step 3 & 4 ── */}
+                  <div className="mt-6 space-y-3">
+                    <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
+                      Ready for more?
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        onClick={() => {
+                          setActiveStep(3);
+                          setVisitedSteps(prev => new Set([...prev, 3]));
+                          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                        }}
+                        className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
+                        style={{
+                          background: "linear-gradient(135deg, hsl(271 81% 55%) 0%, hsl(271 81% 45%) 100%)",
+                          color: "white",
+                          boxShadow: "0 6px 20px -4px hsl(271 81% 55% / 0.5)",
+                          border: "2px solid hsl(271 81% 65% / 0.4)",
+                        }}
+                      >
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
+                          <Brain size={20} />
+                        </div>
+                        <div>
+                          <div className="text-sm">Step 3 → Disrupt</div>
+                          <div className="text-xs font-normal opacity-80">Challenge assumptions & generate radical ideas</div>
+                        </div>
+                        <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveStep(4);
+                          setVisitedSteps(prev => new Set([...prev, 4]));
+                          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                        }}
+                        className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
+                        style={{
+                          background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)",
+                          color: "white",
+                          boxShadow: "var(--shadow-primary)",
+                          border: "2px solid hsl(var(--primary-light) / 0.4)",
+                        }}
+                      >
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
+                          <Presentation size={20} />
+                        </div>
+                        <div>
+                          <div className="text-sm">Step 4 → Pitch Deck</div>
+                          <div className="text-xs font-normal opacity-80">Auto-generate an investor-ready pitch</div>
+                        </div>
+                        <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                      </button>
+                    </div>
                   </div>
                   </>
                     );
