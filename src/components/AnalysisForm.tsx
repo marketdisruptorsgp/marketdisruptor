@@ -57,27 +57,97 @@ const BUSINESS_EXAMPLES = [
 // Steps config per mode
 const MODE_STEPS: Record<Mode, { label: string; detail: string }[]> = {
   discover: [
-    { label: "Configure Search", detail: "Choose category, era, and batch size" },
-    { label: "AI Web Scraping", detail: "Crawls eBay, Etsy, Reddit, TikTok & more" },
-    { label: "Deep Analysis", detail: "Gemini AI scores & builds intelligence reports" },
-    { label: "Results & Ideas", detail: "Revival scores, flip ideas, and action plans" },
+    { label: "Configure Search", detail: "Choose category, era, and batch size for targeted discovery" },
+    { label: "AI Web Scraping", detail: "Simultaneously crawls eBay sold listings, Etsy trends, Reddit communities, TikTok viral signals, Google Shopping & Alibaba supplier databases" },
+    { label: "Multi-Model Deep Analysis", detail: "Gemini 2.5 Flash cross-references all scraped data — pricing intelligence, community sentiment, supply chain mapping & competitive landscape" },
+    { label: "Results & Action Plans", detail: "Revival Potential Scores (1–10), flipped product ideas with BOM estimates, 3-phase execution roadmaps with budget & ROI projections" },
   ],
   custom: [
-    { label: "Provide Product Info", detail: "Add URLs, images, and product name" },
-    { label: "AI Scraping & Vision", detail: "Scrapes URLs and analyzes images with AI" },
-    { label: "Intelligence Report", detail: "Pricing intel, supply chain, and trends" },
-    { label: "Action Plan", detail: "Revival score, flip ideas, and next steps" },
+    { label: "Provide Product Info", detail: "Add up to 3 URLs and 5 product images for maximum intelligence coverage" },
+    { label: "AI Scraping & Vision Analysis", detail: "Each URL is scraped for pricing, reviews & specs. Vision AI reads product images to extract features, quality signals & design patterns" },
+    { label: "Intelligence Report Generation", detail: "Cross-references market pricing, collector premiums, supplier data (MOQs, OEMs), Reddit sentiment & complaint signals into a unified dossier" },
+    { label: "Strategic Action Plan", detail: "Revival score, flip ideas with cost breakdowns, competitive gaps, and a 3-phase go-to-market roadmap with budget estimates" },
   ],
   service: [
-    { label: "Describe the Service", detail: "Add URLs, screenshots, and service name" },
-    { label: "AI Scraping & Analysis", detail: "Scrapes sites and analyzes screenshots" },
-    { label: "Market Intelligence", detail: "Pricing models, competitors, and gaps" },
-    { label: "Growth Strategy", detail: "Pain points, opportunities, and action plan" },
+    { label: "Describe the Service", detail: "Add website URLs, Yelp/Google listings, screenshots, and context for comprehensive analysis" },
+    { label: "AI Scraping & Market Analysis", detail: "Scrapes service pages, reviews, pricing structures & competitor sites. Analyzes screenshots with vision AI for positioning insights" },
+    { label: "Competitive Intelligence", detail: "Maps pricing models across competitors, identifies underserved segments, analyzes customer complaints & feature gaps in the market" },
+    { label: "Growth Strategy Blueprint", detail: "Customer pain points, pricing optimization opportunities, expansion strategies, and an actionable scaling roadmap with financial projections" },
   ],
   business: [
-    { label: "Describe Your Business", detail: "Type, model, size, and pain points" },
-    { label: "First-Principles Analysis", detail: "AI deconstructs across 7 dimensions" },
-    { label: "Strategic Blueprint", detail: "Automation, leverage, and reinvention paths" },
+    { label: "Describe Your Business", detail: "Business type, revenue model, scale, geography, pain points — the more detail, the deeper the analysis" },
+    { label: "7-Dimension Strategic Deconstruction", detail: "AI analyzes customer journey friction, cost structure inefficiencies, tech leverage opportunities, competitive moats, automation gaps, pricing power & reinvention paths" },
+    { label: "Reinvention Blueprint", detail: "Complete strategic overhaul plan with financial projections, automation priorities, competitive repositioning, and a phased implementation timeline" },
+  ],
+};
+
+// Capability stats per mode  
+const MODE_CAPABILITIES: Record<Mode, { icon: string; stat: string; label: string }[]> = {
+  discover: [
+    { icon: "🌐", stat: "8+", label: "Data sources scraped simultaneously" },
+    { icon: "🧠", stat: "3", label: "AI models working in parallel" },
+    { icon: "📊", stat: "50+", label: "Data points per product analyzed" },
+    { icon: "⚡", stat: "10K+", label: "Market signals processed per batch" },
+    { icon: "🔍", stat: "6", label: "Scoring dimensions per product" },
+  ],
+  custom: [
+    { icon: "👁️", stat: "Vision AI", label: "Reads & analyzes product images" },
+    { icon: "🕸️", stat: "Deep Scrape", label: "Extracts pricing, reviews & specs" },
+    { icon: "📈", stat: "50+", label: "Market data points per product" },
+    { icon: "🏭", stat: "Supply Chain", label: "Supplier & manufacturer mapping" },
+    { icon: "💡", stat: "3-Phase", label: "Execution roadmap with ROI" },
+  ],
+  service: [
+    { icon: "🏪", stat: "Multi-Source", label: "Website, Yelp, Google, LinkedIn" },
+    { icon: "👁️", stat: "Vision AI", label: "Screenshot & visual analysis" },
+    { icon: "🎯", stat: "Gap Analysis", label: "Identifies underserved segments" },
+    { icon: "💰", stat: "Pricing Intel", label: "Competitor pricing breakdown" },
+    { icon: "📋", stat: "Action Plan", label: "Scaling roadmap with financials" },
+  ],
+  business: [
+    { icon: "🔬", stat: "7 Dimensions", label: "Strategic deconstruction depth" },
+    { icon: "🤖", stat: "Gemini Pro", label: "Advanced reasoning engine" },
+    { icon: "⚙️", stat: "Automation", label: "Tech leverage gap detection" },
+    { icon: "💎", stat: "Hidden Value", label: "Untapped revenue opportunities" },
+    { icon: "🗺️", stat: "Blueprint", label: "Full reinvention plan" },
+  ],
+};
+
+const MODE_WHAT_YOU_GET: Record<Mode, string[]> = {
+  discover: [
+    "Revival Potential Score (1–10) for every product discovered",
+    "Flipped product concepts with bill-of-materials cost estimates",
+    "Real-time pricing intelligence from eBay sold listings & Etsy",
+    "Community sentiment analysis from Reddit, TikTok & Google trends",
+    "Supply chain data — suppliers, MOQs, manufacturers & distributors",
+    "3-phase execution roadmap with budget estimates & ROI projections",
+    "Patent landscape overview for each product category",
+  ],
+  custom: [
+    "Full commercial intelligence dossier for your specific product",
+    "Pricing analysis — market averages, collector premiums & trends",
+    "Supply chain mapping — OEMs, suppliers, MOQs & cost breakdowns",
+    "Competitive landscape — who's selling what, at what price, and where",
+    "Community complaints & feature requests from Reddit & forums",
+    "Flipped product ideas — reinvented versions with BOM estimates",
+    "Actionable 3-phase go-to-market plan with financial projections",
+  ],
+  service: [
+    "Service market positioning analysis vs. direct competitors",
+    "Pricing model breakdown — how competitors charge & where gaps exist",
+    "Customer pain point mapping from reviews & complaint data",
+    "Underserved market segments & expansion opportunities",
+    "Competitive moat analysis — what differentiates winners from losers",
+    "Growth strategy with customer acquisition channels & costs",
+    "Financial projections for scaling scenarios",
+  ],
+  business: [
+    "Customer journey friction map — every pain point identified",
+    "Cost structure deconstruction — where money leaks & where to cut",
+    "Technology leverage audit — automation & AI opportunities",
+    "Competitive repositioning strategy with defensible moat plan",
+    "Revenue optimization paths you haven't considered",
+    "Complete reinvention blueprint with phased implementation timeline",
   ],
 };
 
@@ -275,6 +345,8 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   if (phase === "confirm" && pendingMode) {
     const modeOption = MODE_OPTIONS.find(m => m.id === pendingMode)!;
     const steps = MODE_STEPS[pendingMode];
+    const capabilities = MODE_CAPABILITIES[pendingMode];
+    const whatYouGet = MODE_WHAT_YOU_GET[pendingMode];
     const Icon = modeOption.icon;
 
     return (
@@ -298,82 +370,139 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
           }}
         >
           {/* Header */}
-          <div className="p-6 text-center" style={{ background: modeOption.accent }}>
+          <div className="p-8 text-center relative overflow-hidden" style={{ background: modeOption.accent }}>
+            {/* Decorative orbs */}
+            <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-10" style={{ background: "white" }} />
+            <div className="absolute -bottom-12 -left-12 w-36 h-36 rounded-full opacity-10" style={{ background: "white" }} />
+            
             <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: "hsl(0 0% 100% / 0.18)" }}
+              className="w-18 h-18 rounded-2xl flex items-center justify-center mx-auto mb-4 relative"
+              style={{ background: "hsl(0 0% 100% / 0.18)", width: "72px", height: "72px" }}
             >
-              <Icon size={32} style={{ color: "white" }} />
+              <Icon size={36} style={{ color: "white" }} />
             </div>
-            <h2 className="text-2xl font-extrabold text-white mb-1">{modeOption.label}</h2>
-            <p className="text-sm text-white/70">{modeOption.tagline}</p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">{modeOption.label}</h2>
+            <p className="text-sm text-white/80 font-medium mb-3">{modeOption.tagline}</p>
+            <p className="text-xs text-white/60 max-w-md mx-auto leading-relaxed">
+              Powered by SGP Capital's proprietary AI research models — challenging every assumption and rebuilding from the ground up.
+            </p>
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-7">
+            {/* Description */}
             <p className="text-sm text-muted-foreground text-center leading-relaxed max-w-lg mx-auto">
               {modeOption.description}
             </p>
 
-            {/* Steps overview */}
+            {/* Capability Stats Grid */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: modeOption.accent }}>
-                {steps.length} Steps in This Analysis
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-center" style={{ color: modeOption.accent }}>
+                What Powers This Analysis
               </h3>
-              <div className="space-y-2 max-w-md mx-auto">
-                {steps.map((s, i) => (
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {capabilities.map((cap, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-3 rounded-xl p-3"
+                    className="rounded-xl p-3 text-center"
                     style={{
                       background: modeOption.accentLight,
-                      border: `1px solid ${modeOption.accent}20`,
+                      border: `1px solid ${modeOption.accent}15`,
                     }}
                   >
-                    <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
-                      style={{ background: modeOption.accent, color: "white" }}
-                    >
-                      {i + 1}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground">{s.label}</p>
-                      <p className="text-xs text-muted-foreground">{s.detail}</p>
-                    </div>
+                    <span className="text-lg">{cap.icon}</span>
+                    <p className="text-sm font-extrabold text-foreground mt-1">{cap.stat}</p>
+                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{cap.label}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* How it works */}
+            {/* Steps overview */}
+            <div className="space-y-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-center" style={{ color: modeOption.accent }}>
+                {steps.length}-Step Analysis Pipeline
+              </h3>
+              <div className="space-y-2 max-w-xl mx-auto">
+                {steps.map((s, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 rounded-xl p-3.5"
+                    style={{
+                      background: modeOption.accentLight,
+                      border: `1px solid ${modeOption.accent}15`,
+                    }}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
+                      style={{ background: modeOption.accent, color: "white" }}
+                    >
+                      {i + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-foreground">{s.label}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{s.detail}</p>
+                    </div>
+                    {i < steps.length - 1 && (
+                      <ChevronRight size={14} className="mt-1.5 flex-shrink-0" style={{ color: modeOption.accent, opacity: 0.4 }} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* What You'll Get */}
+            <div className="space-y-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-center" style={{ color: modeOption.accent }}>
+                What You'll Receive
+              </h3>
+              <div className="max-w-xl mx-auto rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--muted) / 0.3)", border: "1px solid hsl(var(--border))" }}>
+                {whatYouGet.map((item, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <CheckCircle2 size={13} className="flex-shrink-0 mt-0.5" style={{ color: modeOption.accent }} />
+                    <p className="text-xs text-foreground leading-relaxed">{item}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Behind the scenes */}
             <div
-              className="rounded-xl p-4 text-center"
+              className="rounded-xl p-4 text-center max-w-xl mx-auto"
               style={{ background: "hsl(var(--muted) / 0.5)", border: "1px solid hsl(var(--border))" }}
             >
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">⚙️ Behind the Scenes</p>
               <p className="text-xs text-muted-foreground leading-relaxed">{modeOption.behindTheScenes}</p>
             </div>
 
+            {/* Trust signals */}
+            <div className="flex flex-wrap items-center justify-center gap-4 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1">🔒 TLS encrypted</span>
+              <span className="flex items-center gap-1">🚫 No data retained by AI</span>
+              <span className="flex items-center gap-1">🛡️ Row-level security</span>
+              <span className="flex items-center gap-1">⚡ Serverless isolation</span>
+            </div>
+
             {/* CTA */}
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02]"
+                className="flex items-center gap-2.5 px-10 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
                 style={{
-                  background: modeOption.accent,
-                  boxShadow: `0 6px 20px -4px ${modeOption.accent}50`,
+                  background: `linear-gradient(135deg, ${modeOption.accent}, ${modeOption.accent})`,
+                  boxShadow: `0 8px 24px -6px ${modeOption.accent}50`,
                 }}
               >
-                Yes, Begin {modeOption.label} <ChevronRight size={16} />
+                <Sparkles size={16} /> Yes, Begin {modeOption.label} <ChevronRight size={16} />
               </button>
               <button
                 type="button"
                 onClick={handleBack}
-                className="text-xs font-medium transition-colors"
+                className="text-xs font-medium transition-colors hover:underline"
                 style={{ color: "hsl(var(--muted-foreground))" }}
               >
-                Choose a different mode
+                ← Choose a different analysis mode
               </button>
             </div>
           </div>
