@@ -243,6 +243,7 @@ export default function Index() {
         products: JSON.parse(JSON.stringify(liveProducts)),
         product_count: liveProducts.length,
         avg_revival_score: Math.round(avgScore * 10) / 10,
+        analysis_type: params.category === "Service" ? "service" : "product",
       });
       setSavedRefreshTrigger((n) => n + 1);
       toast.success("Analysis auto-saved!");
@@ -275,11 +276,21 @@ export default function Index() {
       setActiveStep(3);
       toast.success("First principles analysis loaded — re-run to see full results.");
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+    } else if (analysis.analysis_type === "service") {
+      setProducts(analysis.products);
+      setSelectedProduct(analysis.products[0] || null);
+      setAnalysisParams({ category: analysis.category, era: analysis.era, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
+      setMainTab("service");
+      setActiveMode("service");
+      setExpandedSection("detail");
+      setDetailTab("overview");
+      setStep("done");
+      toast.success("Service analysis loaded!");
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     } else {
       setProducts(analysis.products);
       setSelectedProduct(analysis.products[0] || null);
       setAnalysisParams({ category: analysis.category, era: analysis.era, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
-      // Switch to correct tab based on whether it was a custom analysis
       const isCustom = analysis.category === "Custom" || analysis.era === "All Eras / Current";
       setMainTab(isCustom ? "custom" : "discover");
       setActiveMode(isCustom ? "custom" : "discover");
