@@ -586,22 +586,6 @@ export default function Index() {
           <p className="text-lg text-white leading-relaxed">
             Developed by SGP Capital, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up. We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life. Scroll below to begin your analysis!
           </p>
-          <div className="mt-8 flex flex-wrap gap-2">
-            {STEPS.map((s, i) => {
-              const Icon = s.icon;
-              return (
-                <div
-                  key={s.label}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium"
-                  style={{ background: "hsl(0 0% 100% / 0.06)", color: "white", border: "1px solid hsl(0 0% 100% / 0.1)" }}
-                >
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: "hsl(var(--primary))" }}>{i + 1}</span>
-                  <Icon size={13} />
-                  {s.label}
-                </div>
-              );
-            })}
-          </div>
         </div>
       </header>
 
