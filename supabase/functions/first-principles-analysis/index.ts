@@ -233,8 +233,8 @@ CRITICAL INSTRUCTIONS:
 7. The redesigned concept must be STRUCTURALLY different — not a minor tweak.
 8. Avoid vague suggestions. Every idea must have an operational mechanism and implementation path.
 9. The concept must be implementable within 12–18 months.
-10. VALIDATION: The redesigned concept MUST reference at least one real analogous service that proved a similar model works (name the company, its revenue/growth, and the structural parallel).
-11. DEMAND SIGNAL: Reference specific community complaints, review patterns, or market gaps as evidence of demand.
+10. VALIDATION: If a real analogous service proved a similar model works, reference it (name, revenue/growth, structural parallel). If this is genuinely novel, explain why the timing is right and what adjacent signals support it.
+11. DEMAND SIGNAL: Reference community complaints, review patterns, behavioral trends, or market gaps as evidence of demand.
 12. UNIT ECONOMICS: Include specific pricing math — customer acquisition cost estimate, lifetime value estimate, and margin structure.
 
 Return ONLY the JSON object.`
@@ -267,8 +267,8 @@ CRITICAL INSTRUCTIONS:
 7. The redesigned concept must be STRUCTURALLY different — not a feature add, not "add Bluetooth."
 8. Avoid vague suggestions. Every idea must have a physical mechanism and a manufacturing path.
 9. The concept must be manufacturable within 2–3 years.
-10. VALIDATION: The redesigned concept MUST reference at least one real analogous product that proved a similar approach works (name the product/company, revenue/growth data, and the structural parallel).
-11. DEMAND SIGNAL: Reference specific community complaints, Reddit post volumes, or TikTok trends as evidence of demand for this redesign direction.
+10. VALIDATION: If a real analogous product proved a similar approach works, reference it (name, revenue/growth, structural parallel). If this is genuinely novel, explain why the timing is right and what adjacent signals support it.
+11. DEMAND SIGNAL: Reference community complaints, behavioral trends, or adjacent market data as evidence of demand for this redesign direction.
 12. UNIT ECONOMICS: Include BOM estimate, target retail price, margin calculation, and breakeven volume.
 
 Return ONLY the JSON object.`;

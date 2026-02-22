@@ -123,7 +123,7 @@ CRITICAL INSTRUCTIONS:
 6. SCALE: What's stopping this from scaling 10x? 100x? Fix those constraints.
 7. Every recommendation must be specific, actionable, and grounded in real business mechanics.
 8. The reinvented model must represent a STRUCTURAL shift — not a marketing tweak.
-9. VALIDATION: Every untapped revenue stream and reinvention idea MUST cite a REAL business that proved this model works (name, revenue/growth, and the structural parallel). No theoretical suggestions.
+9. VALIDATION: When a real business has proven a similar model works, cite it (name, revenue/growth, structural parallel) — it strengthens the case. For genuinely novel approaches, explain what adjacent successes or market shifts support the idea. Don't force-fit irrelevant comparisons.
 10. SPECIFICITY: Name real software tools, real vendor categories, real cost figures. "Automate operations" is NOT acceptable — "Use ServiceTitan ($150/mo) to automate scheduling, reducing 20hrs/week of manual dispatch" IS.
 11. UNIT ECONOMICS: Include specific margin math for the reinvented model — revenue per customer, cost to serve, LTV, CAC estimate.
 12. COMPETITIVE MOAT: Explain specifically what prevents a competitor from copying the reinvented model within 12 months.

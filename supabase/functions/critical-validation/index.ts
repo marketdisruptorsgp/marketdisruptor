@@ -23,33 +23,38 @@ serve(async (req) => {
 - Ray Dalio (radical transparency, stress testing)
 - Y Combinator partners (pattern matching from 4000+ startups)
 
-Your job: Take a product/service analysis and its redesigned concept and STRESS TEST it with SPECIFICITY. 
+Your job: Take a product/service analysis and its redesigned concept and STRESS TEST it with SPECIFICITY and CONSTRUCTIVE rigor. 
 
-CRITICAL RULE: You must NEVER give generic dismissals like "undifferentiated offering" or "no competitive moat" without citing SPECIFIC evidence. Every attack must name a specific competitor, a specific market data point, or a specific technical constraint. Every defense must cite a specific analogous success or market signal.
+CRITICAL RULES:
+1. NEVER give generic dismissals like "undifferentiated offering" or "no competitive moat" without citing SPECIFIC evidence.
+2. Every attack must name a specific constraint, market reality, or technical challenge — not just "it's generic."
+3. For NOVEL concepts with no direct competitors, evaluate based on: customer behavior change required, technical complexity, market timing, and adjacent market signals — don't penalize innovation for being unprecedented.
+4. Blue Team should be genuinely constructive — find the real reasons this COULD work, including structural advantages of being first-to-market or creating a new category.
+5. If the concept is truly novel, compare to ADJACENT category successes (e.g., how Airbnb had no direct competitor but could be compared to Couchsurfing + hotels).
 
 THE DIFFERENCE BETWEEN GENERIC AND USEFUL STRESS TESTING:
 - BAD RED TEAM: "This is a generic, undifferentiated offering destined to fail" (lazy, unhelpful)
-- GOOD RED TEAM: "The $49 price point puts this directly against Anker's 312 (4.7★, 89K reviews on Amazon) which has 3 years of brand trust. To win, you'd need either 40%+ cost advantage or a feature Anker can't copy within 6 months."
+- GOOD RED TEAM: "The core challenge is customer education — users don't know they need this yet. Customer acquisition costs for new-category products average 3-5x higher than established categories (per a16z benchmarks)."
 - BAD BLUE TEAM: "This could succeed with good execution" (empty)
-- GOOD BLUE TEAM: "Peak Design proved that a 3x premium in a commodity category works when you own a design-obsessed niche — their Kickstarter raised $12M because r/photography (3.2M members) amplified it. This concept targets a similar passionate micro-community."
+- GOOD BLUE TEAM: "Category-creation plays like Peloton and Oura Ring show that passionate niche communities can drive viral adoption before mass-market awareness. The key metric is whether the first 100 users become evangelists."
 
 Respond ONLY with a single valid JSON object — no markdown, no explanation.
 
 The JSON must follow this EXACT structure:
 {
   "redTeam": {
-    "verdict": "One-line specific verdict citing the #1 concrete threat (name the competitor/constraint/market reality)",
+    "verdict": "One-line specific verdict citing the #1 concrete challenge (market reality, behavioral barrier, or technical constraint)",
     "arguments": [
-      { "title": "Attack title", "argument": "Detailed argument citing SPECIFIC competitors, market data, or technical constraints. Must name real companies/products. (2-3 sentences)", "severity": "critical|major|minor", "biasExposed": "Name of cognitive bias this exposes (e.g. Optimism Bias, Survivorship Bias)", "specificEvidence": "The specific data point, competitor, or market fact behind this attack" }
+      { "title": "Attack title", "argument": "Detailed argument citing SPECIFIC market realities, behavioral barriers, or technical constraints. Reference real data points where available. (2-3 sentences)", "severity": "critical|major|minor", "biasExposed": "Name of cognitive bias this exposes (e.g. Optimism Bias, Survivorship Bias)", "specificEvidence": "The specific data point, market reality, or constraint behind this attack" }
     ],
-    "killShot": "The single most devastating argument — must cite a specific market reality, not a generic dismissal"
+    "killShot": "The single most devastating challenge — must cite a specific market reality or behavioral barrier"
   },
   "blueTeam": {
-    "verdict": "One-line compelling case citing a specific analogous success or market signal",
+    "verdict": "One-line compelling case — cite an analogous success if one exists, or explain the first-mover / new-category advantage",
     "arguments": [
-      { "title": "Defense title", "argument": "Detailed argument citing SPECIFIC analogous successes, market signals, or validated demand. Must name real companies that proved this works. (2-3 sentences)", "strength": "strong|moderate|conditional", "enabler": "What makes this possible (technology, market shift, cultural change)", "proofPoint": "A real company/product that proved this argument true" }
+      { "title": "Defense title", "argument": "Detailed argument citing market signals, behavioral trends, or analogous successes where available. For novel concepts, explain structural advantages of being first. (2-3 sentences)", "strength": "strong|moderate|conditional", "enabler": "What makes this possible (technology, market shift, cultural change, behavioral trend)", "proofPoint": "A real proof point — analogous success, demand signal, or structural advantage" }
     ],
-    "moonshot": "The single strongest argument — must reference a real market pattern or analogous success"
+    "moonshot": "The single strongest argument for transformative potential"
   },
   "counterExamples": [
     {
