@@ -411,7 +411,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                   <Icon size={11} style={{ color: "hsl(var(--primary))" }} /> {label}
                 </p>
-                <p className="text-xs text-foreground/80 leading-relaxed">{text}</p>
+             <p className="text-xs text-foreground/80 leading-relaxed">{text}</p>
+                <InsightRating sectionId={`physical-${label}`} compact />
               </div>
             ))}
           </div>
@@ -517,13 +518,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                 <Brain size={11} /> Cognitive Load
               </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.cognitiveLoad}</p>
+               <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.cognitiveLoad}</p>
+                <InsightRating sectionId="workflow-cognitive" compact />
             </div>
             <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                 <Eye size={11} /> Context of Use
               </p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.contextOfUse}</p>
+                <InsightRating sectionId="workflow-context" compact />
             </div>
           </div>
 
@@ -593,6 +596,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 <Zap size={11} /> Highest-Leverage Integration
               </p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.recommendedIntegration}</p>
+              <InsightRating sectionId="smarttech-recommendation" compact />
             </div>
           </div>
 
@@ -642,6 +646,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                       <span className="text-foreground/80">{a.challengeIdea}</span>
                     </div>
                   )}
+                  <div className="ml-8"><InsightRating sectionId={`assumption-${i}`} compact /></div>
                 </div>
               );
             })}
@@ -684,6 +689,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                   <p className="text-xs text-foreground/70 leading-relaxed">{item.physicalMechanism}</p>
                 </div>
               </div>
+              <div className="px-4 pb-3"><InsightRating sectionId={`flip-${i}`} compact /></div>
             </div>
           ))}
           <button onClick={() => { setActiveStep("concept"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
