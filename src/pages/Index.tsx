@@ -128,8 +128,8 @@ export default function Index() {
   const { canAnalyze, remainingAnalyses, tier, usage, checkSubscription } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
   const [step, setStep] = useState<AnalysisStep>("idle");
-  const [mainTab, setMainTab] = useState<"discover" | "custom" | "service" | "business" | "saved">("discover");
-  const [activeMode, setActiveMode] = useState<AnalysisMode>("discover");
+  const [mainTab, setMainTab] = useState<"discover" | "custom" | "service" | "business" | "saved">("custom");
+  const [activeMode, setActiveMode] = useState<AnalysisMode>("custom");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -623,7 +623,7 @@ export default function Index() {
           ];
           return (
             <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--border))", boxShadow: "var(--shadow-card)", background: "hsl(var(--card))" }}>
-              <div className="flex" data-tour="tabs" style={{ background: "hsl(220 25% 6%)" }}>
+              <div className="grid grid-cols-5" data-tour="tabs" style={{ background: "hsl(220 25% 6%)" }}>
                 {TABS.map((tab) => {
                   const isActive = mainTab === tab.id;
                   const Icon = tab.icon;
@@ -636,18 +636,29 @@ export default function Index() {
                           setActiveMode(tab.id as AnalysisMode);
                         }
                       }}
-                      className="flex-1 flex items-center justify-center gap-2.5 px-4 py-4 text-sm font-bold transition-all relative"
-                       style={{
-                        color: isActive ? "white" : "hsl(0 0% 100% / 0.5)",
-                        background: isActive ? `${tab.accent}` : "transparent",
-                        borderRight: "1px solid hsl(0 0% 100% / 0.25)",
-                        boxShadow: isActive ? `inset 0 -3px 0 0 white` : "none",
+                      className="flex flex-col items-center justify-center gap-1.5 px-2 py-4 sm:py-5 text-xs sm:text-sm font-bold transition-all relative group"
+                      style={{
+                        color: isActive ? "white" : "hsl(0 0% 100% / 0.45)",
+                        background: isActive ? tab.accent : "transparent",
+                        borderBottom: isActive ? "3px solid white" : "3px solid transparent",
                       }}
                     >
-                      <Icon size={17} />
-                      <span className="hidden sm:inline">{tab.label}</span>
+                      <div
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all"
+                        style={{
+                          background: isActive ? "hsl(0 0% 100% / 0.2)" : "hsl(0 0% 100% / 0.08)",
+                          transform: isActive ? "scale(1.1)" : "scale(1)",
+                        }}
+                      >
+                        <Icon size={20} />
+                      </div>
+                      <span className="hidden sm:inline text-center leading-tight">{tab.label}</span>
+                      <span className="sm:hidden text-center leading-tight text-[10px]">{tab.label.replace("Disrupt This ", "").replace("Disrupt This ", "")}</span>
                       {tab.id === "saved" && (
-                        <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "hsl(var(--success))" }} />
+                        <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "hsl(var(--success))" }} />
+                      )}
+                      {!isActive && tab.id !== "saved" && (
+                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 group-hover:w-3/4 h-0.5 transition-all rounded-full" style={{ background: tab.accent }} />
                       )}
                     </button>
                   );
