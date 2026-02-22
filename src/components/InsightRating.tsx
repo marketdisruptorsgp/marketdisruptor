@@ -26,7 +26,7 @@ export const InsightRating = ({ sectionId, compact }: InsightRatingProps) => {
   return (
     <div className="mt-3">
       <div className={`flex items-center gap-2 ${compact ? "" : "pt-2 border-t"}`} style={{ borderColor: "hsl(var(--border))" }}>
-        <span className="text-[10px] text-muted-foreground font-medium">Rate this insight:</span>
+        <span className="text-[10px] text-muted-foreground font-medium">Optional — rate to help improve results:</span>
         <button
           onClick={() => handleRate("up")}
           className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all"
