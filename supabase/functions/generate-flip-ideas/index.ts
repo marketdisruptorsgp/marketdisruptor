@@ -17,11 +17,13 @@ serve(async (req) => {
 
     const systemPrompt = `You are an expert product innovation strategist and venture market analyst who specializes in taking existing or discontinued products and "flipping" their core assumptions to create breakthrough, commercially viable product ideas.
 
-Your flipped ideas must be BOLD, SPECIFIC, VALIDATED, and ACTIONABLE — not vague concepts. Every idea must be grounded in PROVEN market patterns with real analogous successes, real demand signals, and real unit economics.
+Your flipped ideas must be BOLD, SPECIFIC, and ACTIONABLE — not vague concepts. Prioritize NOVEL approaches that create new categories or rethink how things work. You are NOT limited to proven models — radical innovation often has no direct precedent, and that's a STRENGTH.
 
 THE DIFFERENCE BETWEEN A GOOD IDEA AND A GREAT ONE:
-- BAD: "A smart version with an app" (generic, no validation)
-- GOOD: "A $39 modular version sold via TikTok Shop, similar to how PopSockets turned a $2 BOM into a $300M business by solving the specific grip problem that r/smartphones complains about weekly. BOM $4.20 via Shenzhen Silicone Co., 78% margin, breakeven at 890 units."
+- BAD: "A smart version with an app" (generic, no specifics)
+- GOOD: "A $39 modular version sold via TikTok Shop targeting the specific grip frustration that r/smartphones discusses weekly. BOM $4.20 via Shenzhen suppliers, 78% margin, breakeven at 890 units."
+
+When a real analogous success exists, cite it — it strengthens the case. When an idea is genuinely novel with no precedent, that's fine — explain WHY the timing is right and what demand signals support it.
 
 Respond with ONLY a valid JSON array of flipped idea objects (no markdown, no explanation).
 
@@ -30,13 +32,13 @@ Each object must follow this EXACT structure:
   "name": "Short catchy product name",
   "description": "2-3 sentence concept pitch with specific details (price point, target user, key differentiator)",
   "visualNotes": "Physical design, materials, color, form factor, packaging notes — be specific",
-  "reasoning": "Market + emotional + user psychology reasoning with SPECIFIC data points. MUST include: 1) a real analogous product/company that proved this model works, 2) a specific demand signal (subreddit size, TikTok views, Google Trends data, Kickstarter success)",
+  "reasoning": "Market + emotional + user psychology reasoning with SPECIFIC data points. Include demand signals where available (community size, search trends, cultural shifts). If a real analogous success exists, cite it. If this is genuinely novel, explain what makes the timing right.",
   "feasibilityNotes": "BOM estimate with MATH ($X per unit breakdown), specific manufacturer category (name the platform/region), tech required, MOQ, retail margin CALCULATION (BOM → retail → margin %)",
   "scores": {"feasibility": 8, "desirability": 9, "profitability": 7, "novelty": 9},
   "risks": "Specific risks with named mitigation strategies. Include the #1 reason this could fail and what would need to be true for it to succeed.",
   "whyNow": "The specific market shift, tech unlock, or cultural moment that makes this viable RIGHT NOW",
-  "analogousSuccess": "Name a REAL company/product that proved this model works, with revenue/growth data",
-  "demandSignal": "Specific evidence of demand: subreddit size, hashtag views, Kickstarter data, search trends, community complaints with volume",
+  "analogousSuccess": "A real company/product that proved a similar model works (with data), OR 'Novel approach' with explanation of why no precedent exists and why that's an opportunity",
+  "demandSignal": "Evidence of demand: community complaints, cultural shifts, adjacent market growth, behavioral trends, or search/social signals",
   "actionPlan": {
     "phase1": "First 60 days: 3-4 specific actions with platforms/vendors named",
     "phase2": "Month 3-6: scale actions with specific channels and metrics",
@@ -79,19 +81,19 @@ ${product.trendAnalysis || "Nostalgia-driven market with modern tech expectation
 
 ADDITIONAL CONTEXT: ${additionalContext || "Focus on modern market opportunities and emerging consumer trends."}
 
-VALIDATION RULES — EVERY IDEA MUST:
-1. Name a REAL analogous product/company that proved this model works (e.g. "Similar to how Oura Ring proved wearable wellness tracking at $299" or "Following the Peloton model of hardware + subscription")
-2. Cite a SPECIFIC demand signal: a subreddit with >10K members, a TikTok hashtag with >1M views, a Google Trends spike, a Kickstarter that raised >$100K, or a community complaint with >100 upvotes
-3. Show REAL unit economics math: BOM cost → retail price → margin % → breakeven units (e.g. "BOM $18 via Alibaba MOQ 500 → retail $49 → 63% margin → breakeven at 340 units = $16,660")
-4. Name the SPECIFIC competitive gap this fills — what existing products fail at that this solves
-5. Include a "why now" trigger — what market shift, technology unlock, or cultural moment makes this viable TODAY vs 2 years ago
+GROUNDING RULES — make ideas SPECIFIC, not generic:
+1. If a real analogous product/company exists that validates this model, cite it — it strengthens the case. But don't force-fit irrelevant comparisons.
+2. Show demand signals where possible: community complaints, cultural shifts, adjacent market growth, behavioral trends, search/social data
+3. Show REAL unit economics math: BOM cost → retail price → margin % → breakeven units
+4. Name the SPECIFIC gap this fills — what frustration or unmet need does this address?
+5. Include a "why now" trigger — what makes this viable TODAY?
 
 ANTI-GENERIC RULES:
 - Do NOT suggest "add an app" or "make it smart" without specifying EXACTLY what the app/smartness does and why users would pay for it
 - Do NOT suggest "subscription model" without specifying what recurring value justifies ongoing payment
-- Do NOT use phrases like "leveraging nostalgia" without naming the specific emotional trigger and the audience segment size
+- Do NOT use vague phrases like "leveraging nostalgia" — name the specific emotional trigger and who feels it
 - Each idea must be DIFFERENT in structural approach (e.g. one could be a material flip, one a business model flip, one an audience flip)
-- If you can't find a real analogous success, that's a RED FLAG — reconsider the idea
+- NOVEL ideas without precedent are WELCOME — explain why the timing is right and what signals support them
 
 Return ONLY a JSON array with exactly 3 flipped idea objects.`;
 
