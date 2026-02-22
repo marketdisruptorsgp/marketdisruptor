@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import { Zap, Upload, Briefcase, Building2, Telescope } from "lucide-react";
 import { UserHeader } from "@/components/UserHeader";
 import { TIERS, TierKey } from "@/hooks/useSubscription";
 
@@ -7,6 +7,33 @@ interface HeroSectionProps {
   remainingAnalyses: number | null;
   profileFirstName?: string;
 }
+
+const MODE_CARDS = [
+  {
+    icon: Upload,
+    label: "Disrupt This Product",
+    description: "Drop URLs or photos — AI builds a full commercial intelligence dossier",
+    accent: "hsl(217 91% 38%)",
+  },
+  {
+    icon: Briefcase,
+    label: "Disrupt This Service",
+    description: "Map the competitive landscape and uncover growth opportunities",
+    accent: "hsl(340 75% 50%)",
+  },
+  {
+    icon: Building2,
+    label: "Disrupt The Business Model",
+    description: "Deconstruct any business across 7 strategic dimensions",
+    accent: "hsl(271 81% 55%)",
+  },
+  {
+    icon: Telescope,
+    label: "Disrupt This Nostalgia",
+    description: "Find undervalued products with real comeback potential",
+    accent: "hsl(217 91% 50%)",
+  },
+];
 
 export function HeroSection({ tier, remainingAnalyses, profileFirstName }: HeroSectionProps) {
   return (
@@ -54,9 +81,36 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName }: HeroS
         <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4">
           Analyze, Deconstruct, <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize!</span>
         </h1>
-        <p className="text-lg text-white leading-relaxed">
+        <p className="text-lg text-white leading-relaxed mb-8">
           Developed by SGP Capital, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up. We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life. Scroll below to begin your analysis!
         </p>
+
+        {/* 4 Mode Cards */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          {MODE_CARDS.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.label}
+                className="rounded-xl p-4 sm:p-5 space-y-3 transition-all hover:scale-[1.02]"
+                style={{
+                  background: "hsl(220 30% 10% / 0.7)",
+                  border: `1.5px solid ${card.accent}30`,
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                <div
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center"
+                  style={{ background: `${card.accent}20`, border: `1px solid ${card.accent}35` }}
+                >
+                  <Icon size={20} style={{ color: card.accent }} />
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-white leading-snug">{card.label}</h3>
+                <p className="text-xs sm:text-sm leading-relaxed" style={{ color: "hsl(0 0% 100% / 0.5)" }}>{card.description}</p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </header>
   );
