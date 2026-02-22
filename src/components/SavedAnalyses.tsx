@@ -31,6 +31,12 @@ const TYPE_CONFIG = {
     color: "hsl(var(--primary))",
     bgColor: "hsl(var(--primary) / 0.1)",
   },
+  service: {
+    label: "Service",
+    icon: Building2,
+    color: "hsl(340 75% 50%)",
+    bgColor: "hsl(340 75% 50% / 0.1)",
+  },
   business_model: {
     label: "Business Model",
     icon: Building2,
