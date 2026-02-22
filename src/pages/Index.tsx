@@ -922,7 +922,7 @@ export default function Index() {
                         </span>
                         <SIcon size={14} className="hidden sm:block flex-shrink-0" />
                         <span className="hidden sm:inline truncate">{s.label}</span>
-                        <span className="sm:hidden text-[11px]">Step {s.step}</span>
+                        <span className="sm:hidden text-[11px]">{s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : "Pitch"}</span>
                       </button>
                       {i < arr.length - 1 && (
                         <div className="flex-shrink-0 mx-1 flex items-center">
