@@ -97,17 +97,17 @@ function buildReferralEmailHtml(
                 <tr>
                   <td align="center">
                     <p style="margin:0;font-size:20px;font-weight:800;color:#ffffff;text-transform:uppercase;letter-spacing:0.15em;">
-                      Four Ways to Uncover Opportunity
+                      Four Disruption Paths
                     </p>
                     <div style="width:80px;height:3px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);margin:12px auto 0;border-radius:2px;"></div>
                   </td>
                 </tr>
               </table>
 
-              <!-- Mode 1: Disrupt This Product -->
+              <!-- Mode 1: Disrupt This Product (deep blue hsl(217 91% 38%) → #1249a3) -->
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:16px;">
                 <tr>
-                  <td style="background:linear-gradient(135deg,rgba(59,130,246,0.12) 0%,rgba(59,130,246,0.04) 100%);border:1px solid rgba(59,130,246,0.3);border-left:4px solid #3b82f6;border-radius:12px;padding:20px 22px;">
+                  <td style="background:linear-gradient(135deg,rgba(18,73,163,0.15) 0%,rgba(18,73,163,0.04) 100%);border:1px solid rgba(18,73,163,0.35);border-left:4px solid #1249a3;border-radius:12px;padding:20px 22px;">
                     <p style="margin:0 0 12px;font-size:17px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;">Disrupt This Product</p>
                     <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#93c5fd;">Commercial intelligence dossier</strong> from deep web crawling</p>
                     <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; Real <strong style="color:#93c5fd;">pricing data</strong>, market averages, premiums, and trend trajectories</p>
@@ -121,51 +121,51 @@ function buildReferralEmailHtml(
                 </tr>
               </table>
 
-              <!-- Mode 2: Disrupt This Service -->
+              <!-- Mode 2: Disrupt This Service (rose/pink hsl(340 75% 50%) → #df2060) -->
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:16px;">
                 <tr>
-                  <td style="background:linear-gradient(135deg,rgba(139,92,246,0.12) 0%,rgba(139,92,246,0.04) 100%);border:1px solid rgba(139,92,246,0.3);border-left:4px solid #8b5cf6;border-radius:12px;padding:20px 22px;">
+                  <td style="background:linear-gradient(135deg,rgba(223,32,96,0.12) 0%,rgba(223,32,96,0.04) 100%);border:1px solid rgba(223,32,96,0.3);border-left:4px solid #df2060;border-radius:12px;padding:20px 22px;">
                     <p style="margin:0 0 12px;font-size:17px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;">Disrupt This Service</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Market positioning</strong> against the full competitive landscape</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Pricing breakdown</strong> &mdash; how competitors charge and where gaps exist</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Customer journey friction map</strong> with drop-off points and causes</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Underserved segments</strong> the competition has overlooked</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Operational workflow analysis</strong> &mdash; inefficiencies and automation opportunities</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Growth strategy</strong> with acquisition channels, costs, and retention mechanics</p>
-                    <p style="margin:0;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Scaling projections</strong> grounded in real market data</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fda4af;">Market positioning</strong> against the full competitive landscape</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fda4af;">Pricing breakdown</strong> &mdash; how competitors charge and where gaps exist</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fda4af;">Customer journey friction map</strong> with drop-off points and causes</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fda4af;">Underserved segments</strong> the competition has overlooked</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fda4af;">Operational workflow analysis</strong> &mdash; inefficiencies and automation opportunities</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fda4af;">Growth strategy</strong> with acquisition channels, costs, and retention mechanics</p>
+                    <p style="margin:0;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fda4af;">Scaling projections</strong> grounded in real market data</p>
                   </td>
                 </tr>
               </table>
 
-              <!-- Mode 3: Disrupt The Business Model -->
+              <!-- Mode 3: Disrupt The Business Model (purple hsl(271 81% 55%) → #8b3fd9) -->
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:16px;">
                 <tr>
-                  <td style="background:linear-gradient(135deg,rgba(245,158,11,0.12) 0%,rgba(245,158,11,0.04) 100%);border:1px solid rgba(245,158,11,0.3);border-left:4px solid #f59e0b;border-radius:12px;padding:20px 22px;">
+                  <td style="background:linear-gradient(135deg,rgba(139,63,217,0.12) 0%,rgba(139,63,217,0.04) 100%);border:1px solid rgba(139,63,217,0.3);border-left:4px solid #8b3fd9;border-radius:12px;padding:20px 22px;">
                     <p style="margin:0 0 12px;font-size:17px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;">Disrupt The Business Model</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fcd34d;">Customer journey friction map</strong> ranked by impact</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fcd34d;">Cost structure deconstruction</strong>, where money leaks and why</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fcd34d;">Technology leverage audit</strong> with automation difficulty ratings</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fcd34d;">User workflow analysis</strong>, actual behavior vs. assumptions</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fcd34d;">Competitive repositioning</strong> with a defensible moat plan</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fcd34d;">Revenue paths</strong> surfaced by challenging pricing assumptions</p>
-                    <p style="margin:0;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#fcd34d;">Reinvention blueprint</strong> with IP considerations and phased timeline</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Customer journey friction map</strong> ranked by impact</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Cost structure deconstruction</strong>, where money leaks and why</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Technology leverage audit</strong> with automation difficulty ratings</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">User workflow analysis</strong>, actual behavior vs. assumptions</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Competitive repositioning</strong> with a defensible moat plan</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Revenue paths</strong> surfaced by challenging pricing assumptions</p>
+                    <p style="margin:0;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#c4b5fd;">Reinvention blueprint</strong> with IP considerations and phased timeline</p>
                   </td>
                 </tr>
               </table>
 
-              <!-- Mode 4: Disrupt This Nostalgia -->
+              <!-- Mode 4: Disrupt This Nostalgia (primary blue hsl(217 91% 50%) → #2563eb) -->
               <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:4px;">
                 <tr>
-                  <td style="background:linear-gradient(135deg,rgba(34,197,94,0.12) 0%,rgba(34,197,94,0.04) 100%);border:1px solid rgba(34,197,94,0.3);border-left:4px solid #22c55e;border-radius:12px;padding:20px 22px;">
+                  <td style="background:linear-gradient(135deg,rgba(37,99,235,0.12) 0%,rgba(37,99,235,0.04) 100%);border:1px solid rgba(37,99,235,0.3);border-left:4px solid #2563eb;border-radius:12px;padding:20px 22px;">
                     <p style="margin:0 0 12px;font-size:17px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;">Disrupt This Nostalgia</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#86efac;">Revival Potential Score</strong> (1-10) across 6 dimensions per product</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#86efac;">Reinvented product concepts</strong> with bill-of-materials estimates</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#86efac;">Live pricing</strong> from eBay, Etsy, and collector marketplaces</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#86efac;">Community sentiment</strong> from Reddit, TikTok, and Google trends</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#86efac;">Supply chain mapping</strong> with verified suppliers and MOQs</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#86efac;">Patent landscape</strong>, expired IP goldmines, active risks, and innovation gaps</p>
-                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#86efac;">Friction analysis</strong>, why the product lost traction and what was never fixed</p>
-                    <p style="margin:0;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; 3-phase <strong style="color:#86efac;">execution roadmap</strong> with budget and ROI projections</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#93c5fd;">Revival Potential Score</strong> (1-10) across 6 dimensions per product</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#93c5fd;">Reinvented product concepts</strong> with bill-of-materials estimates</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#93c5fd;">Live pricing</strong> from eBay, Etsy, and collector marketplaces</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#93c5fd;">Community sentiment</strong> from Reddit, TikTok, and Google trends</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#93c5fd;">Supply chain mapping</strong> with verified suppliers and MOQs</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#93c5fd;">Patent landscape</strong>, expired IP goldmines, active risks, and innovation gaps</p>
+                    <p style="margin:0 0 5px;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; <strong style="color:#93c5fd;">Friction analysis</strong>, why the product lost traction and what was never fixed</p>
+                    <p style="margin:0;font-size:13px;color:#ffffff;line-height:1.65;">&#8226; 3-phase <strong style="color:#93c5fd;">execution roadmap</strong> with budget and ROI projections</p>
                   </td>
                 </tr>
               </table>
@@ -176,8 +176,11 @@ function buildReferralEmailHtml(
           <tr>
             <td style="padding:0 36px 28px;">
               <hr style="border:none;border-top:1px solid #21262d;margin:0 0 20px;">
-              <p style="margin:0 0 8px;font-size:13px;color:#e6edf3;line-height:1.7;font-weight:600;">
-                All connections are TLS encrypted. Analysis runs in isolated serverless functions. Your data is never sold, shared, or used for training.
+              <p style="margin:0 0 8px;font-size:14px;color:#ffffff;line-height:1.7;font-weight:700;">
+                🔒 Privacy &amp; Security
+              </p>
+              <p style="margin:0 0 8px;font-size:13px;color:#e6edf3;line-height:1.7;font-weight:500;">
+                All connections use TLS encryption in transit. Analysis runs in isolated serverless functions that process your data and discard it after responding — nothing is logged or retained by AI providers. When you save an analysis, it's encrypted at rest and scoped exclusively to your account via row-level security policies. Your data is never sold or shared.
               </p>
               <p style="margin:0;font-size:12px;color:#8b949e;">
                 You received this email because ${from} invited you. No action is needed if you're not interested.
