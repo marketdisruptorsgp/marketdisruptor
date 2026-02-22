@@ -322,7 +322,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     },
     {
       id: "business",
-      label: "Disrupt The Business Model",
+      label: "Disrupt This Business Model",
       tagline: "Strategic Reinvention",
       description: "Describe any business. AI deconstructs it across 7 strategic dimensions and rebuilds a reinvented model.",
       behindTheScenes: "Gemini Pro analyzes across 7 strategic dimensions, questioning every assumption about cost, pricing, staffing, technology, and customer flow.",
@@ -333,7 +333,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     },
     {
       id: "discover",
-      label: "Disrupt This Memory",
+      label: "Disrupt This Nostalgia",
       tagline: "Market Intelligence",
       description: "AI crawls the live web to find undervalued products with real comeback potential, then reinvents them.",
       behindTheScenes: "Firecrawl scrapes 8+ data sources simultaneously, then Gemini AI scores, challenges assumptions, and generates reinvented product concepts.",
