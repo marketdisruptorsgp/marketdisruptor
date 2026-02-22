@@ -13,6 +13,7 @@ interface RedTeamArg {
   argument: string;
   severity: "critical" | "major" | "minor";
   biasExposed: string;
+  specificEvidence?: string;
 }
 
 interface BlueTeamArg {
@@ -20,6 +21,7 @@ interface BlueTeamArg {
   argument: string;
   strength: "strong" | "moderate" | "conditional";
   enabler: string;
+  proofPoint?: string;
 }
 
 interface CounterExample {
@@ -28,6 +30,7 @@ interface CounterExample {
   similarity: string;
   lesson: string;
   year: string;
+  revenue?: string;
 }
 
 interface FeasibilityItem {
@@ -49,6 +52,7 @@ interface ValidationData {
   counterExamples: CounterExample[];
   feasibilityChecklist: FeasibilityItem[];
   confidenceScores: Record<string, ConfidenceScore>;
+  strategicRecommendations?: string[];
   blindSpots: string[];
 }
 
@@ -190,9 +194,14 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     </div>
                   </div>
                   <p className="text-xs text-foreground/80 leading-relaxed mb-2">{arg.argument}</p>
-                  <div className="flex items-center gap-1.5">
-                    <Brain size={10} style={{ color: "hsl(271 81% 50%)" }} />
-                    <span className="text-[10px] font-semibold" style={{ color: "hsl(271 81% 40%)" }}>Bias: {arg.biasExposed}</span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <Brain size={10} style={{ color: "hsl(271 81% 50%)" }} />
+                      <span className="text-[10px] font-semibold" style={{ color: "hsl(271 81% 40%)" }}>Bias: {arg.biasExposed}</span>
+                    </div>
+                    {arg.specificEvidence && (
+                      <span className="text-[10px] text-foreground/60 italic">📊 {arg.specificEvidence}</span>
+                    )}
                   </div>
                   <InsightRating sectionId={`red-${i}`} compact />
                 </div>
@@ -244,9 +253,14 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     </span>
                   </div>
                   <p className="text-xs text-foreground/80 leading-relaxed mb-2">{arg.argument}</p>
-                  <div className="flex items-center gap-1.5">
-                    <Zap size={10} style={{ color: "hsl(var(--primary))" }} />
-                    <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary))" }}>Enabler: {arg.enabler}</span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <Zap size={10} style={{ color: "hsl(var(--primary))" }} />
+                      <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary))" }}>Enabler: {arg.enabler}</span>
+                    </div>
+                    {arg.proofPoint && (
+                      <span className="text-[10px] text-foreground/60 italic">✅ {arg.proofPoint}</span>
+                    )}
                   </div>
                   <InsightRating sectionId={`blue-${i}`} compact />
                 </div>
@@ -289,12 +303,32 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(var(--primary))" }}>
                       Lesson: {ex.lesson}
                     </p>
+                    {ex.revenue && (
+                      <p className="text-[10px] text-muted-foreground mt-1">📈 {ex.revenue}</p>
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
         )}
+
+        {/* Strategic Recommendations */}
+        {data.strategicRecommendations?.length ? (
+          <div className="space-y-2">
+            <p className="section-label text-[10px] flex items-center gap-1">
+              <ArrowRight size={11} style={{ color: "hsl(142 70% 40%)" }} /> Strategic Recommendations
+            </p>
+            {data.strategicRecommendations.map((rec, i) => (
+              <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
+                style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                  style={{ background: "hsl(142 70% 45% / 0.15)", color: "hsl(142 70% 30%)" }}>{i + 1}</span>
+                <span className="text-foreground/80 leading-relaxed">{rec}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         {/* Blind Spots */}
         {data.blindSpots?.length > 0 && (
