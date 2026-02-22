@@ -10,6 +10,7 @@ import {
   Wrench, Eye, Package, Factory, Layers, FileDown,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
+import { BundleDeepDive } from "./BundleDeepDive";
 
 
 export interface BusinessModelInput {
@@ -824,11 +825,12 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             </p>
             <div className="space-y-2">
               {data.revenueReinvention.bundleOpportunities.map((b, i) => (
-                <div key={i} className="flex items-start gap-2 p-3 rounded-lg text-xs"
-                  style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <ChevronRight size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                  <span className="text-foreground/80 leading-relaxed">{b}</span>
-                </div>
+                <BundleDeepDive
+                  key={i}
+                  opportunity={b}
+                  businessContext={{ type: input.type, description: input.description }}
+                  index={i}
+                />
               ))}
             </div>
           </div>
