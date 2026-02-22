@@ -183,6 +183,34 @@ export default function Index() {
     return () => stopLoadingTimer();
   }, [stopLoadingTimer]);
 
+  // Site-exit engagement: prompt users who haven't explored key areas
+  useEffect(() => {
+    const hasUnvisited = step === "done" && [3, 4].some(s => !visitedSteps.has(s));
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnvisited) {
+        e.preventDefault();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && hasUnvisited && !showExitPrompt) {
+        setPendingExitAction(null);
+        setShowExitPrompt(true);
+      }
+    };
+
+    if (hasUnvisited) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+    }
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [step, visitedSteps, showExitPrompt]);
+
   const handleCloseWelcome = () => {
     localStorage.setItem("welcomed_" + (user?.id ?? ""), "1");
     setShowWelcome(false);
