@@ -55,18 +55,18 @@ function buildReferralEmailHtml(
           <tr>
             <td style="padding:28px 36px 32px;">
               <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#e6edf3;line-height:1.25;letter-spacing:-0.02em;">
-                ${from} thinks you need to see this
+                ${from} invited you to join Market Disruptor
               </h1>
               <p style="margin:0 0 20px;font-size:15px;color:#8b949e;line-height:1.7;">
-                Hi ${to}, you've been invited to a proprietary intelligence platform that flips conventional product thinking on its head.
+                Hi ${to}, you've received an invitation to a proprietary product intelligence platform used by entrepreneurs, investors, and product teams to identify high-potential market opportunities.
               </p>
 
               <p style="margin:0 0 20px;font-size:15px;color:#c9d1d9;line-height:1.7;">
-                Most tools summarize markets. This one tears them apart. Powered by deep web crawling, vision AI, and multi-model strategic analysis, it challenges every assumption about a product — why it exists in its current form, whether the pricing model is actually right, what friction users have normalized, and what a version rebuilt from scratch would look like.
+                Powered by deep web crawling, vision AI, and multi-model strategic analysis, Market Disruptor challenges every assumption about a product — why it exists in its current form, whether the pricing model is right, what friction users have normalized, and what a version rebuilt from scratch would look like. Complete with supply chain intelligence, patent analysis, and investor-ready pitch decks.
               </p>
 
               <p style="margin:0 0 24px;font-size:15px;color:#c9d1d9;line-height:1.7;">
-                You get a completely new take — not a summary. Complete with supply chain intelligence, patent analysis, and investor-ready pitch decks generated in seconds. Give it a try.
+                You get a completely new take on any market — not a summary. Give it a try.
               </p>
 
               <!-- CTA -->
