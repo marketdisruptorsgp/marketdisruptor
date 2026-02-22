@@ -302,7 +302,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
       id: "custom",
       label: "Analyze A Product",
       tagline: "Deep Product Audit",
-      description: "Goes far beyond a standard analysis. AI scrapes the web, reads your images, and builds a full intelligence dossier, then challenges every assumption about how this product is designed, priced, and positioned to surface opportunities everyone else has missed.",
+      description: "Drop in URLs or photos. AI scrapes pages, reads images, and builds a full commercial intelligence dossier.",
       behindTheScenes: "Each URL is scraped for pricing, reviews & specs. Images analyzed with vision AI. Then every finding is stress-tested against first-principles reasoning.",
       bullets: ["Scrapes up to 3 URLs + analyzes 5 images", "Challenges every design and pricing assumption", "Reinvented concepts with go-to-market roadmaps"],
       icon: Upload,
@@ -313,8 +313,8 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
       id: "service" as Mode,
       label: "Analyze A Service",
       tagline: "Service Intelligence",
-      description: "More than a competitive analysis. AI maps the entire service landscape, then systematically questions every assumption about how this service is delivered, priced, and experienced to reveal blind spots and untapped growth paths.",
-      behindTheScenes: "URLs scraped for service details, reviews & pricing. Every insight is then challenged through assumption-flipping and friction analysis.",
+      description: "URLs, screenshots, or a description. AI maps the full competitive landscape and identifies growth opportunities.",
+      behindTheScenes: "URLs scraped for service details, reviews & pricing. Every insight challenged through assumption-flipping and friction analysis.",
       bullets: ["Scrapes up to 3 URLs + analyzes 5 images", "Questions every assumption about customer value", "Growth strategies built on what competitors overlook"],
       icon: Briefcase,
       accent: "hsl(340 75% 50%)",
@@ -324,7 +324,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
       id: "business",
       label: "Business Model Analysis",
       tagline: "Strategic Reinvention",
-      description: "Not just an audit. AI deconstructs your entire business from first principles, challenges every belief about how it should work, and rebuilds a reinvented model that exposes hidden revenue, eliminates structural friction, and creates defensible advantages.",
+      description: "Describe any business. AI deconstructs it across 7 strategic dimensions and rebuilds a reinvented model.",
       behindTheScenes: "Gemini Pro analyzes across 7 strategic dimensions, questioning every assumption about cost, pricing, staffing, technology, and customer flow.",
       bullets: ["7-dimension first-principles deconstruction", "Every assumption challenged and stress-tested", "Reinvention blueprint with phased financials"],
       icon: Building2,
@@ -335,7 +335,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
       id: "discover",
       label: "Reinvent Nostalgic Products",
       tagline: "Market Intelligence",
-      description: "Not just product discovery. AI crawls the live web to find undervalued products, then flips every assumption about why they failed, how they were designed, and who they were built for, to create radically reinvented concepts with real commercial potential.",
+      description: "AI crawls the live web to find undervalued products with real comeback potential, then reinvents them.",
       behindTheScenes: "Firecrawl scrapes 8+ data sources simultaneously, then Gemini AI scores, challenges assumptions, and generates reinvented product concepts.",
       bullets: ["Live web scraping across marketplaces", "Every product assumption challenged and flipped", "Reinvented concepts with BOM and execution plans"],
       icon: Telescope,
@@ -397,6 +397,26 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
             <p className="text-sm text-muted-foreground text-center leading-relaxed max-w-lg mx-auto">
               {modeOption.description}
             </p>
+
+            {/* "This Is Not Just Analysis" manifesto block */}
+            <div
+              className="rounded-xl p-5 max-w-xl mx-auto relative overflow-hidden"
+              style={{
+                background: `linear-gradient(135deg, ${modeOption.accent}08, ${modeOption.accent}15)`,
+                border: `1px solid ${modeOption.accent}25`,
+              }}
+            >
+              <div className="absolute top-0 left-0 w-1 h-full" style={{ background: modeOption.accent }} />
+              <p className="text-xs font-extrabold uppercase tracking-widest mb-2" style={{ color: modeOption.accent }}>
+                This is not just analysis
+              </p>
+              <p className="text-sm text-foreground leading-relaxed font-medium">
+                {pendingMode === "custom" && "Most tools give you data. This one questions why the product exists in its current form, whether the pricing model is actually right, what friction users have normalized, and what a version rebuilt from scratch would look like. You get a completely new take, not a summary."}
+                {pendingMode === "service" && "Most tools map competitors. This one asks why the service is delivered this way at all, whether the pricing structure serves the customer or just tradition, where users silently struggle, and what an entirely reimagined version would look like. You get a strategic reinvention, not a report."}
+                {pendingMode === "business" && "Most tools audit what exists. This one strips the business down to first principles and asks: why does this cost structure exist? Why this pricing model? Why this customer flow? What if every assumption was wrong? You get a rebuilt business model, not a review."}
+                {pendingMode === "discover" && "Most tools find trending products. This one asks why each product failed in the first place, what assumptions were baked into its design, who it should have been built for, and what a radically different version looks like today. You get reinvented concepts, not a product list."}
+              </p>
+            </div>
 
             {/* Capability Stats Grid */}
             <div className="space-y-3">
