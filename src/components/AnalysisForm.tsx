@@ -300,7 +300,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   }[] = [
     {
       id: "custom",
-      label: "Analyze A Product",
+      label: "Disrupt This Product",
       tagline: "Deep Product Audit",
       description: "Drop in URLs or photos. AI scrapes pages, reads images, and builds a full commercial intelligence dossier.",
       behindTheScenes: "Each URL is scraped for pricing, reviews & specs. Images analyzed with vision AI. Then every finding is stress-tested against first-principles reasoning.",
@@ -311,7 +311,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     },
     {
       id: "service" as Mode,
-      label: "Analyze A Service",
+      label: "Disrupt This Service",
       tagline: "Service Intelligence",
       description: "URLs, screenshots, or a description. AI maps the full competitive landscape and identifies growth opportunities.",
       behindTheScenes: "URLs scraped for service details, reviews & pricing. Every insight challenged through assumption-flipping and friction analysis.",
@@ -322,7 +322,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     },
     {
       id: "business",
-      label: "Business Model Analysis",
+      label: "Disrupt The Business Model",
       tagline: "Strategic Reinvention",
       description: "Describe any business. AI deconstructs it across 7 strategic dimensions and rebuilds a reinvented model.",
       behindTheScenes: "Gemini Pro analyzes across 7 strategic dimensions, questioning every assumption about cost, pricing, staffing, technology, and customer flow.",
@@ -333,7 +333,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     },
     {
       id: "discover",
-      label: "Reinvent Nostalgic Products",
+      label: "Disrupt This Memory",
       tagline: "Market Intelligence",
       description: "AI crawls the live web to find undervalued products with real comeback potential, then reinvents them.",
       behindTheScenes: "Firecrawl scrapes 8+ data sources simultaneously, then Gemini AI scores, challenges assumptions, and generates reinvented product concepts.",
