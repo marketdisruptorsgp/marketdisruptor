@@ -69,6 +69,7 @@ import {
   Database,
   ArrowLeft,
   ChevronRight,
+  Briefcase,
 } from "lucide-react";
 
 const STEPS = [
@@ -127,7 +128,7 @@ export default function Index() {
   const { canAnalyze, remainingAnalyses, tier, usage, checkSubscription } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
   const [step, setStep] = useState<AnalysisStep>("idle");
-  const [mainTab, setMainTab] = useState<"discover" | "custom" | "business" | "saved">("discover");
+  const [mainTab, setMainTab] = useState<"discover" | "custom" | "service" | "business" | "saved">("discover");
   const [activeMode, setActiveMode] = useState<AnalysisMode>("discover");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -595,6 +596,7 @@ export default function Index() {
           const TABS = [
             { id: "discover" as const, label: "Reinvent Nostalgic Products", icon: Telescope, accent: "hsl(var(--primary))" },
             { id: "custom" as const, label: "Analyze A Product", icon: Upload, accent: "hsl(217 91% 38%)" },
+            { id: "service" as const, label: "Analyze A Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
             { id: "business" as const, label: "Business Model Analysis", icon: Building2, accent: "hsl(271 81% 55%)" },
             { id: "saved" as const, label: "Saved Projects", icon: Database, accent: "hsl(var(--primary))" },
           ];
