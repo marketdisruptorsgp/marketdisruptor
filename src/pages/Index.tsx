@@ -630,11 +630,12 @@ export default function Index() {
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => {
+                      onClick={(e) => {
                         setMainTab(tab.id);
                         if (tab.id !== "saved") {
                           setActiveMode(tab.id as AnalysisMode);
                         }
+                        setTimeout(() => (e.currentTarget.closest('.rounded-2xl') as HTMLElement)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                       }}
                       className="flex flex-col items-center justify-center gap-1.5 px-2 py-4 sm:py-5 text-xs sm:text-sm font-bold transition-all relative group"
                       style={{
@@ -1065,7 +1066,7 @@ export default function Index() {
                       return (
                         <button
                           key={id}
-                          onClick={() => setDetailTab(id)}
+                          onClick={() => { setDetailTab(id); setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
                           className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
                           style={{
                             background: isActive ? color : "hsl(var(--muted))",

@@ -621,15 +621,18 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                     <option value={category}>{category}</option>
                   )}
                 </select>
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">or</span>
+                <div className="relative mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>or type your own</span>
+                    <div className="flex-1 h-px" style={{ background: "hsl(var(--primary) / 0.2)" }} />
+                  </div>
                   <input
                     type="text"
                     value={!CATEGORIES.includes(category) ? category : ""}
                     onChange={(e) => setCategory(e.target.value)}
-                    placeholder="Type any category — e.g. 'Vintage Watches', 'Arcade Machines'…"
-                    className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
-                    style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(var(--primary) / 0.04)" }}
+                    placeholder="✏️ Type any category — e.g. 'Vintage Watches', 'Arcade Machines'…"
+                    className="w-full rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none transition-all"
+                    style={{ ...inputStyle, borderStyle: "dashed", borderWidth: "2px", borderColor: "hsl(var(--primary) / 0.35)", background: "hsl(var(--primary) / 0.06)" }}
                   />
                 </div>
               </div>
@@ -649,15 +652,18 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                     <option value={era}>{era}</option>
                   )}
                 </select>
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">or</span>
+                <div className="relative mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>or type your own</span>
+                    <div className="flex-1 h-px" style={{ background: "hsl(var(--primary) / 0.2)" }} />
+                  </div>
                   <input
                     type="text"
                     value={!ERAS.includes(era) ? era : ""}
                     onChange={(e) => setEra(e.target.value)}
-                    placeholder="Type any era — e.g. '1950s', 'Y2K', 'Pre-digital'…"
-                    className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
-                    style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(var(--primary) / 0.04)" }}
+                    placeholder="✏️ Type any era — e.g. '1950s', 'Y2K', 'Pre-digital'…"
+                    className="w-full rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none transition-all"
+                    style={{ ...inputStyle, borderStyle: "dashed", borderWidth: "2px", borderColor: "hsl(var(--primary) / 0.35)", background: "hsl(var(--primary) / 0.06)" }}
                   />
                 </div>
               </div>
@@ -936,15 +942,18 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                       <option value={businessInput.type}>{businessInput.type}</option>
                     )}
                   </select>
-                  <div className="relative">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-bold">or</span>
+                  <div className="relative mt-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(271 81% 55%)" }}>or type your own</span>
+                      <div className="flex-1 h-px" style={{ background: "hsl(271 81% 55% / 0.2)" }} />
+                    </div>
                     <input
                       type="text"
                       value={!BUSINESS_EXAMPLES.includes(businessInput.type) ? businessInput.type : ""}
                       onChange={(e) => setBusinessInput((p) => ({ ...p, type: e.target.value }))}
-                      placeholder="Type any business — e.g. 'SaaS startup', 'Pet grooming'…"
-                      className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
-                      style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(271 81% 55% / 0.04)" }}
+                      placeholder="✏️ Type any business — e.g. 'SaaS startup', 'Pet grooming'…"
+                      className="w-full rounded-lg px-3 py-2.5 text-sm font-medium focus:outline-none transition-all"
+                      style={{ ...inputStyle, borderStyle: "dashed", borderWidth: "2px", borderColor: "hsl(271 81% 55% / 0.35)", background: "hsl(271 81% 55% / 0.06)" }}
                     />
                   </div>
                 </div>
