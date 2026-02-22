@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 
 
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
-import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
+import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { AnalysisForm, type AnalysisMode } from "@/components/AnalysisForm";
 import { ProductCard } from "@/components/ProductCard";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
@@ -13,7 +13,6 @@ import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
 import { PitchDeck } from "@/components/PitchDeck";
-import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { UserHeader } from "@/components/UserHeader";
 import WelcomeModal from "@/components/WelcomeModal";
 import { ContextualTip } from "@/components/ContextualTip";
@@ -63,7 +62,6 @@ import {
   Presentation,
   Building2,
   FileDown,
-  ScrollText,
   Telescope,
   Upload,
   Database,
@@ -141,7 +139,7 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "patents">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community">("overview");
   const [activeStep, setActiveStep] = useState(2);
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([2]));
   const [showExitPrompt, setShowExitPrompt] = useState(false);
@@ -1057,12 +1055,11 @@ export default function Index() {
                       { id: "pricing" as const, label: "Pricing Intel", icon: DollarSign, color: "hsl(142 70% 40%)" },
                       { id: "supply" as const, label: "Supply Chain", icon: Package, color: "hsl(35 90% 50%)" },
                       { id: "action" as const, label: "Action Plan", icon: Rocket, color: "hsl(350 80% 55%)" },
-                      { id: "patents" as const, label: "Patent Intel", icon: ScrollText, color: "hsl(271 81% 55%)" },
                     ];
                     const currentIdx = DETAIL_TABS.findIndex(t => t.id === detailTab);
                     return (
                     <>
-                  <div ref={sectionTabsRef} className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  <div ref={sectionTabsRef} className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                     {DETAIL_TABS.map(({ id, label, icon: Icon, color }) => {
                       const isActive = detailTab === id;
                       return (
@@ -1640,35 +1637,7 @@ export default function Index() {
 
                   {/* First Principles & Pitch Deck moved to standalone sections below */}
 
-                  {/* TAB: PATENT INTELLIGENCE */}
-                  {detailTab === "patents" && (
-                    <div className="space-y-4">
-                      {selectedProduct.patentData && (
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-                            style={{ background: "hsl(271 81% 55%)", color: "white" }}
-                          >
-                            <FileDown size={14} />
-                            Download Patent PDF
-                          </button>
-                        </div>
-                      )}
-                      <PatentIntelligence
-                        product={selectedProduct}
-                        onSave={(patentData) => {
-                          const updated = products.map(p =>
-                            p.id === selectedProduct.id ? { ...p, patentData } : p
-                          );
-                          setProducts(updated);
-                          setSelectedProduct({ ...selectedProduct, patentData });
-                          // Persist updated products to DB
-                          if (analysisParams) saveAnalysis(updated, analysisParams);
-                        }}
-                      />
-                    </div>
-                  )}
+                  {/* Patent Intelligence moved to Step 3 (Disrupt) */}
 
                   {/* Next / Previous section nav */}
                   <div className="flex items-center justify-between pt-4 mt-4" style={{ borderTop: "2px solid hsl(var(--border))" }}>
@@ -1791,7 +1760,21 @@ export default function Index() {
                     </div>
                   </div>
                   <div className="p-5" style={{ background: "hsl(var(--card))" }}>
-                    <FirstPrinciplesAnalysis product={selectedProduct} onSaved={() => setSavedRefreshTrigger((n) => n + 1)} flippedIdeas={selectedProduct.flippedIdeas} onRegenerateIdeas={(ctx) => handleRegenerateIdeas(selectedProduct, ctx)} generatingIdeas={generatingIdeasFor === selectedProduct.id} />
+                    <FirstPrinciplesAnalysis
+                      product={selectedProduct}
+                      onSaved={() => setSavedRefreshTrigger((n) => n + 1)}
+                      flippedIdeas={selectedProduct.flippedIdeas}
+                      onRegenerateIdeas={(ctx) => handleRegenerateIdeas(selectedProduct, ctx)}
+                      generatingIdeas={generatingIdeasFor === selectedProduct.id}
+                      onPatentSave={(patentData) => {
+                        const updated = products.map(p =>
+                          p.id === selectedProduct.id ? { ...p, patentData } : p
+                        );
+                        setProducts(updated);
+                        setSelectedProduct({ ...selectedProduct, patentData });
+                        if (analysisParams) saveAnalysis(updated, analysisParams);
+                      }}
+                    />
                   </div>
                 </div>
               </div>
