@@ -36,7 +36,7 @@ function buildReferralEmailHtml(
 
           <!-- Logo -->
           <tr>
-            <td style="padding:32px 36px 0;">
+            <td style="padding:32px 36px 0;background-color:#0d1117;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="width:38px;height:38px;background-color:#2563eb;border-radius:10px;text-align:center;vertical-align:middle;">
@@ -52,7 +52,7 @@ function buildReferralEmailHtml(
 
           <!-- Main content -->
           <tr>
-            <td style="padding:28px 36px 32px;">
+            <td style="padding:28px 36px 32px;background-color:#0d1117;">
               <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#ffffff;line-height:1.3;">
                 Hi ${to},
               </h1>
@@ -173,7 +173,7 @@ function buildReferralEmailHtml(
 
           <!-- Footer -->
           <tr>
-            <td style="padding:0 36px 28px;">
+            <td style="padding:0 36px 28px;background-color:#0d1117;">
               <hr style="border:none;border-top:1px solid #161b22;margin:0 0 20px;">
               <p style="margin:0 0 8px;font-size:14px;color:#ffffff;line-height:1.7;font-weight:700;">
                 🔒 Privacy &amp; Security
