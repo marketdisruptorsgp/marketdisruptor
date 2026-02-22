@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 
-import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 
+import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { AnalysisForm, type AnalysisMode } from "@/components/AnalysisForm";
 import { ProductCard } from "@/components/ProductCard";
@@ -627,7 +627,6 @@ export default function Index() {
                   );
                 })}
               </div>
-
 
               <div className="p-5">
                 {mainTab !== "saved" && (
@@ -1999,7 +1998,6 @@ export default function Index() {
           {profile && <span className="text-muted-foreground"> · Signed in as <strong className="text-foreground">{profile.first_name}</strong></span>}
         </p>
       </footer>
-
     </div>
   );
 }
