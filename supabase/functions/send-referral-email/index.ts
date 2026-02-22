@@ -58,12 +58,16 @@ function buildReferralEmailHtml(
                 ${from} invited you to join Market Disruptor
               </h1>
               <p style="margin:0 0 24px;font-size:15px;color:#8b949e;line-height:1.7;">
-                Hi ${to}, you've received an invitation to an AI-powered product intelligence platform used by entrepreneurs, investors, and product teams to identify high-potential market opportunities.
+                Hi ${to}, you've received an invitation to a proprietary product intelligence platform used by entrepreneurs, investors, and product teams to identify high-potential market opportunities.
               </p>
 
               <!-- Value proposition -->
               <p style="margin:0 0 20px;font-size:15px;color:#c9d1d9;line-height:1.7;">
-                Market Disruptor analyzes live market data across eBay, Etsy, Reddit, Google, and TikTok to deconstruct any product to its first principles and generate actionable business strategies — complete with supply chain intelligence, pricing data, and investor-ready pitch decks.
+                Powered by deep web crawling, vision AI, and multi-model strategic analysis, Market Disruptor challenges every assumption about a product — why it exists in its current form, whether the pricing model is right, what friction users have normalized, and what a version rebuilt from scratch would look like. Complete with supply chain intelligence, patent analysis, and investor-ready pitch decks.
+              </p>
+
+              <p style="margin:0 0 20px;font-size:15px;color:#c9d1d9;line-height:1.7;">
+                You get a completely new take on any market — not a summary. Give it a try.
               </p>
 
               <!-- CTA -->
@@ -102,14 +106,14 @@ function buildReferralEmailHtml(
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td style="padding:8px 0;border-bottom:1px solid #21262d;">
-                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">AI Product Intelligence</p>
-                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Deep-dive analysis with live market data across major platforms</p>
+                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Multi-Model AI Pipelines</p>
+                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Proprietary analysis engine with deep web crawling and vision AI</p>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding:8px 0;border-bottom:1px solid #21262d;">
-                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">First Principles Analysis</p>
-                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Challenge assumptions, invert conventional thinking, uncover hidden opportunities</p>
+                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">First Principles Deconstruction</p>
+                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Questions why a product exists in its current form and rebuilds it from scratch</p>
                   </td>
                 </tr>
                 <tr>
@@ -120,8 +124,8 @@ function buildReferralEmailHtml(
                 </tr>
                 <tr>
                   <td style="padding:8px 0;border-bottom:1px solid #21262d;">
-                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Supply Chain Intelligence</p>
-                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Suppliers, margins, and go-to-market strategies ready to execute</p>
+                    <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#e6edf3;">Supply Chain & Patent Intel</p>
+                    <p style="margin:0;font-size:13px;color:#8b949e;line-height:1.5;">Suppliers, margins, patent landscape, and go-to-market strategies</p>
                   </td>
                 </tr>
                 <tr>

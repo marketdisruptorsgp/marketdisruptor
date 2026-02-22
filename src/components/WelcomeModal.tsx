@@ -17,8 +17,8 @@ const SLIDES = [
     subtitle: "You've just unlocked a serious product intelligence engine.",
     body: "This isn't just a research tool — it's a competitive advantage. You're about to see markets, products, and opportunities the way analysts at top firms do. Except now, it's all yours.",
     tips: [
-      "Live data from eBay, Etsy, Reddit & TikTok — updated every run",
-      "AI analysis powered by Gemini 2.5 Flash",
+      "Proprietary multi-model AI pipelines — not a wrapper on ChatGPT",
+      "Deep web crawling, vision AI, and strategic analysis in every run",
       "Everything auto-saves so you never lose a discovery",
     ],
     color: "hsl(var(--primary))",
@@ -28,7 +28,7 @@ const SLIDES = [
     emoji: "🔍",
     title: () => "Analysis Type: Product Discovery",
     subtitle: "Explore niches, uncover demand, and find the gaps nobody else sees.",
-    body: "Enter a category and era — '90s Gaming', 'Vintage Kitchen', 'Y2K Tech' — and the AI pulls live pricing, seller data, and demand signals from across the web. Use this when you want to explore a market and surface high-potential products fast.",
+    body: "Enter a category and era — '90s Gaming', 'Vintage Kitchen', 'Y2K Tech' — and the AI runs proprietary crawling pipelines to surface pricing intelligence, demand signals, and competitive gaps. Use this when you want to explore a market and find high-potential products fast.",
     tips: [
       "The weirder the niche, the bigger the gap — that's where opportunity hides",
       "Try surprising combos: '80s Fitness', 'Millennial Nostalgia', 'Retro Office'",
@@ -41,7 +41,7 @@ const SLIDES = [
     emoji: "🧠",
     title: () => "Analysis Type: Product Deep Dive",
     subtitle: "Every product card is a rabbit hole. Go deep.",
-    body: "Click any product card and explore multiple lenses: pricing intelligence, supply chain, community sentiment, flip ideas, first principles deconstruction, and a pitch deck. Each tab gives you a different angle on the same opportunity.",
+    body: "Click any product card and explore multiple analytical lenses: pricing intelligence, supply chain mapping, patent analysis, flip ideas, first principles deconstruction, and auto-generated pitch decks. Each tab runs a dedicated AI pipeline on the same opportunity.",
     tips: [
       "Flip Ideas = 3 bold commercial pivots you could build today",
       "First Principles = strip it down and redesign from scratch",
