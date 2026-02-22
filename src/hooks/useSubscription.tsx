@@ -62,7 +62,7 @@ interface SubscriptionState {
   tier: TierKey;
   subscribed: boolean;
   subscriptionEnd: string | null;
-  usage: { total: number; monthly: number };
+  usage: { total: number; monthly: number; bonus: number; monthlyBonus: number };
   loading: boolean;
   checkSubscription: () => Promise<void>;
   canAnalyze: () => boolean;
@@ -75,7 +75,7 @@ const SubscriptionContext = createContext<SubscriptionState>({
   tier: "explorer",
   subscribed: false,
   subscriptionEnd: null,
-  usage: { total: 0, monthly: 0 },
+  usage: { total: 0, monthly: 0, bonus: 0, monthlyBonus: 0 },
   loading: true,
   checkSubscription: async () => {},
   canAnalyze: () => true,
@@ -89,7 +89,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [tier, setTier] = useState<TierKey>("explorer");
   const [subscribed, setSubscribed] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
-  const [usage, setUsage] = useState({ total: 0, monthly: 0 });
+  const [usage, setUsage] = useState({ total: 0, monthly: 0, bonus: 0, monthlyBonus: 0 });
   const [loading, setLoading] = useState(true);
 
   const checkSubscription = useCallback(async () => {
@@ -103,7 +103,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       setTier(data.tier || "explorer");
       setSubscribed(data.subscribed || false);
       setSubscriptionEnd(data.subscription_end || null);
-      setUsage(data.usage || { total: 0, monthly: 0 });
+      setUsage(data.usage || { total: 0, monthly: 0, bonus: 0, monthlyBonus: 0 });
     } catch (err) {
       console.error("Failed to check subscription:", err);
     } finally {
@@ -132,15 +132,15 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const canAnalyze = useCallback(() => {
     const tierConfig = TIERS[tier];
     if (tierConfig.limitType === "unlimited") return true;
-    if (tierConfig.limitType === "lifetime") return usage.total < tierConfig.analysisLimit;
-    return usage.monthly < tierConfig.analysisLimit;
+    if (tierConfig.limitType === "lifetime") return usage.total < (tierConfig.analysisLimit + (usage.bonus || 0));
+    return usage.monthly < (tierConfig.analysisLimit + (usage.monthlyBonus || 0));
   }, [tier, usage]);
 
   const remainingAnalyses = useCallback((): number | null => {
     const tierConfig = TIERS[tier];
     if (tierConfig.limitType === "unlimited") return null;
-    if (tierConfig.limitType === "lifetime") return Math.max(0, tierConfig.analysisLimit - usage.total);
-    return Math.max(0, tierConfig.analysisLimit - usage.monthly);
+    if (tierConfig.limitType === "lifetime") return Math.max(0, (tierConfig.analysisLimit + (usage.bonus || 0)) - usage.total);
+    return Math.max(0, (tierConfig.analysisLimit + (usage.monthlyBonus || 0)) - usage.monthly);
   }, [tier, usage]);
 
   const startCheckout = useCallback(async (tierKey: "builder" | "disruptor") => {

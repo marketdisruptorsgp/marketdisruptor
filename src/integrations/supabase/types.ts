@@ -38,6 +38,57 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          bonus_credited: boolean
+          created_at: string
+          id: string
+          referral_code: string
+          referred_email: string
+          referred_user_id: string | null
+          referrer_id: string
+        }
+        Insert: {
+          bonus_credited?: boolean
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_email: string
+          referred_user_id?: string | null
+          referrer_id: string
+        }
+        Update: {
+          bonus_credited?: boolean
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_email?: string
+          referred_user_id?: string | null
+          referrer_id?: string
+        }
+        Relationships: []
+      }
       saved_analyses: {
         Row: {
           analysis_data: Json | null
@@ -92,6 +143,7 @@ export type Database = {
       user_usage: {
         Row: {
           analysis_count: number
+          bonus_analyses: number
           created_at: string
           id: string
           period_start: string
@@ -100,6 +152,7 @@ export type Database = {
         }
         Insert: {
           analysis_count?: number
+          bonus_analyses?: number
           created_at?: string
           id?: string
           period_start?: string
@@ -108,6 +161,7 @@ export type Database = {
         }
         Update: {
           analysis_count?: number
+          bonus_analyses?: number
           created_at?: string
           id?: string
           period_start?: string

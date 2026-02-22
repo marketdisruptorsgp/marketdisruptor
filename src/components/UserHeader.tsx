@@ -1,18 +1,21 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, ChevronDown, Sparkles, CreditCard, Crown, ArrowRight, KeyRound, Loader2, X, Check } from "lucide-react";
+import { LogOut, ChevronDown, Sparkles, CreditCard, Crown, ArrowRight, KeyRound, Loader2, X, Check, Share2, Copy, Gift } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, TIERS } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function UserHeader() {
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { tier, subscribed, openPortal, remainingAnalyses } = useSubscription();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
+  const [referralStats, setReferralStats] = useState({ count: 0 });
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
@@ -29,10 +32,39 @@ export function UserHeader() {
     return () => document.removeEventListener("mousedown", handle);
   }, [open]);
 
-  if (!profile) return null;
+  if (!profile || !user) return null;
 
   const initials = profile.first_name.slice(0, 2).toUpperCase();
   const tierConfig = TIERS[tier];
+
+  const handleOpenShare = async () => {
+    setOpen(false);
+    // Get or create referral code
+    const { data: existing } = await (supabase.from("referral_codes") as any)
+      .select("code")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    let code = existing?.code;
+    if (!code) {
+      code = user.id.slice(0, 8);
+      await (supabase.from("referral_codes") as any).insert({ user_id: user.id, code });
+    }
+
+    // Get referral count
+    const { data: refs } = await (supabase.from("referrals") as any)
+      .select("id")
+      .eq("referrer_id", user.id);
+
+    setReferralStats({ count: refs?.length || 0 });
+    setShareUrl(`${window.location.origin}/share?ref=${code}`);
+    setShowShareModal(true);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    toast.success("Share link copied!");
+  };
 
   const handleManage = async () => {
     setLoadingPortal(true);
@@ -153,6 +185,15 @@ export function UserHeader() {
               )}
 
               <button
+                onClick={handleOpenShare}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted text-left"
+                style={{ color: "hsl(142 71% 45%)" }}
+              >
+                <Gift size={14} style={{ color: "hsl(142 71% 45%)" }} />
+                Share & Earn Analyses
+              </button>
+
+              <button
                 onClick={() => { setOpen(false); setShowPasswordModal(true); }}
                 className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted text-left"
                 style={{ color: "hsl(var(--foreground))" }}
@@ -232,6 +273,74 @@ export function UserHeader() {
                 {savingPassword ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : <><Check size={14} /> Save Password</>}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 100000, background: "hsl(0 0% 0% / 0.6)", backdropFilter: "blur(4px)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowShareModal(false); }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl p-6 space-y-5"
+            style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", boxShadow: "0 20px 60px -15px rgba(0,0,0,0.4)" }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Gift size={18} style={{ color: "hsl(142 71% 45%)" }} />
+                <h3 className="text-lg font-bold" style={{ color: "hsl(var(--foreground))" }}>Share & Earn</h3>
+              </div>
+              <button onClick={() => setShowShareModal(false)} className="p-1 rounded-lg hover:bg-muted transition-colors">
+                <X size={16} style={{ color: "hsl(var(--muted-foreground))" }} />
+              </button>
+            </div>
+
+            <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(142 71% 45% / 0.08)", border: "1px solid hsl(142 71% 45% / 0.2)" }}>
+              <p className="text-sm font-bold" style={{ color: "hsl(142 71% 45%)" }}>
+                You both get +5 bonus analyses!
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--muted-foreground))" }}>
+                When someone signs up through your link, you <strong>and</strong> they each receive 5 extra analyses. Share as many times as you like.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Your Share Link</label>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={shareUrl}
+                  className="flex-1 text-xs font-mono"
+                  style={{
+                    border: "1.5px solid hsl(var(--border))",
+                    background: "hsl(var(--muted))",
+                    color: "hsl(var(--foreground))",
+                    borderRadius: "0.5rem",
+                    padding: "0.6rem 0.75rem",
+                    outline: "none",
+                  }}
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-sm transition-all"
+                  style={{ background: "hsl(var(--primary))", color: "white", boxShadow: "0 2px 8px -2px hsl(217 91% 50% / 0.4)" }}
+                >
+                  <Copy size={14} /> Copy
+                </button>
+              </div>
+            </div>
+
+            {referralStats.count > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <Share2 size={14} style={{ color: "hsl(var(--primary))" }} />
+                <p className="text-xs font-semibold" style={{ color: "hsl(var(--foreground))" }}>
+                  {referralStats.count} {referralStats.count === 1 ? "person has" : "people have"} signed up through your link
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
