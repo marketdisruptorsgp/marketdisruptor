@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Sparkles, Upload, Link, X, Image as ImageIcon, Plus, Telescope, Building2, Brain, RefreshCw, Briefcase } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Sparkles, Upload, Link, X, Image as ImageIcon, Plus, Telescope, Building2, Brain, RefreshCw, Briefcase, ArrowLeft, ChevronRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -54,12 +54,54 @@ const BUSINESS_EXAMPLES = [
   "Accounting firm", "Law firm", "Real estate agency", "HVAC company", "Auto repair shop",
 ];
 
+// Steps config per mode
+const MODE_STEPS: Record<Mode, { label: string; detail: string }[]> = {
+  discover: [
+    { label: "Configure Search", detail: "Choose category, era, and batch size" },
+    { label: "AI Web Scraping", detail: "Crawls eBay, Etsy, Reddit, TikTok & more" },
+    { label: "Deep Analysis", detail: "Gemini AI scores & builds intelligence reports" },
+    { label: "Results & Ideas", detail: "Revival scores, flip ideas, and action plans" },
+  ],
+  custom: [
+    { label: "Provide Product Info", detail: "Add URLs, images, and product name" },
+    { label: "AI Scraping & Vision", detail: "Scrapes URLs and analyzes images with AI" },
+    { label: "Intelligence Report", detail: "Pricing intel, supply chain, and trends" },
+    { label: "Action Plan", detail: "Revival score, flip ideas, and next steps" },
+  ],
+  service: [
+    { label: "Describe the Service", detail: "Add URLs, screenshots, and service name" },
+    { label: "AI Scraping & Analysis", detail: "Scrapes sites and analyzes screenshots" },
+    { label: "Market Intelligence", detail: "Pricing models, competitors, and gaps" },
+    { label: "Growth Strategy", detail: "Pain points, opportunities, and action plan" },
+  ],
+  business: [
+    { label: "Describe Your Business", detail: "Type, model, size, and pain points" },
+    { label: "First-Principles Analysis", detail: "AI deconstructs across 7 dimensions" },
+    { label: "Strategic Blueprint", detail: "Automation, leverage, and reinvention paths" },
+  ],
+};
+
 export { type Mode as AnalysisMode };
 
 export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: externalMode, onModeChange }: AnalysisFormProps) => {
   const [internalMode, setInternalMode] = useState<Mode>("discover");
   const mode = externalMode ?? internalMode;
   const setMode = (m: Mode) => { onModeChange ? onModeChange(m) : setInternalMode(m); };
+  
+  // Two-phase flow: "select" (cards) → "confirm" (dialog) → "form" (dedicated screen)
+  const [phase, setPhase] = useState<"select" | "confirm" | "form">("select");
+  const [pendingMode, setPendingMode] = useState<Mode | null>(null);
+  const prevExternalMode = useRef(externalMode);
+
+  // When external mode changes (tab clicked), jump to confirm phase
+  useEffect(() => {
+    if (externalMode && externalMode !== prevExternalMode.current) {
+      prevExternalMode.current = externalMode;
+      setPendingMode(externalMode);
+      setPhase("confirm");
+    }
+  }, [externalMode]);
+
   const [category, setCategory] = useState("Toys & Games");
   const [era, setEra] = useState("80s–90s");
   const [batchSize, setBatchSize] = useState(10);
@@ -77,6 +119,24 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   const [businessLoading, setBusinessLoading] = useState(false);
 
   const hasCustomProducts = customUrls.some(u => u.trim()) || customImages.length > 0 || customName.trim();
+
+  const handleModeClick = (id: Mode) => {
+    setPendingMode(id);
+    setPhase("confirm");
+  };
+
+  const handleConfirm = () => {
+    if (pendingMode) {
+      setMode(pendingMode);
+      setPhase("form");
+      setPendingMode(null);
+    }
+  };
+
+  const handleBack = () => {
+    setPhase("select");
+    setPendingMode(null);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,8 +271,672 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     },
   ];
 
+  // ─── CONFIRMATION DIALOG ───
+  if (phase === "confirm" && pendingMode) {
+    const modeOption = MODE_OPTIONS.find(m => m.id === pendingMode)!;
+    const steps = MODE_STEPS[pendingMode];
+    const Icon = modeOption.icon;
+
+    return (
+      <div className="space-y-6">
+        {/* Back link */}
+        <button
+          type="button"
+          onClick={handleBack}
+          className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+          style={{ color: "hsl(var(--muted-foreground))" }}
+        >
+          <ArrowLeft size={16} /> Back to analysis modes
+        </button>
+
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{
+            border: `2px solid ${modeOption.accent}`,
+            background: "hsl(var(--card))",
+            boxShadow: `0 12px 40px -8px ${modeOption.accent}30`,
+          }}
+        >
+          {/* Header */}
+          <div className="p-6 text-center" style={{ background: modeOption.accent }}>
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{ background: "hsl(0 0% 100% / 0.18)" }}
+            >
+              <Icon size={32} style={{ color: "white" }} />
+            </div>
+            <h2 className="text-2xl font-extrabold text-white mb-1">{modeOption.label}</h2>
+            <p className="text-sm text-white/70">{modeOption.tagline}</p>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            <p className="text-sm text-muted-foreground text-center leading-relaxed max-w-lg mx-auto">
+              {modeOption.description}
+            </p>
+
+            {/* Steps overview */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: modeOption.accent }}>
+                {steps.length} Steps in This Analysis
+              </h3>
+              <div className="space-y-2 max-w-md mx-auto">
+                {steps.map((s, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 rounded-xl p-3"
+                    style={{
+                      background: modeOption.accentLight,
+                      border: `1px solid ${modeOption.accent}20`,
+                    }}
+                  >
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
+                      style={{ background: modeOption.accent, color: "white" }}
+                    >
+                      {i + 1}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{s.label}</p>
+                      <p className="text-xs text-muted-foreground">{s.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* How it works */}
+            <div
+              className="rounded-xl p-4 text-center"
+              style={{ background: "hsl(var(--muted) / 0.5)", border: "1px solid hsl(var(--border))" }}
+            >
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">⚙️ Behind the Scenes</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{modeOption.behindTheScenes}</p>
+            </div>
+
+            {/* CTA */}
+            <div className="flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={handleConfirm}
+                className="flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02]"
+                style={{
+                  background: modeOption.accent,
+                  boxShadow: `0 6px 20px -4px ${modeOption.accent}50`,
+                }}
+              >
+                Yes, Begin {modeOption.label} <ChevronRight size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={handleBack}
+                className="text-xs font-medium transition-colors"
+                style={{ color: "hsl(var(--muted-foreground))" }}
+              >
+                Choose a different mode
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── FORM SCREEN (with back button + step progress) ───
+  if (phase === "form") {
+    const activeOption = MODE_OPTIONS.find(m => m.id === mode)!;
+    const steps = MODE_STEPS[mode];
+    const Icon = activeOption.icon;
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Back button + mode header */}
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02]"
+            style={{
+              background: "hsl(var(--muted))",
+              color: "hsl(var(--foreground))",
+              border: "1px solid hsl(var(--border))",
+            }}
+          >
+            <ArrowLeft size={15} /> Back
+          </button>
+          <div className="flex items-center gap-3 flex-1">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: activeOption.accent }}
+            >
+              <Icon size={18} style={{ color: "white" }} />
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold text-foreground leading-tight">{activeOption.label}</h2>
+              <p className="text-xs text-muted-foreground">{activeOption.tagline} · Step 1 of {steps.length}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Step progress bar */}
+        <div className="flex items-center gap-1">
+          {steps.map((s, i) => (
+            <div key={i} className="flex items-center gap-1 flex-1">
+              <div className="flex items-center gap-1.5 flex-1">
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                  style={{
+                    background: i === 0 ? activeOption.accent : "hsl(var(--muted))",
+                    color: i === 0 ? "white" : "hsl(var(--muted-foreground))",
+                  }}
+                >
+                  {i === 0 ? <CheckCircle2 size={12} /> : i + 1}
+                </div>
+                <span className="text-[10px] font-medium text-muted-foreground hidden sm:inline truncate">{s.label}</span>
+              </div>
+              {i < steps.length - 1 && (
+                <div className="h-px flex-1 min-w-4" style={{ background: "hsl(var(--border))" }} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Form content area */}
+        <div
+          className="rounded-2xl p-5 space-y-5"
+          style={{
+            border: `2px solid ${activeOption.accent}`,
+            background: `linear-gradient(180deg, ${activeOption.accentLight} 0%, hsl(var(--card)) 40%)`,
+            boxShadow: `0 4px 20px -4px ${activeOption.accent}20`,
+          }}
+        >
+          {/* MODE A — Discover by Category */}
+          {mode === "discover" && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Product Category</label>
+                <select
+                  value={CATEGORIES.includes(category) ? category : "__custom__"}
+                  onChange={(e) => {
+                    if (e.target.value === "__custom__") return;
+                    setCategory(e.target.value);
+                  }}
+                  className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none relative z-50"
+                  style={{ ...inputStyle, WebkitAppearance: "menulist" }}
+                >
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {!CATEGORIES.includes(category) && category && (
+                    <option value={category}>{category}</option>
+                  )}
+                </select>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
+                  <input
+                    type="text"
+                    value={!CATEGORIES.includes(category) ? category : ""}
+                    onChange={(e) => setCategory(e.target.value)}
+                    placeholder="Type any category — e.g. 'Vintage Watches', 'Arcade Machines'…"
+                    className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
+                    style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(var(--primary) / 0.04)" }}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Era / Nostalgia Focus</label>
+                <select
+                  value={ERAS.includes(era) ? era : "__custom__"}
+                  onChange={(e) => {
+                    if (e.target.value === "__custom__") return;
+                    setEra(e.target.value);
+                  }}
+                  className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none relative z-50"
+                  style={{ ...inputStyle, WebkitAppearance: "menulist" }}
+                >
+                  {ERAS.map((e) => <option key={e} value={e}>{e}</option>)}
+                  {!ERAS.includes(era) && era && (
+                    <option value={era}>{era}</option>
+                  )}
+                </select>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
+                  <input
+                    type="text"
+                    value={!ERAS.includes(era) ? era : ""}
+                    onChange={(e) => setEra(e.target.value)}
+                    placeholder="Type any era — e.g. '1950s', 'Y2K', 'Pre-digital'…"
+                    className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
+                    style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(var(--primary) / 0.04)" }}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Batch Size ({batchSize})</label>
+                <div className="flex items-center gap-3">
+                  <input type="range" min={5} max={50} step={5} value={batchSize}
+                    onChange={(e) => setBatchSize(Number(e.target.value))}
+                    className="flex-1 accent-blue-600" />
+                  <span className="w-10 text-center text-sm font-bold rounded-md px-1 py-0.5"
+                    style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>
+                    {batchSize}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODE B — Analyze My Products */}
+          {mode === "custom" && (
+            <div className="space-y-5">
+              <p className="text-xs text-muted-foreground">
+                Provide up to <strong>3 product URLs</strong> and <strong>5 images</strong> — AI uses all of them for a comprehensive intelligence report.
+              </p>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Product / Topic Name</label>
+                <input type="text" value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="e.g. Nintendo Game Boy (1989)"
+                  className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                  style={inputStyle} />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Link size={11} /> Product URLs ({customUrls.filter(u => u.trim()).length}/3)
+                  </label>
+                </div>
+                {customUrls.map((url, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <div className="relative flex-1">
+                      <Link size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input type="url" value={url}
+                        onChange={(e) => {
+                          setCustomUrls(prev => {
+                            const next = [...prev];
+                            next[i] = e.target.value;
+                            return next;
+                          });
+                        }}
+                        placeholder={`URL ${i + 1} — Amazon, eBay, any site…`}
+                        className="w-full rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none"
+                        style={inputStyle} />
+                    </div>
+                    {customUrls.length > 1 && (
+                      <button type="button" onClick={() => setCustomUrls(prev => prev.filter((_, j) => j !== i))}
+                        className="p-1.5 rounded-lg transition-colors hover:bg-destructive/10">
+                        <X size={12} className="text-destructive" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {customUrls.length < 3 && (
+                  <button type="button" onClick={() => setCustomUrls(prev => [...prev, ""])}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+                    style={{ border: "1.5px dashed hsl(var(--border))", color: "hsl(var(--primary))" }}>
+                    <Plus size={10} /> Add URL
+                  </button>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <ImageIcon size={11} /> Product Images ({customImages.length}/5)
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  {customImages.map((img, i) => (
+                    <div key={i} className="relative">
+                      <img src={img.dataUrl} alt={`upload ${i + 1}`}
+                        className="h-20 w-28 object-cover rounded-xl"
+                        style={{ border: "1.5px solid hsl(var(--border))" }} />
+                      <button type="button"
+                        onClick={() => setCustomImages(prev => prev.filter((_, j) => j !== i))}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ background: "hsl(var(--destructive))" }}>
+                        <X size={10} style={{ color: "white" }} />
+                      </button>
+                    </div>
+                  ))}
+                  {customImages.length < 5 && (
+                    <div
+                      className="flex flex-col items-center justify-center h-20 w-28 rounded-xl cursor-pointer border-2 border-dashed transition-colors"
+                      style={{ borderColor: "hsl(var(--primary) / 0.3)", background: "hsl(var(--primary-muted))" }}
+                      onClick={() => multiImageRef.current?.click()}
+                    >
+                      <ImageIcon size={16} style={{ color: "hsl(var(--primary))" }} />
+                      <span className="text-[10px] font-medium mt-1" style={{ color: "hsl(var(--primary))" }}>
+                        + Add
+                      </span>
+                      <input
+                        ref={multiImageRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          const remaining = 5 - customImages.length;
+                          files.slice(0, remaining).forEach(file => {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setCustomImages(prev => {
+                                if (prev.length >= 5) return prev;
+                                return [...prev, { file, dataUrl: ev.target?.result as string }];
+                              });
+                            };
+                            reader.readAsDataURL(file);
+                          });
+                          if (e.target) e.target.value = "";
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Context / Notes (optional)
+                </label>
+                <input type="text" value={customNotes}
+                  onChange={(e) => setCustomNotes(e.target.value)}
+                  placeholder="e.g. Found at a garage sale — want to know revival potential…"
+                  className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                  style={inputStyle} />
+              </div>
+            </div>
+          )}
+
+          {/* MODE C — Analyze A Service */}
+          {mode === "service" && (
+            <div className="space-y-5">
+              <p className="text-xs text-muted-foreground">
+                Provide up to <strong>3 URLs</strong> (website, Yelp, LinkedIn) and <strong>5 screenshots</strong> — AI analyzes the service's market position, pricing, and growth opportunities.
+              </p>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Service / Company Name</label>
+                <input type="text" value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="e.g. Joe's Mobile Car Detailing, CloudKitchen NYC…"
+                  className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                  style={inputStyle} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Link size={11} /> Service URLs ({customUrls.filter(u => u.trim()).length}/3)
+                </label>
+                {customUrls.map((url, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <div className="relative flex-1">
+                      <Link size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input type="url" value={url}
+                        onChange={(e) => {
+                          setCustomUrls(prev => {
+                            const next = [...prev];
+                            next[i] = e.target.value;
+                            return next;
+                          });
+                        }}
+                        placeholder={`URL ${i + 1} — Website, Yelp, Google Maps, LinkedIn…`}
+                        className="w-full rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none"
+                        style={inputStyle} />
+                    </div>
+                    {customUrls.length > 1 && (
+                      <button type="button" onClick={() => setCustomUrls(prev => prev.filter((_, j) => j !== i))}
+                        className="p-1.5 rounded-lg transition-colors hover:bg-destructive/10">
+                        <X size={12} className="text-destructive" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {customUrls.length < 3 && (
+                  <button type="button" onClick={() => setCustomUrls(prev => [...prev, ""])}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+                    style={{ border: "1.5px dashed hsl(var(--border))", color: "hsl(340 75% 50%)" }}>
+                    <Plus size={10} /> Add URL
+                  </button>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <ImageIcon size={11} /> Screenshots / Images ({customImages.length}/5)
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  {customImages.map((img, i) => (
+                    <div key={i} className="relative">
+                      <img src={img.dataUrl} alt={`upload ${i + 1}`}
+                        className="h-20 w-28 object-cover rounded-xl"
+                        style={{ border: "1.5px solid hsl(var(--border))" }} />
+                      <button type="button"
+                        onClick={() => setCustomImages(prev => prev.filter((_, j) => j !== i))}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ background: "hsl(var(--destructive))" }}>
+                        <X size={10} style={{ color: "white" }} />
+                      </button>
+                    </div>
+                  ))}
+                  {customImages.length < 5 && (
+                    <div
+                      className="flex flex-col items-center justify-center h-20 w-28 rounded-xl cursor-pointer border-2 border-dashed transition-colors"
+                      style={{ borderColor: "hsl(340 75% 50% / 0.3)", background: "hsl(340 75% 95%)" }}
+                      onClick={() => multiImageRef.current?.click()}
+                    >
+                      <ImageIcon size={16} style={{ color: "hsl(340 75% 50%)" }} />
+                      <span className="text-[10px] font-medium mt-1" style={{ color: "hsl(340 75% 50%)" }}>
+                        + Add
+                      </span>
+                      <input
+                        ref={multiImageRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          const remaining = 5 - customImages.length;
+                          files.slice(0, remaining).forEach(file => {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setCustomImages(prev => {
+                                if (prev.length >= 5) return prev;
+                                return [...prev, { file, dataUrl: ev.target?.result as string }];
+                              });
+                            };
+                            reader.readAsDataURL(file);
+                          });
+                          if (e.target) e.target.value = "";
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Context / Notes (optional)
+                </label>
+                <input type="text" value={customNotes}
+                  onChange={(e) => setCustomNotes(e.target.value)}
+                  placeholder="e.g. Interested in scaling this service, want to understand pricing gaps…"
+                  className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                  style={inputStyle} />
+              </div>
+            </div>
+          )}
+
+          {/* MODE D — Analyze Business Model */}
+          {mode === "business" && (
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Deconstruct any business model with first-principles reasoning — uncover hidden friction, automation opportunities, and reinvention paths.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Business Type *</label>
+                  <select
+                    value={BUSINESS_EXAMPLES.includes(businessInput.type) ? businessInput.type : "__custom__"}
+                    onChange={(e) => {
+                      if (e.target.value === "__custom__") return;
+                      setBusinessInput((p) => ({ ...p, type: e.target.value }));
+                    }}
+                    className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none relative z-50"
+                    style={{ ...inputStyle, WebkitAppearance: "menulist" }}
+                  >
+                    <option value="">Select a business type…</option>
+                    {BUSINESS_EXAMPLES.map((ex) => <option key={ex} value={ex}>{ex}</option>)}
+                    {businessInput.type && !BUSINESS_EXAMPLES.includes(businessInput.type) && (
+                      <option value={businessInput.type}>{businessInput.type}</option>
+                    )}
+                  </select>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
+                    <input
+                      type="text"
+                      value={!BUSINESS_EXAMPLES.includes(businessInput.type) ? businessInput.type : ""}
+                      onChange={(e) => setBusinessInput((p) => ({ ...p, type: e.target.value }))}
+                      placeholder="Type any business — e.g. 'SaaS startup', 'Pet grooming'…"
+                      className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
+                      style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(271 81% 55% / 0.04)" }}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Revenue Model</label>
+                  <input
+                    type="text"
+                    value={businessInput.revenueModel}
+                    onChange={(e) => setBusinessInput((p) => ({ ...p, revenueModel: e.target.value }))}
+                    placeholder="e.g. Per-use, monthly contract, hourly…"
+                    className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Business Description *</label>
+                <textarea
+                  value={businessInput.description}
+                  onChange={(e) => setBusinessInput((p) => ({ ...p, description: e.target.value }))}
+                  placeholder="Describe how the business works today — how customers find you, how transactions happen, what the service/product is, how it's delivered…"
+                  rows={3}
+                  className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none resize-none"
+                  style={inputStyle}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Size / Scale</label>
+                  <input type="text" value={businessInput.size}
+                    onChange={(e) => setBusinessInput((p) => ({ ...p, size: e.target.value }))}
+                    placeholder="e.g. $500k/yr, 10 employees"
+                    className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Geography</label>
+                  <input type="text" value={businessInput.geography}
+                    onChange={(e) => setBusinessInput((p) => ({ ...p, geography: e.target.value }))}
+                    placeholder="e.g. Suburban US, regional…"
+                    className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Known Pain Points</label>
+                  <input type="text" value={businessInput.painPoints}
+                    onChange={(e) => setBusinessInput((p) => ({ ...p, painPoints: e.target.value }))}
+                    placeholder="e.g. High labor costs, low margins…"
+                    className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider flex items-center gap-1.5">
+                  <Link size={11} /> Website / URLs (optional)
+                </label>
+                <input type="url" value={businessInput.notes}
+                  onChange={(e) => setBusinessInput((p) => ({ ...p, notes: e.target.value }))}
+                  placeholder="Paste a company website, Yelp listing, LinkedIn page, or any URL for extra context…"
+                  className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
+                <p className="text-[10px] text-muted-foreground">AI will scrape the page for additional business context</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {businessLoading && (
+                  <div className="rounded-xl p-4 space-y-3" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        {[0,1,2].map(i => (
+                          <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: "hsl(var(--primary))", animationDelay: `${i * 0.15}s` }} />
+                        ))}
+                      </div>
+                      <span className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Gemini AI — Business Model Analysis</span>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full animate-pulse" style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>Running</span>
+                    </div>
+                    <div className="space-y-2">
+                      {[
+                        { label: "Mapping customer journey & friction points", icon: "🔍" },
+                        { label: "Deconstructing cost structure & revenue leaks", icon: "💰" },
+                        { label: "Identifying automation & tech leverage", icon: "⚡" },
+                        { label: "Building reinvented business model", icon: "🚀" },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{item.icon}</span>
+                          <span>{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+                      <div className="h-full rounded-full" style={{ background: "hsl(var(--primary))", animation: "progress-indeterminate 1.8s ease-in-out infinite", width: "40%" }} />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">⏱ Typically takes 20–45 seconds</p>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={runBusinessAnalysis}
+                  disabled={businessLoading || !businessInput.type.trim() || !businessInput.description.trim()}
+                  className="btn-primary flex items-center gap-2"
+                  style={{ opacity: (businessLoading || !businessInput.type.trim() || !businessInput.description.trim()) ? 0.6 : 1 }}
+                >
+                  {businessLoading ? (
+                    <><RefreshCw size={15} className="animate-spin" /> Deconstructing…</>
+                  ) : (
+                    <><Brain size={15} /> Run Business Model Analysis</>
+                  )}
+                </button>
+                <p className="text-xs text-muted-foreground">7 strategic dimensions · ~20–40 seconds</p>
+              </div>
+            </div>
+          )}
+
+          {mode !== "business" && (
+            <div className="flex items-center gap-3">
+              <button type="submit" disabled={isLoading} className="btn-primary flex items-center gap-2">
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={16} />
+                    {mode === "custom" && hasCustomProducts
+                      ? "Analyze A Product"
+                      : mode === "service"
+                      ? "Analyze A Service"
+                      : `Run Product Intelligence Analysis`}
+                  </>
+                )}
+              </button>
+              <p className="text-xs text-muted-foreground">
+                {mode === "discover"
+                  ? `Processes ${batchSize} products · Assigns Revival Scores · Generates Flipped Ideas`
+                  : mode === "service"
+                  ? "Analyzes service · Pricing, competition & growth opportunities"
+                  : `Analyzes ${customProducts.filter(cp => cp.imageDataUrl || cp.productUrl || cp.productName).length || 1} product(s) · Deep custom intelligence report`}
+              </p>
+            </div>
+          )}
+        </div>
+      </form>
+    );
+  }
+
+  // ─── MODE SELECTION (default phase) ───
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
       {/* Explainer Banner */}
       <div className="rounded-2xl border border-primary/20 px-6 py-8 text-center space-y-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary-muted)) 0%, hsl(var(--secondary)) 100%)" }}>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground font-display tracking-tight">
@@ -236,7 +960,6 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
 
       {/* Mode Selection */}
       <div className="space-y-4">
-        {/* Heading */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px" style={{ background: "hsl(var(--border))" }} />
           <div className="text-center">
@@ -250,674 +973,81 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
           <div className="flex-1 h-px" style={{ background: "hsl(var(--border))" }} />
         </div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {MODE_OPTIONS.map(({ id, label, tagline, description, behindTheScenes, bullets, icon: Icon, accent, accentLight }) => {
-            const isActive = mode === id;
+            const steps = MODE_STEPS[id];
             return (
-              <div key={id} className="relative flex flex-col">
-                <button
-                  type="button"
-                  onClick={() => setMode(id)}
-                  className="relative text-left rounded-2xl transition-all duration-200 focus:outline-none overflow-hidden flex-1"
-                  style={{
-                    border: `2.5px solid ${isActive ? accent : "hsl(var(--border))"}`,
-                    boxShadow: isActive
-                      ? `0 12px 32px -6px ${accent}50, 0 0 0 1px ${accent}20`
-                      : "0 2px 8px 0 hsl(220 20% 5% / 0.07)",
-                    transform: isActive ? "translateY(-3px) scale(1.01)" : "translateY(0) scale(1)",
-                    background: isActive ? accent : "hsl(var(--card))",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.borderColor = accent;
-                      (e.currentTarget as HTMLElement).style.background = accentLight;
-                      (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--border))";
-                      (e.currentTarget as HTMLElement).style.background = "hsl(var(--card))";
-                      (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                    }
-                  }}
-                >
-                  {/* Top accent strip */}
+              <button
+                key={id}
+                type="button"
+                onClick={() => handleModeClick(id)}
+                className="relative text-left rounded-2xl transition-all duration-200 focus:outline-none overflow-hidden group"
+                style={{
+                  border: `2.5px solid hsl(var(--border))`,
+                  boxShadow: "0 2px 8px 0 hsl(220 20% 5% / 0.07)",
+                  background: "hsl(var(--card))",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = accent;
+                  (e.currentTarget as HTMLElement).style.background = accentLight;
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--border))";
+                  (e.currentTarget as HTMLElement).style.background = "hsl(var(--card))";
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                }}
+              >
+                {/* Top accent strip */}
+                <div className="h-1 w-full" style={{ background: accent }} />
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                      style={{ background: accentLight }}
+                    >
+                      <Icon size={24} style={{ color: accent }} />
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: accent }}>
+                      {steps.length} steps <ChevronRight size={14} />
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: accent }}>
+                    {tagline}
+                  </p>
+                  <p className="text-base font-extrabold leading-tight mb-2 text-foreground">
+                    {label}
+                  </p>
+                  <p className="text-xs leading-relaxed text-muted-foreground mb-3">
+                    {description}
+                  </p>
+
+                  <ul className="space-y-1.5 mb-3">
+                    {bullets.map((b) => (
+                      <li key={b} className="flex items-start gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1" style={{ background: accent }} />
+                        <span className="text-[11px] leading-snug text-muted-foreground">{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+
                   <div
-                    className="h-1 w-full"
-                    style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : accent }}
-                  />
-
-                  <div className="p-5">
-                    {/* Icon + check row */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                        style={{
-                          background: isActive ? "hsl(0 0% 100% / 0.18)" : accentLight,
-                        }}
-                      >
-                        <Icon size={24} style={{ color: isActive ? "white" : accent }} />
-                      </div>
-
-                      {/* Selection circle */}
-                      <div
-                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                        style={{
-                          border: `2px solid ${isActive ? "hsl(0 0% 100% / 0.6)" : "hsl(var(--border))"}`,
-                          background: isActive ? "hsl(0 0% 100% / 0.2)" : "transparent",
-                        }}
-                      >
-                        {isActive && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Tagline */}
-                    <p
-                      className="text-[10px] font-bold uppercase tracking-widest mb-1"
-                      style={{ color: isActive ? "hsl(0 0% 100% / 0.65)" : accent }}
-                    >
-                      {tagline}
-                    </p>
-
-                    {/* Title */}
-                    <p
-                      className="text-base font-extrabold leading-tight mb-2"
-                      style={{ color: isActive ? "white" : "hsl(var(--foreground))" }}
-                    >
-                      {label}
-                    </p>
-
-                    {/* Description */}
-                    <p
-                      className="text-xs leading-relaxed mb-3"
-                      style={{ color: isActive ? "hsl(0 0% 100% / 0.8)" : "hsl(var(--muted-foreground))" }}
-                    >
-                      {description}
-                    </p>
-
-                    {/* Bullets */}
-                    <ul className="space-y-1.5 mb-3">
-                      {bullets.map((b) => (
-                        <li key={b} className="flex items-start gap-1.5">
-                          <div
-                            className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1"
-                            style={{ background: isActive ? "hsl(0 0% 100% / 0.5)" : accent }}
-                          />
-                          <span
-                            className="text-[11px] leading-snug"
-                            style={{ color: isActive ? "hsl(0 0% 100% / 0.7)" : "hsl(var(--muted-foreground))" }}
-                          >
-                            {b}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* Behind the scenes */}
-                    <div
-                      className="rounded-lg px-3 py-2"
-                      style={{
-                        background: isActive ? "hsl(0 0% 100% / 0.1)" : "hsl(var(--muted) / 0.5)",
-                        border: `1px solid ${isActive ? "hsl(0 0% 100% / 0.15)" : "hsl(var(--border))"}`,
-                      }}
-                    >
-                      <p
-                        className="text-[9px] font-bold uppercase tracking-wider mb-0.5"
-                        style={{ color: isActive ? "hsl(0 0% 100% / 0.5)" : "hsl(var(--muted-foreground))" }}
-                      >
-                        ⚙️ How it works
-                      </p>
-                      <p
-                        className="text-[10px] leading-relaxed"
-                        style={{ color: isActive ? "hsl(0 0% 100% / 0.65)" : "hsl(var(--muted-foreground))" }}
-                      >
-                        {behindTheScenes}
-                      </p>
-                    </div>
+                    className="rounded-lg px-3 py-2"
+                    style={{
+                      background: "hsl(var(--muted) / 0.5)",
+                      border: "1px solid hsl(var(--border))",
+                    }}
+                  >
+                    <p className="text-[9px] font-bold uppercase tracking-wider mb-0.5 text-muted-foreground">⚙️ How it works</p>
+                    <p className="text-[10px] leading-relaxed text-muted-foreground">{behindTheScenes}</p>
                   </div>
-                </button>
-
-                {/* Visual connector arrow from active card to form */}
-                {isActive && (
-                  <div className="flex justify-center -mb-3 relative z-10">
-                    <div
-                      className="w-4 h-4 rotate-45 rounded-sm"
-                      style={{
-                        background: accent,
-                        marginTop: "-8px",
-                        boxShadow: `0 4px 12px -2px ${accent}40`,
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
+                </div>
+              </button>
             );
           })}
         </div>
       </div>
-
-      {/* Active mode form area — visually connected */}
-      {(() => {
-        const activeMode = MODE_OPTIONS.find(m => m.id === mode)!;
-        return (
-          <div
-            className="rounded-2xl p-5 space-y-5 relative"
-            style={{
-              border: `2px solid ${activeMode.accent}`,
-              borderTop: `3px solid ${activeMode.accent}`,
-              marginTop: "-8px",
-              background: `linear-gradient(180deg, ${activeMode.accentLight} 0%, hsl(var(--card)) 40%)`,
-              boxShadow: `0 4px 20px -4px ${activeMode.accent}20`,
-            }}
-          >
-
-      {/* MODE A — Discover by Category */}
-      {mode === "discover" && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Category */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Product Category</label>
-            <select
-              value={CATEGORIES.includes(category) ? category : "__custom__"}
-              onChange={(e) => {
-                if (e.target.value === "__custom__") return;
-                setCategory(e.target.value);
-              }}
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none relative z-50"
-              style={{ ...inputStyle, WebkitAppearance: "menulist" }}
-            >
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              {!CATEGORIES.includes(category) && category && (
-                <option value={category}>{category}</option>
-              )}
-            </select>
-            <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
-              <input
-                type="text"
-                value={!CATEGORIES.includes(category) ? category : ""}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="Type any category — e.g. 'Vintage Watches', 'Arcade Machines'…"
-                className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
-                style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(var(--primary) / 0.04)" }}
-              />
-            </div>
-          </div>
-
-          {/* Era */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Era / Nostalgia Focus</label>
-            <select
-              value={ERAS.includes(era) ? era : "__custom__"}
-              onChange={(e) => {
-                if (e.target.value === "__custom__") return;
-                setEra(e.target.value);
-              }}
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none relative z-50"
-              style={{ ...inputStyle, WebkitAppearance: "menulist" }}
-            >
-              {ERAS.map((e) => <option key={e} value={e}>{e}</option>)}
-              {!ERAS.includes(era) && era && (
-                <option value={era}>{era}</option>
-              )}
-            </select>
-            <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
-              <input
-                type="text"
-                value={!ERAS.includes(era) ? era : ""}
-                onChange={(e) => setEra(e.target.value)}
-                placeholder="Type any era — e.g. '1950s', 'Y2K', 'Pre-digital'…"
-                className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
-                style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(var(--primary) / 0.04)" }}
-              />
-            </div>
-          </div>
-
-          {/* Batch size */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Batch Size ({batchSize})</label>
-            <div className="flex items-center gap-3">
-              <input type="range" min={5} max={50} step={5} value={batchSize}
-                onChange={(e) => setBatchSize(Number(e.target.value))}
-                className="flex-1 accent-blue-600" />
-              <span className="w-10 text-center text-sm font-bold rounded-md px-1 py-0.5"
-                style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>
-                {batchSize}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODE B — Analyze My Products */}
-      {mode === "custom" && (
-        <div className="space-y-5">
-          <p className="text-xs text-muted-foreground">
-            Provide up to <strong>3 product URLs</strong> and <strong>5 images</strong> — AI uses all of them for a comprehensive intelligence report.
-          </p>
-
-          {/* Product Name */}
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Product / Topic Name</label>
-            <input type="text" value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
-              placeholder="e.g. Nintendo Game Boy (1989)"
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
-              style={inputStyle} />
-          </div>
-
-          {/* URLs Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Link size={11} /> Product URLs ({customUrls.filter(u => u.trim()).length}/3)
-              </label>
-            </div>
-            {customUrls.map((url, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <div className="relative flex-1">
-                  <Link size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input type="url" value={url}
-                    onChange={(e) => {
-                      setCustomUrls(prev => {
-                        const next = [...prev];
-                        next[i] = e.target.value;
-                        return next;
-                      });
-                    }}
-                    placeholder={`URL ${i + 1} — Amazon, eBay, any site…`}
-                    className="w-full rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none"
-                    style={inputStyle} />
-                </div>
-                {customUrls.length > 1 && (
-                  <button type="button" onClick={() => setCustomUrls(prev => prev.filter((_, j) => j !== i))}
-                    className="p-1.5 rounded-lg transition-colors hover:bg-destructive/10">
-                    <X size={12} className="text-destructive" />
-                  </button>
-                )}
-              </div>
-            ))}
-            {customUrls.length < 3 && (
-              <button type="button" onClick={() => setCustomUrls(prev => [...prev, ""])}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
-                style={{ border: "1.5px dashed hsl(var(--border))", color: "hsl(var(--primary))" }}>
-                <Plus size={10} /> Add URL
-              </button>
-            )}
-          </div>
-
-          {/* Images Section */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <ImageIcon size={11} /> Product Images ({customImages.length}/5)
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {customImages.map((img, i) => (
-                <div key={i} className="relative">
-                  <img src={img.dataUrl} alt={`upload ${i + 1}`}
-                    className="h-20 w-28 object-cover rounded-xl"
-                    style={{ border: "1.5px solid hsl(var(--border))" }} />
-                  <button type="button"
-                    onClick={() => setCustomImages(prev => prev.filter((_, j) => j !== i))}
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
-                    style={{ background: "hsl(var(--destructive))" }}>
-                    <X size={10} style={{ color: "white" }} />
-                  </button>
-                </div>
-              ))}
-              {customImages.length < 5 && (
-                <div
-                  className="flex flex-col items-center justify-center h-20 w-28 rounded-xl cursor-pointer border-2 border-dashed transition-colors"
-                  style={{ borderColor: "hsl(var(--primary) / 0.3)", background: "hsl(var(--primary-muted))" }}
-                  onClick={() => multiImageRef.current?.click()}
-                >
-                  <ImageIcon size={16} style={{ color: "hsl(var(--primary))" }} />
-                  <span className="text-[10px] font-medium mt-1" style={{ color: "hsl(var(--primary))" }}>
-                    + Add
-                  </span>
-                  <input
-                    ref={multiImageRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-                      const remaining = 5 - customImages.length;
-                      files.slice(0, remaining).forEach(file => {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                          setCustomImages(prev => {
-                            if (prev.length >= 5) return prev;
-                            return [...prev, { file, dataUrl: ev.target?.result as string }];
-                          });
-                        };
-                        reader.readAsDataURL(file);
-                      });
-                      if (e.target) e.target.value = "";
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Context / Notes (optional)
-            </label>
-            <input type="text" value={customNotes}
-              onChange={(e) => setCustomNotes(e.target.value)}
-              placeholder="e.g. Found at a garage sale — want to know revival potential…"
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
-              style={inputStyle} />
-          </div>
-        </div>
-      )}
-
-      {/* MODE C — Analyze A Service */}
-      {mode === "service" && (
-        <div className="space-y-5">
-          <p className="text-xs text-muted-foreground">
-            Provide up to <strong>3 URLs</strong> (website, Yelp, LinkedIn) and <strong>5 screenshots</strong> — AI analyzes the service's market position, pricing, and growth opportunities.
-          </p>
-
-          {/* Service Name */}
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Service / Company Name</label>
-            <input type="text" value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
-              placeholder="e.g. Joe's Mobile Car Detailing, CloudKitchen NYC…"
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
-              style={inputStyle} />
-          </div>
-
-          {/* URLs Section */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Link size={11} /> Service URLs ({customUrls.filter(u => u.trim()).length}/3)
-            </label>
-            {customUrls.map((url, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <div className="relative flex-1">
-                  <Link size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input type="url" value={url}
-                    onChange={(e) => {
-                      setCustomUrls(prev => {
-                        const next = [...prev];
-                        next[i] = e.target.value;
-                        return next;
-                      });
-                    }}
-                    placeholder={`URL ${i + 1} — Website, Yelp, Google Maps, LinkedIn…`}
-                    className="w-full rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none"
-                    style={inputStyle} />
-                </div>
-                {customUrls.length > 1 && (
-                  <button type="button" onClick={() => setCustomUrls(prev => prev.filter((_, j) => j !== i))}
-                    className="p-1.5 rounded-lg transition-colors hover:bg-destructive/10">
-                    <X size={12} className="text-destructive" />
-                  </button>
-                )}
-              </div>
-            ))}
-            {customUrls.length < 3 && (
-              <button type="button" onClick={() => setCustomUrls(prev => [...prev, ""])}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
-                style={{ border: "1.5px dashed hsl(var(--border))", color: "hsl(340 75% 50%)" }}>
-                <Plus size={10} /> Add URL
-              </button>
-            )}
-          </div>
-
-          {/* Images Section */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <ImageIcon size={11} /> Screenshots / Images ({customImages.length}/5)
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {customImages.map((img, i) => (
-                <div key={i} className="relative">
-                  <img src={img.dataUrl} alt={`upload ${i + 1}`}
-                    className="h-20 w-28 object-cover rounded-xl"
-                    style={{ border: "1.5px solid hsl(var(--border))" }} />
-                  <button type="button"
-                    onClick={() => setCustomImages(prev => prev.filter((_, j) => j !== i))}
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
-                    style={{ background: "hsl(var(--destructive))" }}>
-                    <X size={10} style={{ color: "white" }} />
-                  </button>
-                </div>
-              ))}
-              {customImages.length < 5 && (
-                <div
-                  className="flex flex-col items-center justify-center h-20 w-28 rounded-xl cursor-pointer border-2 border-dashed transition-colors"
-                  style={{ borderColor: "hsl(340 75% 50% / 0.3)", background: "hsl(340 75% 95%)" }}
-                  onClick={() => multiImageRef.current?.click()}
-                >
-                  <ImageIcon size={16} style={{ color: "hsl(340 75% 50%)" }} />
-                  <span className="text-[10px] font-medium mt-1" style={{ color: "hsl(340 75% 50%)" }}>
-                    + Add
-                  </span>
-                  <input
-                    ref={multiImageRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-                      const remaining = 5 - customImages.length;
-                      files.slice(0, remaining).forEach(file => {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                          setCustomImages(prev => {
-                            if (prev.length >= 5) return prev;
-                            return [...prev, { file, dataUrl: ev.target?.result as string }];
-                          });
-                        };
-                        reader.readAsDataURL(file);
-                      });
-                      if (e.target) e.target.value = "";
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Context / Notes (optional)
-            </label>
-            <input type="text" value={customNotes}
-              onChange={(e) => setCustomNotes(e.target.value)}
-              placeholder="e.g. Interested in scaling this service, want to understand pricing gaps…"
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
-              style={inputStyle} />
-          </div>
-        </div>
-      )}
-
-      {/* MODE D — Analyze Business Model */}
-      {mode === "business" && (
-        <div className="space-y-4">
-          <p className="text-xs text-muted-foreground">
-            Deconstruct any business model with first-principles reasoning — uncover hidden friction, automation opportunities, and reinvention paths.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Business Type *</label>
-              <select
-                value={BUSINESS_EXAMPLES.includes(businessInput.type) ? businessInput.type : "__custom__"}
-                onChange={(e) => {
-                  if (e.target.value === "__custom__") return;
-                  setBusinessInput((p) => ({ ...p, type: e.target.value }));
-                }}
-                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none relative z-50"
-                style={{ ...inputStyle, WebkitAppearance: "menulist" }}
-              >
-                <option value="">Select a business type…</option>
-                {BUSINESS_EXAMPLES.map((ex) => <option key={ex} value={ex}>{ex}</option>)}
-                {businessInput.type && !BUSINESS_EXAMPLES.includes(businessInput.type) && (
-                  <option value={businessInput.type}>{businessInput.type}</option>
-                )}
-              </select>
-              <div className="relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px]">✏️</span>
-                <input
-                  type="text"
-                  value={!BUSINESS_EXAMPLES.includes(businessInput.type) ? businessInput.type : ""}
-                  onChange={(e) => setBusinessInput((p) => ({ ...p, type: e.target.value }))}
-                  placeholder="Type any business — e.g. 'SaaS startup', 'Pet grooming'…"
-                  className="w-full rounded-lg pl-7 pr-3 py-2 text-xs focus:outline-none"
-                  style={{ ...inputStyle, borderStyle: "dashed", background: "hsl(271 81% 55% / 0.04)" }}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Revenue Model</label>
-              <input
-                type="text"
-                value={businessInput.revenueModel}
-                onChange={(e) => setBusinessInput((p) => ({ ...p, revenueModel: e.target.value }))}
-                placeholder="e.g. Per-use, monthly contract, hourly…"
-                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none"
-                style={inputStyle}
-              />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Business Description *</label>
-            <textarea
-              value={businessInput.description}
-              onChange={(e) => setBusinessInput((p) => ({ ...p, description: e.target.value }))}
-              placeholder="Describe how the business works today — how customers find you, how transactions happen, what the service/product is, how it's delivered…"
-              rows={3}
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none resize-none"
-              style={inputStyle}
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Size / Scale</label>
-              <input type="text" value={businessInput.size}
-                onChange={(e) => setBusinessInput((p) => ({ ...p, size: e.target.value }))}
-                placeholder="e.g. $500k/yr, 10 employees"
-                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Geography</label>
-              <input type="text" value={businessInput.geography}
-                onChange={(e) => setBusinessInput((p) => ({ ...p, geography: e.target.value }))}
-                placeholder="e.g. Suburban US, regional…"
-                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">Known Pain Points</label>
-              <input type="text" value={businessInput.painPoints}
-                onChange={(e) => setBusinessInput((p) => ({ ...p, painPoints: e.target.value }))}
-                placeholder="e.g. High labor costs, low margins…"
-                className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider flex items-center gap-1.5">
-              <Link size={11} /> Website / URLs (optional)
-            </label>
-            <input type="url" value={businessInput.notes}
-              onChange={(e) => setBusinessInput((p) => ({ ...p, notes: e.target.value }))}
-              placeholder="Paste a company website, Yelp listing, LinkedIn page, or any URL for extra context…"
-              className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
-            <p className="text-[10px] text-muted-foreground">AI will scrape the page for additional business context</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {businessLoading && (
-              <div className="rounded-xl p-4 space-y-3" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    {[0,1,2].map(i => (
-                      <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: "hsl(var(--primary))", animationDelay: `${i * 0.15}s` }} />
-                    ))}
-                  </div>
-                  <span className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Gemini AI — Business Model Analysis</span>
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full animate-pulse" style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>Running</span>
-                </div>
-                <div className="space-y-2">
-                  {[
-                    { label: "Mapping customer journey & friction points", icon: "🔍" },
-                    { label: "Deconstructing cost structure & revenue leaks", icon: "💰" },
-                    { label: "Identifying automation & tech leverage", icon: "⚡" },
-                    { label: "Building reinvented business model", icon: "🚀" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{item.icon}</span>
-                      <span>{item.label}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                  <div className="h-full rounded-full" style={{ background: "hsl(var(--primary))", animation: "progress-indeterminate 1.8s ease-in-out infinite", width: "40%" }} />
-                </div>
-                <p className="text-[10px] text-muted-foreground">⏱ Typically takes 20–45 seconds</p>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={runBusinessAnalysis}
-              disabled={businessLoading || !businessInput.type.trim() || !businessInput.description.trim()}
-              className="btn-primary flex items-center gap-2"
-              style={{ opacity: (businessLoading || !businessInput.type.trim() || !businessInput.description.trim()) ? 0.6 : 1 }}
-            >
-              {businessLoading ? (
-                <><RefreshCw size={15} className="animate-spin" /> Deconstructing…</>
-              ) : (
-                <><Brain size={15} /> Run Business Model Analysis</>
-              )}
-            </button>
-            <p className="text-xs text-muted-foreground">7 strategic dimensions · ~20–40 seconds</p>
-          </div>
-        </div>
-      )}
-
-      {mode !== "business" && (
-        <div className="flex items-center gap-3">
-          <button type="submit" disabled={isLoading} className="btn-primary flex items-center gap-2">
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Sparkles size={16} />
-                {mode === "custom" && hasCustomProducts
-                  ? "Analyze A Product"
-                  : mode === "service"
-                  ? "Analyze A Service"
-                  : `Run Product Intelligence Analysis`}
-              </>
-            )}
-          </button>
-          <p className="text-xs text-muted-foreground">
-            {mode === "discover"
-              ? `Processes ${batchSize} products · Assigns Revival Scores · Generates Flipped Ideas`
-              : mode === "service"
-              ? "Analyzes service · Pricing, competition & growth opportunities"
-              : `Analyzes ${customProducts.filter(cp => cp.imageDataUrl || cp.productUrl || cp.productName).length || 1} product(s) · Deep custom intelligence report`}
-          </p>
-        </div>
-      )}
-      </div>
-        );
-      })()}
-    </form>
+    </div>
   );
 };
