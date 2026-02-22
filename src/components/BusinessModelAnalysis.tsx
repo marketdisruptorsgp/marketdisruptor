@@ -161,7 +161,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
   const saveToWorkspace = async (analysisData: BusinessModelAnalysisData, businessType: string) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from("saved_analyses") as any).insert({
+      const { error } = await (supabase.from("saved_analyses") as any).insert({
         user_id: user?.id,
         title: `${businessType} — Business Model`,
         category: "Business Model",
@@ -174,6 +174,11 @@ export const BusinessModelAnalysis = ({ initialData, onSaved }: { initialData?: 
         analysis_type: "business_model",
         analysis_data: JSON.parse(JSON.stringify(analysisData)),
       });
+      if (error) {
+        console.error("Business model save error:", error);
+        toast.error("Failed to save business model analysis");
+        return;
+      }
       onSaved?.();
       toast.success("Business model analysis saved to workspace!");
     } catch (err) {
