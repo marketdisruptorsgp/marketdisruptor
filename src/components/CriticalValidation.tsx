@@ -156,10 +156,16 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           ))}
         </div>
         {/* Guide the AI */}
-        <div className="w-full max-w-md text-left space-y-1.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-            <Eye size={11} style={{ color: "hsl(350 80% 55%)" }} /> Guide the Stress Test (optional)
-          </label>
+        <div className="w-full max-w-md text-left p-4 rounded-xl space-y-2" style={{ background: "hsl(350 80% 55% / 0.06)", border: "1px solid hsl(350 80% 55% / 0.2)", borderLeft: "4px solid hsl(350 80% 55%)" }}>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(350 80% 55% / 0.15)" }}>
+              <Eye size={14} style={{ color: "hsl(350 80% 55%)" }} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-foreground">Steer the Stress Test</p>
+              <p className="text-[10px] text-muted-foreground">Optional — tell the AI what to focus on</p>
+            </div>
+          </div>
           <textarea
             value={userSuggestions}
             onChange={(e) => setUserSuggestions(e.target.value)}
@@ -167,12 +173,12 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             className="w-full rounded-xl px-4 py-3 text-sm leading-relaxed resize-none transition-all focus:outline-none"
             rows={2}
             style={{
-              background: "hsl(var(--muted))",
-              border: "2px dashed hsl(var(--border))",
+              background: "hsl(var(--background))",
+              border: "2px solid hsl(350 80% 55% / 0.2)",
               color: "hsl(var(--foreground))",
             }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55%)"; e.currentTarget.style.borderStyle = "solid"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--border))"; e.currentTarget.style.borderStyle = "dashed"; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55%)"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55% / 0.2)"; }}
           />
         </div>
         <button
@@ -196,11 +202,17 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
     return (
       <div className="space-y-6">
         {/* Re-run with suggestions */}
-        <div className="space-y-2 p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+        <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(350 80% 55% / 0.06)", border: "1px solid hsl(350 80% 55% / 0.2)", borderLeft: "4px solid hsl(350 80% 55%)" }}>
           <div className="flex items-center justify-between">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Eye size={11} style={{ color: "hsl(350 80% 55%)" }} /> Guide the Stress Test
-            </label>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(350 80% 55% / 0.15)" }}>
+                <Eye size={14} style={{ color: "hsl(350 80% 55%)" }} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground">Steer the Stress Test</p>
+                <p className="text-[10px] text-muted-foreground">Add direction, then re-run</p>
+              </div>
+            </div>
             <button
               onClick={runValidation}
               disabled={loading}
@@ -216,11 +228,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             placeholder="e.g. Focus more on regulatory risks, test pricing at $X, consider partnership model…"
             className="w-full rounded-xl px-4 py-2.5 text-sm leading-relaxed resize-none transition-all focus:outline-none"
             rows={2}
-            style={{ background: "hsl(var(--background))", border: "2px dashed hsl(var(--border))", color: "hsl(var(--foreground))" }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55%)"; e.currentTarget.style.borderStyle = "solid"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--border))"; e.currentTarget.style.borderStyle = "dashed"; }}
+            style={{ background: "hsl(var(--background))", border: "2px solid hsl(350 80% 55% / 0.2)", color: "hsl(var(--foreground))" }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55%)"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55% / 0.2)"; }}
           />
-          <p className="text-[10px] text-muted-foreground">Add suggestions and re-run to steer the stress test direction.</p>
         </div>
         {/* Red Team */}
         <div className="space-y-4">
