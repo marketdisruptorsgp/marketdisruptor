@@ -17,6 +17,9 @@ import PricingPage from "./pages/PricingPage";
 import SharePage from "./pages/SharePage";
 import AboutPage from "./pages/AboutPage";
 import ResourcesPage from "./pages/ResourcesPage";
+import IntelPage from "./pages/IntelPage";
+import MethodologyPage from "./pages/MethodologyPage";
+import FaqsPage from "./pages/FaqsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +59,9 @@ function AppRoutes() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/intel" element={<IntelPage />} />
+          <Route path="/methodology" element={<MethodologyPage />} />
+          <Route path="/faqs" element={<FaqsPage />} />
           <Route path="*" element={<NotFound />} />
         </>
       ) : (
