@@ -15,10 +15,10 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Aggregate real platform usage data from saved_analyses
+    // Fetch all saved analyses
     const { data: analyses, error: analysisError } = await supabase
       .from("saved_analyses")
-      .select("category, analysis_type, avg_revival_score, product_count, created_at");
+      .select("category, analysis_type, avg_revival_score, product_count, created_at, products, analysis_data, title");
 
     if (analysisError) throw new Error(`Query failed: ${analysisError.message}`);
 
@@ -27,20 +27,51 @@ serve(async (req) => {
     const typeMap: Record<string, number> = {};
     const monthlyMap: Record<string, number> = {};
 
+    // Collect interesting flipped ideas and high/low scores
+    const interestingIdeas: any[] = [];
+    const notableScores: any[] = [];
+
     for (const a of analyses || []) {
-      // Category stats
       const cat = a.category || "Uncategorized";
       if (!categoryMap[cat]) categoryMap[cat] = { count: 0, avgScore: 0, scores: [] };
       categoryMap[cat].count++;
       if (a.avg_revival_score) categoryMap[cat].scores.push(a.avg_revival_score);
 
-      // Analysis type breakdown
       const type = a.analysis_type || "product";
       typeMap[type] = (typeMap[type] || 0) + 1;
 
-      // Monthly activity
       const month = a.created_at?.substring(0, 7) || "unknown";
       monthlyMap[month] = (monthlyMap[month] || 0) + 1;
+
+      // Extract flipped ideas from analysis_data
+      const analysisData = a.analysis_data as any;
+      if (analysisData?.flippedIdeas && Array.isArray(analysisData.flippedIdeas)) {
+        for (const idea of analysisData.flippedIdeas.slice(0, 2)) {
+          interestingIdeas.push({
+            title: idea.title || idea.name || "Untitled Idea",
+            description: idea.description || idea.concept || "",
+            category: cat,
+            analysisTitle: a.title,
+          });
+        }
+      }
+
+      // Track notable scores
+      if (a.avg_revival_score && a.avg_revival_score >= 80) {
+        notableScores.push({
+          title: a.title,
+          score: a.avg_revival_score,
+          category: cat,
+          type: "high",
+        });
+      } else if (a.avg_revival_score && a.avg_revival_score <= 30 && a.avg_revival_score > 0) {
+        notableScores.push({
+          title: a.title,
+          score: a.avg_revival_score,
+          category: cat,
+          type: "low",
+        });
+      }
     }
 
     // Compute averages
@@ -51,21 +82,30 @@ serve(async (req) => {
         : 0;
     }
 
-    // Sort categories by count
     const topCategories = Object.entries(categoryMap)
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 10)
       .map(([name, data]) => ({ name, count: data.count, avgScore: data.avgScore }));
 
-    // Monthly activity sorted chronologically
     const monthlyActivity = Object.entries(monthlyMap)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([month, count]) => ({ month, count }));
 
     const totalAnalyses = analyses?.length || 0;
-    const avgScore = analyses && analyses.length > 0
-      ? Math.round((analyses.filter(a => a.avg_revival_score).reduce((sum, a) => sum + (a.avg_revival_score || 0), 0) / analyses.filter(a => a.avg_revival_score).length) * 10) / 10
+    const scoredAnalyses = (analyses || []).filter(a => a.avg_revival_score);
+    const avgScore = scoredAnalyses.length > 0
+      ? Math.round((scoredAnalyses.reduce((sum, a) => sum + (a.avg_revival_score || 0), 0) / scoredAnalyses.length) * 10) / 10
       : 0;
+
+    // Dedupe and limit interesting ideas
+    const uniqueIdeas = interestingIdeas
+      .filter((idea, i, arr) => arr.findIndex(x => x.title === idea.title) === i)
+      .slice(0, 8);
+
+    // Sort notable scores
+    const topScores = notableScores
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
 
     // Clear and insert
     await supabase.from("platform_intel").delete().neq("id", "00000000-0000-0000-0000-000000000000");
@@ -73,7 +113,7 @@ serve(async (req) => {
     await supabase.from("platform_intel").insert([
       {
         metric_type: "overview",
-        payload: { totalAnalyses, avgScore, typeBreakdown: typeMap },
+        payload: { totalAnalyses, avgScore, typeBreakdown: typeMap, totalCategories: Object.keys(categoryMap).length },
         computed_at: new Date().toISOString(),
       },
       {
@@ -86,9 +126,19 @@ serve(async (req) => {
         payload: monthlyActivity,
         computed_at: new Date().toISOString(),
       },
+      {
+        metric_type: "top_flipped_ideas",
+        payload: uniqueIdeas,
+        computed_at: new Date().toISOString(),
+      },
+      {
+        metric_type: "notable_scores",
+        payload: topScores,
+        computed_at: new Date().toISOString(),
+      },
     ]);
 
-    return new Response(JSON.stringify({ success: true, totalAnalyses, categories: topCategories.length }), {
+    return new Response(JSON.stringify({ success: true, totalAnalyses, categories: topCategories.length, ideas: uniqueIdeas.length }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
