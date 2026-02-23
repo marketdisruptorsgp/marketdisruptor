@@ -386,12 +386,25 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
         .map((cp: { productName?: string }) => (cp.productName || "").toLowerCase())
     );
 
+    // Extract any images found during URL scraping (from rawContent "## Product Image Found" entries)
+    const scrapedImages: Record<string, string> = {};
+    const imgFoundRegex = /## Product Image Found\nProduct: (.+)\nImage URL: (.+)/g;
+    let imgMatch;
+    while ((imgMatch = imgFoundRegex.exec(rawContent || "")) !== null) {
+      scrapedImages[imgMatch[1].toLowerCase()] = imgMatch[2].trim();
+    }
+
     // Now fetch real images for each product via Firecrawl — but skip products where user uploaded an image
     if (FIRECRAWL_API_KEY) {
       console.log(`Searching for real product images for ${products.length} products...`);
       const imagePromises = products.map(async (product: { name: string; category: string }) => {
         // Skip image search for user-uploaded products
         if (customWithImage.has(product.name.toLowerCase())) return null;
+        // Check if we already got an image from scraping the URL
+        const scrapedImg = Object.entries(scrapedImages).find(([name]) => 
+          product.name.toLowerCase().includes(name) || name.includes(product.name.toLowerCase())
+        );
+        if (scrapedImg) return scrapedImg[1];
         const realImage = await findProductImage(product.name, product.category, FIRECRAWL_API_KEY);
         return realImage;
       });
@@ -413,11 +426,16 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
       
       console.log(`Image search complete. Real images found: ${realImages.filter(Boolean).length}/${products.length}`);
     } else {
-      // No Firecrawl — leave images empty unless user uploaded
-      products = products.map((product: { name: string; image: string; category: string }) => ({
-        ...product,
-        image: customWithImage.has(product.name.toLowerCase()) ? "USER_IMAGE" : "",
-      }));
+      // No Firecrawl — check scraped images, then fall back to empty
+      products = products.map((product: { name: string; image: string; category: string }) => {
+        if (customWithImage.has(product.name.toLowerCase())) {
+          return { ...product, image: "USER_IMAGE" };
+        }
+        const scrapedImg = Object.entries(scrapedImages).find(([name]) => 
+          product.name.toLowerCase().includes(name) || name.includes(product.name.toLowerCase())
+        );
+        return { ...product, image: scrapedImg ? scrapedImg[1] : "" };
+      });
     }
 
     return new Response(JSON.stringify({ success: true, products }), {

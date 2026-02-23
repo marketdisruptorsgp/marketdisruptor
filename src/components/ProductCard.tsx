@@ -32,40 +32,54 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         />
       )}
 
-      {/* Image */}
-      <div className="relative overflow-hidden">
-        {product.image && product.image !== "PLACEHOLDER_IMAGE" ? (
+      {/* Image — only show if we have a real image */}
+      {product.image && product.image !== "PLACEHOLDER_IMAGE" && product.image !== "" ? (
+        <div className="relative overflow-hidden">
           <img
             src={product.image}
             alt={product.name}
             className="w-full h-40 object-cover"
             loading="lazy"
             onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-              (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden");
+              // Hide entire image container on error
+              const container = (e.target as HTMLImageElement).closest('.relative.overflow-hidden');
+              if (container) (container as HTMLElement).style.display = 'none';
             }}
           />
-        ) : null}
-        <div className={`w-full h-40 flex items-center justify-center bg-muted ${product.image && product.image !== "PLACEHOLDER_IMAGE" ? "hidden" : ""}`}>
-          <ImageOff size={32} className="text-muted-foreground" />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-        <span
-          className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-medium"
-          style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
-        >
-          {product.era}
-        </span>
-        {product.pricingIntel && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
           <span
-            className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"
-            style={{ background: "hsl(0 0% 0% / 0.7)", color: "hsl(0 0% 100% / 0.8)" }}
+            className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-medium"
+            style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
           >
-            {product.pricingIntel.currentMarketPrice}
-            <DataLabel label={(product.pricingIntel as unknown as Record<string, unknown>).currentMarketPriceDataLabel as string} />
+            {product.era}
           </span>
-        )}
-      </div>
+          {product.pricingIntel && (
+            <span
+              className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"
+              style={{ background: "hsl(0 0% 0% / 0.7)", color: "hsl(0 0% 100% / 0.8)" }}
+            >
+              {product.pricingIntel.currentMarketPrice}
+              <DataLabel label={(product.pricingIntel as unknown as Record<string, unknown>).currentMarketPriceDataLabel as string} />
+            </span>
+          )}
+        </div>
+      ) : (
+        /* No image: just show era badge and pricing inline */
+        <div className="px-4 pt-3 flex items-center justify-between">
+          <span
+            className="px-2 py-0.5 rounded text-[10px] font-medium"
+            style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
+          >
+            {product.era}
+          </span>
+          {product.pricingIntel && (
+            <span className="text-[10px] font-medium flex items-center gap-1 text-muted-foreground">
+              {product.pricingIntel.currentMarketPrice}
+              <DataLabel label={(product.pricingIntel as unknown as Record<string, unknown>).currentMarketPriceDataLabel as string} />
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="p-4 space-y-2">
         <div>
