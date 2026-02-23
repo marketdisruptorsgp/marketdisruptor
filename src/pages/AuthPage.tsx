@@ -91,34 +91,13 @@ export default function AuthPage() {
           <span className="font-bold text-lg text-foreground">Market Disruptor</span>
         </div>
 
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground leading-tight mb-4">
-              Uncover the next <span className="text-primary">big thing</span> hiding in plain sight.
-            </h1>
-            <p className="text-muted-foreground text-lg leading-relaxed max-w-lg">
-              Products that once dominated markets don't just disappear — they evolve.
-              Your job is to find them first.
-            </p>
-          </div>
-          <div className="space-y-4">
-            {FEATURES.map(({ icon: Icon, label, desc }) => (
-              <div key={label} className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-card text-primary">
-                  <Icon size={16} />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm text-foreground">{label}</p>
-                  <p className="text-muted-foreground text-xs leading-relaxed">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="flex items-center justify-center flex-1">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground leading-snug text-center max-w-lg">
+            "The best opportunities are in the gap between what was and what could be."
+          </h1>
         </div>
 
-        <p className="text-muted-foreground/60 text-xs italic">
-          "The best opportunities are in the gap between what was and what could be."
-        </p>
+        <div />
       </div>
     </div>
   );
