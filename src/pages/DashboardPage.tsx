@@ -17,9 +17,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
-  AlertCircle, Upload, Briefcase, Building2,
-  BookOpen, Users, Rocket, TrendingUp, ShieldCheck, Tag, Layers, FileText,
+  AlertCircle, Upload, Briefcase, Building2, ShieldCheck, BookOpen,
 } from "lucide-react";
+
+const MODE_WORDS = [
+  { label: "product", mode: "custom" as const, color: "hsl(var(--mode-product))" },
+  { label: "service", mode: "service" as const, color: "hsl(var(--mode-service))" },
+  { label: "business model", mode: "business" as const, color: "hsl(var(--mode-business))" },
+];
+
+const MODE_PILLS = [
+  { id: "custom" as const, label: "Product", icon: Upload, cssVar: "--mode-product" },
+  { id: "service" as const, label: "Service", icon: Briefcase, cssVar: "--mode-service" },
+  { id: "business" as const, label: "Business Model", icon: Building2, cssVar: "--mode-business" },
+];
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
@@ -33,42 +44,55 @@ export default function DashboardPage() {
   const [showWelcome, setShowWelcome] = useState(() => {
     return !localStorage.getItem("welcomed_" + (user?.id ?? ""));
   });
-  const businessResultsRef = useRef<HTMLDivElement>(null);
+  const [selectedMode, setSelectedMode] = useState<"custom" | "service" | "business" | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+  const modeTabsRef = useRef<HTMLDivElement>(null);
 
-  const [userStats, setUserStats] = useState<{ totalAnalyses: number; latestScore: number | null }>({ totalAnalyses: 0, latestScore: null });
+  // Cycling word state
+  const [wordIndex, setWordIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    if (!user?.id) return;
-    (async () => {
-      const { count } = await (supabase.from("saved_analyses") as any)
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
-      const { data: latest } = await (supabase.from("saved_analyses") as any)
-        .select("avg_revival_score")
-        .eq("user_id", user.id)
-        .not("avg_revival_score", "is", null)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-      setUserStats({ totalAnalyses: count ?? 0, latestScore: latest?.avg_revival_score ?? null });
-    })();
-  }, [user?.id, analysis.savedRefreshTrigger]);
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setWordIndex((prev) => (prev + 1) % MODE_WORDS.length);
+        setVisible(true);
+      }, 300);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCloseWelcome = () => {
     localStorage.setItem("welcomed_" + (user?.id ?? ""), "1");
     setShowWelcome(false);
   };
 
+  const handleModeSelect = (mode: "custom" | "service" | "business") => {
+    setSelectedMode(mode);
+    analysis.setMainTab(mode);
+    analysis.setActiveMode(mode as AnalysisMode);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const handleStartAnalysis = () => {
+    modeTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const isLoading = analysis.step === "scraping" || analysis.step === "analyzing";
+
+  const modeColor = selectedMode
+    ? MODE_PILLS.find((m) => m.id === selectedMode)?.cssVar ?? "--mode-product"
+    : "--mode-product";
 
   return (
     <div className="min-h-screen bg-background">
       {showWelcome && profile && (
         <WelcomeModal firstName={profile.first_name} onClose={handleCloseWelcome} />
       )}
-
       {user && !showWelcome && <MobileTour userId={user.id} />}
-
       {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
 
       <HeroSection tier={tier} remainingAnalyses={remainingAnalyses()} profileFirstName={profile?.first_name} onOpenSaved={() => setShowSavedPanel(true)} savedCount={savedCount} />
@@ -89,168 +113,163 @@ export default function DashboardPage() {
         </SheetContent>
       </Sheet>
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
-          {/* Main column */}
-          <div className="space-y-8">
-            <DisruptionPathBanner />
+      {/* Hero Section */}
+      <section className="bg-background">
+        <div className="max-w-4xl mx-auto px-6 pt-20 pb-16 text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground leading-tight">
+            Reinvent any{" "}
+            <span
+              className="inline-block transition-opacity duration-300"
+              style={{
+                opacity: visible ? 1 : 0,
+                color: MODE_WORDS[wordIndex].color,
+              }}
+            >
+              {MODE_WORDS[wordIndex].label}
+            </span>
+          </h1>
+          <p className="text-base sm:text-lg text-muted-foreground mt-5 max-w-2xl mx-auto leading-relaxed">
+            Deconstruct markets, stress-test strategies, and build what's next with AI-powered competitive intelligence.
+          </p>
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+              onClick={handleStartAnalysis}
+              className="btn-primary"
+            >
+              Start Analysis
+            </button>
+            <button
+              onClick={() => navigate("/about")}
+              className="px-6 py-2.5 rounded-full text-sm font-semibold border border-border text-foreground transition-colors hover:bg-muted"
+            >
+              Learn More
+            </button>
+          </div>
+        </div>
+      </section>
 
-            {/* Analysis form */}
-            <div className="rounded-lg overflow-hidden border border-border bg-card shadow-sm">
-              <div className="px-5 pt-4 pb-2 border-b border-border">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  {analysis.mainTab === "custom" ? "Disrupt This Product" : analysis.mainTab === "service" ? "Disrupt This Service" : analysis.mainTab === "business" ? "Disrupt This Business Model" : "Analysis"}
-                </p>
-              </div>
-              <div className="p-6">
-                <ContextualTip
-                  id="discovery-tip-1"
-                  message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
-                />
-                <div className="mt-4" data-tour="analysis-form">
-                  <AnalysisForm
-                    onAnalyze={analysis.handleAnalyze}
-                    isLoading={isLoading}
-                    mode={analysis.activeMode}
-                    onModeChange={(m) => {
-                      analysis.setActiveMode(m);
-                      analysis.setMainTab(m as typeof analysis.mainTab);
-                    }}
-                    onBusinessAnalysis={(data) => {
-                      analysis.setBusinessAnalysisData(data as BusinessModelAnalysisData);
-                      const id = crypto.randomUUID();
-                      analysis.setAnalysisId(id);
-                      navigate(`/business/${id}`);
-                    }}
-                  />
-                </div>
-              </div>
+      {/* Mode Pills */}
+      <div ref={modeTabsRef} className="border-t border-border bg-card">
+        <div className="max-w-4xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-center gap-3">
+            {MODE_PILLS.map((pill) => {
+              const Icon = pill.icon;
+              const isActive = selectedMode === pill.id;
+              return (
+                <button
+                  key={pill.id}
+                  onClick={() => handleModeSelect(pill.id)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-colors"
+                  style={
+                    isActive
+                      ? {
+                          backgroundColor: `hsl(var(${pill.cssVar}))`,
+                          borderColor: `hsl(var(${pill.cssVar}))`,
+                          color: "white",
+                        }
+                      : {
+                          borderColor: "hsl(var(--border))",
+                          color: "hsl(var(--foreground))",
+                        }
+                  }
+                >
+                  <Icon size={15} />
+                  {pill.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Analysis Form (shown when mode selected) */}
+      {selectedMode && (
+        <main className="max-w-4xl mx-auto px-6 py-10" ref={formRef}>
+          <div
+            className="rounded-lg overflow-hidden border border-border bg-card shadow-sm"
+            style={{ borderTop: `3px solid hsl(var(${modeColor}))` }}
+          >
+            <div className="px-5 pt-4 pb-2 border-b border-border">
+              <p
+                className="text-xs font-bold uppercase tracking-widest"
+                style={{ color: `hsl(var(${modeColor}))` }}
+              >
+                {selectedMode === "custom" ? "Disrupt This Product" : selectedMode === "service" ? "Disrupt This Service" : "Disrupt This Business Model"}
+              </p>
             </div>
-
-            {/* Loading tracker */}
-            {isLoading && (
-              <LoadingTracker
-                step={analysis.step as "scraping" | "analyzing"}
-                elapsedSeconds={analysis.elapsedSeconds}
-                loadingLog={analysis.loadingLog}
+            <div className="p-6">
+              <ContextualTip
+                id="discovery-tip-1"
+                message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
               />
-            )}
-
-            {/* Error */}
-            {analysis.step === "error" && (
-              <div className="p-6 rounded-lg flex items-start gap-3 bg-destructive/5 border border-destructive/20">
-                <AlertCircle size={20} className="text-destructive flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-sm text-destructive">Analysis Failed</p>
-                  <p className="text-sm text-muted-foreground mt-1">{analysis.errorMsg}</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Tip: Try a more specific category or reduce batch size.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Business Model Form */}
-            {!analysis.businessAnalysisData && analysis.mainTab === "business" && (
-              <div ref={businessResultsRef}>
-                <BusinessModelAnalysis
-                  onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
-                  onAnalysisComplete={(data, input) => {
-                    analysis.setBusinessAnalysisData(data);
-                    analysis.setBusinessModelInput(input);
+              <div className="mt-4" data-tour="analysis-form">
+                <AnalysisForm
+                  onAnalyze={analysis.handleAnalyze}
+                  isLoading={isLoading}
+                  mode={analysis.activeMode}
+                  onModeChange={(m) => {
+                    analysis.setActiveMode(m);
+                    analysis.setMainTab(m as typeof analysis.mainTab);
+                  }}
+                  onBusinessAnalysis={(data) => {
+                    analysis.setBusinessAnalysisData(data as BusinessModelAnalysisData);
                     const id = crypto.randomUUID();
                     analysis.setAnalysisId(id);
                     navigate(`/business/${id}`);
                   }}
                 />
               </div>
-            )}
-
-            {/* Quick Start Templates */}
-            <QuickStartTemplates
-              onSelect={(tab, category, era) => {
-                analysis.setMainTab(tab);
-                analysis.setActiveMode(tab as AnalysisMode);
-              }}
-            />
+            </div>
           </div>
 
-          {/* Right sidebar */}
-          <aside className="space-y-6 hidden lg:block">
-            <div className="rounded-lg border border-border p-5 bg-card shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Recent Projects</p>
-                <button
-                  onClick={() => setShowSavedPanel(true)}
-                  className="text-xs font-semibold text-primary hover:underline"
-                >
-                  View All
-                </button>
-              </div>
-              <SavedAnalyses
-                onLoad={(a) => { analysis.handleLoadSaved(a); }}
-                refreshTrigger={analysis.savedRefreshTrigger}
-                onCountChange={setSavedCount}
-                compact
+          {/* Loading tracker */}
+          {isLoading && (
+            <div className="mt-8">
+              <LoadingTracker
+                step={analysis.step as "scraping" | "analyzing"}
+                elapsedSeconds={analysis.elapsedSeconds}
+                loadingLog={analysis.loadingLog}
               />
             </div>
+          )}
 
-            <div className="rounded-lg border border-border p-5 space-y-3.5 bg-card shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">How It Works</p>
-              {[
-                { icon: Layers, label: "3-Layer Deconstruction", desc: "Every market analyzed across supply, demand, and positioning" },
-                { icon: ShieldCheck, label: "Adversarial Validation", desc: "Red Team attacks your strategy before competitors do" },
-                { icon: Tag, label: "Claim Tagging", desc: "Outputs tagged as Verified, Modeled, or Assumption" },
-                { icon: TrendingUp, label: "Leverage Scoring", desc: "Assumptions scored 1–10 for strategic impact" },
-              ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-background">
-                    <Icon size={12} className="text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground leading-tight">{label}</p>
-                    <p className="text-[11px] text-muted-foreground leading-snug">{desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="rounded-lg border border-border p-5 space-y-3 bg-card shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Built For</p>
-              {[
-                { icon: Rocket, label: "Entrepreneurs", desc: "Scouting new markets & niches" },
-                { icon: TrendingUp, label: "Investors", desc: "Evaluating opportunities with rigor" },
-                { icon: Users, label: "Product Teams", desc: "Validating strategy before launch" },
-                { icon: FileText, label: "Agencies", desc: "Building data-driven client pitches" },
-              ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <Icon size={13} className="text-muted-foreground flex-shrink-0" />
-                  <div className="min-w-0">
-                    <span className="text-xs font-semibold text-foreground">{label}</span>
-                    <span className="text-[11px] text-muted-foreground ml-1.5">{desc}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="rounded-lg border border-border p-5 space-y-3 bg-card shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Your Stats</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg p-3 border border-border bg-background">
-                  <p className="text-lg font-bold text-primary leading-none">{userStats.totalAnalyses}</p>
-                  <p className="text-[11px] text-muted-foreground mt-1">Projects</p>
-                </div>
-                <div className="rounded-lg p-3 border border-border bg-background">
-                  <p className="text-lg font-bold text-foreground leading-none">{userStats.latestScore !== null ? userStats.latestScore : "—"}</p>
-                  <p className="text-[11px] text-muted-foreground mt-1">Latest Score</p>
-                </div>
+          {/* Error */}
+          {analysis.step === "error" && (
+            <div className="mt-8 p-6 rounded-lg flex items-start gap-3 bg-destructive/5 border border-destructive/20">
+              <AlertCircle size={20} className="text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-sm text-destructive">Analysis Failed</p>
+                <p className="text-sm text-muted-foreground mt-1">{analysis.errorMsg}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Tip: Try a more specific category or reduce batch size.
+                </p>
               </div>
             </div>
-          </aside>
-        </div>
-      </main>
+          )}
 
-      <footer className="border-t border-border mt-10">
+          {/* Business Model Form */}
+          {!analysis.businessAnalysisData && analysis.mainTab === "business" && (
+            <div className="mt-8">
+              <BusinessModelAnalysis
+                onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
+                onAnalysisComplete={(data, input) => {
+                  analysis.setBusinessAnalysisData(data);
+                  analysis.setBusinessModelInput(input);
+                  const id = crypto.randomUUID();
+                  analysis.setAnalysisId(id);
+                  navigate(`/business/${id}`);
+                }}
+              />
+            </div>
+          )}
+        </main>
+      )}
+
+      {/* Methodology strip */}
+      <DisruptionPathBanner />
+
+      {/* Footer */}
+      <footer className="border-t border-border mt-0">
         <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1"><ShieldCheck size={11} /> Your data is encrypted & never shared</span>
@@ -272,37 +291,6 @@ export default function DashboardPage() {
           </p>
         </div>
       </footer>
-    </div>
-  );
-}
-
-/* ─── Quick Start Templates ─── */
-const TEMPLATES = [
-  { tab: "custom" as const, label: "Vintage Electronics", desc: "Retro tech with revival potential", icon: Upload },
-  { tab: "service" as const, label: "Local Service Audit", desc: "Analyze a service business model", icon: Briefcase },
-  { tab: "business" as const, label: "DTC Brand Audit", desc: "Deconstruct a direct-to-consumer brand", icon: Building2 },
-];
-
-function QuickStartTemplates({ onSelect }: { onSelect: (tab: "custom" | "service" | "business" | "discover", category: string, era: string) => void }) {
-  return (
-    <div className="rounded-lg border border-border p-5 bg-card shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Quick Start</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {TEMPLATES.map((t) => {
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.label}
-              onClick={() => onSelect(t.tab, "", "")}
-              className="text-left rounded-lg border border-border px-4 py-3.5 transition-colors hover:bg-muted bg-background"
-            >
-              <Icon size={16} className="text-primary mb-2" />
-              <p className="text-xs font-semibold text-foreground leading-tight">{t.label}</p>
-              <p className="text-[11px] text-muted-foreground leading-snug mt-1">{t.desc}</p>
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }

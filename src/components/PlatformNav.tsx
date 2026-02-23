@@ -23,9 +23,9 @@ interface PlatformNavProps {
 }
 
 const ACCESS_MODES = [
-  { id: "custom" as const, label: "Disrupt This Product", desc: "Upload & analyze any physical product", icon: Upload },
-  { id: "service" as const, label: "Disrupt This Service", desc: "Deconstruct any service business", icon: Briefcase },
-  { id: "business" as const, label: "Disrupt This Business Model", desc: "Full business model teardown", icon: Building2 },
+  { id: "custom" as const, label: "Disrupt This Product", desc: "Upload & analyze any physical product", icon: Upload, cssVar: "--mode-product" },
+  { id: "service" as const, label: "Disrupt This Service", desc: "Deconstruct any service business", icon: Briefcase, cssVar: "--mode-service" },
+  { id: "business" as const, label: "Disrupt This Business Model", desc: "Full business model teardown", icon: Building2, cssVar: "--mode-business" },
 ];
 
 const RESOURCES_ITEMS = [
@@ -33,6 +33,12 @@ const RESOURCES_ITEMS = [
   { label: "Methodology", desc: "Our 4-step analysis pipeline", icon: Lightbulb, hash: "#methodology" },
   { label: "Market Intel", desc: "Upcoming market reports", icon: TrendingUp, hash: "#market-intel" },
 ];
+
+const MODE_LABELS: Record<string, string> = {
+  custom: "Product",
+  service: "Service",
+  business: "Business",
+};
 
 export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps) {
   const navigate = useNavigate();
@@ -46,6 +52,8 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  const activeMode = ACCESS_MODES.find((m) => m.id === analysis.mainTab);
 
   return (
     <div className="border-b border-border bg-background shadow-sm">
@@ -66,7 +74,17 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
-                  Access Modes
+                  <span className="flex items-center gap-2">
+                    Access Modes
+                    {activeMode && (
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white"
+                        style={{ backgroundColor: `hsl(var(${activeMode.cssVar}))` }}
+                      >
+                        {MODE_LABELS[activeMode.id]}
+                      </span>
+                    )}
+                  </span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="w-72 p-2 bg-background shadow-lg rounded-xl border border-border">
@@ -79,8 +97,14 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                           onClick={() => handleModeSelect(mode.id)}
                           className={`w-full flex items-start gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted ${active ? "bg-muted" : ""}`}
                         >
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-card">
-                            <Icon size={14} className="text-primary" />
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 border bg-card"
+                            style={{
+                              borderColor: active ? `hsl(var(${mode.cssVar}))` : "hsl(var(--border))",
+                              borderLeftWidth: active ? "3px" : "1px",
+                            }}
+                          >
+                            <Icon size={14} style={{ color: `hsl(var(${mode.cssVar}))` }} />
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-foreground leading-tight">{mode.label}</p>
