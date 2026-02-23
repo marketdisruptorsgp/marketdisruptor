@@ -452,38 +452,6 @@ export default function IntelPage() {
           </section>
         )}
 
-        {/* ── Notable Revival Scores ── */}
-        {notableScores.length > 0 && (
-          <section>
-            <div className="flex items-center gap-2 mb-1">
-              <Star size={16} className="text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Notable Revival Scores</h2>
-            </div>
-            <p className="text-sm text-muted-foreground mb-6 max-w-2xl">
-              Analyses with exceptionally high or low revival potential — the standout results from platform activity.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {notableScores.map((s, i) => (
-                <div key={i} className="border border-border rounded-lg p-4 bg-card">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{s.category}</span>
-                    <span className={`text-lg font-bold ${s.score >= 80 ? "text-primary" : "text-destructive"}`}>
-                      {s.score}
-                    </span>
-                  </div>
-                  <p className="text-sm font-semibold text-foreground leading-snug">{s.title}</p>
-                  <span className={`text-[10px] mt-1 inline-block px-2 py-0.5 rounded-full font-semibold ${
-                    s.score >= 80
-                      ? "bg-primary/10 text-primary"
-                      : "bg-destructive/10 text-destructive"
-                  }`}>
-                    {s.score >= 80 ? "High Potential" : "Low Potential"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         {patents.length === 0 && trends.length === 0 && !platformOverview && news.length === 0 && (
           <div className="text-center py-12">
