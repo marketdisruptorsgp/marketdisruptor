@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Info } from "lucide-react";
 
-const PATENT_CATEGORIES = [
-  "Energy Storage", "EdTech", "Consumer Electronics", "Real Estate Tech",
-  "Pet Care", "Micro-SaaS", "Sustainable Fashion", "Fitness Tech",
-];
-
 export const AboutDataPanel = ({ patentCount, lastUpdated }: { patentCount: number; lastUpdated: string | null }) => {
   const [open, setOpen] = useState(false);
 
@@ -27,14 +22,15 @@ export const AboutDataPanel = ({ patentCount, lastUpdated }: { patentCount: numb
             <p className="font-semibold text-foreground mb-1">Patent Intelligence</p>
             <p>
               Patent data is collected daily from public patent databases and verified filing records.
-              We search across <strong>{PATENT_CATEGORIES.length} technology categories</strong>: {PATENT_CATEGORIES.join(", ")}.
-              Each filing includes title, assignee, filing date, patent number, and abstract when available.
+              We run broad searches across recent filings — no fixed category list. Categories are dynamically
+              assigned based on each patent's content.
             </p>
             <ul className="list-disc ml-4 mt-1.5 space-y-0.5">
-              <li><strong>Timeframe:</strong> Recent filings from the last 2-3 years, sorted newest first</li>
+              <li><strong>Timeframe:</strong> Recent filings, typically from the past few weeks to months</li>
+              <li><strong>Search scope:</strong> Broad searches across consumer products, technology, health, sustainability, and commerce</li>
               <li><strong>Refresh rate:</strong> Daily at 07:00 UTC</li>
               <li><strong>Coverage:</strong> {patentCount} filings currently tracked</li>
-              <li><strong>Status:</strong> Active and expired patents are labeled separately</li>
+              <li><strong>Status:</strong> Active and expired patents are labeled separately when data is available</li>
             </ul>
           </div>
 
@@ -57,7 +53,8 @@ export const AboutDataPanel = ({ patentCount, lastUpdated }: { patentCount: numb
           <div>
             <p className="font-semibold text-foreground mb-1">Platform Analytics</p>
             <p>
-              Usage metrics are computed from real analyses run on this platform. All numbers are aggregated and anonymized.
+              Usage metrics are computed from real analyses run on this platform — including top flipped ideas, 
+              notable revival scores, and category popularity. All numbers are aggregated and anonymized.
             </p>
           </div>
 

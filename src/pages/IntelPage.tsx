@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Radar, Activity, Loader2, ShieldCheck, TrendingUp, BarChart3,
   ChevronDown, ChevronUp, ExternalLink, Building2, Calendar,
-  FileText, Zap, Clock,
+  FileText, Zap, Clock, Lightbulb, Star,
 } from "lucide-react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip,
@@ -34,6 +34,8 @@ export default function IntelPage() {
   const [patentTab, setPatentTab] = useState<"active" | "expired">("active");
   const [selectedTrend, setSelectedTrend] = useState(0);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [topFlippedIdeas, setTopFlippedIdeas] = useState<any[]>([]);
+  const [notableScores, setNotableScores] = useState<any[]>([]);
 
   useEffect(() => { fetchAllData(); }, []);
 
@@ -55,6 +57,8 @@ export default function IntelPage() {
         const payload = row.payload as any;
         if (row.metric_type === "overview") setPlatformOverview(payload);
         else if (row.metric_type === "top_categories") setTopCategories(Array.isArray(payload) ? payload : []);
+        else if (row.metric_type === "top_flipped_ideas") setTopFlippedIdeas(Array.isArray(payload) ? payload : []);
+        else if (row.metric_type === "notable_scores") setNotableScores(Array.isArray(payload) ? payload : []);
       }
       if (intelRes.data.length > 0) setLastUpdated(intelRes.data[0].computed_at);
     }
@@ -160,7 +164,7 @@ export default function IntelPage() {
               />
             </div>
 
-            {/* Active / Expired tabs */}
+            {/* Active / Expired tabs — only show expired tab if expired patents exist */}
             <div className="flex items-center gap-1 mb-4">
               <button
                 onClick={() => { setPatentTab("active"); setPatentFilter("all"); }}
@@ -172,16 +176,18 @@ export default function IntelPage() {
               >
                 <ShieldCheck size={12} /> Active ({activePatents.length})
               </button>
-              <button
-                onClick={() => { setPatentTab("expired"); setPatentFilter("all"); }}
-                className={`text-xs font-semibold px-4 py-2 rounded-lg border transition-all flex items-center gap-1.5 ${
-                  patentTab === "expired"
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card text-muted-foreground hover:border-primary/40"
-                }`}
-              >
-                <Clock size={12} /> Expired ({expiredPatents.length})
-              </button>
+              {expiredPatents.length > 0 && (
+                <button
+                  onClick={() => { setPatentTab("expired"); setPatentFilter("all"); }}
+                  className={`text-xs font-semibold px-4 py-2 rounded-lg border transition-all flex items-center gap-1.5 ${
+                    patentTab === "expired"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                  }`}
+                >
+                  <Clock size={12} /> Expired ({expiredPatents.length})
+                </button>
+              )}
             </div>
 
             {/* Category filter chips */}
@@ -413,6 +419,69 @@ export default function IntelPage() {
                 </div>
               </div>
             )}
+          </section>
+        )}
+
+        {/* ── Top Flipped Ideas ── */}
+        {topFlippedIdeas.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-1">
+              <Lightbulb size={16} className="text-primary" />
+              <h2 className="text-lg font-bold text-foreground">Top Flipped Ideas</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-6 max-w-2xl">
+              Interesting product revival concepts generated from analyses run on the platform.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {topFlippedIdeas.map((idea, i) => (
+                <div key={i} className="border border-border rounded-lg p-4 bg-card hover:border-primary/30 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lightbulb size={12} className="text-primary" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{idea.category}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground mb-1">{idea.title}</p>
+                  {idea.description && (
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{idea.description}</p>
+                  )}
+                  {idea.analysisTitle && (
+                    <p className="text-[10px] text-muted-foreground mt-2">From: {idea.analysisTitle}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Notable Revival Scores ── */}
+        {notableScores.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-1">
+              <Star size={16} className="text-primary" />
+              <h2 className="text-lg font-bold text-foreground">Notable Revival Scores</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-6 max-w-2xl">
+              Analyses with exceptionally high or low revival potential — the standout results from platform activity.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {notableScores.map((s, i) => (
+                <div key={i} className="border border-border rounded-lg p-4 bg-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{s.category}</span>
+                    <span className={`text-lg font-bold ${s.score >= 80 ? "text-primary" : "text-destructive"}`}>
+                      {s.score}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground leading-snug">{s.title}</p>
+                  <span className={`text-[10px] mt-1 inline-block px-2 py-0.5 rounded-full font-semibold ${
+                    s.score >= 80
+                      ? "bg-primary/10 text-primary"
+                      : "bg-destructive/10 text-destructive"
+                  }`}>
+                    {s.score >= 80 ? "High Potential" : "Low Potential"}
+                  </span>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 

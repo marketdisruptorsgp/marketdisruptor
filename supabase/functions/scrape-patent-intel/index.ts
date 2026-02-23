@@ -7,15 +7,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const PATENT_CATEGORIES = [
-  { keyword: "solid state battery", category: "Energy Storage" },
-  { keyword: "AI tutoring education", category: "EdTech" },
-  { keyword: "portable espresso machine", category: "Consumer Electronics" },
-  { keyword: "modular housing construction", category: "Real Estate Tech" },
-  { keyword: "pet health supplement", category: "Pet Care" },
-  { keyword: "micro SaaS platform", category: "Micro-SaaS" },
-  { keyword: "sustainable textile manufacturing", category: "Sustainable Fashion" },
-  { keyword: "fitness wearable sensor", category: "Fitness Tech" },
+// Broad patent searches — recent filings across industries, not locked to categories
+const PATENT_SEARCHES = [
+  { query: "patent filed this week new invention 2025 2026", label: "Recent filings" },
+  { query: "new patent application consumer product 2025 2026 USPTO", label: "Consumer products" },
+  { query: "patent filed technology innovation hardware software 2025 2026", label: "Technology" },
+  { query: "patent application health wellness biotech 2025 2026", label: "Health & Biotech" },
+  { query: "new patent sustainable energy green technology 2025 2026", label: "Sustainability" },
+  { query: "patent filing ecommerce retail logistics 2025 2026", label: "Commerce & Logistics" },
 ];
 
 serve(async (req) => {
@@ -34,99 +33,46 @@ serve(async (req) => {
 
     const allPatents: any[] = [];
 
-    // Scrape Google Patents for each category
-    for (const { keyword, category } of PATENT_CATEGORIES) {
+    for (const { query, label } of PATENT_SEARCHES) {
       try {
-        const searchUrl = `https://patents.google.com/?q=${encodeURIComponent(keyword)}&oq=${encodeURIComponent(keyword)}&sort=new`;
-        
-        const scrapeRes = await fetch("https://api.firecrawl.dev/v1/scrape", {
+        // Use Firecrawl search to find recent patent filings
+        const searchRes = await fetch("https://api.firecrawl.dev/v1/search", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            url: searchUrl,
-            formats: ["markdown"],
-            onlyMainContent: true,
-            waitFor: 3000,
+            query: `${query} site:patents.google.com OR site:USPTO.gov`,
+            limit: 8,
           }),
         });
 
-        if (!scrapeRes.ok) {
-          console.error(`Scrape failed for ${category}: ${scrapeRes.status}`);
+        if (!searchRes.ok) {
+          console.error(`Search failed for ${label}: ${searchRes.status}`);
           continue;
         }
 
-        const scrapeData = await scrapeRes.json();
-        const markdown = scrapeData?.data?.markdown || "";
+        const searchData = await searchRes.json();
+        const results = searchData?.data || [];
 
-        if (!markdown || markdown.length < 100) {
-          console.log(`No meaningful content for ${category}, using search fallback`);
-          // Fallback: use Firecrawl search for patent info
-          const searchRes = await fetch("https://api.firecrawl.dev/v1/search", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              query: `${keyword} patent filing 2024 2025 USPTO`,
-              limit: 5,
-            }),
-          });
+        if (results.length === 0) {
+          console.log(`No results for ${label}`);
+          continue;
+        }
 
-          if (searchRes.ok) {
-            const searchData = await searchRes.json();
-            const results = searchData?.data || [];
-            
-            // Use AI to extract structured patent data from search results
-            const extractPrompt = `Extract patent filing information from these search results about "${keyword}" patents. Return ONLY a valid JSON array of patents:
-[{"title":"Patent Title","assignee":"Company Name","filing_date":"YYYY-MM-DD","patent_number":"US...","abstract":"One sentence summary","source_url":"https://..."}]
+        const extractPrompt = `Extract real patent filing information from these search results. Return ONLY a valid JSON array:
+[{"title":"Patent Title","assignee":"Company Name","filing_date":"YYYY-MM-DD","patent_number":"US...","abstract":"One sentence summary","source_url":"https://...","category":"Short Category Name","status":"active"}]
 
 Search results:
-${results.map((r: any) => `Title: ${r.title}\nURL: ${r.url}\nDescription: ${r.description || ""}\nContent: ${(r.markdown || "").substring(0, 500)}`).join("\n---\n")}
+${results.map((r: any) => `Title: ${r.title}\nURL: ${r.url}\nDescription: ${r.description || ""}\nContent: ${(r.markdown || "").substring(0, 600)}`).join("\n---\n")}
 
-Return 3-5 patents maximum. Only include patents with real titles and assignees you can verify from the text. If you cannot find real patent data, return an empty array [].`;
-
-            const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${LOVABLE_API_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "google/gemini-2.5-flash",
-                messages: [{ role: "user", content: extractPrompt }],
-                temperature: 0.1,
-                max_tokens: 3000,
-              }),
-            });
-
-            if (aiRes.ok) {
-              const aiData = await aiRes.json();
-              const raw = aiData.choices?.[0]?.message?.content || "[]";
-              const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-              try {
-                let patents = JSON.parse(cleaned);
-                if (!Array.isArray(patents)) patents = patents.patents || patents.data || [];
-                for (const p of patents) {
-                  allPatents.push({ ...p, category, scraped_at: new Date().toISOString() });
-                }
-              } catch { console.error(`JSON parse failed for ${category}`); }
-            }
-          }
-          continue;
-        }
-
-        // Parse the scraped Google Patents markdown with AI
-        const parsePrompt = `Extract real patent filing data from this Google Patents search results page for "${keyword}". Return ONLY a valid JSON array:
-[{"title":"Patent Title","assignee":"Company Name","filing_date":"YYYY-MM-DD","patent_number":"US...","abstract":"One sentence summary","source_url":"https://patents.google.com/patent/..."}]
-
-Content:
-${markdown.substring(0, 4000)}
-
-Extract up to 8 real patents. Only include entries where you can identify a real title and patent number from the text. If data is unclear, skip that entry. Return empty array [] if nothing is extractable.`;
+Rules:
+- Extract up to 6 patents maximum
+- Assign a short category (2-3 words, e.g. "Energy Storage", "Consumer Electronics", "Digital Health", "Food Tech", "AI & ML", etc.) based on the patent content
+- Set status to "expired" if the text clearly indicates it's expired/lapsed, otherwise "active"
+- Only include patents with real titles and assignees you can verify from the text
+- Return empty array [] if nothing is extractable`;
 
         const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -136,7 +82,7 @@ Extract up to 8 real patents. Only include entries where you can identify a real
           },
           body: JSON.stringify({
             model: "google/gemini-2.5-flash",
-            messages: [{ role: "user", content: parsePrompt }],
+            messages: [{ role: "user", content: extractPrompt }],
             temperature: 0.1,
             max_tokens: 4000,
           }),
@@ -150,28 +96,38 @@ Extract up to 8 real patents. Only include entries where you can identify a real
             let patents = JSON.parse(cleaned);
             if (!Array.isArray(patents)) patents = patents.patents || patents.data || [];
             for (const p of patents) {
-              allPatents.push({ ...p, category, scraped_at: new Date().toISOString() });
+              allPatents.push({ ...p, scraped_at: new Date().toISOString() });
             }
-          } catch { console.error(`JSON parse failed for ${category}`); }
+          } catch { console.error(`JSON parse failed for ${label}`); }
         }
       } catch (err) {
-        console.error(`Error processing ${category}:`, err);
+        console.error(`Error processing ${label}:`, err);
       }
     }
 
-    // Clear old patent data and insert new
-    if (allPatents.length > 0) {
+    // Deduplicate by patent_number
+    const seen = new Set<string>();
+    const dedupedPatents = allPatents.filter((p) => {
+      const key = p.patent_number || p.title;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Clear old and insert new
+    if (dedupedPatents.length > 0) {
       await supabase.from("patent_filings").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      
-      const rows = allPatents.map((p) => ({
+
+      const rows = dedupedPatents.map((p) => ({
         title: p.title || "Untitled",
         assignee: p.assignee || "Unknown",
         filing_date: p.filing_date || null,
         publication_date: p.publication_date || null,
         patent_number: p.patent_number || null,
-        category: p.category,
+        category: p.category || "General",
         abstract: p.abstract || null,
         source_url: p.source_url || null,
+        status: p.status || "active",
         scraped_at: p.scraped_at,
       }));
 
@@ -179,7 +135,7 @@ Extract up to 8 real patents. Only include entries where you can identify a real
       if (error) throw new Error(`Patent insert failed: ${error.message}`);
     }
 
-    return new Response(JSON.stringify({ success: true, patents: allPatents.length }), {
+    return new Response(JSON.stringify({ success: true, patents: dedupedPatents.length }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
