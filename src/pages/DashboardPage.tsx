@@ -99,10 +99,9 @@ export default function DashboardPage() {
             {/* Analysis mode tabs + form */}
             {(() => {
               const TABS = [
-                { id: "custom" as const, label: "Product", icon: Upload, accent: "hsl(217 91% 38%)" },
-                { id: "service" as const, label: "Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
-                { id: "business" as const, label: "Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
-                { id: "discover" as const, label: "Nostalgia", icon: Telescope, accent: "hsl(var(--primary))" },
+                { id: "custom" as const, label: "Disrupt This Product", icon: Upload, accent: "hsl(217 91% 38%)" },
+                { id: "service" as const, label: "Disrupt This Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
+                { id: "business" as const, label: "Disrupt This Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
               ];
               return (
                 <div className="rounded overflow-hidden border border-border" style={{ background: "hsl(var(--card))" }}>
@@ -323,7 +322,6 @@ const TEMPLATES = [
   { tab: "custom" as const, label: "Vintage Electronics", desc: "Retro tech with revival potential", icon: "📻" },
   { tab: "service" as const, label: "Local Service Audit", desc: "Analyze a service business model", icon: "🏪" },
   { tab: "business" as const, label: "DTC Brand Audit", desc: "Deconstruct a direct-to-consumer brand", icon: "📦" },
-  { tab: "discover" as const, label: "Nostalgia Gold", desc: "80s & 90s products making a comeback", icon: "🕹️" },
 ];
 
 function QuickStartTemplates({ onSelect }: { onSelect: (tab: "custom" | "service" | "business" | "discover", category: string, era: string) => void }) {

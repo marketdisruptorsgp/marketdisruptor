@@ -71,20 +71,7 @@ async function findProductImage(productName: string, category: string, apiKey: s
   return null;
 }
 
-// Category fallback images from Unsplash (verified IDs)
-const CATEGORY_IMAGES: Record<string, string> = {
-  "Electronic Toys": "https://images.unsplash.com/photo-1566240258998-c85da43741f2?w=600&h=400&fit=crop",
-  "Instant Photography": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=400&fit=crop",
-  "Photography": "https://images.unsplash.com/photo-1495745966610-2a67f2297e5e?w=600&h=400&fit=crop",
-  "Gaming Hardware": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=400&fit=crop",
-  "Toys": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop",
-  "Toys & Games": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop",
-  "Fashion": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=400&fit=crop",
-  "Kitchen": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop",
-  "Music": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&h=400&fit=crop",
-  "Electronics": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=400&fit=crop",
-  "default": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=400&fit=crop",
-};
+// Category fallback removed — we no longer assign stock images
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -392,34 +379,44 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
       products = [products];
     }
 
-    // Now fetch real images for each product via Firecrawl
+    // Build a set of custom product names that have user-uploaded images
+    const customWithImage = new Set(
+      (customProducts || [])
+        .filter((cp: { hasImage?: boolean; productName?: string }) => cp.hasImage && cp.productName)
+        .map((cp: { productName?: string }) => (cp.productName || "").toLowerCase())
+    );
+
+    // Now fetch real images for each product via Firecrawl — but skip products where user uploaded an image
     if (FIRECRAWL_API_KEY) {
       console.log(`Searching for real product images for ${products.length} products...`);
       const imagePromises = products.map(async (product: { name: string; category: string }) => {
+        // Skip image search for user-uploaded products
+        if (customWithImage.has(product.name.toLowerCase())) return null;
         const realImage = await findProductImage(product.name, product.category, FIRECRAWL_API_KEY);
         return realImage;
       });
       
       const realImages = await Promise.all(imagePromises);
       
-      products = products.map((product: { image: string; category: string }, i: number) => {
+      products = products.map((product: { name: string; image: string; category: string }, i: number) => {
+        // If user uploaded an image for this product, keep PLACEHOLDER_IMAGE — frontend will use user's imageDataUrl
+        if (customWithImage.has(product.name.toLowerCase())) {
+          return { ...product, image: "USER_IMAGE", imageSource: "user" };
+        }
         const realImage = realImages[i];
-        const fallback = CATEGORY_IMAGES[product.category] || CATEGORY_IMAGES["default"];
         return {
           ...product,
-          image: realImage || fallback,
-          imageSource: realImage ? "firecrawl" : "fallback",
+          image: realImage || "",
+          imageSource: realImage ? "firecrawl" : "none",
         };
       });
       
       console.log(`Image search complete. Real images found: ${realImages.filter(Boolean).length}/${products.length}`);
     } else {
-      // Use category fallbacks if no Firecrawl
-      products = products.map((product: { image: string; category: string }) => ({
+      // No Firecrawl — leave images empty unless user uploaded
+      products = products.map((product: { name: string; image: string; category: string }) => ({
         ...product,
-        image: product.image === "PLACEHOLDER_IMAGE"
-          ? (CATEGORY_IMAGES[product.category] || CATEGORY_IMAGES["default"])
-          : product.image,
+        image: customWithImage.has(product.name.toLowerCase()) ? "USER_IMAGE" : "",
       }));
     }
 
