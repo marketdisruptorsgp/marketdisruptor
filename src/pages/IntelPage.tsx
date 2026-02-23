@@ -153,7 +153,7 @@ export default function IntelPage() {
               Real patent filings from public patent databases. Click any category in the treemap to filter, or expand a patent for full details.
             </p>
             <p className="text-[10px] text-muted-foreground mb-6 flex items-center gap-1">
-              <FileText size={10} /> {patents.length} filings tracked across {patentCategories.length} categories · Last 2-3 years
+              <FileText size={10} /> {patents.length} filings tracked across {patentCategories.length} {patentCategories.length === 1 ? "category" : "categories"} · Recent filings
             </p>
 
             {/* Interactive treemap */}
