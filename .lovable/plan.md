@@ -1,106 +1,190 @@
-&nbsp;
-
-Actually change email subject to Steven invited you to Market Disruptor 
-
-And make sure security privacy info is clear and obvious high contrast  
-
-Confirm links work   
+# Looks good but make each model have a different color to help differentiate them. 
 
 &nbsp;
 
-# Referral Email Overhaul
+&nbsp;
 
-## Summary
+# Global Design System Overhaul — Executive SaaS Aesthetic
 
-Complete rewrite of the referral email HTML template and subject line to match your exact copy, structure, and visual direction.
+## Overview
 
-## Changes (single file: `supabase/functions/send-referral-email/index.ts`)
+Apply the detailed design system prompt across every page, component, and breakpoint. Each analysis mode retains its own restrained accent color, used sparingly for borders, text, and small indicators — never for filled backgrounds or gradients.
 
-### 1. Subject Line and Title
+## Mode Color System (Retained, Restrained)
 
-- **Subject**: Change from `${senderName} thinks you need to see this` to `Thought you'd get a ton of value from this! - ${senderName}`
-- **HTML title tag**: Same as subject
 
-### 2. Header / Greeting
+| Mode           | Accent                          | Usage                              |
+| -------------- | ------------------------------- | ---------------------------------- |
+| Product        | `hsl(217 91% 38%)` deep cobalt  | Left borders, text, dot indicators |
+| Service        | `hsl(340 65% 45%)` muted rose   | Left borders, text, dot indicators |
+| Business Model | `hsl(271 70% 50%)` muted indigo | Left borders, text, dot indicators |
+| Nostalgia      | `hsl(220 65% 18%)` primary navy | Left borders, text, dot indicators |
 
-- Remove the old `<h1>` that says "thinks you need to see this"
-- Replace with: `Hi ${recipientName},` (or `Hi there,` if no name) as a simple high-contrast white heading
 
-### 3. Body Copy (4 paragraphs, exact text you provided)
+---
 
-All in white (#ffffff), 15px, high line-height for readability:
+## Violations to Fix (by file)
 
-1. "You've been invited to access Market Disruptor..." paragraph
-2. "This is not a surface-level tool..." paragraph
-3. "It doesn't assume the current model is right..." paragraph
-4. "The goal isn't to promise..." paragraph
-5. "The output is not a generic report..." paragraph
+### 1. `src/index.css` — Design Tokens
 
-### 4. CTA Button
+- Update primary background to `#0F1113` (deep charcoal)
+- Ensure border-radius defaults are 4px globally
+- Remove `--shadow-primary` glow variable if present
+- Confirm 8pt spacing rhythm in base styles
 
-- Text: **"Access Here"**
-- Links to `${shareUrl}` (the working share URL)
-- Blue gradient button, white text, centered
+### 2. `tailwind.config.ts`
 
-### 5. Four Modes Section
+- Set `borderRadius.lg` to `6px`, `md` to `4px`, `sm` to `2px` (already done, confirm)
+- Ensure no animation utilities beyond accordion (no bounce, no scale)
 
-- **"Four Ways to Uncover Opportunity"** header stays large (18-20px), bold, white, uppercase, centered with accent underline
-- Each mode card keeps its color theme (blue/purple/amber/green) with tinted background, colored left border, rounded corners
+### 3. `src/pages/Index.tsx` — Main Dashboard (~30 violations)
 
-**Disrupt This Product** (blue) -- 8 bullets:
+**Step CTA buttons (lines 1451-1521, 1757-1794):**
 
-- Commercial intelligence dossier from deep web crawling
-- Real pricing data, market averages, premiums, and trend trajectories
-- Supply chain mapping with OEMs, cost breakdowns, and alt sourcing
-- Competitive landscape with pricing gaps and positioning blind spots
-- Patent intel, expired IP to leverage, active patents to avoid, white space
-- Unfiltered community complaints and feature requests from forums
-- Flipped product ideas challenging original design assumptions
-- 3-phase go-to-market plan with stress-tested projections
+- Remove `linear-gradient` backgrounds
+- Remove `boxShadow` glow effects
+- Remove `rounded-2xl` (use `rounded` = 4px)
+- Remove `hover:scale-[1.02]`
+- Replace with flat accent-colored solid buttons, max height 44px, no glow
 
-**Disrupt This Service** (purple) -- 7 bullets:
+**Step 3/4/5 section wrappers (lines 1542, 1582, 1645, 1810, 1836, 1898):**
 
-- Market positioning against the full competitive landscape
-- Pricing breakdown -- how competitors charge and where gaps exist
-- Customer journey friction map with drop-off points and causes
-- Underserved segments the competition has overlooked
-- Operational workflow analysis -- inefficiencies and automation opportunities
-- Growth strategy with acquisition channels, costs, and retention mechanics
-- Scaling projections grounded in real market data
+- Remove `rounded-2xl` -> `rounded`
+- Remove gradient backgrounds in headers (`linear-gradient(135deg, ...)`)
+- Remove glow `boxShadow`
+- Use flat `hsl(var(--card))` background with a left border accent instead
 
-**Disrupt The Business Model** (amber) -- 7 bullets:
+**Step number badges (w-10 h-10 rounded-xl):**
 
-- Customer journey friction map ranked by impact
-- Cost structure deconstruction, where money leaks and why
-- Technology leverage audit with automation difficulty ratings
-- User workflow analysis, actual behavior vs. assumptions
-- Competitive repositioning with a defensible moat plan
-- Revenue paths surfaced by challenging pricing assumptions
-- Reinvention blueprint with IP considerations and phased timeline
+- Change to `w-7 h-7 rounded` (4px radius, smaller)
+- Remove `font-extrabold` -> `font-semibold`
 
-**Disrupt This Nostalgia** (green) -- 8 bullets:
+**"Explore" badges (lines 1612, 1865):**
 
-- Revival Potential Score (1-10) across 6 dimensions per product
-- Reinvented product concepts with bill-of-materials estimates
-- Live pricing from eBay, Etsy, and collector marketplaces
-- Community sentiment from Reddit, TikTok, and Google trends
-- Supply chain mapping with verified suppliers and MOQs
-- Patent landscape, expired IP goldmines, active risks, and innovation gaps
-- Friction analysis, why the product lost traction and what was never fixed
-- 3-phase execution roadmap with budget and ROI projections
+- Remove `animate-pulse`
+- Remove glow `boxShadow`
+- Replace with a simple dot indicator (w-1.5 h-1.5)
 
-### 6. Footer
+**Stress test sub-tabs (lines 1600-1620, 1852-1872):**
 
-- Remains the same (encryption note, invite disclaimer, SGP Capital branding)
+- Remove `rounded-xl` -> `rounded`
+- Remove glow boxShadow
+- Simplify to text-only tabs with underline active state
 
-### 7. No Other Files Changed
+**Detail tab previous/next buttons:**
 
-- This is entirely contained in the edge function. No UI changes.
+- Remove `rounded-xl` and `rounded-2xl` -> `rounded`
+- Remove gradient styling on "Previous" button
+
+**SGP Capital CTA (lines 1932-1967):**
+
+- Remove `rounded-2xl` -> `rounded`
+- Remove gradient background
+- Simplify to flat card with subtle border
+
+### 4. `src/components/HeroSection.tsx`
+
+- Already minimal — confirm `rounded` usage (currently using `rounded-lg`)
+- Tighten heading: remove extra font weight if over 700
+
+### 5. `src/components/AnalysisForm.tsx`
+
+- Confirmation dialog header gradient -> flat dark background
+- Remove `rounded-xl` on inputs -> `rounded` (4px)
+- Remove `rounded-2xl` on cards -> `rounded`
+- Capability stat cards: flatten, remove any heavy styling
+- Submit button: remove glow boxShadow, use flat primary
+
+### 6. `src/pages/AuthPage.tsx`
+
+- Remove background gradient (`linear-gradient(165deg, ...)`) -> flat `#0F1113`
+- Remove `rounded-xl` on inputs -> `rounded`
+- Remove `rounded-2xl` on icon containers -> `rounded`
+- Mode toggle: remove `rounded-xl` -> `rounded`
+- Submit button: remove glow boxShadow
+- Feature cards on mobile: remove `rounded-xl` -> `rounded`
+- "Check your inbox" confirmation: remove `rounded-2xl` -> `rounded`
+
+### 7. `src/pages/PricingPage.tsx`
+
+- Remove background gradient -> flat `#0F1113`
+- Tier cards: remove `rounded-2xl` -> `rounded`, remove gradient on Disruptor card
+- Badges ("Your Plan", "Most Popular"): remove `rounded-full` -> `rounded`
+- Upgrade buttons: remove `hover:scale-[1.02]`, remove glow boxShadow
+- Icon containers: remove `rounded-xl` -> `rounded`
+
+### 8. `src/components/StepNavigator.tsx`
+
+- Already fairly clean — confirm no gradient usage
+
+### 9. `src/components/ProductCard.tsx`
+
+- Remove `rounded-lg` on elements -> `rounded`
+- Ensure tag pills use 4px radius
+
+### 10. `src/components/LoadingTracker.tsx`
+
+- Already clean — confirm `rounded-sm` usage on progress bar is acceptable
+
+### 11. Additional Components to Audit
+
+- `RevivalScoreBadge.tsx` — remove `rounded-full` if using pill badges
+- `ScoreBar.tsx` — ensure consistent radius
+- `FlippedIdeaCard.tsx` — remove any rounded-xl/2xl
+- `WelcomeModal.tsx` — flatten any gradients
+- `PaywallModal.tsx` — flatten styling
+- `PitchDeck.tsx` — remove gradients, rounded-2xl
+- `FirstPrinciplesAnalysis.tsx` — remove gradients, rounded-2xl
+- `CriticalValidation.tsx` — remove gradients, rounded-2xl
+- `BusinessModelAnalysis.tsx` — remove gradients, rounded-2xl
+
+---
 
 ## Technical Details
 
-- Rewrite the `buildReferralEmailHtml` function body with the new HTML
-- Update subject line on line 230 to the new format
-- All bullet text in white (#ffffff) at 13px for consistency
-- Key terms in each mode highlighted with the mode's accent color (bold)
-- Deploy the `send-referral-email` edge function
+### CSS Token Updates (`index.css`)
+
+```text
+Dark theme values:
+--background: 220 16% 7%    (approx #0F1113)
+--card: 220 16% 9%
+--border: 220 16% 14%
+```
+
+### Border Radius Rule
+
+Every `rounded-xl`, `rounded-2xl`, `rounded-full` (except tiny dot indicators) replaced with `rounded` (4px) or `rounded-md` (4px).
+
+### Shadow Rule
+
+Only shadow allowed: `0 1px 2px 0 hsl(220 14% 10% / 0.04)` (card resting state).
+No glow, no colored shadows, no `boxShadow` with color opacity.
+
+### Typography Constraints
+
+- Max 2 weights for body: `font-medium` (500), `font-semibold` (600)
+- Hero only: `font-bold` (700)
+- Remove all `font-extrabold` (800) usage
+- Remove all `font-black` (900) usage
+
+### Button Styles (exactly 2)
+
+1. **Primary**: flat `hsl(var(--primary))` background, white text, `rounded`, `h-9` or `h-10`
+2. **Secondary**: `1px solid hsl(var(--border))`, transparent background, foreground text, `rounded`
+
+### Interaction Rules
+
+- Remove all `hover:scale-*` transforms
+- Remove all `animate-pulse` except loading spinners
+- Transitions: `transition-colors duration-150` only
+- No bounce, no spring, no glow on hover
+
+### Mobile
+
+- Minimum button height: 44px (`min-h-[44px]`)
+- Preserve spacing integrity (no cramping)
+- Typography scales proportionally via existing responsive classes
+
+### Scope
+
+All files listed above will be updated in a single pass. The changes are purely visual — no logic, data flow, or API changes.
