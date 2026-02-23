@@ -6,91 +6,58 @@
 
 @layer base {
   :root {
-    --background: 225 20% 11%;
-    --foreground: 210 30% 97%;
+    --background: 0 0% 100%;
+    --foreground: 225 15% 15%;
 
-    --card: 225 20% 15%;
-    --card-foreground: 210 30% 97%;
+    --card: 220 20% 97%;
+    --card-foreground: 225 15% 15%;
 
-    --popover: 225 20% 13%;
-    --popover-foreground: 210 30% 97%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 15% 15%;
 
-    --primary: 215 85% 55%;
+    --primary: 230 90% 63%;
     --primary-foreground: 0 0% 100%;
 
-    --primary-dark: 215 85% 46%;
-    --primary-light: 215 70% 65%;
-    --primary-muted: 215 30% 20%;
+    --primary-dark: 230 85% 55%;
+    --primary-light: 230 70% 72%;
+    --primary-muted: 230 60% 96%;
 
-    --secondary: 225 18% 19%;
-    --secondary-foreground: 210 30% 97%;
+    --secondary: 220 14% 94%;
+    --secondary-foreground: 225 15% 15%;
 
-    --muted: 225 16% 20%;
-    --muted-foreground: 220 15% 62%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 225 18% 22%;
-    --accent-foreground: 210 30% 97%;
+    --accent: 220 14% 93%;
+    --accent-foreground: 225 15% 15%;
 
     --destructive: 0 72% 52%;
-    --destructive-foreground: 210 30% 97%;
+    --destructive-foreground: 0 0% 100%;
 
     --success: 152 60% 44%;
     --warning: 36 80% 52%;
 
-    --border: 225 14% 26%;
-    --input: 225 14% 26%;
-    --ring: 215 70% 60%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 230 70% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
     --score-high: 160 60% 44%;
     --score-mid: 36 77% 52%;
     --score-low: 0 72% 52%;
 
-    --sidebar-background: 225 20% 9%;
-    --sidebar-foreground: 220 14% 92%;
-    --sidebar-primary: 215 65% 65%;
-    --sidebar-primary-foreground: 225 20% 6%;
-    --sidebar-accent: 225 18% 16%;
-    --sidebar-accent-foreground: 220 14% 92%;
-    --sidebar-border: 225 16% 20%;
-    --sidebar-ring: 215 65% 65%;
+    --sidebar-background: 220 20% 97%;
+    --sidebar-foreground: 225 15% 15%;
+    --sidebar-primary: 230 90% 63%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 93%;
+    --sidebar-accent-foreground: 225 15% 15%;
+    --sidebar-border: 220 13% 90%;
+    --sidebar-ring: 230 70% 60%;
 
-    --shadow-card: 0 1px 3px 0 hsl(225 20% 6% / 0.12), 0 1px 2px -1px hsl(225 20% 6% / 0.08);
-    --shadow-card-hover: 0 8px 24px -4px hsl(225 20% 6% / 0.2), 0 2px 6px -1px hsl(225 20% 6% / 0.1);
-  }
-
-  .dark {
-    --background: 225 20% 11%;
-    --foreground: 210 30% 97%;
-    --card: 225 20% 15%;
-    --card-foreground: 210 30% 97%;
-    --popover: 225 20% 13%;
-    --popover-foreground: 210 30% 97%;
-    --primary: 215 85% 55%;
-    --primary-foreground: 0 0% 100%;
-    --primary-dark: 215 85% 46%;
-    --primary-light: 215 70% 65%;
-    --primary-muted: 215 30% 20%;
-    --secondary: 225 18% 19%;
-    --secondary-foreground: 210 30% 97%;
-    --muted: 225 16% 20%;
-    --muted-foreground: 220 15% 62%;
-    --accent: 225 18% 22%;
-    --accent-foreground: 210 30% 97%;
-    --destructive: 0 72% 52%;
-    --destructive-foreground: 210 30% 97%;
-    --border: 225 14% 26%;
-    --input: 225 14% 26%;
-    --ring: 215 70% 60%;
-    --sidebar-background: 225 20% 9%;
-    --sidebar-foreground: 220 14% 92%;
-    --sidebar-primary: 215 65% 65%;
-    --sidebar-primary-foreground: 225 20% 6%;
-    --sidebar-accent: 225 18% 16%;
-    --sidebar-accent-foreground: 220 14% 92%;
-    --sidebar-border: 225 16% 20%;
-    --sidebar-ring: 215 65% 65%;
+    --shadow-card: 0 1px 3px 0 hsl(220 20% 80% / 0.12), 0 1px 2px -1px hsl(220 20% 80% / 0.08);
+    --shadow-card-hover: 0 8px 24px -4px hsl(220 20% 80% / 0.18), 0 2px 6px -1px hsl(220 20% 80% / 0.08);
   }
 }
 
@@ -118,11 +85,11 @@
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
-    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
   }
   .card-intelligence:hover {
     box-shadow: var(--shadow-card-hover);
-    border-color: hsl(var(--primary) / 0.15);
+    border-color: hsl(var(--primary) / 0.2);
   }
 
   .section-panel {
@@ -130,37 +97,37 @@
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
-    padding: 1.5rem;
+    padding: 1.75rem;
   }
 
   .insight-callout {
     position: relative;
-    background: hsl(var(--primary) / 0.05);
+    background: hsl(var(--primary) / 0.04);
     border: 1px solid hsl(var(--border));
     border-left: 3px solid hsl(var(--primary));
     border-radius: var(--radius);
     padding: 1.25rem 1.5rem;
   }
   .insight-callout--success {
-    background: hsl(var(--success) / 0.05);
+    background: hsl(var(--success) / 0.04);
     border-color: hsl(var(--border));
     border-left-color: hsl(var(--success));
   }
 
   .score-badge-high {
-    background: hsl(var(--score-high) / 0.1);
+    background: hsl(var(--score-high) / 0.08);
     color: hsl(var(--score-high));
-    border: 1px solid hsl(var(--score-high) / 0.25);
+    border: 1px solid hsl(var(--score-high) / 0.2);
   }
   .score-badge-mid {
-    background: hsl(var(--warning) / 0.1);
+    background: hsl(var(--warning) / 0.08);
     color: hsl(var(--warning));
-    border: 1px solid hsl(var(--warning) / 0.25);
+    border: 1px solid hsl(var(--warning) / 0.2);
   }
   .score-badge-low {
-    background: hsl(var(--destructive) / 0.1);
+    background: hsl(var(--destructive) / 0.08);
     color: hsl(var(--destructive));
-    border: 1px solid hsl(var(--destructive) / 0.25);
+    border: 1px solid hsl(var(--destructive) / 0.2);
   }
 
   .tag-pill {
@@ -176,7 +143,7 @@
   }
 
   .step-badge {
-    @apply flex items-center justify-center w-7 h-7 rounded-md text-xs font-semibold;
+    @apply flex items-center justify-center w-7 h-7 rounded-lg text-xs font-semibold;
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
   }
@@ -191,7 +158,7 @@
   .btn-primary {
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
-    @apply px-5 py-2.5 rounded-md text-sm font-semibold transition-colors duration-150;
+    @apply px-6 py-2.5 rounded-full text-sm font-semibold transition-colors duration-150;
   }
   .btn-primary:hover {
     background: hsl(var(--primary-dark));

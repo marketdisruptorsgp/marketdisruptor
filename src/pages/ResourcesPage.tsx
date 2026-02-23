@@ -43,30 +43,30 @@ export default function ResourcesPage() {
   }, [location.hash]);
 
   return (
-    <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
+    <div className="min-h-screen bg-background">
       <PlatformNav tier={tier} />
 
-      <main className="max-w-3xl mx-auto px-6 py-16">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-3">Resources</p>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight mb-8">
+      <main className="max-w-3xl mx-auto px-6 py-20">
+        <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Resources</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight mb-10">
           Learn How It Works
         </h1>
 
         <Tabs defaultValue={initialTab}>
-          <TabsList className="mb-8">
-            <TabsTrigger value="faqs" className="text-xs">FAQs</TabsTrigger>
-            <TabsTrigger value="methodology" className="text-xs">Methodology</TabsTrigger>
-            <TabsTrigger value="market-intel" className="text-xs">Market Intel</TabsTrigger>
+          <TabsList className="mb-10">
+            <TabsTrigger value="faqs" className="text-sm">FAQs</TabsTrigger>
+            <TabsTrigger value="methodology" className="text-sm">Methodology</TabsTrigger>
+            <TabsTrigger value="market-intel" className="text-sm">Market Intel</TabsTrigger>
           </TabsList>
 
           <TabsContent value="faqs">
-            <Accordion type="single" collapsible className="space-y-2">
+            <Accordion type="single" collapsible className="space-y-3">
               {FAQS.map((faq, i) => (
-                <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded px-4" style={{ background: "hsl(var(--card))" }}>
-                  <AccordionTrigger className="text-sm font-semibold text-foreground py-3 hover:no-underline">
+                <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded-lg px-5 bg-card shadow-sm">
+                  <AccordionTrigger className="text-sm font-semibold text-foreground py-4 hover:no-underline">
                     {faq.q}
                   </AccordionTrigger>
-                  <AccordionContent className="text-xs text-muted-foreground leading-relaxed pb-3">
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
                     {faq.a}
                   </AccordionContent>
                 </AccordionItem>
@@ -75,13 +75,13 @@ export default function ResourcesPage() {
           </TabsContent>
 
           <TabsContent value="methodology">
-            <div className="space-y-6">
+            <div className="space-y-8">
               {METHODOLOGY_STEPS.map((step, i) => (
                 <div key={i} className="flex items-start gap-4">
                   <div className="step-badge flex-shrink-0 mt-0.5">{i + 1}</div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{step.title}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed mt-1">{step.desc}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">{step.desc}</p>
                   </div>
                 </div>
               ))}
@@ -89,22 +89,19 @@ export default function ResourcesPage() {
           </TabsContent>
 
           <TabsContent value="market-intel">
-            <div className="rounded border border-border p-6 text-center" style={{ background: "hsl(var(--card))" }}>
-              <p className="text-sm font-semibold text-foreground mb-2">Market Intelligence Reports — Coming Soon</p>
-              <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto leading-relaxed">
+            <div className="rounded-lg border border-border p-8 text-center bg-card shadow-sm">
+              <p className="text-base font-semibold text-foreground mb-2">Market Intelligence Reports — Coming Soon</p>
+              <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto leading-relaxed">
                 We're building curated market reports that surface emerging opportunities across categories. In the meantime, run your own analysis to generate custom intelligence.
               </p>
-              <button
-                onClick={() => navigate("/")}
-                className="btn-primary inline-flex items-center gap-2"
-              >
+              <button onClick={() => navigate("/")} className="btn-primary inline-flex items-center gap-2">
                 Run an Analysis <ArrowRight size={14} />
               </button>
             </div>
           </TabsContent>
         </Tabs>
 
-        <footer className="mt-16 pt-6 border-t border-border text-center">
+        <footer className="mt-20 pt-6 border-t border-border text-center">
           <p className="text-xs">
             <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:opacity-80 transition-opacity">
               Built by SGP Capital

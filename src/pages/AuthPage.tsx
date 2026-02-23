@@ -11,18 +11,6 @@ const QUOTES = [
   "What the crowd abandoned, the contrarian capitalizes on.",
 ];
 
-const inputStyle = {
-  border: "1px solid hsl(var(--border))",
-  background: "hsl(var(--background))",
-  color: "hsl(var(--foreground))",
-  borderRadius: "var(--radius)",
-  padding: "0.75rem 1rem",
-  fontSize: "0.875rem",
-  width: "100%",
-  outline: "none",
-  transition: "border-color 0.2s",
-} as React.CSSProperties;
-
 type AuthMode = "magic" | "password";
 
 export default function AuthPage() {
@@ -82,8 +70,8 @@ export default function AuthPage() {
     <div className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden bg-card border-r border-border">
       <div className="relative z-10 p-12 flex flex-col justify-between h-full">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded flex items-center justify-center bg-primary text-primary-foreground">
-            <Zap size={16} />
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary text-primary-foreground">
+            <Zap size={18} />
           </div>
           <span className="font-bold text-lg text-foreground">Market Disruptor</span>
         </div>
@@ -105,7 +93,7 @@ export default function AuthPage() {
         <HeroPanel />
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="w-full max-w-md space-y-8 text-center">
-            <div className="w-16 h-16 rounded flex items-center justify-center mx-auto bg-muted border border-border text-primary">
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto bg-muted border border-border text-primary">
               <Mail size={28} />
             </div>
             <div>
@@ -118,7 +106,7 @@ export default function AuthPage() {
               </p>
             </div>
 
-            <div className="rounded p-5 text-left space-y-3 bg-muted/50 border border-border">
+            <div className="rounded-lg p-6 text-left space-y-3 bg-muted/50 border border-border">
               <p className="text-xs font-bold uppercase tracking-wider mb-1 text-primary">
                 What to look for
               </p>
@@ -130,18 +118,18 @@ export default function AuthPage() {
               </p>
             </div>
 
-            <div className="rounded p-4 text-left space-y-2 bg-card border border-border">
+            <div className="rounded-lg p-5 text-left space-y-2.5 bg-card border border-border">
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={14} className="text-primary" />
-                <p className="text-xs font-semibold text-foreground">Your analyses persist across sessions</p>
+                <p className="text-sm font-semibold text-foreground">Your analyses persist across sessions</p>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={14} className="text-primary" />
-                <p className="text-xs font-semibold text-foreground">Log back in anytime with the same email</p>
+                <p className="text-sm font-semibold text-foreground">Log back in anytime with the same email</p>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={14} className="text-primary" />
-                <p className="text-xs font-semibold text-foreground">Set a password later for even faster logins</p>
+                <p className="text-sm font-semibold text-foreground">Set a password later for even faster logins</p>
               </div>
             </div>
             <button
@@ -160,14 +148,13 @@ export default function AuthPage() {
     <div className="min-h-screen flex bg-background text-foreground">
       <HeroPanel />
 
-      {/* Right: Sign In Form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 relative overflow-hidden">
         <div className="relative z-10 w-full max-w-md space-y-8">
           {/* Mobile hero section */}
           <div className="lg:hidden space-y-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded flex items-center justify-center bg-primary text-primary-foreground">
-                <Zap size={16} />
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary text-primary-foreground">
+                <Zap size={18} />
               </div>
               <span className="font-bold text-lg text-foreground">Market Disruptor</span>
             </div>
@@ -199,32 +186,24 @@ export default function AuthPage() {
             <h2 className="text-xl font-bold text-foreground mb-1">
               {mode === "magic" ? "Sign in to your workspace" : "Welcome back"}
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {mode === "magic" ? "Magic link — no password needed." : "Sign in with your password."}
             </p>
           </div>
 
           {/* Mode toggle */}
-          <div className="flex rounded overflow-hidden border border-border bg-muted/30">
+          <div className="flex rounded-lg overflow-hidden border border-border bg-muted/30">
             <button
               type="button"
               onClick={() => setMode("magic")}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors"
-              style={{
-                background: mode === "magic" ? "hsl(var(--primary))" : "transparent",
-                color: mode === "magic" ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",
-              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${mode === "magic" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
               <Mail size={14} /> Magic Link
             </button>
             <button
               type="button"
               onClick={() => setMode("password")}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors"
-              style={{
-                background: mode === "password" ? "hsl(var(--primary))" : "transparent",
-                color: mode === "password" ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",
-              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${mode === "password" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
               <Lock size={14} /> Password
             </button>
@@ -235,31 +214,27 @@ export default function AuthPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">First Name</label>
                 <input
-                  style={inputStyle}
+                  className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="e.g. Alex, Jordan, Sam…"
                   autoFocus
-                  onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
-                  onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
                 <input
-                  style={inputStyle}
+                  className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
-                  onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading || !firstName.trim() || !email.trim()}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded font-bold text-sm transition-colors bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-colors bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <><Loader2 size={16} className="animate-spin" /> Sending magic link…</> : <>Send Magic Link <ArrowRight size={16} /></>}
               </button>
@@ -269,32 +244,28 @@ export default function AuthPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
                 <input
-                  style={inputStyle}
+                  className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   autoFocus
-                  onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
-                  onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Password</label>
                 <input
-                  style={inputStyle}
+                  className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Your password"
-                  onFocus={(e) => (e.target.style.borderColor = "hsl(var(--primary))")}
-                  onBlur={(e) => (e.target.style.borderColor = "hsl(var(--border))")}
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading || !email.trim() || !password.trim()}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded font-bold text-sm transition-colors bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-colors bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <><Loader2 size={16} className="animate-spin" /> Signing in…</> : <>Sign In <ArrowRight size={16} /></>}
               </button>
