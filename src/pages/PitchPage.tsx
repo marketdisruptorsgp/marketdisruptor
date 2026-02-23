@@ -22,7 +22,7 @@ export default function PitchPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
-      <main className="max-w-5xl mx-auto px-6 py-6 space-y-5">
+      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <StepNavigator
           steps={[
             { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent },
@@ -48,14 +48,14 @@ export default function PitchPage() {
         </button>
 
         <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(var(--primary))" }}>
-          <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
-            <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
+          <div className="px-3 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--card))" }}>
+            <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-white font-semibold text-xs sm:text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-bold text-foreground">Investor Pitch Deck</h2>
-              <p className="text-sm text-muted-foreground">Professional pitch deck for <strong className="text-foreground">{selectedProduct.name}</strong></p>
+              <h2 className="text-base sm:text-lg font-bold text-foreground">Investor Pitch Deck</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">Professional pitch deck for <strong className="text-foreground">{selectedProduct.name}</strong></p>
             </div>
           </div>
-          <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+          <div className="p-3 sm:p-5" style={{ background: "hsl(var(--card))" }}>
             <PitchDeck product={selectedProduct} />
           </div>
         </div>

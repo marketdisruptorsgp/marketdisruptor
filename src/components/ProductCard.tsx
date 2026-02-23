@@ -81,10 +81,10 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         </div>
       )}
 
-      <div className="p-4 space-y-2">
+      <div className="p-3 sm:p-4 space-y-2">
         <div>
           <p className="section-label text-[10px] mb-0.5">{product.category}</p>
-          <h3 className="font-semibold text-sm leading-tight text-foreground">{product.name}</h3>
+          <h3 className="font-semibold text-xs sm:text-sm leading-tight text-foreground">{product.name}</h3>
         </div>
 
         {product.keyInsight && (

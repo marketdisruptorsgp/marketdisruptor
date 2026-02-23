@@ -53,7 +53,6 @@ const MODE_TIPS: Record<"custom" | "service" | "business", string[]> = {
   ],
 };
 
-// Session-stable seed so tips don't flicker on re-renders
 const SESSION_SEED = Math.random();
 
 export default function DashboardPage() {
@@ -71,7 +70,6 @@ export default function DashboardPage() {
   const [selectedMode, setSelectedMode] = useState<"custom" | "service" | "business" | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
-  // Sync local selectedMode with context (e.g. when mode changed from PlatformNav)
   useEffect(() => {
     const ctx = analysis.mainTab;
     if (ctx === "custom" || ctx === "service" || ctx === "business") {
@@ -80,7 +78,6 @@ export default function DashboardPage() {
   }, [analysis.mainTab]);
   const modeTabsRef = useRef<HTMLDivElement>(null);
 
-  // Cycling word state
   const [wordIndex, setWordIndex] = useState(0);
   const [visible, setVisible] = useState(true);
 
@@ -147,8 +144,8 @@ export default function DashboardPage() {
 
       {/* Hero Section */}
       <section className="bg-background">
-        <div className="max-w-4xl mx-auto px-6 pt-20 pb-16 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground leading-tight">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-10 sm:pb-16 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
             Rethink any{" "}
             <span
               className="inline-block transition-opacity duration-300"
@@ -160,19 +157,19 @@ export default function DashboardPage() {
               {MODE_WORDS[wordIndex].label}
             </span>
           </h1>
-          <p className="text-base sm:text-lg text-muted-foreground mt-5 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-4 sm:mt-5 max-w-2xl mx-auto leading-relaxed px-2">
             Deconstruct markets, stress-test strategies, and build what's next with AI-powered competitive intelligence.
           </p>
-          <div className="flex items-center justify-center gap-4 mt-8">
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8">
             <button
               onClick={handleStartAnalysis}
-              className="btn-primary"
+              className="btn-primary text-sm px-5 sm:px-6"
             >
               Start Analysis
             </button>
             <button
               onClick={() => navigate("/about")}
-              className="px-6 py-2.5 rounded-full text-sm font-semibold border border-border text-foreground transition-colors hover:bg-muted"
+              className="px-4 sm:px-6 py-2.5 rounded-full text-sm font-semibold border border-border text-foreground transition-colors hover:bg-muted"
             >
               Learn More
             </button>
@@ -182,8 +179,8 @@ export default function DashboardPage() {
 
       {/* Mode Pills */}
       <div ref={modeTabsRef} className="border-t border-border bg-card">
-        <div className="max-w-4xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-center gap-3">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
             {MODE_PILLS.map((pill) => {
               const Icon = pill.icon;
               const isActive = selectedMode === pill.id;
@@ -191,7 +188,7 @@ export default function DashboardPage() {
                 <button
                   key={pill.id}
                   onClick={() => handleModeSelect(pill.id)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-colors"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold border transition-colors"
                   style={
                     isActive
                       ? {
@@ -205,7 +202,7 @@ export default function DashboardPage() {
                         }
                   }
                 >
-                  <Icon size={15} />
+                  <Icon size={14} />
                   {pill.label}
                 </button>
               );
@@ -214,14 +211,14 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Analysis Form (shown when mode selected) */}
+      {/* Analysis Form */}
       {selectedMode && (
-        <main className="max-w-4xl mx-auto px-6 py-10" ref={formRef}>
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10" ref={formRef}>
           <div
             className="rounded-lg overflow-hidden border border-border bg-card shadow-sm"
             style={{ borderTop: `3px solid hsl(var(${modeColor}))` }}
           >
-            <div className="px-5 pt-4 pb-2 border-b border-border">
+            <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-2 border-b border-border">
               <p
                 className="text-xs font-bold uppercase tracking-widest"
                 style={{ color: `hsl(var(${modeColor}))` }}
@@ -229,7 +226,7 @@ export default function DashboardPage() {
                 {selectedMode === "custom" ? "Disrupt This Product" : selectedMode === "service" ? "Disrupt This Service" : "Disrupt This Business Model"}
               </p>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {(() => {
                 const tips = MODE_TIPS[selectedMode!];
                 const tipIndex = Math.floor(SESSION_SEED * tips.length);
@@ -262,9 +259,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Loading tracker */}
           {isLoading && (
-            <div className="mt-8">
+            <div className="mt-6 sm:mt-8">
               <LoadingTracker
                 step={analysis.step as "scraping" | "analyzing"}
                 elapsedSeconds={analysis.elapsedSeconds}
@@ -273,9 +269,8 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Error */}
           {analysis.step === "error" && (
-            <div className="mt-8 p-6 rounded-lg flex items-start gap-3 bg-destructive/5 border border-destructive/20">
+            <div className="mt-6 sm:mt-8 p-4 sm:p-6 rounded-lg flex items-start gap-3 bg-destructive/5 border border-destructive/20">
               <AlertCircle size={20} className="text-destructive flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-sm text-destructive">Analysis Failed</p>
@@ -286,17 +281,15 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-
         </main>
       )}
 
-      {/* Methodology strip */}
       <DisruptionPathBanner />
 
       {/* Footer */}
       <footer className="border-t border-border mt-0">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
             <span className="flex items-center gap-1"><ShieldCheck size={11} /> Your data is encrypted & never shared</span>
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:flex items-center gap-1"><BookOpen size={11} /> Analyses scoped to your account via RLS</span>
@@ -305,7 +298,7 @@ export default function DashboardPage() {
             <a href="/pricing" className="font-semibold text-primary hover:underline">Enterprise & Teams</a>
           </div>
         </div>
-        <div className="border-t border-border py-6 text-center">
+        <div className="border-t border-border py-4 sm:py-6 text-center px-4">
           <p className="text-xs">
             <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80 text-primary">
               Built by SGP Capital

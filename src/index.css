@@ -184,6 +184,14 @@
     height: 1px;
     background: hsl(var(--border));
   }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes progress-indeterminate {

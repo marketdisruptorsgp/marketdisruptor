@@ -38,7 +38,7 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
   return (
     <div className="card-intelligence overflow-hidden">
       {/* Header */}
-      <div className="px-6 pt-6 pb-5 border-b border-border">
+      <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 sm:pb-5 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <p className="font-semibold text-foreground text-sm">
@@ -63,28 +63,28 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
         </div>
       </div>
 
-      {/* Two column */}
+      {/* Two column on desktop, stacked on mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border-b border-border">
-        <div className="p-5 space-y-2.5 border-r border-border">
+        <div className="p-4 sm:p-5 space-y-2 sm:space-y-2.5 border-b sm:border-b-0 sm:border-r border-border">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             {isScraping ? "Sources" : "Tasks"}
           </p>
           {(isScraping ? SCRAPE_SOURCES : ANALYZE_TASKS).map((item) => (
             <div key={item.label} className="flex items-center justify-between gap-2">
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-medium text-foreground">{item.label}</p>
-                <p className="text-[10px] text-muted-foreground">{item.detail}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{item.detail}</p>
               </div>
               <div className="w-2.5 h-2.5 rounded-full border border-muted-foreground/30 border-t-transparent animate-spin flex-shrink-0" />
             </div>
           ))}
         </div>
 
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Activity
           </p>
-          <div className="space-y-1 font-mono max-h-48 overflow-y-auto">
+          <div className="space-y-1 font-mono max-h-36 sm:max-h-48 overflow-y-auto">
             {loadingLog.length === 0 ? (
               <p className="text-xs text-muted-foreground">Initializing…</p>
             ) : (
@@ -102,7 +102,7 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-3 flex items-center justify-between bg-muted">
+      <div className="px-4 sm:px-6 py-3 flex items-center justify-between bg-muted">
         <p className="text-xs text-muted-foreground">Auto-saves when complete</p>
         <p className="text-xs font-medium text-muted-foreground">{isScraping ? "1 / 2" : "2 / 2"}</p>
       </div>
