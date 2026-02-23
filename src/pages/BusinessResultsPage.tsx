@@ -96,26 +96,6 @@ export default function BusinessResultsPage() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-xs font-bold uppercase tracking-widest text-center text-muted-foreground">Ready for more?</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { step: 3, label: "Disrupt", sub: "Disruption map & reinvented model", bg: "hsl(350 80% 55%)", icon: Brain },
-                  { step: 4, label: "Stress Test", sub: "Red Team vs Blue Team validation", bg: "hsl(38 92% 50%)", icon: Swords },
-                  { step: 5, label: "Pitch Deck", sub: "Auto-generate an investor-ready pitch", bg: "hsl(var(--primary))", icon: Presentation },
-                ].map(({ step: s, label, sub, bg, icon: Icon }) => (
-                  <button key={s} onClick={() => { setActiveStep(s); setVisitedSteps(prev => new Set([...prev, s])); }}
-                    className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors" style={{ background: bg, color: "white" }}>
-                    <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Icon size={16} /></div>
-                    <div>
-                      <div className="text-sm font-semibold">Step {s} — {label}</div>
-                      <div className="text-xs font-normal opacity-80">{sub}</div>
-                    </div>
-                    <ChevronRight size={16} className="ml-auto flex-shrink-0" />
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 

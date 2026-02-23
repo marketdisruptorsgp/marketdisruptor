@@ -161,19 +161,24 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     return () => stopLoadingTimer();
   }, [stopLoadingTimer]);
 
-  const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; batchSize: number }) => {
+  const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; batchSize: number }, customProductName?: string) => {
     try {
       const avgScore = liveProducts.reduce((acc, p) => acc + p.revivalScore, 0) / liveProducts.length;
-      const productNames = liveProducts.map(p => p.name);
+      // Use the user's custom product/service/business name if provided, otherwise derive from product names
       let title: string;
-      if (productNames.length === 1) {
-        title = productNames[0];
-      } else if (productNames.length === 2) {
-        title = `${productNames[0]} & ${productNames[1]}`;
-      } else if (productNames.length <= 4) {
-        title = productNames.slice(0, -1).join(", ") + " & " + productNames[productNames.length - 1];
+      if (customProductName?.trim()) {
+        title = customProductName.trim();
       } else {
-        title = `${productNames[0]}, ${productNames[1]}, ${productNames[2]} +${productNames.length - 3} more`;
+        const productNames = liveProducts.map(p => p.name);
+        if (productNames.length === 1) {
+          title = productNames[0];
+        } else if (productNames.length === 2) {
+          title = `${productNames[0]} & ${productNames[1]}`;
+        } else if (productNames.length <= 4) {
+          title = productNames.slice(0, -1).join(", ") + " & " + productNames[productNames.length - 1];
+        } else {
+          title = `${productNames[0]}, ${productNames[1]}, ${productNames[2]} +${productNames.length - 3} more`;
+        }
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: insertedData } = await (supabase.from("saved_analyses") as any).insert({
@@ -334,7 +339,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         await supabase.rpc("increment_usage", { p_user_id: user?.id });
         await checkSubscription();
       } catch (_) { /* best effort */ }
-      await saveAnalysis(liveProducts, baseParams);
+      const customName = customProducts?.find(cp => cp.productName)?.productName;
+      await saveAnalysis(liveProducts, baseParams, customName);
 
       // Navigate to report page
       navigate(`/analysis/${analysisId || id}/report`);
