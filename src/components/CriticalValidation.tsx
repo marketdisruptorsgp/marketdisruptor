@@ -271,7 +271,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                       <span className="text-[10px] font-semibold" style={{ color: "hsl(271 81% 40%)" }}>Bias: {arg.biasExposed}</span>
                     </div>
                     {arg.specificEvidence && (
-                      <span className="text-[10px] text-foreground/60 italic">📊 {arg.specificEvidence}</span>
+                      <span className="text-[10px] text-foreground/60 italic">{arg.specificEvidence}</span>
                     )}
                     <DataLabel label={arg.dataLabel} />
                   </div>
@@ -331,7 +331,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                       <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary))" }}>Enabler: {arg.enabler}</span>
                     </div>
                     {arg.proofPoint && (
-                      <span className="text-[10px] text-foreground/60 italic">✅ {arg.proofPoint}</span>
+                      <span className="text-[10px] text-foreground/60 italic">{arg.proofPoint}</span>
                     )}
                     <DataLabel label={arg.dataLabel} />
                   </div>
@@ -435,7 +435,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             )}
             {data.currentApproachAssessment.fullyReinvent?.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>⚡ Fully Reinvent</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>Fully Reinvent</p>
                 {data.currentApproachAssessment.fullyReinvent.map((item, i) => (
                   <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
                     style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>

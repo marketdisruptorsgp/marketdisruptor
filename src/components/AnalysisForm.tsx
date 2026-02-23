@@ -302,19 +302,109 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 style={inputStyle}
               />
             </div>
+
+            {/* URLs — up to 3 */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                {mode === "service" ? "Service Description / URLs" : "Product Details / URLs"}
+                URLs (up to 3)
+              </label>
+              {customUrls.map((url, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    value={url}
+                    onChange={(e) => {
+                      const next = [...customUrls];
+                      next[i] = e.target.value;
+                      setCustomUrls(next);
+                    }}
+                    placeholder={`URL ${i + 1} — paste a product or service page`}
+                    className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
+                    style={inputStyle}
+                  />
+                  {customUrls.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setCustomUrls(customUrls.filter((_, j) => j !== i))}
+                      className="px-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+              {customUrls.length < 3 && (
+                <button
+                  type="button"
+                  onClick={() => setCustomUrls([...customUrls, ""])}
+                  className="text-xs font-medium transition-colors"
+                  style={{ color: "hsl(var(--primary-light))" }}
+                >
+                  + Add URL
+                </button>
+              )}
+            </div>
+
+            {/* Image uploads — up to 5 */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {mode === "service" ? "Screenshots (up to 5)" : "Product Images (up to 5)"}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {customImages.map((img, i) => (
+                  <div key={i} className="relative w-16 h-16 rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+                    <img src={img.dataUrl} alt="" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setCustomImages(customImages.filter((_, j) => j !== i))}
+                      className="absolute top-0 right-0 w-5 h-5 flex items-center justify-center text-[10px] font-bold text-white rounded-bl"
+                      style={{ background: "hsl(var(--destructive))" }}
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+                {customImages.length < 5 && (
+                  <label
+                    className="w-16 h-16 rounded flex items-center justify-center cursor-pointer transition-colors"
+                    style={{ border: "1.5px dashed hsl(var(--border))", background: "hsl(var(--muted))" }}
+                  >
+                    <Upload size={16} className="text-muted-foreground" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setCustomImages([...customImages, { file, dataUrl: reader.result as string }]);
+                        };
+                        reader.readAsDataURL(file);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground">{customImages.length}/5 images uploaded</p>
+            </div>
+
+            {/* Context / notes */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Context & Notes
               </label>
               <textarea
                 value={customNotes}
                 onChange={(e) => setCustomNotes(e.target.value)}
-                placeholder="Paste URLs or describe what you want to analyze..."
+                placeholder={mode === "service" ? "Describe the service, target market, pain points..." : "Add context: target audience, pricing goals, competitive landscape..."}
                 rows={4}
                 className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
                 style={inputStyle}
               />
             </div>
+
             <button
               type="submit"
               disabled={isLoading || !customName}

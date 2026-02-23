@@ -37,7 +37,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
                   <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-primary" />
                 )}
                 <span className="text-xs font-semibold flex-shrink-0">
-                  {isPast ? "✓" : s.step}
+                  {isPast ? s.step : s.step}
                 </span>
                 <span className="hidden sm:inline truncate text-sm">{s.label}</span>
                 <span className="sm:hidden text-[11px]">{s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : s.step === 4 ? "Stress" : "Pitch"}</span>
