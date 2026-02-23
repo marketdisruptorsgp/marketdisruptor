@@ -4,11 +4,12 @@ import { toast } from "sonner";
 import { Zap, Brain, TrendingUp, Eye, ArrowRight, Loader2, Mail, CheckCircle2, Lock } from "lucide-react";
 import heroBanner from "@/assets/hero-banner.jpg";
 
-const FEATURES = [
-  { icon: Brain, label: "AI Product Intelligence", desc: "Deep-dive any discontinued product with live market data" },
-  { icon: TrendingUp, label: "Revival Score Engine", desc: "Predict what's hot before the market catches on" },
-  { icon: Zap, label: "Flip Ideas Generator", desc: "Turn old assumptions into bold new product concepts" },
-  { icon: Eye, label: "First Principles Analysis", desc: "Deconstruct and redesign from the ground up" },
+const QUOTES = [
+  "The best opportunities are in the gap between what was and what could be.",
+  "Every dead product is a blueprint someone forgot to read.",
+  "The next billion-dollar idea is hiding in a discontinued aisle.",
+  "Markets don't disappear — they wait for someone bold enough to reinvent them.",
+  "What the crowd abandoned, the contrarian capitalizes on.",
 ];
 
 const inputStyle = {
@@ -77,12 +78,10 @@ export default function AuthPage() {
     }
   };
 
+  const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+
   const HeroPanel = () => (
-    <div className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden bg-background border-r border-border">
-      <div className="absolute inset-0 opacity-40">
-        <img src={heroBanner} alt="" className="w-full h-full object-cover grayscale brightness-50" />
-        <div className="absolute inset-0 bg-background/80" />
-      </div>
+    <div className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden bg-card border-r border-border">
       <div className="relative z-10 p-12 flex flex-col justify-between h-full">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded flex items-center justify-center bg-primary text-primary-foreground">
@@ -91,9 +90,9 @@ export default function AuthPage() {
           <span className="font-bold text-lg text-foreground">Market Disruptor</span>
         </div>
 
-        <div className="flex items-center justify-center flex-1">
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground leading-snug text-center max-w-lg">
-            "The best opportunities are in the gap between what was and what could be."
+        <div className="flex items-center justify-center px-12 -mt-24">
+          <h1 className="text-3xl font-bold text-foreground leading-snug text-center max-w-md">
+            "{quote}"
           </h1>
         </div>
 
