@@ -106,6 +106,7 @@ export default function DashboardPage() {
               ];
               return (
                 <div className="rounded overflow-hidden border border-border" style={{ background: "hsl(var(--card))" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 pt-3">Access Modes</p>
                   <div className="flex border-b border-border">
                     {TABS.map((tab) => {
                       const isActive = analysis.mainTab === tab.id;
