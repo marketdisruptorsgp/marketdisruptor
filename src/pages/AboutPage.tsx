@@ -18,7 +18,7 @@ export default function AboutPage() {
             Deep Analytics for Strategic Reinvention
           </h1>
           <p className="text-base text-muted-foreground leading-relaxed max-w-xl mb-4">
-            Market Disruptor is a proprietary deep analytics platform built for entrepreneurs, investors, and product teams who want to see opportunities others overlook. Not a surface-level tool or a simple AI wrapper.
+            <em>Market Disruptor</em> is a proprietary deep analytics platform built for entrepreneurs, investors, and product teams who want to see opportunities others overlook. Not a surface-level tool or a simple AI wrapper.
           </p>
           <p className="text-base text-muted-foreground leading-relaxed max-w-xl mb-4">
             It combines advanced multi-model AI, real-time data analysis, computer vision, and structured strategic modeling to deconstruct any product, service, or business model and reconstruct it from entirely new angles.
