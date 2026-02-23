@@ -30,6 +30,7 @@ import {
   Download,
   ChevronRight,
 } from "lucide-react";
+import { SectionHeader, NextSectionButton, SectionPills, AllExploredBadge, DetailPanel } from "@/components/SectionNav";
 
 interface FinancialModel {
   unitEconomics: {
@@ -222,51 +223,20 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
       </div>
 
       {/* Slide nav */}
-      {(() => {
-        const TAB_COLORS: Record<string, string> = {
-          pitch: "hsl(var(--primary))",
-          market: "hsl(142 70% 40%)",
-          financials: "hsl(35 90% 50%)",
-          suppliers: "hsl(271 81% 55%)",
-          gtm: "hsl(350 80% 55%)",
-          risks: "hsl(200 80% 50%)",
-        };
-        return (
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {SLIDE_TABS.map(({ id, label, icon: Icon }) => {
-            const isActive = activeSlide === id;
-            const color = TAB_COLORS[id] || "hsl(var(--primary))";
-            return (
-              <button key={id} onClick={() => { setActiveSlide(id); setVisitedSlides(prev => new Set([...prev, id])); }}
-                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
-                style={{
-                  background: isActive ? color : !visitedSlides.has(id) ? `${color}12` : "hsl(var(--muted))",
-                  color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
-                  border: isActive ? `2px solid ${color}` : !visitedSlides.has(id) ? `2px solid ${color}40` : "2px solid hsl(var(--border))",
-                  boxShadow: isActive ? `0 4px 12px -2px ${color}50` : !visitedSlides.has(id) ? `0 0 12px -2px ${color}30` : "none",
-                  transform: isActive ? "scale(1.03)" : "scale(1)",
-                }}
-              >
-                {!isActive && !visitedSlides.has(id) && (
-                  <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: color, boxShadow: `0 2px 8px -2px ${color}60` }}>
-                    Explore
-                  </span>
-                )}
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
-                  <Icon size={16} style={{ color: isActive ? "white" : color }} />
-                </div>
-                <span className="text-center leading-tight text-[10px]">{label}</span>
-              </button>
-            );
-          })}
-        </div>
-        );
-      })()}
+      <SectionPills
+        steps={SLIDE_TABS.map(t => ({ id: t.id, label: t.label, icon: t.icon }))}
+        activeId={activeSlide}
+        visitedIds={visitedSlides}
+        onSelect={(id) => { setActiveSlide(id); setVisitedSlides(prev => new Set([...prev, id])); }}
+      />
 
       {/* SLIDE: ELEVATOR PITCH */}
-      {activeSlide === "pitch" && (
-        <div className="space-y-5">
-          {/* Hero */}
+      {activeSlide === "pitch" && (() => {
+        const idx = SLIDE_TABS.findIndex(t => t.id === "pitch");
+        const next = SLIDE_TABS[idx + 1];
+        return (
+        <div className="space-y-4">
+          <SectionHeader current={idx + 1} total={SLIDE_TABS.length} label="Elevator Pitch" icon={Star} />
           <div className="p-6 rounded-2xl text-white relative overflow-hidden"
             style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)" }}>
             <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
@@ -369,12 +339,10 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               </div>
             </div>
           )}
-          <button onClick={() => { setActiveSlide("market"); setVisitedSlides(prev => new Set([...prev, "market"])); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(142 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(142 70% 40% / 0.4)" }}>
-            Next: Market <ChevronRight size={14} />
-          </button>
+          {next && <NextSectionButton label={next.label} onClick={() => { setActiveSlide(next.id); setVisitedSlides(prev => new Set([...prev, next.id])); }} />}
         </div>
-      )}
+        );
+      })()}
 
       {/* SLIDE: MARKET */}
       {activeSlide === "market" && data.marketOpportunity && (

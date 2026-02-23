@@ -483,31 +483,24 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
       )}
 
       {/* Step nav */}
-      <div data-bma-steps className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
-        {tabs.map((t) => {
+      <div data-bma-steps className="flex flex-wrap gap-1.5">
+        {tabs.map((t, i) => {
           const Icon = t.icon;
           const isActive = activeTab === t.id;
-          const color = STEP_COLORS[t.id] || "hsl(var(--primary))";
           return (
             <button
               key={t.id}
               onClick={() => { setActiveTab(t.id); scrollToSteps(); }}
-              className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
               style={{
-                background: isActive ? color : "hsl(var(--muted))",
+                background: isActive ? "hsl(var(--primary))" : "transparent",
                 color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
-                border: isActive ? `2px solid ${color}` : "2px solid hsl(var(--border))",
-                boxShadow: isActive ? `0 4px 12px -2px ${color}50` : "none",
-                transform: isActive ? "scale(1.03)" : "scale(1)",
+                border: isActive ? "1px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
               }}
             >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
-                <Icon size={16} style={{ color: isActive ? "white" : color }} />
-              </div>
-              <span className="text-center leading-tight text-[10px]">{t.label}</span>
-              {!isActive && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse" style={{ background: color }} />
-              )}
+              <Icon size={12} />
+              <span className="hidden sm:inline">{t.label}</span>
+              <span className="sm:hidden">{i + 1}</span>
             </button>
           );
         })}
