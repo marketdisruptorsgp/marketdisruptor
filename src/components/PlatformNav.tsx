@@ -23,24 +23,9 @@ interface PlatformNavProps {
 }
 
 const ACCESS_MODES = [
-  {
-    id: "custom" as const,
-    label: "Disrupt This Product",
-    desc: "Upload & analyze any physical product",
-    icon: Upload,
-  },
-  {
-    id: "service" as const,
-    label: "Disrupt This Service",
-    desc: "Deconstruct any service business",
-    icon: Briefcase,
-  },
-  {
-    id: "business" as const,
-    label: "Disrupt This Business Model",
-    desc: "Full business model teardown",
-    icon: Building2,
-  },
+  { id: "custom" as const, label: "Disrupt This Product", desc: "Upload & analyze any physical product", icon: Upload },
+  { id: "service" as const, label: "Disrupt This Service", desc: "Deconstruct any service business", icon: Briefcase },
+  { id: "business" as const, label: "Disrupt This Business Model", desc: "Full business model teardown", icon: Building2 },
 ];
 
 const RESOURCES_ITEMS = [
@@ -57,41 +42,34 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
   const handleModeSelect = (modeId: "custom" | "service" | "business") => {
     analysis.setMainTab(modeId);
     analysis.setActiveMode(modeId as AnalysisMode);
-    if (location.pathname !== "/") {
-      navigate("/");
-    }
+    if (location.pathname !== "/") navigate("/");
   };
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="border-b border-border" style={{ background: "hsl(var(--card))" }}>
+    <div className="border-b border-border bg-background shadow-sm">
       <div className="max-w-6xl mx-auto px-6 py-0 flex items-center justify-between">
         {/* Left: Logo + Nav items */}
         <div className="flex items-center gap-1">
-          {/* Logo */}
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2.5 mr-4 py-2.5"
-          >
-            <div className="w-7 h-7 rounded flex items-center justify-center bg-primary text-primary-foreground">
-              <Zap size={14} />
+          <button onClick={() => navigate("/")} className="flex items-center gap-2.5 mr-4 py-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary text-primary-foreground">
+              <Zap size={15} />
             </div>
             <span className="text-sm font-bold tracking-tight text-foreground hidden sm:inline">Market Disruptor</span>
-            <span className="hidden md:inline text-[9px] font-semibold uppercase tracking-widest text-muted-foreground border border-border rounded px-1.5 py-0.5">
+            <span className="hidden md:inline text-[9px] font-semibold uppercase tracking-widest text-muted-foreground border border-border rounded-md px-1.5 py-0.5">
               OS
             </span>
           </button>
 
           <NavigationMenu>
             <NavigationMenuList>
-              {/* Access Modes dropdown */}
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-2.5 px-3">
+                <NavigationMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
                   Access Modes
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="w-72 p-2" style={{ background: "hsl(var(--card))" }}>
+                  <div className="w-72 p-2 bg-background shadow-lg rounded-xl border border-border">
                     {ACCESS_MODES.map((mode) => {
                       const Icon = mode.icon;
                       const active = analysis.mainTab === mode.id;
@@ -99,15 +77,14 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                         <button
                           key={mode.id}
                           onClick={() => handleModeSelect(mode.id)}
-                          className="w-full flex items-start gap-3 rounded px-3 py-2.5 text-left transition-colors hover:bg-muted"
-                          style={active ? { background: "hsl(var(--muted))" } : {}}
+                          className={`w-full flex items-start gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted ${active ? "bg-muted" : ""}`}
                         >
-                          <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-background">
-                            <Icon size={13} className="text-primary" />
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-card">
+                            <Icon size={14} className="text-primary" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-foreground leading-tight">{mode.label}</p>
-                            <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{mode.desc}</p>
+                            <p className="text-sm font-semibold text-foreground leading-tight">{mode.label}</p>
+                            <p className="text-xs text-muted-foreground leading-snug mt-0.5">{mode.desc}</p>
                           </div>
                         </button>
                       );
@@ -116,56 +93,54 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 </NavigationMenuContent>
               </NavigationMenuItem>
 
-              {/* Workspace dropdown */}
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-2.5 px-3">
+                <NavigationMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
                   Workspace
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="w-56 p-2" style={{ background: "hsl(var(--card))" }}>
+                  <div className="w-56 p-2 bg-background shadow-lg rounded-xl border border-border">
                     <button
                       onClick={() => { onOpenSaved?.(); }}
-                      className="w-full flex items-center gap-3 rounded px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
                     >
-                      <FolderOpen size={13} className="text-muted-foreground" />
+                      <FolderOpen size={14} className="text-muted-foreground" />
                       <div>
-                        <p className="text-xs font-semibold text-foreground">Saved Projects</p>
-                        <p className="text-[10px] text-muted-foreground">View & reload past analyses</p>
+                        <p className="text-sm font-semibold text-foreground">Saved Projects</p>
+                        <p className="text-xs text-muted-foreground">View & reload past analyses</p>
                       </div>
                     </button>
                     <button
                       onClick={() => navigate("/pricing")}
-                      className="w-full flex items-center gap-3 rounded px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
                     >
-                      <BarChart3 size={13} className="text-muted-foreground" />
+                      <BarChart3 size={14} className="text-muted-foreground" />
                       <div>
-                        <p className="text-xs font-semibold text-foreground">Plan & Usage</p>
-                        <p className="text-[10px] text-muted-foreground">{TIERS[tier].name} tier</p>
+                        <p className="text-sm font-semibold text-foreground">Plan & Usage</p>
+                        <p className="text-xs text-muted-foreground">{TIERS[tier].name} tier</p>
                       </div>
                     </button>
                   </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>
 
-              {/* Resources dropdown */}
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-2.5 px-3">
+                <NavigationMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
                   Resources
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="w-60 p-2" style={{ background: "hsl(var(--card))" }}>
+                  <div className="w-60 p-2 bg-background shadow-lg rounded-xl border border-border">
                     {RESOURCES_ITEMS.map((item) => {
                       const Icon = item.icon;
                       return (
                         <NavigationMenuLink key={item.label} asChild>
                           <button
                             onClick={() => navigate(`/resources${item.hash}`)}
-                            className="w-full flex items-center gap-3 rounded px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                            className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
                           >
-                            <Icon size={13} className="text-muted-foreground" />
+                            <Icon size={14} className="text-muted-foreground" />
                             <div>
-                              <p className="text-xs font-semibold text-foreground">{item.label}</p>
-                              <p className="text-[10px] text-muted-foreground">{item.desc}</p>
+                              <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                              <p className="text-xs text-muted-foreground">{item.desc}</p>
                             </div>
                           </button>
                         </NavigationMenuLink>
@@ -175,11 +150,10 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 </NavigationMenuContent>
               </NavigationMenuItem>
 
-              {/* Direct links */}
               <NavigationMenuItem>
                 <button
                   onClick={() => navigate("/about")}
-                  className={`text-xs font-medium px-3 py-2.5 transition-colors ${isActive("/about") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`text-sm font-medium px-3 py-3 transition-colors ${isActive("/about") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 >
                   About
                 </button>
@@ -188,7 +162,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
               <NavigationMenuItem>
                 <button
                   onClick={() => navigate("/pricing")}
-                  className={`text-xs font-medium px-3 py-2.5 transition-colors ${isActive("/pricing") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`text-sm font-medium px-3 py-3 transition-colors ${isActive("/pricing") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 >
                   Pricing
                 </button>
@@ -197,17 +171,17 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
           </NavigationMenu>
         </div>
 
-        {/* Right: Projects, Upgrade, User */}
-        <div className="flex items-center gap-2">
+        {/* Right */}
+        <div className="flex items-center gap-3">
           {onOpenSaved && (
             <button
               onClick={onOpenSaved}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold transition-colors border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted"
             >
-              <Database size={12} />
+              <Database size={13} />
               <span className="hidden sm:inline">Projects</span>
               {typeof savedCount === "number" && savedCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary text-primary-foreground leading-none">
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground leading-none">
                   {savedCount}
                 </span>
               )}
@@ -216,7 +190,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
           {tier !== "disruptor" && (
             <button
               onClick={() => navigate("/pricing")}
-              className="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-colors bg-primary text-primary-foreground hover:bg-primary-dark hidden sm:inline-flex"
+              className="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-wider transition-colors bg-primary text-primary-foreground hover:bg-primary-dark hidden sm:inline-flex"
             >
               Upgrade
             </button>

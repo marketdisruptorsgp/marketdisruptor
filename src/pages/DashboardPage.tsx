@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
-  AlertCircle,
+  AlertCircle, Upload, Briefcase, Building2,
   BookOpen, Users, Rocket, TrendingUp, ShieldCheck, Tag, Layers, FileText,
 } from "lucide-react";
 
@@ -35,7 +35,6 @@ export default function DashboardPage() {
   });
   const businessResultsRef = useRef<HTMLDivElement>(null);
 
-  // Real user stats for sidebar
   const [userStats, setUserStats] = useState<{ totalAnalyses: number; latestScore: number | null }>({ totalAnalyses: 0, latestScore: null });
 
   useEffect(() => {
@@ -63,7 +62,7 @@ export default function DashboardPage() {
   const isLoading = analysis.step === "scraping" || analysis.step === "analyzing";
 
   return (
-    <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
+    <div className="min-h-screen bg-background">
       {showWelcome && profile && (
         <WelcomeModal firstName={profile.first_name} onClose={handleCloseWelcome} />
       )}
@@ -90,20 +89,20 @@ export default function DashboardPage() {
         </SheetContent>
       </Sheet>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+      <main className="max-w-6xl mx-auto px-6 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
           {/* Main column */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             <DisruptionPathBanner />
 
-            {/* Analysis form — mode is set from top nav */}
-            <div className="rounded overflow-hidden border border-border" style={{ background: "hsl(var(--card))" }}>
-              <div className="px-4 pt-3 pb-1 border-b border-border">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            {/* Analysis form */}
+            <div className="rounded-lg overflow-hidden border border-border bg-card shadow-sm">
+              <div className="px-5 pt-4 pb-2 border-b border-border">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   {analysis.mainTab === "custom" ? "Disrupt This Product" : analysis.mainTab === "service" ? "Disrupt This Service" : analysis.mainTab === "business" ? "Disrupt This Business Model" : "Analysis"}
                 </p>
               </div>
-              <div className="p-5">
+              <div className="p-6">
                 <ContextualTip
                   id="discovery-tip-1"
                   message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
@@ -139,13 +138,10 @@ export default function DashboardPage() {
 
             {/* Error */}
             {analysis.step === "error" && (
-              <div
-                className="p-5 rounded flex items-start gap-3"
-                style={{ background: "hsl(var(--destructive) / 0.05)", border: "1px solid hsl(var(--destructive) / 0.2)" }}
-              >
-                <AlertCircle size={20} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
+              <div className="p-6 rounded-lg flex items-start gap-3 bg-destructive/5 border border-destructive/20">
+                <AlertCircle size={20} className="text-destructive flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-sm" style={{ color: "hsl(var(--destructive))" }}>Analysis Failed</p>
+                  <p className="font-semibold text-sm text-destructive">Analysis Failed</p>
                   <p className="text-sm text-muted-foreground mt-1">{analysis.errorMsg}</p>
                   <p className="text-xs text-muted-foreground mt-2">
                     Tip: Try a more specific category or reduce batch size.
@@ -154,7 +150,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Business Model Form (when no results yet) */}
+            {/* Business Model Form */}
             {!analysis.businessAnalysisData && analysis.mainTab === "business" && (
               <div ref={businessResultsRef}>
                 <BusinessModelAnalysis
@@ -180,14 +176,13 @@ export default function DashboardPage() {
           </div>
 
           {/* Right sidebar */}
-          <aside className="space-y-5 hidden lg:block">
-            {/* Recent projects */}
-            <div className="rounded border border-border p-4" style={{ background: "hsl(var(--card))" }}>
-              <div className="flex items-center justify-between mb-3">
+          <aside className="space-y-6 hidden lg:block">
+            <div className="rounded-lg border border-border p-5 bg-card shadow-sm">
+              <div className="flex items-center justify-between mb-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Recent Projects</p>
                 <button
                   onClick={() => setShowSavedPanel(true)}
-                  className="text-[10px] font-semibold text-primary hover:underline"
+                  className="text-xs font-semibold text-primary hover:underline"
                 >
                   View All
                 </button>
@@ -200,8 +195,7 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* How It Works */}
-            <div className="rounded border border-border p-4 space-y-3" style={{ background: "hsl(var(--card))" }}>
+            <div className="rounded-lg border border-border p-5 space-y-3.5 bg-card shadow-sm">
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">How It Works</p>
               {[
                 { icon: Layers, label: "3-Layer Deconstruction", desc: "Every market analyzed across supply, demand, and positioning" },
@@ -209,20 +203,19 @@ export default function DashboardPage() {
                 { icon: Tag, label: "Claim Tagging", desc: "Outputs tagged as Verified, Modeled, or Assumption" },
                 { icon: TrendingUp, label: "Leverage Scoring", desc: "Assumptions scored 1–10 for strategic impact" },
               ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-background">
-                    <Icon size={11} className="text-primary" />
+                <div key={label} className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-background">
+                    <Icon size={12} className="text-primary" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold text-foreground leading-tight">{label}</p>
-                    <p className="text-[10px] text-muted-foreground leading-snug">{desc}</p>
+                    <p className="text-xs font-semibold text-foreground leading-tight">{label}</p>
+                    <p className="text-[11px] text-muted-foreground leading-snug">{desc}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Built For */}
-            <div className="rounded border border-border p-4 space-y-2.5" style={{ background: "hsl(var(--card))" }}>
+            <div className="rounded-lg border border-border p-5 space-y-3 bg-card shadow-sm">
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Built For</p>
               {[
                 { icon: Rocket, label: "Entrepreneurs", desc: "Scouting new markets & niches" },
@@ -230,27 +223,26 @@ export default function DashboardPage() {
                 { icon: Users, label: "Product Teams", desc: "Validating strategy before launch" },
                 { icon: FileText, label: "Agencies", desc: "Building data-driven client pitches" },
               ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="flex items-center gap-2.5">
-                  <Icon size={12} className="text-muted-foreground flex-shrink-0" />
+                <div key={label} className="flex items-center gap-3">
+                  <Icon size={13} className="text-muted-foreground flex-shrink-0" />
                   <div className="min-w-0">
-                    <span className="text-[11px] font-semibold text-foreground">{label}</span>
-                    <span className="text-[10px] text-muted-foreground ml-1.5">{desc}</span>
+                    <span className="text-xs font-semibold text-foreground">{label}</span>
+                    <span className="text-[11px] text-muted-foreground ml-1.5">{desc}</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Your Stats — real data */}
-            <div className="rounded border border-border p-4 space-y-2" style={{ background: "hsl(var(--card))" }}>
+            <div className="rounded-lg border border-border p-5 space-y-3 bg-card shadow-sm">
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Your Stats</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded p-2.5 border border-border bg-background">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg p-3 border border-border bg-background">
                   <p className="text-lg font-bold text-primary leading-none">{userStats.totalAnalyses}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Projects</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Projects</p>
                 </div>
-                <div className="rounded p-2.5 border border-border bg-background">
+                <div className="rounded-lg p-3 border border-border bg-background">
                   <p className="text-lg font-bold text-foreground leading-none">{userStats.latestScore !== null ? userStats.latestScore : "—"}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Latest Score</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Latest Score</p>
                 </div>
               </div>
             </div>
@@ -258,20 +250,18 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <footer className="border-t mt-8" style={{ borderColor: "hsl(var(--border))" }}>
-        {/* Trust + enterprise row */}
-        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-muted-foreground">
+      <footer className="border-t border-border mt-10">
+        <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1"><ShieldCheck size={10} /> Your data is encrypted & never shared</span>
+            <span className="flex items-center gap-1"><ShieldCheck size={11} /> Your data is encrypted & never shared</span>
             <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:flex items-center gap-1"><BookOpen size={10} /> Analyses scoped to your account via RLS</span>
+            <span className="hidden sm:flex items-center gap-1"><BookOpen size={11} /> Analyses scoped to your account via RLS</span>
           </div>
           <div className="flex items-center gap-3">
-            <a href="/pricing" className="font-semibold text-primary hover:underline">Enterprise & Teams →</a>
+            <a href="/pricing" className="font-semibold text-primary hover:underline">Enterprise & Teams</a>
           </div>
         </div>
-        {/* Brand row */}
-        <div className="border-t py-5 text-center" style={{ borderColor: "hsl(var(--border))" }}>
+        <div className="border-t border-border py-6 text-center">
           <p className="text-xs">
             <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80 text-primary">
               Built by SGP Capital
@@ -288,28 +278,30 @@ export default function DashboardPage() {
 
 /* ─── Quick Start Templates ─── */
 const TEMPLATES = [
-  { tab: "custom" as const, label: "Vintage Electronics", desc: "Retro tech with revival potential", icon: "📻" },
-  { tab: "service" as const, label: "Local Service Audit", desc: "Analyze a service business model", icon: "🏪" },
-  { tab: "business" as const, label: "DTC Brand Audit", desc: "Deconstruct a direct-to-consumer brand", icon: "📦" },
+  { tab: "custom" as const, label: "Vintage Electronics", desc: "Retro tech with revival potential", icon: Upload },
+  { tab: "service" as const, label: "Local Service Audit", desc: "Analyze a service business model", icon: Briefcase },
+  { tab: "business" as const, label: "DTC Brand Audit", desc: "Deconstruct a direct-to-consumer brand", icon: Building2 },
 ];
 
 function QuickStartTemplates({ onSelect }: { onSelect: (tab: "custom" | "service" | "business" | "discover", category: string, era: string) => void }) {
   return (
-    <div className="rounded border border-border p-4" style={{ background: "hsl(var(--card))" }}>
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Quick Start</p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {TEMPLATES.map((t) => (
-          <button
-            key={t.label}
-            onClick={() => onSelect(t.tab, "", "")}
-            className="text-left rounded border border-border px-3 py-2.5 transition-colors hover:bg-muted"
-            style={{ background: "hsl(var(--background))" }}
-          >
-            <span className="text-base">{t.icon}</span>
-            <p className="text-[11px] font-semibold text-foreground mt-1 leading-tight">{t.label}</p>
-            <p className="text-[9px] text-muted-foreground leading-snug mt-0.5">{t.desc}</p>
-          </button>
-        ))}
+    <div className="rounded-lg border border-border p-5 bg-card shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">Quick Start</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {TEMPLATES.map((t) => {
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.label}
+              onClick={() => onSelect(t.tab, "", "")}
+              className="text-left rounded-lg border border-border px-4 py-3.5 transition-colors hover:bg-muted bg-background"
+            >
+              <Icon size={16} className="text-primary mb-2" />
+              <p className="text-xs font-semibold text-foreground leading-tight">{t.label}</p>
+              <p className="text-[11px] text-muted-foreground leading-snug mt-1">{t.desc}</p>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

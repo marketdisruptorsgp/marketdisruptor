@@ -38,14 +38,13 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
   return (
     <div className="card-intelligence overflow-hidden">
       {/* Header */}
-      <div className="px-5 pt-5 pb-4" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+      <div className="px-6 pt-6 pb-5 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <p className="font-semibold text-foreground text-sm">
               {isScraping ? "Collecting Market Data" : "Building Report"}
             </p>
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded"
-              style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
               {isScraping ? "PHASE 1" : "PHASE 2"}
             </span>
           </div>
@@ -54,20 +53,19 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
             <p className="text-[10px] text-muted-foreground">{remainingLabel}</p>
           </div>
         </div>
-        {/* Progress bar */}
-        <div className="h-1 rounded-sm overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-          <div className="h-full rounded-sm transition-all duration-1000"
-            style={{ width: `${progressPct}%`, background: "hsl(var(--primary))" }} />
+        <div className="h-1.5 rounded-full overflow-hidden bg-muted">
+          <div className="h-full rounded-full transition-all duration-1000 bg-primary"
+            style={{ width: `${progressPct}%` }} />
         </div>
-        <div className="flex justify-between mt-1.5">
+        <div className="flex justify-between mt-2">
           <span className="text-[10px] text-muted-foreground">{elapsedSeconds}s elapsed</span>
           <span className="text-[10px] text-muted-foreground">Est. 45–120s</span>
         </div>
       </div>
 
       {/* Two column */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-0" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
-        <div className="p-4 space-y-2" style={{ borderRight: "1px solid hsl(var(--border))" }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border-b border-border">
+        <div className="p-5 space-y-2.5 border-r border-border">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             {isScraping ? "Sources" : "Tasks"}
           </p>
@@ -82,8 +80,7 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
           ))}
         </div>
 
-        {/* Live log */}
-        <div className="p-4">
+        <div className="p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
             Activity
           </p>
@@ -105,13 +102,9 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
       </div>
 
       {/* Footer */}
-      <div className="px-5 py-2.5 flex items-center justify-between" style={{ background: "hsl(var(--muted))" }}>
-        <p className="text-[11px] text-muted-foreground">
-          Auto-saves when complete
-        </p>
-        <p className="text-[11px] font-medium text-muted-foreground">
-          {isScraping ? "1 / 2" : "2 / 2"}
-        </p>
+      <div className="px-6 py-3 flex items-center justify-between bg-muted">
+        <p className="text-xs text-muted-foreground">Auto-saves when complete</p>
+        <p className="text-xs font-medium text-muted-foreground">{isScraping ? "1 / 2" : "2 / 2"}</p>
       </div>
     </div>
   );

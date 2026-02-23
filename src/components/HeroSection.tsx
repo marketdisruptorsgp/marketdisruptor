@@ -51,13 +51,12 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenS
   }, [user?.id]);
 
   return (
-    <header style={{ background: "hsl(var(--card))" }}>
-      {/* Top nav bar — now using PlatformNav */}
+    <header className="bg-background">
       <PlatformNav tier={tier} onOpenSaved={onOpenSaved} savedCount={savedCount} />
 
       {/* Welcome row */}
       <div className="border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">
               {greeting}
@@ -65,22 +64,22 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenS
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight">
               {profileFirstName ? `${profileFirstName}'s Workspace` : "Your Workspace"}
             </h1>
-            <p className="text-sm text-muted-foreground mt-1.5 max-w-lg leading-relaxed">
+            <p className="text-sm text-muted-foreground mt-2 max-w-lg leading-relaxed">
               Deconstruct markets, stress-test strategies, and build what's next.
             </p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="flex items-center gap-4 px-4 py-2.5 rounded border border-border bg-background">
+            <div className="flex items-center gap-4 px-4 py-2.5 rounded-lg border border-border bg-card shadow-sm">
               <div className="flex items-center gap-1.5">
-                <BarChart3 size={12} className="text-primary" />
-                <span className="text-[11px] font-semibold text-foreground">
+                <BarChart3 size={13} className="text-primary" />
+                <span className="text-xs font-semibold text-foreground">
                   {TIERS[tier].name}
                 </span>
               </div>
               <div className="w-px h-4 bg-border" />
               <div className="flex items-center gap-1.5">
-                <Clock size={12} className="text-muted-foreground" />
-                <span className="text-[11px] font-medium text-muted-foreground">
+                <Clock size={13} className="text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground">
                   {remainingAnalyses !== null ? `${remainingAnalyses} analyses left` : "Unlimited"}
                 </span>
               </div>
@@ -88,7 +87,7 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenS
             {tier !== "disruptor" && (
               <button
                 onClick={() => window.location.href = "/pricing"}
-                className="px-3 py-2 rounded text-[11px] font-bold uppercase tracking-wider transition-colors bg-primary text-primary-foreground hover:bg-primary-dark"
+                className="px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors bg-primary text-primary-foreground hover:bg-primary-dark"
               >
                 Upgrade
               </button>
@@ -97,21 +96,21 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenS
         </div>
       </div>
 
-      {/* Your Activity — real data */}
+      {/* Your Activity */}
       <div className="border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6 overflow-x-auto">
+        <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center gap-6 overflow-x-auto">
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <FolderOpen size={12} className="text-muted-foreground" />
-            <span className="text-[11px] text-muted-foreground">Projects:</span>
-            <span className="text-[11px] font-bold text-foreground">{userStats.totalAnalyses}</span>
+            <FolderOpen size={13} className="text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Projects:</span>
+            <span className="text-xs font-bold text-foreground">{userStats.totalAnalyses}</span>
           </div>
           {userStats.latestScore !== null && (
             <>
               <div className="w-px h-4 bg-border flex-shrink-0" />
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <Star size={12} className="text-muted-foreground" />
-                <span className="text-[11px] text-muted-foreground">Latest Score:</span>
-                <span className="text-[11px] font-bold text-foreground">{userStats.latestScore}/10</span>
+                <Star size={13} className="text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Latest Score:</span>
+                <span className="text-xs font-bold text-foreground">{userStats.latestScore}/10</span>
               </div>
             </>
           )}
@@ -119,9 +118,9 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenS
             <>
               <div className="w-px h-4 bg-border flex-shrink-0" />
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <CalendarDays size={12} className="text-muted-foreground" />
-                <span className="text-[11px] text-muted-foreground">Member since:</span>
-                <span className="text-[11px] font-bold text-foreground">{userStats.memberSince}</span>
+                <CalendarDays size={13} className="text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Member since:</span>
+                <span className="text-xs font-bold text-foreground">{userStats.memberSince}</span>
               </div>
             </>
           )}
