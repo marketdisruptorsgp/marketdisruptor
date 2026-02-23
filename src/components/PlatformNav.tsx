@@ -79,7 +79,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
                     <span className="flex items-center gap-2">
-                      Access Modes
+                      Disruptor Modes
                     </span>
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
@@ -212,7 +212,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 <p className="text-sm font-bold text-foreground">Menu</p>
               </div>
               <div className="p-3 space-y-1">
-                <p className="section-label text-[10px] px-3 pt-2 pb-1">Access Modes</p>
+                <p className="section-label text-[10px] px-3 pt-2 pb-1">Disruptor Modes</p>
                 {ACCESS_MODES.map((mode) => {
                   const Icon = mode.icon;
                   return (
