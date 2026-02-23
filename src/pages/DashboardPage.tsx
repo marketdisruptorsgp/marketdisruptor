@@ -32,6 +32,30 @@ const MODE_PILLS = [
   { id: "business" as const, label: "Business Model", icon: Building2, cssVar: "--mode-business" },
 ];
 
+const MODE_TIPS: Record<"custom" | "service" | "business", string[]> = {
+  custom: [
+    "Upload a product photo alongside the URL — the AI uses computer vision to catch design details that text listings miss, like material quality, ergonomic flaws, and packaging inefficiencies.",
+    "Add competitor URLs in the same batch. The analysis cross-references pricing, features, and positioning across all inputs to find gaps no single product review would reveal.",
+    "The Disrupt step doesn't just improve — it deliberately flips every assumption. If a product is heavy, it asks: what if weight is the feature? That's where breakthrough ideas live.",
+    "After analysis, use the Red Team / Blue Team debate to stress-test the AI's own conclusions. The best strategies survive adversarial scrutiny.",
+  ],
+  service: [
+    "Paste your service's landing page URL — the AI maps the entire customer journey, from first impression to post-purchase, and flags friction points competitors accept as normal.",
+    "Describe your service in the notes field even if you add a URL. Insider context about operational pain points gives the AI a sharper starting point for deconstruction.",
+    "Service analysis skips product-centric logic and focuses on what matters: customer journey friction, operational workflows, and where technology can create structural advantages.",
+    "The best service disruptions come from questioning delivery models, not just pricing. The AI tests configurations like unbundling, self-service layers, and subscription pivots.",
+  ],
+  business: [
+    "Be specific about your revenue model and pain points — the more context you provide, the deeper the AI can go on operational audits and revenue reinvention.",
+    "The analysis deconstructs your model across multiple dimensions: core reality, operations audit, revenue structure, and adjacency opportunities most teams overlook.",
+    "Try running the same business type with different geography or scale inputs. A laundromat strategy in a dense urban market looks completely different from a suburban one.",
+    "After the intelligence report, the Disrupt step generates flipped concepts you can guide with custom goals — tell the AI what constraints or objectives matter most to you.",
+  ],
+};
+
+// Session-stable seed so tips don't flicker on re-renders
+const SESSION_SEED = Math.random();
+
 export default function DashboardPage() {
   const { user, profile } = useAuth();
   const { remainingAnalyses, tier } = useSubscription();
@@ -206,10 +230,18 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="p-6">
-              <ContextualTip
-                id="discovery-tip-1"
-                message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
-              />
+              {(() => {
+                const tips = MODE_TIPS[selectedMode!];
+                const tipIndex = Math.floor(SESSION_SEED * tips.length);
+                const tipColor = `hsl(var(${modeColor}))`;
+                return (
+                  <ContextualTip
+                    id={`tip-${selectedMode}-${tipIndex}`}
+                    message={tips[tipIndex]}
+                    accentColor={tipColor}
+                  />
+                );
+              })()}
               <div className="mt-4" data-tour="analysis-form">
                 <AnalysisForm
                   onAnalyze={analysis.handleAnalyze}
