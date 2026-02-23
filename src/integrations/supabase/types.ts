@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      market_intel: {
+        Row: {
+          created_at: string
+          data_type: string
+          generated_at: string
+          id: string
+          payload: Json
+        }
+        Insert: {
+          created_at?: string
+          data_type: string
+          generated_at?: string
+          id?: string
+          payload?: Json
+        }
+        Update: {
+          created_at?: string
+          data_type?: string
+          generated_at?: string
+          id?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
