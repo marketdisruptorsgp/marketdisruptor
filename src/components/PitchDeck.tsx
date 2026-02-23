@@ -119,6 +119,7 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
   const [data, setData] = useState<PitchDeckData | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState<SlideTab>("pitch");
+  const [visitedSlides, setVisitedSlides] = useState<Set<string>>(new Set(["pitch"]));
 
   const handleDownloadPDF = () => {
     if (!data) return;
@@ -236,23 +237,25 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
             const isActive = activeSlide === id;
             const color = TAB_COLORS[id] || "hsl(var(--primary))";
             return (
-              <button key={id} onClick={() => setActiveSlide(id)}
+              <button key={id} onClick={() => { setActiveSlide(id); setVisitedSlides(prev => new Set([...prev, id])); }}
                 className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
                 style={{
-                  background: isActive ? color : "hsl(var(--muted))",
+                  background: isActive ? color : !visitedSlides.has(id) ? `${color}12` : "hsl(var(--muted))",
                   color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
-                  border: isActive ? `2px solid ${color}` : "2px solid hsl(var(--border))",
-                  boxShadow: isActive ? `0 4px 12px -2px ${color}50` : "none",
+                  border: isActive ? `2px solid ${color}` : !visitedSlides.has(id) ? `2px solid ${color}40` : "2px solid hsl(var(--border))",
+                  boxShadow: isActive ? `0 4px 12px -2px ${color}50` : !visitedSlides.has(id) ? `0 0 12px -2px ${color}30` : "none",
                   transform: isActive ? "scale(1.03)" : "scale(1)",
                 }}
               >
+                {!isActive && !visitedSlides.has(id) && (
+                  <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: color, boxShadow: `0 2px 8px -2px ${color}60` }}>
+                    Explore
+                  </span>
+                )}
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
                   <Icon size={16} style={{ color: isActive ? "white" : color }} />
                 </div>
                 <span className="text-center leading-tight text-[10px]">{label}</span>
-                {!isActive && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse" style={{ background: color }} />
-                )}
               </button>
             );
           })}
@@ -366,7 +369,7 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               </div>
             </div>
           )}
-          <button onClick={() => setActiveSlide("market")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveSlide("market"); setVisitedSlides(prev => new Set([...prev, "market"])); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(142 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(142 70% 40% / 0.4)" }}>
             Next: Market <ChevronRight size={14} />
           </button>
@@ -416,7 +419,7 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               ))}
             </div>
           </div>
-          <button onClick={() => setActiveSlide("financials")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveSlide("financials"); setVisitedSlides(prev => new Set([...prev, "financials"])); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(35 90% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(35 90% 50% / 0.4)" }}>
             Next: Financials <ChevronRight size={14} />
           </button>
@@ -532,7 +535,7 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               <p className="text-xs text-foreground/80">{data.financialModel.exitStrategy}</p>
             </div>
           </div>
-          <button onClick={() => setActiveSlide("suppliers")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveSlide("suppliers"); setVisitedSlides(prev => new Set([...prev, "suppliers"])); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(271 81% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(271 81% 55% / 0.4)" }}>
             Next: Suppliers & Contacts <ChevronRight size={14} />
           </button>
@@ -565,7 +568,7 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               ))}
             </div>
           </div>
-          <button onClick={() => setActiveSlide("gtm")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveSlide("gtm"); setVisitedSlides(prev => new Set([...prev, "gtm"])); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(350 80% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(350 80% 55% / 0.4)" }}>
             Next: Go-to-Market <ChevronRight size={14} />
           </button>
@@ -613,7 +616,7 @@ export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
               </p>
             </div>
           </div>
-          <button onClick={() => setActiveSlide("risks")} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveSlide("risks"); setVisitedSlides(prev => new Set([...prev, "risks"])); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(200 80% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(200 80% 50% / 0.4)" }}>
             Next: Risks & Metrics <ChevronRight size={14} />
           </button>
