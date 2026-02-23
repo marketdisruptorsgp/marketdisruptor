@@ -1,50 +1,42 @@
 
 
-# About Page Rewrite + Homepage Headline Change
+# Mode-Specific Rotating Pro Tips
 
 ## Overview
 
-Two changes: (1) rewrite the About page copy to match the provided Market Disruptor positioning, and (2) change "Reinvent" to "Rethink" on the homepage hero.
+Replace the single static "weird niches" tip with a rotating, mode-aware tip system. Each mode (Product, Service, Business Model) gets its own curated set of tips that reflect actual platform capabilities. Tips rotate on each visit/mode switch and are visually upgraded to stand out more.
 
-## Changes
+## Tip Content by Mode
 
-### 1. Homepage Headline (`src/pages/DashboardPage.tsx`)
+**Product Mode (4 tips, rotating):**
+1. "Upload a product photo alongside the URL -- the AI uses computer vision to catch design details that text listings miss, like material quality, ergonomic flaws, and packaging inefficiencies."
+2. "Add competitor URLs in the same batch. The analysis cross-references pricing, features, and positioning across all inputs to find gaps no single product review would reveal."
+3. "The Disrupt step doesn't just improve -- it deliberately flips every assumption. If a product is heavy, it asks: what if weight is the feature? That's where breakthrough ideas live."
+4. "After analysis, use the Red Team / Blue Team debate to stress-test the AI's own conclusions. The best strategies survive adversarial scrutiny."
 
-Line 120: Change `Reinvent any` to `Rethink any`
+**Service Mode (4 tips, rotating):**
+1. "Paste your service's landing page URL -- the AI maps the entire customer journey, from first impression to post-purchase, and flags friction points competitors accept as normal."
+2. "Describe your service in the notes field even if you add a URL. Insider context about operational pain points gives the AI a sharper starting point for deconstruction."
+3. "Service analysis skips product-centric logic and focuses on what matters: customer journey friction, operational workflows, and where technology can create structural advantages."
+4. "The best service disruptions come from questioning delivery models, not just pricing. The AI tests configurations like unbundling, self-service layers, and subscription pivots."
 
-### 2. About Page Rewrite (`src/pages/AboutPage.tsx`)
+**Business Model Mode (4 tips, rotating):**
+1. "Be specific about your revenue model and pain points -- the more context you provide, the deeper the AI can go on operational audits and revenue reinvention."
+2. "The analysis deconstructs your model across multiple dimensions: core reality, operations audit, revenue structure, and adjacency opportunities most teams overlook."
+3. "Try running the same business type with different geography or scale inputs. A laundromat strategy in a dense urban market looks completely different from a suburban one."
+4. "After the intelligence report, the Disrupt step generates flipped concepts you can guide with custom goals -- tell the AI what constraints or objectives matter most to you."
 
-Complete copy replacement within the existing page structure. Same layout, icons, and footer -- only the text content changes.
+## Visual Upgrade
 
-**Section 1 -- Hero Intro** (replaces "Strategic Reinvention" + single paragraph):
-- Headline: "Deep Analytics for Strategic Reinvention"
-- Two paragraphs:
-  - Para 1: Market Disruptor is a proprietary deep analytics platform built for entrepreneurs, investors, and product teams who want to see opportunities others overlook. Not a surface-level tool or a simple AI wrapper.
-  - Para 2: Combines advanced multi-model AI, real-time data analysis, computer vision, and structured strategic modeling to deconstruct any product, service, or business model and reconstruct it from entirely new angles.
+- Larger padding and slightly bigger text (text-sm instead of text-xs)
+- Mode-colored left border accent (3px solid) matching the active mode color
+- Bolder "Pro tip" label prefix in the mode color
+- Subtle gradient background tinted with the mode color
 
-**Section 2 -- "What It Does"** (replaces "How It Works"):
-- Label: "What It Does"
-- Four items (same step-badge layout):
-  1. **Challenges Assumptions** -- Deliberately questions pricing logic, supply chain design, patent positioning, competitive assumptions, and the operational constraints incumbents accept as inevitable.
-  2. **Isolates Structural Weaknesses** -- Examines what is taken for granted, identifies friction points, and tests alternative configurations most teams would never consider.
-  3. **Reveals Hidden Leverage** -- Applies data-driven scrutiny exceeding normal human bandwidth to surface overlooked market segments and optimization opportunities that can materially change outcomes.
-  4. **Delivers Actionable Output** -- Rigorously constructed strategic perspectives, investor-ready pitch decks, and clearly mapped pathways for experimentation, disruption, or targeted optimization.
-
-**Section 3 -- "Built For"** (same structure, refined copy):
-- Entrepreneurs: "Seeing opportunities others overlook with data-driven conviction, not guesswork."
-- Investors: "Applying adversarial rigor to evaluate opportunities before committing capital."
-- Product Teams: "Stress-testing strategy, positioning, and assumptions before launch."
-- Agencies: "Delivering data-backed strategic perspectives that go beyond surface-level analysis."
-
-**Section 4 -- CTA card**:
-- Headline: "Apply a level of scrutiny that exceeds normal bandwidth."
-- Subtitle: "See what a deep deconstruction reveals about your market."
-- Button: "Start Analysis" (unchanged behavior)
-
-## Technical Details
+## Technical Changes
 
 | File | Change |
 |---|---|
-| `src/pages/DashboardPage.tsx` | Line 120: `Reinvent any` becomes `Rethink any` |
-| `src/pages/AboutPage.tsx` | Full copy replacement across all four sections. Same JSX structure, icons, footer, and navigation. No layout or component changes. |
+| `src/components/ContextualTip.tsx` | Add support for `accentColor` prop and updated styling with left border, bolder label, and slightly larger text |
+| `src/pages/DashboardPage.tsx` | Replace single static tip with mode-specific tip arrays, pick a random tip per mode (seeded by session so it doesn't flicker), pass mode color to the tip component. Tip `id` includes mode + tip index so each can be individually dismissed |
 
