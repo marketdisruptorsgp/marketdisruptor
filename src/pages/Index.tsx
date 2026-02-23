@@ -383,7 +383,7 @@ export default function Index() {
 
       // Log scrape results
       if (scrapeData.stats) {
-        pushLog(`Scraped ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} community posts, ${scrapeData.stats.complaintSignals} complaint signals`);
+        pushLog(`Collected data from ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} community posts, ${scrapeData.stats.complaintSignals} complaint signals`);
       } else {
         pushLog(`Web scraping complete — data collected from ${(scrapeData.sources || []).length} sources`);
       }
@@ -1030,7 +1030,7 @@ export default function Index() {
                                 {ci.redditSentiment && (
                                   <div className="p-4 rounded-xl" style={{ background: "hsl(25 90% 50% / 0.08)", border: "1px solid hsl(25 90% 50% / 0.3)" }}>
                                     <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(25 90% 40%)" }}>
-                                      <MessageSquare size={12} /> Reddit Community Sentiment
+                                      <MessageSquare size={12} /> Community Sentiment
                                     </p>
                                     <p className="text-sm leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
                                   </div>
@@ -1106,7 +1106,7 @@ export default function Index() {
                         <div className="py-10 text-center">
                           <Users size={32} className="mx-auto mb-3 opacity-20" />
                           <p className="text-sm text-muted-foreground">Community insights will appear here after running a live analysis.</p>
-                          <p className="text-xs text-muted-foreground mt-1">Sample data doesn't include Reddit/community scraping.</p>
+                          <p className="text-xs text-muted-foreground mt-1">Sample data doesn't include community scraping.</p>
                         </div>
                       )}
 
@@ -1164,8 +1164,8 @@ export default function Index() {
                         {[
                           { label: "Current Market Price", value: selectedProduct.pricingIntel.currentMarketPrice, highlight: false },
                           { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium, highlight: false },
-                          { label: "eBay Avg Sold", value: selectedProduct.pricingIntel.ebayAvgSold, highlight: true },
-                          { label: "Etsy Avg Sold", value: selectedProduct.pricingIntel.etsyAvgSold, highlight: true },
+                          { label: "Resale Avg Sold", value: selectedProduct.pricingIntel.ebayAvgSold, highlight: true },
+                          { label: "Vintage Avg Sold", value: selectedProduct.pricingIntel.etsyAvgSold, highlight: true },
                           { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal, highlight: false },
                           { label: "Price Trend", value: selectedProduct.pricingIntel.priceDirection.toUpperCase(), highlight: true },
                         ].map((item) => (

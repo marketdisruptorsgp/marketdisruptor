@@ -224,22 +224,22 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       : `Starting product intelligence pipeline for ${params.era} ${params.category}...`
     );
     await new Promise(r => setTimeout(r, 300));
-    pushLog("Querying eBay for sold listings & collector pricing...");
+    pushLog("Scanning market data across pricing & resale sources...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Crawling Etsy for vintage & handmade revival trends...");
+    pushLog("Analyzing community discussions & sentiment signals...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Mining Reddit for community sentiment & nostalgia signals...");
+    pushLog("Cross-referencing trend data & search interest...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Scanning TikTok & Google for viral trend signals...");
+    pushLog("Researching supply chain: suppliers, manufacturers, distributors...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Searching Alibaba & wholesale directories for suppliers...");
+    pushLog("Mining complaint signals & improvement requests...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Collecting complaint signals & improvement requests...");
+    pushLog("Collecting competitive intelligence from multiple data sources...");
 
     try {
       setStepMessage(hasCustom
-        ? "Scraping your product URLs + eBay, Etsy, Reddit, Google, TikTok…"
-        : `Crawling eBay, Etsy, Reddit, Google & TikTok for ${params.era} ${params.category} products…`
+        ? "Deep research across multiple data sources for your products…"
+        : `Deep research across multiple data sources for ${params.era} ${params.category} products…`
       );
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
         "scrape-products",
@@ -250,7 +250,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (scrapeData.stats) {
-        pushLog(`Scraped ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} Reddit posts, ${scrapeData.stats.complaintSignals} complaint signals`);
+        pushLog(`Collected data from ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} community posts, ${scrapeData.stats.complaintSignals} complaint signals`);
       } else {
         pushLog(`Web scraping complete — data collected from ${(scrapeData.sources || []).length} sources`);
       }
@@ -269,7 +269,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       await new Promise(r => setTimeout(r, 800));
       pushLog("Scoring Revival Potential & building action plans...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("Searching for real product images (eBay, Amazon, Wikipedia)...");
+      pushLog("Searching for real product images across data sources...");
 
       const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke(
         "analyze-products",

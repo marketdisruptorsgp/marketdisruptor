@@ -5,11 +5,11 @@ interface LoadingTrackerProps {
 }
 
 const SCRAPE_SOURCES = [
-  { label: "eBay", detail: "Sold listings, collector pricing" },
-  { label: "Etsy", detail: "Vintage revival trends" },
-  { label: "Reddit", detail: "Community sentiment" },
-  { label: "TikTok / Google", detail: "Viral trend signals" },
-  { label: "Alibaba", detail: "Suppliers, MOQs" },
+  { label: "Market Data", detail: "Pricing, sold listings, trends" },
+  { label: "Community Intel", detail: "Sentiment & discussions" },
+  { label: "Trend Signals", detail: "Viral & search interest" },
+  { label: "Supply Chain", detail: "Suppliers, MOQs, distributors" },
+  { label: "Complaint Mining", detail: "Pain points & feature gaps" },
 ];
 
 const ANALYZE_TASKS = [
