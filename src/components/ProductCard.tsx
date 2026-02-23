@@ -1,6 +1,7 @@
 import { ExternalLink, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 import { RevivalScoreBadge } from "./RevivalScoreBadge";
+import { DataLabel } from "./DataLabel";
 
 interface ProductCardProps {
   product: Product;
@@ -67,10 +68,11 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         </span>
         {product.pricingIntel && (
           <span
-            className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-medium"
+            className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"
             style={{ background: "hsl(0 0% 0% / 0.7)", color: "hsl(0 0% 100% / 0.8)" }}
           >
             {product.pricingIntel.currentMarketPrice}
+            <DataLabel label={(product.pricingIntel as unknown as Record<string, unknown>).currentMarketPriceDataLabel as string} />
           </span>
         )}
       </div>
@@ -124,9 +126,10 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         </div>
 
         {product.marketSizeEstimate && (
-          <p className="text-[10px] text-muted-foreground border-t pt-2" style={{ borderColor: "hsl(var(--border))" }}>
-            {product.marketSizeEstimate}
-          </p>
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground border-t pt-2" style={{ borderColor: "hsl(var(--border))" }}>
+            <span>{product.marketSizeEstimate}</span>
+            <DataLabel label={(product as unknown as Record<string, unknown>).marketSizeEstimateDataLabel as string} />
+          </div>
         )}
       </div>
     </div>

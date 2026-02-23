@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 import { BundleDeepDive } from "./BundleDeepDive";
+import { DataLabel } from "./DataLabel";
+import { LeverageScore } from "./LeverageScore";
 
 
 export interface BusinessModelInput {
@@ -28,6 +30,7 @@ interface FrictionPoint {
   friction: string;
   impact: "high" | "medium" | "low";
   rootCause: string;
+  dataLabel?: string;
 }
 
 interface AutomationOpportunity {
@@ -56,6 +59,8 @@ interface HiddenAssumption {
   category: string;
   isChallengeable: boolean;
   challengeIdea: string;
+  leverageScore?: number;
+  dataLabel?: string;
 }
 
 export interface BusinessModelAnalysisData {
@@ -597,7 +602,10 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                       </span>
                     </div>
                     <p className="text-xs text-foreground/80 leading-relaxed mb-1">{fp.friction}</p>
-                    <p className="text-[10px] text-muted-foreground italic">Root cause: {fp.rootCause}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[10px] text-muted-foreground italic">Root cause: {fp.rootCause}</p>
+                      <DataLabel label={fp.dataLabel} />
+                    </div>
                   </div>
                 );
               })}
@@ -679,7 +687,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                         style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
                       <p className="text-xs font-bold text-foreground">{a.assumption}</p>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: `${catColor}18`, color: catColor }}>
                         {a.category}
                       </span>
@@ -688,6 +696,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                           ✦ Challengeable
                         </span>
                       )}
+                      <LeverageScore score={a.leverageScore} />
+                      <DataLabel label={a.dataLabel} />
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed ml-8 mb-2">{a.currentAnswer}</p>
