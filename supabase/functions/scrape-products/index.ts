@@ -124,7 +124,7 @@ serve(async (req) => {
               },
               body: JSON.stringify({
                 url: cp.productUrl,
-                formats: ["markdown", "links"],
+                formats: ["markdown", "links", "rawHtml"],
               }),
             });
             if (scrapeRes.ok) {
@@ -132,6 +132,19 @@ serve(async (req) => {
               const md = scrapeJson?.data?.markdown || scrapeJson?.markdown || "";
               if (md) {
                 customScrapedContent.push(`## Custom Product URL: ${cp.productUrl}\nProduct: ${cp.productName || "Unknown"}\nNotes: ${cp.notes || "None"}\n\n${md.slice(0, 3000)}`);
+              }
+              // Extract primary product image from the scraped page
+              const html = scrapeJson?.data?.rawHtml || scrapeJson?.rawHtml || "";
+              const ogMatch = html.match(/property="og:image"[^>]*content="([^"]+)"/i) ||
+                              html.match(/content="([^"]+)"[^>]*property="og:image"/i);
+              if (ogMatch?.[1]) {
+                customScrapedContent.push(`## Product Image Found\nProduct: ${cp.productName || "Unknown"}\nImage URL: ${ogMatch[1]}`);
+              } else {
+                // Try finding a prominent product image from markdown
+                const mdImgMatch = md.match(/!\[.*?\]\((https?:\/\/[^\s)]+\.(jpg|jpeg|png|webp)[^\s)]*)\)/i);
+                if (mdImgMatch?.[1]) {
+                  customScrapedContent.push(`## Product Image Found\nProduct: ${cp.productName || "Unknown"}\nImage URL: ${mdImgMatch[1]}`);
+                }
               }
             }
           } catch (e) {
