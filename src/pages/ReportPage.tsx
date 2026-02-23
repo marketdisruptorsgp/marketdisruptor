@@ -68,7 +68,7 @@ export default function ReportPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
-      <main className="max-w-5xl mx-auto px-6 py-6 space-y-5">
+      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <StepNavigator
           steps={[
             { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent },
@@ -97,18 +97,20 @@ export default function ReportPage() {
 
         {/* Header */}
         <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-          <div className="px-5 py-4 flex items-center gap-4" style={{ background: "hsl(var(--muted))" }}>
-            <span className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center text-sm font-semibold" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>2</span>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-base font-bold text-foreground">Intelligence Report</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {products.length} product{products.length > 1 ? "s" : ""} · {totalSources} sources · {totalIdeas} ideas · {avgScore}/10 avg
-              </p>
+          <div className="px-3 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))" }}>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center text-xs sm:text-sm font-semibold" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>2</span>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-sm sm:text-base font-bold text-foreground">Intelligence Report</h2>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">
+                  {products.length} product{products.length > 1 ? "s" : ""} · {totalSources} sources · {totalIdeas} ideas · {avgScore}/10
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded text-[11px] sm:text-xs font-medium transition-colors"
                 style={{ background: "hsl(var(--background))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
               >
                 <FileDown size={12} /> PDF
@@ -116,7 +118,7 @@ export default function ReportPage() {
               <button
                 onClick={handleManualSave}
                 disabled={isSaving}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded text-[11px] sm:text-xs font-medium transition-colors"
                 style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))", opacity: isSaving ? 0.7 : 1 }}
               >
                 {isSaving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
@@ -154,7 +156,7 @@ export default function ReportPage() {
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
         {/* Detail Tab Nav */}
-        <div ref={sectionTabsRef} className="flex flex-wrap gap-1.5">
+        <div ref={sectionTabsRef} className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
           {DETAIL_TABS.map((tab) => {
             const isActive = analysis.detailTab === tab.id;
             const TabIcon = tab.icon;
@@ -165,7 +167,7 @@ export default function ReportPage() {
                   analysis.setDetailTab(tab.id);
                   analysis.setVisitedDetailTabs(new Set([...analysis.visitedDetailTabs, tab.id]));
                 }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-medium transition-colors relative"
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded text-[11px] sm:text-xs font-medium transition-colors relative whitespace-nowrap flex-shrink-0"
                 style={{
                   background: isActive ? "hsl(var(--primary))" : "hsl(var(--muted))",
                   color: isActive ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
