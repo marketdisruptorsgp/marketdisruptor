@@ -5,12 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Radar, Activity, Loader2, ShieldCheck, TrendingUp, BarChart3,
   ChevronDown, ChevronUp, ExternalLink, Building2, Calendar,
-  FileText, Zap,
+  FileText, Zap, Clock,
 } from "lucide-react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip,
   BarChart, Bar, Cell,
 } from "recharts";
+import { PatentTreemap } from "@/components/intel/PatentTreemap";
+import { AboutDataPanel } from "@/components/intel/AboutDataPanel";
+import { MarketNewsSection } from "@/components/intel/MarketNewsSection";
 
 const CATEGORY_COLORS = [
   "hsl(var(--primary))", "hsl(var(--destructive))", "hsl(142 76% 36%)",
@@ -22,42 +25,40 @@ export default function IntelPage() {
   const { tier } = useSubscription();
   const [patents, setPatents] = useState<any[]>([]);
   const [trends, setTrends] = useState<any[]>([]);
+  const [news, setNews] = useState<any[]>([]);
   const [platformOverview, setPlatformOverview] = useState<any>(null);
   const [topCategories, setTopCategories] = useState<any[]>([]);
-  const [monthlyActivity, setMonthlyActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedPatent, setExpandedPatent] = useState<string | null>(null);
   const [patentFilter, setPatentFilter] = useState<string>("all");
+  const [patentTab, setPatentTab] = useState<"active" | "expired">("active");
   const [selectedTrend, setSelectedTrend] = useState(0);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
+  useEffect(() => { fetchAllData(); }, []);
 
   async function fetchAllData() {
     setLoading(true);
-
-    const [patentRes, trendRes, intelRes] = await Promise.all([
+    const [patentRes, trendRes, intelRes, newsRes] = await Promise.all([
       supabase.from("patent_filings").select("*").order("filing_date", { ascending: false }),
       supabase.from("trend_signals").select("*").order("scraped_at", { ascending: false }),
       supabase.from("platform_intel").select("*").order("computed_at", { ascending: false }),
+      supabase.from("market_news").select("*").order("scraped_at", { ascending: false }),
     ]);
 
     if (patentRes.data) setPatents(patentRes.data);
     if (trendRes.data) setTrends(trendRes.data);
+    if (newsRes.data) setNews(newsRes.data);
 
     if (intelRes.data) {
       for (const row of intelRes.data) {
         const payload = row.payload as any;
         if (row.metric_type === "overview") setPlatformOverview(payload);
         else if (row.metric_type === "top_categories") setTopCategories(Array.isArray(payload) ? payload : []);
-        else if (row.metric_type === "monthly_activity") setMonthlyActivity(Array.isArray(payload) ? payload : []);
       }
       if (intelRes.data.length > 0) setLastUpdated(intelRes.data[0].computed_at);
     }
 
-    // Also check patent/trend timestamps
     if (patentRes.data?.[0]?.scraped_at) {
       const patentTime = patentRes.data[0].scraped_at;
       if (!lastUpdated || patentTime > lastUpdated) setLastUpdated(patentTime);
@@ -67,23 +68,24 @@ export default function IntelPage() {
   }
 
   const patentCategories = [...new Set(patents.map(p => p.category))];
-  const filteredPatents = patentFilter === "all" ? patents : patents.filter(p => p.category === patentFilter);
+  const activePatents = patents.filter(p => (p.status || "active") === "active");
+  const expiredPatents = patents.filter(p => p.status === "expired");
+  const displayPatents = patentTab === "active" ? activePatents : expiredPatents;
+  const filteredPatents = patentFilter === "all" ? displayPatents : displayPatents.filter(p => p.category === patentFilter);
 
-  // Patent category stats
   const patentCategoryStats = patentCategories.map(cat => ({
     category: cat,
-    count: patents.filter(p => p.category === cat).length,
-    topAssignees: [...new Set(patents.filter(p => p.category === cat).map(p => p.assignee).filter(Boolean))].slice(0, 3),
+    count: activePatents.filter(p => p.category === cat).length,
+    topAssignees: [...new Set(activePatents.filter(p => p.category === cat).map(p => p.assignee).filter(Boolean))].slice(0, 3),
   }));
 
-  // Trend chart data
   const activeTrend = trends[selectedTrend];
   const trendChartData = activeTrend?.interest_over_time?.map((point: any) => ({
     month: point.month || point.label || "",
     value: point.value ?? 0,
   })) || [];
 
-  const hasData = patents.length > 0 || trends.length > 0 || platformOverview;
+  const hasData = patents.length > 0 || trends.length > 0 || platformOverview || news.length > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -102,18 +104,23 @@ export default function IntelPage() {
             Intel Dashboard
           </h1>
           <p className="text-base text-muted-foreground max-w-2xl leading-relaxed">
-            Real market signals from verified sources — patent filings from Google Patents, search trend data from Google Trends, and usage analytics from our platform. No assumptions.
+            Real market signals from verified sources — patent filings from public databases, search trend data, industry news, and platform usage analytics. No assumptions.
           </p>
           <div className="flex flex-wrap items-center gap-4 mt-5">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Activity size={12} className="text-primary" />
-              <span className="font-semibold">Scraped from real sources daily</span>
+              <span className="font-semibold">Refreshed daily from real sources</span>
             </div>
             {lastUpdated && (
               <span className="text-[10px] text-muted-foreground">
                 Last refresh: {new Date(lastUpdated).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
+          </div>
+
+          {/* About this data panel */}
+          <div className="mt-6">
+            <AboutDataPanel patentCount={patents.length} lastUpdated={lastUpdated} />
           </div>
         </div>
       </div>
@@ -139,108 +146,140 @@ export default function IntelPage() {
               <h2 className="text-lg font-bold text-foreground">Patent Intelligence</h2>
             </div>
             <p className="text-sm text-muted-foreground mb-2 max-w-2xl">
-              Real patent filings scraped from Google Patents. Click any patent to see full details.
+              Real patent filings from public patent databases. Click any category in the treemap to filter, or expand a patent for full details.
             </p>
             <p className="text-[10px] text-muted-foreground mb-6 flex items-center gap-1">
-              <FileText size={10} /> Source: Google Patents / USPTO · {patents.length} filings tracked
+              <FileText size={10} /> {patents.length} filings tracked across {patentCategories.length} categories · Last 2-3 years
             </p>
 
-            {/* Category overview bar */}
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-              {patentCategoryStats.map((stat, i) => (
-                <button
-                  key={stat.category}
-                  onClick={() => setPatentFilter(patentFilter === stat.category ? "all" : stat.category)}
-                  className={`text-left border rounded-lg p-4 transition-all ${
-                    patentFilter === stat.category
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border bg-card hover:border-primary/30"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{stat.category}</span>
-                    <span className="text-lg font-bold text-foreground">{stat.count}</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">filings tracked</p>
-                  {stat.topAssignees.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {stat.topAssignees.map(a => (
-                        <span key={a} className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{a}</span>
-                      ))}
-                    </div>
-                  )}
-                </button>
-              ))}
+            {/* Interactive treemap */}
+            <div className="mb-6">
+              <PatentTreemap
+                stats={patentCategoryStats}
+                onCategoryClick={(cat) => setPatentFilter(patentFilter === cat ? "all" : cat)}
+              />
             </div>
 
-            {/* Patent list with drilldown */}
-            <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
-              <div className="divide-y divide-border">
-                {filteredPatents.slice(0, 20).map((patent) => {
-                  const isExpanded = expandedPatent === patent.id;
-                  return (
-                    <div key={patent.id}>
-                      <button
-                        onClick={() => setExpandedPatent(isExpanded ? null : patent.id)}
-                        className="w-full text-left p-4 hover:bg-muted/50 transition-colors flex items-start gap-3"
-                      >
-                        <div className="flex-shrink-0 mt-1">
-                          <ShieldCheck size={14} className="text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-semibold text-foreground leading-snug">{patent.title}</p>
-                            {isExpanded ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" />}
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                            {patent.assignee && (
-                              <span className="text-[10px] font-medium text-primary flex items-center gap-1">
-                                <Building2 size={9} /> {patent.assignee}
-                              </span>
-                            )}
-                            {patent.filing_date && (
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <Calendar size={9} /> {patent.filing_date}
-                              </span>
-                            )}
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{patent.category}</span>
-                          </div>
-                        </div>
-                      </button>
-                      {isExpanded && (
-                        <div className="px-4 pb-4 pl-11 space-y-3 border-t border-border bg-muted/30">
-                          <div className="pt-3">
-                            {patent.patent_number && (
-                              <p className="text-xs text-muted-foreground mb-1">
-                                <span className="font-semibold text-foreground">Patent #:</span> {patent.patent_number}
-                              </p>
-                            )}
-                            {patent.abstract && (
-                              <p className="text-xs text-muted-foreground leading-relaxed mt-2">{patent.abstract}</p>
-                            )}
-                            {patent.source_url && (
-                              <a
-                                href={patent.source_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline mt-3"
-                              >
-                                View on Google Patents <ExternalLink size={10} />
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              {filteredPatents.length > 20 && (
-                <div className="p-3 text-center border-t border-border">
-                  <p className="text-xs text-muted-foreground">Showing 20 of {filteredPatents.length} patents</p>
-                </div>
-              )}
+            {/* Active / Expired tabs */}
+            <div className="flex items-center gap-1 mb-4">
+              <button
+                onClick={() => { setPatentTab("active"); setPatentFilter("all"); }}
+                className={`text-xs font-semibold px-4 py-2 rounded-lg border transition-all flex items-center gap-1.5 ${
+                  patentTab === "active"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                <ShieldCheck size={12} /> Active ({activePatents.length})
+              </button>
+              <button
+                onClick={() => { setPatentTab("expired"); setPatentFilter("all"); }}
+                className={`text-xs font-semibold px-4 py-2 rounded-lg border transition-all flex items-center gap-1.5 ${
+                  patentTab === "expired"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                <Clock size={12} /> Expired ({expiredPatents.length})
+              </button>
             </div>
+
+            {/* Category filter chips */}
+            {patentFilter !== "all" && (
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-[10px] text-muted-foreground">Filtered:</span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  {patentFilter}
+                </span>
+                <button onClick={() => setPatentFilter("all")} className="text-[10px] text-muted-foreground hover:text-foreground underline">
+                  Clear
+                </button>
+              </div>
+            )}
+
+            {/* Patent list */}
+            {filteredPatents.length > 0 ? (
+              <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
+                <div className="divide-y divide-border">
+                  {filteredPatents.slice(0, 20).map((patent) => {
+                    const isExpanded = expandedPatent === patent.id;
+                    return (
+                      <div key={patent.id}>
+                        <button
+                          onClick={() => setExpandedPatent(isExpanded ? null : patent.id)}
+                          className="w-full text-left p-4 hover:bg-muted/50 transition-colors flex items-start gap-3"
+                        >
+                          <div className="flex-shrink-0 mt-1">
+                            {patentTab === "expired" ? (
+                              <Clock size={14} className="text-muted-foreground" />
+                            ) : (
+                              <ShieldCheck size={14} className="text-primary" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm font-semibold text-foreground leading-snug">{patent.title}</p>
+                              {isExpanded ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" />}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                              {patent.assignee && (
+                                <span className="text-[10px] font-medium text-primary flex items-center gap-1">
+                                  <Building2 size={9} /> {patent.assignee}
+                                </span>
+                              )}
+                              {patent.filing_date && (
+                                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                  <Calendar size={9} /> {patent.filing_date}
+                                </span>
+                              )}
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{patent.category}</span>
+                              {patent.status === "expired" && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-semibold">Expired</span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                        {isExpanded && (
+                          <div className="px-4 pb-4 pl-11 space-y-3 border-t border-border bg-muted/30">
+                            <div className="pt-3">
+                              {patent.patent_number && (
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  <span className="font-semibold text-foreground">Patent #:</span> {patent.patent_number}
+                                </p>
+                              )}
+                              {patent.abstract && (
+                                <p className="text-xs text-muted-foreground leading-relaxed mt-2">{patent.abstract}</p>
+                              )}
+                              {patent.source_url && (
+                                <a
+                                  href={patent.source_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline mt-3"
+                                >
+                                  View Full Patent <ExternalLink size={10} />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {filteredPatents.length > 20 && (
+                  <div className="p-3 text-center border-t border-border">
+                    <p className="text-xs text-muted-foreground">Showing 20 of {filteredPatents.length} patents</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="border border-border rounded-xl bg-card shadow-sm p-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {patentTab === "expired" ? "No expired patents tracked yet." : "No patents match this filter."}
+                </p>
+              </div>
+            )}
           </section>
         )}
 
@@ -252,13 +291,12 @@ export default function IntelPage() {
               <h2 className="text-lg font-bold text-foreground">Search Trend Signals</h2>
             </div>
             <p className="text-sm text-muted-foreground mb-2 max-w-2xl">
-              Real search interest data scraped from Google Trends. Select a keyword to see its trajectory.
+              Real search interest data showing relative volume over the trailing 12 months. Select a keyword to see its trajectory.
             </p>
             <p className="text-[10px] text-muted-foreground mb-6 flex items-center gap-1">
-              <FileText size={10} /> Source: Google Trends · {trends.length} keywords tracked
+              <FileText size={10} /> {trends.length} keywords tracked · Interest scale 0–100
             </p>
 
-            {/* Trend keyword selector */}
             <div className="flex flex-wrap gap-2 mb-4">
               {trends.map((t, i) => (
                 <button
@@ -275,13 +313,12 @@ export default function IntelPage() {
               ))}
             </div>
 
-            {/* Trend chart */}
             {trendChartData.length > 0 ? (
               <div className="border border-border rounded-xl bg-card shadow-sm p-4 sm:p-6 mb-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-sm font-bold text-foreground">{activeTrend?.keyword}</p>
-                    <p className="text-[10px] text-muted-foreground">{activeTrend?.category} · Google Trends interest over time (0-100)</p>
+                    <p className="text-[10px] text-muted-foreground">{activeTrend?.category} · Relative search interest over time (0-100)</p>
                   </div>
                 </div>
                 <div className="h-[240px] sm:h-[280px]">
@@ -303,7 +340,6 @@ export default function IntelPage() {
               </div>
             )}
 
-            {/* Related queries */}
             {activeTrend?.related_queries?.length > 0 && (
               <div className="border border-border rounded-lg p-4 bg-card">
                 <p className="text-xs font-semibold text-foreground mb-2">Related Search Queries</p>
@@ -317,6 +353,9 @@ export default function IntelPage() {
           </section>
         )}
 
+        {/* ── Market News ── */}
+        <MarketNewsSection news={news} />
+
         {/* ── Platform Analytics ── */}
         {platformOverview && (
           <section>
@@ -328,10 +367,9 @@ export default function IntelPage() {
               Real usage data from analyses run on this platform. All metrics derived from actual user activity.
             </p>
             <p className="text-[10px] text-muted-foreground mb-6 flex items-center gap-1">
-              <FileText size={10} /> Source: Platform database · {platformOverview.totalAnalyses} analyses
+              <FileText size={10} /> {platformOverview.totalAnalyses} analyses
             </p>
 
-            {/* Overview metrics */}
             <div className="grid gap-3 sm:grid-cols-3 mb-6">
               <div className="border border-border rounded-lg p-4 bg-card">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Total Analyses</p>
@@ -353,7 +391,6 @@ export default function IntelPage() {
               </div>
             </div>
 
-            {/* Top categories bar chart */}
             {topCategories.length > 0 && (
               <div className="border border-border rounded-xl bg-card shadow-sm p-4 sm:p-6">
                 <p className="text-sm font-bold text-foreground mb-4">Most Analyzed Categories</p>
@@ -379,11 +416,10 @@ export default function IntelPage() {
           </section>
         )}
 
-        {/* No data yet message when all sections empty */}
-        {patents.length === 0 && trends.length === 0 && !platformOverview && (
+        {patents.length === 0 && trends.length === 0 && !platformOverview && news.length === 0 && (
           <div className="text-center py-12">
             <Zap size={20} className="text-muted-foreground mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Data pipelines are initializing. Real market intelligence will appear here after the first daily scrape completes.</p>
+            <p className="text-sm text-muted-foreground">Data pipelines are initializing. Real market intelligence will appear here after the first daily refresh completes.</p>
           </div>
         )}
 
