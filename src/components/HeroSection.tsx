@@ -55,13 +55,15 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenS
             </button>
           )}
         </div>
-        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight mb-4 text-foreground">
-          Analyze, Deconstruct,{" "}
-          <span className="text-primary">Capitalize.</span>
-        </h1>
-        <p className="text-base max-w-2xl leading-relaxed text-muted-foreground">
-          Advanced AI research models that challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up. Built by SGP Capital to arm entrepreneurs with tools to reinvent markets.
-        </p>
+        <div className="pl-4" style={{ borderLeft: "2px solid hsl(var(--primary))" }}>
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight mb-4 text-foreground">
+            Analyze, Deconstruct,{" "}
+            <span className="text-primary">Capitalize.</span>
+          </h1>
+          <p className="text-base max-w-2xl leading-relaxed text-muted-foreground">
+            Advanced AI research models that challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up. Built by SGP Capital to arm entrepreneurs with tools to reinvent markets.
+          </p>
+        </div>
       </div>
     </header>
   );

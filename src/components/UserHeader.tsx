@@ -127,7 +127,7 @@ export function UserHeader() {
     border: "1.5px solid hsl(var(--border))",
     background: "hsl(var(--muted))",
     color: "hsl(var(--foreground))",
-    borderRadius: "0.5rem",
+    borderRadius: "var(--radius)",
     padding: "0.6rem 0.75rem",
     fontSize: "0.875rem",
     width: "100%",
@@ -139,14 +139,14 @@ export function UserHeader() {
       <div ref={containerRef} style={{ position: "relative" }}>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl transition-all hover:shadow-md"
+          className="flex items-center gap-2 px-3 py-2 rounded transition-colors"
           style={{
             background: open ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.12)",
             border: open ? "1.5px solid hsl(var(--primary))" : "1.5px solid hsl(var(--primary) / 0.4)",
           }}
         >
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
+            className="w-7 h-7 rounded flex items-center justify-center text-xs font-bold text-white"
             style={{ background: open ? "hsl(var(--primary-foreground) / 0.2)" : "hsl(var(--primary))" }}
           >
             {initials}
@@ -164,7 +164,7 @@ export function UserHeader() {
               right: 0,
               top: "calc(100% + 8px)",
               width: "14rem",
-              borderRadius: "0.75rem",
+              borderRadius: "var(--radius)",
               boxShadow: "0 20px 40px -10px rgba(0,0,0,0.35)",
               overflow: "hidden",
               zIndex: 99999,
@@ -248,7 +248,7 @@ export function UserHeader() {
           onClick={(e) => { if (e.target === e.currentTarget) setShowPasswordModal(false); }}
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-6 space-y-5"
+            className="w-full max-w-sm rounded p-6 space-y-5"
             style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", boxShadow: "0 20px 60px -15px rgba(0,0,0,0.4)" }}
           >
             <div className="flex items-center justify-between">
@@ -256,7 +256,7 @@ export function UserHeader() {
                 <KeyRound size={18} style={{ color: "hsl(var(--primary))" }} />
                 <h3 className="text-lg font-bold" style={{ color: "hsl(var(--foreground))" }}>Set Password</h3>
               </div>
-              <button onClick={() => setShowPasswordModal(false)} className="p-1 rounded-lg hover:bg-muted transition-colors">
+              <button onClick={() => setShowPasswordModal(false)} className="p-1 rounded hover:bg-muted transition-colors">
                 <X size={16} style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             </div>
@@ -288,11 +288,10 @@ export function UserHeader() {
               <button
                 type="submit"
                 disabled={savingPassword || !newPassword || !confirmPassword}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded font-bold text-sm transition-colors"
                 style={{
                   background: savingPassword || !newPassword || !confirmPassword ? "hsl(var(--muted))" : "hsl(var(--primary))",
                   color: savingPassword || !newPassword || !confirmPassword ? "hsl(var(--muted-foreground))" : "white",
-                  boxShadow: !savingPassword && newPassword && confirmPassword ? "0 4px 16px -2px hsl(217 91% 50% / 0.4)" : "none",
                 }}
               >
                 {savingPassword ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : <><Check size={14} /> Save Password</>}
@@ -310,7 +309,7 @@ export function UserHeader() {
           onClick={(e) => { if (e.target === e.currentTarget) setShowShareModal(false); }}
         >
           <div
-            className="w-full max-w-md rounded-2xl p-6 space-y-5"
+            className="w-full max-w-md rounded p-6 space-y-5"
             style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", boxShadow: "0 20px 60px -15px rgba(0,0,0,0.4)" }}
           >
             <div className="flex items-center justify-between">
@@ -318,12 +317,12 @@ export function UserHeader() {
                 <Gift size={18} style={{ color: "hsl(142 71% 45%)" }} />
                 <h3 className="text-lg font-bold" style={{ color: "hsl(var(--foreground))" }}>Share & Earn</h3>
               </div>
-              <button onClick={() => setShowShareModal(false)} className="p-1 rounded-lg hover:bg-muted transition-colors">
+              <button onClick={() => setShowShareModal(false)} className="p-1 rounded hover:bg-muted transition-colors">
                 <X size={16} style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             </div>
 
-            <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(142 71% 45% / 0.08)", border: "1px solid hsl(142 71% 45% / 0.2)" }}>
+            <div className="rounded p-4 space-y-2" style={{ background: "hsl(142 71% 45% / 0.08)", border: "1px solid hsl(142 71% 45% / 0.2)" }}>
               <p className="text-sm font-bold" style={{ color: "hsl(142 71% 45%)" }}>
                 You both get +5 bonus analyses!
               </p>
@@ -335,7 +334,7 @@ export function UserHeader() {
             <div className="space-y-3">
               <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Your Referral Link</label>
               <div
-                className="rounded-xl p-3 text-sm font-mono break-all"
+                className="rounded p-3 text-sm font-mono break-all"
                 style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
               >
                 {shareUrl}
@@ -343,8 +342,8 @@ export function UserHeader() {
 
               <button
                 onClick={handleCopyLink}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all"
-                style={{ background: "hsl(var(--primary))", color: "white", boxShadow: "0 4px 16px -2px hsl(217 91% 50% / 0.4)" }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded font-bold text-sm transition-colors"
+                style={{ background: "hsl(var(--primary))", color: "white" }}
               >
                 <Copy size={14} /> Copy Link
               </button>
@@ -375,11 +374,10 @@ export function UserHeader() {
                 <button
                   type="submit"
                   disabled={sendingEmail || !recipientEmail}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded font-bold text-sm transition-colors"
                   style={{
                     background: emailSent ? "hsl(142 71% 45%)" : sendingEmail || !recipientEmail ? "hsl(var(--muted))" : "hsl(var(--primary))",
                     color: sendingEmail || !recipientEmail ? "hsl(var(--muted-foreground))" : "white",
-                    boxShadow: !sendingEmail && recipientEmail ? "0 4px 16px -2px hsl(217 91% 50% / 0.4)" : "none",
                   }}
                 >
                   {sendingEmail ? <><Loader2 size={14} className="animate-spin" /> Sending...</> : emailSent ? <><Check size={14} /> Sent</> : <><Send size={14} /> Send Invitation</>}
@@ -391,7 +389,7 @@ export function UserHeader() {
             </div>
 
             {referralStats.count > 0 && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              <div className="flex items-center gap-2 px-3 py-2 rounded" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 <Share2 size={14} style={{ color: "hsl(var(--primary))" }} />
                 <p className="text-xs font-semibold" style={{ color: "hsl(var(--foreground))" }}>
                   {referralStats.count} {referralStats.count === 1 ? "person has" : "people have"} signed up through your link

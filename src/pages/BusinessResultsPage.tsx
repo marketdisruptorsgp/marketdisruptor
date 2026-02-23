@@ -26,6 +26,9 @@ export default function BusinessResultsPage() {
     return null;
   }
 
+  const bizName = businessModelInput?.type || "Business Model";
+  const bizAccent = "hsl(271 81% 55%)";
+
   const bizSyntheticProduct: Product = {
     id: "biz-model",
     name: bizName,

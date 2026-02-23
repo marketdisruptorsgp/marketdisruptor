@@ -25,7 +25,7 @@ export function ContextualTip({ id, message, color = "hsl(var(--primary))" }: Co
 
   return (
     <div
-      className="flex items-start gap-3 px-4 py-3 rounded-xl text-xs"
+      className="flex items-start gap-3 px-4 py-3 rounded text-xs"
       style={{
         background: `${color}0D`,
         border: `1px solid ${color}25`,
