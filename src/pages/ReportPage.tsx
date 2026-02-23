@@ -4,11 +4,11 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
 import { StepNavigator } from "@/components/StepNavigator";
 import { ProductCard } from "@/components/ProductCard";
-import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
+// FlippedIdeaCard moved to Disrupt step
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
-import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
+import { SectionHeader, NextSectionButton, DetailPanel, NextStepButton } from "@/components/SectionNav";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import {
   Target, Brain, Swords, Presentation, Save, RefreshCw, FileDown,
@@ -51,7 +51,6 @@ export default function ReportPage() {
     { id: "pricing", label: "Pricing Intel", icon: DollarSign },
     { id: "supply", label: "Supply Chain", icon: Package },
     { id: "action", label: "Action Plan", icon: Rocket },
-    { id: "ideas", label: "Flipped Ideas", icon: Zap },
   ];
 
   const currentIdx = DETAIL_TABS.findIndex(t => t.id === analysis.detailTab);
@@ -462,23 +461,14 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* Tab: Flipped Ideas */}
-        {analysis.detailTab === "ideas" && (
-          <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Flipped Ideas" icon={Zap} />
-            {selectedProduct.flippedIdeas?.length ? (
-              selectedProduct.flippedIdeas.map((idea, i) => (
-                <FlippedIdeaCard key={i} idea={idea} rank={i + 1} productName={selectedProduct.name} />
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No flipped ideas available yet. Try running the Disrupt step.</p>
-            )}
-            <div className="text-center py-3">
-              <span className="text-xs font-bold px-3 py-2 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 35%)" }}>
-                ✓ All sections explored
-              </span>
-            </div>
-          </div>
+        {/* After last section (Action Plan), show Next Step button */}
+        {analysis.detailTab === "action" && !nextTab && (
+          <NextStepButton
+            stepNumber={3}
+            label="Disrupt"
+            color="hsl(271 81% 55%)"
+            onClick={() => navigate(`${baseUrl}/disrupt`)}
+          />
         )}
 
         {/* SGP Capital CTA */}

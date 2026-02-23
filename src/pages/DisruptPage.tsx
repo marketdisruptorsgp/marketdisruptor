@@ -4,6 +4,7 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { StepNavigator } from "@/components/StepNavigator";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Target, Brain, Swords, Presentation, ArrowLeft } from "lucide-react";
+import { NextStepButton } from "@/components/SectionNav";
 
 export default function DisruptPage() {
   const analysis = useAnalysis();
@@ -73,6 +74,14 @@ export default function DisruptPage() {
             />
           </div>
         </div>
+
+        {/* Next Step button */}
+        <NextStepButton
+          stepNumber={4}
+          label="Stress Test"
+          color="hsl(350 80% 55%)"
+          onClick={() => navigate(`${baseUrl}/stress-test`)}
+        />
       </main>
     </div>
   );

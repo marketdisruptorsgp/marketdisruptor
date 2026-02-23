@@ -139,17 +139,30 @@ const SEVERITY_COLORS = {
   low: { bg: "hsl(142 70% 45% / 0.07)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)" },
 };
 
-/* ── Collapsible detail panel ──────────────────────── */
+/* ── Collapsible detail panel — PROMINENT ──────────────────────── */
 function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg text-left transition-colors hover:bg-muted/50" style={{ background: open ? "hsl(var(--muted))" : "transparent", border: "1px solid hsl(var(--border))" }}>
-        <span className="flex items-center gap-2 text-xs font-semibold text-foreground">
-          <Icon size={13} style={{ color: "hsl(var(--primary))" }} />
+      <CollapsibleTrigger
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg text-left transition-all group"
+        style={{
+          background: open ? "hsl(var(--primary) / 0.06)" : "hsl(var(--primary) / 0.03)",
+          border: open ? "1.5px solid hsl(var(--primary) / 0.3)" : "1.5px dashed hsl(var(--primary) / 0.25)",
+        }}
+      >
+        <span className="flex items-center gap-2 text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>
+          <Icon size={14} />
           {title}
         </span>
-        <ChevronDown size={14} className="text-muted-foreground transition-transform" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+        <span className="flex items-center gap-1.5">
+          {!open && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
+              Tap to expand
+            </span>
+          )}
+          <ChevronDown size={16} className="transition-transform" style={{ color: "hsl(var(--primary))", transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+        </span>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-4 pt-3 pb-1">
         {children}
