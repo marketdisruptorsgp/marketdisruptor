@@ -22,6 +22,7 @@ interface SavedAnalysis {
 interface SavedAnalysesProps {
   onLoad: (analysis: SavedAnalysis) => void;
   refreshTrigger?: number;
+  onCountChange?: (count: number) => void;
 }
 
 const TYPE_CONFIG = {
@@ -51,10 +52,20 @@ const TYPE_CONFIG = {
   },
 } as const;
 
-export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
+export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange }: SavedAnalysesProps) {
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  const deduplicateAnalyses = (items: SavedAnalysis[]): SavedAnalysis[] => {
+    const seen = new Set<string>();
+    return items.filter((a) => {
+      const key = `${a.category}|${a.era}|${a.audience}|${a.analysis_type ?? "product"}|${a.batch_size}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
 
   const fetchAnalyses = async () => {
     setLoading(true);
@@ -68,7 +79,9 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
       console.error("Failed to load saved analyses:", error);
       toast.error("Could not load saved analyses");
     } else {
-      setAnalyses(((data as unknown) as SavedAnalysis[]) || []);
+      const deduped = deduplicateAnalyses(((data as unknown) as SavedAnalysis[]) || []);
+      setAnalyses(deduped);
+      onCountChange?.(deduped.length);
     }
     setLoading(false);
   };
@@ -115,7 +128,7 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, category, or era..."
-              className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-9 pr-3 py-2.5 text-sm rounded focus:outline-none focus:ring-2 focus:ring-primary"
               style={{
                 border: "1.5px solid hsl(var(--border))",
                 background: "hsl(var(--background))",
@@ -163,19 +176,11 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
               <button
                 key={analysis.id}
                 onClick={() => onLoad(analysis)}
-                className="w-full text-left p-4 rounded-xl transition-all group hover:scale-[1.01] hover:shadow-md"
+                className="w-full text-left p-4 rounded transition-colors group hover:bg-muted/50"
                 style={{
                   background: "hsl(var(--card))",
                   border: "2px solid hsl(var(--border))",
                   borderLeft: `4px solid ${cfg.color}`,
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = cfg.color;
-                  (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px -4px ${cfg.color}30`;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "hsl(var(--border))";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
                 }}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -183,7 +188,7 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
                     {/* Type badge */}
                     <div className="flex items-center gap-2 mb-2">
                       <span
-                        className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded"
                         style={{ background: cfg.bgColor, color: cfg.color }}
                       >
                         <TypeIcon size={10} />
@@ -191,7 +196,7 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
                       </span>
                       {analysis.avg_revival_score && (
                         <span
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          className="text-[10px] font-bold px-2 py-0.5 rounded"
                           style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}
                         >
                           {analysis.avg_revival_score}/10
@@ -203,7 +208,7 @@ export function SavedAnalyses({ onLoad, refreshTrigger }: SavedAnalysesProps) {
                     {/* Meta row */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                        className="text-[11px] font-semibold px-2 py-0.5 rounded"
                         style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}
                       >
                         {analysis.category}
