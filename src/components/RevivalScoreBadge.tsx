@@ -12,10 +12,10 @@ export const RevivalScoreBadge = ({ score, size = "md" }: RevivalScoreBadgeProps
 
   const sizeClasses =
     size === "sm"
-      ? "px-2 py-0.5 text-xs rounded-full font-semibold"
+      ? "px-2 py-0.5 text-xs rounded font-semibold"
       : size === "lg"
-      ? "px-4 py-2 text-base rounded-full font-bold"
-      : "px-3 py-1 text-sm rounded-full font-semibold";
+      ? "px-4 py-2 text-base rounded font-bold"
+      : "px-3 py-1 text-sm rounded font-semibold";
 
   return (
     <span className={`inline-flex items-center gap-1.5 ${badgeClass} ${sizeClasses}`}>

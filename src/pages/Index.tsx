@@ -1454,22 +1454,17 @@ export default function Index() {
                           setVisitedSteps(prev => new Set([...prev, 3]));
                           setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
                         }}
-                        className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
-                        style={{
-                          background: "linear-gradient(135deg, hsl(271 81% 55%) 0%, hsl(271 81% 45%) 100%)",
-                          color: "white",
-                          boxShadow: "0 6px 20px -4px hsl(271 81% 55% / 0.5)",
-                          border: "2px solid hsl(271 81% 65% / 0.4)",
-                        }}
+                        className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
+                        style={{ background: "hsl(271 81% 55%)", color: "white", border: "1px solid hsl(271 81% 55%)" }}
                       >
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
-                          <Brain size={20} />
+                        <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
+                          <Brain size={16} />
                         </div>
                         <div>
-                          <div className="text-sm">Step 3 → Disrupt</div>
+                          <div className="text-sm font-semibold">Step 3 → Disrupt</div>
                           <div className="text-xs font-normal opacity-80">Challenge assumptions & generate radical ideas</div>
                         </div>
-                        <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                        <ChevronRight size={16} className="ml-auto flex-shrink-0" />
                       </button>
                       <button
                         onClick={() => {
@@ -1477,22 +1472,17 @@ export default function Index() {
                           setVisitedSteps(prev => new Set([...prev, 4]));
                           setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
                         }}
-                        className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
-                        style={{
-                          background: "linear-gradient(135deg, hsl(350 80% 55%) 0%, hsl(350 80% 45%) 100%)",
-                          color: "white",
-                          boxShadow: "0 6px 20px -4px hsl(350 80% 55% / 0.5)",
-                          border: "2px solid hsl(350 80% 65% / 0.4)",
-                        }}
+                        className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
+                        style={{ background: "hsl(350 80% 55%)", color: "white", border: "1px solid hsl(350 80% 55%)" }}
                       >
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
-                          <Swords size={20} />
+                        <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
+                          <Swords size={16} />
                         </div>
                         <div>
-                          <div className="text-sm">Step 4 → Stress Test</div>
+                          <div className="text-sm font-semibold">Step 4 → Stress Test</div>
                           <div className="text-xs font-normal opacity-80">Red Team vs Blue Team critical validation</div>
                         </div>
-                        <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                        <ChevronRight size={16} className="ml-auto flex-shrink-0" />
                       </button>
                       <button
                         onClick={() => {
@@ -1500,22 +1490,17 @@ export default function Index() {
                           setVisitedSteps(prev => new Set([...prev, 5]));
                           setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
                         }}
-                        className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
-                        style={{
-                          background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)",
-                          color: "white",
-                          boxShadow: "var(--shadow-primary)",
-                          border: "2px solid hsl(var(--primary-light) / 0.4)",
-                        }}
+                        className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
+                        style={{ background: "hsl(var(--primary))", color: "white", border: "1px solid hsl(var(--primary))" }}
                       >
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
-                          <Presentation size={20} />
+                        <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
+                          <Presentation size={16} />
                         </div>
                         <div>
-                          <div className="text-sm">Step 5 → Pitch Deck</div>
+                          <div className="text-sm font-semibold">Step 5 → Pitch Deck</div>
                           <div className="text-xs font-normal opacity-80">Auto-generate an investor-ready pitch</div>
                         </div>
-                        <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                        <ChevronRight size={16} className="ml-auto flex-shrink-0" />
                       </button>
                     </div>
                   </div>
@@ -1539,11 +1524,11 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(271 81% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(271 81% 55% / 0.1)" }}>
-                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(271 81% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(271 81% 55%)" }}>3</div>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(271 81% 55%)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(271 81% 55%)" }}>3</div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-extrabold text-foreground">Disrupt</h2>
+                      <h2 className="text-lg font-bold text-foreground">Disrupt</h2>
                       <p className="text-sm text-muted-foreground">Deconstructing <strong className="text-foreground">{selectedProduct.name}</strong> — questioning every assumption and generating radical reinvention ideas.</p>
                     </div>
                   </div>
@@ -1579,11 +1564,11 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(350 80% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(350 80% 55% / 0.1)" }}>
-                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(350 80% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(350 80% 55%)" }}>4</div>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(350 80% 55%)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(350 80% 55%)" }}>4</div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-extrabold text-foreground">Stress Test</h2>
+                      <h2 className="text-lg font-bold text-foreground">Stress Test</h2>
                       <p className="text-sm text-muted-foreground">Red Team vs Blue Team critical validation for <strong className="text-foreground">{selectedProduct.name}</strong> — counter-examples, feasibility, confidence scoring.</p>
                     </div>
                   </div>
@@ -1600,18 +1585,15 @@ export default function Index() {
                           <button
                             key={tab.id}
                             onClick={() => { setStressTestTab(tab.id); setVisitedStressTestTabs(prev => new Set([...prev, tab.id])); }}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all relative"
+                            className="flex items-center gap-2 px-4 py-2.5 rounded text-sm font-medium transition-colors relative"
                             style={{
-                              background: isActive ? "hsl(350 80% 55%)" : !visitedStressTestTabs.has(tab.id) ? "hsl(350 80% 55% / 0.1)" : "hsl(var(--muted))",
+                              background: isActive ? "hsl(350 80% 55%)" : "transparent",
                               color: isActive ? "white" : "hsl(var(--muted-foreground))",
-                              border: isActive ? "2px solid hsl(350 80% 55%)" : !visitedStressTestTabs.has(tab.id) ? "2px solid hsl(350 80% 55% / 0.4)" : "2px solid hsl(var(--border))",
-                              boxShadow: !isActive && !visitedStressTestTabs.has(tab.id) ? "0 0 12px -2px hsl(350 80% 55% / 0.3)" : "none",
+                              border: isActive ? "1px solid hsl(350 80% 55%)" : "1px solid hsl(var(--border))",
                             }}
                           >
                             {!isActive && !visitedStressTestTabs.has(tab.id) && (
-                              <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: "hsl(350 80% 55%)", boxShadow: "0 2px 8px -2px hsl(350 80% 55% / 0.6)" }}>
-                                Explore
-                              </span>
+                              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(350 80% 55%)" }} />
                             )}
                             <TabIcon size={14} />
                             {tab.label}
@@ -1642,11 +1624,11 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.1)" }}>
-                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(var(--primary))" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-extrabold text-foreground">Investor Pitch Deck</h2>
+                      <h2 className="text-lg font-bold text-foreground">Investor Pitch Deck</h2>
                       <p className="text-sm text-muted-foreground">Professional pitch deck for <strong className="text-foreground">{selectedProduct.name}</strong> — TAM/SAM/SOM, unit economics, go-to-market strategy.</p>
                     </div>
                   </div>
@@ -1727,11 +1709,11 @@ export default function Index() {
             {/* ── STEP 2: INTELLIGENCE REPORT ── */}
             {businessActiveStep === 2 && (
               <div className="space-y-4">
-                <div className="rounded-2xl overflow-hidden" style={{ border: `2px solid ${bizAccent}30`, boxShadow: `0 4px 24px -4px ${bizAccent}18` }}>
-                  <div className="px-5 py-4 flex items-center gap-4" style={{ background: `linear-gradient(135deg, ${bizAccentLight} 0%, hsl(var(--card)) 100%)` }}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: bizAccent }}>2</div>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${bizAccent}` }}>
+                  <div className="px-5 py-4 flex items-center gap-4" style={{ background: "hsl(var(--card))" }}>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: bizAccent }}>2</div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-extrabold text-foreground">Intelligence Report</h2>
+                      <h2 className="text-lg font-bold text-foreground">Intelligence Report</h2>
                       <p className="text-sm text-muted-foreground">Deep business model deconstruction for <strong className="text-foreground">{bizName}</strong></p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -1807,11 +1789,11 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(350 80% 55% / 0.25)", boxShadow: "0 4px 24px -4px hsl(350 80% 55% / 0.1)" }}>
-                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(350 80% 55% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(350 80% 55%)" }}>3</div>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(350 80% 55%)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(350 80% 55%)" }}>3</div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-extrabold text-foreground">Disrupt</h2>
+                      <h2 className="text-lg font-bold text-foreground">Disrupt</h2>
                       <p className="text-sm text-muted-foreground">Disruption vulnerabilities and reinvented model for <strong className="text-foreground">{bizName}</strong></p>
                     </div>
                   </div>
@@ -1833,11 +1815,11 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(38 92% 50% / 0.25)", boxShadow: "0 4px 24px -4px hsl(38 92% 50% / 0.1)" }}>
-                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(38 92% 50% / 0.06) 0%, hsl(var(--card)) 100%)" }}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(38 92% 50%)" }}>4</div>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(38 92% 50%)" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(38 92% 50%)" }}>4</div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-extrabold text-foreground">Stress Test</h2>
+                      <h2 className="text-lg font-bold text-foreground">Stress Test</h2>
                       <p className="text-sm text-muted-foreground">Red Team vs Blue Team critical validation for <strong className="text-foreground">{bizName}</strong></p>
                     </div>
                   </div>
@@ -1853,18 +1835,15 @@ export default function Index() {
                           <button
                             key={tab.id}
                             onClick={() => { setBusinessStressTestTab(tab.id); setVisitedBusinessStressTestTabs(prev => new Set([...prev, tab.id])); }}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all relative"
+                            className="flex items-center gap-2 px-4 py-2.5 rounded text-sm font-medium transition-colors relative"
                             style={{
-                              background: isActive ? "hsl(38 92% 50%)" : !visitedBusinessStressTestTabs.has(tab.id) ? "hsl(38 92% 50% / 0.1)" : "hsl(var(--muted))",
+                              background: isActive ? "hsl(38 92% 50%)" : "transparent",
                               color: isActive ? "white" : "hsl(var(--muted-foreground))",
-                              border: isActive ? "2px solid hsl(38 92% 50%)" : !visitedBusinessStressTestTabs.has(tab.id) ? "2px solid hsl(38 92% 50% / 0.4)" : "2px solid hsl(var(--border))",
-                              boxShadow: !isActive && !visitedBusinessStressTestTabs.has(tab.id) ? "0 0 12px -2px hsl(38 92% 50% / 0.3)" : "none",
+                              border: isActive ? "1px solid hsl(38 92% 50%)" : "1px solid hsl(var(--border))",
                             }}
                           >
                             {!isActive && !visitedBusinessStressTestTabs.has(tab.id) && (
-                              <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: "hsl(38 92% 50%)", boxShadow: "0 2px 8px -2px hsl(38 92% 50% / 0.6)" }}>
-                                Explore
-                              </span>
+                              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(38 92% 50%)" }} />
                             )}
                             <TabIcon size={14} />
                             {tab.label}
@@ -1895,11 +1874,11 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", boxShadow: "0 4px 24px -4px hsl(var(--primary) / 0.1)" }}>
-                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(var(--primary))" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-extrabold text-foreground">Pitch Deck</h2>
+                      <h2 className="text-lg font-bold text-foreground">Pitch Deck</h2>
                       <p className="text-sm text-muted-foreground">Auto-generated investor-ready pitch for <strong className="text-foreground">{bizName}</strong></p>
                     </div>
                   </div>
@@ -1931,13 +1910,13 @@ export default function Index() {
 
         {/* ── SGP CAPITAL CTA ── */}
         {(step === "done" || businessAnalysisData) && (
-          <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--primary) / 0.25)", background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)" }}>
+          <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
             <div className="px-6 py-6 flex flex-col sm:flex-row items-center gap-5">
-              <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-                <Rocket size={24} className="text-white" />
+              <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+                <Rocket size={18} className="text-white" />
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <h3 className="text-lg font-extrabold text-foreground mb-1">Ready to Bring This to Life?</h3>
+                <h3 className="text-base font-bold text-foreground mb-1">Ready to Bring This to Life?</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   SGP Capital helps entrepreneurs and investors turn market intelligence into real businesses. From product sourcing to launch strategy — let's build together.
                 </p>
@@ -1947,7 +1926,7 @@ export default function Index() {
                   href="https://sgpcapital.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 flex items-center gap-2"
+                  className="px-4 py-2 rounded text-sm font-medium text-white transition-opacity hover:opacity-90 flex items-center gap-2"
                   style={{ background: "hsl(var(--primary))" }}
                 >
                   <Globe size={14} />
@@ -1955,7 +1934,7 @@ export default function Index() {
                 </a>
                 <a
                   href="mailto:steven@sgpcapital.com"
-                  className="px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2"
+                  className="px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2"
                   style={{ border: "1.5px solid hsl(var(--primary))", color: "hsl(var(--primary))" }}
                 >
                   <Users size={14} />
