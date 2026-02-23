@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { UserHeader } from "@/components/UserHeader";
+import { PlatformNav } from "@/components/PlatformNav";
 import { TIERS, TierKey } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Database, Zap, BarChart3, Clock, FolderOpen, Star, CalendarDays } from "lucide-react";
+import { BarChart3, Clock, FolderOpen, Star, CalendarDays } from "lucide-react";
 
 interface HeroSectionProps {
   tier: TierKey;
@@ -24,7 +24,6 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenS
 
   useEffect(() => {
     if (!user?.id) return;
-    // Fetch real user stats
     (async () => {
       const { count } = await (supabase.from("saved_analyses") as any)
         .select("id", { count: "exact", head: true })
@@ -53,37 +52,8 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenS
 
   return (
     <header style={{ background: "hsl(var(--card))" }}>
-      {/* Top nav bar */}
-      <div className="border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 py-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded flex items-center justify-center bg-primary text-primary-foreground">
-              <Zap size={14} />
-            </div>
-            <span className="text-sm font-bold tracking-tight text-foreground">Market Disruptor</span>
-            <span className="hidden sm:inline text-[9px] font-semibold uppercase tracking-widest text-muted-foreground border border-border rounded px-1.5 py-0.5 ml-1">
-              OS
-            </span>
-          </div>
-          <div className="flex items-center gap-2" data-tour="user-menu">
-            {onOpenSaved && (
-              <button
-                onClick={onOpenSaved}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold transition-colors border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted"
-              >
-                <Database size={12} />
-                <span className="hidden sm:inline">Projects</span>
-                {typeof savedCount === "number" && savedCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary text-primary-foreground leading-none">
-                    {savedCount}
-                  </span>
-                )}
-              </button>
-            )}
-            <UserHeader />
-          </div>
-        </div>
-      </div>
+      {/* Top nav bar — now using PlatformNav */}
+      <PlatformNav tier={tier} onOpenSaved={onOpenSaved} savedCount={savedCount} />
 
       {/* Welcome row */}
       <div className="border-b border-border">

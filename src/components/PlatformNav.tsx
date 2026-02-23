@@ -1,0 +1,229 @@
+import { useNavigate, useLocation } from "react-router-dom";
+import { UserHeader } from "@/components/UserHeader";
+import { useAnalysis } from "@/contexts/AnalysisContext";
+import { type AnalysisMode } from "@/components/AnalysisForm";
+import { TIERS, TierKey } from "@/hooks/useSubscription";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import {
+  Zap, Database, Upload, Briefcase, Building2,
+  FolderOpen, BarChart3, BookOpen, HelpCircle, Lightbulb, TrendingUp,
+} from "lucide-react";
+
+interface PlatformNavProps {
+  tier: TierKey;
+  onOpenSaved?: () => void;
+  savedCount?: number;
+}
+
+const ACCESS_MODES = [
+  {
+    id: "custom" as const,
+    label: "Disrupt This Product",
+    desc: "Upload & analyze any physical product",
+    icon: Upload,
+  },
+  {
+    id: "service" as const,
+    label: "Disrupt This Service",
+    desc: "Deconstruct any service business",
+    icon: Briefcase,
+  },
+  {
+    id: "business" as const,
+    label: "Disrupt This Business Model",
+    desc: "Full business model teardown",
+    icon: Building2,
+  },
+];
+
+const RESOURCES_ITEMS = [
+  { label: "FAQs", desc: "Common questions answered", icon: HelpCircle, hash: "#faqs" },
+  { label: "Methodology", desc: "Our 4-step analysis pipeline", icon: Lightbulb, hash: "#methodology" },
+  { label: "Market Intel", desc: "Upcoming market reports", icon: TrendingUp, hash: "#market-intel" },
+];
+
+export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const analysis = useAnalysis();
+
+  const handleModeSelect = (modeId: "custom" | "service" | "business") => {
+    analysis.setMainTab(modeId);
+    analysis.setActiveMode(modeId as AnalysisMode);
+    if (location.pathname !== "/") {
+      navigate("/");
+    }
+  };
+
+  const isActive = (path: string) => location.pathname === path;
+
+  return (
+    <div className="border-b border-border" style={{ background: "hsl(var(--card))" }}>
+      <div className="max-w-6xl mx-auto px-6 py-0 flex items-center justify-between">
+        {/* Left: Logo + Nav items */}
+        <div className="flex items-center gap-1">
+          {/* Logo */}
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2.5 mr-4 py-2.5"
+          >
+            <div className="w-7 h-7 rounded flex items-center justify-center bg-primary text-primary-foreground">
+              <Zap size={14} />
+            </div>
+            <span className="text-sm font-bold tracking-tight text-foreground hidden sm:inline">Market Disruptor</span>
+            <span className="hidden md:inline text-[9px] font-semibold uppercase tracking-widest text-muted-foreground border border-border rounded px-1.5 py-0.5">
+              OS
+            </span>
+          </button>
+
+          <NavigationMenu>
+            <NavigationMenuList>
+              {/* Access Modes dropdown */}
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-2.5 px-3">
+                  Access Modes
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="w-72 p-2" style={{ background: "hsl(var(--card))" }}>
+                    {ACCESS_MODES.map((mode) => {
+                      const Icon = mode.icon;
+                      const active = analysis.mainTab === mode.id;
+                      return (
+                        <button
+                          key={mode.id}
+                          onClick={() => handleModeSelect(mode.id)}
+                          className="w-full flex items-start gap-3 rounded px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                          style={active ? { background: "hsl(var(--muted))" } : {}}
+                        >
+                          <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-background">
+                            <Icon size={13} className="text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-foreground leading-tight">{mode.label}</p>
+                            <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{mode.desc}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {/* Workspace dropdown */}
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-2.5 px-3">
+                  Workspace
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="w-56 p-2" style={{ background: "hsl(var(--card))" }}>
+                    <button
+                      onClick={() => { onOpenSaved?.(); }}
+                      className="w-full flex items-center gap-3 rounded px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                    >
+                      <FolderOpen size={13} className="text-muted-foreground" />
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">Saved Projects</p>
+                        <p className="text-[10px] text-muted-foreground">View & reload past analyses</p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => navigate("/pricing")}
+                      className="w-full flex items-center gap-3 rounded px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                    >
+                      <BarChart3 size={13} className="text-muted-foreground" />
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">Plan & Usage</p>
+                        <p className="text-[10px] text-muted-foreground">{TIERS[tier].name} tier</p>
+                      </div>
+                    </button>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {/* Resources dropdown */}
+              <NavigationMenuItem>
+                <NavigationMenuTrigger className="text-xs font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-2.5 px-3">
+                  Resources
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="w-60 p-2" style={{ background: "hsl(var(--card))" }}>
+                    {RESOURCES_ITEMS.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <NavigationMenuLink key={item.label} asChild>
+                          <button
+                            onClick={() => navigate(`/resources${item.hash}`)}
+                            className="w-full flex items-center gap-3 rounded px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                          >
+                            <Icon size={13} className="text-muted-foreground" />
+                            <div>
+                              <p className="text-xs font-semibold text-foreground">{item.label}</p>
+                              <p className="text-[10px] text-muted-foreground">{item.desc}</p>
+                            </div>
+                          </button>
+                        </NavigationMenuLink>
+                      );
+                    })}
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {/* Direct links */}
+              <NavigationMenuItem>
+                <button
+                  onClick={() => navigate("/about")}
+                  className={`text-xs font-medium px-3 py-2.5 transition-colors ${isActive("/about") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  About
+                </button>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <button
+                  onClick={() => navigate("/pricing")}
+                  className={`text-xs font-medium px-3 py-2.5 transition-colors ${isActive("/pricing") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  Pricing
+                </button>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+
+        {/* Right: Projects, Upgrade, User */}
+        <div className="flex items-center gap-2">
+          {onOpenSaved && (
+            <button
+              onClick={onOpenSaved}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold transition-colors border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              <Database size={12} />
+              <span className="hidden sm:inline">Projects</span>
+              {typeof savedCount === "number" && savedCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary text-primary-foreground leading-none">
+                  {savedCount}
+                </span>
+              )}
+            </button>
+          )}
+          {tier !== "disruptor" && (
+            <button
+              onClick={() => navigate("/pricing")}
+              className="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-colors bg-primary text-primary-foreground hover:bg-primary-dark hidden sm:inline-flex"
+            >
+              Upgrade
+            </button>
+          )}
+          <UserHeader />
+        </div>
+      </div>
+    </div>
+  );
+}
