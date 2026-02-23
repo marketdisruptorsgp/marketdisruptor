@@ -6,7 +6,7 @@ const FEATURES = [
   {
     icon: Brain,
     title: "AI Product Intelligence",
-    desc: "Deep-dive any product with live market data from eBay, Etsy, Reddit, Google & TikTok — powered by Gemini AI.",
+    desc: "Deep-dive any product with live market data from a variety of sources — powered by AI.",
   },
   {
     icon: TrendingUp,

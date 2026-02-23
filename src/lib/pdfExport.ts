@@ -149,8 +149,8 @@ export function downloadFullAnalysisPDF(product: Product) {
     const pi = product.pricingIntel;
     const cols = [
       ["Current Market Price", pi.currentMarketPrice],
-      ["eBay Avg Sold", pi.ebayAvgSold],
-      ["Etsy Avg Sold", pi.etsyAvgSold],
+      ["Resale Avg Sold", pi.ebayAvgSold],
+      ["Vintage Avg Sold", pi.etsyAvgSold],
       ["Original MSRP", pi.msrpOriginal],
       ["Collector Premium", pi.collectorPremium],
       ["Price Trend", pi.priceDirection?.toUpperCase()],
