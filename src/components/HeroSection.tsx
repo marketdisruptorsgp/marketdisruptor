@@ -1,13 +1,16 @@
 import { UserHeader } from "@/components/UserHeader";
 import { TIERS, TierKey } from "@/hooks/useSubscription";
+import { Database } from "lucide-react";
 
 interface HeroSectionProps {
   tier: TierKey;
   remainingAnalyses: number | null;
   profileFirstName?: string;
+  onOpenSaved?: () => void;
+  savedCount?: number;
 }
 
-export function HeroSection({ tier, remainingAnalyses, profileFirstName }: HeroSectionProps) {
+export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenSaved, savedCount }: HeroSectionProps) {
   return (
     <header className="border-b border-border bg-background">
       {/* Top nav */}
@@ -16,7 +19,21 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName }: HeroS
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Market Disruptor</span>
           </div>
-          <div data-tour="user-menu">
+          <div className="flex items-center gap-3" data-tour="user-menu">
+            {onOpenSaved && (
+              <button
+                onClick={onOpenSaved}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded text-sm font-semibold transition-colors border border-border bg-card text-foreground hover:bg-muted"
+              >
+                <Database size={14} />
+                Saved
+                {typeof savedCount === "number" && savedCount > 0 && (
+                  <span className="ml-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary text-primary-foreground leading-none">
+                    {savedCount}
+                  </span>
+                )}
+              </button>
+            )}
             <UserHeader />
           </div>
         </div>

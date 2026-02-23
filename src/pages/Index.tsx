@@ -21,6 +21,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
 import { LoadingTracker } from "@/components/LoadingTracker";
 import { StepNavigator, type StepConfig } from "@/components/StepNavigator";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, TIERS } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -159,6 +160,8 @@ export default function Index() {
   const [pendingExitAction, setPendingExitAction] = useState<(() => void) | null>(null);
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [showSavedPanel, setShowSavedPanel] = useState(false);
+  const [savedCount, setSavedCount] = useState(0);
   const [showWelcome, setShowWelcome] = useState(() => {
     return !localStorage.getItem("welcomed_" + (user?.id ?? ""));
   });
@@ -563,7 +566,24 @@ export default function Index() {
       {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
 
       {/* HERO */}
-      <HeroSection tier={tier} remainingAnalyses={remainingAnalyses()} profileFirstName={profile?.first_name} />
+      <HeroSection tier={tier} remainingAnalyses={remainingAnalyses()} profileFirstName={profile?.first_name} onOpenSaved={() => setShowSavedPanel(true)} savedCount={savedCount} />
+
+      {/* Saved Projects Sheet */}
+      <Sheet open={showSavedPanel} onOpenChange={setShowSavedPanel}>
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Saved Projects</SheetTitle>
+            <SheetDescription>Click any project to reload its full analysis</SheetDescription>
+          </SheetHeader>
+          <div className="mt-4">
+            <SavedAnalyses
+              onLoad={(a) => { handleLoadSaved(a); setShowSavedPanel(false); }}
+              refreshTrigger={savedRefreshTrigger}
+              onCountChange={setSavedCount}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <main className="max-w-5xl mx-auto px-6 py-10 space-y-6">
         {/* ── DISRUPTION PATH BANNER ── */}
@@ -632,24 +652,6 @@ export default function Index() {
           );
         })()}
 
-        {/* ── SAVED PROJECTS — always visible ── */}
-        <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
-          <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
-            <div>
-              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                <Database size={16} className="text-muted-foreground" />
-                Saved Projects
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Click any project to reload its full analysis</p>
-            </div>
-            <span className="flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}>
-              <CheckCircle2 size={10} /> Auto-saved
-            </span>
-          </div>
-          <div className="p-5">
-            <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
-          </div>
-        </div>
 
         {/* LOADING — rich live tracker */}
         {isLoading && (
