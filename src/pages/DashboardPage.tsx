@@ -255,21 +255,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Business Model Form */}
-          {!analysis.businessAnalysisData && analysis.mainTab === "business" && (
-            <div className="mt-8">
-              <BusinessModelAnalysis
-                onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
-                onAnalysisComplete={(data, input) => {
-                  analysis.setBusinessAnalysisData(data);
-                  analysis.setBusinessModelInput(input);
-                  const id = crypto.randomUUID();
-                  analysis.setAnalysisId(id);
-                  navigate(`/business/${id}`);
-                }}
-              />
-            </div>
-          )}
         </main>
       )}
 
