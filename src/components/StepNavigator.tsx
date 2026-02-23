@@ -16,7 +16,7 @@ interface StepNavigatorProps {
 
 export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }: StepNavigatorProps) {
   return (
-    <div className="sticky top-0 z-30 -mx-4 px-4 py-2" style={{ background: "hsl(var(--background) / 0.97)", backdropFilter: "blur(8px)", borderBottom: "1px solid hsl(var(--border))" }}>
+    <div className="sticky top-0 z-30 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-5xl mx-auto flex items-center gap-1">
         {steps.map((s, i, arr) => {
           const isCurrent = activeStep === s.step;
@@ -34,7 +34,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
                 }}
               >
                 {isUnvisited && (
-                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} />
+                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-primary" />
                 )}
                 <span className="text-xs font-semibold flex-shrink-0">
                   {isPast ? "✓" : s.step}
@@ -44,7 +44,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
               </button>
               {i < arr.length - 1 && (
                 <div className="flex-shrink-0 mx-1">
-                  <div className="w-4 h-px" style={{ background: isPast ? "hsl(var(--foreground) / 0.2)" : "hsl(var(--border))" }} />
+                  <div className="w-4 h-px bg-border" />
                 </div>
               )}
             </div>

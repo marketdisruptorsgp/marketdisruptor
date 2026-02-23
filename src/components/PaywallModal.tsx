@@ -23,28 +23,26 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "hsl(220 20% 5% / 0.8)", backdropFilter: "blur(6px)" }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
     >
       <div
-        className="w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl"
-        style={{ background: "hsl(220 25% 8%)", border: "1px solid hsl(0 0% 100% / 0.08)" }}
+        className="w-full max-w-3xl rounded border border-border shadow-lg bg-card overflow-hidden"
       >
         {/* Header */}
         <div className="p-6 pb-2 flex items-start justify-between">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--primary-light))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1 text-primary">
               Upgrade Your Plan
             </p>
-            <h2 className="text-2xl font-extrabold text-white">
+            <h2 className="text-2xl font-bold text-foreground">
               You've used all {TIERS[currentTier].analysisLimit} free analyses
             </h2>
-            <p className="text-sm text-white/50 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Upgrade to keep analyzing markets and uncovering opportunities.
             </p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-            <X size={16} className="text-white/50" />
+          <button onClick={onClose} className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground">
+            <X size={16} />
           </button>
         </div>
 
@@ -60,24 +58,21 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
             return (
               <div
                 key={key}
-                className="rounded-xl p-5 flex flex-col relative"
+                className="rounded p-5 flex flex-col relative border bg-muted/10"
                 style={{
-                  background: isDisruptor ? "linear-gradient(165deg, hsl(38 50% 12%) 0%, hsl(220 25% 10%) 100%)" : "hsl(220 20% 11%)",
-                  border: `1px solid ${isDisruptor ? "hsl(38 80% 40% / 0.3)" : isCurrent ? "hsl(var(--primary) / 0.3)" : "hsl(0 0% 100% / 0.06)"}`,
+                  borderColor: isDisruptor ? "hsl(var(--accent))" : isCurrent ? "hsl(var(--primary))" : "hsl(var(--border))",
                 }}
               >
                 {isCurrent && (
                   <span
-                    className="absolute -top-2.5 left-4 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
-                    style={{ background: "hsl(var(--primary))", color: "white" }}
+                    className="absolute -top-2.5 left-4 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary text-primary-foreground"
                   >
                     Current
                   </span>
                 )}
                 {isDisruptor && !isCurrent && (
                   <span
-                    className="absolute -top-2.5 left-4 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
-                    style={{ background: "hsl(38 92% 50%)", color: "hsl(220 20% 5%)" }}
+                    className="absolute -top-2.5 left-4 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-accent text-accent-foreground"
                   >
                     Most Popular
                   </span>
@@ -85,24 +80,23 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
 
                 <div className="flex items-center gap-2 mb-3">
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: `${t.color}20` }}
+                    className="w-8 h-8 rounded flex items-center justify-center bg-muted"
                   >
                     <Icon size={14} style={{ color: t.color }} />
                   </div>
-                  <span className="text-white font-bold text-sm">{t.name}</span>
+                  <span className="text-foreground font-bold text-sm">{t.name}</span>
                 </div>
 
                 <div className="mb-4">
-                  <span className="text-2xl font-extrabold text-white">{t.price === 0 ? "Free" : `$${t.price}`}</span>
-                  {t.price > 0 && <span className="text-white/40 text-xs">/month</span>}
+                  <span className="text-2xl font-bold text-foreground">{t.price === 0 ? "Free" : `$${t.price}`}</span>
+                  {t.price > 0 && <span className="text-muted-foreground text-xs">/month</span>}
                 </div>
 
                 <div className="space-y-2 flex-1 mb-4">
                   {t.features.map((f) => (
                     <div key={f} className="flex items-start gap-2">
-                      <Check size={12} className="mt-0.5 flex-shrink-0" style={{ color: t.color }} />
-                      <span className="text-xs text-white/70">{f}</span>
+                      <Check size={12} className="mt-0.5 flex-shrink-0 text-primary" />
+                      <span className="text-xs text-muted-foreground">{f}</span>
                     </div>
                   ))}
                 </div>
@@ -111,11 +105,9 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
                   <button
                     onClick={() => handleUpgrade(key as "builder" | "disruptor")}
                     disabled={loadingTier === key}
-                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all"
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded text-xs font-bold transition-colors text-white hover:opacity-90"
                     style={{
-                      background: isDisruptor ? "hsl(38 92% 50%)" : "hsl(var(--primary))",
-                      color: isDisruptor ? "hsl(220 20% 5%)" : "white",
-                      boxShadow: isDisruptor ? "0 4px 16px -2px hsl(38 92% 50% / 0.4)" : "0 4px 16px -2px hsl(217 91% 50% / 0.4)",
+                      background: isDisruptor ? "hsl(var(--accent))" : "hsl(var(--primary))",
                     }}
                   >
                     {loadingTier === key ? (
@@ -126,8 +118,7 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
                   </button>
                 ) : isCurrent ? (
                   <div
-                    className="w-full text-center py-2.5 rounded-xl text-xs font-semibold"
-                    style={{ background: "hsl(0 0% 100% / 0.05)", color: "white/50" }}
+                    className="w-full text-center py-2.5 rounded text-xs font-semibold bg-muted text-muted-foreground"
                   >
                     {key === "explorer" ? `${usage.total}/10 used` : "Active"}
                   </div>
@@ -138,7 +129,7 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
         </div>
 
         <div className="px-6 pb-5 text-center">
-          <p className="text-[10px] text-white/30">
+          <p className="text-[10px] text-muted-foreground">
             Cancel anytime · Secure payment via Stripe · Instant activation
           </p>
         </div>
