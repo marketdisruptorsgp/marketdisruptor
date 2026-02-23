@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 import { DataLabel } from "./DataLabel";
+import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 
 interface RedTeamArg {
   title: string;
@@ -108,6 +109,11 @@ const SCORE_LABELS: Record<string, { label: string; icon: typeof Brain }> = {
   overallViability: { label: "Overall Viability", icon: BarChart3 },
 };
 
+const DEBATE_SECTIONS = [
+  { id: "debate", label: "Red vs Blue Debate", icon: Swords },
+  { id: "validate", label: "Validate & Score", icon: CheckCircle2 },
+];
+
 export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
@@ -143,52 +149,23 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         <div>
           <h3 className="text-lg font-bold text-foreground mb-1">Critical Validation</h3>
           <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
-            Stress-test your concept with Red Team/Blue Team debate, real-world counter-examples, feasibility checklist, and confidence scoring.
+            Red Team/Blue Team debate, precedents, feasibility checklist, and confidence scoring.
           </p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-md">
-          {[
-            { icon: Swords, label: "Red vs Blue" },
-            { icon: BookOpen, label: "Precedents" },
-            { icon: ClipboardCheck, label: "Feasibility" },
-            { icon: BarChart3, label: "Confidence" },
-          ].map(({ icon: Icon, label }) => (
-            <div key={label} className="p-2.5 rounded-xl text-center" style={{ background: "hsl(var(--muted))" }}>
-              <Icon size={16} className="mx-auto mb-1" style={{ color: "hsl(350 80% 55%)" }} />
-              <p className="text-[9px] font-semibold text-muted-foreground">{label}</p>
-            </div>
-          ))}
-        </div>
-        {/* Guide the AI */}
-        <div className="w-full max-w-md text-left p-4 rounded-xl space-y-2" style={{ background: "hsl(350 80% 55% / 0.06)", border: "1px solid hsl(350 80% 55% / 0.2)", borderLeft: "4px solid hsl(350 80% 55%)" }}>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(350 80% 55% / 0.15)" }}>
-              <Eye size={14} style={{ color: "hsl(350 80% 55%)" }} />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-foreground">Steer the Stress Test</p>
-              <p className="text-[10px] text-muted-foreground">Optional — tell the AI what to focus on</p>
-            </div>
-          </div>
+        <DetailPanel title="Steer the Stress Test (optional)" icon={Eye}>
           <textarea
             value={userSuggestions}
             onChange={(e) => setUserSuggestions(e.target.value)}
-            placeholder="e.g. Focus on pricing pressure from Chinese competitors, test the subscription model assumption, consider regulatory risks…"
-            className="w-full rounded-xl px-4 py-3 text-sm leading-relaxed resize-none transition-all focus:outline-none"
+            placeholder="e.g. Focus on pricing pressure, test subscription model, consider regulatory risks…"
+            className="w-full rounded-lg px-3 py-2.5 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
             rows={2}
-            style={{
-              background: "hsl(var(--background))",
-              border: "2px solid hsl(350 80% 55% / 0.2)",
-              color: "hsl(var(--foreground))",
-            }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55%)"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55% / 0.2)"; }}
+            style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
           />
-        </div>
+        </DetailPanel>
         <button
           onClick={runValidation}
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all"
+          className="flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-colors"
           style={{ background: "hsl(350 80% 55%)", color: "white", opacity: loading ? 0.7 : 1 }}
         >
           {loading ? (
@@ -202,270 +179,226 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
     );
   }
 
+  const currentTabIdx = DEBATE_SECTIONS.findIndex(s => s.id === activeTab);
+
   if (activeTab === "debate") {
     return (
-      <div className="space-y-6">
-        {/* Re-run with suggestions */}
-        <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(350 80% 55% / 0.06)", border: "1px solid hsl(350 80% 55% / 0.2)", borderLeft: "4px solid hsl(350 80% 55%)" }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(350 80% 55% / 0.15)" }}>
-                <Eye size={14} style={{ color: "hsl(350 80% 55%)" }} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Steer the Stress Test</p>
-                <p className="text-[10px] text-muted-foreground">Add direction, then re-run</p>
-              </div>
-            </div>
+      <div className="space-y-4">
+        <SectionHeader current={1} total={2} label="Red vs Blue Debate" icon={Swords} />
+
+        {/* Re-run (collapsed) */}
+        <DetailPanel title="Steer the AI — add direction, then Re-run" icon={Eye}>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <textarea
+              value={userSuggestions}
+              onChange={(e) => setUserSuggestions(e.target.value)}
+              placeholder="e.g. Focus more on regulatory risks, test pricing at $X…"
+              className="flex-1 rounded-lg px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none"
+              rows={2}
+              style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
+            />
             <button
               onClick={runValidation}
               disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
               style={{ background: "hsl(350 80% 55%)", color: "white", opacity: loading ? 0.7 : 1 }}
             >
-              {loading ? <><RefreshCw size={11} className="animate-spin" /> Re-running…</> : <><RefreshCw size={11} /> Re-run Stress Test</>}
+              {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+              Re-run
             </button>
           </div>
-          <textarea
-            value={userSuggestions}
-            onChange={(e) => setUserSuggestions(e.target.value)}
-            placeholder="e.g. Focus more on regulatory risks, test pricing at $X, consider partnership model…"
-            className="w-full rounded-xl px-4 py-2.5 text-sm leading-relaxed resize-none transition-all focus:outline-none"
-            rows={2}
-            style={{ background: "hsl(var(--background))", border: "2px solid hsl(350 80% 55% / 0.2)", color: "hsl(var(--foreground))" }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55%)"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(350 80% 55% / 0.2)"; }}
-          />
+        </DetailPanel>
+
+        {/* Red Team — concise: verdict + top 2 args */}
+        <div className="p-4 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.06)", borderLeft: "3px solid hsl(var(--destructive))" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>Red Team — Why This Fails</p>
+          <p className="text-sm font-semibold text-foreground leading-relaxed">{data.redTeam.verdict}</p>
         </div>
-        {/* Red Team */}
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl" style={{ background: "hsl(var(--destructive) / 0.06)", borderLeft: "4px solid hsl(var(--destructive))" }}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--destructive) / 0.15)" }}>
-                <XCircle size={14} style={{ color: "hsl(var(--destructive))" }} />
+
+        {data.redTeam.arguments.slice(0, 2).map((arg, i) => {
+          const s = SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor;
+          return (
+            <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-bold text-foreground">{arg.title}</p>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>{s.label}</span>
               </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>Red Team — Why This Fails</p>
-              </div>
+              <p className="text-xs text-foreground/80 leading-relaxed">{arg.argument}</p>
+              <InsightRating sectionId={`red-${i}`} compact />
             </div>
-            <p className="text-sm font-semibold text-foreground leading-relaxed">{data.redTeam.verdict}</p>
-          </div>
+          );
+        })}
 
-          <div className="space-y-3">
-            {data.redTeam.arguments.map((arg, i) => {
-              const s = SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor;
-              return (
-                <div key={i} className="p-4 rounded-xl" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-bold text-foreground">{arg.title}</p>
-                    <div className="flex items-center gap-1.5">
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>
-                        {s.label}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-foreground/80 leading-relaxed mb-2">{arg.argument}</p>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-1.5">
-                      <Brain size={10} style={{ color: "hsl(271 81% 50%)" }} />
+        {data.redTeam.arguments.length > 2 && (
+          <DetailPanel title={`${data.redTeam.arguments.length - 2} more Red Team arguments`} icon={XCircle}>
+            <div className="space-y-3 mb-2">
+              {data.redTeam.arguments.slice(2).map((arg, i) => {
+                const s = SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor;
+                return (
+                  <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+                    <p className="text-xs font-bold text-foreground mb-1">{arg.title}</p>
+                    <p className="text-xs text-foreground/80 leading-relaxed">{arg.argument}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
                       <span className="text-[10px] font-semibold" style={{ color: "hsl(271 81% 40%)" }}>Bias: {arg.biasExposed}</span>
+                      <DataLabel label={arg.dataLabel} />
                     </div>
-                    {arg.specificEvidence && (
-                      <span className="text-[10px] text-foreground/60 italic">{arg.specificEvidence}</span>
-                    )}
-                    <DataLabel label={arg.dataLabel} />
                   </div>
-                  <InsightRating sectionId={`red-${i}`} compact />
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </DetailPanel>
+        )}
 
-          {/* Kill Shot */}
-          <div className="p-4 rounded-xl" style={{ background: "hsl(var(--destructive) / 0.1)", border: "2px solid hsl(var(--destructive) / 0.3)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
-              <Flame size={11} /> Kill Shot
-            </p>
-            <p className="text-sm font-bold text-foreground leading-relaxed">{data.redTeam.killShot}</p>
-          </div>
+        {/* Kill Shot */}
+        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.1)", border: "2px solid hsl(var(--destructive) / 0.3)" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
+            <Flame size={11} /> Kill Shot
+          </p>
+          <p className="text-sm font-bold text-foreground leading-relaxed">{data.redTeam.killShot}</p>
         </div>
 
         {/* Divider */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px" style={{ background: "hsl(var(--border))" }} />
-          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "hsl(var(--primary))", boxShadow: "0 4px 12px -2px hsl(var(--primary) / 0.4)" }}>
-            <Swords size={16} style={{ color: "white" }} />
+          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+            <Swords size={14} style={{ color: "white" }} />
           </div>
           <div className="flex-1 h-px" style={{ background: "hsl(var(--border))" }} />
         </div>
 
-        {/* Blue Team */}
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl" style={{ background: "hsl(142 70% 45% / 0.06)", borderLeft: "4px solid hsl(142 70% 45%)" }}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(142 70% 45% / 0.15)" }}>
-                <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(142 70% 30%)" }}>Blue Team — Why This Wins</p>
-              </div>
-            </div>
-            <p className="text-sm font-semibold text-foreground leading-relaxed">{data.blueTeam.verdict}</p>
-          </div>
-
-          <div className="space-y-3">
-            {data.blueTeam.arguments.map((arg, i) => {
-              const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;
-              return (
-                <div key={i} className="p-4 rounded-xl" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-bold text-foreground">{arg.title}</p>
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>
-                      {s.label}
-                    </span>
-                  </div>
-                  <p className="text-xs text-foreground/80 leading-relaxed mb-2">{arg.argument}</p>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-1.5">
-                      <Zap size={10} style={{ color: "hsl(var(--primary))" }} />
-                      <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary))" }}>Enabler: {arg.enabler}</span>
-                    </div>
-                    {arg.proofPoint && (
-                      <span className="text-[10px] text-foreground/60 italic">{arg.proofPoint}</span>
-                    )}
-                    <DataLabel label={arg.dataLabel} />
-                  </div>
-                  <InsightRating sectionId={`blue-${i}`} compact />
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Moonshot */}
-          <div className="p-4 rounded-xl" style={{ background: "hsl(142 70% 45% / 0.1)", border: "2px solid hsl(142 70% 45% / 0.3)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}>
-              <Target size={11} /> Moonshot Potential
-            </p>
-            <p className="text-sm font-bold text-foreground leading-relaxed">{data.blueTeam.moonshot}</p>
-          </div>
+        {/* Blue Team — concise: verdict + top 2 args */}
+        <div className="p-4 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.06)", borderLeft: "3px solid hsl(142 70% 45%)" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(142 70% 30%)" }}>Blue Team — Why This Wins</p>
+          <p className="text-sm font-semibold text-foreground leading-relaxed">{data.blueTeam.verdict}</p>
         </div>
 
-        {/* Counter Examples */}
-        {data.counterExamples?.length > 0 && (
-          <div className="space-y-3">
-            <p className="section-label text-[10px] flex items-center gap-1">
-              <BookOpen size={11} style={{ color: "hsl(var(--primary))" }} /> Real-World Precedents
-            </p>
-            <div className="space-y-2">
-              {data.counterExamples.map((ex, i) => {
-                const os = OUTCOME_STYLES[ex.outcome] || OUTCOME_STYLES.pivoted;
-                const OutcomeIcon = os.icon;
+        {data.blueTeam.arguments.slice(0, 2).map((arg, i) => {
+          const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;
+          return (
+            <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-bold text-foreground">{arg.title}</p>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>{s.label}</span>
+              </div>
+              <p className="text-xs text-foreground/80 leading-relaxed">{arg.argument}</p>
+              <InsightRating sectionId={`blue-${i}`} compact />
+            </div>
+          );
+        })}
+
+        {data.blueTeam.arguments.length > 2 && (
+          <DetailPanel title={`${data.blueTeam.arguments.length - 2} more Blue Team arguments`} icon={CheckCircle2}>
+            <div className="space-y-3 mb-2">
+              {data.blueTeam.arguments.slice(2).map((arg, i) => {
+                const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;
                 return (
-                  <div key={i} className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-foreground">{ex.name}</span>
-                        <span className="text-[9px] text-muted-foreground">({ex.year})</span>
-                      </div>
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold"
-                        style={{ background: os.bg, color: os.text }}>
-                        <OutcomeIcon size={9} /> {ex.outcome}
-                      </span>
+                  <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+                    <p className="text-xs font-bold text-foreground mb-1">{arg.title}</p>
+                    <p className="text-xs text-foreground/80 leading-relaxed">{arg.argument}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary))" }}>Enabler: {arg.enabler}</span>
+                      <DataLabel label={arg.dataLabel} />
                     </div>
-                    <p className="text-xs text-foreground/70 leading-relaxed mb-1">{ex.similarity}</p>
-                    <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(var(--primary))" }}>
-                      Lesson: {ex.lesson}
-                    </p>
-                    {ex.revenue && (
-                      <p className="text-[10px] text-muted-foreground mt-1">📈 {ex.revenue}</p>
-                    )}
                   </div>
                 );
               })}
             </div>
-          </div>
+          </DetailPanel>
         )}
 
-        {/* Strategic Recommendations */}
+        {/* Moonshot */}
+        <div className="p-3 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.1)", border: "2px solid hsl(142 70% 45% / 0.3)" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}>
+            <Target size={11} /> Moonshot Potential
+          </p>
+          <p className="text-sm font-bold text-foreground leading-relaxed">{data.blueTeam.moonshot}</p>
+        </div>
+
+        {/* Counter Examples — collapsed */}
+        {data.counterExamples?.length > 0 && (
+          <DetailPanel title={`Real-World Precedents (${data.counterExamples.length})`} icon={BookOpen}>
+            <div className="space-y-2 mb-2">
+              {data.counterExamples.map((ex, i) => {
+                const os = OUTCOME_STYLES[ex.outcome] || OUTCOME_STYLES.pivoted;
+                const OutcomeIcon = os.icon;
+                return (
+                  <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-foreground">{ex.name} ({ex.year})</span>
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: os.bg, color: os.text }}>
+                        <OutcomeIcon size={9} /> {ex.outcome}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(var(--primary))" }}>Lesson: {ex.lesson}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </DetailPanel>
+        )}
+
+        {/* Strategic Recommendations — collapsed */}
         {data.strategicRecommendations?.length ? (
-          <div className="space-y-2">
-            <p className="section-label text-[10px] flex items-center gap-1">
-              <ArrowRight size={11} style={{ color: "hsl(142 70% 40%)" }} /> Strategic Recommendations
-            </p>
-            {data.strategicRecommendations.map((rec, i) => (
-              <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
-                  style={{ background: "hsl(142 70% 45% / 0.15)", color: "hsl(142 70% 30%)" }}>{i + 1}</span>
-                <span className="text-foreground/80 leading-relaxed">{rec}</span>
-              </div>
-            ))}
-          </div>
+          <DetailPanel title={`Strategic Recommendations (${data.strategicRecommendations.length})`} icon={ArrowRight}>
+            <div className="space-y-1.5 mb-2">
+              {data.strategicRecommendations.map((rec, i) => (
+                <div key={i} className="flex gap-2 items-start p-2 rounded-lg text-xs"
+                  style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                    style={{ background: "hsl(142 70% 45% / 0.15)", color: "hsl(142 70% 30%)" }}>{i + 1}</span>
+                  <span className="text-foreground/80 leading-relaxed">{rec}</span>
+                </div>
+              ))}
+            </div>
+          </DetailPanel>
         ) : null}
 
-        {/* Current Approach Assessment */}
+        {/* Current Approach Assessment — collapsed */}
         {data.currentApproachAssessment && (
-          <div className="space-y-3">
-            <p className="section-label text-[10px] flex items-center gap-1">
-              <Shield size={11} style={{ color: "hsl(var(--primary))" }} /> Current Approach Assessment
-            </p>
-            {data.currentApproachAssessment.keepAsIs?.length > 0 && (
-              <div className="space-y-1.5">
-                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(142 70% 35%)" }}>✓ Keep As-Is</p>
-                {data.currentApproachAssessment.keepAsIs.map((item, i) => (
-                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                    style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
-                    <span className="text-foreground/80 leading-relaxed">{item}</span>
-                  </div>
-                ))}
+          <DetailPanel title="Current Approach Assessment" icon={Shield}>
+            <div className="space-y-2 mb-2">
+              {data.currentApproachAssessment.keepAsIs?.length > 0 && (
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(142 70% 35%)" }}>✓ Keep As-Is</p>
+                  {data.currentApproachAssessment.keepAsIs.map((item, i) => (
+                    <div key={i} className="flex gap-2 items-start text-xs mb-1">
+                      <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+                      <span className="text-foreground/80">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {data.currentApproachAssessment.fullyReinvent?.length > 0 && (
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>⟳ Fully Reinvent</p>
+                  {data.currentApproachAssessment.fullyReinvent.map((item, i) => (
+                    <div key={i} className="flex gap-2 items-start text-xs mb-1">
+                      <Flame size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
+                      <span className="text-foreground/80">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+                <p className="text-[10px] font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Verdict</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{data.currentApproachAssessment.verdict}</p>
               </div>
-            )}
-            {data.currentApproachAssessment.adaptNotReplace?.length > 0 && (
-              <div className="space-y-1.5">
-                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(38 92% 40%)" }}>↻ Adapt & Evolve</p>
-                {data.currentApproachAssessment.adaptNotReplace.map((item, i) => (
-                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                    style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.2)" }}>
-                    <RefreshCw size={11} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 1 }} />
-                    <span className="text-foreground/80 leading-relaxed">{item}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {data.currentApproachAssessment.fullyReinvent?.length > 0 && (
-              <div className="space-y-1.5">
-                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>Fully Reinvent</p>
-                {data.currentApproachAssessment.fullyReinvent.map((item, i) => (
-                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                    style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
-                    <Flame size={11} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 1 }} />
-                    <span className="text-foreground/80 leading-relaxed">{item}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="p-4 rounded-xl" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--primary))" }}>Overall Verdict</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.currentApproachAssessment.verdict}</p>
             </div>
-          </div>
+          </DetailPanel>
         )}
 
-        {/* Blind Spots */}
+        {/* Blind Spots — collapsed */}
         {data.blindSpots?.length > 0 && (
-          <div className="space-y-2">
-            <p className="section-label text-[10px] flex items-center gap-1">
-              <Eye size={11} style={{ color: "hsl(38 92% 50%)" }} /> Blind Spots the Analysis Missed
-            </p>
-            {data.blindSpots.map((bs, i) => (
-              <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                style={{ background: "hsl(38 92% 50% / 0.07)", border: "1px solid hsl(38 92% 50% / 0.2)" }}>
-                <AlertTriangle size={11} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 1 }} />
-                <span className="text-foreground/80 leading-relaxed">{bs}</span>
-              </div>
-            ))}
-          </div>
+          <DetailPanel title={`Blind Spots (${data.blindSpots.length})`} icon={Eye}>
+            <div className="space-y-1.5 mb-2">
+              {data.blindSpots.map((bs, i) => (
+                <div key={i} className="flex gap-2 items-start text-xs">
+                  <AlertTriangle size={10} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 2 }} />
+                  <span className="text-foreground/80 leading-relaxed">{bs}</span>
+                </div>
+              ))}
+            </div>
+          </DetailPanel>
         )}
       </div>
     );
@@ -473,73 +406,114 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
   // Validate tab
   return (
-    <div className="space-y-6">
-      {/* Confidence Scores */}
-      {data.confidenceScores && (
-        <div className="space-y-3">
-          <p className="section-label text-[10px] flex items-center gap-1">
-            <BarChart3 size={11} style={{ color: "hsl(var(--primary))" }} /> Confidence Scores
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {Object.entries(data.confidenceScores).map(([key, val]) => {
-              const meta = SCORE_LABELS[key] || { label: key, icon: Brain };
-              const Icon = meta.icon;
-              const score = val.score;
-              const barColor = score >= 7 ? "hsl(142 70% 45%)" : score >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--destructive))";
-              return (
-                <div key={key} className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <Icon size={10} /> {meta.label}
-                    </span>
-                    <span className="text-sm font-black" style={{ color: barColor }}>{score}/10</span>
-                  </div>
-                  <div className="h-2 rounded-full overflow-hidden mb-2" style={{ background: "hsl(var(--muted))" }}>
-                    <div className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${score * 10}%`, background: `linear-gradient(90deg, ${barColor}, ${barColor}cc)` }} />
-                  </div>
-                  <p className="text-[10px] text-foreground/70 leading-relaxed">{val.reasoning}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+    <div className="space-y-4">
+      <SectionHeader current={2} total={2} label="Validate & Score" icon={CheckCircle2} />
 
-      {/* Feasibility Checklist */}
-      {data.feasibilityChecklist?.length > 0 && (
-        <div className="space-y-3">
-          <p className="section-label text-[10px] flex items-center gap-1">
-            <ClipboardCheck size={11} style={{ color: "hsl(142 70% 40%)" }} /> Feasibility Checklist
-          </p>
-          <div className="space-y-2">
-            {data.feasibilityChecklist.map((item, i) => {
-              const s = STATUS_STYLES[item.status] || STATUS_STYLES["nice-to-have"];
-              return (
-                <div key={i} className="p-4 rounded-xl" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold"
-                        style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
-                        {item.category}
+      {/* Confidence Scores — show top 3, rest in detail */}
+      {data.confidenceScores && (() => {
+        const entries = Object.entries(data.confidenceScores);
+        return (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {entries.slice(0, 3).map(([key, val]) => {
+                const meta = SCORE_LABELS[key] || { label: key, icon: Brain };
+                const Icon = meta.icon;
+                const score = val.score;
+                const barColor = score >= 7 ? "hsl(142 70% 45%)" : score >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--destructive))";
+                return (
+                  <div key={key} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <Icon size={10} /> {meta.label}
                       </span>
-                      <p className="text-xs font-bold text-foreground">{item.item}</p>
+                      <span className="text-sm font-black" style={{ color: barColor }}>{score}/10</span>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase"
-                      style={{ color: s.text, background: s.bg, border: `1px solid ${s.border}` }}>
-                      {item.status}
-                    </span>
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+                      <div className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${score * 10}%`, background: barColor }} />
+                    </div>
                   </div>
-                  <p className="text-xs text-foreground/70 leading-relaxed mb-1">{item.detail}</p>
-                  <p className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary))" }}>
-                    Est. cost: {item.estimatedCost}
-                  </p>
+                );
+              })}
+            </div>
+            {entries.length > 3 && (
+              <DetailPanel title={`${entries.length - 3} more confidence scores`} icon={BarChart3}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+                  {entries.slice(3).map(([key, val]) => {
+                    const meta = SCORE_LABELS[key] || { label: key, icon: Brain };
+                    const Icon = meta.icon;
+                    const score = val.score;
+                    const barColor = score >= 7 ? "hsl(142 70% 45%)" : score >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--destructive))";
+                    return (
+                      <div key={key} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                            <Icon size={10} /> {meta.label}
+                          </span>
+                          <span className="text-sm font-black" style={{ color: barColor }}>{score}/10</span>
+                        </div>
+                        <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+                          <div className="h-full rounded-full transition-all duration-700"
+                            style={{ width: `${score * 10}%`, background: barColor }} />
+                        </div>
+                        <p className="text-[10px] text-foreground/70 leading-relaxed mt-1.5">{val.reasoning}</p>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+              </DetailPanel>
+            )}
+          </>
+        );
+      })()}
+
+      {/* Feasibility Checklist — show top 3, rest collapsed */}
+      {data.feasibilityChecklist?.length > 0 && (() => {
+        const items = data.feasibilityChecklist;
+        return (
+          <>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <ClipboardCheck size={11} style={{ color: "hsl(142 70% 40%)" }} /> Feasibility Checklist
+            </p>
+            <div className="space-y-2">
+              {items.slice(0, 3).map((item, i) => {
+                const s = STATUS_STYLES[item.status] || STATUS_STYLES["nice-to-have"];
+                return (
+                  <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>{item.category}</span>
+                        <p className="text-xs font-bold text-foreground">{item.item}</p>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase" style={{ color: s.text }}>{item.status}</span>
+                    </div>
+                    <p className="text-xs text-foreground/70 leading-relaxed">{item.detail}</p>
+                  </div>
+                );
+              })}
+            </div>
+            {items.length > 3 && (
+              <DetailPanel title={`${items.length - 3} more checklist items`} icon={ClipboardCheck}>
+                <div className="space-y-2 mb-2">
+                  {items.slice(3).map((item, i) => {
+                    const s = STATUS_STYLES[item.status] || STATUS_STYLES["nice-to-have"];
+                    return (
+                      <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+                        <div className="flex items-center justify-between mb-0.5">
+                          <p className="text-xs font-bold text-foreground">{item.item}</p>
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase" style={{ color: s.text }}>{item.status}</span>
+                        </div>
+                        <p className="text-xs text-foreground/70 leading-relaxed">{item.detail}</p>
+                        <p className="text-[10px] font-semibold mt-1" style={{ color: "hsl(var(--primary))" }}>Est. cost: {item.estimatedCost}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </DetailPanel>
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 };
