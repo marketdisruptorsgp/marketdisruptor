@@ -4,6 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import type { Product, FlippedIdea } from "@/data/mockProducts";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
+import { DataLabel } from "@/components/DataLabel";
+import { LeverageScore } from "@/components/LeverageScore";
+import { RiskBadge } from "@/components/RiskBadge";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { downloadPatentPDF } from "@/lib/pdfExport";
 import {
@@ -65,6 +68,8 @@ interface HiddenAssumption {
   reason: "tradition" | "manufacturing" | "cost" | "physics" | "habit";
   isChallengeable: boolean;
   challengeIdea?: string;
+  leverageScore?: number;
+  dataLabel?: string;
 }
 
 interface FlippedLogicItem {
@@ -90,6 +95,8 @@ interface RedesignedConcept {
   manufacturingPath: string;
   pricePoint: string;
   targetUser: string;
+  riskLevel?: string;
+  capitalRequired?: string;
 }
 
 interface CurrentStrengths {
@@ -718,7 +725,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                         style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
                       <p className="text-xs font-bold text-foreground">{a.assumption}</p>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
                         style={{ background: reasonStyle.bg, color: reasonStyle.text }}>{reasonStyle.label}</span>
                       {a.isChallengeable ? (
@@ -730,6 +737,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                           Physics-constrained
                         </span>
                       )}
+                      <LeverageScore score={a.leverageScore} />
+                      <DataLabel label={a.dataLabel} />
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed ml-8 mb-2">{a.currentAnswer}</p>
@@ -806,6 +815,10 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <h2 className="text-2xl font-black mb-1">{data.redesignedConcept.conceptName}</h2>
               <p className="text-sm opacity-85 font-medium mb-4">{data.redesignedConcept.tagline}</p>
               <p className="text-xs leading-relaxed opacity-80 max-w-2xl">{data.redesignedConcept.coreInsight}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <RiskBadge type="Risk" level={data.redesignedConcept.riskLevel} />
+                <RiskBadge type="Capital" level={data.redesignedConcept.capitalRequired} />
+              </div>
               <InsightRating sectionId="concept-insight" compact />
             </div>
           </div>

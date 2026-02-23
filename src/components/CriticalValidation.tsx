@@ -7,6 +7,7 @@ import {
   BookOpen, ClipboardCheck, Eye, Zap, Flame, BarChart3,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
+import { DataLabel } from "./DataLabel";
 
 interface RedTeamArg {
   title: string;
@@ -14,6 +15,7 @@ interface RedTeamArg {
   severity: "critical" | "major" | "minor";
   biasExposed: string;
   specificEvidence?: string;
+  dataLabel?: string;
 }
 
 interface BlueTeamArg {
@@ -22,6 +24,7 @@ interface BlueTeamArg {
   strength: "strong" | "moderate" | "conditional";
   enabler: string;
   proofPoint?: string;
+  dataLabel?: string;
 }
 
 interface CounterExample {
@@ -39,6 +42,7 @@ interface FeasibilityItem {
   status: "critical" | "important" | "nice-to-have";
   detail: string;
   estimatedCost: string;
+  dataLabel?: string;
 }
 
 interface ConfidenceScore {
@@ -269,6 +273,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     {arg.specificEvidence && (
                       <span className="text-[10px] text-foreground/60 italic">📊 {arg.specificEvidence}</span>
                     )}
+                    <DataLabel label={arg.dataLabel} />
                   </div>
                   <InsightRating sectionId={`red-${i}`} compact />
                 </div>
@@ -328,6 +333,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     {arg.proofPoint && (
                       <span className="text-[10px] text-foreground/60 italic">✅ {arg.proofPoint}</span>
                     )}
+                    <DataLabel label={arg.dataLabel} />
                   </div>
                   <InsightRating sectionId={`blue-${i}`} compact />
                 </div>

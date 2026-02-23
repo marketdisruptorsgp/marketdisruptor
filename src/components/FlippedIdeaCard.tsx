@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TrendingUp, RefreshCw, Sparkles, ImageIcon, Rocket, DollarSign, Clock } from "lucide-react";
 import type { FlippedIdea } from "@/data/mockProducts";
 import { ScoreBar } from "./ScoreBar";
+import { RiskBadge } from "./RiskBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -75,6 +76,10 @@ export const FlippedIdeaCard = ({ idea, rank, productName }: FlippedIdeaCardProp
             </span>
           </div>
           <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{idea.description}</p>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <RiskBadge type="Risk" level={(idea as unknown as Record<string, unknown>).riskLevel as string} />
+            <RiskBadge type="Capital" level={(idea as unknown as Record<string, unknown>).capitalRequired as string} />
+          </div>
         </div>
       </div>
 
