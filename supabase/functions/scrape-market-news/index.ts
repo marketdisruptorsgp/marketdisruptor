@@ -96,6 +96,12 @@ Return 3-5 items maximum. Only include real news with verifiable titles and sour
       }
     }
 
+    // Helper to validate date strings
+    const isValidDate = (d: any) => {
+      if (!d || typeof d !== "string") return false;
+      return /^\d{4}-\d{2}-\d{2}/.test(d) && !isNaN(Date.parse(d));
+    };
+
     // Clear old and insert new
     if (allNews.length > 0) {
       await supabase.from("market_news").delete().neq("id", "00000000-0000-0000-0000-000000000000");
@@ -106,7 +112,7 @@ Return 3-5 items maximum. Only include real news with verifiable titles and sour
         source_name: n.source_name || "Unknown",
         source_url: n.source_url || null,
         category: n.category,
-        published_at: n.published_at || null,
+        published_at: isValidDate(n.published_at) ? n.published_at : null,
         scraped_at: n.scraped_at,
       }));
 

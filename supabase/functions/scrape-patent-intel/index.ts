@@ -114,6 +114,12 @@ Rules:
       return true;
     });
 
+    // Helper to validate date strings
+    const isValidDate = (d: any) => {
+      if (!d || typeof d !== "string") return false;
+      return /^\d{4}-\d{2}-\d{2}/.test(d) && !isNaN(Date.parse(d));
+    };
+
     // Clear old and insert new
     if (dedupedPatents.length > 0) {
       await supabase.from("patent_filings").delete().neq("id", "00000000-0000-0000-0000-000000000000");
@@ -121,8 +127,8 @@ Rules:
       const rows = dedupedPatents.map((p) => ({
         title: p.title || "Untitled",
         assignee: p.assignee || "Unknown",
-        filing_date: p.filing_date || null,
-        publication_date: p.publication_date || null,
+        filing_date: isValidDate(p.filing_date) ? p.filing_date : null,
+        publication_date: isValidDate(p.publication_date) ? p.publication_date : null,
         patent_number: p.patent_number || null,
         category: p.category || "General",
         abstract: p.abstract || null,
