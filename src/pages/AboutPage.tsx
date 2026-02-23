@@ -15,21 +15,24 @@ export default function AboutPage() {
         <section className="mb-20">
           <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">About</p>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight mb-5">
-            Strategic Reinvention
+            Deep Analytics for Strategic Reinvention
           </h1>
+          <p className="text-base text-muted-foreground leading-relaxed max-w-xl mb-4">
+            Market Disruptor is a proprietary deep analytics platform built for entrepreneurs, investors, and product teams who want to see opportunities others overlook. Not a surface-level tool or a simple AI wrapper.
+          </p>
           <p className="text-base text-muted-foreground leading-relaxed max-w-xl">
-            Market Disruptor OS is an AI-powered intelligence platform that deconstructs markets, stress-tests strategies, and generates actionable disruption playbooks. We believe every market has hidden leverage points — you just need the right tools to find them.
+            It combines advanced multi-model AI, real-time data analysis, computer vision, and structured strategic modeling to deconstruct any product, service, or business model and reconstruct it from entirely new angles.
           </p>
         </section>
 
         <section className="mb-20">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-8">How It Works</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-8">What It Does</p>
           <div className="space-y-8">
             {[
-              { step: 1, title: "Input", desc: "Upload a product, describe a service, or define a business model. Add images, URLs, and context notes." },
-              { step: 2, title: "Deconstruction", desc: "Our AI scrapes real market data from eBay, Etsy, Reddit, TikTok, and Google — then analyzes supply, demand, and positioning across three layers." },
-              { step: 3, title: "Validation", desc: "Every claim is tagged as Verified, Modeled, or Assumption. An adversarial Red Team attacks your strategy before competitors do." },
-              { step: 4, title: "Output", desc: "Full intelligence reports, disruption playbooks, stress tests, and investor-ready pitch decks — all exportable as PDF." },
+              { step: 1, title: "Challenges Assumptions", desc: "Deliberately questions pricing logic, supply chain design, patent positioning, competitive assumptions, and the operational constraints incumbents accept as inevitable." },
+              { step: 2, title: "Isolates Structural Weaknesses", desc: "Examines what is taken for granted, identifies friction points, and tests alternative configurations most teams would never consider." },
+              { step: 3, title: "Reveals Hidden Leverage", desc: "Applies data-driven scrutiny exceeding normal human bandwidth to surface overlooked market segments and optimization opportunities that can materially change outcomes." },
+              { step: 4, title: "Delivers Actionable Output", desc: "Rigorously constructed strategic perspectives, investor-ready pitch decks, and clearly mapped pathways for experimentation, disruption, or targeted optimization." },
             ].map(({ step, title, desc }) => (
               <div key={step} className="flex items-start gap-4">
                 <div className="step-badge flex-shrink-0 mt-0.5">{step}</div>
@@ -46,10 +49,10 @@ export default function AboutPage() {
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-8">Built For</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { icon: Rocket, title: "Entrepreneurs", desc: "Scouting new markets & niches with data-driven conviction." },
-              { icon: TrendingUp, title: "Investors", desc: "Evaluating opportunities with adversarial rigor before committing capital." },
-              { icon: Users, title: "Product Teams", desc: "Validating strategy and positioning before launch." },
-              { icon: FileText, title: "Agencies", desc: "Building data-driven client pitches backed by real market intelligence." },
+              { icon: Rocket, title: "Entrepreneurs", desc: "Seeing opportunities others overlook with data-driven conviction, not guesswork." },
+              { icon: TrendingUp, title: "Investors", desc: "Applying adversarial rigor to evaluate opportunities before committing capital." },
+              { icon: Users, title: "Product Teams", desc: "Stress-testing strategy, positioning, and assumptions before launch." },
+              { icon: FileText, title: "Agencies", desc: "Delivering data-backed strategic perspectives that go beyond surface-level analysis." },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="rounded-lg border border-border p-5 bg-card shadow-sm">
                 <Icon size={18} className="text-primary mb-3" />
@@ -61,10 +64,10 @@ export default function AboutPage() {
         </section>
 
         <section className="rounded-lg border border-border p-8 text-center bg-card shadow-sm">
-          <p className="text-base font-semibold text-foreground mb-2">Ready to deconstruct your market?</p>
-          <p className="text-sm text-muted-foreground mb-5">Start your first analysis in under 60 seconds.</p>
+          <p className="text-base font-semibold text-foreground mb-2">Apply a level of scrutiny that exceeds normal bandwidth.</p>
+          <p className="text-sm text-muted-foreground mb-5">See what a deep deconstruction reveals about your market.</p>
           <button onClick={() => navigate("/")} className="btn-primary inline-flex items-center gap-2">
-            Get Started <ArrowRight size={14} />
+            Start Analysis <ArrowRight size={14} />
           </button>
         </section>
 
