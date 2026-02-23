@@ -114,35 +114,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
-                    Workspace
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="w-56 p-2 bg-background shadow-lg rounded-xl border border-border">
-                      <button
-                        onClick={() => { onOpenSaved?.(); }}
-                        className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                      >
-                        <FolderOpen size={14} className="text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Saved Projects</p>
-                          <p className="text-xs text-muted-foreground">View & reload past analyses</p>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => navigate("/pricing")}
-                        className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                      >
-                        <BarChart3 size={14} className="text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">Plan & Usage</p>
-                          <p className="text-xs text-muted-foreground">{TIERS[tier].name} tier</p>
-                        </div>
-                      </button>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
+                {/* Workspace tab hidden */}
 
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
