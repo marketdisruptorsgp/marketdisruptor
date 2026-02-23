@@ -1,4 +1,3 @@
-import { Zap } from "lucide-react";
 import { UserHeader } from "@/components/UserHeader";
 import { TIERS, TierKey } from "@/hooks/useSubscription";
 
@@ -10,52 +9,47 @@ interface HeroSectionProps {
 
 export function HeroSection({ tier, remainingAnalyses, profileFirstName }: HeroSectionProps) {
   return (
-    <header className="relative" style={{ background: "linear-gradient(135deg, hsl(220 25% 6%) 0%, hsl(220 30% 12%) 50%, hsl(220 25% 8%) 100%)" }}>
-      {/* Subtle gradient orbs for depth */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-[0.07]" style={{ background: "radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)" }} />
-        <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full opacity-[0.05]" style={{ background: "radial-gradient(circle, hsl(217 91% 50%) 0%, transparent 70%)" }} />
-      </div>
-      {/* Top nav bar with user */}
-      <div className="relative z-10 border-b" style={{ borderColor: "hsl(0 0% 100% / 0.06)" }}>
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <header className="border-b" style={{ background: "hsl(var(--foreground))" }}>
+      {/* Top nav */}
+      <div style={{ borderBottom: "1px solid hsl(0 0% 100% / 0.08)" }}>
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Zap size={15} style={{ color: "hsl(var(--primary-light))" }} />
-            <span className="text-xs font-bold tracking-widest uppercase text-white/70">Market Disruptor</span>
+            <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "hsl(0 0% 100% / 0.5)" }}>Market Disruptor</span>
           </div>
           <div data-tour="user-menu">
             <UserHeader />
           </div>
         </div>
       </div>
-      <div className="relative z-[1] max-w-6xl mx-auto px-4 py-10 sm:py-14">
-        {/* Usage badge */}
-        <div className="flex items-center gap-2 mb-4">
+      <div className="max-w-5xl mx-auto px-6 py-12 sm:py-16">
+        {/* Plan badge */}
+        <div className="flex items-center gap-3 mb-6">
           <span
-            className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
+            className="px-2.5 py-1 rounded text-[11px] font-medium tracking-wide"
             style={{
-              background: "hsl(142 71% 45% / 0.15)",
-              color: "hsl(142 71% 55%)",
-              border: "1px solid hsl(142 71% 45% / 0.3)",
+              background: "hsl(0 0% 100% / 0.08)",
+              color: "hsl(0 0% 100% / 0.6)",
+              border: "1px solid hsl(0 0% 100% / 0.1)",
             }}
           >
-            {TIERS[tier].name} Plan{remainingAnalyses !== null ? ` · ${remainingAnalyses} analyses left` : " · Unlimited"}
+            {TIERS[tier].name}{remainingAnalyses !== null ? ` · ${remainingAnalyses} left` : " · Unlimited"}
           </span>
           {tier !== "disruptor" && (
             <button
               onClick={() => window.location.href = "/pricing"}
-              className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all hover:scale-105"
-              style={{ background: "hsl(var(--primary))", color: "white" }}
+              className="px-2.5 py-1 rounded text-[11px] font-medium tracking-wide transition-colors"
+              style={{ background: "hsl(0 0% 100% / 0.12)", color: "hsl(0 0% 100% / 0.8)", border: "1px solid hsl(0 0% 100% / 0.15)" }}
             >
-              View Plan Options
+              Upgrade
             </button>
           )}
         </div>
-        <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-4">
-          Analyze, Deconstruct, <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize!</span>
+        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-tight mb-4" style={{ color: "hsl(0 0% 100%)" }}>
+          Analyze, Deconstruct,{" "}
+          <span style={{ color: "hsl(0 0% 100% / 0.5)" }}>Capitalize.</span>
         </h1>
-        <p className="text-lg text-white leading-relaxed">
-          Developed by SGP Capital, these advanced AI research models don't just analyze products and markets — they challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up. We built them to arm entrepreneurs like yourself with the tools to reinvent markets and bring bold ideas to life. Scroll below to begin your analysis!
+        <p className="text-base max-w-2xl leading-relaxed" style={{ color: "hsl(0 0% 100% / 0.45)" }}>
+          Advanced AI research models that challenge every assumption, flip conventional thinking, and rebuild better versions from the ground up. Built by SGP Capital to arm entrepreneurs with tools to reinvent markets.
         </p>
       </div>
     </header>

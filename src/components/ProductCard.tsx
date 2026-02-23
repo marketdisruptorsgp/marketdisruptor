@@ -25,25 +25,24 @@ function getFallback(category: string) {
 }
 
 function TrendIcon({ trend }: { trend?: "up" | "down" | "stable" }) {
-  if (trend === "up") return <TrendingUp size={10} className="text-green-600" />;
-  if (trend === "down") return <TrendingDown size={10} className="text-red-500" />;
-  return <Minus size={10} className="text-yellow-500" />;
+  if (trend === "up") return <TrendingUp size={10} style={{ color: "hsl(var(--success))" }} />;
+  if (trend === "down") return <TrendingDown size={10} style={{ color: "hsl(var(--destructive))" }} />;
+  return <Minus size={10} style={{ color: "hsl(var(--warning))" }} />;
 }
 
 export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) => {
   return (
     <div
       onClick={onClick}
-      className="card-intelligence cursor-pointer p-0 relative overflow-hidden group"
+      className="card-intelligence cursor-pointer p-0 relative overflow-hidden"
       style={{
         borderColor: isSelected ? "hsl(var(--primary))" : undefined,
         borderWidth: isSelected ? 2 : 1,
-        boxShadow: isSelected ? "var(--shadow-card-hover)" : undefined,
       }}
     >
       {isSelected && (
         <div
-          className="absolute top-0 left-0 right-0 h-1 rounded-t-xl z-10"
+          className="absolute top-0 left-0 right-0 h-0.5 z-10"
           style={{ background: "hsl(var(--primary))" }}
         />
       )}
@@ -53,36 +52,25 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-44 object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-40 object-cover"
           loading="lazy"
           onError={(e) => {
             (e.target as HTMLImageElement).src = getFallback(product.category);
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         <span
-          className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold"
-          style={{ background: "hsl(var(--primary))", color: "white" }}
+          className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-medium"
+          style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
         >
           {product.era}
         </span>
-        {/* Pricing badge on image */}
         {product.pricingIntel && (
           <span
-            className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-semibold"
-            style={{ background: "hsl(0 0% 5% / 0.8)", color: "hsl(var(--primary-light))" }}
+            className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-medium"
+            style={{ background: "hsl(0 0% 0% / 0.7)", color: "hsl(0 0% 100% / 0.8)" }}
           >
             {product.pricingIntel.currentMarketPrice}
-          </span>
-        )}
-        {/* Price direction */}
-        {product.pricingIntel && (
-          <span
-            className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold"
-            style={{ background: "hsl(0 0% 5% / 0.8)", color: product.pricingIntel.priceDirection === "rising" ? "#4ade80" : product.pricingIntel.priceDirection === "falling" ? "#f87171" : "#fbbf24" }}
-          >
-            {product.pricingIntel.priceDirection === "rising" ? <TrendingUp size={9} /> : product.pricingIntel.priceDirection === "falling" ? <TrendingDown size={9} /> : <Minus size={9} />}
-            {product.pricingIntel.priceDirection}
           </span>
         )}
       </div>
@@ -90,13 +78,12 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
       <div className="p-4 space-y-2">
         <div>
           <p className="section-label text-[10px] mb-0.5">{product.category}</p>
-          <h3 className="font-bold text-base leading-tight text-foreground">{product.name}</h3>
+          <h3 className="font-semibold text-sm leading-tight text-foreground">{product.name}</h3>
         </div>
 
-        {/* Key Insight */}
         {product.keyInsight && (
-          <p className="text-[11px] leading-relaxed text-muted-foreground line-clamp-2 italic">
-            "{product.keyInsight}"
+          <p className="text-[11px] leading-relaxed text-muted-foreground line-clamp-2">
+            {product.keyInsight}
           </p>
         )}
 
@@ -119,15 +106,15 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
           </div>
         </div>
 
-        {/* Social signals with trend */}
+        {/* Social signals */}
         <div className="flex flex-wrap gap-1 pt-1">
           {product.socialSignals.slice(0, 2).map((sig) => (
             <span
               key={sig.platform}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium"
               style={{
-                background: "hsl(var(--secondary))",
-                color: "hsl(var(--secondary-foreground))",
+                background: "hsl(var(--muted))",
+                color: "hsl(var(--muted-foreground))",
               }}
             >
               <TrendIcon trend={sig.trend} />
@@ -136,10 +123,9 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
           ))}
         </div>
 
-        {/* Market size */}
         {product.marketSizeEstimate && (
           <p className="text-[10px] text-muted-foreground border-t pt-2" style={{ borderColor: "hsl(var(--border))" }}>
-            📊 {product.marketSizeEstimate}
+            {product.marketSizeEstimate}
           </p>
         )}
       </div>

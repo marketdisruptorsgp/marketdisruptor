@@ -354,178 +354,155 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     const Icon = modeOption.icon;
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Back link */}
         <button
           type="button"
           onClick={handleBack}
-          className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+          className="flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80"
           style={{ color: "hsl(var(--muted-foreground))" }}
         >
-          <ArrowLeft size={16} /> Back to analysis modes
+          <ArrowLeft size={14} /> Back
         </button>
 
         <div
-          className="rounded-2xl overflow-hidden"
+          className="rounded overflow-hidden"
           style={{
-            border: `2px solid ${modeOption.accent}`,
+            border: "1px solid hsl(var(--border))",
             background: "hsl(var(--card))",
-            boxShadow: `0 12px 40px -8px ${modeOption.accent}30`,
           }}
         >
           {/* Header */}
-          <div className="p-8 text-center relative overflow-hidden" style={{ background: modeOption.accent }}>
-            {/* Decorative orbs */}
-            <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-10" style={{ background: "white" }} />
-            <div className="absolute -bottom-12 -left-12 w-36 h-36 rounded-full opacity-10" style={{ background: "white" }} />
-            
-            <div
-              className="w-18 h-18 rounded-2xl flex items-center justify-center mx-auto mb-4 relative"
-              style={{ background: "hsl(0 0% 100% / 0.18)", width: "72px", height: "72px" }}
-            >
-              <Icon size={36} style={{ color: "white" }} />
+          <div className="px-6 py-5 border-b" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--foreground))" }}>
+            <div className="flex items-center gap-3 mb-2">
+              <Icon size={20} style={{ color: "hsl(var(--background) / 0.6)" }} />
+              <h2 className="text-xl font-bold" style={{ color: "hsl(var(--background))" }}>{modeOption.label}</h2>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">{modeOption.label}</h2>
-            <p className="text-sm text-white/80 font-medium mb-3">{modeOption.tagline}</p>
-            <p className="text-xs text-white/60 max-w-md mx-auto leading-relaxed">
-              Powered by SGP Capital's proprietary AI research models — challenging every assumption and rebuilding from the ground up.
+            <p className="text-sm" style={{ color: "hsl(var(--background) / 0.5)" }}>
+              {modeOption.tagline}
             </p>
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-7">
-            {/* Description */}
-            <p className="text-sm text-muted-foreground text-center leading-relaxed max-w-lg mx-auto">
+          <div className="p-6 space-y-6">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">
               {modeOption.description}
             </p>
 
-            {/* "This Is Not Just Analysis" manifesto block */}
+            {/* Manifesto */}
             <div
-              className="rounded-xl p-5 max-w-xl mx-auto relative overflow-hidden"
+              className="rounded p-4 max-w-xl"
               style={{
-                background: `linear-gradient(135deg, ${modeOption.accent}08, ${modeOption.accent}15)`,
-                border: `1px solid ${modeOption.accent}25`,
+                background: "hsl(var(--muted))",
+                borderLeft: "2px solid hsl(var(--primary))",
               }}
             >
-              <div className="absolute top-0 left-0 w-1 h-full" style={{ background: modeOption.accent }} />
-              <p className="text-xs font-extrabold uppercase tracking-widest mb-2" style={{ color: modeOption.accent }}>
-                This is not just analysis
+              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-muted-foreground">
+                Not just analysis
               </p>
-              <p className="text-sm text-foreground leading-relaxed font-medium">
-                {pendingMode === "custom" && "Most tools give you data. This one questions why the product exists in its current form, whether the pricing model is actually right, what friction users have normalized, and what a version rebuilt from scratch would look like. You get a completely new take, not a summary."}
-                {pendingMode === "service" && "Most tools map competitors. This one asks why the service is delivered this way at all, whether the pricing structure serves the customer or just tradition, where users silently struggle, and what an entirely reimagined version would look like. You get a strategic reinvention, not a report."}
-                {pendingMode === "business" && "Most tools audit what exists. This one strips the business down to first principles and asks: why does this cost structure exist? Why this pricing model? Why this customer flow? What if every assumption was wrong? You get a rebuilt business model, not a review."}
-                {pendingMode === "discover" && "Most tools find trending products. This one asks why each product failed in the first place, what assumptions were baked into its design, who it should have been built for, and what a radically different version looks like today. You get reinvented concepts, not a product list."}
+              <p className="text-sm text-foreground leading-relaxed">
+                {pendingMode === "custom" && "Questions why the product exists in its current form, whether the pricing model is right, what friction users have normalized, and what a version rebuilt from scratch would look like."}
+                {pendingMode === "service" && "Asks why the service is delivered this way at all, whether the pricing structure serves the customer or just tradition, and what an entirely reimagined version would look like."}
+                {pendingMode === "business" && "Strips the business to first principles: why this cost structure? Why this pricing model? Why this customer flow? What if every assumption was wrong?"}
+                {pendingMode === "discover" && "Asks why each product failed, what assumptions were baked into its design, who it should have been built for, and what a radically different version looks like today."}
               </p>
             </div>
 
-            {/* Capability Stats Grid */}
-            <div className="space-y-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-center" style={{ color: modeOption.accent }}>
-                What Powers This Analysis
+            {/* Capability Stats */}
+            <div className="space-y-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Capabilities
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 {capabilities.map((cap, i) => (
                   <div
                     key={i}
-                    className="rounded-xl p-3 text-center"
+                    className="rounded p-3"
                     style={{
-                      background: modeOption.accentLight,
-                      border: `1px solid ${modeOption.accent}15`,
+                      background: "hsl(var(--muted))",
+                      border: "1px solid hsl(var(--border))",
                     }}
                   >
-                    <p className="text-sm font-extrabold text-foreground">{cap.stat}</p>
+                    <p className="text-sm font-semibold text-foreground">{cap.stat}</p>
                     <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{cap.label}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Steps overview */}
-            <div className="space-y-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-center" style={{ color: modeOption.accent }}>
-                {steps.length}-Step Analysis Pipeline
+            {/* Steps */}
+            <div className="space-y-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Pipeline
               </h3>
-              <div className="space-y-2 max-w-xl mx-auto">
+              <div className="space-y-1.5 max-w-xl">
                 {steps.map((s, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-3 rounded-xl p-3.5"
+                    className="flex items-start gap-3 rounded p-3"
                     style={{
-                      background: modeOption.accentLight,
-                      border: `1px solid ${modeOption.accent}15`,
+                      background: "hsl(var(--muted))",
+                      border: "1px solid hsl(var(--border))",
                     }}
                   >
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
-                      style={{ background: modeOption.accent, color: "white" }}
+                    <span
+                      className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 text-xs font-semibold"
+                      style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
                     >
                       {i + 1}
-                    </div>
+                    </span>
                     <div className="flex-1">
-                      <p className="text-sm font-bold text-foreground">{s.label}</p>
-                      <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{s.detail}</p>
+                      <p className="text-sm font-medium text-foreground">{s.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{s.detail}</p>
                     </div>
-                    {i < steps.length - 1 && (
-                      <ChevronRight size={14} className="mt-1.5 flex-shrink-0" style={{ color: modeOption.accent, opacity: 0.4 }} />
-                    )}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* What You'll Get */}
-            <div className="space-y-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-center" style={{ color: modeOption.accent }}>
-                What You'll Receive
+            {/* What You Get */}
+            <div className="space-y-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Deliverables
               </h3>
-              <div className="max-w-xl mx-auto rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--muted) / 0.3)", border: "1px solid hsl(var(--border))" }}>
+              <div className="max-w-xl rounded p-4 space-y-1.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 {whatYouGet.map((item, i) => (
                   <div key={i} className="flex items-start gap-2">
-                    <CheckCircle2 size={13} className="flex-shrink-0 mt-0.5" style={{ color: modeOption.accent }} />
+                    <CheckCircle2 size={12} className="flex-shrink-0 mt-0.5 text-muted-foreground" />
                     <p className="text-xs text-foreground leading-relaxed">{item}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Behind the scenes */}
-            <div
-              className="rounded-xl p-4 text-center max-w-xl mx-auto"
-              style={{ background: "hsl(var(--muted) / 0.5)", border: "1px solid hsl(var(--border))" }}
-            >
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Behind the Scenes</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">{modeOption.behindTheScenes}</p>
-            </div>
-
-            {/* Trust signals */}
-            <div className="flex flex-wrap items-center justify-center gap-4 text-[10px] text-muted-foreground">
-              <span className="flex items-center gap-1">TLS encrypted</span>
-              <span className="flex items-center gap-1">No data retained by AI</span>
-              <span className="flex items-center gap-1">Row-level security</span>
-              <span className="flex items-center gap-1">Serverless isolation</span>
+            {/* Trust */}
+            <div className="flex flex-wrap items-center gap-4 text-[10px] text-muted-foreground">
+              <span>TLS encrypted</span>
+              <span>No data retained</span>
+              <span>Row-level security</span>
+              <span>Serverless isolation</span>
             </div>
 
             {/* CTA */}
-            <div className="flex flex-col items-center gap-3 pt-2">
+            <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="flex items-center gap-2.5 px-10 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="flex items-center gap-2 px-6 py-2.5 rounded text-sm font-semibold transition-colors"
                 style={{
-                  background: `linear-gradient(135deg, ${modeOption.accent}, ${modeOption.accent})`,
-                  boxShadow: `0 8px 24px -6px ${modeOption.accent}50`,
+                  background: "hsl(var(--primary))",
+                  color: "hsl(var(--primary-foreground))",
                 }}
               >
-                <Sparkles size={16} /> Yes, Begin {modeOption.label} <ChevronRight size={16} />
+                Begin Analysis
+                <ChevronRight size={14} />
               </button>
               <button
                 type="button"
                 onClick={handleBack}
-                className="text-xs font-medium transition-colors hover:underline"
-                style={{ color: "hsl(var(--muted-foreground))" }}
+                className="text-xs font-medium text-muted-foreground hover:underline"
               >
-                ← Choose a different analysis mode
+                Back
               </button>
             </div>
           </div>
@@ -541,30 +518,30 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     const Icon = activeOption.icon;
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Back button + mode header */}
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={handleBack}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02]"
+            className="flex items-center gap-2 px-3 py-2 rounded text-sm font-medium transition-colors"
             style={{
               background: "hsl(var(--muted))",
               color: "hsl(var(--foreground))",
               border: "1px solid hsl(var(--border))",
             }}
           >
-            <ArrowLeft size={15} /> Back
+            <ArrowLeft size={14} /> Back
           </button>
           <div className="flex items-center gap-3 flex-1">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: activeOption.accent }}
+              className="w-8 h-8 rounded flex items-center justify-center"
+              style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
             >
-              <Icon size={18} style={{ color: "white" }} />
+              <Icon size={16} />
             </div>
             <div>
-              <h2 className="text-lg font-extrabold text-foreground leading-tight">{activeOption.label}</h2>
+              <h2 className="text-base font-bold text-foreground leading-tight">{activeOption.label}</h2>
               <p className="text-xs text-muted-foreground">{activeOption.tagline} · Step 1 of {steps.length}</p>
             </div>
           </div>
@@ -576,13 +553,13 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
             <div key={i} className="flex items-center gap-1 flex-1">
               <div className="flex items-center gap-1.5 flex-1">
                 <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                  className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 text-[10px] font-medium"
                   style={{
-                    background: i === 0 ? activeOption.accent : "hsl(var(--muted))",
-                    color: i === 0 ? "white" : "hsl(var(--muted-foreground))",
+                    background: i === 0 ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                    color: i === 0 ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",
                   }}
                 >
-                  {i === 0 ? <CheckCircle2 size={12} /> : i + 1}
+                  {i === 0 ? <CheckCircle2 size={10} /> : i + 1}
                 </div>
                 <span className="text-[10px] font-medium text-muted-foreground hidden sm:inline truncate">{s.label}</span>
               </div>
@@ -595,11 +572,10 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
 
         {/* Form content area */}
         <div
-          className="rounded-2xl p-5 space-y-5"
+          className="rounded p-5 space-y-5"
           style={{
-            border: `2px solid ${activeOption.accent}`,
-            background: `linear-gradient(180deg, ${activeOption.accentLight} 0%, hsl(var(--card)) 40%)`,
-            boxShadow: `0 4px 20px -4px ${activeOption.accent}20`,
+            border: "1px solid hsl(var(--border))",
+            background: "hsl(var(--card))",
           }}
         >
           {/* MODE A — Discover by Category */}
