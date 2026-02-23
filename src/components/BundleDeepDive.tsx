@@ -129,7 +129,7 @@ export const BundleDeepDive = ({ opportunity, businessContext, index }: BundleDe
               {/* Value Proposition */}
               <div className="p-3 rounded-lg text-xs leading-relaxed"
                 style={{ background: "hsl(var(--primary) / 0.08)", borderLeft: "3px solid hsl(var(--primary))" }}>
-                <span className="font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>💡 Why this works: </span>
+                <span className="font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>Why this works: </span>
                 <span className="text-foreground/80">{data.valueProposition}</span>
               </div>
 
@@ -161,7 +161,7 @@ export const BundleDeepDive = ({ opportunity, businessContext, index }: BundleDe
               {/* Quick Win */}
               <div className="p-3 rounded-lg text-xs leading-relaxed"
                 style={{ background: "hsl(142 70% 45% / 0.08)", borderLeft: "3px solid hsl(142 70% 45%)" }}>
-                <span className="font-semibold" style={{ color: "hsl(142 70% 30%)" }}>⚡ Quick Win: </span>
+                <span className="font-semibold" style={{ color: "hsl(142 70% 30%)" }}>Quick Win: </span>
                 <span className="text-foreground/80">{data.quickWin}</span>
               </div>
 

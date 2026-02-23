@@ -132,7 +132,7 @@ export default function Index() {
   const { canAnalyze, remainingAnalyses, tier, usage, checkSubscription } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
   const [step, setStep] = useState<AnalysisStep>("idle");
-  const [mainTab, setMainTab] = useState<"discover" | "custom" | "service" | "business" | "saved">("custom");
+  const [mainTab, setMainTab] = useState<"discover" | "custom" | "service" | "business">("custom");
   const [activeMode, setActiveMode] = useState<AnalysisMode>("custom");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -349,21 +349,21 @@ export default function Index() {
 
     // --- Scraping phase log messages ---
     pushLog(hasCustom
-      ? "🚀 Starting analysis pipeline for your custom products…"
-      : `🚀 Starting product intelligence pipeline for ${params.era} ${params.category}…`
+      ? "Starting analysis pipeline for your custom products..."
+      : `Starting product intelligence pipeline for ${params.era} ${params.category}...`
     );
     await new Promise(r => setTimeout(r, 300));
-    pushLog("🔍 Querying eBay for sold listings & collector pricing…");
+    pushLog("Querying eBay for sold listings & collector pricing...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("🛍️ Crawling Etsy for vintage & handmade revival trends…");
+    pushLog("Crawling Etsy for vintage & handmade revival trends...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("💬 Mining Reddit for community sentiment & nostalgia signals…");
+    pushLog("Mining Reddit for community sentiment & nostalgia signals...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("📱 Scanning TikTok & Google for viral trend signals…");
+    pushLog("Scanning TikTok & Google for viral trend signals...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("🏭 Searching Alibaba & wholesale directories for suppliers…");
+    pushLog("Searching Alibaba & wholesale directories for suppliers...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("📊 Collecting complaint signals & improvement requests…");
+    pushLog("Collecting complaint signals & improvement requests...");
 
     try {
       setStepMessage(hasCustom
@@ -380,26 +380,26 @@ export default function Index() {
 
       // Log scrape results
       if (scrapeData.stats) {
-        pushLog(`✅ Scraped ${scrapeData.stats.totalPages} pages · ${scrapeData.stats.redditPosts} Reddit posts · ${scrapeData.stats.complaintSignals} complaint signals`);
+        pushLog(`Scraped ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} Reddit posts, ${scrapeData.stats.complaintSignals} complaint signals`);
       } else {
-        pushLog(`✅ Web scraping complete — data collected from ${(scrapeData.sources || []).length} sources`);
+        pushLog(`Web scraping complete — data collected from ${(scrapeData.sources || []).length} sources`);
       }
 
       setStep("analyzing");
       setStepMessage("Gemini AI building deep intelligence: pricing, supply chain, trends, flip ideas & action plans…");
 
       await new Promise(r => setTimeout(r, 400));
-      pushLog("🧠 Gemini 2.5 Flash — parsing product data & community sentiment…");
+      pushLog("AI reasoning — parsing product data & community sentiment...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("💰 Building pricing intelligence from real market data…");
+      pushLog("Building pricing intelligence from real market data...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("📦 Mapping supply chain: suppliers, manufacturers, distributors…");
+      pushLog("Mapping supply chain: suppliers, manufacturers, distributors...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("⚡ Generating flipped ideas from community pain points…");
+      pushLog("Generating flipped ideas from community pain points...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("🎯 Scoring Revival Potential & building action plans…");
+      pushLog("Scoring Revival Potential & building action plans...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("🖼️ Searching for real product images (eBay, Amazon, Wikipedia)…");
+      pushLog("Searching for real product images (eBay, Amazon, Wikipedia)...");
 
       const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke(
         "analyze-products",
@@ -438,7 +438,7 @@ export default function Index() {
       const liveProducts: Product[] = analyzeData.products;
       if (!liveProducts?.length) throw new Error("No products returned by AI.");
 
-      pushLog(`✅ Analysis complete — ${liveProducts.length} products with full intelligence reports ready!`);
+      pushLog(`Analysis complete — ${liveProducts.length} products with full intelligence reports ready.`);
       stopLoadingTimer();
 
       setProducts(liveProducts);
@@ -576,7 +576,6 @@ export default function Index() {
             { id: "service" as const, label: "Disrupt This Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
             { id: "business" as const, label: "Disrupt This Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
             { id: "discover" as const, label: "Disrupt This Nostalgia", icon: Telescope, accent: "hsl(var(--primary))" },
-            { id: "saved" as const, label: "Saved Projects", icon: Database, accent: "hsl(var(--primary))" },
           ];
           return (
             <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
@@ -589,9 +588,7 @@ export default function Index() {
                       key={tab.id}
                       onClick={(e) => {
                         setMainTab(tab.id);
-                        if (tab.id !== "saved") {
-                          setActiveMode(tab.id as AnalysisMode);
-                        }
+                        setActiveMode(tab.id as AnalysisMode);
                         setTimeout(() => (e.currentTarget.closest('.rounded') as HTMLElement)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                       }}
                       className="flex items-center gap-2 px-4 py-3 text-xs font-medium transition-colors relative flex-1 justify-center"
@@ -610,49 +607,49 @@ export default function Index() {
               </div>
 
               <div className="p-5">
-                {mainTab !== "saved" && (
-                  <>
-                    <ContextualTip
-                      id="discovery-tip-1"
-                      message={`💡 Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
-                    />
-                    <div className="mt-4" data-tour="analysis-form">
-                      <AnalysisForm
-                        onAnalyze={handleAnalyze}
-                        isLoading={isLoading}
-                        mode={activeMode}
-                        onModeChange={(m) => {
-                          setActiveMode(m);
-                          setMainTab(m as typeof mainTab);
-                        }}
-                        onBusinessAnalysis={(data) => {
-                          setBusinessAnalysisData(data as BusinessModelAnalysisData);
-                          toggleSection("businessmodel");
-                          setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-
-                {mainTab === "saved" && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-base font-bold text-foreground">Saved Projects</h2>
-                        <p className="text-xs text-muted-foreground">Click to reload</p>
-                      </div>
-                      <span className="flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}>
-                        <CheckCircle2 size={10} /> Auto-saved
-                      </span>
-                    </div>
-                    <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
-                  </div>
-                )}
+                <ContextualTip
+                  id="discovery-tip-1"
+                  message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
+                />
+                <div className="mt-4" data-tour="analysis-form">
+                  <AnalysisForm
+                    onAnalyze={handleAnalyze}
+                    isLoading={isLoading}
+                    mode={activeMode}
+                    onModeChange={(m) => {
+                      setActiveMode(m);
+                      setMainTab(m as typeof mainTab);
+                    }}
+                    onBusinessAnalysis={(data) => {
+                      setBusinessAnalysisData(data as BusinessModelAnalysisData);
+                      toggleSection("businessmodel");
+                      setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+                    }}
+                  />
+                </div>
               </div>
             </div>
           );
         })()}
+
+        {/* ── SAVED PROJECTS — always visible ── */}
+        <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
+          <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+            <div>
+              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                <Database size={16} className="text-muted-foreground" />
+                Saved Projects
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Click any project to reload its full analysis</p>
+            </div>
+            <span className="flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}>
+              <CheckCircle2 size={10} /> Auto-saved
+            </span>
+          </div>
+          <div className="p-5">
+            <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
+          </div>
+        </div>
 
         {/* LOADING — rich live tracker */}
         {isLoading && (
@@ -716,7 +713,7 @@ export default function Index() {
                   const unvisited = [3, 4, 5].filter(s => !visitedSteps.has(s));
                   if (unvisited.length > 0) {
                     setPendingExitAction(() => () => {
-                      setMainTab("saved");
+                      setMainTab("custom");
                       setLoadedFromSaved(false);
                       setStep("idle");
                       setProducts([]);
@@ -725,7 +722,7 @@ export default function Index() {
                     });
                     setShowExitPrompt(true);
                   } else {
-                    setMainTab("saved");
+                    setMainTab("custom");
                     setLoadedFromSaved(false);
                     setStep("idle");
                     setProducts([]);
@@ -1361,7 +1358,7 @@ export default function Index() {
                                 className="px-3 py-1.5 rounded-lg text-[11px] font-semibold"
                                 style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary-dark))" }}
                               >
-                                ✓ Milestone: {phase.milestone}
+                                Milestone: {phase.milestone}
                               </div>
                             </div>
                           ))}
@@ -1437,7 +1434,7 @@ export default function Index() {
                       </button>
                     ) : (
                       <span className="text-xs font-bold px-3 py-2 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 35%)" }}>
-                        ✓ All sections explored!
+                        All sections explored
                       </span>
                     )}
                   </div>
@@ -1693,7 +1690,7 @@ export default function Index() {
             {loadedFromSaved && (
               <button
                 onClick={() => {
-                  setMainTab("saved");
+                  setMainTab("custom");
                   setLoadedFromSaved(false);
                   setBusinessAnalysisData(null);
                   setBusinessModelInput(null);
@@ -1739,39 +1736,39 @@ export default function Index() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <button
                       onClick={() => { setBusinessActiveStep(3); setBusinessVisitedSteps(prev => new Set([...prev, 3])); setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
-                      className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
-                      style={{ background: "linear-gradient(135deg, hsl(350 80% 55%) 0%, hsl(350 80% 45%) 100%)", color: "white", boxShadow: "0 6px 20px -4px hsl(350 80% 55% / 0.5)", border: "2px solid hsl(350 80% 65% / 0.4)" }}
+                      className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
+                      style={{ background: "hsl(350 80% 55%)", color: "white", border: "1px solid hsl(350 80% 55%)" }}
                     >
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Brain size={20} /></div>
+                      <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Brain size={16} /></div>
                       <div>
-                        <div className="text-sm">Step 3 → Disrupt</div>
+                        <div className="text-sm font-semibold">Step 3 — Disrupt</div>
                         <div className="text-xs font-normal opacity-80">Disruption map & reinvented model</div>
                       </div>
-                      <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                      <ChevronRight size={16} className="ml-auto flex-shrink-0" />
                     </button>
                     <button
                       onClick={() => { setBusinessActiveStep(4); setBusinessVisitedSteps(prev => new Set([...prev, 4])); setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
-                      className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
-                      style={{ background: "linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(38 92% 40%) 100%)", color: "white", boxShadow: "0 6px 20px -4px hsl(38 92% 50% / 0.5)", border: "2px solid hsl(38 92% 60% / 0.4)" }}
+                      className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
+                      style={{ background: "hsl(38 92% 50%)", color: "white", border: "1px solid hsl(38 92% 50%)" }}
                     >
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Swords size={20} /></div>
+                      <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Swords size={16} /></div>
                       <div>
-                        <div className="text-sm">Step 4 → Stress Test</div>
+                        <div className="text-sm font-semibold">Step 4 — Stress Test</div>
                         <div className="text-xs font-normal opacity-80">Red Team vs Blue Team validation</div>
                       </div>
-                      <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                      <ChevronRight size={16} className="ml-auto flex-shrink-0" />
                     </button>
                     <button
                       onClick={() => { setBusinessActiveStep(5); setBusinessVisitedSteps(prev => new Set([...prev, 5])); setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
-                      className="flex items-center gap-3 px-5 py-4 rounded-2xl text-left font-bold transition-all hover:scale-[1.02]"
-                      style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white", boxShadow: "var(--shadow-primary)", border: "2px solid hsl(var(--primary-light) / 0.4)" }}
+                      className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
+                      style={{ background: "hsl(var(--primary))", color: "white", border: "1px solid hsl(var(--primary))" }}
                     >
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Presentation size={20} /></div>
+                      <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Presentation size={16} /></div>
                       <div>
-                        <div className="text-sm">Step 5 → Pitch Deck</div>
+                        <div className="text-sm font-semibold">Step 5 — Pitch Deck</div>
                         <div className="text-xs font-normal opacity-80">Auto-generate an investor-ready pitch</div>
                       </div>
-                      <ChevronRight size={20} className="ml-auto flex-shrink-0" />
+                      <ChevronRight size={16} className="ml-auto flex-shrink-0" />
                     </button>
                   </div>
                 </div>

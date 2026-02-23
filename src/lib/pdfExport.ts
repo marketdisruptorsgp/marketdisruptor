@@ -298,7 +298,7 @@ export function downloadPitchDeckPDF(product: Product, deck: any) {
     deck.investorHighlights.forEach((h: string) => {
       y = checkY(doc, y, 8);
       doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, PRIMARY);
-      const lines = doc.splitTextToSize(`⚡ ${h}`, CW - 3);
+      const lines = doc.splitTextToSize(`- ${h}`, CW - 3);
       doc.text(lines, ML, y);
       y += lines.length * 3.5 + 2;
     });
@@ -675,7 +675,7 @@ export function downloadBusinessModelPDF(businessType: string, data: any) {
       label(doc, "AI Opportunities", ML, y); y += 5;
       tl.aiOpportunities.forEach((ai: string) => {
         y = checkY(doc, y, 7); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
-        const lines = doc.splitTextToSize(`⚡ ${ai}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+        const lines = doc.splitTextToSize(`- ${ai}`, CW - 3); doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
       });
       y += 3;
     }
@@ -908,7 +908,7 @@ export function downloadPatentPDF(product: Product, patentData: any) {
       const oppLines = doc.splitTextToSize(item.commercialOpportunity, CW - 8);
       doc.rect(ML, y - 1, CW, oppLines.length * 3.5 + 5, "F");
       doc.setFontSize(7.5); doc.setFont("helvetica", "bold"); rgb(doc, [21, 128, 61]);
-      doc.text("💰 Commercial Opportunity", ML + 3, y + 3);
+      doc.text("Commercial Opportunity", ML + 3, y + 3);
       doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
       doc.text(oppLines, ML + 3, y + 7);
       y += oppLines.length * 3.5 + 9;
