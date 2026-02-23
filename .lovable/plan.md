@@ -1,133 +1,133 @@
-# No I don't just want to insert the name of the product in the first principles questions. I want to know if you can dynamically change the questions based on whatever product you're analyzing or do we have to keep these questions? 
 
-Don't just apply the exec design system to direct area  it should be enforced in all steps, sections, etc across the entire app/project components to ensure consistency 
 
-# UI Overhaul: Design System Compliance, Dynamic Questions, Mobile Fix & Multi-Page Navigation
+# Complete Build: Fix Errors, Color/Contrast Upgrade, Design System Enforcement
 
 ## Overview
-
-Four changes: enforce the executive design system, make first-principles section labels dynamic per product, fix the mobile step label, and restructure the app from a single-page flow into a true multi-page experience with dedicated routes.
-
----
-
-## 1. Design System Compliance (FirstPrinciplesAnalysis.tsx)
-
-The Disrupt step tabs violate several design guidelines:
-
-**Current violations:**
-
-- `rounded-xl` on step buttons, cards, and inputs (should be `rounded` / 4px)
-- `scale(1.03)` transform on active step buttons (no scaling allowed)
-- `animate-pulse` on "Explore" badges (no bounce/pulse animations)
-- `boxShadow` glow effects on step buttons (restrained shadows only)
-- `rounded-2xl` on the pre-analysis icon container
-- `rounded-full` on "Explore" badge (should be `rounded`)
-- `hover:scale-[1.02]` on "Next" buttons
-
-**Fixes:**
-
-- Replace all `rounded-xl` / `rounded-2xl` with `rounded` (4px via --radius)
-- Remove `transform: scale(1.03)` and `hover:scale-[1.02]`
-- Replace `animate-pulse` with static visibility
-- Remove colored `boxShadow` glow effects, use only `var(--shadow-card)` patterns
-- Replace `rounded-full` badges with `rounded`
-
-These same fixes apply throughout all cards and buttons in FirstPrinciplesAnalysis.tsx and related components.
+Three workstreams: (1) fix the BusinessResultsPage build errors, (2) wire up multi-page routing in App.tsx, (3) upgrade the color palette for better readability and elevated visual presence across all components -- all while staying within the executive design system (no gradients, no glow, no pulse, no scaling).
 
 ---
 
-## 2. Dynamic, Product-Specific Section Labels
+## 1. Fix BusinessResultsPage Build Errors
 
-**Problem:** The Physical Form section always shows generic labels like "Why This Size?", "Why This Weight?", "Why This Form Factor?", "Static vs Dynamic" regardless of what product is being analyzed.
+The file references `bizName` and `bizAccent` without declaring them. Add these two constants after the early return:
 
-**Solution:** Make labels contextual by interpolating the product name:
-
-```text
-Before: "Why This Size?"
-After:  "Why Is [Water Fountain] This Size?"
-
-Before: "Why This Weight?"  
-After:  "Why Does [Water Fountain] Weigh This Much?"
-
-Before: "Why This Form Factor?"
-After:  "Why Is [Water Fountain] Shaped This Way?"
-
-Before: "Static vs Dynamic"
-After:  "Is [Water Fountain] Too Rigid?"
+```typescript
+const bizName = businessModelInput?.type || "Business Model";
+const bizAccent = "hsl(271 81% 55%)";
 ```
 
-This applies to all analysis sections (Core Reality, Workflow, Smart Tech, etc.) where static template labels can be made product-aware. The edge function already generates product-specific content -- it's only the UI labels that are templated.
-
-**Files:** `src/components/FirstPrinciplesAnalysis.tsx`
+This resolves all 10 TS2304 errors.
 
 ---
 
-## 3. Mobile Step 4 Label: "Stress" to "Test"
+## 2. Wire Up Multi-Page Routes in App.tsx
 
-**Current:** StepNavigator shows "Stress" on mobile for step 4
-**Fix:** Change to "Test" on mobile (the full "Stress Test" shows on wider screens)
-
-**File:** `src/components/StepNavigator.tsx` line 43
+Update App.tsx to:
+- Import `AnalysisProvider` from `@/contexts/AnalysisContext`
+- Import all new page components (DashboardPage, ReportPage, DisruptPage, StressTestPage, PitchPage, BusinessResultsPage)
+- Wrap authenticated routes in `<AnalysisProvider>`
+- Add routes:
+  - `/` renders DashboardPage (replaces Index)
+  - `/analysis/:id/report` renders ReportPage
+  - `/analysis/:id/disrupt` renders DisruptPage
+  - `/analysis/:id/stress-test` renders StressTestPage
+  - `/analysis/:id/pitch` renders PitchPage
+  - `/business/:id` renders BusinessResultsPage
+  - `/pricing` remains PricingPage
+- Index.tsx stays as-is (unused but not deleted to avoid risk)
 
 ---
 
-## 4. Multi-Page Navigation Architecture
+## 3. Color & Contrast Upgrades
 
-**Current:** Everything lives in a single `Index.tsx` (2035 lines) with conditional rendering based on state variables. No URL changes as users move through steps.
+### Problem
+- Primary color `220 70% 24%` (deep navy) is too dark against the dark background -- "Capitalize." heading and the user name in the top-right are nearly invisible
+- The overall palette feels flat/basic -- every surface blends together
 
-**Proposed route structure:**
+### Solution: Brighten Primary + Add Subtle Depth
 
-```text
-/                          -- Dashboard (mode selection + input form)
-/analysis/:id/report       -- Step 2: Intelligence Report
-/analysis/:id/disrupt      -- Step 3: Disrupt Analysis
-/analysis/:id/stress-test  -- Step 4: Stress Test
-/analysis/:id/pitch        -- Step 5: Pitch Deck
-/business/:id              -- Business Model results (all steps)
-/pricing                   -- Pricing (existing)
-/share                     -- Share (existing)
-```
+**CSS variable changes in src/index.css (both :root and .dark):**
 
-**How it works:**
+| Variable | Current | New | Rationale |
+|---|---|---|---|
+| `--primary` | `220 70% 24%` | `220 70% 50%` | Much more readable accent blue; visible on dark bg |
+| `--primary-dark` | `220 70% 18%` | `220 70% 42%` | Hover state stays darker but still visible |
+| `--primary-light` | `220 55% 38%` | `220 60% 62%` | Lighter variant for subtle highlights |
+| `--primary-muted` | `220 20% 14%` | `220 25% 16%` | Slightly more blue tint for depth |
+| `--card` | `220 16% 9%` | `220 18% 11%` | Slightly lighter cards = more separation from bg |
+| `--muted` | `220 16% 14%` | `220 16% 15%` | Minor bump for input fields / badges |
+| `--border` | `220 16% 18%` | `220 14% 22%` | More visible borders = more structure |
+| `--ring` | `220 55% 65%` | `220 60% 58%` | Focus rings more aligned with new primary |
 
-- After analysis completes, navigate to `/analysis/:id/report` (using a generated ID or timestamp)
-- Analysis data is stored in a React context (`AnalysisContext`) that persists across pages
-- Each step is its own page component, loaded from its own route
-- The StepNavigator becomes a real navigation bar with `<Link>` elements
-- Loading a saved project navigates to its report page
-- Browser back/forward works naturally
-- Each page can be bookmarked/shared
+These changes make:
+- "Capitalize." immediately readable as a bright blue
+- User name in top-right clearly visible
+- Card surfaces have more contrast against background
+- Borders define structure better
+- Overall feel: more "polished SaaS" without adding colors
 
-**New files:**
+---
 
-- `src/contexts/AnalysisContext.tsx` -- shared state provider (products, params, business data, stress test data)
-- `src/pages/DashboardPage.tsx` -- mode selection + analysis form (extracted from Index.tsx)
-- `src/pages/ReportPage.tsx` -- Intelligence Report step
-- `src/pages/DisruptPage.tsx` -- Disrupt analysis step
-- `src/pages/StressTestPage.tsx` -- Stress Test step
-- `src/pages/PitchPage.tsx` -- Pitch Deck step
-- `src/pages/BusinessResultsPage.tsx` -- Business model results
+## 4. Design System Enforcement Across All Components
 
-**Modified files:**
+### UserHeader.tsx
+- `rounded-xl` on main button and modals -> `rounded`
+- `rounded-2xl` on modal containers -> `rounded`
+- `rounded-lg` on close buttons and avatar -> `rounded`
+- `hover:shadow-md` -> remove (no hover shadows)
+- `boxShadow: "0 4px 16px..."` on CTA buttons -> remove glow shadows
+- `borderRadius: "0.5rem"` inline on inputs -> `"var(--radius)"`
 
-- `src/App.tsx` -- add new routes
-- `src/pages/Index.tsx` -- gutted down to redirect to DashboardPage
-- `src/components/StepNavigator.tsx` -- use `<NavLink>` instead of buttons
+### ContextualTip.tsx
+- `rounded-xl` -> `rounded`
 
-**Data flow:**
+### WelcomeModal.tsx
+- Slide dots use `rounded-full` -> `rounded` (already small enough)
+- Already mostly compliant
 
-- `AnalysisContext` wraps all analysis routes
-- On analysis completion, context stores results and router navigates to report
-- Each page reads from context; if context is empty (direct URL visit), redirects to dashboard
-- Saved analyses load into context then navigate to the appropriate page
+### LoadingTracker.tsx
+- Spinner uses `rounded-full` for the circle -- acceptable for actual circles (spinners)
+- Already mostly compliant
+
+### DashboardPage.tsx
+- Already compliant from previous edits
+
+### AnalysisForm.tsx
+- Search for any remaining `rounded-xl/2xl/lg` and replace with `rounded`
+
+### Pages (ReportPage, DisruptPage, StressTestPage, PitchPage)
+- Audit and fix any `rounded-xl/2xl` inherited from Index.tsx extraction
+
+---
+
+## 5. HeroSection Visual Enhancement
+
+The hero currently feels like plain text on a dark background. Without adding gradients or glow, enhance it with:
+
+- Add a thin `1px` left accent border on the headline area (primary color) for editorial structure
+- Add a subtle top-right "BETA" or version badge in muted style for platform credibility
+- The "Capitalize." span gets `text-primary` which now resolves to the brighter blue
+
+No layout changes -- just the color variable update makes the biggest difference here.
+
+---
+
+## Files Modified
+
+| File | Changes |
+|---|---|
+| `src/pages/BusinessResultsPage.tsx` | Add `bizName` and `bizAccent` constants |
+| `src/App.tsx` | Add AnalysisProvider wrapper + all new routes |
+| `src/index.css` | Update 8 CSS variables for better contrast |
+| `src/components/UserHeader.tsx` | Replace rounded-xl/2xl/lg with rounded, remove glow shadows |
+| `src/components/ContextualTip.tsx` | Replace rounded-xl with rounded |
+| `src/components/HeroSection.tsx` | Minor structural enhancement |
 
 ---
 
 ## Implementation Order
+1. Fix BusinessResultsPage (resolves build errors immediately)
+2. Update App.tsx routes (enables multi-page navigation)
+3. Update CSS variables in index.css (instant visual upgrade)
+4. Fix rounded/shadow violations across UserHeader, ContextualTip, and remaining components
 
-1. Fix mobile step label (quick, isolated)
-2. Apply design system fixes across FirstPrinciplesAnalysis.tsx
-3. Make section labels dynamic/product-specific
-4. Build AnalysisContext and extract pages from Index.tsx
-5. Update App.tsx routes and StepNavigator navigation
-6. Test full flow end-to-end
