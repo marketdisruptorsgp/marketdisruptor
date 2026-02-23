@@ -34,11 +34,11 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
 
       {/* Image — only show if we have a real image */}
       {product.image && product.image !== "PLACEHOLDER_IMAGE" && product.image !== "" ? (
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden bg-muted">
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-40 object-cover"
+            className="w-full h-56 object-contain"
             loading="lazy"
             onError={(e) => {
               // Hide entire image container on error

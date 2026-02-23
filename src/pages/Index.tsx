@@ -1441,68 +1441,6 @@ export default function Index() {
                     )}
                   </div>
 
-                  {/* ── CTA: Continue to Step 3, 4 & 5 ── */}
-                  <div className="mt-6 space-y-3">
-                    <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      Ready for more?
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <button
-                        onClick={() => {
-                          setActiveStep(3);
-                          setVisitedSteps(prev => new Set([...prev, 3]));
-                          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
-                        style={{ background: "hsl(271 81% 55%)", color: "white", border: "1px solid hsl(271 81% 55%)" }}
-                      >
-                        <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
-                          <Brain size={16} />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold">Step 3 → Disrupt</div>
-                          <div className="text-xs font-normal opacity-80">Challenge assumptions & generate radical ideas</div>
-                        </div>
-                        <ChevronRight size={16} className="ml-auto flex-shrink-0" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setActiveStep(4);
-                          setVisitedSteps(prev => new Set([...prev, 4]));
-                          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
-                        style={{ background: "hsl(350 80% 55%)", color: "white", border: "1px solid hsl(350 80% 55%)" }}
-                      >
-                        <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
-                          <Swords size={16} />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold">Step 4 → Stress Test</div>
-                          <div className="text-xs font-normal opacity-80">Red Team vs Blue Team critical validation</div>
-                        </div>
-                        <ChevronRight size={16} className="ml-auto flex-shrink-0" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setActiveStep(5);
-                          setVisitedSteps(prev => new Set([...prev, 5]));
-                          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
-                        style={{ background: "hsl(var(--primary))", color: "white", border: "1px solid hsl(var(--primary))" }}
-                      >
-                        <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
-                          <Presentation size={16} />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold">Step 5 → Pitch Deck</div>
-                          <div className="text-xs font-normal opacity-80">Auto-generate an investor-ready pitch</div>
-                        </div>
-                        <ChevronRight size={16} className="ml-auto flex-shrink-0" />
-                      </button>
-                    </div>
-                  </div>
                   </>
                     );
                   })()}
@@ -1730,50 +1668,6 @@ export default function Index() {
                   </div>
                 </div>
 
-                {/* ── CTA: Continue to Steps 3, 4 & 5 ── */}
-                <div className="space-y-3">
-                  <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
-                    Ready for more?
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <button
-                      onClick={() => { setBusinessActiveStep(3); setBusinessVisitedSteps(prev => new Set([...prev, 3])); setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
-                      className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
-                      style={{ background: "hsl(350 80% 55%)", color: "white", border: "1px solid hsl(350 80% 55%)" }}
-                    >
-                      <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Brain size={16} /></div>
-                      <div>
-                        <div className="text-sm font-semibold">Step 3 — Disrupt</div>
-                        <div className="text-xs font-normal opacity-80">Disruption map & reinvented model</div>
-                      </div>
-                      <ChevronRight size={16} className="ml-auto flex-shrink-0" />
-                    </button>
-                    <button
-                      onClick={() => { setBusinessActiveStep(4); setBusinessVisitedSteps(prev => new Set([...prev, 4])); setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
-                      className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
-                      style={{ background: "hsl(38 92% 50%)", color: "white", border: "1px solid hsl(38 92% 50%)" }}
-                    >
-                      <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Swords size={16} /></div>
-                      <div>
-                        <div className="text-sm font-semibold">Step 4 — Stress Test</div>
-                        <div className="text-xs font-normal opacity-80">Red Team vs Blue Team validation</div>
-                      </div>
-                      <ChevronRight size={16} className="ml-auto flex-shrink-0" />
-                    </button>
-                    <button
-                      onClick={() => { setBusinessActiveStep(5); setBusinessVisitedSteps(prev => new Set([...prev, 5])); setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
-                      className="flex items-center gap-3 px-4 py-3 rounded text-left font-medium transition-colors"
-                      style={{ background: "hsl(var(--primary))", color: "white", border: "1px solid hsl(var(--primary))" }}
-                    >
-                      <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "hsl(0 0% 100% / 0.2)" }}><Presentation size={16} /></div>
-                      <div>
-                        <div className="text-sm font-semibold">Step 5 — Pitch Deck</div>
-                        <div className="text-xs font-normal opacity-80">Auto-generate an investor-ready pitch</div>
-                      </div>
-                      <ChevronRight size={16} className="ml-auto flex-shrink-0" />
-                    </button>
-                  </div>
-                </div>
               </div>
             )}
 
