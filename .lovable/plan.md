@@ -1,42 +1,45 @@
 
+# Save Password Checkbox + Button Visibility Improvements
 
-# Mode-Specific Rotating Pro Tips
+## 1. "Remember Me" Checkbox on Password Login
 
-## Overview
+Add a "Remember me" checkbox to the password sign-in form that saves the user's email to `localStorage`. When they return, the email field is pre-filled so they only need to type their password.
 
-Replace the single static "weird niches" tip with a rotating, mode-aware tip system. Each mode (Product, Service, Business Model) gets its own curated set of tips that reflect actual platform capabilities. Tips rotate on each visit/mode switch and are visually upgraded to stand out more.
+**How it works:**
+- A styled checkbox appears between the password field and the Sign In button
+- When checked and login succeeds, the email is saved to `localStorage` under `saved_login_email`
+- On page load, if a saved email exists, it pre-fills the email field, auto-switches to password mode, and focuses the password field
+- Unchecking and logging in clears the saved email
 
-## Tip Content by Mode
+**File: `src/pages/AuthPage.tsx`**
+- Add `rememberMe` state (boolean), initialized from whether `localStorage` has `saved_login_email`
+- Add `useEffect` to load saved email on mount and auto-switch to password mode
+- Add a checkbox row (using the existing Checkbox component from `@radix-ui/react-checkbox`) between the password input and the submit button
+- On successful password login: if `rememberMe` is true, save email; if false, clear it
 
-**Product Mode (4 tips, rotating):**
-1. "Upload a product photo alongside the URL -- the AI uses computer vision to catch design details that text listings miss, like material quality, ergonomic flaws, and packaging inefficiencies."
-2. "Add competitor URLs in the same batch. The analysis cross-references pricing, features, and positioning across all inputs to find gaps no single product review would reveal."
-3. "The Disrupt step doesn't just improve -- it deliberately flips every assumption. If a product is heavy, it asks: what if weight is the feature? That's where breakthrough ideas live."
-4. "After analysis, use the Red Team / Blue Team debate to stress-test the AI's own conclusions. The best strategies survive adversarial scrutiny."
+## 2. Button & Navigation Visibility Improvements
 
-**Service Mode (4 tips, rotating):**
-1. "Paste your service's landing page URL -- the AI maps the entire customer journey, from first impression to post-purchase, and flags friction points competitors accept as normal."
-2. "Describe your service in the notes field even if you add a URL. Insider context about operational pain points gives the AI a sharper starting point for deconstruction."
-3. "Service analysis skips product-centric logic and focuses on what matters: customer journey friction, operational workflows, and where technology can create structural advantages."
-4. "The best service disruptions come from questioning delivery models, not just pricing. The AI tests configurations like unbundling, self-service layers, and subscription pivots."
+Audit and upgrade all interactive elements to ensure they're unmissable.
 
-**Business Model Mode (4 tips, rotating):**
-1. "Be specific about your revenue model and pain points -- the more context you provide, the deeper the AI can go on operational audits and revenue reinvention."
-2. "The analysis deconstructs your model across multiple dimensions: core reality, operations audit, revenue structure, and adjacency opportunities most teams overlook."
-3. "Try running the same business type with different geography or scale inputs. A laundromat strategy in a dense urban market looks completely different from a suburban one."
-4. "After the intelligence report, the Disrupt step generates flipped concepts you can guide with custom goals -- tell the AI what constraints or objectives matter most to you."
+**File: `src/pages/AuthPage.tsx`**
+- Increase submit button height from `py-3` to `py-3.5`
+- Add a subtle shadow (`shadow-md`) to make the CTA pop against the background
+- Make the mode toggle buttons slightly taller (`py-3` instead of `py-2.5`) with bolder text
 
-## Visual Upgrade
+**File: `src/components/PlatformNav.tsx`**
+- Increase nav text from `text-sm` to `text-sm font-semibold` for top-level nav triggers (Access Modes, Workspace, Resources)
+- Make the "About" and "Pricing" direct links use `font-semibold` consistently
+- Add a subtle bottom border indicator on the active page link (2px primary-colored underline)
 
-- Larger padding and slightly bigger text (text-sm instead of text-xs)
-- Mode-colored left border accent (3px solid) matching the active mode color
-- Bolder "Pro tip" label prefix in the mode color
-- Subtle gradient background tinted with the mode color
+**File: `src/components/StepNavigator.tsx`**
+- Increase step button padding from `px-3 py-2` to `px-4 py-2.5`
+- Make the active step more prominent with a slight shadow
+- Increase the connector line width from `w-4` to `w-6` for better visual flow
 
-## Technical Changes
+## Technical Details
 
-| File | Change |
+| File | Changes |
 |---|---|
-| `src/components/ContextualTip.tsx` | Add support for `accentColor` prop and updated styling with left border, bolder label, and slightly larger text |
-| `src/pages/DashboardPage.tsx` | Replace single static tip with mode-specific tip arrays, pick a random tip per mode (seeded by session so it doesn't flicker), pass mode color to the tip component. Tip `id` includes mode + tip index so each can be individually dismissed |
-
+| `src/pages/AuthPage.tsx` | Add `rememberMe` state + checkbox UI, load saved email on mount, save/clear on login, increase button sizing and add shadow |
+| `src/components/PlatformNav.tsx` | Bump nav trigger font weight to semibold, add active-page bottom border indicator |
+| `src/components/StepNavigator.tsx` | Increase button padding, add shadow on active step, widen connector lines |
