@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  Zap, ArrowRight, Loader2, Mail, CheckCircle2, Lock,
-  Target, Brain, Swords, Presentation, BarChart3, Users, Layers, RefreshCw,
-} from "lucide-react";
+import { Zap, ArrowRight, Loader2, Mail, CheckCircle2, Lock } from "lucide-react";
 
 const QUOTES = [
   "The best opportunities are in the gap between what was and what could be.",
@@ -12,35 +9,6 @@ const QUOTES = [
   "The next billion-dollar idea is hiding in a discontinued aisle.",
   "Markets don't disappear — they wait for someone bold enough to reinvent them.",
   "What the crowd abandoned, the contrarian capitalizes on.",
-];
-
-const PLATFORM_PILLARS = [
-  {
-    icon: Target,
-    label: "Intelligence Reports",
-    detail: "AI-powered deep dives into any product, service, or business model with live market data, competitor mapping, and pricing intelligence.",
-  },
-  {
-    icon: Brain,
-    label: "First Principles Engine",
-    detail: "Systematically deconstruct every assumption — physical form, workflow, pricing, technology — and rebuild from zero.",
-  },
-  {
-    icon: Swords,
-    label: "Red Team Stress Tests",
-    detail: "Adversarial AI debates your strategy from every angle. Blue Team defends. You get the truth.",
-  },
-  {
-    icon: Presentation,
-    label: "Investor-Ready Output",
-    detail: "Auto-generated pitch decks, market sizing, and competitive moats — built from your analysis, not templates.",
-  },
-];
-
-const PLATFORM_STATS = [
-  { value: "4", label: "Disruption Paths", sub: "Product · Service · Business · Nostalgia" },
-  { value: "5-Step", label: "Analysis Pipeline", sub: "Discover → Report → Disrupt → Test → Pitch" },
-  { value: "∞", label: "Saved Workspaces", sub: "Every analysis persists & evolves" },
 ];
 
 const inputStyle = {
@@ -111,80 +79,22 @@ export default function AuthPage() {
   };
 
   const HeroPanel = () => (
-    <div className="hidden lg:flex flex-col w-[55%] relative overflow-hidden border-r border-border" style={{ background: "hsl(var(--card))" }}>
-      <div className="flex flex-col h-full p-10 xl:p-14">
-        {/* Brand */}
-        <div className="flex items-center justify-between mb-10">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded flex items-center justify-center bg-primary text-primary-foreground">
-              <Zap size={16} />
-            </div>
-            <span className="font-bold text-lg text-foreground tracking-tight">Market Disruptor</span>
+    <div className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden bg-card border-r border-border">
+      <div className="relative z-10 p-12 flex flex-col justify-between h-full">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded flex items-center justify-center bg-primary text-primary-foreground">
+            <Zap size={16} />
           </div>
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground border border-border rounded px-2 py-0.5">
-            Strategic OS
-          </span>
+          <span className="font-bold text-lg text-foreground">Market Disruptor</span>
         </div>
 
-        {/* Headline */}
-        <div className="mb-8">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-primary mb-3">Strategic Reinvention Platform</p>
-          <h1 className="text-3xl xl:text-4xl font-bold text-foreground leading-tight mb-4">
-            Stop guessing.<br />
-            Start <span className="text-primary">deconstructing.</span>
-          </h1>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">
-            A living workspace where entrepreneurs and investors challenge every assumption,
-            stress-test every strategy, and build what's next — not once, but continuously.
-          </p>
-        </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          {PLATFORM_STATS.map(({ value, label, sub }) => (
-            <div key={label} className="rounded p-3 border border-border" style={{ background: "hsl(var(--background))" }}>
-              <p className="text-xl font-bold text-primary leading-none mb-1">{value}</p>
-              <p className="text-xs font-semibold text-foreground">{label}</p>
-              <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{sub}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Pillars */}
-        <div className="space-y-3 flex-1">
-          {PLATFORM_PILLARS.map(({ icon: Icon, label, detail }) => (
-            <div key={label} className="flex items-start gap-3 rounded p-3 border border-border" style={{ background: "hsl(var(--background))" }}>
-              <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0 mt-0.5 bg-primary/10 text-primary border border-primary/20">
-                <Icon size={14} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground leading-tight">{label}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{detail}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom row: quote + signals */}
-        <div className="mt-6 pt-5 border-t border-border flex items-start justify-between gap-6">
-          <p className="text-xs text-muted-foreground/70 italic leading-relaxed max-w-xs">
+        <div className="flex items-center justify-center px-12 -mt-24">
+          <h1 className="text-3xl font-bold text-foreground leading-snug text-center max-w-md">
             "{quote}"
-          </p>
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Layers size={12} />
-              <span className="text-[10px] font-semibold">Persistent</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <RefreshCw size={12} />
-              <span className="text-[10px] font-semibold">Iterative</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Users size={12} />
-              <span className="text-[10px] font-semibold">Collaborative</span>
-            </div>
-          </div>
+          </h1>
         </div>
+
+        <div />
       </div>
     </div>
   );
@@ -254,7 +164,7 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 relative overflow-hidden">
         <div className="relative z-10 w-full max-w-md space-y-8">
           {/* Mobile hero section */}
-          <div className="lg:hidden space-y-5">
+          <div className="lg:hidden space-y-6">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded flex items-center justify-center bg-primary text-primary-foreground">
                 <Zap size={16} />
@@ -262,12 +172,12 @@ export default function AuthPage() {
               <span className="font-bold text-lg text-foreground">Market Disruptor</span>
             </div>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-2">Strategic Reinvention Platform</p>
-              <h1 className="text-2xl font-bold text-foreground leading-tight mb-2">
-                Stop guessing. Start <span className="text-primary">deconstructing.</span>
+              <h1 className="text-3xl font-bold text-foreground leading-tight mb-3">
+                Uncover the next <span className="text-primary">big thing</span> hiding in plain sight.
               </h1>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                A living workspace for entrepreneurs and investors to challenge assumptions, stress-test strategies, and build what's next.
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Products that once dominated markets don't just disappear — they evolve.
+                Your job is to find them first.
               </p>
             </div>
           </div>
@@ -275,9 +185,9 @@ export default function AuthPage() {
           {/* Desktop-only heading */}
           <div className="hidden lg:block">
             <h2 className="text-3xl font-bold mb-2 text-foreground">
-              {mode === "magic" ? "Your workspace awaits." : "Welcome back."}
+              {mode === "magic" ? "Your next big idea starts here." : "Welcome back."}
             </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-base text-muted-foreground">
               {mode === "magic"
                 ? "Enter your name and email. We'll send you a magic link — your workspace auto-saves and persists every time you return."
                 : "Sign in with your email and password to jump straight into your workspace."}
