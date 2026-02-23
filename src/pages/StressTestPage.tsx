@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { StepNavigator } from "@/components/StepNavigator";
 import { CriticalValidation } from "@/components/CriticalValidation";
-import { Target, Brain, Swords, Presentation, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Target, Brain, Swords, Presentation, ArrowLeft, CheckCircle2, ArrowRight } from "lucide-react";
+import { NextStepButton } from "@/components/SectionNav";
 
 export default function StressTestPage() {
   const analysis = useAnalysis();
@@ -95,6 +96,14 @@ export default function StressTestPage() {
             />
           </div>
         </div>
+
+        {/* Next Step button */}
+        <NextStepButton
+          stepNumber={5}
+          label="Pitch Deck"
+          color="hsl(var(--primary))"
+          onClick={() => navigate(`${baseUrl}/pitch`)}
+        />
       </main>
     </div>
   );
