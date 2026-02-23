@@ -5,6 +5,7 @@ interface ContextualTipProps {
   id: string;
   message: string;
   color?: string;
+  accentColor?: string;
 }
 
 const DISMISSED_KEY = "dismissed_tips";
@@ -18,26 +19,32 @@ function dismiss(id: string) {
   localStorage.setItem(DISMISSED_KEY, JSON.stringify([...prev, id]));
 }
 
-export function ContextualTip({ id, message, color = "hsl(var(--primary))" }: ContextualTipProps) {
+export function ContextualTip({ id, message, color = "hsl(var(--primary))", accentColor }: ContextualTipProps) {
   const [dismissed, setDismissed] = useState(() => getDismissed().includes(id));
 
   if (dismissed) return null;
 
+  const accent = accentColor || color;
+
   return (
     <div
-      className="flex items-start gap-3 px-4 py-3 rounded text-xs"
+      className="flex items-start gap-3 px-5 py-4 rounded-md text-sm"
       style={{
-        background: `${color}0D`,
-        border: `1px solid ${color}25`,
+        background: `linear-gradient(135deg, ${accent}0D, ${accent}06)`,
+        border: `1px solid ${accent}20`,
+        borderLeft: `3px solid ${accent}`,
       }}
     >
-      <Lightbulb size={13} className="flex-shrink-0 mt-0.5" style={{ color }} />
-      <p className="flex-1 leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>{message}</p>
+      <Lightbulb size={15} className="flex-shrink-0 mt-0.5" style={{ color: accent }} />
+      <p className="flex-1 leading-relaxed" style={{ color: "hsl(var(--foreground))" }}>
+        <span className="font-bold" style={{ color: accent }}>Pro tip: </span>
+        {message}
+      </p>
       <button
         onClick={() => { dismiss(id); setDismissed(true); }}
         className="flex-shrink-0 p-0.5 rounded hover:opacity-70 transition-opacity"
       >
-        <X size={11} style={{ color: "hsl(var(--muted-foreground))" }} />
+        <X size={12} style={{ color: "hsl(var(--muted-foreground))" }} />
       </button>
     </div>
   );
