@@ -313,7 +313,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal },
     { id: "concept" as const, label: "Redesign", icon: Sparkles },
     { id: "ideas" as const, label: "Flipped Ideas", icon: Zap },
-    ...(!isService ? [{ id: "patents" as const, label: "Patent Intel", icon: ScrollText }] : []),
   ];
   const totalSections = allSteps.length;
   const currentSectionIdx = allSteps.findIndex(s => s.id === activeStep);
@@ -339,19 +338,13 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             Deep analysis of <strong>{product.name}</strong> — questioning every assumption and generating radical reinvention ideas.
           </p>
         </div>
-        <div className={`grid grid-cols-2 ${isService ? "sm:grid-cols-4" : "sm:grid-cols-5"} gap-3 max-w-xl`}>
-          {(isService ? [
-            { icon: Navigation, label: "Customer Journey" },
+        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl`}>
+          {[
+            { icon: isService ? Navigation : Ruler, label: isService ? "Customer Journey" : "Physical Form" },
             { icon: Cpu, label: "Smart Tech" },
             { icon: Sparkles, label: "Redesign" },
-            { icon: Swords, label: "Red vs Blue" },
-          ] : [
-            { icon: Ruler, label: "Physical Form" },
-            { icon: Navigation, label: "User Workflow" },
-            { icon: Cpu, label: "Smart Tech" },
-            { icon: Sparkles, label: "Redesign" },
-            { icon: Swords, label: "Red vs Blue" },
-          ]).map(({ icon: Icon, label }) => (
+            { icon: Zap, label: "Flipped Ideas" },
+          ].map(({ icon: Icon, label }) => (
             <div key={label} className="p-3 rounded text-center" style={{ background: "hsl(var(--muted))" }}>
               <Icon size={18} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
               <p className="text-[10px] font-semibold text-muted-foreground">{label}</p>
@@ -371,10 +364,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           )}
         </button>
         <p className="text-[11px] text-muted-foreground">
-          {isService
-            ? "Uses Gemini 2.5 Pro · Deep service analysis · ~30–60s"
-            : "Uses Gemini 2.5 Pro + Patent APIs · Deep analysis + patent intelligence · ~30–60s"
-          }
+          Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
         </p>
       </div>
     );
@@ -910,33 +900,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         </div>
       )}
 
-      {/* Section 9: Patent Intelligence */}
-      {activeStep === "patents" && !isService && (
-        <div className="space-y-4">
-          <SectionHeader current={currentSectionNum} total={totalSections} label="Patent Intel" icon={ScrollText} />
-
-          {product.patentData && (
-            <div className="flex justify-end">
-              <button
-                onClick={() => downloadPatentPDF(product, product.patentData)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                style={{ background: "hsl(271 81% 55%)", color: "white" }}
-              >
-                <FileDown size={14} /> Download PDF
-              </button>
-            </div>
-          )}
-          <PatentIntelligence
-            product={product}
-            onSave={(patentData) => { onPatentSave?.(patentData); }}
-          />
-          <div className="text-center py-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
-              <CheckCircle2 size={14} /> All sections explored!
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -6,17 +6,18 @@ import { StepNavigator } from "@/components/StepNavigator";
 import { ProductCard } from "@/components/ProductCard";
 // FlippedIdeaCard moved to Disrupt step
 import { AssumptionsMap } from "@/components/AssumptionsMap";
+import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { SectionHeader, NextSectionButton, DetailPanel, NextStepButton } from "@/components/SectionNav";
-import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
+import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
 import {
   Target, Brain, Swords, Presentation, Save, RefreshCw, FileDown,
   ArrowLeft, ChevronLeft, ChevronRight, ExternalLink, MessageSquare,
   TrendingUp, TrendingDown, Minus, DollarSign, Package, Store, Truck,
   Factory, Rocket, Globe, Users, ThumbsDown, ThumbsUp, Wrench, Heart,
   ShieldAlert, CheckCircle2, Lightbulb, AlertTriangle, Zap, Database,
-  Clock,
+  Clock, ScrollText,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 
@@ -45,12 +46,14 @@ export default function ReportPage() {
   const totalIdeas = products.reduce((acc, p) => acc + (p.flippedIdeas?.length || 0), 0);
   const avgScore = (products.reduce((acc, p) => acc + p.revivalScore, 0) / products.length).toFixed(1);
 
+  const isService = selectedProduct.category === "Service";
   const DETAIL_TABS = [
     { id: "overview", label: "Overview", icon: Target },
     { id: "community", label: "Community Intel", icon: MessageSquare },
     { id: "pricing", label: "Pricing Intel", icon: DollarSign },
     { id: "supply", label: "Supply Chain", icon: Package },
     { id: "action", label: "Action Plan", icon: Rocket },
+    ...(!isService ? [{ id: "patents", label: "Patent Intel", icon: ScrollText }] : []),
   ];
 
   const currentIdx = DETAIL_TABS.findIndex(t => t.id === analysis.detailTab);
@@ -461,8 +464,46 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* After last section (Action Plan), show Next Step button */}
-        {analysis.detailTab === "action" && !nextTab && (
+        {/* Tab: Patent Intel */}
+        {analysis.detailTab === "patents" && !isService && (
+          <div className="space-y-4">
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Patent Intel" icon={ScrollText} />
+            {selectedProduct.patentData && (
+              <div className="flex justify-end">
+                <button
+                  onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  style={{ background: "hsl(271 81% 55%)", color: "white" }}
+                >
+                  <FileDown size={14} /> Download PDF
+                </button>
+              </div>
+            )}
+            <PatentIntelligence
+              product={selectedProduct}
+              onSave={(patentData) => {
+                const updated = products.map(p =>
+                  p.id === selectedProduct.id ? { ...p, patentData } : p
+                );
+                analysis.setProducts(updated);
+                analysis.setSelectedProduct({ ...selectedProduct, patentData });
+                if (analysisParams) analysis.saveAnalysis(updated, analysisParams);
+              }}
+            />
+            {!nextTab && (
+              <NextStepButton
+                stepNumber={3}
+                label="Disrupt"
+                color="hsl(271 81% 55%)"
+                onClick={() => navigate(`${baseUrl}/disrupt`)}
+              />
+            )}
+            {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
+          </div>
+        )}
+
+        {/* After last section, show Next Step button */}
+        {analysis.detailTab === DETAIL_TABS[DETAIL_TABS.length - 1].id && !nextTab && analysis.detailTab !== "patents" && (
           <NextStepButton
             stepNumber={3}
             label="Disrupt"
