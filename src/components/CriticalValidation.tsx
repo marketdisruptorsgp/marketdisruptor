@@ -110,7 +110,7 @@ const SCORE_LABELS: Record<string, { label: string; icon: typeof Brain }> = {
 };
 
 const DEBATE_SECTIONS = [
-  { id: "debate", label: "Red vs Blue Debate", icon: Swords },
+  { id: "debate", label: "Red vs Green Debate", icon: Swords },
   { id: "validate", label: "Validate & Score", icon: CheckCircle2 },
 ];
 
@@ -149,7 +149,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         <div>
           <h3 className="text-lg font-bold text-foreground mb-1">Critical Validation</h3>
           <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
-            Red Team/Blue Team debate, precedents, feasibility checklist, and confidence scoring.
+            Red Team vs Green Team debate, precedents, feasibility checklist, and confidence scoring.
           </p>
         </div>
         <DetailPanel title="Steer the Stress Test (optional)" icon={Eye}>
@@ -184,7 +184,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   if (activeTab === "debate") {
     return (
       <div className="space-y-4">
-        <SectionHeader current={1} total={2} label="Red vs Blue Debate" icon={Swords} />
+        <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
 
         {/* Re-run (collapsed) */}
         <DetailPanel title="Steer the AI — add direction, then Re-run" icon={Eye}>
@@ -209,9 +209,17 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           </div>
         </DetailPanel>
 
-        {/* Red Team — concise: verdict + top 2 args */}
-        <div className="p-4 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.06)", borderLeft: "3px solid hsl(var(--destructive))" }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>Red Team — Why This Fails</p>
+        {/* Red Team — AGAINST the idea */}
+        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--destructive) / 0.06)", borderLeft: "4px solid hsl(var(--destructive))", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--destructive))" }}>
+              <XCircle size={14} style={{ color: "white" }} />
+            </div>
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>Red Team — Against This Idea</p>
+              <p className="text-[10px] text-muted-foreground">Why this concept will fail</p>
+            </div>
+          </div>
           <p className="text-sm font-semibold text-foreground leading-relaxed">{data.redTeam.verdict}</p>
         </div>
 
@@ -266,9 +274,17 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           <div className="flex-1 h-px" style={{ background: "hsl(var(--border))" }} />
         </div>
 
-        {/* Blue Team — concise: verdict + top 2 args */}
-        <div className="p-4 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.06)", borderLeft: "3px solid hsl(142 70% 45%)" }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(142 70% 30%)" }}>Blue Team — Why This Wins</p>
+        {/* Green Team — FOR the idea */}
+        <div className="p-4 rounded-xl" style={{ background: "hsl(142 70% 45% / 0.06)", borderLeft: "4px solid hsl(142 70% 45%)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(142 70% 45%)" }}>
+              <CheckCircle2 size={14} style={{ color: "white" }} />
+            </div>
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(142 70% 30%)" }}>Green Team — For This Idea</p>
+              <p className="text-[10px] text-muted-foreground">Why this concept will succeed</p>
+            </div>
+          </div>
           <p className="text-sm font-semibold text-foreground leading-relaxed">{data.blueTeam.verdict}</p>
         </div>
 
@@ -287,7 +303,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         })}
 
         {data.blueTeam.arguments.length > 2 && (
-          <DetailPanel title={`${data.blueTeam.arguments.length - 2} more Blue Team arguments`} icon={CheckCircle2}>
+          <DetailPanel title={`${data.blueTeam.arguments.length - 2} more Green Team arguments`} icon={CheckCircle2}>
             <div className="space-y-3 mb-2">
               {data.blueTeam.arguments.slice(2).map((arg, i) => {
                 const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;

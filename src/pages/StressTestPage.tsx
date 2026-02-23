@@ -53,13 +53,13 @@ export default function StressTestPage() {
             <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-white font-semibold text-xs sm:text-sm" style={{ background: "hsl(350 80% 55%)" }}>4</div>
             <div className="flex-1 min-w-0">
               <h2 className="text-base sm:text-lg font-bold text-foreground">Stress Test</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground">Red Team vs Blue Team critical validation for <strong className="text-foreground">{selectedProduct.name}</strong></p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Red Team vs Green Team critical validation for <strong className="text-foreground">{selectedProduct.name}</strong></p>
             </div>
           </div>
           <div className="p-3 sm:p-5 space-y-4 sm:space-y-6" style={{ background: "hsl(var(--card))" }}>
             <div className="flex gap-2">
               {[
-                { id: "debate" as const, label: "Red vs Blue Debate", icon: Swords },
+                { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
                 { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
               ].map(tab => {
                 const isActive = analysis.stressTestTab === tab.id;
