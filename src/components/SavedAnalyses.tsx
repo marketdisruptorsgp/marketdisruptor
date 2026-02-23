@@ -23,6 +23,7 @@ interface SavedAnalysesProps {
   onLoad: (analysis: SavedAnalysis) => void;
   refreshTrigger?: number;
   onCountChange?: (count: number) => void;
+  compact?: boolean;
 }
 
 const TYPE_CONFIG = {
@@ -52,7 +53,7 @@ const TYPE_CONFIG = {
   },
 } as const;
 
-export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange }: SavedAnalysesProps) {
+export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }: SavedAnalysesProps) {
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -116,6 +117,47 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange }: SavedAn
   const getTypeConfig = (type?: string) =>
     TYPE_CONFIG[(type as keyof typeof TYPE_CONFIG) ?? "product"] ?? TYPE_CONFIG.product;
 
+  if (compact) {
+    const recentItems = filtered.slice(0, 5);
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center py-6">
+          <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
+        </div>
+      );
+    }
+    if (recentItems.length === 0) {
+      return (
+        <p className="text-xs text-muted-foreground py-4 text-center">No projects yet. Run your first analysis!</p>
+      );
+    }
+    return (
+      <div className="space-y-1.5">
+        {recentItems.map((analysis) => {
+          const cfg = getTypeConfig(analysis.analysis_type);
+          const TypeIcon = cfg.icon;
+          return (
+            <button
+              key={analysis.id}
+              onClick={() => onLoad(analysis)}
+              className="w-full text-left px-3 py-2.5 rounded transition-colors hover:bg-muted/50 flex items-center gap-2.5 group"
+              style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--background))" }}
+            >
+              <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0" style={{ background: cfg.bgColor }}>
+                <TypeIcon size={10} style={{ color: cfg.color }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-semibold text-foreground truncate leading-tight">{analysis.title}</p>
+                <p className="text-[9px] text-muted-foreground">{formatDate(analysis.created_at)}</p>
+              </div>
+              <ChevronRight size={12} className="text-muted-foreground/40 group-hover:text-foreground flex-shrink-0 transition-colors" />
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Search + count bar */}
@@ -139,14 +181,14 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange }: SavedAn
         )}
         <div className="flex items-center gap-2 flex-shrink-0">
           <span
-            className="px-2.5 py-1 rounded-lg text-xs font-bold"
+            className="px-2.5 py-1 rounded text-xs font-bold"
             style={{ background: "hsl(var(--primary))", color: "white" }}
           >
             {analyses.length} saved
           </span>
           <button
             onClick={fetchAnalyses}
-            className="p-2 rounded-lg transition-colors hover:bg-muted"
+            className="p-2 rounded transition-colors hover:bg-muted"
             title="Refresh"
           >
             <RotateCcw size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
@@ -229,7 +271,7 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange }: SavedAn
                     <ChevronRight size={16} style={{ color: cfg.color }} className="opacity-40 group-hover:opacity-100 transition-opacity" />
                     <button
                       onClick={(e) => handleDelete(analysis.id, e)}
-                      className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ color: "hsl(var(--destructive))" }}
                       title="Delete"
                     >

@@ -17,7 +17,15 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
   Upload, Briefcase, Building2, Telescope, AlertCircle,
+  Layers, RefreshCw, Shield, Zap,
 } from "lucide-react";
+
+const PLATFORM_SIGNALS = [
+  { icon: Layers, label: "Persistent Workspaces", desc: "Every analysis auto-saves and evolves over time" },
+  { icon: RefreshCw, label: "Iterative Intelligence", desc: "Re-run, regenerate, and refine from any step" },
+  { icon: Shield, label: "Adversarial Validation", desc: "Red Team attacks your strategy before competitors do" },
+  { icon: Zap, label: "Actionable Output", desc: "Pitch decks, moats, and go-to-market — not just insights" },
+];
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
@@ -68,118 +76,176 @@ export default function DashboardPage() {
         </SheetContent>
       </Sheet>
 
-      <main className="max-w-5xl mx-auto px-6 py-10 space-y-6">
-        <DisruptionPathBanner />
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+          {/* Main column */}
+          <div className="space-y-6">
+            <DisruptionPathBanner />
 
-        {/* Top-level tab bar */}
-        {(() => {
-          const TABS = [
-            { id: "custom" as const, label: "Disrupt This Product", icon: Upload, accent: "hsl(217 91% 38%)" },
-            { id: "service" as const, label: "Disrupt This Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
-            { id: "business" as const, label: "Disrupt This Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
-            { id: "discover" as const, label: "Disrupt This Nostalgia", icon: Telescope, accent: "hsl(var(--primary))" },
-          ];
-          return (
-            <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
-              <div className="flex border-b" style={{ borderColor: "hsl(var(--border))" }}>
-                {TABS.map((tab) => {
-                  const isActive = analysis.mainTab === tab.id;
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        analysis.setMainTab(tab.id);
-                        analysis.setActiveMode(tab.id as AnalysisMode);
-                      }}
-                      className="flex items-center gap-2 px-4 py-3 text-xs font-medium transition-colors relative flex-1 justify-center"
-                      style={{
-                        color: isActive ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                        borderBottom: isActive ? "2px solid hsl(var(--foreground))" : "2px solid transparent",
-                        background: isActive ? "hsl(var(--muted) / 0.5)" : "transparent",
-                      }}
-                    >
-                      <Icon size={14} />
-                      <span className="hidden sm:inline">{tab.label}</span>
-                      <span className="sm:hidden text-[10px]">{tab.label.replace("Disrupt This ", "")}</span>
-                    </button>
-                  );
-                })}
+            {/* Analysis mode tabs + form */}
+            {(() => {
+              const TABS = [
+                { id: "custom" as const, label: "Product", icon: Upload, accent: "hsl(217 91% 38%)" },
+                { id: "service" as const, label: "Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
+                { id: "business" as const, label: "Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
+                { id: "discover" as const, label: "Nostalgia", icon: Telescope, accent: "hsl(var(--primary))" },
+              ];
+              return (
+                <div className="rounded overflow-hidden border border-border" style={{ background: "hsl(var(--card))" }}>
+                  <div className="flex border-b border-border">
+                    {TABS.map((tab) => {
+                      const isActive = analysis.mainTab === tab.id;
+                      const Icon = tab.icon;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => {
+                            analysis.setMainTab(tab.id);
+                            analysis.setActiveMode(tab.id as AnalysisMode);
+                          }}
+                          className="flex items-center gap-2 px-4 py-3 text-xs font-medium transition-colors relative flex-1 justify-center"
+                          style={{
+                            color: isActive ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                            borderBottom: isActive ? `2px solid ${tab.accent}` : "2px solid transparent",
+                            background: isActive ? "hsl(var(--muted) / 0.5)" : "transparent",
+                          }}
+                        >
+                          <Icon size={14} />
+                          <span className="hidden sm:inline">{tab.label}</span>
+                          <span className="sm:hidden text-[10px]">{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="p-5">
+                    <ContextualTip
+                      id="discovery-tip-1"
+                      message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
+                    />
+                    <div className="mt-4" data-tour="analysis-form">
+                      <AnalysisForm
+                        onAnalyze={analysis.handleAnalyze}
+                        isLoading={isLoading}
+                        mode={analysis.activeMode}
+                        onModeChange={(m) => {
+                          analysis.setActiveMode(m);
+                          analysis.setMainTab(m as typeof analysis.mainTab);
+                        }}
+                        onBusinessAnalysis={(data) => {
+                          analysis.setBusinessAnalysisData(data as BusinessModelAnalysisData);
+                          const id = crypto.randomUUID();
+                          analysis.setAnalysisId(id);
+                          navigate(`/business/${id}`);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Loading tracker */}
+            {isLoading && (
+              <LoadingTracker
+                step={analysis.step as "scraping" | "analyzing"}
+                elapsedSeconds={analysis.elapsedSeconds}
+                loadingLog={analysis.loadingLog}
+              />
+            )}
+
+            {/* Error */}
+            {analysis.step === "error" && (
+              <div
+                className="p-5 rounded flex items-start gap-3"
+                style={{ background: "hsl(var(--destructive) / 0.05)", border: "1px solid hsl(var(--destructive) / 0.2)" }}
+              >
+                <AlertCircle size={20} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <p className="font-semibold text-sm" style={{ color: "hsl(var(--destructive))" }}>Analysis Failed</p>
+                  <p className="text-sm text-muted-foreground mt-1">{analysis.errorMsg}</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Tip: Try a more specific category or reduce batch size.
+                  </p>
+                </div>
               </div>
+            )}
 
-              <div className="p-5">
-                <ContextualTip
-                  id="discovery-tip-1"
-                  message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
+            {/* Business Model Form (when no results yet) */}
+            {!analysis.businessAnalysisData && analysis.mainTab === "business" && (
+              <div ref={businessResultsRef}>
+                <BusinessModelAnalysis
+                  onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
+                  onAnalysisComplete={(data, input) => {
+                    analysis.setBusinessAnalysisData(data);
+                    analysis.setBusinessModelInput(input);
+                    const id = crypto.randomUUID();
+                    analysis.setAnalysisId(id);
+                    navigate(`/business/${id}`);
+                  }}
                 />
-                <div className="mt-4" data-tour="analysis-form">
-                  <AnalysisForm
-                    onAnalyze={analysis.handleAnalyze}
-                    isLoading={isLoading}
-                    mode={analysis.activeMode}
-                    onModeChange={(m) => {
-                      analysis.setActiveMode(m);
-                      analysis.setMainTab(m as typeof analysis.mainTab);
-                    }}
-                    onBusinessAnalysis={(data) => {
-                      analysis.setBusinessAnalysisData(data as BusinessModelAnalysisData);
-                      const id = crypto.randomUUID();
-                      analysis.setAnalysisId(id);
-                      navigate(`/business/${id}`);
-                    }}
-                  />
+              </div>
+            )}
+          </div>
+
+          {/* Right sidebar */}
+          <aside className="space-y-5 hidden lg:block">
+            {/* Recent projects */}
+            <div className="rounded border border-border p-4" style={{ background: "hsl(var(--card))" }}>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Recent Projects</p>
+                <button
+                  onClick={() => setShowSavedPanel(true)}
+                  className="text-[10px] font-semibold text-primary hover:underline"
+                >
+                  View All
+                </button>
+              </div>
+              <SavedAnalyses
+                onLoad={(a) => { analysis.handleLoadSaved(a); }}
+                refreshTrigger={analysis.savedRefreshTrigger}
+                onCountChange={setSavedCount}
+                compact
+              />
+            </div>
+
+            {/* Platform capabilities */}
+            <div className="rounded border border-border p-4 space-y-3" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Platform</p>
+              {PLATFORM_SIGNALS.map(({ icon: Icon, label, desc }) => (
+                <div key={label} className="flex items-start gap-2.5">
+                  <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-background">
+                    <Icon size={11} className="text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold text-foreground leading-tight">{label}</p>
+                    <p className="text-[10px] text-muted-foreground leading-snug">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick stats */}
+            <div className="rounded border border-border p-4 space-y-2" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Your Stats</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded p-2.5 border border-border bg-background">
+                  <p className="text-lg font-bold text-primary leading-none">{savedCount}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Projects</p>
+                </div>
+                <div className="rounded p-2.5 border border-border bg-background">
+                  <p className="text-lg font-bold text-foreground leading-none">4</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Paths</p>
                 </div>
               </div>
             </div>
-          );
-        })()}
-
-        {/* Loading tracker */}
-        {isLoading && (
-          <LoadingTracker
-            step={analysis.step as "scraping" | "analyzing"}
-            elapsedSeconds={analysis.elapsedSeconds}
-            loadingLog={analysis.loadingLog}
-          />
-        )}
-
-        {/* Error */}
-        {analysis.step === "error" && (
-          <div
-            className="p-5 rounded flex items-start gap-3"
-            style={{ background: "hsl(var(--destructive) / 0.05)", border: "1px solid hsl(var(--destructive) / 0.2)" }}
-          >
-            <AlertCircle size={20} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-            <div>
-              <p className="font-semibold text-sm" style={{ color: "hsl(var(--destructive))" }}>Analysis Failed</p>
-              <p className="text-sm text-muted-foreground mt-1">{analysis.errorMsg}</p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Tip: Try a more specific category or reduce batch size.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Business Model Form (when no results yet) */}
-        {!analysis.businessAnalysisData && analysis.mainTab === "business" && (
-          <div ref={businessResultsRef}>
-            <BusinessModelAnalysis
-              onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
-              onAnalysisComplete={(data, input) => {
-                analysis.setBusinessAnalysisData(data);
-                analysis.setBusinessModelInput(input);
-                const id = crypto.randomUUID();
-                analysis.setAnalysisId(id);
-                navigate(`/business/${id}`);
-              }}
-            />
-          </div>
-        )}
+          </aside>
+        </div>
       </main>
 
-      <footer className="border-t mt-12 py-8 text-center" style={{ borderColor: "hsl(var(--border))" }}>
-        <p className="text-xs mt-2">
-          <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80" style={{ color: "hsl(var(--primary))" }}>
+      <footer className="border-t mt-8 py-6 text-center" style={{ borderColor: "hsl(var(--border))" }}>
+        <p className="text-xs">
+          <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80 text-primary">
             Built by SGP Capital
           </a>
           <span className="text-muted-foreground"> · </span>
