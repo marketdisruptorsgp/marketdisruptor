@@ -117,7 +117,7 @@ export default function DashboardPage() {
       <section className="bg-background">
         <div className="max-w-4xl mx-auto px-6 pt-20 pb-16 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground leading-tight">
-            Reinvent any{" "}
+            Rethink any{" "}
             <span
               className="inline-block transition-opacity duration-300"
               style={{
