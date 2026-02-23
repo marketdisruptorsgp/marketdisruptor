@@ -177,7 +177,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Built For */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-10 sm:mt-14 max-w-3xl mx-auto text-left">
+          <p className="text-sm sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mt-10 sm:mt-14 mb-4 sm:mb-6 text-center">Built For</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mx-auto text-left">
             {[
               { icon: Rocket, title: "Entrepreneurs", desc: "Seeing opportunities others overlook with data-driven conviction, not guesswork." },
               { icon: TrendingUp, title: "Investors", desc: "Applying adversarial rigor to evaluate opportunities before committing capital." },
