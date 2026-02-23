@@ -150,6 +150,9 @@ export default function Index() {
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community">("overview");
+  const [visitedDetailTabs, setVisitedDetailTabs] = useState<Set<string>>(new Set(["overview"]));
+  const [visitedStressTestTabs, setVisitedStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
+  const [visitedBusinessStressTestTabs, setVisitedBusinessStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
   const [activeStep, setActiveStep] = useState(2);
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([2]));
   const [showExitPrompt, setShowExitPrompt] = useState(false);
@@ -862,23 +865,25 @@ export default function Index() {
                       return (
                         <button
                           key={id}
-                          onClick={() => { setDetailTab(id); setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
+                          onClick={() => { setDetailTab(id); setVisitedDetailTabs(prev => new Set([...prev, id])); setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
                           className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
                           style={{
-                            background: isActive ? color : "hsl(var(--muted))",
+                            background: isActive ? color : !visitedDetailTabs.has(id) ? `${color}12` : "hsl(var(--muted))",
                             color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
-                            border: isActive ? `2px solid ${color}` : "2px solid hsl(var(--border))",
-                            boxShadow: isActive ? `0 4px 12px -2px ${color}50` : "none",
+                            border: isActive ? `2px solid ${color}` : !visitedDetailTabs.has(id) ? `2px solid ${color}40` : "2px solid hsl(var(--border))",
+                            boxShadow: isActive ? `0 4px 12px -2px ${color}50` : !visitedDetailTabs.has(id) ? `0 0 12px -2px ${color}30` : "none",
                             transform: isActive ? "scale(1.03)" : "scale(1)",
                           }}
                         >
+                          {!isActive && !visitedDetailTabs.has(id) && (
+                            <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: color, boxShadow: `0 2px 8px -2px ${color}60` }}>
+                              Explore
+                            </span>
+                          )}
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
                             <Icon size={16} style={{ color: isActive ? "white" : color }} />
                           </div>
                           <span className="text-center leading-tight text-[11px]">{label}</span>
-                          {!isActive && (
-                            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse" style={{ background: color }} />
-                          )}
                         </button>
                       );
                     })}
@@ -1441,7 +1446,9 @@ export default function Index() {
                     {currentIdx > 0 ? (
                       <button
                         onClick={() => {
-                          setDetailTab(DETAIL_TABS[currentIdx - 1].id);
+                          const prevTab = DETAIL_TABS[currentIdx - 1].id;
+                          setDetailTab(prevTab);
+                          setVisitedDetailTabs(prev => new Set([...prev, prevTab]));
                           setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                         }}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
@@ -1454,7 +1461,9 @@ export default function Index() {
                     {currentIdx < DETAIL_TABS.length - 1 ? (
                       <button
                         onClick={() => {
-                          setDetailTab(DETAIL_TABS[currentIdx + 1].id);
+                          const nextTab = DETAIL_TABS[currentIdx + 1].id;
+                          setDetailTab(nextTab);
+                          setVisitedDetailTabs(prev => new Set([...prev, nextTab]));
                           setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                         }}
                         className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all"
@@ -1631,14 +1640,20 @@ export default function Index() {
                         return (
                           <button
                             key={tab.id}
-                            onClick={() => setStressTestTab(tab.id)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                            onClick={() => { setStressTestTab(tab.id); setVisitedStressTestTabs(prev => new Set([...prev, tab.id])); }}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all relative"
                             style={{
-                              background: isActive ? "hsl(350 80% 55%)" : "hsl(var(--muted))",
+                              background: isActive ? "hsl(350 80% 55%)" : !visitedStressTestTabs.has(tab.id) ? "hsl(350 80% 55% / 0.1)" : "hsl(var(--muted))",
                               color: isActive ? "white" : "hsl(var(--muted-foreground))",
-                              border: isActive ? "2px solid hsl(350 80% 55%)" : "2px solid hsl(var(--border))",
+                              border: isActive ? "2px solid hsl(350 80% 55%)" : !visitedStressTestTabs.has(tab.id) ? "2px solid hsl(350 80% 55% / 0.4)" : "2px solid hsl(var(--border))",
+                              boxShadow: !isActive && !visitedStressTestTabs.has(tab.id) ? "0 0 12px -2px hsl(350 80% 55% / 0.3)" : "none",
                             }}
                           >
+                            {!isActive && !visitedStressTestTabs.has(tab.id) && (
+                              <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: "hsl(350 80% 55%)", boxShadow: "0 2px 8px -2px hsl(350 80% 55% / 0.6)" }}>
+                                Explore
+                              </span>
+                            )}
                             <TabIcon size={14} />
                             {tab.label}
                           </button>
@@ -1878,14 +1893,20 @@ export default function Index() {
                         return (
                           <button
                             key={tab.id}
-                            onClick={() => setBusinessStressTestTab(tab.id)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                            onClick={() => { setBusinessStressTestTab(tab.id); setVisitedBusinessStressTestTabs(prev => new Set([...prev, tab.id])); }}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all relative"
                             style={{
-                              background: isActive ? "hsl(38 92% 50%)" : "hsl(var(--muted))",
+                              background: isActive ? "hsl(38 92% 50%)" : !visitedBusinessStressTestTabs.has(tab.id) ? "hsl(38 92% 50% / 0.1)" : "hsl(var(--muted))",
                               color: isActive ? "white" : "hsl(var(--muted-foreground))",
-                              border: isActive ? "2px solid hsl(38 92% 50%)" : "2px solid hsl(var(--border))",
+                              border: isActive ? "2px solid hsl(38 92% 50%)" : !visitedBusinessStressTestTabs.has(tab.id) ? "2px solid hsl(38 92% 50% / 0.4)" : "2px solid hsl(var(--border))",
+                              boxShadow: !isActive && !visitedBusinessStressTestTabs.has(tab.id) ? "0 0 12px -2px hsl(38 92% 50% / 0.3)" : "none",
                             }}
                           >
+                            {!isActive && !visitedBusinessStressTestTabs.has(tab.id) && (
+                              <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: "hsl(38 92% 50%)", boxShadow: "0 2px 8px -2px hsl(38 92% 50% / 0.6)" }}>
+                                Explore
+                              </span>
+                            )}
                             <TabIcon size={14} />
                             {tab.label}
                           </button>

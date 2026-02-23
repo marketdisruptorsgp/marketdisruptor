@@ -139,6 +139,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [patentLoading, setPatentLoading] = useState(false);
   const isService = product.category === "Service";
   const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas" | "patents">("reality");
+  const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set(["reality"]));
   const [userContext, setUserContext] = useState("");
   const [rerunSuggestions, setRerunSuggestions] = useState("");
 
@@ -376,23 +377,25 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             return (
               <button
                 key={s.id}
-                onClick={() => { setActiveStep(s.id); setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
+                onClick={() => { setActiveStep(s.id); setVisitedFPSteps(prev => new Set([...prev, s.id])); setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
                 className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
                 style={{
-                  background: isActive ? color : "hsl(var(--muted))",
+                  background: isActive ? color : !visitedFPSteps.has(s.id) ? `${color}12` : "hsl(var(--muted))",
                   color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
-                  border: isActive ? `2px solid ${color}` : "2px solid hsl(var(--border))",
-                  boxShadow: isActive ? `0 4px 12px -2px ${color}50` : "none",
+                  border: isActive ? `2px solid ${color}` : !visitedFPSteps.has(s.id) ? `2px solid ${color}40` : "2px solid hsl(var(--border))",
+                  boxShadow: isActive ? `0 4px 12px -2px ${color}50` : !visitedFPSteps.has(s.id) ? `0 0 12px -2px ${color}30` : "none",
                   transform: isActive ? "scale(1.03)" : "scale(1)",
                 }}
               >
+                {!isActive && !visitedFPSteps.has(s.id) && (
+                  <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: color, boxShadow: `0 2px 8px -2px ${color}60` }}>
+                    Explore
+                  </span>
+                )}
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
                   <Icon size={16} style={{ color: isActive ? "white" : color }} />
                 </div>
                 <span className="text-center leading-tight text-[10px]">{s.label}</span>
-                {!isActive && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse" style={{ background: color }} />
-                )}
               </button>
             );
           })}
@@ -476,7 +479,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               </div>
             </div>
           </div>
-          <button onClick={() => { setActiveStep("physical"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveStep("physical"); setVisitedFPSteps(prev => new Set([...prev, "physical"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(200 80% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(200 80% 50% / 0.4)" }}>
             Next: Physical Form Analysis <ArrowRight size={14} />
           </button>
@@ -541,7 +544,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           )}
 
-          <button onClick={() => { setActiveStep("workflow"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveStep("workflow"); setVisitedFPSteps(prev => new Set([...prev, "workflow"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(142 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(142 70% 40% / 0.4)" }}>
             Next: User Workflow <ArrowRight size={14} />
           </button>
@@ -637,7 +640,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           )}
 
-          <button onClick={() => { setActiveStep("smarttech"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveStep("smarttech"); setVisitedFPSteps(prev => new Set([...prev, "smarttech"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(35 90% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(35 90% 50% / 0.4)" }}>
             Next: Smart Tech Analysis <ArrowRight size={14} />
           </button>
@@ -690,7 +693,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           </div>
 
-          <button onClick={() => { setActiveStep("assumptions"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveStep("assumptions"); setVisitedFPSteps(prev => new Set([...prev, "assumptions"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(271 81% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(271 81% 55% / 0.4)" }}>
             Next: Hidden Assumptions <ArrowRight size={14} />
           </button>
@@ -741,7 +744,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               );
             })}
           </div>
-          <button onClick={() => { setActiveStep("flip"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveStep("flip"); setVisitedFPSteps(prev => new Set([...prev, "flip"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(350 80% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(350 80% 55% / 0.4)" }}>
             Next: Flip the Logic <ArrowRight size={14} />
           </button>
@@ -782,7 +785,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <div className="px-4 pb-3"><InsightRating sectionId={`flip-${i}`} compact /></div>
             </div>
           ))}
-          <button onClick={() => { setActiveStep("concept"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveStep("concept"); setVisitedFPSteps(prev => new Set([...prev, "concept"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(180 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(180 70% 40% / 0.4)" }}>
             Next: Redesigned Concept <ArrowRight size={14} />
           </button>
@@ -925,7 +928,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.targetUser}</p>
             </div>
            </div>
-          <button onClick={() => { setActiveStep("ideas"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+          <button onClick={() => { setActiveStep("ideas"); setVisitedFPSteps(prev => new Set([...prev, "ideas"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
             style={{ background: "hsl(38 92% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(38 92% 50% / 0.4)" }}>
             Next: Flipped Ideas <ArrowRight size={14} />
           </button>
@@ -1003,7 +1006,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           )}
           {!isService ? (
-            <button onClick={() => { setActiveStep("patents"); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
+            <button onClick={() => { setActiveStep("patents"); setVisitedFPSteps(prev => new Set([...prev, "patents"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
               style={{ background: "hsl(271 81% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(271 81% 55% / 0.4)" }}>
               Next: Patent Intelligence <ArrowRight size={14} />
             </button>
