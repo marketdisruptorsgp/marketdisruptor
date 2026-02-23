@@ -40,7 +40,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
                   {isPast ? s.step : s.step}
                 </span>
                 <span className="hidden sm:inline truncate text-sm">{s.label}</span>
-                <span className="sm:hidden text-[11px]">{s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : s.step === 4 ? "Stress" : "Pitch"}</span>
+                <span className="sm:hidden text-[11px]">{s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : s.step === 4 ? "Test" : "Pitch"}</span>
               </button>
               {i < arr.length - 1 && (
                 <div className="flex-shrink-0 mx-1">
