@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowRight } from "lucide-react";
 
 const FAQS = [
-  { q: "What data sources does the platform use?", a: "We scrape real-time data from eBay sold listings, Etsy trends, Reddit community discussions, TikTok viral signals, Google search trends, and wholesale directories like Alibaba." },
+  { q: "What data sources does the platform use?", a: "We run deep analysis across a large subset of data sources — including pricing databases, wholesale directories, community forums, search trends, and viral content signals — to build a comprehensive market picture." },
   { q: "Which AI models power the analysis?", a: "Our pipeline uses advanced language models for deep reasoning, claim generation, and adversarial validation. All outputs are tagged with confidence levels." },
   { q: "Is my data private?", a: "Yes. All analyses are scoped to your account using row-level security. Your data is encrypted in transit and at rest, and is never shared with other users." },
   { q: "How is the Revival Score calculated?", a: "The Revival Score (1–10) is a composite metric based on market demand signals, supply chain feasibility, community sentiment, trend momentum, and competitive positioning." },
@@ -18,7 +18,7 @@ const FAQS = [
 ];
 
 const METHODOLOGY_STEPS = [
-  { title: "Data Collection", desc: "We scrape multiple real-world sources — eBay sold listings for pricing intelligence, Etsy for handmade & vintage trends, Reddit for community sentiment, TikTok & Google for viral signals, and Alibaba for supply chain feasibility." },
+  { title: "Data Collection", desc: "We run deep analysis across a large subset of real-world data sources — pricing databases, wholesale directories, community forums, search trends, and viral content signals — to build comprehensive market intelligence." },
   { title: "3-Layer Deconstruction", desc: "Every market is analyzed across three layers: Supply (sourcing, manufacturing, logistics), Demand (audience segments, willingness to pay, growth signals), and Positioning (competitive landscape, differentiation opportunities)." },
   { title: "Claim Tagging & Leverage Scoring", desc: "All AI-generated insights are tagged as Verified, Modeled, or Assumption. Each assumption is scored 1–10 for strategic leverage — high-leverage assumptions are the ones most worth validating." },
   { title: "Adversarial Red Teaming", desc: "A simulated adversary stress-tests your strategy by attacking key assumptions, identifying blind spots, and pressure-testing market positioning. This is how you find weaknesses before competitors do." },
