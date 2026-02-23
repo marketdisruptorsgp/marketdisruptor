@@ -5,7 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
-import Index from "./pages/Index";
+import { AnalysisProvider } from "@/contexts/AnalysisContext";
+import DashboardPage from "./pages/DashboardPage";
+import ReportPage from "./pages/ReportPage";
+import DisruptPage from "./pages/DisruptPage";
+import StressTestPage from "./pages/StressTestPage";
+import PitchPage from "./pages/PitchPage";
+import BusinessResultsPage from "./pages/BusinessResultsPage";
 import AuthPage from "./pages/AuthPage";
 import PricingPage from "./pages/PricingPage";
 import SharePage from "./pages/SharePage";
@@ -21,7 +27,7 @@ function AppRoutes() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
         <div className="flex flex-col items-center gap-4">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            className="w-10 h-10 rounded flex items-center justify-center"
             style={{ background: "hsl(var(--primary))" }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -39,7 +45,12 @@ function AppRoutes() {
       <Route path="/share" element={<SharePage />} />
       {user ? (
         <>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/analysis/:id/report" element={<ReportPage />} />
+          <Route path="/analysis/:id/disrupt" element={<DisruptPage />} />
+          <Route path="/analysis/:id/stress-test" element={<StressTestPage />} />
+          <Route path="/analysis/:id/pitch" element={<PitchPage />} />
+          <Route path="/business/:id" element={<BusinessResultsPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="*" element={<NotFound />} />
         </>
@@ -60,7 +71,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <SubscriptionProvider>
-            <AppRoutes />
+            <AnalysisProvider>
+              <AppRoutes />
+            </AnalysisProvider>
           </SubscriptionProvider>
         </AuthProvider>
       </BrowserRouter>
