@@ -15,6 +15,8 @@ import BusinessResultsPage from "./pages/BusinessResultsPage";
 import AuthPage from "./pages/AuthPage";
 import PricingPage from "./pages/PricingPage";
 import SharePage from "./pages/SharePage";
+import AboutPage from "./pages/AboutPage";
+import ResourcesPage from "./pages/ResourcesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +54,8 @@ function AppRoutes() {
           <Route path="/analysis/:id/pitch" element={<PitchPage />} />
           <Route path="/business/:id" element={<BusinessResultsPage />} />
           <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/resources" element={<ResourcesPage />} />
           <Route path="*" element={<NotFound />} />
         </>
       ) : (

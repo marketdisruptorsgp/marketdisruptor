@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
-  Upload, Briefcase, Building2, Telescope, AlertCircle,
+  AlertCircle,
   BookOpen, Users, Rocket, TrendingUp, ShieldCheck, Tag, Layers, FileText,
 } from "lucide-react";
 
@@ -96,68 +96,37 @@ export default function DashboardPage() {
           <div className="space-y-6">
             <DisruptionPathBanner />
 
-            {/* Analysis mode tabs + form */}
-            {(() => {
-              const TABS = [
-                { id: "custom" as const, label: "Disrupt This Product", icon: Upload, accent: "hsl(217 91% 38%)" },
-                { id: "service" as const, label: "Disrupt This Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
-                { id: "business" as const, label: "Disrupt This Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
-              ];
-              return (
-                <div className="rounded overflow-hidden border border-border" style={{ background: "hsl(var(--card))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-4 pt-3">Access Modes</p>
-                  <div className="flex border-b border-border">
-                    {TABS.map((tab) => {
-                      const isActive = analysis.mainTab === tab.id;
-                      const Icon = tab.icon;
-                      return (
-                        <button
-                          key={tab.id}
-                          onClick={() => {
-                            analysis.setMainTab(tab.id);
-                            analysis.setActiveMode(tab.id as AnalysisMode);
-                          }}
-                          className="flex items-center gap-2 px-4 py-3 text-xs font-medium transition-colors relative flex-1 justify-center"
-                          style={{
-                            color: isActive ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                            borderBottom: isActive ? `2px solid ${tab.accent}` : "2px solid transparent",
-                            background: isActive ? "hsl(var(--muted) / 0.5)" : "transparent",
-                          }}
-                        >
-                          <Icon size={14} />
-                          <span className="hidden sm:inline">{tab.label}</span>
-                          <span className="sm:hidden text-[10px]">{tab.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="p-5">
-                    <ContextualTip
-                      id="discovery-tip-1"
-                      message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
-                    />
-                    <div className="mt-4" data-tour="analysis-form">
-                      <AnalysisForm
-                        onAnalyze={analysis.handleAnalyze}
-                        isLoading={isLoading}
-                        mode={analysis.activeMode}
-                        onModeChange={(m) => {
-                          analysis.setActiveMode(m);
-                          analysis.setMainTab(m as typeof analysis.mainTab);
-                        }}
-                        onBusinessAnalysis={(data) => {
-                          analysis.setBusinessAnalysisData(data as BusinessModelAnalysisData);
-                          const id = crypto.randomUUID();
-                          analysis.setAnalysisId(id);
-                          navigate(`/business/${id}`);
-                        }}
-                      />
-                    </div>
-                  </div>
+            {/* Analysis form — mode is set from top nav */}
+            <div className="rounded overflow-hidden border border-border" style={{ background: "hsl(var(--card))" }}>
+              <div className="px-4 pt-3 pb-1 border-b border-border">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {analysis.mainTab === "custom" ? "Disrupt This Product" : analysis.mainTab === "service" ? "Disrupt This Service" : analysis.mainTab === "business" ? "Disrupt This Business Model" : "Analysis"}
+                </p>
+              </div>
+              <div className="p-5">
+                <ContextualTip
+                  id="discovery-tip-1"
+                  message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
+                />
+                <div className="mt-4" data-tour="analysis-form">
+                  <AnalysisForm
+                    onAnalyze={analysis.handleAnalyze}
+                    isLoading={isLoading}
+                    mode={analysis.activeMode}
+                    onModeChange={(m) => {
+                      analysis.setActiveMode(m);
+                      analysis.setMainTab(m as typeof analysis.mainTab);
+                    }}
+                    onBusinessAnalysis={(data) => {
+                      analysis.setBusinessAnalysisData(data as BusinessModelAnalysisData);
+                      const id = crypto.randomUUID();
+                      analysis.setAnalysisId(id);
+                      navigate(`/business/${id}`);
+                    }}
+                  />
                 </div>
-              );
-            })()}
+              </div>
+            </div>
 
             {/* Loading tracker */}
             {isLoading && (
