@@ -178,17 +178,19 @@ export default function DashboardPage() {
 
           {/* Built For */}
           <p className="text-sm sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mt-10 sm:mt-14 mb-4 sm:mb-6 text-center">Built For</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mx-auto text-left">
+          <div className="grid grid-cols-2 sm:grid-cols-2 gap-2.5 sm:gap-4 max-w-3xl mx-auto text-left">
             {[
-              { icon: Rocket, title: "Entrepreneurs", desc: "Seeing opportunities others overlook with data-driven conviction, not guesswork." },
-              { icon: TrendingUp, title: "Investors", desc: "Applying adversarial rigor to evaluate opportunities before committing capital." },
-              { icon: Users, title: "Product Teams", desc: "Stress-testing strategy, positioning, and assumptions before launch." },
-              { icon: FileText, title: "Agencies", desc: "Delivering data-backed strategic perspectives that go beyond surface-level analysis." },
+              { icon: Rocket, title: "Entrepreneurs", desc: "Data-driven conviction, not guesswork." },
+              { icon: TrendingUp, title: "Investors", desc: "Adversarial rigor before committing capital." },
+              { icon: Users, title: "Product Teams", desc: "Stress-test strategy before launch." },
+              { icon: FileText, title: "Agencies", desc: "Data-backed perspectives beyond surface-level." },
             ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="rounded-xl border border-border bg-card p-5 sm:p-6">
-                <Icon size={20} className="text-primary mb-3" />
-                <p className="text-sm font-bold text-foreground mb-1">{title}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              <div key={title} className="rounded-xl border border-border bg-card p-3.5 sm:p-6 flex flex-col items-start">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-2.5 sm:mb-3">
+                  <Icon size={16} className="text-primary sm:w-[18px] sm:h-[18px]" />
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-foreground mb-0.5 sm:mb-1">{title}</p>
+                <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
