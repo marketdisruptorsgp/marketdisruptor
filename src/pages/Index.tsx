@@ -89,7 +89,7 @@ const STEPS = [
 type AnalysisStep = "idle" | "scraping" | "analyzing" | "done" | "error";
 
 const PIPELINE_STEPS = [
-  { id: "scraping",   icon: Globe,     label: "Web Scraping",      detail: "Crawling eBay, Etsy, Reddit, Google & TikTok for live market data" },
+  { id: "scraping",   icon: Globe,     label: "Web Scraping",      detail: "Running deep analysis across a large subset of live market data sources" },
   { id: "analyzing",  icon: Brain,     label: "AI Analysis",       detail: "Building pricing intel, supply chain, trend analysis & action plans" },
   { id: "done",       icon: CheckCircle2, label: "Complete",       detail: "Results ready!" },
 ];
@@ -356,22 +356,22 @@ export default function Index() {
       : `Starting product intelligence pipeline for ${params.era} ${params.category}...`
     );
     await new Promise(r => setTimeout(r, 300));
-    pushLog("Querying eBay for sold listings & collector pricing...");
+    pushLog("Querying pricing databases for market intelligence...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Crawling Etsy for vintage & handmade revival trends...");
+    pushLog("Crawling marketplace data for trend signals...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Mining Reddit for community sentiment & nostalgia signals...");
+    pushLog("Mining community forums for sentiment & pain points...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Scanning TikTok & Google for viral trend signals...");
+    pushLog("Scanning search & social data for demand signals...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Searching Alibaba & wholesale directories for suppliers...");
+    pushLog("Searching wholesale directories for supply chain data...");
     await new Promise(r => setTimeout(r, 600));
     pushLog("Collecting complaint signals & improvement requests...");
 
     try {
       setStepMessage(hasCustom
-        ? "Scraping your product URLs + eBay, Etsy, Reddit, Google, TikTok…"
-        : `Crawling eBay, Etsy, Reddit, Google & TikTok for ${params.era} ${params.category} products…`
+        ? "Analyzing your product URLs across multiple data sources…"
+        : `Running deep market analysis for ${params.era} ${params.category} products…`
       );
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
         "scrape-products",
@@ -383,7 +383,7 @@ export default function Index() {
 
       // Log scrape results
       if (scrapeData.stats) {
-        pushLog(`Scraped ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} Reddit posts, ${scrapeData.stats.complaintSignals} complaint signals`);
+        pushLog(`Scraped ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} community posts, ${scrapeData.stats.complaintSignals} complaint signals`);
       } else {
         pushLog(`Web scraping complete — data collected from ${(scrapeData.sources || []).length} sources`);
       }
@@ -402,7 +402,7 @@ export default function Index() {
       await new Promise(r => setTimeout(r, 800));
       pushLog("Scoring Revival Potential & building action plans...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("Searching for real product images (eBay, Amazon, Wikipedia)...");
+      pushLog("Searching for real product images across data sources...");
 
       const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke(
         "analyze-products",
