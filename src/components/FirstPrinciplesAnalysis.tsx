@@ -254,7 +254,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
-        <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: "hsl(var(--primary-muted))" }}>
+        <div className="w-20 h-20 rounded flex items-center justify-center" style={{ background: "hsl(var(--primary-muted))" }}>
           <Brain size={36} style={{ color: "hsl(var(--primary))" }} />
         </div>
         <div>
@@ -280,7 +280,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             { icon: Sparkles, label: "Redesign" },
             { icon: Swords, label: "Red vs Blue" },
           ]).map(({ icon: Icon, label }) => (
-            <div key={label} className="p-3 rounded-xl text-center" style={{ background: "hsl(var(--muted))" }}>
+            <div key={label} className="p-3 rounded text-center" style={{ background: "hsl(var(--muted))" }}>
               <Icon size={18} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
               <p className="text-[10px] font-semibold text-muted-foreground">{label}</p>
             </div>
@@ -289,7 +289,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <button
           onClick={runAnalysis}
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all"
+          className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm transition-colors"
           style={{ background: "hsl(var(--primary))", color: "white", opacity: loading ? 0.7 : 1 }}
         >
            {loading ? (
@@ -333,7 +333,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </button>
         </div>
         {/* User suggestions for re-run */}
-        <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)", borderLeft: "4px solid hsl(var(--primary))" }}>
+        <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)", borderLeft: "4px solid hsl(var(--primary))" }}>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.15)" }}>
               <Lightbulb size={14} style={{ color: "hsl(var(--primary))" }} />
@@ -347,7 +347,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             value={rerunSuggestions}
             onChange={(e) => setRerunSuggestions(e.target.value)}
             placeholder="e.g. Focus on sustainability, explore modular design, consider subscription model, target commercial users…"
-            className="w-full rounded-xl px-4 py-3 text-sm leading-relaxed resize-none transition-all focus:outline-none"
+            className="w-full rounded px-4 py-3 text-sm leading-relaxed resize-none transition-colors focus:outline-none"
             rows={2}
             style={{
               background: "hsl(var(--background))",
@@ -385,21 +385,19 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <button
                 key={s.id}
                 onClick={() => { setActiveStep(s.id); setVisitedFPSteps(prev => new Set([...prev, s.id])); setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
-                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
+                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded text-xs font-bold transition-colors relative"
                 style={{
                   background: isActive ? color : !visitedFPSteps.has(s.id) ? `${color}12` : "hsl(var(--muted))",
                   color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
                   border: isActive ? `2px solid ${color}` : !visitedFPSteps.has(s.id) ? `2px solid ${color}40` : "2px solid hsl(var(--border))",
-                  boxShadow: isActive ? `0 4px 12px -2px ${color}50` : !visitedFPSteps.has(s.id) ? `0 0 12px -2px ${color}30` : "none",
-                  transform: isActive ? "scale(1.03)" : "scale(1)",
                 }}
               >
                 {!isActive && !visitedFPSteps.has(s.id) && (
-                  <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: color, boxShadow: `0 2px 8px -2px ${color}60` }}>
+                  <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider text-white z-10" style={{ background: color }}>
                     Explore
                   </span>
                 )}
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
+                <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
                   <Icon size={16} style={{ color: isActive ? "white" : color }} />
                 </div>
                 <span className="text-center leading-tight text-[10px]">{s.label}</span>
@@ -415,7 +413,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <div className="space-y-5">
           {/* Current Strengths */}
           {data.currentStrengths && (
-            <div className="p-5 rounded-xl space-y-3" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+            <div className="p-5 rounded space-y-3" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
               <p className="section-label text-[10px] mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 35%)" }}>
                 <Shield size={11} /> What's Already Working
               </p>
@@ -445,14 +443,14 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           )}
 
-          <div className="p-5 rounded-xl" style={{ background: "hsl(var(--primary-muted))", borderLeft: "4px solid hsl(var(--primary))" }}>
+          <div className="p-5 rounded" style={{ background: "hsl(var(--primary-muted))", borderLeft: "4px solid hsl(var(--primary))" }}>
             <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(var(--primary))" }}>
               <Lightbulb size={11} /> The Real Problem Being Solved
             </p>
             <p className="text-sm text-foreground leading-relaxed font-medium">{data.coreReality.trueProblem}</p>
             <InsightRating sectionId="core-reality" />
           </div>
-          <div className="p-5 rounded-xl" style={{ background: "hsl(var(--muted))" }}>
+          <div className="p-5 rounded" style={{ background: "hsl(var(--muted))" }}>
             <p className="section-label text-[10px] mb-2 flex items-center gap-1"><Eye size={11} /> How People Actually Use It</p>
             <p className="text-sm text-foreground/80 leading-relaxed">{data.coreReality.actualUsage}</p>
           </div>
@@ -486,8 +484,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               </div>
             </div>
           </div>
-          <button onClick={() => { setActiveStep("physical"); setVisitedFPSteps(prev => new Set([...prev, "physical"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(200 80% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(200 80% 50% / 0.4)" }}>
+          <button onClick={() => { setActiveStep("physical"); setVisitedFPSteps(prev => new Set([...prev, "physical"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
+            style={{ background: "hsl(200 80% 50%)", color: "white" }}>
             Next: Physical Form Analysis <ArrowRight size={14} />
           </button>
         </div>
@@ -502,12 +500,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
-              { icon: Ruler, label: "Why This Size?", text: data.physicalDimensions.sizeAnalysis },
-              { icon: Move, label: "Why This Weight?", text: data.physicalDimensions.weightAnalysis },
-              { icon: Maximize2, label: "Why This Form Factor?", text: data.physicalDimensions.formFactorAnalysis },
-              { icon: Zap, label: "Static vs Dynamic", text: data.physicalDimensions.staticVsDynamic },
+              { icon: Ruler, label: `Why Is ${product.name} This Size?`, text: data.physicalDimensions.sizeAnalysis },
+              { icon: Move, label: `Why Does ${product.name} Weigh This Much?`, text: data.physicalDimensions.weightAnalysis },
+              { icon: Maximize2, label: `Why Is ${product.name} Shaped This Way?`, text: data.physicalDimensions.formFactorAnalysis },
+              { icon: Zap, label: `Is ${product.name} Too Rigid?`, text: data.physicalDimensions.staticVsDynamic },
             ].map(({ icon: Icon, label, text }) => (
-              <div key={label} className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+              <div key={label} className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                   <Icon size={11} style={{ color: "hsl(var(--primary))" }} /> {label}
                 </p>
@@ -551,8 +549,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           )}
 
-          <button onClick={() => { setActiveStep("workflow"); setVisitedFPSteps(prev => new Set([...prev, "workflow"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(142 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(142 70% 40% / 0.4)" }}>
+          <button onClick={() => { setActiveStep("workflow"); setVisitedFPSteps(prev => new Set([...prev, "workflow"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
+            style={{ background: "hsl(142 70% 40%)", color: "white" }}>
             Next: User Workflow <ArrowRight size={14} />
           </button>
         </div>
@@ -596,7 +594,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 {data.userWorkflow.frictionPoints.map((fp, i) => {
                   const col = SEVERITY_COLORS[fp.severity] || SEVERITY_COLORS.medium;
                   return (
-                    <div key={i} className="p-4 rounded-xl" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
+                    <div key={i} className="p-4 rounded" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: col.text }}>{fp.step}</p>
                         <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
@@ -614,14 +612,14 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                 <Brain size={11} /> Cognitive Load
               </p>
                <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.cognitiveLoad}</p>
                 <InsightRating sectionId="workflow-cognitive" compact />
             </div>
-            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                 <Eye size={11} /> Context of Use
               </p>
@@ -647,8 +645,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           )}
 
-          <button onClick={() => { setActiveStep("smarttech"); setVisitedFPSteps(prev => new Set([...prev, "smarttech"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(35 90% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(35 90% 50% / 0.4)" }}>
+          <button onClick={() => { setActiveStep("smarttech"); setVisitedFPSteps(prev => new Set([...prev, "smarttech"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
+            style={{ background: "hsl(35 90% 50%)", color: "white" }}>
             Next: Smart Tech Analysis <ArrowRight size={14} />
           </button>
         </div>
@@ -657,7 +655,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {/* STEP 4: Smart Tech */}
       {activeStep === "smarttech" && data.smartTechAnalysis && (
         <div className="space-y-5">
-          <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))" }}>
+          <div className="p-4 rounded" style={{ background: "hsl(var(--muted))" }}>
             <p className="section-label text-[10px] mb-2 flex items-center gap-1">
               <Cpu size={11} style={{ color: "hsl(271 81% 50%)" }} /> Current Technology Level
             </p>
@@ -671,7 +669,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               </p>
               <div className="space-y-3">
                 {data.smartTechAnalysis.missedOpportunities.map((opp, i) => (
-                  <div key={i} className="p-4 rounded-xl" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
+                  <div key={i} className="p-4 rounded" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
                     <div className="flex items-center gap-2 mb-2">
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-bold"
                         style={{ background: "hsl(271 81% 56% / 0.15)", color: "hsl(271 81% 40%)" }}>{opp.tech}</span>
@@ -685,13 +683,13 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                 <AlertTriangle size={11} /> Why It Hasn't Happened Yet
               </p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.whyNotAlreadyDone}</p>
             </div>
-            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
+            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
               <p className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1" style={{ color: "hsl(var(--primary))" }}>
                 <Zap size={11} /> Highest-Leverage Integration
               </p>
@@ -700,8 +698,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           </div>
 
-          <button onClick={() => { setActiveStep("assumptions"); setVisitedFPSteps(prev => new Set([...prev, "assumptions"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(271 81% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(271 81% 55% / 0.4)" }}>
+          <button onClick={() => { setActiveStep("assumptions"); setVisitedFPSteps(prev => new Set([...prev, "assumptions"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
+            style={{ background: "hsl(271 81% 55%)", color: "white" }}>
             Next: Hidden Assumptions <ArrowRight size={14} />
           </button>
         </div>
@@ -753,8 +751,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               );
             })}
           </div>
-          <button onClick={() => { setActiveStep("flip"); setVisitedFPSteps(prev => new Set([...prev, "flip"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(350 80% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(350 80% 55% / 0.4)" }}>
+          <button onClick={() => { setActiveStep("flip"); setVisitedFPSteps(prev => new Set([...prev, "flip"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
+            style={{ background: "hsl(350 80% 55%)", color: "white" }}>
             Next: Flip the Logic <ArrowRight size={14} />
           </button>
         </div>
@@ -767,7 +765,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             Taking the most limiting assumptions and inverting them. These aren't tweaks — they're structural breaks.
           </p>
           {data.flippedLogic.map((item, i) => (
-            <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--primary) / 0.2)" }}>
+            <div key={i} className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--primary) / 0.2)" }}>
               <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
                 <div className="p-4" style={{ background: "hsl(var(--muted))" }}>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Current Assumption</p>
@@ -794,8 +792,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <div className="px-4 pb-3"><InsightRating sectionId={`flip-${i}`} compact /></div>
             </div>
           ))}
-          <button onClick={() => { setActiveStep("concept"); setVisitedFPSteps(prev => new Set([...prev, "concept"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(180 70% 40%)", color: "white", boxShadow: "0 4px 12px -2px hsl(180 70% 40% / 0.4)" }}>
+          <button onClick={() => { setActiveStep("concept"); setVisitedFPSteps(prev => new Set([...prev, "concept"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
+            style={{ background: "hsl(180 70% 40%)", color: "white" }}>
             Next: Redesigned Concept <ArrowRight size={14} />
           </button>
         </div>
@@ -804,7 +802,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {/* STEP 7: Redesigned Concept */}
       {activeStep === "concept" && (
         <div className="space-y-5">
-          <div className="p-6 rounded-2xl relative overflow-hidden"
+          <div className="p-6 rounded relative overflow-hidden"
             style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white" }}>
             <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-10" style={{ background: "white" }} />
             <div className="relative">
@@ -841,7 +839,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
           {/* Physical + Size + Materials + Smart Features */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
               <p className="section-label text-[10px] flex items-center gap-1"><Package size={11} /> Physical Form</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.physicalDescription}</p>
               {data.redesignedConcept.sizeAndWeight && (
@@ -855,7 +853,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
 
             <div className="space-y-3">
-              <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))" }}>
+              <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
                 <p className="section-label text-[10px] flex items-center gap-1"><Zap size={11} /> Materials & Why</p>
                 <div className="space-y-1.5">
                   {data.redesignedConcept.materials.map((m, i) => (
@@ -869,7 +867,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               </div>
 
               {data.redesignedConcept.smartFeatures?.length > 0 && (
-                <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
+                <div className="p-4 rounded space-y-2" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
                   <p className="section-label text-[10px] flex items-center gap-1" style={{ color: "hsl(271 81% 40%)" }}>
                     <Cpu size={11} /> Smart Features
                   </p>
@@ -905,7 +903,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           )}
 
           {/* UX Transformation */}
-          <div className="p-5 rounded-xl" style={{ background: "hsl(142 70% 45% / 0.07)", borderLeft: "4px solid hsl(142 70% 45%)" }}>
+          <div className="p-5 rounded" style={{ background: "hsl(142 70% 45% / 0.07)", borderLeft: "4px solid hsl(142 70% 45%)" }}>
             <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}>
               <Users size={11} /> User Experience Transformation
             </p>
@@ -913,13 +911,13 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
+            <div className="p-4 rounded" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
               <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(271 81% 40%)" }}>
                 <Brain size={11} /> Why It Hasn't Been Done
               </p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.whyItHasntBeenDone}</p>
             </div>
-            <div className="p-4 rounded-xl" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+            <div className="p-4 rounded" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
               <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
                 <AlertTriangle size={11} /> Biggest Risk
               </p>
@@ -928,21 +926,21 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-4 rounded-xl space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <div className="p-4 rounded space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
               <p className="section-label text-[10px] flex items-center gap-1"><Factory size={11} /> Manufacturing Path</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.manufacturingPath}</p>
             </div>
-            <div className="p-4 rounded-xl space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <div className="p-4 rounded space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
               <p className="section-label text-[10px] flex items-center gap-1"><DollarSign size={11} /> Price Point</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.pricePoint}</p>
             </div>
-            <div className="p-4 rounded-xl space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <div className="p-4 rounded space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
               <p className="section-label text-[10px] flex items-center gap-1"><Users size={11} /> Target Buyer</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.targetUser}</p>
             </div>
            </div>
-          <button onClick={() => { setActiveStep("ideas"); setVisitedFPSteps(prev => new Set([...prev, "ideas"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-            style={{ background: "hsl(38 92% 50%)", color: "white", boxShadow: "0 4px 12px -2px hsl(38 92% 50% / 0.4)" }}>
+          <button onClick={() => { setActiveStep("ideas"); setVisitedFPSteps(prev => new Set([...prev, "ideas"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
+            style={{ background: "hsl(38 92% 50%)", color: "white" }}>
             Next: Flipped Ideas <ArrowRight size={14} />
           </button>
         </div>
@@ -956,7 +954,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </p>
 
           {/* User context input */}
-          <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.2)", borderLeft: "4px solid hsl(38 92% 50%)" }}>
+          <div className="p-4 rounded space-y-2" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.2)", borderLeft: "4px solid hsl(38 92% 50%)" }}>
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50% / 0.15)" }}>
                 <Lightbulb size={14} style={{ color: "hsl(38 92% 50%)" }} />
@@ -970,7 +968,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               value={userContext}
               onChange={(e) => setUserContext(e.target.value)}
               placeholder="e.g. Focus on eco-friendly materials, target Gen Z audience, keep price under $30, emphasize subscription model…"
-              className="w-full rounded-xl px-4 py-3 text-sm leading-relaxed resize-none transition-all focus:outline-none"
+              className="w-full rounded px-4 py-3 text-sm leading-relaxed resize-none transition-colors focus:outline-none"
               style={{
                 background: "hsl(var(--background))",
                 border: "2px solid hsl(38 92% 50% / 0.2)",
@@ -1019,13 +1017,13 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           )}
           {!isService ? (
-            <button onClick={() => { setActiveStep("patents"); setVisitedFPSteps(prev => new Set([...prev, "patents"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-xl transition-all hover:scale-[1.02]"
-              style={{ background: "hsl(271 81% 55%)", color: "white", boxShadow: "0 4px 12px -2px hsl(271 81% 55% / 0.4)" }}>
+            <button onClick={() => { setActiveStep("patents"); setVisitedFPSteps(prev => new Set([...prev, "patents"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
+              style={{ background: "hsl(271 81% 55%)", color: "white" }}>
               Next: Patent Intelligence <ArrowRight size={14} />
             </button>
           ) : (
             <div className="text-center py-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold"
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded text-xs font-bold"
                 style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
                 <CheckCircle2 size={14} /> All Disrupt sections explored!
               </div>
@@ -1041,7 +1039,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             <div className="flex justify-end">
               <button
                 onClick={() => downloadPatentPDF(product, product.patentData)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors"
                 style={{ background: "hsl(271 81% 55%)", color: "white" }}
               >
                 <FileDown size={14} />
