@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { StepNavigator } from "@/components/StepNavigator";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
-import { Target, Brain, Swords, Presentation, ArrowLeft } from "lucide-react";
-import { NextStepButton } from "@/components/SectionNav";
+import { Target, Brain, Swords, Presentation } from "lucide-react";
+import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 
 export default function DisruptPage() {
   const analysis = useAnalysis();
@@ -40,13 +40,7 @@ export default function DisruptPage() {
           }}
         />
 
-        <button
-          onClick={() => navigate(`${baseUrl}/report`)}
-          className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
-          style={{ color: "hsl(271 81% 55%)" }}
-        >
-          <ArrowLeft size={16} /> Back to Intelligence Report
-        </button>
+        <StepNavBar backLabel="Intelligence Report" backPath={`${baseUrl}/report`} accentColor="hsl(271 81% 55%)" />
 
         <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(271 81% 55%)" }}>
           <div className="px-3 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--card))" }}>

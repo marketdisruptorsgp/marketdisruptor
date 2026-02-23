@@ -4,16 +4,15 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
 import { StepNavigator } from "@/components/StepNavigator";
 import { ProductCard } from "@/components/ProductCard";
-// FlippedIdeaCard moved to Disrupt step
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
-import { SectionHeader, NextSectionButton, DetailPanel, NextStepButton } from "@/components/SectionNav";
+import { SectionHeader, NextSectionButton, DetailPanel, NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
 import {
   Target, Brain, Swords, Presentation, Save, RefreshCw, FileDown,
-  ArrowLeft, ChevronLeft, ChevronRight, ExternalLink, MessageSquare,
+  ChevronLeft, ChevronRight, ExternalLink, MessageSquare,
   TrendingUp, TrendingDown, Minus, DollarSign, Package, Store, Truck,
   Factory, Rocket, Globe, Users, ThumbsDown, ThumbsUp, Wrench, Heart,
   ShieldAlert, CheckCircle2, Lightbulb, AlertTriangle, Zap, Database,
@@ -56,10 +55,11 @@ export default function ReportPage() {
     ...(!isService ? [{ id: "patents", label: "Patent Intel", icon: ScrollText }] : []),
   ];
 
+  const allSectionsVisited = DETAIL_TABS.every(t => analysis.visitedDetailTabs.has(t.id));
+
   const currentIdx = DETAIL_TABS.findIndex(t => t.id === analysis.detailTab);
   const currentTab = DETAIL_TABS[currentIdx];
   const nextTab = currentIdx < DETAIL_TABS.length - 1 ? DETAIL_TABS[currentIdx + 1] : null;
-  const prevTab = currentIdx > 0 ? DETAIL_TABS[currentIdx - 1] : null;
 
   const goToTab = (tabId: string) => {
     analysis.setDetailTab(tabId);
@@ -96,15 +96,7 @@ export default function ReportPage() {
           }}
         />
 
-        {analysis.loadedFromSaved && (
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
-            style={{ color: "hsl(var(--primary))" }}
-          >
-            <ArrowLeft size={16} /> Back to Dashboard
-          </button>
-        )}
+        <StepNavBar backLabel="Dashboard" backPath="/" accentColor={modeAccent} />
 
         {/* Header */}
         <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
@@ -176,13 +168,16 @@ export default function ReportPage() {
               <button
                 key={tab.id}
                 onClick={() => goToTab(tab.id)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap relative"
                 style={{
                   background: isActive ? "hsl(var(--primary))" : "transparent",
                   color: isActive ? "white" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
                   border: isActive ? "1px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
                 }}
               >
+                {!isActive && !isVisited && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: "hsl(var(--primary))" }} />
+                )}
                 <TabIcon size={12} />
                 <span className="hidden sm:inline">{tab.label}</span>
                 <span className="sm:hidden">{i + 1}</span>
@@ -271,7 +266,7 @@ export default function ReportPage() {
                         {ci.topComplaints?.length ? (
                           <div className="space-y-1.5">
                             <p className="text-[10px] font-bold text-muted-foreground uppercase">Top Complaints</p>
-                            {ci.topComplaints.slice(0, 3).map((c, i) => (
+                            {ci.topComplaints.map((c, i) => (
                               <div key={i} className="flex gap-2 items-start text-xs"><ShieldAlert size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{c}</span></div>
                             ))}
                           </div>
@@ -279,7 +274,7 @@ export default function ReportPage() {
                         {ci.improvementRequests?.length ? (
                           <div className="space-y-1.5">
                             <p className="text-[10px] font-bold text-muted-foreground uppercase">Improvement Requests</p>
-                            {ci.improvementRequests.slice(0, 3).map((r, i) => (
+                            {ci.improvementRequests.map((r, i) => (
                               <div key={i} className="flex gap-2 items-start text-xs"><Lightbulb size={10} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{r}</span></div>
                             ))}
                           </div>
@@ -289,7 +284,7 @@ export default function ReportPage() {
                     <DetailPanel title="Reviews, Signals & Triggers" icon={TrendingUp}>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
                         <div className="space-y-1.5">
-                          {selectedProduct.reviews?.slice(0, 3).map((review, i) => (
+                          {selectedProduct.reviews?.map((review, i) => (
                             <div key={i} className="flex gap-2 items-start text-xs">
                               <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
                               <span className="text-foreground/80">{review.text}</span>
@@ -297,7 +292,7 @@ export default function ReportPage() {
                           ))}
                         </div>
                         <div className="space-y-1.5">
-                          {selectedProduct.socialSignals?.slice(0, 3).map((sig, i) => (
+                          {selectedProduct.socialSignals?.map((sig, i) => (
                             <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ background: "hsl(var(--primary-muted))" }}>
                               <div>
                                 <p className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>{sig.platform}</p>
@@ -430,7 +425,7 @@ export default function ReportPage() {
                           <span className="text-[10px] text-muted-foreground">{phase.timeline} · {phase.budget}</span>
                         </div>
                         <ul className="space-y-0.5">
-                          {phase.actions.slice(0, 3).map((action, j) => (
+                          {phase.actions.map((action, j) => (
                             <li key={j} className="text-[11px] text-foreground/80">• {action}</li>
                           ))}
                         </ul>
@@ -490,27 +485,17 @@ export default function ReportPage() {
                 if (analysisParams) analysis.saveAnalysis(updated, analysisParams);
               }}
             />
-            {!nextTab && (
-              <NextStepButton
-                stepNumber={3}
-                label="Disrupt"
-                color="hsl(271 81% 55%)"
-                onClick={() => navigate(`${baseUrl}/disrupt`)}
-              />
-            )}
-            {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
           </div>
         )}
 
-        {/* After last section, show Next Step button */}
-        {analysis.detailTab === DETAIL_TABS[DETAIL_TABS.length - 1].id && !nextTab && analysis.detailTab !== "patents" && (
-          <NextStepButton
-            stepNumber={3}
-            label="Disrupt"
-            color="hsl(271 81% 55%)"
-            onClick={() => navigate(`${baseUrl}/disrupt`)}
-          />
-        )}
+        {/* Next Step button — gated on all sections visited */}
+        <NextStepButton
+          stepNumber={3}
+          label="Disrupt"
+          color="hsl(271 81% 55%)"
+          onClick={() => navigate(`${baseUrl}/disrupt`)}
+          allSectionsVisited={allSectionsVisited}
+        />
 
         {/* SGP Capital CTA */}
         <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
