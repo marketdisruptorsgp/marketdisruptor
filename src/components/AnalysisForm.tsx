@@ -128,6 +128,9 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   const [customImages, setCustomImages] = useState<{ file: File; dataUrl: string }[]>([]);
   const [customName, setCustomName] = useState("");
   const [customNotes, setCustomNotes] = useState("");
+  const [discoverAudience, setDiscoverAudience] = useState("");
+  const [discoverBudget, setDiscoverBudget] = useState("");
+  const [discoverNotes, setDiscoverNotes] = useState("");
   const [businessInput, setBusinessInput] = useState<BusinessInput>({
     type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "",
   });
@@ -160,7 +163,15 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
       }];
       onAnalyze({ category: mode === "service" ? "Service" : "Custom", era: "All Eras / Current", batchSize: 1, customProducts: filled });
     } else {
-      onAnalyze({ category, era, batchSize });
+      const contextParts = [
+        discoverAudience && `Target: ${discoverAudience}`,
+        discoverBudget && `Budget: ${discoverBudget}`,
+        discoverNotes,
+      ].filter(Boolean).join(". ");
+      onAnalyze({
+        category, era, batchSize,
+        ...(contextParts ? { customProducts: [{ notes: contextParts }] } : {}),
+      });
     }
   };
 
@@ -276,6 +287,59 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                   {ERAS.map(e => <option key={e} value={e}>{e}</option>)}
                 </select>
               </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Audience</label>
+                <input
+                  value={discoverAudience}
+                  onChange={(e) => setDiscoverAudience(e.target.value)}
+                  placeholder="e.g. Millennial collectors, Gen-Z hobbyists, Parents with kids 6-12..."
+                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
+                  style={inputStyle}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Budget Range</label>
+                <input
+                  value={discoverBudget}
+                  onChange={(e) => setDiscoverBudget(e.target.value)}
+                  placeholder="e.g. Under $50, $50-200, Premium $500+..."
+                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Batch Size</label>
+              <div className="flex gap-2">
+                {[5, 10, 15].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setBatchSize(n)}
+                    className="flex-1 py-2 rounded text-sm font-bold transition-colors"
+                    style={{
+                      border: "1px solid hsl(var(--border))",
+                      background: batchSize === n ? "hsl(var(--primary))" : "hsl(var(--background))",
+                      color: batchSize === n ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Context & Notes</label>
+              <textarea
+                value={discoverNotes}
+                onChange={(e) => setDiscoverNotes(e.target.value)}
+                placeholder="Any specific products, brands, or trends you want explored..."
+                rows={3}
+                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
+                style={inputStyle}
+              />
             </div>
             <button
               type="submit"
@@ -434,7 +498,61 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 value={businessInput.description}
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Describe the business model, revenue streams, and key operations..."
-                rows={4}
+                rows={3}
+                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
+                style={inputStyle}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Revenue Model</label>
+                <input
+                  value={businessInput.revenueModel}
+                  onChange={(e) => setBusinessInput(prev => ({ ...prev, revenueModel: e.target.value }))}
+                  placeholder="e.g. Subscription, Per-unit, Commission, Freemium..."
+                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
+                  style={inputStyle}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Business Size</label>
+                <input
+                  value={businessInput.size}
+                  onChange={(e) => setBusinessInput(prev => ({ ...prev, size: e.target.value }))}
+                  placeholder="e.g. Solo operator, 10 employees, $2M ARR..."
+                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Geography</label>
+              <input
+                value={businessInput.geography}
+                onChange={(e) => setBusinessInput(prev => ({ ...prev, geography: e.target.value }))}
+                placeholder="e.g. Local (Austin, TX), National, Global..."
+                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
+                style={inputStyle}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pain Points</label>
+              <textarea
+                value={businessInput.painPoints}
+                onChange={(e) => setBusinessInput(prev => ({ ...prev, painPoints: e.target.value }))}
+                placeholder="What are the biggest operational or customer pain points?"
+                rows={3}
+                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
+                style={inputStyle}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Additional Notes</label>
+              <textarea
+                value={businessInput.notes}
+                onChange={(e) => setBusinessInput(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Competitive landscape, unique constraints, strategic goals..."
+                rows={3}
                 className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
                 style={inputStyle}
               />
