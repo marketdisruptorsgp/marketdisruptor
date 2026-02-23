@@ -1,9 +1,5 @@
-import { useEffect, useState } from "react";
 import { PlatformNav } from "@/components/PlatformNav";
-import { TIERS, TierKey } from "@/hooks/useSubscription";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { BarChart3, Clock, FolderOpen, Star, CalendarDays } from "lucide-react";
+import { TierKey } from "@/hooks/useSubscription";
 
 interface HeroSectionProps {
   tier: TierKey;
@@ -13,126 +9,10 @@ interface HeroSectionProps {
   savedCount?: number;
 }
 
-export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenSaved, savedCount }: HeroSectionProps) {
-  const greeting = getGreeting();
-  const { user } = useAuth();
-  const [userStats, setUserStats] = useState<{ totalAnalyses: number; latestScore: number | null; memberSince: string | null }>({
-    totalAnalyses: 0,
-    latestScore: null,
-    memberSince: null,
-  });
-
-  useEffect(() => {
-    if (!user?.id) return;
-    (async () => {
-      const { count } = await (supabase.from("saved_analyses") as any)
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
-
-      const { data: latest } = await (supabase.from("saved_analyses") as any)
-        .select("avg_revival_score")
-        .eq("user_id", user.id)
-        .not("avg_revival_score", "is", null)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      const { data: profile } = await (supabase.from("profiles") as any)
-        .select("created_at")
-        .eq("user_id", user.id)
-        .single();
-
-      setUserStats({
-        totalAnalyses: count ?? 0,
-        latestScore: latest?.avg_revival_score ?? null,
-        memberSince: profile?.created_at ? new Date(profile.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : null,
-      });
-    })();
-  }, [user?.id]);
-
+export function HeroSection({ tier, onOpenSaved, savedCount }: HeroSectionProps) {
   return (
     <header className="bg-background">
       <PlatformNav tier={tier} onOpenSaved={onOpenSaved} savedCount={savedCount} />
-
-      {/* Welcome row */}
-      <div className="border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">
-              {greeting}
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight">
-              {profileFirstName ? `${profileFirstName}'s Workspace` : "Your Workspace"}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-2 max-w-lg leading-relaxed">
-              Deconstruct markets, stress-test strategies, and build what's next.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="flex items-center gap-4 px-4 py-2.5 rounded-lg border border-border bg-card shadow-sm">
-              <div className="flex items-center gap-1.5">
-                <BarChart3 size={13} className="text-primary" />
-                <span className="text-xs font-semibold text-foreground">
-                  {TIERS[tier].name}
-                </span>
-              </div>
-              <div className="w-px h-4 bg-border" />
-              <div className="flex items-center gap-1.5">
-                <Clock size={13} className="text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground">
-                  {remainingAnalyses !== null ? `${remainingAnalyses} analyses left` : "Unlimited"}
-                </span>
-              </div>
-            </div>
-            {tier !== "disruptor" && (
-              <button
-                onClick={() => window.location.href = "/pricing"}
-                className="px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors bg-primary text-primary-foreground hover:bg-primary-dark"
-              >
-                Upgrade
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Your Activity */}
-      <div className="border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center gap-6 overflow-x-auto">
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <FolderOpen size={13} className="text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Projects:</span>
-            <span className="text-xs font-bold text-foreground">{userStats.totalAnalyses}</span>
-          </div>
-          {userStats.latestScore !== null && (
-            <>
-              <div className="w-px h-4 bg-border flex-shrink-0" />
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <Star size={13} className="text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Latest Score:</span>
-                <span className="text-xs font-bold text-foreground">{userStats.latestScore}/10</span>
-              </div>
-            </>
-          )}
-          {userStats.memberSince && (
-            <>
-              <div className="w-px h-4 bg-border flex-shrink-0" />
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <CalendarDays size={13} className="text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Member since:</span>
-                <span className="text-xs font-bold text-foreground">{userStats.memberSince}</span>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
     </header>
   );
-}
-
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
 }
