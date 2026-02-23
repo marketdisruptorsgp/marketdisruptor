@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
   AlertCircle, Upload, Briefcase, Building2, ShieldCheck, BookOpen,
+  Rocket, TrendingUp, Users, FileText,
 } from "lucide-react";
 
 const MODE_WORDS = [
@@ -173,6 +174,22 @@ export default function DashboardPage() {
             >
               Learn More
             </button>
+          </div>
+
+          {/* Built For */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-10 sm:mt-14 max-w-3xl mx-auto text-left">
+            {[
+              { icon: Rocket, title: "Entrepreneurs", desc: "Seeing opportunities others overlook with data-driven conviction, not guesswork." },
+              { icon: TrendingUp, title: "Investors", desc: "Applying adversarial rigor to evaluate opportunities before committing capital." },
+              { icon: Users, title: "Product Teams", desc: "Stress-testing strategy, positioning, and assumptions before launch." },
+              { icon: FileText, title: "Agencies", desc: "Delivering data-backed strategic perspectives that go beyond surface-level analysis." },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="rounded-xl border border-border bg-card p-5 sm:p-6">
+                <Icon size={20} className="text-primary mb-3" />
+                <p className="text-sm font-bold text-foreground mb-1">{title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

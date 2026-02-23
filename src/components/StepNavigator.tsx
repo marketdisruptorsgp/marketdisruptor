@@ -27,19 +27,20 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
             <div key={s.step} className="flex items-center flex-1 min-w-0">
               <button
                 onClick={() => onStepChange(s.step)}
-                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded text-xs sm:text-sm font-medium transition-colors w-full justify-center"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all w-full justify-center"
                 style={{
-                  background: isCurrent ? "hsl(var(--primary))" : "transparent",
-                  color: isCurrent ? "hsl(var(--primary-foreground))" : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                  border: isCurrent ? "1px solid hsl(var(--primary))" : "1px solid transparent",
+                  background: isCurrent ? "hsl(var(--primary))" : isPast ? "hsl(var(--primary) / 0.08)" : "transparent",
+                  color: isCurrent ? "hsl(var(--primary-foreground))" : isPast ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                  border: isCurrent ? "1px solid hsl(var(--primary))" : isPast ? "1px solid hsl(var(--primary) / 0.2)" : "1px solid transparent",
                   boxShadow: isCurrent ? "0 2px 8px hsl(var(--primary) / 0.3)" : "none",
+                  fontWeight: isCurrent || isPast ? 700 : 500,
                 }}
               >
                 {isUnvisited && (
                   <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-primary" />
                 )}
-                <Icon size={13} className="flex-shrink-0 sm:hidden" />
-                <span className="text-[10px] sm:text-xs font-semibold flex-shrink-0 hidden sm:inline">
+                <Icon size={14} className="flex-shrink-0" style={{ color: isCurrent ? "hsl(var(--primary-foreground))" : isPast ? "hsl(var(--primary))" : undefined }} />
+                <span className="text-[10px] sm:text-xs font-bold flex-shrink-0 hidden sm:inline">
                   {s.step}
                 </span>
                 <span className="hidden sm:inline truncate text-sm">{s.label}</span>
@@ -48,8 +49,10 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
                 </span>
               </button>
               {i < arr.length - 1 && (
-                <div className="flex-shrink-0 mx-0.5 sm:mx-1">
-                  <div className="w-3 sm:w-6 h-px bg-border" />
+                <div className="flex-shrink-0 mx-1 sm:mx-2">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-muted-foreground">
+                    <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
               )}
             </div>
