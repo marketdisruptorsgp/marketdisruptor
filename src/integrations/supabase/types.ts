@@ -38,6 +38,72 @@ export type Database = {
         }
         Relationships: []
       }
+      patent_filings: {
+        Row: {
+          abstract: string | null
+          assignee: string | null
+          category: string
+          created_at: string
+          filing_date: string | null
+          id: string
+          patent_number: string | null
+          publication_date: string | null
+          scraped_at: string
+          source_url: string | null
+          title: string
+        }
+        Insert: {
+          abstract?: string | null
+          assignee?: string | null
+          category: string
+          created_at?: string
+          filing_date?: string | null
+          id?: string
+          patent_number?: string | null
+          publication_date?: string | null
+          scraped_at?: string
+          source_url?: string | null
+          title: string
+        }
+        Update: {
+          abstract?: string | null
+          assignee?: string | null
+          category?: string
+          created_at?: string
+          filing_date?: string | null
+          id?: string
+          patent_number?: string | null
+          publication_date?: string | null
+          scraped_at?: string
+          source_url?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      platform_intel: {
+        Row: {
+          computed_at: string
+          created_at: string
+          id: string
+          metric_type: string
+          payload: Json
+        }
+        Insert: {
+          computed_at?: string
+          created_at?: string
+          id?: string
+          metric_type: string
+          payload?: Json
+        }
+        Update: {
+          computed_at?: string
+          created_at?: string
+          id?: string
+          metric_type?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -161,6 +227,39 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      trend_signals: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          interest_over_time: Json | null
+          keyword: string
+          related_queries: Json | null
+          scraped_at: string
+          source: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          interest_over_time?: Json | null
+          keyword: string
+          related_queries?: Json | null
+          scraped_at?: string
+          source?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          interest_over_time?: Json | null
+          keyword?: string
+          related_queries?: Json | null
+          scraped_at?: string
+          source?: string | null
         }
         Relationships: []
       }
