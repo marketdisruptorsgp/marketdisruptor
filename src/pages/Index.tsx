@@ -519,20 +519,12 @@ export default function Index() {
 
       {/* Exit-Intent Prompt */}
       {showExitPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "hsl(220 20% 5% / 0.6)", backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl" style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}>
-            <div className="h-1.5" style={{ background: "linear-gradient(90deg, hsl(271 81% 55%), hsl(var(--primary)))" }} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "hsl(var(--foreground) / 0.5)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded overflow-hidden" style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}>
             <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "hsl(271 81% 55% / 0.12)" }}>
-                  <Sparkles size={18} style={{ color: "hsl(271 81% 55%)" }} />
-                </div>
-                <h3 className="text-lg font-extrabold text-foreground">You haven't explored everything!</h3>
-              </div>
+              <h3 className="text-base font-bold text-foreground mb-2">You haven't explored everything</h3>
               <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
-                You still have{" "}
-                {[3, 4, 5].filter(s => !visitedSteps.has(s)).map(s => s === 3 ? <strong key={s} style={{ color: "hsl(271 81% 55%)" }}>Disrupt</strong> : s === 4 ? <strong key={s} style={{ color: "hsl(350 80% 55%)" }}>Stress Test</strong> : <strong key={s} style={{ color: "hsl(var(--primary))" }}>Pitch Deck</strong>).reduce<React.ReactNode[]>((acc, el, i) => i === 0 ? [el] : [...acc, " and ", el], [])}
-                {" "}waiting for you — these are the most powerful sections.
+                You still have unexplored sections — these contain the most actionable insights.
               </p>
               <div className="flex gap-2">
                 <button
@@ -545,10 +537,10 @@ export default function Index() {
                     }
                     setPendingExitAction(null);
                   }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
-                  style={{ background: "hsl(271 81% 55%)", boxShadow: "0 4px 12px -4px hsl(271 81% 55% / 0.4)" }}
+                  className="flex-1 py-2 rounded text-sm font-medium transition-colors"
+                  style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
                 >
-                  Show Me
+                  Continue
                 </button>
                 <button
                   onClick={() => {
@@ -556,10 +548,10 @@ export default function Index() {
                     if (pendingExitAction) pendingExitAction();
                     setPendingExitAction(null);
                   }}
-                  className="px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                  className="px-4 py-2 rounded text-sm font-medium transition-colors"
                   style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}
                 >
-                  Leave anyway
+                  Leave
                 </button>
               </div>
             </div>
@@ -573,7 +565,7 @@ export default function Index() {
       {/* HERO */}
       <HeroSection tier={tier} remainingAnalyses={remainingAnalyses()} profileFirstName={profile?.first_name} />
 
-      <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
+      <main className="max-w-5xl mx-auto px-6 py-10 space-y-6">
         {/* ── DISRUPTION PATH BANNER ── */}
         <DisruptionPathBanner />
 
@@ -587,8 +579,8 @@ export default function Index() {
             { id: "saved" as const, label: "Saved Projects", icon: Database, accent: "hsl(var(--primary))" },
           ];
           return (
-            <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid hsl(var(--border))", boxShadow: "var(--shadow-card)", background: "hsl(var(--card))" }}>
-              <div className="grid grid-cols-5" data-tour="tabs" style={{ background: "hsl(220 25% 6%)" }}>
+            <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
+              <div className="flex border-b" style={{ borderColor: "hsl(var(--border))" }}>
                 {TABS.map((tab) => {
                   const isActive = mainTab === tab.id;
                   const Icon = tab.icon;
@@ -600,32 +592,18 @@ export default function Index() {
                         if (tab.id !== "saved") {
                           setActiveMode(tab.id as AnalysisMode);
                         }
-                        setTimeout(() => (e.currentTarget.closest('.rounded-2xl') as HTMLElement)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                        setTimeout(() => (e.currentTarget.closest('.rounded') as HTMLElement)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                       }}
-                      className="flex flex-col items-center justify-center gap-1.5 px-2 py-4 sm:py-5 text-xs sm:text-sm font-bold transition-all relative group"
+                      className="flex items-center gap-2 px-4 py-3 text-xs font-medium transition-colors relative flex-1 justify-center"
                       style={{
-                        color: isActive ? "white" : "hsl(0 0% 100% / 0.45)",
-                        background: isActive ? tab.accent : "transparent",
-                        borderBottom: isActive ? "3px solid white" : "3px solid transparent",
+                        color: isActive ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                        borderBottom: isActive ? "2px solid hsl(var(--foreground))" : "2px solid transparent",
+                        background: isActive ? "hsl(var(--muted) / 0.5)" : "transparent",
                       }}
                     >
-                      <div
-                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all"
-                        style={{
-                          background: isActive ? "hsl(0 0% 100% / 0.2)" : "hsl(0 0% 100% / 0.08)",
-                          transform: isActive ? "scale(1.1)" : "scale(1)",
-                        }}
-                      >
-                        <Icon size={20} />
-                      </div>
-                      <span className="hidden sm:inline text-center leading-tight">{tab.label}</span>
-                      <span className="sm:hidden text-center leading-tight text-[10px]">{tab.label.replace("Disrupt This ", "").replace("Disrupt This ", "")}</span>
-                      {tab.id === "saved" && (
-                        <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "hsl(var(--success))" }} />
-                      )}
-                      {!isActive && tab.id !== "saved" && (
-                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 group-hover:w-3/4 h-0.5 transition-all rounded-full" style={{ background: tab.accent }} />
-                      )}
+                      <Icon size={14} />
+                      <span className="hidden sm:inline">{tab.label}</span>
+                      <span className="sm:hidden text-[10px]">{tab.label.replace("Disrupt This ", "")}</span>
                     </button>
                   );
                 })}
@@ -660,17 +638,12 @@ export default function Index() {
                 {mainTab === "saved" && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-                          <Save size={16} style={{ color: "white" }} />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-extrabold text-foreground">Your Saved Projects</h2>
-                          <p className="text-xs text-muted-foreground">All analyses auto-save · Click any to reload instantly</p>
-                        </div>
+                      <div>
+                        <h2 className="text-base font-bold text-foreground">Saved Projects</h2>
+                        <p className="text-xs text-muted-foreground">Click to reload</p>
                       </div>
-                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold" style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))" }}>
-                        <CheckCircle2 size={12} /> Auto-saved
+                      <span className="flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}>
+                        <CheckCircle2 size={10} /> Auto-saved
                       </span>
                     </div>
                     <SavedAnalyses onLoad={handleLoadSaved} refreshTrigger={savedRefreshTrigger} />
@@ -693,8 +666,8 @@ export default function Index() {
         {/* ERROR */}
         {step === "error" && (
           <div
-            className="p-6 rounded-xl flex items-start gap-4"
-            style={{ background: "hsl(var(--destructive) / 0.07)", border: "1px solid hsl(var(--destructive) / 0.3)" }}
+            className="p-5 rounded flex items-start gap-3"
+            style={{ background: "hsl(var(--destructive) / 0.05)", border: "1px solid hsl(var(--destructive) / 0.2)" }}
           >
             <AlertCircle size={20} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
             <div>
@@ -770,31 +743,31 @@ export default function Index() {
             {/* ── STEP 2: INTELLIGENCE REPORT ── */}
             {activeStep === 2 && (
             <>
-            <div className="rounded-2xl overflow-hidden" style={{ border: `2px solid ${modeAccent}30`, boxShadow: `0 4px 24px -4px ${modeAccent}18` }}>
-              <div className="px-5 py-4 flex items-center gap-4" style={{ background: `linear-gradient(135deg, ${modeAccentLight} 0%, hsl(var(--card)) 100%)` }}>
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-sm" style={{ background: modeAccent }}>
+            <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+              <div className="px-5 py-4 flex items-center gap-4" style={{ background: "hsl(var(--muted))" }}>
+                <span className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center text-sm font-semibold" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>
                   2
-                </div>
+                </span>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-lg font-extrabold text-foreground">Intelligence Report</h2>
+                  <h2 className="text-base font-bold text-foreground">Intelligence Report</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {products.length} product{products.length > 1 ? "s" : ""} · {totalSources} sources · {totalIdeas} flip ideas · <strong style={{ color: modeAccent }}>{avgScore}/10</strong> avg score
+                    {products.length} product{products.length > 1 ? "s" : ""} · {totalSources} sources · {totalIdeas} ideas · {avgScore}/10 avg
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct)}
                     disabled={!selectedProduct}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
-                    style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", opacity: selectedProduct ? 1 : 0.5 }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                    style={{ background: "hsl(var(--background))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", opacity: selectedProduct ? 1 : 0.5 }}
                   >
                     <FileDown size={12} /> PDF
                   </button>
                   <button
                     onClick={handleManualSave}
                     disabled={isSaving}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all text-white"
-                    style={{ background: modeAccent, opacity: isSaving ? 0.7 : 1 }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                    style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))", opacity: isSaving ? 0.7 : 1 }}
                   >
                     {isSaving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
                     {isSaving ? "Saving…" : "Save"}
@@ -805,7 +778,7 @@ export default function Index() {
 
             {/* ── PRODUCT SELECTOR ── */}
             {products.length > 1 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {products.map((product) => (
                   <button
                     key={product.id}
@@ -814,11 +787,11 @@ export default function Index() {
                       setExpandedSection("detail");
                       setDetailTab("overview");
                     }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors"
                     style={{
-                      background: selectedProduct?.id === product.id ? modeAccent : "hsl(var(--muted))",
-                      color: selectedProduct?.id === product.id ? "white" : "hsl(var(--foreground))",
-                      border: `2px solid ${selectedProduct?.id === product.id ? modeAccent : "hsl(var(--border))"}`,
+                      background: selectedProduct?.id === product.id ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                      color: selectedProduct?.id === product.id ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
+                      border: `1px solid ${selectedProduct?.id === product.id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
                     }}
                   >
                     <RevivalScoreBadge score={product.revivalScore} size="sm" />
@@ -839,51 +812,38 @@ export default function Index() {
                 expanded={expandedSection === "detail"}
                 onToggle={() => toggleSection("detail")}
               >
-                <div className="space-y-6">
-                  {/* Tab guidance */}
-                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.12), hsl(var(--primary) / 0.05))", border: "2px solid hsl(var(--primary) / 0.2)" }}>
-                    <Sparkles size={15} className="flex-shrink-0" style={{ color: "hsl(var(--primary))" }} />
-                    <p className="text-sm font-bold" style={{ color: "hsl(var(--primary))" }}>
-                      👇 Tap each section below for deeper intelligence layers
-                    </p>
-                  </div>
+                <div className="space-y-5">
                   {/* Tab nav */}
                   {(() => {
                     const DETAIL_TABS = [
-                      { id: "overview" as const, label: "Overview", icon: Target, color: "hsl(var(--primary))" },
-                      { id: "community" as const, label: "Community Intel", icon: Users, color: "hsl(200 80% 50%)" },
-                      { id: "pricing" as const, label: "Pricing Intel", icon: DollarSign, color: "hsl(142 70% 40%)" },
-                      { id: "supply" as const, label: "Supply Chain", icon: Package, color: "hsl(35 90% 50%)" },
-                      { id: "action" as const, label: "Action Plan", icon: Rocket, color: "hsl(350 80% 55%)" },
+                      { id: "overview" as const, label: "Overview", icon: Target },
+                      { id: "community" as const, label: "Community", icon: Users },
+                      { id: "pricing" as const, label: "Pricing", icon: DollarSign },
+                      { id: "supply" as const, label: "Supply Chain", icon: Package },
+                      { id: "action" as const, label: "Action Plan", icon: Rocket },
                     ];
                     const currentIdx = DETAIL_TABS.findIndex(t => t.id === detailTab);
                     return (
                     <>
-                  <div ref={sectionTabsRef} className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                    {DETAIL_TABS.map(({ id, label, icon: Icon, color }) => {
+                  <div ref={sectionTabsRef} className="flex gap-1 border-b pb-2" style={{ borderColor: "hsl(var(--border))" }}>
+                    {DETAIL_TABS.map(({ id, label, icon: Icon }) => {
                       const isActive = detailTab === id;
+                      const isUnvisited = !isActive && !visitedDetailTabs.has(id);
                       return (
                         <button
                           key={id}
                           onClick={() => { setDetailTab(id); setVisitedDetailTabs(prev => new Set([...prev, id])); setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
-                          className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-xs font-bold transition-all relative"
+                          className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-medium transition-colors"
                           style={{
-                            background: isActive ? color : !visitedDetailTabs.has(id) ? `${color}12` : "hsl(var(--muted))",
-                            color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
-                            border: isActive ? `2px solid ${color}` : !visitedDetailTabs.has(id) ? `2px solid ${color}40` : "2px solid hsl(var(--border))",
-                            boxShadow: isActive ? `0 4px 12px -2px ${color}50` : !visitedDetailTabs.has(id) ? `0 0 12px -2px ${color}30` : "none",
-                            transform: isActive ? "scale(1.03)" : "scale(1)",
+                            background: isActive ? "hsl(var(--primary))" : "transparent",
+                            color: isActive ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",
                           }}
                         >
-                          {!isActive && !visitedDetailTabs.has(id) && (
-                            <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider text-white z-10 animate-pulse" style={{ background: color, boxShadow: `0 2px 8px -2px ${color}60` }}>
-                              Explore
-                            </span>
+                          {isUnvisited && (
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} />
                           )}
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
-                            <Icon size={16} style={{ color: isActive ? "white" : color }} />
-                          </div>
-                          <span className="text-center leading-tight text-[11px]">{label}</span>
+                          <Icon size={13} />
+                          <span className="hidden sm:inline">{label}</span>
                         </button>
                       );
                     })}
@@ -895,7 +855,7 @@ export default function Index() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Product image with refined frame */}
                         <div className="md:col-span-1">
-                          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-section)" }}>
+                          <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                             <img
                               src={selectedProduct.image}
                               alt={selectedProduct.name}
@@ -1466,11 +1426,10 @@ export default function Index() {
                           setVisitedDetailTabs(prev => new Set([...prev, nextTab]));
                           setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                         }}
-                        className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all"
+                        className="flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-colors"
                         style={{
-                          background: DETAIL_TABS[currentIdx + 1].color,
-                          color: "white",
-                          boxShadow: `0 4px 12px -2px ${DETAIL_TABS[currentIdx + 1].color}50`,
+                          background: "hsl(var(--primary))",
+                          color: "hsl(var(--primary-foreground))",
                         }}
                       >
                         Next: {DETAIL_TABS[currentIdx + 1].label}

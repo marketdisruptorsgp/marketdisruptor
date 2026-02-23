@@ -1,5 +1,3 @@
-import { Brain } from "lucide-react";
-
 interface LoadingTrackerProps {
   step: "scraping" | "analyzing";
   elapsedSeconds: number;
@@ -7,20 +5,20 @@ interface LoadingTrackerProps {
 }
 
 const SCRAPE_SOURCES = [
-  { icon: "🛍️", label: "eBay", detail: "Sold listings, collector pricing, bid history" },
-  { icon: "🌿", label: "Etsy", detail: "Vintage revival trends, handmade alternatives" },
-  { icon: "💬", label: "Reddit", detail: "Community sentiment, nostalgia signals, complaints" },
-  { icon: "📱", label: "TikTok / Google", detail: "Viral trends, search volume signals" },
-  { icon: "🏭", label: "Alibaba / Wholesale", detail: "Suppliers, MOQs, manufacturer sources" },
+  { label: "eBay", detail: "Sold listings, collector pricing" },
+  { label: "Etsy", detail: "Vintage revival trends" },
+  { label: "Reddit", detail: "Community sentiment" },
+  { label: "TikTok / Google", detail: "Viral trend signals" },
+  { label: "Alibaba", detail: "Suppliers, MOQs" },
 ];
 
 const ANALYZE_TASKS = [
-  { icon: "🧠", label: "AI Reasoning", detail: "Gemini 2.5 Flash parsing all collected data" },
-  { icon: "💰", label: "Pricing Intel", detail: "Real market prices, collector premiums, margins" },
-  { icon: "📦", label: "Supply Chain", detail: "Mapping real suppliers, manufacturers, distributors" },
-  { icon: "⚡", label: "Flip Ideas", detail: "Generating innovations from community pain points" },
-  { icon: "🎯", label: "Action Plans", detail: "Revival scoring + week-one execution steps" },
-  { icon: "🖼️", label: "Product Images", detail: "Finding real images from eBay, Amazon, Wikipedia" },
+  { label: "AI Reasoning", detail: "Parsing all collected data" },
+  { label: "Pricing Intel", detail: "Market prices, margins" },
+  { label: "Supply Chain", detail: "Suppliers, distributors" },
+  { label: "Flip Ideas", detail: "Innovations from pain points" },
+  { label: "Action Plans", detail: "Scoring + execution steps" },
+  { label: "Product Images", detail: "Real images from sources" },
 ];
 
 export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrackerProps) {
@@ -35,91 +33,66 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
   const remaining = Math.max(0, totalEst - effectiveElapsed);
   const remainingLabel = remaining > 60
     ? `~${Math.ceil(remaining / 60)}m ${remaining % 60}s`
-    : remaining > 0 ? `~${remaining}s` : "Almost done…";
+    : remaining > 0 ? `~${remaining}s` : "Finishing…";
 
   return (
     <div className="card-intelligence overflow-hidden">
-      {/* Top header bar */}
-      <div className="px-6 pt-6 pb-4" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+      {/* Header */}
+      <div className="px-5 pt-5 pb-4" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="flex gap-1">
-              {[0, 1, 2].map(i => (
-                <div key={i} className="w-2 h-2 rounded-full animate-bounce"
-                  style={{ background: "hsl(var(--primary))", animationDelay: `${i * 0.18}s` }} />
-              ))}
-            </div>
-            <p className="font-extrabold text-foreground text-base">
-              {isScraping ? "Collecting Market Data…" : "AI Building Your Report…"}
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-foreground text-sm">
+              {isScraping ? "Collecting Market Data" : "Building Report"}
             </p>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse"
-              style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}>
-              {isScraping ? "SCRAPING" : "ANALYZING"}
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+              {isScraping ? "PHASE 1" : "PHASE 2"}
             </span>
           </div>
           <div className="text-right">
-            <p className="text-xs font-bold text-foreground">{progressPct}%</p>
-            <p className="text-[10px] text-muted-foreground">{remainingLabel} left</p>
+            <p className="text-xs font-medium text-foreground">{progressPct}%</p>
+            <p className="text-[10px] text-muted-foreground">{remainingLabel}</p>
           </div>
         </div>
         {/* Progress bar */}
-        <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-          <div className="h-full rounded-full transition-all duration-1000"
-            style={{ width: `${progressPct}%`, background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-light)))" }} />
+        <div className="h-1 rounded-sm overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+          <div className="h-full rounded-sm transition-all duration-1000"
+            style={{ width: `${progressPct}%`, background: "hsl(var(--primary))" }} />
         </div>
-        <div className="flex justify-between mt-1">
-          <span className="text-[10px] text-muted-foreground">⏱ {elapsedSeconds}s elapsed</span>
-          <span className="text-[10px] text-muted-foreground">Typical range: 45–120 seconds</span>
+        <div className="flex justify-between mt-1.5">
+          <span className="text-[10px] text-muted-foreground">{elapsedSeconds}s elapsed</span>
+          <span className="text-[10px] text-muted-foreground">Est. 45–120s</span>
         </div>
       </div>
 
-      {/* Two column: phases + live log */}
+      {/* Two column */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-0" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
-        {/* Phase checklist */}
-        <div className="p-5 space-y-3" style={{ borderRight: "1px solid hsl(var(--border))" }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(var(--primary))" }}>
-            {isScraping ? "Data Sources" : "AI Tasks"}
+        <div className="p-4 space-y-2" style={{ borderRight: "1px solid hsl(var(--border))" }}>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+            {isScraping ? "Sources" : "Tasks"}
           </p>
-          {(isScraping ? SCRAPE_SOURCES : ANALYZE_TASKS).map((item, i) => (
-            <div key={item.label} className="flex items-start gap-2.5">
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-xs"
-                style={{ background: "hsl(var(--primary-muted))" }}>
-                {item.icon}
-              </div>
+          {(isScraping ? SCRAPE_SOURCES : ANALYZE_TASKS).map((item) => (
+            <div key={item.label} className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-xs font-bold text-foreground leading-tight">{item.label}</p>
+                <p className="text-xs font-medium text-foreground">{item.label}</p>
                 <p className="text-[10px] text-muted-foreground">{item.detail}</p>
               </div>
-              <div className="ml-auto flex-shrink-0 mt-0.5">
-                <div className="w-3 h-3 rounded-full border-2 border-t-transparent animate-spin"
-                  style={{ borderColor: `hsl(var(--primary) / ${i === 0 ? 1 : 0.3})`, borderTopColor: "transparent" }} />
-              </div>
+              <div className="w-2.5 h-2.5 rounded-full border border-muted-foreground/30 border-t-transparent animate-spin flex-shrink-0" />
             </div>
           ))}
-
-          {/* Phase 2 upcoming */}
-          {isScraping && (
-            <div className="mt-4 pt-3" style={{ borderTop: "1px dashed hsl(var(--border))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-foreground">Up Next</p>
-              <div className="flex items-center gap-2 opacity-40">
-                <Brain size={13} style={{ color: "hsl(271 81% 55%)" }} />
-                <span className="text-xs text-muted-foreground">Gemini AI Deep Analysis</span>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Live activity log */}
-        <div className="p-5">
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(var(--primary))" }}>
-            Live Activity
+        {/* Live log */}
+        <div className="p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+            Activity
           </p>
-          <div className="space-y-1.5 font-mono max-h-48 overflow-y-auto">
+          <div className="space-y-1 font-mono max-h-48 overflow-y-auto">
             {loadingLog.length === 0 ? (
-              <p className="text-xs text-muted-foreground animate-pulse">Initializing…</p>
+              <p className="text-xs text-muted-foreground">Initializing…</p>
             ) : (
               [...loadingLog].reverse().map((entry, i) => (
-                <div key={entry.ts} className={`flex items-start gap-1.5 transition-opacity ${i === 0 ? "opacity-100" : "opacity-50"}`}>
+                <div key={entry.ts} className={`flex items-start gap-1.5 ${i === 0 ? "opacity-100" : "opacity-40"}`}>
                   <span className="text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">
                     {Math.floor((Date.now() - entry.ts) / 1000) < 2 ? "now" : `${Math.floor((Date.now() - entry.ts) / 1000)}s`}
                   </span>
@@ -132,12 +105,12 @@ export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrac
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-3 flex items-center justify-between" style={{ background: "hsl(var(--muted))" }}>
+      <div className="px-5 py-2.5 flex items-center justify-between" style={{ background: "hsl(var(--muted))" }}>
         <p className="text-[11px] text-muted-foreground">
-          🔒 Your analysis is private — auto-saves to your workspace when complete
+          Auto-saves when complete
         </p>
-        <p className="text-[11px] font-semibold" style={{ color: "hsl(var(--primary))" }}>
-          {isScraping ? "Phase 1 of 2" : "Phase 2 of 2"}
+        <p className="text-[11px] font-medium text-muted-foreground">
+          {isScraping ? "1 / 2" : "2 / 2"}
         </p>
       </div>
     </div>
