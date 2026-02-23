@@ -305,8 +305,21 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         throw new Error(detailedMsg);
       }
 
-      const liveProducts: Product[] = analyzeData.products;
+      let liveProducts: Product[] = analyzeData.products;
       if (!liveProducts?.length) throw new Error("No products returned by AI.");
+
+      // Restore user-uploaded images onto matching products
+      if (customProducts?.length) {
+        liveProducts = liveProducts.map((p) => {
+          const match = customProducts.find(
+            (cp) => cp.productName && p.name.toLowerCase().includes(cp.productName.toLowerCase())
+          );
+          if (match?.imageDataUrl && (!p.image || p.image === "USER_IMAGE")) {
+            return { ...p, image: match.imageDataUrl };
+          }
+          return p;
+        });
+      }
 
       pushLog(`Analysis complete — ${liveProducts.length} products with full intelligence reports ready.`);
       stopLoadingTimer();

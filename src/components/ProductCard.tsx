@@ -1,4 +1,4 @@
-import { ExternalLink, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ExternalLink, TrendingUp, TrendingDown, Minus, ImageOff } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 import { RevivalScoreBadge } from "./RevivalScoreBadge";
 import { DataLabel } from "./DataLabel";
@@ -7,22 +7,6 @@ interface ProductCardProps {
   product: Product;
   isSelected: boolean;
   onClick: () => void;
-}
-
-const FALLBACK_IMAGES: Record<string, string> = {
-  "Electronic Toys": "https://images.unsplash.com/photo-1566240258998-c85da43741f2?w=600&h=400&fit=crop",
-  "Instant Photography": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=400&fit=crop",
-  "Photography": "https://images.unsplash.com/photo-1495745966610-2a67f2297e5e?w=600&h=400&fit=crop",
-  "Gaming Hardware": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=400&fit=crop",
-  "Construction Toys": "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600&h=400&fit=crop",
-  "Fashion": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=400&fit=crop",
-  "Kitchen": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop",
-  "Music": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&h=400&fit=crop",
-  "default": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=400&fit=crop",
-};
-
-function getFallback(category: string) {
-  return FALLBACK_IMAGES[category] || FALLBACK_IMAGES["default"];
 }
 
 function TrendIcon({ trend }: { trend?: "up" | "down" | "stable" }) {
@@ -50,15 +34,21 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
 
       {/* Image */}
       <div className="relative overflow-hidden">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-40 object-cover"
-          loading="lazy"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = getFallback(product.category);
-          }}
-        />
+        {product.image && product.image !== "PLACEHOLDER_IMAGE" ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-40 object-cover"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+              (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden");
+            }}
+          />
+        ) : null}
+        <div className={`w-full h-40 flex items-center justify-center bg-muted ${product.image && product.image !== "PLACEHOLDER_IMAGE" ? "hidden" : ""}`}>
+          <ImageOff size={32} className="text-muted-foreground" />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         <span
           className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-medium"
