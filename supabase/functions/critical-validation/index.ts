@@ -160,7 +160,7 @@ Return ONLY the JSON object.`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: finalPrompt },
+          { role: "user", content: userPrompt },
         ],
         temperature: 0.5,
         max_tokens: 12000,
