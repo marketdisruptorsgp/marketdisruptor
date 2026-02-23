@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { StepNavigator } from "@/components/StepNavigator";
 import { PitchDeck } from "@/components/PitchDeck";
-import { Target, Brain, Swords, Presentation, ArrowLeft } from "lucide-react";
+import { Target, Brain, Swords, Presentation } from "lucide-react";
+import { StepNavBar } from "@/components/SectionNav";
 
 export default function PitchPage() {
   const analysis = useAnalysis();
@@ -39,13 +40,7 @@ export default function PitchPage() {
           }}
         />
 
-        <button
-          onClick={() => navigate(`${baseUrl}/report`)}
-          className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
-          style={{ color: "hsl(var(--primary))" }}
-        >
-          <ArrowLeft size={16} /> Back to Intelligence Report
-        </button>
+        <StepNavBar backLabel="Stress Test" backPath={`${baseUrl}/stress-test`} accentColor="hsl(var(--primary))" />
 
         <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(var(--primary))" }}>
           <div className="px-3 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--card))" }}>

@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { StepNavigator } from "@/components/StepNavigator";
 import { CriticalValidation } from "@/components/CriticalValidation";
-import { Target, Brain, Swords, Presentation, ArrowLeft, CheckCircle2, ArrowRight } from "lucide-react";
-import { NextStepButton } from "@/components/SectionNav";
+import { Target, Brain, Swords, Presentation, CheckCircle2 } from "lucide-react";
+import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 
 export default function StressTestPage() {
   const analysis = useAnalysis();
@@ -20,6 +20,8 @@ export default function StressTestPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isCustomMode = analysis.analysisParams?.category === "Custom";
   const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
+
+  const allTabsVisited = analysis.visitedStressTestTabs.has("debate") && analysis.visitedStressTestTabs.has("validate");
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
@@ -40,13 +42,7 @@ export default function StressTestPage() {
           }}
         />
 
-        <button
-          onClick={() => navigate(`${baseUrl}/report`)}
-          className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
-          style={{ color: "hsl(350 80% 55%)" }}
-        >
-          <ArrowLeft size={16} /> Back to Intelligence Report
-        </button>
+        <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor="hsl(350 80% 55%)" />
 
         <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(350 80% 55%)" }}>
           <div className="px-3 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--card))" }}>
@@ -63,6 +59,7 @@ export default function StressTestPage() {
                 { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
               ].map(tab => {
                 const isActive = analysis.stressTestTab === tab.id;
+                const isVisited = analysis.visitedStressTestTabs.has(tab.id);
                 const TabIcon = tab.icon;
                 return (
                   <button
@@ -78,8 +75,8 @@ export default function StressTestPage() {
                       border: isActive ? "1px solid hsl(350 80% 55%)" : "1px solid hsl(var(--border))",
                     }}
                   >
-                    {!isActive && !analysis.visitedStressTestTabs.has(tab.id) && (
-                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(350 80% 55%)" }} />
+                    {!isActive && !isVisited && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: "hsl(350 80% 55%)" }} />
                     )}
                     <TabIcon size={14} />
                     {tab.label}
@@ -97,12 +94,13 @@ export default function StressTestPage() {
           </div>
         </div>
 
-        {/* Next Step button */}
+        {/* Next Step button — gated */}
         <NextStepButton
           stepNumber={5}
           label="Pitch Deck"
           color="hsl(var(--primary))"
           onClick={() => navigate(`${baseUrl}/pitch`)}
+          allSectionsVisited={allTabsVisited}
         />
       </main>
     </div>

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 import { InsightRating } from "./InsightRating";
+import { DetailPanel } from "@/components/SectionNav";
 
 interface PatentData {
   summary: string;
@@ -91,57 +92,20 @@ const DOMINANCE_CONFIG = {
 
 function ScoreMeter({ label, score, color }: { label: string; score: number; color: string }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-foreground">{label}</span>
         <span className="text-xs font-bold" style={{ color }}>{score}/10</span>
       </div>
       <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${score * 10}%`, background: color }}
-        />
+        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${score * 10}%`, background: color }} />
       </div>
-    </div>
-  );
-}
-
-function ExpandableCard({
-  title, subtitle, icon: Icon, iconColor, children, defaultOpen = false,
-}: {
-  title: string; subtitle?: string; icon: React.ElementType; iconColor: string; children: React.ReactNode; defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between p-4 transition-colors hover:bg-muted/50"
-        style={{ background: "hsl(var(--card))" }}
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${iconColor}18` }}>
-            <Icon size={15} style={{ color: iconColor }} />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-bold text-foreground">{title}</p>
-            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
-          </div>
-        </div>
-        {open ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
-      </button>
-      {open && (
-        <div className="p-4 border-t space-y-3" style={{ borderColor: "hsl(var(--border))", background: "hsl(var(--background))" }}>
-          {children}
-        </div>
-      )}
     </div>
   );
 }
 
 export function PatentIntelligence({ product, onSave }: Props) {
   const [patentData, setPatentData] = useState<PatentData | null>(
-    // Restore persisted patent data from product if available
     (product.patentData as PatentData | null) ?? null
   );
   const [loading, setLoading] = useState(false);
@@ -150,23 +114,14 @@ export function PatentIntelligence({ product, onSave }: Props) {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("patent-analysis", {
-        body: {
-          productName: product.name,
-          category: product.category,
-          era: product.era,
-        },
+        body: { productName: product.name, category: product.category, era: product.era },
       });
-
-      if (error || !data?.success) {
-        throw new Error(data?.error || error?.message || "Patent analysis failed");
-      }
-
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "Patent analysis failed");
       setPatentData(data.patentData);
       onSave?.(data.patentData);
       toast.success("Patent intelligence loaded & saved!");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to load patent data";
-      toast.error(msg);
+      toast.error(err instanceof Error ? err.message : "Failed to load patent data");
     } finally {
       setLoading(false);
     }
@@ -174,36 +129,18 @@ export function PatentIntelligence({ product, onSave }: Props) {
 
   if (!patentData && !loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 space-y-6">
-        <div
-          className="w-20 h-20 rounded-3xl flex items-center justify-center"
-          style={{ background: "hsl(271 81% 55% / 0.1)", border: "1px solid hsl(271 81% 55% / 0.3)" }}
-        >
-          <ScrollText size={32} style={{ color: "hsl(271 81% 55%)" }} />
+      <div className="flex flex-col items-center justify-center py-12 space-y-5">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: "hsl(271 81% 55% / 0.1)", border: "1px solid hsl(271 81% 55% / 0.3)" }}>
+          <ScrollText size={28} style={{ color: "hsl(271 81% 55%)" }} />
         </div>
-        <div className="text-center max-w-md space-y-2">
-          <h3 className="text-lg font-extrabold text-foreground">Patent Intelligence</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Uncover who controls the IP in this space, which patents are expired and <strong>free to use</strong>, 
-            where the white space is, and how to build a defensible moat. 
-            This is the layer most founders skip — don't.
+        <div className="text-center max-w-sm space-y-1.5">
+          <h3 className="text-base font-extrabold text-foreground">Patent Intelligence</h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Find expired IP goldmines, patent gaps, and innovation angles in this space.
           </p>
-          <div className="flex flex-wrap gap-2 justify-center pt-2">
-            {["Expired IP goldmines", "Patent gaps", "IP moats", "Innovation angles"].map(tag => (
-              <span key={tag} className="px-2.5 py-1 rounded-full text-[10px] font-bold"
-                style={{ background: "hsl(271 81% 55% / 0.1)", color: "hsl(271 81% 55%)" }}>
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
-        <button
-          onClick={runAnalysis}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all hover:scale-105"
-          style={{ background: "hsl(271 81% 55%)", color: "white" }}
-        >
-          <FileSearch size={15} />
-          Run Patent Analysis
+        <button onClick={runAnalysis} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-105" style={{ background: "hsl(271 81% 55%)", color: "white" }}>
+          <FileSearch size={14} /> Run Patent Analysis
         </button>
       </div>
     );
@@ -211,26 +148,14 @@ export function PatentIntelligence({ product, onSave }: Props) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 space-y-4">
+      <div className="flex flex-col items-center justify-center py-12 space-y-3">
         <div className="flex gap-1.5">
           {[0, 1, 2].map(i => (
-            <div key={i} className="w-3 h-3 rounded-full animate-bounce"
-              style={{ background: "hsl(271 81% 55%)", animationDelay: `${i * 0.15}s` }} />
+            <div key={i} className="w-3 h-3 rounded-full animate-bounce" style={{ background: "hsl(271 81% 55%)", animationDelay: `${i * 0.15}s` }} />
           ))}
         </div>
-        <div className="text-center space-y-1">
-          <p className="font-bold text-foreground">Scanning patent databases…</p>
-          <p className="text-sm text-muted-foreground">USPTO · Google Patents · Expired IP · Filing trends</p>
-        </div>
-        <div className="w-64 space-y-2 pt-2">
-          {["Querying USPTO PatentsView API", "Scraping Google Patents via Firecrawl", "Finding expired public domain IP", "Running Gemini AI deep analysis"].map((step, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-1.5 h-1.5 rounded-full animate-pulse"
-                style={{ background: "hsl(271 81% 55%)", animationDelay: `${i * 0.3}s` }} />
-              {step}
-            </div>
-          ))}
-        </div>
+        <p className="font-bold text-foreground text-sm">Scanning patent databases…</p>
+        <p className="text-xs text-muted-foreground">USPTO · Google Patents · Expired IP</p>
       </div>
     );
   }
@@ -241,310 +166,231 @@ export function PatentIntelligence({ product, onSave }: Props) {
   const RiskIcon = riskCfg.icon;
 
   return (
-    <div className="space-y-6">
-
-      {/* Header scorecards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl space-y-3" style={{ background: "hsl(271 81% 55% / 0.08)", border: "1px solid hsl(271 81% 55% / 0.25)" }}>
+    <div className="space-y-4">
+      {/* Scorecards — concise top-level */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="p-3 rounded-xl space-y-2" style={{ background: "hsl(271 81% 55% / 0.08)", border: "1px solid hsl(271 81% 55% / 0.25)" }}>
           <ScoreMeter label="IP Landscape Clarity" score={patentData.landscapeScore} color="hsl(271 81% 55%)" />
           <ScoreMeter label="Innovation Opportunity" score={patentData.opportunityScore} color="hsl(142 70% 38%)" />
         </div>
-
-        <div className="p-4 rounded-xl flex flex-col gap-2" style={{ background: riskCfg.bg, border: `1px solid ${riskCfg.border}` }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: riskCfg.color }}>
-            Patent Thicket Risk
-          </p>
+        <div className="p-3 rounded-xl flex flex-col gap-1.5" style={{ background: riskCfg.bg, border: `1px solid ${riskCfg.border}` }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: riskCfg.color }}>Patent Thicket Risk</p>
           <div className="flex items-center gap-2">
-            <RiskIcon size={18} style={{ color: riskCfg.color }} />
-            <span className="text-base font-extrabold" style={{ color: riskCfg.color }}>{riskCfg.label}</span>
+            <RiskIcon size={16} style={{ color: riskCfg.color }} />
+            <span className="text-sm font-extrabold" style={{ color: riskCfg.color }}>{riskCfg.label}</span>
           </div>
-          <p className="text-xs leading-relaxed text-foreground/80">{patentData.thicketRiskExplanation}</p>
+          <p className="text-[11px] leading-relaxed text-foreground/80 line-clamp-2">{patentData.thicketRiskExplanation}</p>
         </div>
-
-        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Strategic Summary</p>
-          <p className="text-sm leading-relaxed text-foreground">{patentData.summary}</p>
+        <div className="p-3 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Summary</p>
+          <p className="text-xs leading-relaxed text-foreground line-clamp-4">{patentData.summary}</p>
         </div>
       </div>
 
-      {/* Expired Goldmines — MOST VALUABLE */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Unlock size={15} style={{ color: "hsl(142 70% 38%)" }} />
-          <h3 className="font-extrabold text-sm text-foreground">Expired IP Goldmines</h3>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(142 70% 38%)", color: "white" }}>
-            FREE TO USE
-          </span>
+      {/* Expired Goldmines — top 2, rest in expand */}
+      {patentData.expiredGoldmines?.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Unlock size={14} style={{ color: "hsl(142 70% 38%)" }} />
+            <h3 className="font-extrabold text-sm text-foreground">Expired IP Goldmines</h3>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(142 70% 38%)", color: "white" }}>FREE</span>
+          </div>
+          {patentData.expiredGoldmines.slice(0, 2).map((item, i) => (
+            <div key={i} className="p-3 rounded-xl" style={{ background: "hsl(142 70% 38% / 0.06)", border: "1px solid hsl(142 70% 38% / 0.25)" }}>
+              <p className="text-xs font-extrabold text-foreground">{item.title}</p>
+              <p className="text-[10px] text-muted-foreground mb-1">By {item.originalHolder} · Expired {item.expiredYear}</p>
+              <p className="text-xs text-foreground/80 line-clamp-2">{item.commercialOpportunity}</p>
+              <InsightRating sectionId={`patent-goldmine-${i}`} compact />
+            </div>
+          ))}
+          {patentData.expiredGoldmines.length > 2 && (
+            <DetailPanel title={`${patentData.expiredGoldmines.length - 2} more expired patents`} icon={Unlock}>
+              <div className="space-y-2 mb-2">
+                {patentData.expiredGoldmines.slice(2).map((item, i) => (
+                  <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(142 70% 38% / 0.06)" }}>
+                    <p className="text-xs font-bold text-foreground">{item.title}</p>
+                    <p className="text-[10px] text-muted-foreground">By {item.originalHolder} · Expired {item.expiredYear}</p>
+                    <p className="text-xs text-foreground/80 mt-1">{item.whatItCovers}</p>
+                    <p className="text-xs mt-1" style={{ color: "hsl(142 70% 30%)" }}>💰 {item.commercialOpportunity}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Example: "{item.exampleApplication}" · Value: ~{item.estimatedValue}</p>
+                  </div>
+                ))}
+              </div>
+            </DetailPanel>
+          )}
         </div>
-        <p className="text-xs text-muted-foreground">These patents have expired — the underlying technology is now <strong>public domain</strong>. Anyone can use, build on, or sell products based on them.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {patentData.expiredGoldmines?.map((item, i) => (
-            <div key={i} className="p-4 rounded-xl space-y-3" style={{ background: "hsl(142 70% 38% / 0.06)", border: "1px solid hsl(142 70% 38% / 0.25)" }}>
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-xs font-extrabold text-foreground">{item.title}</p>
-                  <p className="text-[10px] text-muted-foreground">Originally by {item.originalHolder} · Expired {item.expiredYear}</p>
+      )}
+
+      {/* Patent Gaps — top 2, rest in expand */}
+      {patentData.patentGaps?.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Target size={14} style={{ color: "hsl(217 91% 45%)" }} />
+            <h3 className="font-extrabold text-sm text-foreground">Patent White Space</h3>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(217 91% 45%)", color: "white" }}>UNPROTECTED</span>
+          </div>
+          {patentData.patentGaps.slice(0, 2).map((gap, i) => {
+            const urgCfg = URGENCY_CONFIG[gap.urgency] || URGENCY_CONFIG.medium;
+            return (
+              <div key={i} className="p-3 rounded-xl" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="text-xs font-bold text-foreground">{gap.gap}</p>
+                  <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: urgCfg.bg, color: urgCfg.color }}>
+                    {gap.urgency === "high" ? "🔥" : "⚡"} {gap.urgency}
+                  </span>
                 </div>
-                <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(142 70% 38%)", color: "white" }}>
-                  🔓 Free
+                <p className="text-xs text-foreground/80">{gap.opportunity}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Filing cost: {gap.estimatedFilingCost}</p>
+              </div>
+            );
+          })}
+          {patentData.patentGaps.length > 2 && (
+            <DetailPanel title={`${patentData.patentGaps.length - 2} more patent gaps`} icon={Target}>
+              <div className="space-y-2 mb-2">
+                {patentData.patentGaps.slice(2).map((gap, i) => (
+                  <div key={i} className="p-3 rounded-lg" style={{ border: "1px solid hsl(var(--border))" }}>
+                    <p className="text-xs font-bold text-foreground">{gap.gap}</p>
+                    <p className="text-xs text-foreground/80 mt-1">{gap.why}</p>
+                    <p className="text-xs text-foreground/80 mt-1">{gap.opportunity}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Cost: {gap.estimatedFilingCost}</p>
+                  </div>
+                ))}
+              </div>
+            </DetailPanel>
+          )}
+        </div>
+      )}
+
+      {/* Innovation Angles — top 1, rest in expand */}
+      {patentData.innovationAngles?.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Zap size={14} style={{ color: "hsl(38 92% 40%)" }} />
+            <h3 className="font-extrabold text-sm text-foreground">Innovation Angles</h3>
+          </div>
+          <div className="p-3 rounded-xl" style={{ background: "hsl(38 92% 40% / 0.05)", border: "1px solid hsl(38 92% 40% / 0.25)" }}>
+            <p className="text-xs font-extrabold text-foreground">{patentData.innovationAngles[0].angle}</p>
+            <p className="text-[10px] text-muted-foreground">Based on: {patentData.innovationAngles[0].basedOn}</p>
+            <p className="text-xs text-foreground/80 mt-1 line-clamp-2">{patentData.innovationAngles[0].description}</p>
+            <InsightRating sectionId="patent-angle-0" compact />
+          </div>
+          {patentData.innovationAngles.length > 1 && (
+            <DetailPanel title={`${patentData.innovationAngles.length - 1} more innovation angles`} icon={Zap}>
+              <div className="space-y-3 mb-2">
+                {patentData.innovationAngles.slice(1).map((angle, i) => (
+                  <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(38 92% 40% / 0.05)" }}>
+                    <p className="text-xs font-bold text-foreground">{angle.angle}</p>
+                    <p className="text-[10px] text-muted-foreground">Based on: {angle.basedOn}</p>
+                    <p className="text-xs text-foreground/80 mt-1">{angle.description}</p>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div><p className="text-[10px] font-bold text-muted-foreground">Defensibility</p><p className="text-xs text-foreground">{angle.defensibility}</p></div>
+                      <div><p className="text-[10px] font-bold text-muted-foreground">Market</p><p className="text-xs" style={{ color: "hsl(142 70% 38%)" }}>{angle.marketPotential}</p></div>
+                    </div>
+                    <InsightRating sectionId={`patent-angle-${i + 1}`} compact />
+                  </div>
+                ))}
+              </div>
+            </DetailPanel>
+          )}
+        </div>
+      )}
+
+      {/* Secondary sections — all collapsed */}
+      <DetailPanel title={`Active IP Minefield (${patentData.activeMinefield?.length || 0})`} icon={Lock}>
+        <div className="space-y-2 mb-2">
+          {patentData.activeMinefield?.map((item, i) => (
+            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(0 72% 50% / 0.06)", border: "1px solid hsl(0 72% 50% / 0.2)" }}>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-bold text-foreground">{item.area}</p>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: item.risk === "high" ? "hsl(0 72% 50% / 0.15)" : "hsl(38 92% 40% / 0.15)", color: item.risk === "high" ? "hsl(0 72% 50%)" : "hsl(38 92% 40%)" }}>
+                  {item.risk === "high" ? "⚠️ High" : "⚡ Med"}
                 </span>
               </div>
-              <div className="space-y-2">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">What's covered</p>
-                  <p className="text-xs text-foreground/80">{item.whatItCovers}</p>
-                </div>
-                <div className="p-2.5 rounded-lg" style={{ background: "hsl(142 70% 38% / 0.12)" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 30%)" }}>
-                    💰 Commercial Opportunity
-                  </p>
-                  <p className="text-xs leading-relaxed" style={{ color: "hsl(142 70% 25%)" }}>{item.commercialOpportunity}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Example product</p>
-                <p className="text-xs text-foreground/80 italic">"{item.exampleApplication}"</p>
-                </div>
-                <p className="text-[10px] text-muted-foreground">If still active, this IP would cost ~{item.estimatedValue} to license — now yours for free.</p>
-                <InsightRating sectionId={`patent-goldmine-${i}`} compact />
+              <p className="text-[10px] text-muted-foreground">Holder: {item.holder}</p>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <div><p className="text-[10px] font-semibold text-muted-foreground">Workaround</p><p className="text-xs text-foreground/80">{item.workaround}</p></div>
+                <div><p className="text-[10px] font-semibold text-muted-foreground">License</p><p className="text-xs text-foreground/80">{item.licenseOption}</p></div>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </DetailPanel>
 
-      {/* Patent Gaps — White Space */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Target size={15} style={{ color: "hsl(217 91% 45%)" }} />
-          <h3 className="font-extrabold text-sm text-foreground">Patent White Space</h3>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(217 91% 45%)", color: "white" }}>
-            UNPROTECTED
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground">Areas where nobody has filed yet. First to patent wins a defensible moat.</p>
-        <div className="space-y-3">
-          {patentData.patentGaps?.map((gap, i) => {
-            const urgCfg = URGENCY_CONFIG[gap.urgency] || URGENCY_CONFIG.medium;
+      <DetailPanel title={`Key IP Holders (${patentData.keyHolders?.length || 0})`} icon={Shield}>
+        <div className="space-y-2 mb-2">
+          {patentData.keyHolders?.map((holder, i) => {
+            const domCfg = DOMINANCE_CONFIG[holder.dominance] || DOMINANCE_CONFIG.medium;
             return (
-              <div key={i} className="p-4 rounded-xl" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <p className="text-sm font-bold text-foreground">{gap.gap}</p>
-                  <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: urgCfg.bg, color: urgCfg.color }}>
-                    {gap.urgency === "high" ? "🔥 High" : gap.urgency === "medium" ? "⚡ Medium" : "📌 Low"} Urgency
-                  </span>
+              <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-bold text-foreground">{holder.name}</p>
+                  <span className="text-[10px] font-semibold" style={{ color: domCfg.color }}>{domCfg.label} · ~{holder.patentCount} patents</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                  <div>
-                    <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px] mb-1">Why nobody's filed</p>
-                    <p className="text-foreground/80">{gap.why}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px] mb-1">Opportunity</p>
-                    <p className="text-foreground/80">{gap.opportunity}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px] mb-1">Estimated filing cost</p>
-                    <p className="font-bold" style={{ color: "hsl(217 91% 45%)" }}>{gap.estimatedFilingCost}</p>
-                  </div>
+                <p className="text-[11px] text-muted-foreground">{holder.focus}</p>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <div><p className="text-[10px] font-semibold" style={{ color: "hsl(0 72% 50%)" }}>Threat</p><p className="text-xs text-foreground/80">{holder.threat}</p></div>
+                  <div><p className="text-[10px] font-semibold" style={{ color: "hsl(142 70% 38%)" }}>Opportunity</p><p className="text-xs text-foreground/80">{holder.opportunity}</p></div>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </DetailPanel>
 
-      {/* Innovation Angles */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Zap size={15} style={{ color: "hsl(38 92% 40%)" }} />
-          <h3 className="font-extrabold text-sm text-foreground">Patent-Powered Innovation Angles</h3>
-        </div>
-        <p className="text-xs text-muted-foreground">Bold product concepts that the patent landscape actually enables — expired IP, gaps, and workarounds combined.</p>
-        <div className="space-y-4">
-          {patentData.innovationAngles?.map((angle, i) => (
-            <div key={i} className="p-5 rounded-xl space-y-4" style={{ background: "hsl(38 92% 40% / 0.05)", border: "1px solid hsl(38 92% 40% / 0.25)" }}>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 font-extrabold text-sm" style={{ background: "hsl(38 92% 40%)", color: "white" }}>
-                  {i + 1}
-                </div>
-                <div>
-                  <p className="font-extrabold text-base text-foreground">{angle.angle}</p>
-                  <p className="text-[10px] text-muted-foreground">Based on: {angle.basedOn}</p>
-                </div>
-              </div>
-              <p className="text-sm leading-relaxed text-foreground/80">{angle.description}</p>
-              <InsightRating sectionId={`patent-angle-${i}`} compact />
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Defensibility</p>
-                  <p className="text-xs text-foreground">{angle.defensibility}</p>
-                </div>
-                <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Competitive Edge</p>
-                  <p className="text-xs text-foreground">{angle.competitiveAdvantage}</p>
-                </div>
-                <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Investment</p>
-                  <p className="text-xs font-bold text-foreground">{angle.investmentNeeded}</p>
-                </div>
-                <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Market Potential</p>
-                  <p className="text-xs font-bold" style={{ color: "hsl(142 70% 38%)" }}>{angle.marketPotential}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Expandable sections */}
-      <div className="space-y-3">
-        <ExpandableCard
-          title="Active IP Minefield"
-          subtitle={`${patentData.activeMinefield?.length || 0} protected areas to navigate`}
-          icon={Lock}
-          iconColor="hsl(0 72% 50%)"
-          defaultOpen={false}
-        >
-          {patentData.activeMinefield?.map((item, i) => (
-            <div key={i} className="p-3 rounded-lg space-y-2" style={{ background: "hsl(0 72% 50% / 0.06)", border: "1px solid hsl(0 72% 50% / 0.2)" }}>
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-foreground">{item.area}</p>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                  style={{ background: item.risk === "high" ? "hsl(0 72% 50% / 0.15)" : "hsl(38 92% 40% / 0.15)", color: item.risk === "high" ? "hsl(0 72% 50%)" : "hsl(38 92% 40%)" }}>
-                  {item.risk === "high" ? "⚠️ High Risk" : "⚡ Med Risk"}
-                </span>
-              </div>
-              <p className="text-[10px] text-muted-foreground">Holder: {item.holder}</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Workaround</p>
-                  <p className="text-xs text-foreground/80">{item.workaround}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">License option</p>
-                  <p className="text-xs text-foreground/80">{item.licenseOption}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </ExpandableCard>
-
-        <ExpandableCard
-          title="Key IP Holders"
-          subtitle={`${patentData.keyHolders?.length || 0} major players in this space`}
-          icon={Shield}
-          iconColor="hsl(217 91% 45%)"
-        >
-          <div className="space-y-3">
-            {patentData.keyHolders?.map((holder, i) => {
-              const domCfg = DOMINANCE_CONFIG[holder.dominance] || DOMINANCE_CONFIG.medium;
-              return (
-                <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-bold text-foreground">{holder.name}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-semibold" style={{ color: domCfg.color }}>{domCfg.label}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-bold" style={{ background: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
-                        ~{holder.patentCount} patents
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mb-1">{holder.focus}</p>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <div>
-                      <p className="text-[10px] font-semibold" style={{ color: "hsl(0 72% 50%)" }}>Threat</p>
-                      <p className="text-xs text-foreground/80">{holder.threat}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-semibold" style={{ color: "hsl(142 70% 38%)" }}>Opportunity</p>
-                      <p className="text-xs text-foreground/80">{holder.opportunity}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </ExpandableCard>
-
-        <ExpandableCard
-          title="Filing Trends — Where Smart Money Is Moving"
-          subtitle="Current patent activity signals market direction"
-          icon={TrendingUp}
-          iconColor="hsl(271 81% 55%)"
-        >
+      <DetailPanel title={`Filing Trends (${patentData.filingTrends?.length || 0})`} icon={TrendingUp}>
+        <div className="space-y-2 mb-2">
           {patentData.filingTrends?.map((trend, i) => (
-            <div key={i} className="p-3 rounded-lg space-y-2" style={{ background: "hsl(271 81% 55% / 0.06)", border: "1px solid hsl(271 81% 55% / 0.2)" }}>
+            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(271 81% 55% / 0.06)" }}>
               <p className="text-xs font-bold text-foreground">{trend.trend}</p>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Implication</p>
-                  <p className="text-xs text-foreground/80">{trend.implication}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Who's filing</p>
-                  <p className="text-xs text-foreground/80">{trend.actors}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Timeline</p>
-                  <p className="text-xs text-foreground/80">{trend.timeline}</p>
-                </div>
-              </div>
+              <p className="text-xs text-foreground/80 mt-1">{trend.implication}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Actors: {trend.actors} · Timeline: {trend.timeline}</p>
             </div>
           ))}
-        </ExpandableCard>
-      </div>
+        </div>
+      </DetailPanel>
 
-      {/* Quick Actions */}
+      {/* Quick Actions — concise */}
       {patentData.quickActions?.length > 0 && (
-        <div className="p-5 rounded-xl space-y-3" style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.3)" }}>
-          <div className="flex items-center gap-2">
-            <Rocket size={14} style={{ color: "hsl(var(--primary))" }} />
-            <p className="text-xs font-extrabold uppercase tracking-wider" style={{ color: "hsl(var(--primary))" }}>
-              Patent Quick Actions — This Week
-            </p>
-          </div>
-          <div className="space-y-2">
-            {patentData.quickActions.map((action, i) => (
-              <div key={i} className="flex gap-2.5 items-start p-2.5 rounded-lg" style={{ background: "hsl(var(--background))" }}>
-                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold flex-shrink-0 mt-0.5"
-                  style={{ background: "hsl(var(--primary))", color: "white" }}>
-                  {i + 1}
-                </span>
-                <p className="text-xs text-foreground leading-relaxed">{action}</p>
+        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.3)" }}>
+          <p className="text-[10px] font-extrabold uppercase tracking-wider mb-2" style={{ color: "hsl(var(--primary))" }}>
+            <Rocket size={11} className="inline mr-1" /> Quick Actions
+          </p>
+          <div className="space-y-1.5">
+            {patentData.quickActions.slice(0, 3).map((action, i) => (
+              <div key={i} className="flex gap-2 items-start text-xs">
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
+                <span className="text-foreground/80">{action}</span>
               </div>
             ))}
           </div>
+          {patentData.quickActions.length > 3 && (
+            <DetailPanel title={`${patentData.quickActions.length - 3} more actions`} icon={Rocket}>
+              <div className="space-y-1.5 mb-2">
+                {patentData.quickActions.slice(3).map((action, i) => (
+                  <div key={i} className="flex gap-2 items-start text-xs">
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 4}</span>
+                    <span className="text-foreground/80">{action}</span>
+                  </div>
+                ))}
+              </div>
+            </DetailPanel>
+          )}
         </div>
       )}
 
-      {/* Sources */}
-      {patentData.sources?.length > 0 && (
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Sources</p>
-          <div className="flex flex-wrap gap-2">
-            {patentData.sources.map((src, i) => (
-              <a key={i} href={src.url} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors hover:bg-muted"
-                style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
-                <ExternalLink size={10} />
-                {src.label}
+      {/* Sources + Re-run */}
+      <div className="flex items-center justify-between">
+        {patentData.sources?.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {patentData.sources.slice(0, 3).map((src, i) => (
+              <a key={i} href={src.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium" style={{ border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
+                <ExternalLink size={9} /> {src.label}
               </a>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Re-run button */}
-      <div className="flex justify-end">
-        <button
-          onClick={runAnalysis}
-          disabled={loading}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-80"
-          style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}
-        >
-          <Microscope size={11} />
-          Re-run Analysis
+        )}
+        <button onClick={runAnalysis} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", color: "hsl(var(--muted-foreground))" }}>
+          <Microscope size={11} /> Re-run
         </button>
       </div>
     </div>

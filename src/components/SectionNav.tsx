@@ -1,6 +1,31 @@
 import React, { useState } from "react";
-import { ArrowRight, ChevronDown, ChevronRight as ChevronRightIcon, Plus } from "lucide-react";
+import { ArrowRight, ChevronDown, Home } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { useNavigate } from "react-router-dom";
+
+/* ── Consistent Back + Home bar ──────────────────── */
+export function StepNavBar({ backLabel, backPath, accentColor }: { backLabel: string; backPath: string; accentColor?: string }) {
+  const navigate = useNavigate();
+  const color = accentColor || "hsl(var(--primary))";
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        onClick={() => navigate("/")}
+        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-80"
+        style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+      >
+        <Home size={13} /> Home
+      </button>
+      <button
+        onClick={() => navigate(backPath)}
+        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-80"
+        style={{ background: `${color}10`, color, border: `1px solid ${color}30` }}
+      >
+        ← {backLabel}
+      </button>
+    </div>
+  );
+}
 
 /* ── Section progress header ──────────────────────── */
 export function SectionHeader({ current, total, label, icon: Icon }: { current: number; total: number; label: string; icon: React.ElementType }) {
@@ -42,9 +67,29 @@ export function NextSectionButton({ label, onClick }: { label: string; onClick: 
   );
 }
 
-/* ── Prominent "Go to Next Step" button (step-level nav) ── */
-export function NextStepButton({ stepNumber, label, onClick, color }: { stepNumber: number; label: string; onClick: () => void; color?: string }) {
+/* ── Prominent "Go to Next Step" button — GATED ── */
+export function NextStepButton({ stepNumber, label, onClick, color, allSectionsVisited = true }: { stepNumber: number; label: string; onClick: () => void; color?: string; allSectionsVisited?: boolean }) {
   const bg = color || "hsl(var(--primary))";
+  if (!allSectionsVisited) {
+    return (
+      <div className="pt-6 pb-2">
+        <div className="text-center mb-3">
+          <span className="text-xs font-bold px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(38 92% 50% / 0.12)", color: "hsl(38 92% 35%)" }}>
+            ⚠ Visit all sections above to unlock next step
+          </span>
+        </div>
+        <button
+          disabled
+          className="w-full flex items-center justify-center gap-3 text-base font-extrabold px-6 py-4 rounded-xl opacity-40 cursor-not-allowed"
+          style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
+        >
+          <span className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-black" style={{ background: "hsl(var(--border))" }}>{stepNumber}</span>
+          Go to Step {stepNumber}: {label}
+          <ArrowRight size={18} />
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="pt-6 pb-2">
       <div className="text-center mb-3">
@@ -65,26 +110,28 @@ export function NextStepButton({ stepNumber, label, onClick, color }: { stepNumb
   );
 }
 
-/* ── Collapsible detail panel — PROMINENT ──────────────────────── */
+/* ── Collapsible detail panel — VERY PROMINENT ──────────────────────── */
 export function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger
-        className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg text-left transition-all group"
+        className="w-full flex items-center justify-between gap-2 px-4 py-3.5 rounded-xl text-left transition-all group"
         style={{
-          background: open ? "hsl(var(--primary) / 0.06)" : "hsl(var(--primary) / 0.03)",
-          border: open ? "1.5px solid hsl(var(--primary) / 0.3)" : "1.5px dashed hsl(var(--primary) / 0.25)",
+          background: open ? "hsl(var(--primary) / 0.08)" : "hsl(var(--primary) / 0.04)",
+          border: open ? "2px solid hsl(var(--primary) / 0.4)" : "2px dashed hsl(var(--primary) / 0.3)",
         }}
       >
-        <span className="flex items-center gap-2 text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>
-          <Icon size={14} />
+        <span className="flex items-center gap-2.5 text-xs font-extrabold" style={{ color: "hsl(var(--primary))" }}>
+          <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.15)" }}>
+            <Icon size={13} />
+          </div>
           {title}
         </span>
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-2">
           {!open && (
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-              Tap to expand
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full animate-pulse" style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+              ▸ Tap to expand
             </span>
           )}
           <ChevronDown size={16} className="transition-transform" style={{ color: "hsl(var(--primary))", transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
