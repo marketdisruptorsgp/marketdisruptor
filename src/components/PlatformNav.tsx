@@ -15,7 +15,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, Database, Upload, Briefcase, Building2,
-  FolderOpen, BarChart3, BookOpen, HelpCircle, Lightbulb, TrendingUp,
+  FolderOpen, BarChart3, BookOpen, HelpCircle, Lightbulb, TrendingUp, Radar,
   Menu,
 } from "lucide-react";
 
@@ -32,9 +32,8 @@ const ACCESS_MODES = [
 ];
 
 const RESOURCES_ITEMS = [
-  { label: "FAQs", desc: "Common questions answered", icon: HelpCircle, hash: "#faqs" },
-  { label: "Methodology", desc: "Our 4-step analysis pipeline", icon: Lightbulb, hash: "#methodology" },
-  { label: "Market Intel", desc: "Upcoming market reports", icon: TrendingUp, hash: "#market-intel" },
+  { label: "FAQs", desc: "Common questions answered", icon: HelpCircle, path: "/faqs" },
+  { label: "Methodology", desc: "Our 4-step analysis pipeline", icon: Lightbulb, path: "/methodology" },
 ];
 
 const MODE_LABELS: Record<string, string> = {
@@ -127,7 +126,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                         return (
                           <NavigationMenuLink key={item.label} asChild>
                             <button
-                              onClick={() => navigate(`/resources${item.hash}`)}
+                              onClick={() => navigate(item.path)}
                               className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
                             >
                               <Icon size={14} className="text-muted-foreground" />
@@ -141,6 +140,16 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                       })}
                     </div>
                   </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <button
+                    onClick={() => navigate("/intel")}
+                    className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/intel") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                  >
+                    <Radar size={13} />
+                    Intel
+                  </button>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
@@ -242,7 +251,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   return (
                     <button
                       key={item.label}
-                      onClick={() => { navigate(`/resources${item.hash}`); setMobileOpen(false); }}
+                      onClick={() => { navigate(item.path); setMobileOpen(false); }}
                       className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
                     >
                       <Icon size={14} className="text-muted-foreground" />
@@ -250,6 +259,13 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                     </button>
                   );
                 })}
+                <button
+                  onClick={() => { navigate("/intel"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                >
+                  <Radar size={14} className="text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Intel Dashboard</span>
+                </button>
                 <button
                   onClick={() => { navigate("/about"); setMobileOpen(false); }}
                   className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
