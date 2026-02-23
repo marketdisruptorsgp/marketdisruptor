@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { UserHeader } from "@/components/UserHeader";
 import { TIERS, TierKey } from "@/hooks/useSubscription";
-import { Database, Zap, BarChart3, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Database, Zap, BarChart3, Clock, FolderOpen, Star, CalendarDays } from "lucide-react";
 
 interface HeroSectionProps {
   tier: TierKey;
@@ -12,6 +15,41 @@ interface HeroSectionProps {
 
 export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenSaved, savedCount }: HeroSectionProps) {
   const greeting = getGreeting();
+  const { user } = useAuth();
+  const [userStats, setUserStats] = useState<{ totalAnalyses: number; latestScore: number | null; memberSince: string | null }>({
+    totalAnalyses: 0,
+    latestScore: null,
+    memberSince: null,
+  });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    // Fetch real user stats
+    (async () => {
+      const { count } = await (supabase.from("saved_analyses") as any)
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+
+      const { data: latest } = await (supabase.from("saved_analyses") as any)
+        .select("avg_revival_score")
+        .eq("user_id", user.id)
+        .not("avg_revival_score", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      const { data: profile } = await (supabase.from("profiles") as any)
+        .select("created_at")
+        .eq("user_id", user.id)
+        .single();
+
+      setUserStats({
+        totalAnalyses: count ?? 0,
+        latestScore: latest?.avg_revival_score ?? null,
+        memberSince: profile?.created_at ? new Date(profile.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : null,
+      });
+    })();
+  }, [user?.id]);
 
   return (
     <header style={{ background: "hsl(var(--card))" }}>
@@ -86,6 +124,37 @@ export function HeroSection({ tier, remainingAnalyses, profileFirstName, onOpenS
               </button>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Your Activity — real data */}
+      <div className="border-b border-border">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6 overflow-x-auto">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <FolderOpen size={12} className="text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground">Projects:</span>
+            <span className="text-[11px] font-bold text-foreground">{userStats.totalAnalyses}</span>
+          </div>
+          {userStats.latestScore !== null && (
+            <>
+              <div className="w-px h-4 bg-border flex-shrink-0" />
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <Star size={12} className="text-muted-foreground" />
+                <span className="text-[11px] text-muted-foreground">Latest Score:</span>
+                <span className="text-[11px] font-bold text-foreground">{userStats.latestScore}/10</span>
+              </div>
+            </>
+          )}
+          {userStats.memberSince && (
+            <>
+              <div className="w-px h-4 bg-border flex-shrink-0" />
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <CalendarDays size={12} className="text-muted-foreground" />
+                <span className="text-[11px] text-muted-foreground">Member since:</span>
+                <span className="text-[11px] font-bold text-foreground">{userStats.memberSince}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>

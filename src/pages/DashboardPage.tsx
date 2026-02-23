@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -13,19 +13,13 @@ import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
 import { LoadingTracker } from "@/components/LoadingTracker";
 import PaywallModal from "@/components/PaywallModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
   Upload, Briefcase, Building2, Telescope, AlertCircle,
-  Layers, RefreshCw, Shield, Zap,
+  BookOpen, Users, Rocket, TrendingUp, ShieldCheck, Tag, Layers, FileText,
 } from "lucide-react";
-
-const PLATFORM_SIGNALS = [
-  { icon: Layers, label: "Persistent Workspaces", desc: "Every analysis auto-saves and evolves over time" },
-  { icon: RefreshCw, label: "Iterative Intelligence", desc: "Re-run, regenerate, and refine from any step" },
-  { icon: Shield, label: "Adversarial Validation", desc: "Red Team attacks your strategy before competitors do" },
-  { icon: Zap, label: "Actionable Output", desc: "Pitch decks, moats, and go-to-market — not just insights" },
-];
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
@@ -40,6 +34,26 @@ export default function DashboardPage() {
     return !localStorage.getItem("welcomed_" + (user?.id ?? ""));
   });
   const businessResultsRef = useRef<HTMLDivElement>(null);
+
+  // Real user stats for sidebar
+  const [userStats, setUserStats] = useState<{ totalAnalyses: number; latestScore: number | null }>({ totalAnalyses: 0, latestScore: null });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      const { count } = await (supabase.from("saved_analyses") as any)
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      const { data: latest } = await (supabase.from("saved_analyses") as any)
+        .select("avg_revival_score")
+        .eq("user_id", user.id)
+        .not("avg_revival_score", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      setUserStats({ totalAnalyses: count ?? 0, latestScore: latest?.avg_revival_score ?? null });
+    })();
+  }, [user?.id, analysis.savedRefreshTrigger]);
 
   const handleCloseWelcome = () => {
     localStorage.setItem("welcomed_" + (user?.id ?? ""), "1");
@@ -186,6 +200,14 @@ export default function DashboardPage() {
                 />
               </div>
             )}
+
+            {/* Quick Start Templates */}
+            <QuickStartTemplates
+              onSelect={(tab, category, era) => {
+                analysis.setMainTab(tab);
+                analysis.setActiveMode(tab as AnalysisMode);
+              }}
+            />
           </div>
 
           {/* Right sidebar */}
@@ -209,10 +231,15 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Platform capabilities */}
+            {/* How It Works */}
             <div className="rounded border border-border p-4 space-y-3" style={{ background: "hsl(var(--card))" }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Platform</p>
-              {PLATFORM_SIGNALS.map(({ icon: Icon, label, desc }) => (
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">How It Works</p>
+              {[
+                { icon: Layers, label: "3-Layer Deconstruction", desc: "Every market analyzed across supply, demand, and positioning" },
+                { icon: ShieldCheck, label: "Adversarial Validation", desc: "Red Team attacks your strategy before competitors do" },
+                { icon: Tag, label: "Claim Tagging", desc: "Outputs tagged as Verified, Modeled, or Assumption" },
+                { icon: TrendingUp, label: "Leverage Scoring", desc: "Assumptions scored 1–10 for strategic impact" },
+              ].map(({ icon: Icon, label, desc }) => (
                 <div key={label} className="flex items-start gap-2.5">
                   <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border border-border bg-background">
                     <Icon size={11} className="text-primary" />
@@ -225,17 +252,36 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            {/* Quick stats */}
+            {/* Built For */}
+            <div className="rounded border border-border p-4 space-y-2.5" style={{ background: "hsl(var(--card))" }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Built For</p>
+              {[
+                { icon: Rocket, label: "Entrepreneurs", desc: "Scouting new markets & niches" },
+                { icon: TrendingUp, label: "Investors", desc: "Evaluating opportunities with rigor" },
+                { icon: Users, label: "Product Teams", desc: "Validating strategy before launch" },
+                { icon: FileText, label: "Agencies", desc: "Building data-driven client pitches" },
+              ].map(({ icon: Icon, label, desc }) => (
+                <div key={label} className="flex items-center gap-2.5">
+                  <Icon size={12} className="text-muted-foreground flex-shrink-0" />
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-semibold text-foreground">{label}</span>
+                    <span className="text-[10px] text-muted-foreground ml-1.5">{desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Your Stats — real data */}
             <div className="rounded border border-border p-4 space-y-2" style={{ background: "hsl(var(--card))" }}>
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Your Stats</p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded p-2.5 border border-border bg-background">
-                  <p className="text-lg font-bold text-primary leading-none">{savedCount}</p>
+                  <p className="text-lg font-bold text-primary leading-none">{userStats.totalAnalyses}</p>
                   <p className="text-[10px] text-muted-foreground mt-1">Projects</p>
                 </div>
                 <div className="rounded p-2.5 border border-border bg-background">
-                  <p className="text-lg font-bold text-foreground leading-none">4</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Paths</p>
+                  <p className="text-lg font-bold text-foreground leading-none">{userStats.latestScore !== null ? userStats.latestScore : "—"}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Latest Score</p>
                 </div>
               </div>
             </div>
@@ -243,16 +289,60 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <footer className="border-t mt-8 py-6 text-center" style={{ borderColor: "hsl(var(--border))" }}>
-        <p className="text-xs">
-          <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80 text-primary">
-            Built by SGP Capital
-          </a>
-          <span className="text-muted-foreground"> · </span>
-          <a href="mailto:steven@sgpcapital.com" className="text-muted-foreground hover:underline">steven@sgpcapital.com</a>
-          {profile && <span className="text-muted-foreground"> · Signed in as <strong className="text-foreground">{profile.first_name}</strong></span>}
-        </p>
+      <footer className="border-t mt-8" style={{ borderColor: "hsl(var(--border))" }}>
+        {/* Trust + enterprise row */}
+        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1"><ShieldCheck size={10} /> Your data is encrypted & never shared</span>
+            <span className="hidden sm:inline">·</span>
+            <span className="hidden sm:flex items-center gap-1"><BookOpen size={10} /> Analyses scoped to your account via RLS</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <a href="/pricing" className="font-semibold text-primary hover:underline">Enterprise & Teams →</a>
+          </div>
+        </div>
+        {/* Brand row */}
+        <div className="border-t py-5 text-center" style={{ borderColor: "hsl(var(--border))" }}>
+          <p className="text-xs">
+            <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80 text-primary">
+              Built by SGP Capital
+            </a>
+            <span className="text-muted-foreground"> · </span>
+            <a href="mailto:steven@sgpcapital.com" className="text-muted-foreground hover:underline">steven@sgpcapital.com</a>
+            {profile && <span className="text-muted-foreground"> · Signed in as <strong className="text-foreground">{profile.first_name}</strong></span>}
+          </p>
+        </div>
       </footer>
+    </div>
+  );
+}
+
+/* ─── Quick Start Templates ─── */
+const TEMPLATES = [
+  { tab: "custom" as const, label: "Vintage Electronics", desc: "Retro tech with revival potential", icon: "📻" },
+  { tab: "service" as const, label: "Local Service Audit", desc: "Analyze a service business model", icon: "🏪" },
+  { tab: "business" as const, label: "DTC Brand Audit", desc: "Deconstruct a direct-to-consumer brand", icon: "📦" },
+  { tab: "discover" as const, label: "Nostalgia Gold", desc: "80s & 90s products making a comeback", icon: "🕹️" },
+];
+
+function QuickStartTemplates({ onSelect }: { onSelect: (tab: "custom" | "service" | "business" | "discover", category: string, era: string) => void }) {
+  return (
+    <div className="rounded border border-border p-4" style={{ background: "hsl(var(--card))" }}>
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Quick Start</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {TEMPLATES.map((t) => (
+          <button
+            key={t.label}
+            onClick={() => onSelect(t.tab, "", "")}
+            className="text-left rounded border border-border px-3 py-2.5 transition-colors hover:bg-muted"
+            style={{ background: "hsl(var(--background))" }}
+          >
+            <span className="text-base">{t.icon}</span>
+            <p className="text-[11px] font-semibold text-foreground mt-1 leading-tight">{t.label}</p>
+            <p className="text-[9px] text-muted-foreground leading-snug mt-0.5">{t.desc}</p>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
