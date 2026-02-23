@@ -26,11 +26,12 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
             <div key={s.step} className="flex items-center flex-1 min-w-0">
               <button
                 onClick={() => onStepChange(s.step)}
-                className="flex items-center gap-2 px-3 py-2 rounded text-sm font-medium transition-colors w-full justify-center"
+                className="flex items-center gap-2 px-4 py-2.5 rounded text-sm font-medium transition-colors w-full justify-center"
                 style={{
                   background: isCurrent ? "hsl(var(--primary))" : "transparent",
                   color: isCurrent ? "hsl(var(--primary-foreground))" : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
                   border: isCurrent ? "1px solid hsl(var(--primary))" : "1px solid transparent",
+                  boxShadow: isCurrent ? "0 2px 8px hsl(var(--primary) / 0.3)" : "none",
                 }}
               >
                 {isUnvisited && (
@@ -44,7 +45,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
               </button>
               {i < arr.length - 1 && (
                 <div className="flex-shrink-0 mx-1">
-                  <div className="w-4 h-px bg-border" />
+                  <div className="w-6 h-px bg-border" />
                 </div>
               )}
             </div>

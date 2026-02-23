@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Zap, ArrowRight, Loader2, Mail, CheckCircle2, Lock } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const QUOTES = [
   "The best opportunities are in the gap between what was and what could be.",
@@ -20,6 +21,17 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [mode, setMode] = useState<AuthMode>("magic");
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("saved_login_email"));
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("saved_login_email");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setMode("password");
+      setTimeout(() => passwordRef.current?.focus(), 100);
+    }
+  }, []);
   const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -57,6 +69,12 @@ export default function AuthPage() {
           toast.error("Invalid email or password. If you haven't set a password yet, use the magic link to sign in first, then set one from your profile.");
         } else {
           toast.error(error.message);
+        }
+      } else {
+        if (rememberMe) {
+          localStorage.setItem("saved_login_email", email.trim());
+        } else {
+          localStorage.removeItem("saved_login_email");
         }
       }
     } catch (err: unknown) {
@@ -196,14 +214,14 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => setMode("magic")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${mode === "magic" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mode === "magic" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
               <Mail size={14} /> Magic Link
             </button>
             <button
               type="button"
               onClick={() => setMode("password")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${mode === "password" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mode === "password" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
             >
               <Lock size={14} /> Password
             </button>
@@ -234,7 +252,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading || !firstName.trim() || !email.trim()}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-colors bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-bold text-sm transition-colors shadow-md bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <><Loader2 size={16} className="animate-spin" /> Sending magic link…</> : <>Send Magic Link <ArrowRight size={16} /></>}
               </button>
@@ -255,17 +273,28 @@ export default function AuthPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Password</label>
                 <input
-                  className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Your password"
+                   ref={passwordRef}
+                   className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                   type="password"
+                   value={password}
+                   onChange={(e) => setPassword(e.target.value)}
+                   placeholder="Your password"
+                 />
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Checkbox
+                  id="remember-me"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(!!checked)}
                 />
+                <label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer select-none">
+                  Remember my email
+                </label>
               </div>
               <button
                 type="submit"
                 disabled={loading || !email.trim() || !password.trim()}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-full font-bold text-sm transition-colors bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-bold text-sm transition-colors shadow-md bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <><Loader2 size={16} className="animate-spin" /> Signing in…</> : <>Sign In <ArrowRight size={16} /></>}
               </button>

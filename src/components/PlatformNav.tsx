@@ -73,7 +73,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
+                <NavigationMenuTrigger className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
                   <span className="flex items-center gap-2">
                     Access Modes
                     {activeMode && (
@@ -118,7 +118,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
+                <NavigationMenuTrigger className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
                   Workspace
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -148,7 +148,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
+                <NavigationMenuTrigger className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
                   Resources
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -177,7 +177,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
               <NavigationMenuItem>
                 <button
                   onClick={() => navigate("/about")}
-                  className={`text-sm font-medium px-3 py-3 transition-colors ${isActive("/about") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 ${isActive("/about") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
                 >
                   About
                 </button>
@@ -186,7 +186,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
               <NavigationMenuItem>
                 <button
                   onClick={() => navigate("/pricing")}
-                  className={`text-sm font-medium px-3 py-3 transition-colors ${isActive("/pricing") ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 ${isActive("/pricing") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
                 >
                   Pricing
                 </button>
