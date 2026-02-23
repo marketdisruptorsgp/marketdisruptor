@@ -46,6 +46,14 @@ export default function DashboardPage() {
   });
   const [selectedMode, setSelectedMode] = useState<"custom" | "service" | "business" | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
+
+  // Sync local selectedMode with context (e.g. when mode changed from PlatformNav)
+  useEffect(() => {
+    const ctx = analysis.mainTab;
+    if (ctx === "custom" || ctx === "service" || ctx === "business") {
+      setSelectedMode(ctx);
+    }
+  }, [analysis.mainTab]);
   const modeTabsRef = useRef<HTMLDivElement>(null);
 
   // Cycling word state
