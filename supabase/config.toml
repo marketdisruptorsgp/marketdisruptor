@@ -24,3 +24,6 @@ verify_jwt = false
 [functions.critical-validation]
 verify_jwt = false
 
+[functions.scrape-market-news]
+verify_jwt = false
+

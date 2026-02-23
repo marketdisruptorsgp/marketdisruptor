@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      market_news: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          published_at: string | null
+          scraped_at: string
+          source_name: string
+          source_url: string | null
+          summary: string | null
+          title: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          scraped_at?: string
+          source_name: string
+          source_url?: string | null
+          summary?: string | null
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          scraped_at?: string
+          source_name?: string
+          source_url?: string | null
+          summary?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       patent_filings: {
         Row: {
           abstract: string | null
@@ -50,6 +86,7 @@ export type Database = {
           publication_date: string | null
           scraped_at: string
           source_url: string | null
+          status: string | null
           title: string
         }
         Insert: {
@@ -63,6 +100,7 @@ export type Database = {
           publication_date?: string | null
           scraped_at?: string
           source_url?: string | null
+          status?: string | null
           title: string
         }
         Update: {
@@ -76,6 +114,7 @@ export type Database = {
           publication_date?: string | null
           scraped_at?: string
           source_url?: string | null
+          status?: string | null
           title?: string
         }
         Relationships: []
