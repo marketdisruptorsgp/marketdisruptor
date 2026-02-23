@@ -9,8 +9,9 @@ import { LeverageScore } from "@/components/LeverageScore";
 import { RiskBadge } from "@/components/RiskBadge";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { downloadPatentPDF } from "@/lib/pdfExport";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import {
-  Brain, Flame, Zap, ChevronRight, RefreshCw, AlertTriangle, CheckCircle2,
+  Brain, Flame, Zap, ChevronRight, ChevronDown, RefreshCw, AlertTriangle, CheckCircle2,
   Wrench, Lightbulb, Package, DollarSign, Users, Factory, FlipHorizontal,
   Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation, Shield,
   Maximize2, Wifi, ScrollText, FileDown, Swords,
@@ -138,6 +139,65 @@ const SEVERITY_COLORS = {
   low: { bg: "hsl(142 70% 45% / 0.07)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)" },
 };
 
+/* ── Collapsible detail panel ──────────────────────── */
+function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg text-left transition-colors hover:bg-muted/50" style={{ background: open ? "hsl(var(--muted))" : "transparent", border: "1px solid hsl(var(--border))" }}>
+        <span className="flex items-center gap-2 text-xs font-semibold text-foreground">
+          <Icon size={13} style={{ color: "hsl(var(--primary))" }} />
+          {title}
+        </span>
+        <ChevronDown size={14} className="text-muted-foreground transition-transform" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="px-4 pt-3 pb-1">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+/* ── Section progress + Next button ────────────────── */
+function SectionHeader({ current, total, label, icon: Icon }: { current: number; total: number; label: string; icon: React.ElementType }) {
+  return (
+    <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+      <div className="flex items-center gap-2.5">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+          <Icon size={14} style={{ color: "white" }} />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-foreground leading-tight">{label}</p>
+          <p className="text-[10px] text-muted-foreground font-medium">Section {current} of {total}</p>
+        </div>
+      </div>
+      {/* Progress dots */}
+      <div className="flex items-center gap-1">
+        {Array.from({ length: total }, (_, i) => (
+          <div key={i} className="rounded-full transition-all" style={{
+            width: i + 1 === current ? 16 : 6,
+            height: 6,
+            background: i + 1 <= current ? "hsl(var(--primary))" : "hsl(var(--border))",
+            borderRadius: 999,
+          }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NextSectionButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-lg transition-colors mt-6"
+      style={{ background: "hsl(var(--primary))", color: "white" }}
+    >
+      Next: {label} <ArrowRight size={14} />
+    </button>
+  );
+}
+
 export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
@@ -177,7 +237,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     setLoading(true);
     if (!isService) setPatentLoading(true);
     try {
-      // Run FP analysis always; patent analysis only for non-service modes
       const promises: Promise<unknown>[] = [
         supabase.functions.invoke("first-principles-analysis", {
           body: { product, userSuggestions: rerunSuggestions || undefined },
@@ -186,17 +245,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       if (!isService) {
         promises.push(
           supabase.functions.invoke("patent-analysis", {
-            body: {
-              productName: product.name,
-              category: product.category,
-              era: product.era,
-            },
+            body: { productName: product.name, category: product.category, era: product.era },
           })
         );
       }
       const results = await Promise.allSettled(promises);
 
-      // Handle first principles result
       const fpResult = results[0];
       if (fpResult.status === "fulfilled") {
         const { data: result, error } = fpResult.value as { data: { success: boolean; analysis: FirstPrinciplesData; error?: string }; error: { message: string } | null };
@@ -219,7 +273,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         toast.error("Disrupt analysis failed: " + String(fpResult.reason));
       }
 
-      // Handle patent result (only if we ran it)
       if (!isService && results[1]) {
         const patentResult = results[1];
         if (patentResult.status === "fulfilled") {
@@ -239,17 +292,27 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   };
 
   const allSteps = [
-    { id: "reality" as const, label: "Core Reality", icon: Eye, number: "01" },
-    ...(!isService ? [{ id: "physical" as const, label: "Physical Form", icon: Ruler, number: "02" }] : []),
-    { id: "workflow" as const, label: isService ? "Customer Journey" : "User Workflow", icon: Navigation, number: isService ? "02" : "03" },
-    { id: "smarttech" as const, label: "Smart Tech", icon: Cpu, number: isService ? "03" : "04" },
-    { id: "assumptions" as const, label: "Assumptions", icon: Brain, number: isService ? "04" : "05" },
-    { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal, number: isService ? "05" : "06" },
-    { id: "concept" as const, label: "Redesign", icon: Sparkles, number: isService ? "06" : "07" },
-    { id: "ideas" as const, label: "Flipped Ideas", icon: Zap, number: isService ? "07" : "08" },
-    ...(!isService ? [{ id: "patents" as const, label: "Patent Intel", icon: ScrollText, number: "09" }] : []),
+    { id: "reality" as const, label: "Core Reality", icon: Eye },
+    ...(!isService ? [{ id: "physical" as const, label: "Physical Form", icon: Ruler }] : []),
+    { id: "workflow" as const, label: isService ? "Customer Journey" : "User Workflow", icon: Navigation },
+    { id: "smarttech" as const, label: "Smart Tech", icon: Cpu },
+    { id: "assumptions" as const, label: "Assumptions", icon: Brain },
+    { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal },
+    { id: "concept" as const, label: "Redesign", icon: Sparkles },
+    { id: "ideas" as const, label: "Flipped Ideas", icon: Zap },
+    ...(!isService ? [{ id: "patents" as const, label: "Patent Intel", icon: ScrollText }] : []),
   ];
-  const steps = allSteps;
+  const totalSections = allSteps.length;
+  const currentSectionIdx = allSteps.findIndex(s => s.id === activeStep);
+  const currentSectionNum = currentSectionIdx + 1;
+  const nextStep = currentSectionIdx < allSteps.length - 1 ? allSteps[currentSectionIdx + 1] : null;
+
+  const goNext = () => {
+    if (!nextStep) return;
+    setActiveStep(nextStep.id);
+    setVisitedFPSteps(prev => new Set([...prev, nextStep.id]));
+    scrollToSteps();
+  };
 
   if (!data) {
     return (
@@ -260,11 +323,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <div>
           <h3 className="text-xl font-bold text-foreground mb-2">Disrupt Analysis</h3>
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-            {isService ? (
-              <>Radical deep analysis of <strong>{product.name}</strong> — questioning customer journey, operational friction, smart tech gaps, hidden assumptions, and generating bold service reinvention ideas.</>
-            ) : (
-              <>Radical deep analysis of <strong>{product.name}</strong> — questioning physical form, user workflow friction, smart tech gaps, hidden assumptions, generating bold redesigns, flipped product ideas, and <strong>patent intelligence</strong>.</>
-            )}
+            Deep analysis of <strong>{product.name}</strong> — questioning every assumption and generating radical reinvention ideas.
           </p>
         </div>
         <div className={`grid grid-cols-2 ${isService ? "sm:grid-cols-4" : "sm:grid-cols-5"} gap-3 max-w-xl`}>
@@ -292,7 +351,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm transition-colors"
           style={{ background: "hsl(var(--primary))", color: "white", opacity: loading ? 0.7 : 1 }}
         >
-           {loading ? (
+          {loading ? (
             <><RefreshCw size={15} className="animate-spin" /> Deconstructing {product.name}…</>
           ) : (
             <><Brain size={15} /> Run Disrupt Analysis</>
@@ -309,699 +368,509 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header + re-run */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-              <Brain size={15} style={{ color: "white" }} />
-            </div>
-            <div>
-              <h3 className="font-bold text-foreground text-sm">Disrupt Analysis</h3>
-              <p className="text-[11px] text-muted-foreground">{product.name}</p>
-            </div>
+    <div className="space-y-4" data-fp-steps>
+      {/* Header + re-run (compact) */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+            <Brain size={14} style={{ color: "white" }} />
           </div>
-          <button
-            onClick={runAnalysis}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-            style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-          >
-            {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
-            Re-run
-          </button>
-        </div>
-        {/* User suggestions for re-run */}
-        <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)", borderLeft: "4px solid hsl(var(--primary))" }}>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.15)" }}>
-              <Lightbulb size={14} style={{ color: "hsl(var(--primary))" }} />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-foreground">Steer the AI</p>
-              <p className="text-[10px] text-muted-foreground">Add your own direction, then hit Re-run above</p>
-            </div>
+          <div>
+            <h3 className="font-bold text-foreground text-sm leading-tight">Disrupt: {product.name}</h3>
+            <p className="text-[10px] text-muted-foreground">{totalSections} sections · Click any to jump</p>
           </div>
-          <textarea
-            value={rerunSuggestions}
-            onChange={(e) => setRerunSuggestions(e.target.value)}
-            placeholder="e.g. Focus on sustainability, explore modular design, consider subscription model, target commercial users…"
-            className="w-full rounded px-4 py-3 text-sm leading-relaxed resize-none transition-colors focus:outline-none"
-            rows={2}
-            style={{
-              background: "hsl(var(--background))",
-              border: "2px solid hsl(var(--primary) / 0.2)",
-              color: "hsl(var(--foreground))",
-            }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(var(--primary))"; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(var(--primary) / 0.2)"; }}
-          />
         </div>
+        <button
+          onClick={runAnalysis}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+          style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+        >
+          {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+          Re-run
+        </button>
       </div>
 
-      {/* Step nav */}
-      {(() => {
-        const STEP_COLORS: Record<string, string> = {
-          reality: "hsl(var(--primary))",
-          physical: "hsl(200 80% 50%)",
-          workflow: "hsl(142 70% 40%)",
-          smarttech: "hsl(35 90% 50%)",
-          assumptions: "hsl(271 81% 55%)",
-          flip: "hsl(350 80% 55%)",
-          concept: "hsl(180 70% 40%)",
-          ideas: "hsl(38 92% 50%)",
-          patents: "hsl(271 81% 55%)",
-          debate: "hsl(350 80% 55%)",
-          validate: "hsl(142 70% 40%)",
-        };
-        return (
-        <div data-fp-steps className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-11 gap-2">
-          {steps.map((s, i) => {
-            const Icon = s.icon;
-            const isActive = activeStep === s.id;
-            const color = STEP_COLORS[s.id] || "hsl(var(--primary))";
-            return (
-              <button
-                key={s.id}
-                onClick={() => { setActiveStep(s.id); setVisitedFPSteps(prev => new Set([...prev, s.id])); setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
-                className="flex flex-col items-center gap-1.5 px-2 py-3 rounded text-xs font-bold transition-colors relative"
-                style={{
-                  background: isActive ? color : !visitedFPSteps.has(s.id) ? `${color}12` : "hsl(var(--muted))",
-                  color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
-                  border: isActive ? `2px solid ${color}` : !visitedFPSteps.has(s.id) ? `2px solid ${color}40` : "2px solid hsl(var(--border))",
-                }}
-              >
-                {!isActive && !visitedFPSteps.has(s.id) && (
-                  <span className="absolute -top-2 -right-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider text-white z-10" style={{ background: color }}>
-                    Explore
-                  </span>
-                )}
-                <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: isActive ? "hsl(0 0% 100% / 0.25)" : `${color}20` }}>
-                  <Icon size={16} style={{ color: isActive ? "white" : color }} />
-                </div>
-                <span className="text-center leading-tight text-[10px]">{s.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        );
-      })()}
+      {/* Steer AI (collapsible) */}
+      <DetailPanel title="Steer the AI — add direction, then Re-run" icon={Lightbulb}>
+        <textarea
+          value={rerunSuggestions}
+          onChange={(e) => setRerunSuggestions(e.target.value)}
+          placeholder="e.g. Focus on sustainability, explore modular design, target commercial users…"
+          className="w-full rounded px-3 py-2.5 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
+          rows={2}
+          style={{
+            background: "hsl(var(--background))",
+            border: "1px solid hsl(var(--border))",
+            color: "hsl(var(--foreground))",
+          }}
+        />
+      </DetailPanel>
 
-      {/* STEP 1: Core Reality */}
+      {/* ── Section selector (linear list, not grid) ── */}
+      <div className="flex flex-wrap gap-1.5">
+        {allSteps.map((s, i) => {
+          const Icon = s.icon;
+          const isActive = activeStep === s.id;
+          const isVisited = visitedFPSteps.has(s.id);
+          return (
+            <button
+              key={s.id}
+              onClick={() => { setActiveStep(s.id); setVisitedFPSteps(prev => new Set([...prev, s.id])); }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+              style={{
+                background: isActive ? "hsl(var(--primary))" : "transparent",
+                color: isActive ? "white" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                border: isActive ? "1px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
+              }}
+            >
+              <Icon size={12} />
+              <span className="hidden sm:inline">{s.label}</span>
+              <span className="sm:hidden">{i + 1}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ═══════ SECTION CONTENT ═══════ */}
+
+      {/* Section 1: Core Reality */}
       {activeStep === "reality" && (
-        <div className="space-y-5">
-          {/* Current Strengths */}
+        <div className="space-y-4">
+          <SectionHeader current={currentSectionNum} total={totalSections} label="Core Reality" icon={Eye} />
+
+          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>The Real Problem</p>
+            <p className="text-sm text-foreground leading-relaxed">{data.coreReality.trueProblem}</p>
+          </div>
+
+          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">How People Actually Use It</p>
+            <p className="text-xs text-foreground/80 leading-relaxed">{data.coreReality.actualUsage}</p>
+          </div>
+
+          {/* Collapsible details */}
           {data.currentStrengths && (
-            <div className="p-5 rounded space-y-3" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-              <p className="section-label text-[10px] mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 35%)" }}>
-                <Shield size={11} /> What's Already Working
-              </p>
-              <div className="space-y-2">
-                {data.currentStrengths.whatWorks.map((item, i) => (
+            <DetailPanel title={`What's Working (${data.currentStrengths.whatWorks.length} strengths)`} icon={Shield} defaultOpen={false}>
+              <div className="space-y-1.5 mb-2">
+                {data.currentStrengths.whatWorks.slice(0, 3).map((item, i) => (
                   <div key={i} className="flex gap-2 items-start text-xs leading-relaxed">
                     <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
                     <span className="text-foreground/80">{item}</span>
                   </div>
                 ))}
+                {data.currentStrengths.whatWorks.length > 3 && (
+                  <p className="text-[10px] text-muted-foreground ml-5">+{data.currentStrengths.whatWorks.length - 3} more</p>
+                )}
               </div>
               {data.currentStrengths.competitiveAdvantages?.length > 0 && (
-                <div className="space-y-1.5 pt-2" style={{ borderTop: "1px solid hsl(142 70% 45% / 0.15)" }}>
-                  <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(142 70% 35%)" }}>Competitive Advantages to Preserve</p>
+                <div className="pt-2 mb-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Competitive Advantages</p>
                   {data.currentStrengths.competitiveAdvantages.map((adv, i) => (
-                    <div key={i} className="flex gap-2 items-start text-xs leading-relaxed">
+                    <div key={i} className="flex gap-2 items-start text-xs leading-relaxed mb-1">
                       <Shield size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{adv}</span>
                     </div>
                   ))}
                 </div>
               )}
-              <div className="p-3 rounded-lg text-xs leading-relaxed" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--primary))" }}>Keep vs. Adapt vs. Rethink</p>
-                <p className="text-foreground/80">{data.currentStrengths.keepVsAdapt}</p>
-              </div>
-            </div>
+            </DetailPanel>
           )}
 
-          <div className="p-5 rounded" style={{ background: "hsl(var(--primary-muted))", borderLeft: "4px solid hsl(var(--primary))" }}>
-            <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(var(--primary))" }}>
-              <Lightbulb size={11} /> The Real Problem Being Solved
-            </p>
-            <p className="text-sm text-foreground leading-relaxed font-medium">{data.coreReality.trueProblem}</p>
-            <InsightRating sectionId="core-reality" />
-          </div>
-          <div className="p-5 rounded" style={{ background: "hsl(var(--muted))" }}>
-            <p className="section-label text-[10px] mb-2 flex items-center gap-1"><Eye size={11} /> How People Actually Use It</p>
-            <p className="text-sm text-foreground/80 leading-relaxed">{data.coreReality.actualUsage}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                <ShieldAlert size={11} style={{ color: "hsl(var(--destructive))" }} /> Normalized Frustrations
-              </p>
-              <div className="space-y-2">
-                {data.coreReality.normalizedFrustrations.map((f, i) => (
-                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed"
-                    style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
-                    <AlertTriangle size={11} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 1 }} />
+          <DetailPanel title={`Frustrations & Workarounds (${data.coreReality.normalizedFrustrations.length + data.coreReality.userHacks.length})`} icon={ShieldAlert}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Frustrations</p>
+                {data.coreReality.normalizedFrustrations.slice(0, 3).map((f, i) => (
+                  <div key={i} className="flex gap-2 items-start text-xs leading-relaxed">
+                    <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                     <span className="text-foreground/80">{f}</span>
                   </div>
                 ))}
               </div>
-            </div>
-            <div>
-              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                <Wrench size={11} style={{ color: "hsl(38 92% 50%)" }} /> Workarounds & Hacks People Create
-              </p>
-              <div className="space-y-2">
-                {data.coreReality.userHacks.map((h, i) => (
-                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs leading-relaxed"
-                    style={{ background: "hsl(38 92% 50% / 0.07)", border: "1px solid hsl(38 92% 50% / 0.25)" }}>
-                    <ChevronRight size={11} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 1 }} />
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">User Hacks</p>
+                {data.coreReality.userHacks.slice(0, 3).map((h, i) => (
+                  <div key={i} className="flex gap-2 items-start text-xs leading-relaxed">
+                    <Wrench size={10} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 2 }} />
                     <span className="text-foreground/80">{h}</span>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-          <button onClick={() => { setActiveStep("physical"); setVisitedFPSteps(prev => new Set([...prev, "physical"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
-            style={{ background: "hsl(200 80% 50%)", color: "white" }}>
-            Next: Physical Form Analysis <ArrowRight size={14} />
-          </button>
+          </DetailPanel>
+
+          <InsightRating sectionId="core-reality" />
+          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
         </div>
       )}
 
-      {/* STEP 2: Physical Dimensions */}
+      {/* Section 2: Physical Dimensions */}
       {activeStep === "physical" && data.physicalDimensions && (
-        <div className="space-y-5">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Questioning every physical property — size, weight, shape, rigidity. Nothing is sacred.
-          </p>
+        <div className="space-y-4">
+          <SectionHeader current={currentSectionNum} total={totalSections} label="Physical Form" icon={Ruler} />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
-              { icon: Ruler, label: `Why Is ${product.name} This Size?`, text: data.physicalDimensions.sizeAnalysis },
-              { icon: Move, label: `Why Does ${product.name} Weigh This Much?`, text: data.physicalDimensions.weightAnalysis },
-              { icon: Maximize2, label: `Why Is ${product.name} Shaped This Way?`, text: data.physicalDimensions.formFactorAnalysis },
-              { icon: Zap, label: `Is ${product.name} Too Rigid?`, text: data.physicalDimensions.staticVsDynamic },
-            ].map(({ icon: Icon, label, text }) => (
-              <div key={label} className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                  <Icon size={11} style={{ color: "hsl(var(--primary))" }} /> {label}
-                </p>
-             <p className="text-xs text-foreground/80 leading-relaxed">{text}</p>
-                <InsightRating sectionId={`physical-${label}`} compact />
+              { label: "Size", text: data.physicalDimensions.sizeAnalysis },
+              { label: "Weight", text: data.physicalDimensions.weightAnalysis },
+              { label: "Shape", text: data.physicalDimensions.formFactorAnalysis },
+              { label: "Rigidity", text: data.physicalDimensions.staticVsDynamic },
+            ].map(({ label, text }) => (
+              <div key={label} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
+                <p className="text-xs text-foreground/80 leading-relaxed line-clamp-3">{text}</p>
               </div>
             ))}
           </div>
 
-          {data.physicalDimensions.ergonomicGaps?.length > 0 && (
-            <div>
-              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                <AlertTriangle size={11} style={{ color: "hsl(var(--destructive))" }} /> Ergonomic Gaps — Where It Fights the Body
-              </p>
-              <div className="space-y-2">
+          <DetailPanel title={`Ergonomic Gaps & Opportunities (${(data.physicalDimensions.ergonomicGaps?.length || 0) + (data.physicalDimensions.dimensionOpportunities?.length || 0)})`} icon={Maximize2}>
+            {data.physicalDimensions.ergonomicGaps?.length > 0 && (
+              <div className="space-y-1.5 mb-3">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Gaps</p>
                 {data.physicalDimensions.ergonomicGaps.map((gap, i) => (
-                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                    style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
-                    <AlertTriangle size={11} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 1 }} />
-                    <span className="text-foreground/80 leading-relaxed">{gap}</span>
+                  <div key={i} className="flex gap-2 items-start text-xs">
+                    <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
+                    <span className="text-foreground/80">{gap}</span>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {data.physicalDimensions.dimensionOpportunities?.length > 0 && (
-            <div>
-              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                <Lightbulb size={11} style={{ color: "hsl(142 70% 40%)" }} /> Bold Opportunities from Rethinking Dimensions
-              </p>
-              <div className="space-y-2">
+            )}
+            {data.physicalDimensions.dimensionOpportunities?.length > 0 && (
+              <div className="space-y-1.5 mb-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Opportunities</p>
                 {data.physicalDimensions.dimensionOpportunities.map((opp, i) => (
-                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                    style={{ background: "hsl(142 70% 45% / 0.07)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
-                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
-                    <span className="text-foreground/80 leading-relaxed font-medium">{opp}</span>
+                  <div key={i} className="flex gap-2 items-start text-xs">
+                    <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+                    <span className="text-foreground/80">{opp}</span>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </DetailPanel>
 
-          <button onClick={() => { setActiveStep("workflow"); setVisitedFPSteps(prev => new Set([...prev, "workflow"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
-            style={{ background: "hsl(142 70% 40%)", color: "white" }}>
-            Next: User Workflow <ArrowRight size={14} />
-          </button>
+          <InsightRating sectionId="physical-form" compact />
+          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
         </div>
       )}
 
-      {/* STEP 3: User Workflow */}
+      {/* Section 3: User Workflow */}
       {activeStep === "workflow" && data.userWorkflow && (
-        <div className="space-y-5">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Mapping every step the user takes — before, during, after. Every friction point is a design opportunity.
-          </p>
+        <div className="space-y-4">
+          <SectionHeader current={currentSectionNum} total={totalSections} label={isService ? "Customer Journey" : "User Workflow"} icon={Navigation} />
 
-          {/* Step-by-step flow */}
-          <div>
-            <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-              <Navigation size={11} style={{ color: "hsl(var(--primary))" }} /> Step-by-Step User Journey
-            </p>
-            <div className="flex flex-col gap-0">
-              {data.userWorkflow.stepByStep.map((step, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="flex flex-col items-center">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0"
-                      style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
-                    {i < data.userWorkflow.stepByStep.length - 1 && (
-                      <div className="w-0.5 h-4 mt-1" style={{ background: "hsl(var(--primary) / 0.25)" }} />
-                    )}
-                  </div>
-                  <p className="text-xs text-foreground/80 leading-relaxed pb-3">{step}</p>
-                </div>
-              ))}
-            </div>
+          {/* Compact journey */}
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {data.userWorkflow.stepByStep.slice(0, 6).map((step, i) => (
+              <div key={i} className="flex items-center gap-1">
+                <span className="px-2 py-1 rounded text-[10px] font-semibold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
+                  {i + 1}. {step.length > 40 ? step.slice(0, 40) + "…" : step}
+                </span>
+                {i < Math.min(data.userWorkflow.stepByStep.length, 6) - 1 && (
+                  <ChevronRight size={10} className="text-muted-foreground" />
+                )}
+              </div>
+            ))}
           </div>
 
-          {/* Friction Points */}
+          {/* Friction highlights — top 3 only */}
           {data.userWorkflow.frictionPoints?.length > 0 && (
-            <div>
-              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                <AlertTriangle size={11} style={{ color: "hsl(var(--destructive))" }} /> Friction Points — Where Users Struggle
-              </p>
-              <div className="space-y-3">
-                {data.userWorkflow.frictionPoints.map((fp, i) => {
-                  const col = SEVERITY_COLORS[fp.severity] || SEVERITY_COLORS.medium;
-                  return (
-                    <div key={i} className="p-4 rounded" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: col.text }}>{fp.step}</p>
-                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                          style={{ background: col.bg, color: col.text, border: `1px solid ${col.border}` }}>
-                          {fp.severity}
-                        </span>
-                      </div>
-                      <p className="text-xs text-foreground/80 leading-relaxed mb-1">{fp.friction}</p>
-                      <p className="text-[10px] text-muted-foreground italic">Root cause: {fp.rootCause}</p>
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Top Friction Points</p>
+              {data.userWorkflow.frictionPoints.slice(0, 3).map((fp, i) => {
+                const col = SEVERITY_COLORS[fp.severity] || SEVERITY_COLORS.medium;
+                return (
+                  <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-[10px] font-bold" style={{ color: col.text }}>{fp.step}</p>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: col.bg, color: col.text }}>{fp.severity}</span>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                <Brain size={11} /> Cognitive Load
-              </p>
-               <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.cognitiveLoad}</p>
-                <InsightRating sectionId="workflow-cognitive" compact />
-            </div>
-            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                <Eye size={11} /> Context of Use
-              </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.contextOfUse}</p>
-                <InsightRating sectionId="workflow-context" compact />
-            </div>
-          </div>
-
-          {data.userWorkflow.workflowOptimizations?.length > 0 && (
-            <div>
-              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                <Zap size={11} style={{ color: "hsl(142 70% 40%)" }} /> Concrete Workflow Optimizations
-              </p>
-              <div className="space-y-2">
-                {data.userWorkflow.workflowOptimizations.map((opt, i) => (
-                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                    style={{ background: "hsl(142 70% 45% / 0.07)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
-                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
-                    <span className="text-foreground/80 leading-relaxed">{opt}</span>
+                    <p className="text-xs text-foreground/80 leading-relaxed">{fp.friction}</p>
                   </div>
-                ))}
-              </div>
+                );
+              })}
+              {data.userWorkflow.frictionPoints.length > 3 && (
+                <p className="text-[10px] text-muted-foreground">+{data.userWorkflow.frictionPoints.length - 3} more friction points in full details</p>
+              )}
             </div>
           )}
 
-          <button onClick={() => { setActiveStep("smarttech"); setVisitedFPSteps(prev => new Set([...prev, "smarttech"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
-            style={{ background: "hsl(35 90% 50%)", color: "white" }}>
-            Next: Smart Tech Analysis <ArrowRight size={14} />
-          </button>
+          <DetailPanel title="Cognitive Load, Context & Optimizations" icon={Brain}>
+            <div className="space-y-3 mb-2">
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Cognitive Load</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.cognitiveLoad}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Context of Use</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.contextOfUse}</p>
+              </div>
+              {data.userWorkflow.workflowOptimizations?.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Optimizations</p>
+                  {data.userWorkflow.workflowOptimizations.map((opt, i) => (
+                    <div key={i} className="flex gap-2 items-start text-xs mb-1">
+                      <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+                      <span className="text-foreground/80">{opt}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DetailPanel>
+
+          <InsightRating sectionId="workflow" compact />
+          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
         </div>
       )}
 
-      {/* STEP 4: Smart Tech */}
+      {/* Section 4: Smart Tech */}
       {activeStep === "smarttech" && data.smartTechAnalysis && (
-        <div className="space-y-5">
-          <div className="p-4 rounded" style={{ background: "hsl(var(--muted))" }}>
-            <p className="section-label text-[10px] mb-2 flex items-center gap-1">
-              <Cpu size={11} style={{ color: "hsl(271 81% 50%)" }} /> Current Technology Level
-            </p>
+        <div className="space-y-4">
+          <SectionHeader current={currentSectionNum} total={totalSections} label="Smart Tech" icon={Cpu} />
+
+          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Current Tech Level</p>
             <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.currentTechLevel}</p>
           </div>
 
-          {data.smartTechAnalysis.missedOpportunities?.length > 0 && (
-            <div>
-              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                <Wifi size={11} style={{ color: "hsl(var(--primary))" }} /> Missed Smart Tech Opportunities
-              </p>
-              <div className="space-y-3">
-                {data.smartTechAnalysis.missedOpportunities.map((opp, i) => (
-                  <div key={i} className="p-4 rounded" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold"
-                        style={{ background: "hsl(271 81% 56% / 0.15)", color: "hsl(271 81% 40%)" }}>{opp.tech}</span>
-                    </div>
-                    <p className="text-xs font-semibold text-foreground/90 mb-1">{opp.application}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{opp.valueCreated}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                <AlertTriangle size={11} /> Why It Hasn't Happened Yet
-              </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.whyNotAlreadyDone}</p>
-            </div>
-            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1" style={{ color: "hsl(var(--primary))" }}>
-                <Zap size={11} /> Highest-Leverage Integration
-              </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.recommendedIntegration}</p>
-              <InsightRating sectionId="smarttech-recommendation" compact />
-            </div>
+          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>Highest-Leverage Integration</p>
+            <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.recommendedIntegration}</p>
           </div>
 
-          <button onClick={() => { setActiveStep("assumptions"); setVisitedFPSteps(prev => new Set([...prev, "assumptions"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
-            style={{ background: "hsl(271 81% 55%)", color: "white" }}>
-            Next: Hidden Assumptions <ArrowRight size={14} />
-          </button>
+          <DetailPanel title={`Missed Opportunities (${data.smartTechAnalysis.missedOpportunities?.length || 0}) & Barriers`} icon={Wifi}>
+            {data.smartTechAnalysis.missedOpportunities?.map((opp, i) => (
+              <div key={i} className="mb-2 p-3 rounded-lg" style={{ background: "hsl(271 81% 56% / 0.05)", border: "1px solid hsl(271 81% 56% / 0.15)" }}>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full mr-2" style={{ background: "hsl(271 81% 56% / 0.12)", color: "hsl(271 81% 40%)" }}>{opp.tech}</span>
+                <p className="text-xs font-semibold text-foreground/90 mt-1">{opp.application}</p>
+                <p className="text-[11px] text-muted-foreground">{opp.valueCreated}</p>
+              </div>
+            ))}
+            <div className="mt-2">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Why Not Done Yet</p>
+              <p className="text-xs text-foreground/80">{data.smartTechAnalysis.whyNotAlreadyDone}</p>
+            </div>
+          </DetailPanel>
+
+          <InsightRating sectionId="smarttech" compact />
+          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
         </div>
       )}
 
-      {/* STEP 5: Hidden Assumptions */}
+      {/* Section 5: Hidden Assumptions */}
       {activeStep === "assumptions" && (
         <div className="space-y-4">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Every design choice is built on assumptions. Most are never questioned. Here's what's holding this product back.
-          </p>
-          <div className="space-y-3">
-            {data.hiddenAssumptions.map((a, i) => {
+          <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
+          <p className="text-xs text-muted-foreground">Every design choice rests on assumptions. Here are the ones worth challenging.</p>
+
+          <div className="space-y-2.5">
+            {data.hiddenAssumptions.slice(0, 4).map((a, i) => {
               const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
               return (
-                <div key={i} className="p-4 rounded-xl"
-                  style={{ background: a.isChallengeable ? "hsl(var(--card))" : "hsl(var(--muted))", border: `1px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))"}` }}>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0"
-                        style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
-                      <p className="text-xs font-bold text-foreground">{a.assumption}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                        style={{ background: reasonStyle.bg, color: reasonStyle.text }}>{reasonStyle.label}</span>
-                      {a.isChallengeable ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 30%)" }}>
-                          ✦ Challengeable
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
-                          Physics-constrained
-                        </span>
-                      )}
+                <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: `1px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))"}` }}>
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="text-xs font-bold text-foreground flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
+                      {a.assumption}
+                    </p>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>{reasonStyle.label}</span>
+                      {a.isChallengeable && <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 30%)" }}>Challengeable</span>}
                       <LeverageScore score={a.leverageScore} />
-                      <DataLabel label={a.dataLabel} />
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed ml-8 mb-2">{a.currentAnswer}</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed ml-7">{a.currentAnswer}</p>
                   {a.challengeIdea && (
-                    <div className="ml-8 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
+                    <div className="ml-7 mt-1.5 p-2 rounded text-[11px]" style={{ background: "hsl(var(--primary-muted))", borderLeft: "2px solid hsl(var(--primary))" }}>
                       <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>Challenge: </span>
                       <span className="text-foreground/80">{a.challengeIdea}</span>
                     </div>
                   )}
-                  <div className="ml-8"><InsightRating sectionId={`assumption-${i}`} compact /></div>
                 </div>
               );
             })}
           </div>
-          <button onClick={() => { setActiveStep("flip"); setVisitedFPSteps(prev => new Set([...prev, "flip"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
-            style={{ background: "hsl(350 80% 55%)", color: "white" }}>
-            Next: Flip the Logic <ArrowRight size={14} />
-          </button>
+
+          {data.hiddenAssumptions.length > 4 && (
+            <DetailPanel title={`${data.hiddenAssumptions.length - 4} more assumptions`} icon={Brain}>
+              <div className="space-y-2.5 mb-2">
+                {data.hiddenAssumptions.slice(4).map((a, i) => {
+                  const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
+                  return (
+                    <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                      <p className="text-xs font-bold text-foreground mb-0.5">{a.assumption}</p>
+                      <p className="text-[11px] text-muted-foreground">{a.currentAnswer}</p>
+                      {a.challengeIdea && (
+                        <p className="text-[11px] mt-1" style={{ color: "hsl(var(--primary))" }}>→ {a.challengeIdea}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </DetailPanel>
+          )}
+
+          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
         </div>
       )}
 
-      {/* STEP 6: Flip the Logic */}
+      {/* Section 6: Flip the Logic */}
       {activeStep === "flip" && (
         <div className="space-y-4">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Taking the most limiting assumptions and inverting them. These aren't tweaks — they're structural breaks.
-          </p>
+          <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
+
           {data.flippedLogic.map((item, i) => (
-            <div key={i} className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--primary) / 0.2)" }}>
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
-                <div className="p-4" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Current Assumption</p>
+            <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+              <div className="grid grid-cols-[1fr_auto_1fr]">
+                <div className="p-3" style={{ background: "hsl(var(--muted))" }}>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Assumption</p>
                   <p className="text-xs text-foreground/80 leading-relaxed">{item.originalAssumption}</p>
                 </div>
-                <div className="flex items-center justify-center px-3 py-4" style={{ background: "hsl(var(--primary))" }}>
-                  <FlipHorizontal size={16} style={{ color: "white" }} />
+                <div className="flex items-center justify-center px-2" style={{ background: "hsl(var(--primary))" }}>
+                  <FlipHorizontal size={14} style={{ color: "white" }} />
                 </div>
-                <div className="p-4" style={{ background: "hsl(var(--primary-muted))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>Bold Alternative</p>
+                <div className="p-3" style={{ background: "hsl(var(--primary-muted))" }}>
+                  <p className="text-[9px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "hsl(var(--primary))" }}>Flip</p>
                   <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(var(--primary-dark))" }}>{item.boldAlternative}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-t" style={{ borderColor: "hsl(var(--border))" }}>
-                <div className="p-4 border-r" style={{ borderColor: "hsl(var(--border))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Why It Creates Value</p>
-                  <p className="text-xs text-foreground/70 leading-relaxed">{item.rationale}</p>
+              <DetailPanel title="Why it creates value & mechanism" icon={Lightbulb}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+                  <div>
+                    <p className="text-[9px] font-bold uppercase text-muted-foreground mb-0.5">Value Created</p>
+                    <p className="text-xs text-foreground/70">{item.rationale}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold uppercase text-muted-foreground mb-0.5">Mechanism</p>
+                    <p className="text-xs text-foreground/70">{item.physicalMechanism}</p>
+                  </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Physical Mechanism</p>
-                  <p className="text-xs text-foreground/70 leading-relaxed">{item.physicalMechanism}</p>
-                </div>
-              </div>
-              <div className="px-4 pb-3"><InsightRating sectionId={`flip-${i}`} compact /></div>
+              </DetailPanel>
             </div>
           ))}
-          <button onClick={() => { setActiveStep("concept"); setVisitedFPSteps(prev => new Set([...prev, "concept"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
-            style={{ background: "hsl(180 70% 40%)", color: "white" }}>
-            Next: Redesigned Concept <ArrowRight size={14} />
-          </button>
+
+          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
         </div>
       )}
 
-      {/* STEP 7: Redesigned Concept */}
+      {/* Section 7: Redesigned Concept */}
       {activeStep === "concept" && (
-        <div className="space-y-5">
-          <div className="p-6 rounded relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white" }}>
-            <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-10" style={{ background: "white" }} />
+        <div className="space-y-4">
+          <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
+
+          <div className="p-5 rounded-lg relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white" }}>
             <div className="relative">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles size={16} />
-                <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Redesigned Concept</span>
-              </div>
-              <h2 className="text-2xl font-black mb-1">{data.redesignedConcept.conceptName}</h2>
-              <p className="text-sm opacity-85 font-medium mb-4">{data.redesignedConcept.tagline}</p>
-              <p className="text-xs leading-relaxed opacity-80 max-w-2xl">{data.redesignedConcept.coreInsight}</p>
+              <h2 className="text-xl font-black mb-0.5">{data.redesignedConcept.conceptName}</h2>
+              <p className="text-sm opacity-85 font-medium mb-2">{data.redesignedConcept.tagline}</p>
+              <p className="text-xs leading-relaxed opacity-80">{data.redesignedConcept.coreInsight}</p>
               <div className="flex items-center gap-2 mt-2">
                 <RiskBadge type="Risk" level={data.redesignedConcept.riskLevel} />
                 <RiskBadge type="Capital" level={data.redesignedConcept.capitalRequired} />
               </div>
-              <InsightRating sectionId="concept-insight" compact />
             </div>
           </div>
 
-          {/* Radical differences */}
-          <div>
-            <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-              <Flame size={11} style={{ color: "hsl(var(--primary))" }} /> What Makes It Radically Different
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {data.redesignedConcept.radicalDifferences.map((d, i) => (
-                <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                  style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
-                  <CheckCircle2 size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                  <span className="text-foreground/85 leading-relaxed font-medium">{d}</span>
-                </div>
-              ))}
-            </div>
+          {/* Key differences — compact chips */}
+          <div className="flex flex-wrap gap-1.5">
+            {data.redesignedConcept.radicalDifferences.map((d, i) => (
+              <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium" style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary-dark))", border: "1px solid hsl(var(--primary) / 0.15)" }}>
+                <CheckCircle2 size={10} /> {d}
+              </span>
+            ))}
           </div>
 
-          {/* Physical + Size + Materials + Smart Features */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
-              <p className="section-label text-[10px] flex items-center gap-1"><Package size={11} /> Physical Form</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.physicalDescription}</p>
-              {data.redesignedConcept.sizeAndWeight && (
-                <div className="mt-2 p-2 rounded-lg" style={{ background: "hsl(var(--primary-muted))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1" style={{ color: "hsl(var(--primary))" }}>
-                    <Ruler size={9} /> Size & Weight
-                  </p>
-                  <p className="text-xs text-foreground/80">{data.redesignedConcept.sizeAndWeight}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              <div className="p-4 rounded space-y-2" style={{ background: "hsl(var(--muted))" }}>
-                <p className="section-label text-[10px] flex items-center gap-1"><Zap size={11} /> Materials & Why</p>
-                <div className="space-y-1.5">
-                  {data.redesignedConcept.materials.map((m, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs text-foreground/80">
-                      <span className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold mt-0.5"
-                        style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
-                      {m}
-                    </div>
-                  ))}
-                </div>
+          <DetailPanel title="Physical specs, materials & smart features" icon={Package}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Physical Form</p>
+                <p className="text-xs text-foreground/80">{data.redesignedConcept.physicalDescription}</p>
+                {data.redesignedConcept.sizeAndWeight && <p className="text-[11px] text-muted-foreground mt-1">Size: {data.redesignedConcept.sizeAndWeight}</p>}
               </div>
-
-              {data.redesignedConcept.smartFeatures?.length > 0 && (
-                <div className="p-4 rounded space-y-2" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
-                  <p className="section-label text-[10px] flex items-center gap-1" style={{ color: "hsl(271 81% 40%)" }}>
-                    <Cpu size={11} /> Smart Features
-                  </p>
-                  <div className="space-y-1.5">
-                    {data.redesignedConcept.smartFeatures.map((f, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-foreground/80">
-                        <Wifi size={10} style={{ color: "hsl(271 81% 45%)", flexShrink: 0, marginTop: 1 }} />
-                        {f}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Friction Eliminated */}
-          {data.redesignedConcept.frictionEliminated?.length > 0 && (
-            <div>
-              <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)" }} /> Friction Points Eliminated
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {data.redesignedConcept.frictionEliminated.map((f, i) => (
-                  <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs"
-                    style={{ background: "hsl(142 70% 45% / 0.07)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
-                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
-                    <span className="text-foreground/80 leading-relaxed">{f}</span>
-                  </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Materials</p>
+                {data.redesignedConcept.materials.map((m, i) => (
+                  <p key={i} className="text-xs text-foreground/80">{i + 1}. {m}</p>
                 ))}
               </div>
             </div>
-          )}
+            {data.redesignedConcept.smartFeatures?.length > 0 && (
+              <div className="mb-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Smart Features</p>
+                {data.redesignedConcept.smartFeatures.map((f, i) => (
+                  <div key={i} className="flex items-start gap-1.5 text-xs text-foreground/80 mb-0.5">
+                    <Wifi size={10} style={{ color: "hsl(271 81% 45%)", flexShrink: 0, marginTop: 2 }} /> {f}
+                  </div>
+                ))}
+              </div>
+            )}
+          </DetailPanel>
 
-          {/* UX Transformation */}
-          <div className="p-5 rounded" style={{ background: "hsl(142 70% 45% / 0.07)", borderLeft: "4px solid hsl(142 70% 45%)" }}>
-            <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}>
-              <Users size={11} /> User Experience Transformation
-            </p>
-            <p className="text-sm text-foreground/85 leading-relaxed">{data.redesignedConcept.userExperienceTransformation}</p>
-          </div>
+          <DetailPanel title="UX transformation, risks & go-to-market" icon={Users}>
+            <div className="space-y-3 mb-2">
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">UX Transformation</p>
+                <p className="text-xs text-foreground/80">{data.redesignedConcept.userExperienceTransformation}</p>
+              </div>
+              {data.redesignedConcept.frictionEliminated?.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Friction Eliminated</p>
+                  {data.redesignedConcept.frictionEliminated.map((f, i) => (
+                    <div key={i} className="flex gap-1.5 items-start text-xs mb-0.5"><CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />{f}</div>
+                  ))}
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div><p className="text-[10px] font-bold text-muted-foreground uppercase">Manufacturing</p><p className="text-xs text-foreground/80">{data.redesignedConcept.manufacturingPath}</p></div>
+                <div><p className="text-[10px] font-bold text-muted-foreground uppercase">Price Point</p><p className="text-xs text-foreground/80">{data.redesignedConcept.pricePoint}</p></div>
+                <div><p className="text-[10px] font-bold text-muted-foreground uppercase">Target Buyer</p><p className="text-xs text-foreground/80">{data.redesignedConcept.targetUser}</p></div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="p-2 rounded" style={{ background: "hsl(271 81% 56% / 0.05)" }}>
+                  <p className="text-[10px] font-bold" style={{ color: "hsl(271 81% 40%)" }}>Why Not Done</p>
+                  <p className="text-xs text-foreground/80">{data.redesignedConcept.whyItHasntBeenDone}</p>
+                </div>
+                <div className="p-2 rounded" style={{ background: "hsl(var(--destructive) / 0.05)" }}>
+                  <p className="text-[10px] font-bold" style={{ color: "hsl(var(--destructive))" }}>Biggest Risk</p>
+                  <p className="text-xs text-foreground/80">{data.redesignedConcept.biggestRisk}</p>
+                </div>
+              </div>
+            </div>
+          </DetailPanel>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded" style={{ background: "hsl(271 81% 56% / 0.07)", border: "1px solid hsl(271 81% 56% / 0.2)" }}>
-              <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(271 81% 40%)" }}>
-                <Brain size={11} /> Why It Hasn't Been Done
-              </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.whyItHasntBeenDone}</p>
-            </div>
-            <div className="p-4 rounded" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
-              <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
-                <AlertTriangle size={11} /> Biggest Risk
-              </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.biggestRisk}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-4 rounded space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-              <p className="section-label text-[10px] flex items-center gap-1"><Factory size={11} /> Manufacturing Path</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.manufacturingPath}</p>
-            </div>
-            <div className="p-4 rounded space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-              <p className="section-label text-[10px] flex items-center gap-1"><DollarSign size={11} /> Price Point</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.pricePoint}</p>
-            </div>
-            <div className="p-4 rounded space-y-1" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-              <p className="section-label text-[10px] flex items-center gap-1"><Users size={11} /> Target Buyer</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.redesignedConcept.targetUser}</p>
-            </div>
-           </div>
-          <button onClick={() => { setActiveStep("ideas"); setVisitedFPSteps(prev => new Set([...prev, "ideas"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
-            style={{ background: "hsl(38 92% 50%)", color: "white" }}>
-            Next: Flipped Ideas <ArrowRight size={14} />
-          </button>
+          <InsightRating sectionId="concept" compact />
+          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
         </div>
       )}
 
-      {/* STEP 8: Flipped Ideas */}
+      {/* Section 8: Flipped Ideas */}
       {activeStep === "ideas" && (
-        <div className="space-y-5">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            AI-generated product reinvention ideas ranked by viability — add your own context below to steer the AI, then regenerate.
-          </p>
+        <div className="space-y-4">
+          <SectionHeader current={currentSectionNum} total={totalSections} label="Flipped Ideas" icon={Zap} />
 
-          {/* User context input */}
-          <div className="p-4 rounded space-y-2" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.2)", borderLeft: "4px solid hsl(38 92% 50%)" }}>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50% / 0.15)" }}>
-                <Lightbulb size={14} style={{ color: "hsl(38 92% 50%)" }} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Steer the Ideas</p>
-                <p className="text-[10px] text-muted-foreground">Share your goals, then regenerate below</p>
-              </div>
-            </div>
+          <DetailPanel title="Steer ideas — add your goals, then regenerate" icon={Lightbulb}>
             <textarea
               value={userContext}
               onChange={(e) => setUserContext(e.target.value)}
-              placeholder="e.g. Focus on eco-friendly materials, target Gen Z audience, keep price under $30, emphasize subscription model…"
-              className="w-full rounded px-4 py-3 text-sm leading-relaxed resize-none transition-colors focus:outline-none"
-              style={{
-                background: "hsl(var(--background))",
-                border: "2px solid hsl(38 92% 50% / 0.2)",
-                color: "hsl(var(--foreground))",
-                minHeight: "80px",
-              }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "hsl(38 92% 50%)"; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = "hsl(38 92% 50% / 0.2)"; }}
+              placeholder="e.g. Focus on eco-friendly materials, target Gen Z, keep under $30…"
+              className="w-full rounded px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
+              rows={2}
+              style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
             />
-          </div>
+          </DetailPanel>
 
           {flippedIdeas && flippedIdeas.length > 0 ? (
             <>
               <div className="flex items-center justify-between">
-                <p className="section-label text-[10px] flex items-center gap-1">
-                  <Zap size={12} /> Flipped Product Ideas (Ranked)
-                </p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{flippedIdeas.length} ideas ranked by viability</p>
                 {onRegenerateIdeas && (
                   <button
                     onClick={() => onRegenerateIdeas(userContext || undefined)}
                     disabled={generatingIdeas}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                    style={{
-                      background: "hsl(var(--primary-muted))",
-                      color: "hsl(var(--primary))",
-                      border: "1px solid hsl(var(--primary) / 0.3)",
-                    }}
+                    style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.3)" }}
                   >
-                    {generatingIdeas ? (
-                      <><RefreshCw size={11} className="animate-spin" /> Generating…</>
-                    ) : (
-                      <><Sparkles size={11} /> Regenerate with AI</>
-                    )}
+                    {generatingIdeas ? <><RefreshCw size={11} className="animate-spin" /> Generating…</> : <><Sparkles size={11} /> Regenerate</>}
                   </button>
                 )}
               </div>
@@ -1012,51 +881,45 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               </div>
             </>
           ) : (
-            <div className="text-center py-12 text-sm text-muted-foreground">
-              No flipped ideas available yet. Run the intelligence report first to generate ideas.
+            <div className="text-center py-8 text-sm text-muted-foreground">
+              No flipped ideas yet. Run the intelligence report first.
             </div>
           )}
-          {!isService ? (
-            <button onClick={() => { setActiveStep("patents"); setVisitedFPSteps(prev => new Set([...prev, "patents"])); scrollToSteps(); }} className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded transition-colors"
-              style={{ background: "hsl(271 81% 55%)", color: "white" }}>
-              Next: Patent Intelligence <ArrowRight size={14} />
-            </button>
+          {nextStep ? (
+            <NextSectionButton label={nextStep.label} onClick={goNext} />
           ) : (
-            <div className="text-center py-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded text-xs font-bold"
-                style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
-                <CheckCircle2 size={14} /> All Disrupt sections explored!
+            <div className="text-center py-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+                <CheckCircle2 size={14} /> All sections explored!
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* STEP 9: Patent Intelligence */}
+      {/* Section 9: Patent Intelligence */}
       {activeStep === "patents" && !isService && (
         <div className="space-y-4">
+          <SectionHeader current={currentSectionNum} total={totalSections} label="Patent Intel" icon={ScrollText} />
+
           {product.patentData && (
             <div className="flex justify-end">
               <button
                 onClick={() => downloadPatentPDF(product, product.patentData)}
-                className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                 style={{ background: "hsl(271 81% 55%)", color: "white" }}
               >
-                <FileDown size={14} />
-                Download Patent PDF
+                <FileDown size={14} /> Download PDF
               </button>
             </div>
           )}
           <PatentIntelligence
             product={product}
-            onSave={(patentData) => {
-              onPatentSave?.(patentData);
-            }}
+            onSave={(patentData) => { onPatentSave?.(patentData); }}
           />
-          <div className="text-center py-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold"
-              style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
-              <CheckCircle2 size={14} /> All Disrupt sections explored!
+          <div className="text-center py-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+              <CheckCircle2 size={14} /> All sections explored!
             </div>
           </div>
         </div>
