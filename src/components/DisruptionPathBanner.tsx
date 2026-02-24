@@ -1,58 +1,187 @@
-import { Target, Brain, Swords, Presentation, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { Target, Brain, Swords, Presentation, ArrowRight, Sparkles } from "lucide-react";
 
 const PIPELINE_STEPS = [
-  { icon: Target, label: "Intelligence Report", shortLabel: "Report", desc: "Market data & competitor mapping" },
-  { icon: Brain, label: "Disrupt", shortLabel: "Disrupt", desc: "First principles deconstruction" },
-  { icon: Swords, label: "Stress Test", shortLabel: "Test", desc: "Adversarial validation" },
-  { icon: Presentation, label: "Pitch Deck", shortLabel: "Pitch", desc: "Investor-ready output" },
+  {
+    icon: Target,
+    label: "Intelligence Report",
+    shortLabel: "Intel",
+    desc: "Deep market data, pricing intel, supply chain mapping & competitor analysis",
+    detail: "We scrape live market sources, analyze pricing patterns, and map supplier networks to give you a complete intelligence picture.",
+    color: "230 90% 63%",
+  },
+  {
+    icon: Brain,
+    label: "Disrupt & Reinvent",
+    shortLabel: "Disrupt",
+    desc: "First principles deconstruction & AI-generated flip ideas",
+    detail: "Every assumption gets challenged. The AI breaks down the product to fundamentals and generates novel concepts from community pain points.",
+    color: "271 81% 55%",
+  },
+  {
+    icon: Swords,
+    label: "Stress Test",
+    shortLabel: "Test",
+    desc: "Red vs Blue team adversarial validation & critical debate",
+    detail: "Your best ideas face adversarial scrutiny — a Red Team attacks while a Blue Team defends, revealing blind spots before they cost you.",
+    color: "350 80% 55%",
+  },
+  {
+    icon: Presentation,
+    label: "Pitch Deck",
+    shortLabel: "Pitch",
+    desc: "Investor-ready presentation with data-backed slides",
+    detail: "Auto-generated pitch deck with market sizing, competitive moats, revenue projections, and go-to-market strategy — ready for investors.",
+    color: "160 60% 44%",
+  },
 ];
 
 interface DisruptionPathBannerProps {
   activeStep?: number;
+  onStartAnalysis?: () => void;
 }
 
-export function DisruptionPathBanner({ activeStep }: DisruptionPathBannerProps) {
+export function DisruptionPathBanner({ activeStep, onStartAnalysis }: DisruptionPathBannerProps) {
+  const [hoveredStep, setHoveredStep] = useState<number | null>(null);
+
   return (
-    <div className="border-t border-border bg-card">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 overflow-x-auto scrollbar-hide">
-        <div className="flex items-center gap-1 sm:gap-2 min-w-max">
-          {PIPELINE_STEPS.map(({ icon: Icon, label, shortLabel }, i) => {
+    <section className="bg-card border-t border-border">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        {/* Section heading */}
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-4"
+            style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}>
+            <Sparkles size={12} />
+            How It Works
+          </div>
+          <h2 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight">
+            From raw data to investor-ready output
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground mt-2 max-w-xl mx-auto">
+            Four stages of AI-powered analysis, each building on the last
+          </p>
+        </div>
+
+        {/* Pipeline steps — vertical on mobile, horizontal on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-3">
+          {PIPELINE_STEPS.map(({ icon: Icon, label, desc, detail, color }, i) => {
             const isActive = activeStep !== undefined && activeStep === i + 1;
             const isPast = activeStep !== undefined && activeStep > i + 1;
+            const isHovered = hoveredStep === i;
+
             return (
-              <div key={label} className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
+              <div
+                key={label}
+                className="relative group"
+                onMouseEnter={() => setHoveredStep(i)}
+                onMouseLeave={() => setHoveredStep(null)}
+              >
+                {/* Connector arrow — desktop only, between cards */}
+                {i < PIPELINE_STEPS.length - 1 && (
+                  <div className="hidden lg:flex absolute -right-[14px] top-1/2 -translate-y-1/2 z-10">
+                    <ArrowRight size={16} className="text-muted-foreground/40" strokeWidth={2.5} />
+                  </div>
+                )}
+
                 <div
-                  className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0 rounded-lg px-2 sm:px-3 py-2 sm:py-2.5 border transition-all"
+                  className="relative rounded-xl p-5 sm:p-6 transition-all duration-300 cursor-default h-full flex flex-col"
                   style={{
-                    background: isActive ? "hsl(var(--primary))" : isPast ? "hsl(var(--primary) / 0.08)" : "hsl(var(--background))",
-                    borderColor: isActive ? "hsl(var(--primary))" : isPast ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))",
-                    boxShadow: isActive ? "0 2px 8px hsl(var(--primary) / 0.2)" : "none",
+                    background: isActive
+                      ? `hsl(${color} / 0.08)`
+                      : isPast
+                        ? "hsl(var(--primary) / 0.03)"
+                        : isHovered
+                          ? "hsl(var(--foreground) / 0.02)"
+                          : "hsl(var(--background))",
+                    border: isActive
+                      ? `2px solid hsl(${color} / 0.35)`
+                      : isPast
+                        ? "2px solid hsl(var(--primary) / 0.15)"
+                        : isHovered
+                          ? "2px solid hsl(var(--border))"
+                          : "2px solid hsl(var(--border) / 0.6)",
+                    boxShadow: isActive
+                      ? `0 8px 32px hsl(${color} / 0.12)`
+                      : isHovered
+                        ? "0 4px 16px hsl(var(--foreground) / 0.06)"
+                        : "none",
+                    transform: isHovered ? "translateY(-2px)" : "translateY(0)",
                   }}
                 >
-                  <Icon
-                    size={12}
-                    className="flex-shrink-0"
-                    style={{ color: isActive ? "hsl(var(--primary-foreground))" : isPast ? "hsl(var(--primary))" : "hsl(var(--primary))" }}
-                  />
-                  <p
-                    className="text-[10px] sm:text-xs font-semibold truncate"
+                  {/* Step number + icon */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div
+                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-300"
+                      style={{
+                        background: isActive || isHovered ? `hsl(${color})` : "hsl(var(--foreground))",
+                      }}
+                    >
+                      <Icon size={18} style={{ color: "hsl(var(--background))" }} />
+                    </div>
+                    <span
+                      className="text-[11px] font-bold uppercase tracking-widest"
+                      style={{ color: isActive ? `hsl(${color})` : "hsl(var(--muted-foreground))" }}
+                    >
+                      Step {i + 1}
+                    </span>
+                  </div>
+
+                  {/* Label */}
+                  <h3 className="text-sm sm:text-base font-bold text-foreground mb-1.5 leading-tight">
+                    {label}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-3 flex-1">
+                    {desc}
+                  </p>
+
+                  {/* Expanded detail on hover/active */}
+                  <div
+                    className="overflow-hidden transition-all duration-300"
                     style={{
-                      color: isActive ? "hsl(var(--primary-foreground))" : isPast ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-                      fontWeight: isActive || isPast ? 700 : 600,
+                      maxHeight: isHovered || isActive ? "80px" : "0px",
+                      opacity: isHovered || isActive ? 1 : 0,
                     }}
                   >
-                    <span className="hidden sm:inline">{label}</span>
-                    <span className="sm:hidden">{shortLabel}</span>
-                  </p>
+                    <p className="text-[11px] text-muted-foreground/80 leading-relaxed pt-3"
+                      style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                      {detail}
+                    </p>
+                  </div>
+
+                  {/* Active / completed indicator */}
+                  {(isActive || isPast) && (
+                    <div className="mt-3">
+                      <span
+                        className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full"
+                        style={{
+                          background: isPast ? "hsl(152 60% 44% / 0.1)" : `hsl(${color} / 0.1)`,
+                          color: isPast ? "hsl(152 60% 44%)" : `hsl(${color})`,
+                        }}
+                      >
+                        {isPast ? "✓ Complete" : "● Current"}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                {i < PIPELINE_STEPS.length - 1 && (
-                  <ChevronRight size={14} className="text-muted-foreground flex-shrink-0" strokeWidth={2.5} />
-                )}
               </div>
             );
           })}
         </div>
+
+        {/* CTA */}
+        {onStartAnalysis && (
+          <div className="text-center mt-8 sm:mt-10">
+            <button
+              onClick={onStartAnalysis}
+              className="btn-primary text-sm px-6 sm:px-8"
+            >
+              Start Your Analysis <ArrowRight size={15} />
+            </button>
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 }
