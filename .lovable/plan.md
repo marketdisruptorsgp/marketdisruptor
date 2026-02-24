@@ -1,119 +1,108 @@
 
 
-# Engagement, Retention, and Growth Feature Suite
+# API / Integrations Page Under Resources
 
-This plan covers six major feature areas to make the platform stickier, more polished, and worth paying for.
+## Overview
 
----
+Add a new `/api` page (linked under Resources in the nav) that serves two purposes:
 
-## 1. "Market Changed" Notifications
+1. **API Documentation** -- Users can generate a personal API key and use REST endpoints to pull their analysis data, patent filings, and market news into external tools (Notion, Sheets, Zapier, etc.)
+2. **Webhook / Export Integrations** -- Users can configure a webhook URL so that every time an analysis completes, the platform pushes a JSON payload to their endpoint automatically.
 
-**What it does:** When users return to the dashboard, the platform checks if new patent filings or market news overlap with their saved analyses (by category/keywords). If matches exist, a notification banner appears on the dashboard prompting them to re-run or review.
-
-**Implementation:**
-- New component `MarketChangeAlert.tsx` that runs on dashboard mount
-- Queries `patent_filings` and `market_news` for items newer than the user's most recent login/visit
-- Cross-references against the user's `saved_analyses` categories
-- Displays a dismissable alert card: "3 new patents filed in [category] since your last analysis -- Re-run Intel?"
-- Add a `last_seen_at` column to the `profiles` table (updated on each login) to track what's "new"
-
-**Files:** New `src/components/MarketChangeAlert.tsx`, edit `src/pages/DashboardPage.tsx`, migration for `profiles.last_seen_at`
+This turns the platform from a "visit and view" tool into a connectable data source -- a major stickiness driver.
 
 ---
 
-## 2. Gamification -- Completion Tracking and Streaks
+## What Users Can Do
 
-**What it does:** Adds visible progress indicators and weekly streak tracking to encourage users to complete all analysis steps and return regularly.
+**Pull data OUT (API):**
+- `GET /api-proxy?resource=analyses` -- List all their saved analyses with scores, categories, products
+- `GET /api-proxy?resource=patents` -- Get recent patent filings (last 30 days)
+- `GET /api-proxy?resource=news` -- Get recent market news (last 30 days)
+- `GET /api-proxy?resource=portfolio` -- Get aggregated portfolio stats
 
-**Implementation:**
-- **Completion percentage on project cards:** Already have `StepProgressDots` showing "3 of 5 explored". Enhance to show a percentage ring and a "Complete all 5 steps" CTA on the Saved Projects panel
-- **Weekly streak counter:** New `StreakBadge` component on the dashboard hero section showing "Week 3 streak" with a flame icon. Tracked via a `user_streaks` table (user_id, week_start, analysis_count) updated each time an analysis completes
-- **Milestone toasts:** When a user hits 5, 10, 25 analyses, show a celebratory toast with an achievement badge
-
-**Files:** New `src/components/StreakBadge.tsx`, edit `src/components/SavedAnalyses.tsx` (enhance cards), edit `src/pages/DashboardPage.tsx`, edit `src/contexts/AnalysisContext.tsx` (milestone check), migration for `user_streaks` table
-
----
-
-## 3. Encourage Tweaking and Fine-Tuning
-
-**What it does:** After each analysis step completes, show a prominent "Refine This" prompt that lets users add custom instructions and re-run the step with their guidance. Makes the platform feel collaborative, not one-shot.
-
-**Implementation:**
-- New `RefinementPrompt` component: a collapsible input area below each completed step section (Report, Disrupt, Stress Test, Pitch) saying "Not quite right? Tell the AI what to focus on and regenerate this section"
-- When submitted, calls the same edge function with the additional `userPrompt` parameter (already supported per the architecture notes)
-- Track refinement count per analysis to show "Refined 3x" badge on project cards -- signals depth of engagement
-- Add a subtle "Tip: Try adjusting..." contextual hint after first analysis completes
-
-**Files:** New `src/components/RefinementPrompt.tsx`, edit `src/pages/ReportPage.tsx`, `src/pages/DisruptPage.tsx`, `src/pages/StressTestPage.tsx`, `src/pages/PitchPage.tsx`
+**Push data OUT (Webhooks):**
+- Configure a webhook URL in settings
+- When an analysis completes, the platform POSTs a JSON summary (title, score, category, top ideas) to their URL
+- Works with Zapier, Make, n8n, Slack incoming webhooks, etc.
 
 ---
 
-## 4. Portfolio Dashboard
+## Technical Implementation
 
-**What it does:** A dedicated `/portfolio` page that aggregates all saved analyses into a strategic overview with comparative metrics, scatter plots, and category breakdowns.
+### Database Changes
 
-**Implementation:**
-- New `PortfolioPage.tsx` with sections:
-  - **Overview stats:** Total projects, average revival score, top score, analyses this month
-  - **Score distribution chart:** Bar chart of revival scores across all projects (using existing Recharts)
-  - **Category breakdown:** Pie/donut chart showing product vs service vs business model split
-  - **Side-by-side comparison:** Select 2-3 projects to compare key metrics in a table
-  - **Timeline view:** When each analysis was created, showing activity density
-- Add route `/portfolio` to `App.tsx`
-- Add nav link in `PlatformNav`
+New `api_keys` table:
+- `id` (uuid, primary key)
+- `user_id` (text, references auth user)
+- `key_hash` (text) -- SHA-256 hash of the API key (never store plaintext)
+- `key_prefix` (text) -- First 8 chars for display (e.g., `md_live_a1b2...`)
+- `name` (text) -- User label like "My Zapier Key"
+- `created_at`, `last_used_at`, `revoked_at`
+- RLS: users can only see/manage their own keys
 
-**Files:** New `src/pages/PortfolioPage.tsx`, edit `src/App.tsx`, edit `src/components/PlatformNav.tsx`
+New `webhooks` table:
+- `id` (uuid, primary key)
+- `user_id` (text)
+- `url` (text) -- The destination URL
+- `events` (text array) -- Which events trigger it (e.g., `["analysis.completed"]`)
+- `active` (boolean, default true)
+- `created_at`
+- RLS: users can only see/manage their own webhooks
+
+### New Edge Function: `api-proxy`
+
+A single edge function that:
+1. Validates the API key from the `Authorization: Bearer md_live_...` header
+2. Looks up `key_hash` in `api_keys` table to find the user
+3. Routes based on `resource` query param to query the appropriate table scoped to that user
+4. Returns paginated JSON responses
+5. Updates `last_used_at` on the key
+
+### New Edge Function: `fire-webhook`
+
+Called internally (from `AnalysisContext` after analysis completes):
+1. Looks up active webhooks for the user
+2. POSTs the analysis summary JSON to each configured URL
+3. Logs success/failure (could add a `webhook_logs` table later)
+
+### New Page: `src/pages/ApiPage.tsx`
+
+A tabbed page with:
+- **Overview tab**: What the API offers, use cases (Zapier, Sheets, Notion, Slack)
+- **API Keys tab**: Generate, view (prefix only), revoke keys. Copy-to-clipboard.
+- **Endpoints tab**: Interactive docs showing each endpoint with example curl commands and JSON responses
+- **Webhooks tab**: Add/remove webhook URLs, select which events trigger them, test button that sends a sample payload
+
+### Navigation
+
+- Add "API & Integrations" to the `RESOURCES_ITEMS` array in `PlatformNav.tsx`
+- Add route `/api` to `App.tsx`
+- Gate key generation behind Builder/Disruptor tiers (Explorer can view docs but not generate keys)
 
 ---
 
-## 5. Branded PDF Exports
+## Technical Details
 
-**What it does:** Upgrade the existing PDF exports with stronger branding, a table of contents, page numbers, and a branded footer on every page.
+| Component | File | Purpose |
+|---|---|---|
+| API page | `src/pages/ApiPage.tsx` (new) | Tabbed docs + key management + webhook config |
+| API proxy function | `supabase/functions/api-proxy/index.ts` (new) | Authenticated REST endpoints for external tools |
+| Webhook function | `supabase/functions/fire-webhook/index.ts` (new) | Push data to user-configured URLs on events |
+| DB migration | New migration | `api_keys` and `webhooks` tables with RLS |
+| Nav update | `src/components/PlatformNav.tsx` | Add "API & Integrations" to Resources dropdown |
+| Route | `src/App.tsx` | Add `/api` route |
+| Webhook trigger | `src/contexts/AnalysisContext.tsx` | Call `fire-webhook` after analysis completes |
 
-**Implementation:**
-- Add a consistent footer to every page: "Market Disruptor | Confidential | Page X of Y" with the primary brand color
-- Add a table of contents on page 2 listing all sections with page numbers
-- Add a "Prepared for [User Name]" line on the cover page using profile data
-- Add a watermark-style "MARKET DISRUPTOR" diagonal text on each page (subtle, low opacity)
-- Ensure the cover page includes the user's tier badge (e.g., "Disruptor Plan")
+### API Key Flow
+1. User clicks "Generate API Key" on the API page
+2. Frontend generates a random key (`md_live_` + 32 random hex chars)
+3. Shows the full key ONCE in a modal (copy-to-clipboard)
+4. Stores SHA-256 hash + 8-char prefix in the database
+5. Key is never retrievable again -- only the prefix is shown in the list
 
-**Files:** Edit `src/lib/pdfExport.ts` (all export functions)
-
----
-
-## 6. Share with Team Including Referral Link
-
-**What it does:** A "Share This Analysis" button on completed analyses that generates a shareable summary with the user's referral link embedded. Supports email (via existing Resend integration) and copy-to-clipboard.
-
-**Implementation:**
-- New `ShareAnalysis` component with two modes:
-  - **Copy shareable link:** Generates a URL like `/share?ref={userId}&preview={analysisId}` -- the share page already exists and handles `ref` parameter
-  - **Email to team:** Opens a modal with recipient email/name fields. Calls a new edge function `share-analysis` that sends a branded email with analysis highlights (title, score, top idea, category) plus the referral link
-- Add the share button to the step navigator bar on Report, Disrupt, Stress Test, and Pitch pages
-- The referral link is embedded in both the email and the copied link, so every share doubles as a referral
-
-**Files:** New `src/components/ShareAnalysis.tsx`, new `supabase/functions/share-analysis/index.ts`, edit `src/components/StepNavigator.tsx` or step pages to add share button
-
----
-
-## Technical Summary
-
-| Feature | New Files | Edited Files | DB Changes |
-|---|---|---|---|
-| Market Changed Notifications | `MarketChangeAlert.tsx` | `DashboardPage.tsx` | Add `last_seen_at` to profiles |
-| Gamification | `StreakBadge.tsx` | `DashboardPage.tsx`, `SavedAnalyses.tsx`, `AnalysisContext.tsx` | New `user_streaks` table |
-| Refinement Prompts | `RefinementPrompt.tsx` | `ReportPage.tsx`, `DisruptPage.tsx`, `StressTestPage.tsx`, `PitchPage.tsx` | None |
-| Portfolio Dashboard | `PortfolioPage.tsx` | `App.tsx`, `PlatformNav.tsx` | None |
-| Branded PDFs | None | `pdfExport.ts` | None |
-| Share with Team | `ShareAnalysis.tsx`, `share-analysis/index.ts` | Step pages / `StepNavigator.tsx` | None |
-
-**Dependencies:** No new npm packages needed. All charts use existing Recharts. PDF uses existing jsPDF. Emails use existing Resend integration.
-
-**Priority order (recommended):**
-1. Refinement Prompts (highest engagement impact, leverages existing `userPrompt` support)
-2. Portfolio Dashboard (makes the platform feel like a workspace, not a tool)
-3. Market Changed Notifications (brings users back)
-4. Branded PDFs (premium feel, quick win)
-5. Share with Team (growth loop)
-6. Gamification (retention layer)
+### Tier Gating
+- **Explorer (Free)**: Can view API docs, no key generation
+- **Builder**: 1 API key, 1 webhook, 100 API calls/day
+- **Disruptor**: Unlimited keys, webhooks, and API calls
 
