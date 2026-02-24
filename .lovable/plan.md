@@ -1,40 +1,41 @@
-
-
-# Auto-Persist All Step Data Across All Modes
+# Yes. Also each mode has a corresponding color like pink for service purple for business model blue for product. Use those as a basis somehow to always let user know which mode they're in. And ensure this styling logic here is applied across all modes steps sections. Polish UI: Match Analysis Journey Design Quality
 
 ## Problem
 
-When a user generates results for any step (Intel Report, Disrupt, Stress Test, Pitch Deck), the data is only partially saved. If they reload from Saved Projects, some steps must be re-run. Specifically:
+Several sections across the Intel Report and Disrupt steps use colored tinted backgrounds, emojis, dashed borders, and inconsistent card treatments that feel cheap and AI-generated. The 4th screenshot (Analysis Journey grid) has the right level of polish: clean backgrounds, subtle borders, professional typography, and minimal color usage limited to icons and status indicators.
 
-- **Business Model mode**: Stress Test and Pitch Deck results are never persisted to the database
-- **Business Model Disrupt**: Not persisted separately
-- **Patent Intelligence** (Report step): Data is saved on the product object but the updated products array isn't always re-saved to the database
-- **ReportPage patent save**: Updates products in memory but doesn't persist the updated array back to the database
+## What Changes
 
-## Solution
+### 1. DetailPanel (collapsible sections) -- `src/components/SectionNav.tsx`
 
-Add `saveStepData` calls everywhere step data is generated, and ensure `handleLoadSaved` restores all of it.
+- Remove dashed border style; use solid `1px solid hsl(var(--border))` consistently
+- Remove the pulsing "Tap to expand" black badge (feels gimmicky)
+- Replace with a subtle static chevron-only indicator
+- Clean up hover/open states to use simple background shifts
 
----
+### 2. Patent Intelligence cards -- `src/components/PatentIntelligence.tsx`
 
-## Changes
+- **Score meters area**: Remove purple tinted background; use clean `hsl(var(--card))` with subtle border
+- **Risk card**: Keep the semantic color for the risk level text/icon but use a neutral card background instead of colored tint
+- **Expired Goldmines cards**: Remove green tinted backgrounds; use clean card bg with a small green accent dot or left-border only
+- **Patent Gaps cards**: Remove emoji usage (fire, lightning bolt); use plain text labels like "High" / "Medium"
+- **Innovation Angles cards**: Remove amber tinted background; use neutral card with subtle accent
+- **Quick Actions**: Remove blue tinted background; use clean card with numbered list
+- **Active Minefield**: Remove red tinted backgrounds and emoji (warning, lightning); use clean cards with small colored severity text
+- **All sections**: Remove emoji characters entirely (no fire, lightning, warning, money bag icons in text)
 
-### 1. BusinessResultsPage.tsx -- Persist business stress test and pitch deck
+### 3. Disrupt section cards -- `src/components/FirstPrinciplesAnalysis.tsx`
 
-- **Stress Test** (line ~159): Change `onDataLoaded={analysis.setBusinessStressTestData}` to also call `saveStepData("businessStressTest", d)`
-- **Pitch Deck** (line ~179): Add `onSave` callback that calls `setPitchDeckData` and `saveStepData("businessPitchDeck", d)`
+- **"The Real Problem" card**: Remove colored left-border + tinted background; use clean card with bold header
+- **"Highest-Leverage Integration" card**: Same treatment -- remove blue tint + left-border
+- **Challenge idea callouts**: Remove blue left-border + tinted background; use clean indented text with subtle styling
+- **Missed Opportunities cards**: Remove purple tinted backgrounds; use neutral cards
+- **Severity/reason badges**: Keep as small colored text labels but remove colored background tints -- use lighter, more subtle pill styling
 
-### 2. ReportPage.tsx -- Persist patent data back to database
+### 4. General Badge Cleanup -- `src/components/SectionNav.tsx`
 
-- In the `onSave` callback for `PatentIntelligence`, after updating `products` in memory, also call `saveAnalysis(updated, analysisParams)` to write the updated product array (with patent data) back to the database
-
-### 3. AnalysisContext.tsx -- Restore all persisted step data on load
-
-Update `handleLoadSaved` to also restore:
-- `ad?.businessStressTest` into `setBusinessStressTestData`
-- `ad?.businessPitchDeck` into `setPitchDeckData`
-
-This ensures that when a user opens a saved Business Model project, the Stress Test and Pitch Deck results are fully restored without re-running.
+- "All sections explored" badge: Remove green tinted background; use clean styling consistent with the grid navigator
+- Gating warning badge: Remove amber tint; use subtle neutral styling
 
 ---
 
@@ -42,15 +43,19 @@ This ensures that when a user opens a saved Business Model project, the Stress T
 
 ### Files Modified
 
-| File | Change |
-|------|--------|
-| `src/pages/BusinessResultsPage.tsx` | Add `saveStepData` calls for stress test and pitch deck |
-| `src/pages/ReportPage.tsx` | Persist updated products array after patent data is saved |
-| `src/contexts/AnalysisContext.tsx` | Restore `businessStressTest` and `businessPitchDeck` in `handleLoadSaved` |
 
-### What Already Works (no changes needed)
+| File                                         | Changes                                                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `src/components/SectionNav.tsx`              | DetailPanel: solid borders, remove pulse badge. NextStepButton/AllExploredBadge: cleaner styling |
+| `src/components/PatentIntelligence.tsx`      | All cards: neutral backgrounds, remove emojis, cleaner borders                                   |
+| `src/components/FirstPrinciplesAnalysis.tsx` | Content cards: remove colored tints/left-borders, cleaner callouts                               |
 
-- Product/Service mode: Disrupt, Stress Test, and Pitch Deck pages already call `saveStepData`
-- Initial analysis products are auto-saved via `saveAnalysis` after the analysis pipeline completes
-- `saveStepData` merges into the existing `analysis_data` JSON column, so multiple step saves don't overwrite each other
 
+### Design Principles Applied
+
+- Cards use `hsl(var(--card))` or `hsl(var(--muted))` backgrounds only -- no colored tints
+- Semantic colors (red/amber/green) limited to small text labels and icons, never card backgrounds
+- No emojis anywhere in rendered output
+- Borders are always solid `1px solid hsl(var(--border))` -- no dashed borders
+- No pulse/bounce animations on static UI elements
+- Typography hierarchy carries the weight, not background colors
