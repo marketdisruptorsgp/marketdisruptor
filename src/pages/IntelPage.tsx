@@ -374,17 +374,24 @@ export default function IntelPage() {
                       <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${phaseColor}`}>
                         {phase}
                       </span>
-                      {activeTrend.data_quality && (
-                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                          activeTrend.data_quality === "high"
-                            ? "bg-green-500/10 text-green-600 border border-green-500/20"
-                            : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
-                        }`}>
-                          {activeTrend.data_quality === "high" ? "✓ Verified" : "◐ Directional"}
-                        </span>
-                      )}
+                      {(() => {
+                        const isReal = activeTrend.source === "google_trends";
+                        return (
+                          <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+                            isReal
+                              ? "bg-green-500/10 text-green-600 border-green-500/20"
+                              : data.length > 0
+                                ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                                : "bg-muted text-muted-foreground border-border"
+                          }`}>
+                            {isReal ? "✓ Google Trends Data" : data.length > 0 ? "◐ Modeled" : "— No Chart Data"}
+                          </span>
+                        );
+                      })()}
                     </div>
-                    <p className="text-[10px] text-muted-foreground">{activeTrend.category} · Relative search interest (0-100)</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {activeTrend.category} · {activeTrend.source === "google_trends" ? "Real Google Trends interest (0-100)" : "Relative search interest (0-100)"}
+                    </p>
                   </div>
                   <div className="flex gap-3 sm:gap-4 flex-wrap">
                     {lastVal !== null && (
