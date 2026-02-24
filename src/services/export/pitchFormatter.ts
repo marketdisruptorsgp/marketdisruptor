@@ -9,6 +9,7 @@ export interface SlideModel {
   id: string;
   title: string;
   headline?: string;
+  categoryLabel?: string;
   sections: SlideSection[];
   dataCallout?: { label: string; value: string };
   metadata: { timestamp: string; platform: string; dataSource?: string };
@@ -25,6 +26,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
   slides.push({
     id: "problem",
     title: "The Problem",
+    categoryLabel: "Problem Discovery",
     headline: deck.problemStatement?.split(".")?.[0] || "Market gap identified",
     sections: [
       {
@@ -45,6 +47,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
   slides.push({
     id: "solution",
     title: "The Solution",
+    categoryLabel: "Strategic Thesis",
     headline: deck.elevatorPitch?.split(".")?.[0] || productName,
     sections: [
       { heading: "Solution", bullets: splitToBullets(deck.solutionStatement, 4), evidenceTag: "MODELED" },
@@ -57,6 +60,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
   slides.push({
     id: "whynow",
     title: "Why Now",
+    categoryLabel: "Market Timing",
     headline: "Market timing advantage",
     sections: [
       { heading: "Market Timing", bullets: splitToBullets(deck.whyNow, 4), evidenceTag: "MODELED" },
@@ -69,6 +73,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
     slides.push({
       id: "market",
       title: "Market Opportunity",
+      categoryLabel: "Market Sizing",
       headline: `TAM: ${deck.marketOpportunity.tam}`,
       sections: [
         {
@@ -91,6 +96,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
   slides.push({
     id: "product",
     title: "Product / Innovation",
+    categoryLabel: "Product Analysis",
     headline: "Structural differentiation",
     sections: [
       ...(deck.productInnovation ? [{ heading: "Innovation", bullets: splitToBullets(deck.productInnovation, 3), evidenceTag: "MODELED" as const }] : []),
@@ -103,6 +109,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
   slides.push({
     id: "businessmodel",
     title: "Business Model",
+    categoryLabel: "Financial Model",
     sections: [
       ...(deck.businessModel?.revenueStreams?.length ? [{ heading: "Revenue Streams", bullets: deck.businessModel.revenueStreams.slice(0, 4), evidenceTag: "MODELED" as const }] : []),
       ...(deck.financialModel?.unitEconomics ? [{
@@ -123,6 +130,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
     slides.push({
       id: "traction",
       title: "Traction Signals",
+      categoryLabel: "Validation",
       sections: [{ heading: "Early Signals", bullets: deck.tractionSignals.slice(0, 5), evidenceTag: "VERIFIED" }],
       metadata: { ...meta, dataSource: "Market signals" },
     });
@@ -133,6 +141,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
     slides.push({
       id: "risks",
       title: "Risks & Mitigation",
+      categoryLabel: "Risk Assessment",
       sections: deck.risks.slice(0, 5).map((r: any) => ({
         heading: r.risk,
         bullets: [r.mitigation],
@@ -148,6 +157,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
     slides.push({
       id: "metrics",
       title: "Metrics That Matter",
+      categoryLabel: "KPI Framework",
       sections: deck.keyMetrics.slice(0, 5).map((m: any) => ({
         heading: m.metric,
         bullets: [m.why],
@@ -163,6 +173,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
     slides.push({
       id: "gtm",
       title: "Go-To-Market",
+      categoryLabel: "Growth Strategy",
       sections: [
         { heading: "Phase 1: Launch", bullets: splitToBullets(deck.gtmStrategy.phase1, 3), evidenceTag: "MODELED" },
         { heading: "Phase 2: Scale", bullets: splitToBullets(deck.gtmStrategy.phase2, 3), evidenceTag: "ASSUMPTION" },
@@ -178,6 +189,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
     slides.push({
       id: "competitive",
       title: "Competitive Landscape",
+      categoryLabel: "Competitive Intel",
       sections: [
         ...(deck.competitiveLandscape.directCompetitors?.length ? [{
           heading: "Direct Competitors",
@@ -195,6 +207,7 @@ export function formatPitchToSlides(deck: any, productName: string): SlideModel[
     slides.push({
       id: "invest",
       title: "Investment Ask",
+      categoryLabel: "Capital Strategy",
       sections: [
         ...(deck.investmentAsk?.amount ? [{ heading: "Ask", bullets: [deck.investmentAsk.amount], evidenceTag: "MODELED" as const }] : []),
         ...(deck.investmentAsk?.useOfFunds?.length ? [{ heading: "Use of Funds", bullets: deck.investmentAsk.useOfFunds.slice(0, 5), evidenceTag: "MODELED" as const }] : []),

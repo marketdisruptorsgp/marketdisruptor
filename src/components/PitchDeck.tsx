@@ -16,7 +16,7 @@ import {
   Layers, Shield,
 } from "lucide-react";
 import { NextSectionButton, SectionWorkflowNav, AllExploredBadge } from "@/components/SectionNav";
-import { PitchSlideFrame, SlideStatCard, SlideBullet } from "@/components/pitch/PitchSlideFrame";
+import { PitchSlideFrame, PitchCoverSlide, SlideStatCard, SlideBullet } from "@/components/pitch/PitchSlideFrame";
 import { PresentationMode } from "@/components/pitch/PresentationMode";
 import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
 import { CompletionExperience } from "@/components/CompletionExperience";
@@ -154,6 +154,19 @@ const SLIDE_TITLES: Record<string, string> = {
   invest: "The Ask",
 };
 
+const SLIDE_CATEGORY_LABELS: Record<string, string> = {
+  problem: "Problem Discovery",
+  solution: "Strategic Thesis",
+  whynow: "Market Timing",
+  market: "Market Sizing",
+  product: "Product Analysis",
+  businessmodel: "Financial Model",
+  traction: "Validation",
+  risks: "Risk Assessment",
+  gtm: "Growth Strategy",
+  invest: "Capital Strategy",
+};
+
 export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptData, stressTestData, redesignData, userScores }: PitchDeckProps) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -283,15 +296,18 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   } : null);
 
   /* ── Render a slide frame with content ── */
+  const accentColor = "hsl(var(--primary))";
   const makeSlide = (slideId: string, children: React.ReactNode) => {
     const idx = SLIDE_TABS.findIndex(t => t.id === slideId);
     return (
       <PitchSlideFrame
-        slideNumber={idx + 1}
-        totalSlides={TOTAL}
+        slideNumber={idx + 2} // +1 for cover slide
+        totalSlides={TOTAL + 1}
         title={SLIDE_TITLES[slideId] || slideId}
         subtitle={PITCH_SLIDE_DESCRIPTIONS[slideId]}
         productName={product.name}
+        accentColor={accentColor}
+        categoryLabel={SLIDE_CATEGORY_LABELS[slideId]}
       >
         {children}
       </PitchSlideFrame>
@@ -623,7 +639,15 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   };
 
   /* ── Build all slides for presentation mode ── */
-  const allSlides = SLIDE_TABS.map(tab => makeSlide(tab.id, slideContent[tab.id]));
+  const coverSlide = (
+    <PitchCoverSlide
+      productName={product.name}
+      subtitle={data.elevatorPitch?.split(".")?.[0]}
+      accentColor={accentColor}
+      totalSlides={TOTAL + 1}
+    />
+  );
+  const allSlides = [coverSlide, ...SLIDE_TABS.map(tab => makeSlide(tab.id, slideContent[tab.id]))];
 
   return (
     <div className="space-y-4">
