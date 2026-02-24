@@ -598,7 +598,7 @@ export default function Index() {
             { id: "discover" as const, label: "Disrupt This Nostalgia", icon: Telescope, accent: "hsl(var(--primary))" },
           ];
           return (
-            <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
+            <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
               <div className="flex border-b" style={{ borderColor: "hsl(var(--border))" }}>
                 {TABS.map((tab) => {
                   const isActive = mainTab === tab.id;
@@ -912,7 +912,7 @@ export default function Index() {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                                  style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.12)" }}
+                                  style={{ background: "hsl(var(--muted))", color: "hsl(var(--primary))", border: "1px solid hsl(var(--border))" }}
                                 >
                                   <ExternalLink size={10} />
                                   {src.label?.slice(0, 40)}
@@ -972,7 +972,7 @@ export default function Index() {
                             return (
                               <div className="space-y-5">
                                 {ci.redditSentiment && (
-                                  <div className="p-4 rounded-xl" style={{ background: "hsl(25 90% 50% / 0.08)", border: "1px solid hsl(25 90% 50% / 0.3)" }}>
+                                  <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                                     <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(25 90% 40%)" }}>
                                       <MessageSquare size={12} /> Community Sentiment
                                     </p>
@@ -987,7 +987,7 @@ export default function Index() {
                                       </p>
                                       <div className="space-y-2">
                                         {ci.topComplaints.map((c, i) => (
-                                          <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+                                          <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                                             <ShieldAlert size={12} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 1 }} />
                                             <span className="text-foreground/80">{c}</span>
                                           </div>
@@ -1002,7 +1002,7 @@ export default function Index() {
                                       </p>
                                       <div className="space-y-2">
                                         {ci.improvementRequests.map((r, i) => (
-                                          <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs" style={{ background: "hsl(217 91% 60% / 0.06)", border: "1px solid hsl(217 91% 60% / 0.25)" }}>
+                                          <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                                             <Lightbulb size={12} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 1 }} />
                                             <span className="text-foreground/80">{r}</span>
                                           </div>
@@ -1019,7 +1019,7 @@ export default function Index() {
                                       </p>
                                       <div className="flex flex-wrap gap-2">
                                         {ci.nostalgiaTriggers.map((t, i) => (
-                                          <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: "hsl(330 80% 55% / 0.1)", color: "hsl(330 80% 40%)", border: "1px solid hsl(330 80% 55% / 0.3)" }}>
+                                          <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: "hsl(var(--muted))", color: "hsl(330 80% 40%)", border: "1px solid hsl(var(--border))" }}>
                                             {t}
                                           </span>
                                         ))}
@@ -1033,7 +1033,7 @@ export default function Index() {
                                       </p>
                                       <div className="space-y-2">
                                         {ci.competitorComplaints.map((c, i) => (
-                                          <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+                                          <div key={i} className="flex gap-2 items-start p-3 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                                             <CheckCircle2 size={12} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
                                             <span className="text-foreground/80">{c}</span>
                                           </div>
@@ -1129,7 +1129,7 @@ export default function Index() {
                         ))}
                       </div>
 
-                      <div className="p-4 rounded-xl" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.3)" }}>
+                      <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                         <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 30%)" }}>
                           <DollarSign size={10} className="inline mr-1" />Margin Analysis
                         </p>
@@ -1405,7 +1405,7 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(271 81% 55%)" }}>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                     <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(271 81% 55%)" }}>3</div>
                     <div className="flex-1 min-w-0">
@@ -1445,7 +1445,7 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(350 80% 55%)" }}>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                     <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(350 80% 55%)" }}>4</div>
                     <div className="flex-1 min-w-0">
@@ -1505,7 +1505,7 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(var(--primary))" }}>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                     <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
                     <div className="flex-1 min-w-0">
@@ -1590,7 +1590,7 @@ export default function Index() {
             {/* ── STEP 2: INTELLIGENCE REPORT ── */}
             {businessActiveStep === 2 && (
               <div className="space-y-4">
-                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${bizAccent}` }}>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-center gap-4" style={{ background: "hsl(var(--card))" }}>
                     <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: bizAccent }}>2</div>
                     <div className="flex-1 min-w-0">
@@ -1626,7 +1626,7 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(350 80% 55%)" }}>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                     <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(350 80% 55%)" }}>3</div>
                     <div className="flex-1 min-w-0">
@@ -1652,7 +1652,7 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(38 92% 50%)" }}>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                     <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(38 92% 50%)" }}>4</div>
                     <div className="flex-1 min-w-0">
@@ -1711,7 +1711,7 @@ export default function Index() {
                   <ArrowLeft size={16} />
                   Back to Intelligence Report
                 </button>
-                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(var(--primary))" }}>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                     <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
                     <div className="flex-1 min-w-0">
@@ -1853,7 +1853,7 @@ function SectionAccordion({
         className="w-full flex items-center justify-between p-5 text-left hover:bg-muted/30 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary-muted))" }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--muted))" }}>
             {icon}
           </div>
           <div>

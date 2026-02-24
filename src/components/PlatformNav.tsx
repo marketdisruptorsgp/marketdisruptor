@@ -67,7 +67,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
               <Zap size={15} />
             </div>
             <span className="text-sm font-bold tracking-tight text-foreground hidden sm:inline">Market Disruptor</span>
-            <span className="hidden md:inline text-[9px] font-semibold uppercase tracking-widest text-muted-foreground border border-border rounded-md px-1.5 py-0.5">
+            <span className="hidden md:inline text-[9px] font-semibold uppercase tracking-widest text-primary bg-muted rounded-full px-2 py-0.5">
               OS
             </span>
           </button>
@@ -83,7 +83,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                     </span>
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <div className="w-72 p-2 bg-background shadow-lg rounded-xl border border-border">
+                    <div className="w-72 p-2 bg-background shadow-lg rounded-2xl border border-border">
                       {ACCESS_MODES.map((mode) => {
                         const Icon = mode.icon;
                         const active = analysis.mainTab === mode.id;
@@ -120,7 +120,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                     Resources
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <div className="w-60 p-2 bg-background shadow-lg rounded-xl border border-border">
+                    <div className="w-60 p-2 bg-background shadow-lg rounded-2xl border border-border">
                       {RESOURCES_ITEMS.map((item) => {
                         const Icon = item.icon;
                         return (
@@ -179,7 +179,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
           {onOpenSaved && (
             <button
               onClick={onOpenSaved}
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-colors border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-semibold transition-colors border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted"
             >
               <Database size={13} />
               <span className="hidden sm:inline">Projects</span>
@@ -222,8 +222,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                       onClick={() => handleModeSelect(mode.id)}
                       className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
                       style={{
-                        background: active ? "hsl(var(--primary) / 0.06)" : undefined,
-                        borderLeft: active ? `3px solid hsl(var(${mode.cssVar}))` : "3px solid transparent",
+                        background: active ? "hsl(var(--muted))" : undefined,
                       }}
                     >
                       <Icon size={14} style={{ color: `hsl(var(${mode.cssVar}))` }} />

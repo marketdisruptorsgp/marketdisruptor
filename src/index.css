@@ -106,16 +106,14 @@
 
   .insight-callout {
     position: relative;
-    background: hsl(var(--primary) / 0.04);
+    background: hsl(var(--muted));
     border: 1px solid hsl(var(--border));
-    border-left: 3px solid hsl(var(--primary));
     border-radius: var(--radius);
     padding: 1.25rem 1.5rem;
   }
   .insight-callout--success {
-    background: hsl(var(--success) / 0.04);
+    background: hsl(var(--muted));
     border-color: hsl(var(--border));
-    border-left-color: hsl(var(--success));
   }
 
   .score-badge-high {
