@@ -15,7 +15,8 @@ import { BusinessModelAnalysis, type BusinessModelInput, type BusinessModelAnaly
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { ReferralCTA } from "@/components/ReferralCTA";
-import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges } from "@/components/KeyTakeawayBanner";
+import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
+import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
 import WelcomeModal from "@/components/WelcomeModal";
 import { ContextualTip } from "@/components/ContextualTip";
 import MobileTour from "@/components/MobileTour";
@@ -168,7 +169,7 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "workflow">("overview");
   const [visitedDetailTabs, setVisitedDetailTabs] = useState<Set<string>>(new Set(["overview"]));
   const [visitedStressTestTabs, setVisitedStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
   const [visitedBusinessStressTestTabs, setVisitedBusinessStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
@@ -192,6 +193,7 @@ export default function Index() {
   const step3Ref = useRef<HTMLDivElement>(null);
   const step4Ref = useRef<HTMLDivElement>(null);
   const step5Ref = useRef<HTMLDivElement>(null);
+  const [disruptData, setDisruptData] = useState<unknown>(null);
   const [stressTestData, setStressTestData] = useState<unknown>(null);
   const [stressTestTab, setStressTestTab] = useState<"debate" | "validate">("debate");
   const businessResultsRef = useRef<HTMLDivElement>(null);
@@ -844,6 +846,7 @@ export default function Index() {
                     const DETAIL_TABS = [
                       { id: "overview" as const, label: "Overview", icon: Target },
                       { id: "community" as const, label: "Community", icon: Users },
+                      { id: "workflow" as const, label: "User Journey", icon: Clock },
                       { id: "pricing" as const, label: "Pricing", icon: DollarSign },
                       { id: "supply" as const, label: "Supply Chain", icon: Package },
                     ];
@@ -1122,6 +1125,45 @@ export default function Index() {
                           </div>
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* TAB: USER JOURNEY */}
+                  {detailTab === "workflow" && (
+                    <div className="space-y-4">
+                      {(() => {
+                        const takeaway = getWorkflowTakeaway(disruptData as Record<string, unknown> | null);
+                        return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(217 91% 55%)" /> : null;
+                      })()}
+                      {(() => {
+                        const dd = disruptData as Record<string, unknown> | null;
+                        const uw = dd?.userWorkflow as { stepByStep?: string[]; frictionPoints?: { step: string; friction: string; severity: "high" | "medium" | "low"; rootCause: string }[]; cognitiveLoad?: string; contextOfUse?: string } | undefined;
+                        if (!uw?.stepByStep?.length) {
+                          return (
+                            <div className="py-8 text-center">
+                              <Clock size={32} className="mx-auto mb-3 opacity-20" />
+                              <p className="text-sm text-muted-foreground">User journey data becomes available after running the Disrupt analysis (Step 3).</p>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="space-y-4">
+                            <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
+                            {uw.cognitiveLoad && (
+                              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Cognitive Load</p>
+                                <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
+                              </div>
+                            )}
+                            {uw.contextOfUse && (
+                              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Context of Use</p>
+                                <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
 
@@ -1454,6 +1496,8 @@ export default function Index() {
                       flippedIdeas={selectedProduct.flippedIdeas}
                       onRegenerateIdeas={(ctx) => handleRegenerateIdeas(selectedProduct, ctx)}
                       generatingIdeas={generatingIdeasFor === selectedProduct.id}
+                      externalData={disruptData}
+                      onDataLoaded={setDisruptData}
                       onPatentSave={(patentData) => {
                         const updated = products.map(p =>
                           p.id === selectedProduct.id ? { ...p, patentData } : p
@@ -1503,6 +1547,8 @@ export default function Index() {
                       onRegenerateIdeas={(ctx) => handleRegenerateIdeas(selectedProduct, ctx)}
                       generatingIdeas={generatingIdeasFor === selectedProduct.id}
                       renderMode="redesign"
+                      externalData={disruptData}
+                      onDataLoaded={setDisruptData}
                       onPatentSave={(patentData) => {
                         const updated = products.map(p =>
                           p.id === selectedProduct.id ? { ...p, patentData } : p
