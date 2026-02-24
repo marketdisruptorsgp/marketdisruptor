@@ -683,7 +683,7 @@ export default function Index() {
         {showResults && products.length > 0 && (() => {
           const isCustomMode = analysisParams?.category === "Custom";
           const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
-          const modeAccentLight = isCustomMode ? "hsl(214 95% 93%)" : "hsl(var(--primary-muted))";
+          const modeAccentLight = isCustomMode ? "hsl(var(--muted))" : "hsl(var(--muted))";
           const modeLabel = isCustomMode ? "Product Deep Audit" : "Market Intelligence";
           const totalSources = products.reduce((a, p) => a + (p.sources?.length || 0), 0);
           const totalIdeas = products.reduce((acc, p) => acc + (p.flippedIdeas?.length || 0), 0);
@@ -1131,10 +1131,10 @@ export default function Index() {
                           </p>
                           <div className="space-y-2">
                             {selectedProduct.socialSignals?.map((sig, i) => (
-                              <div key={i} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.15)" }}>
+                              <div key={i} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <p className="text-xs font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>{sig.platform}</p>
+                                    <p className="text-xs font-semibold text-foreground">{sig.platform}</p>
                                     <TrendBadge trend={sig.trend} />
                                   </div>
                                   <p className="text-[11px] text-muted-foreground">{sig.signal}</p>
@@ -1173,12 +1173,12 @@ export default function Index() {
                             key={item.label}
                             className="p-4 rounded-xl"
                             style={{
-                              background: item.highlight ? "hsl(var(--primary-muted))" : "hsl(var(--muted))",
-                              border: item.highlight ? "1px solid hsl(var(--primary) / 0.2)" : "1px solid hsl(var(--border))",
+                              background: "hsl(var(--muted))",
+                              border: "1px solid hsl(var(--border))",
                             }}
                           >
                             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{item.label}</p>
-                            <p className="text-sm font-bold" style={{ color: item.highlight ? "hsl(var(--primary-dark))" : "hsl(var(--foreground))" }}>
+                            <p className="text-sm font-bold" style={{ color: item.highlight ? "hsl(var(--primary))" : "hsl(var(--foreground))" }}>
                               {item.value}
                             </p>
                           </div>
