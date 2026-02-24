@@ -1,152 +1,104 @@
 
 
-# Portfolio Action Items, Notes, and Pitch Persistence
+# Pitch Deck Visual Enhancement + Cover Slide
 
 ## Overview
-Three interconnected features: (1) a cross-project Action Items panel at the top of the Portfolio dashboard, (2) per-project Notes that persist with the analysis, and (3) saving investor pitch deck data so it shows in the portfolio and is accessible from project cards.
+Add subtle, professional design elements across all pitch slides (both on-screen presentation mode and PDF export) and introduce a Cover/Title slide as slide 1. The goal is to elevate the visual quality without breaking the institutional, typography-driven aesthetic.
 
 ---
 
-## 1. New Database Table: `portfolio_action_items`
+## Design Elements Being Added
 
-A dedicated table for user-managed action items that span across all projects.
+These are restrained, capital-markets-grade enhancements -- not decorative fluff:
 
-```text
-portfolio_action_items
-  id            uuid (PK, default gen_random_uuid())
-  user_id       uuid (NOT NULL)
-  analysis_id   uuid (nullable -- links to a project, optional)
-  text          text (NOT NULL)
-  notes         text (nullable)
-  position      integer (NOT NULL, default 0)  -- for drag/reorder
-  completed     boolean (NOT NULL, default false)
-  created_at    timestamptz (default now())
-  updated_at    timestamptz (default now())
-```
-
-RLS policies: full CRUD for `auth.uid() = user_id`.
-
-This table is separate from `saved_analyses` because action items are portfolio-level (cross-project), not scoped to a single analysis.
-
----
-
-## 2. Per-Project Notes (stored in `analysis_data` JSONB)
-
-No schema change needed. Notes will be stored as `analysis_data.projectNotes` (a string) inside the existing `saved_analyses` row. This follows the same pattern used by `steeringMemory`, `userScores`, and other step-level data.
-
-- Saved via the existing `saveStepData("projectNotes", text)` pattern
-- Loaded in `handleLoadSaved` alongside other step data
-- Editable from both the Portfolio project card (inline) and the Report/analysis pages
-
----
-
-## 3. Pitch Deck Persistence in Portfolio
-
-Pitch deck data is already saved as `analysis_data.pitchDeck`. The portfolio will now:
-- Show a "Pitch Deck" badge on project cards that have pitch data
-- Allow clicking to navigate directly to the pitch page (`/analysis/:id/pitch`)
+1. **Cover/Title Slide (new slide 1)** -- Product name, AI-generated presentation title (from elevator pitch), date, "Confidential" label, and a subtle geometric accent (diagonal line or corner rule)
+2. **Slide number accent bar** -- A thin 3px accent-colored strip at the very top of each slide (matches mode theme), giving visual rhythm without being loud
+3. **Section divider line** -- A subtle horizontal rule between the header area and content on each slide, already partially there but will be refined with slightly more presence
+4. **Corner geometric accent** -- A small right-angled geometric element (two thin lines forming an "L") in the bottom-right corner of every slide, adds a professional "designed" feel
+5. **Headline quote marks** -- When a slide has a headline claim, render subtle oversized quotation marks as a typographic accent behind the text
+6. **Slide category label** -- A small uppercase label in the header (e.g., "MARKET ANALYSIS", "FINANCIAL MODEL") that contextualizes the slide type
+7. **Data callout visual upgrade** -- The existing data callout boxes get a left accent border instead of flat background, making them pop more
 
 ---
 
 ## File Changes
 
-### A. `src/components/portfolio/ActionItemsPanel.tsx` (NEW)
+### A. `src/components/pitch/PitchSlideFrame.tsx` (MODIFIED)
 
-A new component rendered at the top of the Portfolio page. Features:
-- Fetches from `portfolio_action_items` table ordered by `position`
-- Each item shows: text, optional linked project name, notes (expandable), completed toggle
-- Inline editing of text and notes
-- Add new item (text input + optional project link dropdown)
-- Delete item (trash icon with confirm)
-- Move up/down buttons to reorder (updates `position` column)
-- Auto-generates suggested action items from analyses (e.g., "Review high-scoring project X", "Stress-test project Y") -- shown as suggestions the user can add with one click
-- All mutations use optimistic UI with `supabase.from("portfolio_action_items")`
+- Add a 3px accent-colored top bar to the slide frame
+- Add a subtle geometric corner accent (bottom-right "L" shape using CSS borders)
+- Add an optional `categoryLabel` prop rendered as micro uppercase text in the header
+- Upgrade the `SlideStatCard` with a subtle left accent border
+- Add a `SlideQuoteAccent` component for headline slides
 
-### B. `src/components/portfolio/ProjectNotesEditor.tsx` (NEW)
+### B. `src/components/PitchDeck.tsx` (MODIFIED)
 
-A small notes editor component (textarea + save button) used in two places:
-- Inside the Portfolio's project card (via a collapsible "Notes" section)
-- On the Report/analysis page (always-visible notes section at the bottom)
-- Persists via `saveStepData("projectNotes", text)` or direct Supabase update
-- Shows last-edited timestamp
+- Add a **Cover Slide** as the first element in the `allSlides` array for presentation mode
+- The cover slide renders: product name, a subtitle derived from `data.elevatorPitch` (first sentence), the date, and "Confidential | Market Disruptor"
+- Add `categoryLabel` props to each `makeSlide` call (e.g., "Market Analysis", "Financial Model", "Risk Assessment")
+- Pass accent color through to `PitchSlideFrame`
 
-### C. `src/pages/PortfolioPage.tsx` (MODIFIED)
+### C. `src/components/pitch/PresentationMode.tsx` (MODIFIED)
 
-- Import and render `ActionItemsPanel` between the stats row and Score Intelligence Panel
-- Update `ProjectInsightCard` usage to pass notes and pitch data
-- Add a notes section that expands inline on each project card
+- No structural changes needed -- it already renders whatever slides are passed to it. The cover slide will automatically appear as slide 1.
 
-### D. `src/components/portfolio/ProjectInsightCard.tsx` (MODIFIED)
+### D. `src/services/export/pdfGenerator.ts` (MODIFIED)
 
-- Show a small "Pitch Deck" badge if `analysis_data?.pitchDeck` exists
-- Show a truncated notes preview if `analysis_data?.projectNotes` exists
-- Add an inline collapsible notes editor (click "Notes" to expand)
-- Notes save directly to `saved_analyses.analysis_data` via Supabase update
+- **Cover page upgrade**: Add a geometric accent element (thin diagonal line), refine typography spacing, add the AI-generated title below the product name
+- **All slide pages**: Add a thin accent-colored top bar, geometric corner accent (bottom-right), and category label in the header band
+- **Data callout boxes**: Add a left accent border
+- Update `formatPitchToSlides` call to also accept the elevator pitch for the cover title
 
-### E. `src/contexts/AnalysisContext.tsx` (MODIFIED)
+### E. `src/services/export/pitchFormatter.ts` (MODIFIED)
 
-- In `handleLoadSaved`: restore `projectNotes` from `analysis_data`
-- Add `projectNotes` / `setProjectNotes` state
-- Expose in context so Report pages can show/edit notes
-
-### F. `src/pages/ReportPage.tsx` (MODIFIED)
-
-- Add a "Notes" section at the bottom of the report view using `ProjectNotesEditor`
-- Connected to `analysis.projectNotes` and saves via `saveStepData`
+- Add a `categoryLabel` field to the `SlideModel` interface
+- Populate category labels for each slide (e.g., "Problem Discovery", "Market Sizing", "Financial Model")
 
 ---
 
-## Action Items Intelligence
+## Cover Slide Content
 
-The `ActionItemsPanel` will auto-suggest action items based on analysis data:
-- Projects with score >= 7.5 but no pitch deck: "Generate pitch deck for [Project]"
-- Projects with no stress test: "Run stress test for [Project]"
-- Projects marked outdated: "Re-run analysis for [Project]"
-- Highest-scoring project: "Focus on [Project] -- your strongest opportunity"
+On-screen (presentation mode) and PDF:
 
-These appear as grey suggestion chips that the user can click to add to their list.
+```text
+--------------------------------------------
+|  [3px accent bar]                         |
+|                                           |
+|  MARKET DISRUPTOR                         |
+|  INVESTOR PITCH DECK                      |
+|                                           |
+|  [Product Name]                           |
+|  [First sentence of elevator pitch]       |
+|                                           |
+|                                           |
+|  February 24, 2026                        |
+|  Confidential                             |
+|                                    [L]    |
+--------------------------------------------
+```
+
+The "[L]" is the geometric corner accent -- two thin lines forming an angular detail.
 
 ---
 
-## Technical Details
+## Visual Before/After Summary
 
-### Database Migration SQL
-```sql
-CREATE TABLE public.portfolio_action_items (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  analysis_id uuid,
-  text text NOT NULL,
-  notes text,
-  position integer NOT NULL DEFAULT 0,
-  completed boolean NOT NULL DEFAULT false,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
+| Element | Before | After |
+|---------|--------|-------|
+| Top of slide | Nothing | 3px accent color bar |
+| Header area | Title + subtitle only | Title + subtitle + category label |
+| Content cards | Flat muted background | Left accent border on key callouts |
+| Bottom corner | Empty | Subtle geometric "L" accent |
+| Slide 1 | Problem slide | New Cover/Title slide |
+| PDF cover | Purple block with name | Refined with geometric accent + AI title |
 
-ALTER TABLE public.portfolio_action_items ENABLE ROW LEVEL SECURITY;
+---
 
-CREATE POLICY "Users can select their own action items"
-  ON public.portfolio_action_items FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own action items"
-  ON public.portfolio_action_items FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own action items"
-  ON public.portfolio_action_items FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own action items"
-  ON public.portfolio_action_items FOR DELETE USING (auth.uid() = user_id);
-```
+## Technical Notes
 
-### Notes Storage Pattern
-Notes are stored in the existing `analysis_data` JSONB column as:
-```json
-{
-  "projectNotes": "User's free-text notes about this project...",
-  "pitchDeck": { ... },
-  "disrupt": { ... }
-}
-```
+- The accent color is passed via the existing `accentColor` prop already threaded through the theme system
+- Cover slide in presentation mode is prepended to the `allSlides` array, so `PresentationMode` handles it automatically
+- PDF geometric elements use simple `doc.line()` calls -- no images or external assets needed
+- Category labels are static strings mapped per slide ID, not AI-generated
+- The cover slide's subtitle uses `data.elevatorPitch?.split(".")?.[0]` -- first sentence only, already available in the data
 
-This requires zero schema changes and follows the established pattern.
-
-### Reorder Logic
-Move up/down swaps `position` values between adjacent items and batch-updates both rows in a single call.
