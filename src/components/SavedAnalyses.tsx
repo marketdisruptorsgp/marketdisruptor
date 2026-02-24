@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 import {
   Clock, Trash2, ChevronRight, Database, RotateCcw, Search,
   ShoppingBag, Building2, Microscope, Star, TrendingUp, Zap, Award,
+  AlertTriangle,
 } from "lucide-react";
+import { StepProgressDots } from "@/components/StepProgressDots";
 import type { Product } from "@/data/mockProducts";
 
 interface SavedAnalysis {
@@ -61,8 +64,12 @@ function getTypeConfig(type?: string) {
 }
 
 function formatDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  return formatDistanceToNow(new Date(iso), { addSuffix: true });
+}
+
+function isStale(iso: string) {
+  const daysOld = (Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24);
+  return daysOld > 30;
 }
 
 function deduplicateAnalyses(items: SavedAnalysis[]): SavedAnalysis[] {
@@ -176,9 +183,19 @@ function SpotlightCard({ analysis, onLoad, onDelete }: { analysis: SavedAnalysis
           </div>
         )}
 
+        {/* Step progress */}
+        <div className="mb-2.5">
+          <StepProgressDots analysisData={analysis.analysis_data as Record<string, unknown> | null} analysisType={analysis.analysis_type} />
+        </div>
+
         {/* Meta */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="tag-pill text-[10px]">{analysis.category}</span>
+          {isStale(analysis.created_at) && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(38 92% 50% / 0.15)", color: "hsl(38 92% 40%)" }}>
+              <AlertTriangle size={9} className="inline mr-0.5" /> Stale
+            </span>
+          )}
         </div>
 
         {/* Footer */}
@@ -230,7 +247,13 @@ function ProjectCard({ analysis, onLoad, onDelete }: { analysis: SavedAnalysis; 
             <span className="text-[10px] text-muted-foreground">{analysis.category}</span>
             <span className="text-[10px] text-muted-foreground">·</span>
             <span className="text-[10px] text-muted-foreground">{formatDate(analysis.created_at)}</span>
+            {isStale(analysis.created_at) && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "hsl(38 92% 50% / 0.15)", color: "hsl(38 92% 40%)" }}>
+                Stale
+              </span>
+            )}
           </div>
+          <StepProgressDots analysisData={analysis.analysis_data as Record<string, unknown> | null} analysisType={analysis.analysis_type} />
         </div>
         {score > 0 && (
           <span

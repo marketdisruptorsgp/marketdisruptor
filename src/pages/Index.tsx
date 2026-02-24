@@ -14,6 +14,8 @@ import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { BusinessModelAnalysis, type BusinessModelInput, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
+import { ReferralCTA } from "@/components/ReferralCTA";
+import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges } from "@/components/KeyTakeawayBanner";
 import WelcomeModal from "@/components/WelcomeModal";
 import { ContextualTip } from "@/components/ContextualTip";
 import MobileTour from "@/components/MobileTour";
@@ -891,6 +893,14 @@ export default function Index() {
                   {/* TAB: OVERVIEW */}
                   {detailTab === "overview" && (
                     <div className="space-y-6">
+                      {/* Key Takeaway Banner */}
+                      {selectedProduct.keyInsight && (
+                        <KeyTakeawayBanner
+                          takeaway={selectedProduct.keyInsight}
+                          accentColor="hsl(var(--primary))"
+                          badges={getVerdictBadges(selectedProduct as any)}
+                        />
+                      )}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Product image - only show if user-uploaded */}
                         {(selectedProduct as unknown as { imageSource?: string }).imageSource === "user" && (
@@ -1007,6 +1017,12 @@ export default function Index() {
                   {/* TAB: COMMUNITY INTEL */}
                   {detailTab === "community" && (
                     <div className="space-y-6">
+                      {/* Key Takeaway Banner */}
+                      {(() => {
+                        const ci = (selectedProduct as unknown as { communityInsights?: { topComplaints?: string[]; improvementRequests?: string[]; redditSentiment?: string } }).communityInsights;
+                        const takeaway = ci ? getCommunityTakeaway(ci) : null;
+                        return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(25 90% 40%)" /> : null;
+                      })()}
                       {/* Reddit Sentiment */}
                       {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
                         <>
@@ -1128,6 +1144,11 @@ export default function Index() {
                   {/* TAB: PRICING INTEL */}
                   {detailTab === "pricing" && selectedProduct.pricingIntel && (
                     <div className="space-y-4">
+                      {/* Key Takeaway Banner */}
+                      {(() => {
+                        const takeaway = getPricingTakeaway(selectedProduct.pricingIntel as any);
+                        return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(142 70% 35%)" /> : null;
+                      })()}
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {[
                           { label: "Current Market Price", value: selectedProduct.pricingIntel.currentMarketPrice, highlight: false },
@@ -1177,6 +1198,11 @@ export default function Index() {
                   {/* TAB: SUPPLY CHAIN */}
                   {detailTab === "supply" && selectedProduct.supplyChain && (
                     <div className="space-y-6">
+                      {/* Key Takeaway Banner */}
+                      {(() => {
+                        const takeaway = getSupplyChainTakeaway(selectedProduct.supplyChain as any);
+                        return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(217 91% 55%)" /> : null;
+                      })()}
                       {/* Suppliers */}
                       <SupplySection
                         title="Suppliers & IP Owners"
@@ -1580,6 +1606,10 @@ export default function Index() {
                   </div>
                   <div className="p-5" style={{ background: "hsl(var(--card))" }}>
                     <PitchDeck product={selectedProduct} />
+                    {/* Referral CTA after Pitch Deck */}
+                    <div className="mt-6">
+                      <ReferralCTA />
+                    </div>
                   </div>
                 </div>
               </div>

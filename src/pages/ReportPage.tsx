@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges } from "@/components/KeyTakeawayBanner";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -177,6 +178,15 @@ export default function ReportPage() {
           <div className="space-y-4">
             <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Overview" description={SECTION_DESCRIPTIONS.overview} icon={Target} />
             
+            {/* Key Takeaway Banner */}
+            {selectedProduct.keyInsight && (
+              <KeyTakeawayBanner
+                takeaway={selectedProduct.keyInsight}
+                accentColor={modeAccent}
+                badges={getVerdictBadges(selectedProduct as any)}
+              />
+            )}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 {selectedProduct.keyInsight && (
@@ -236,6 +246,13 @@ export default function ReportPage() {
         {analysis.detailTab === "community" && (
           <div className="space-y-4">
             <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Community Intel" description={SECTION_DESCRIPTIONS.community} icon={MessageSquare} />
+            
+            {/* Key Takeaway Banner */}
+            {(() => {
+              const ci = (selectedProduct as unknown as { communityInsights?: { topComplaints?: string[]; improvementRequests?: string[]; redditSentiment?: string } }).communityInsights;
+              const takeaway = ci ? getCommunityTakeaway(ci) : null;
+              return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(25 90% 40%)" /> : null;
+            })()}
             {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
               (() => {
                 const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights;
@@ -306,6 +323,11 @@ export default function ReportPage() {
         {analysis.detailTab === "pricing" && (
           <div className="space-y-4">
             <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Pricing Intel" description={SECTION_DESCRIPTIONS.pricing} icon={DollarSign} />
+            {/* Key Takeaway Banner */}
+            {(() => {
+              const takeaway = selectedProduct.pricingIntel ? getPricingTakeaway(selectedProduct.pricingIntel as any) : null;
+              return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(142 70% 35%)" /> : null;
+            })()}
             {selectedProduct.pricingIntel ? (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -347,6 +369,11 @@ export default function ReportPage() {
         {analysis.detailTab === "supply" && (
           <div className="space-y-4">
             <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Supply Chain" description={SECTION_DESCRIPTIONS.supply} icon={Package} />
+            {/* Key Takeaway Banner */}
+            {(() => {
+              const takeaway = selectedProduct.supplyChain ? getSupplyChainTakeaway(selectedProduct.supplyChain as any) : null;
+              return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(217 91% 55%)" /> : null;
+            })()}
             {selectedProduct.supplyChain ? (
               <>
                 <SupplySection title="Suppliers & IP Owners" icon={<Factory size={14} style={{ color: "hsl(var(--primary))" }} />}

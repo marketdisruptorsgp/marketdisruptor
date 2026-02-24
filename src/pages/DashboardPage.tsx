@@ -12,6 +12,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
 import { LoadingTracker } from "@/components/LoadingTracker";
 import PaywallModal from "@/components/PaywallModal";
+import { ContinueBanner } from "@/components/ContinueBanner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -199,6 +200,13 @@ export default function DashboardPage() {
 
       {/* Workflow Pipeline — prominent position */}
       <DisruptionPathBanner onStartAnalysis={handleStartAnalysis} />
+
+      {/* Continue where you left off */}
+      {user && (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
+          <ContinueBanner onContinue={(a) => { analysis.handleLoadSaved(a as any); }} />
+        </div>
+      )}
 
       {/* Mode Pills */}
       <div ref={modeTabsRef} className="border-t border-border bg-card">
