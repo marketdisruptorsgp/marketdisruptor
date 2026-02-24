@@ -207,8 +207,6 @@ export default function ResourcesPage() {
             <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:opacity-80 transition-opacity">
               Built by SGP Capital
             </a>
-            <span className="text-muted-foreground"> · </span>
-            <a href="mailto:steven@sgpcapital.com" className="text-muted-foreground hover:underline">steven@sgpcapital.com</a>
           </p>
         </footer>
       </main>

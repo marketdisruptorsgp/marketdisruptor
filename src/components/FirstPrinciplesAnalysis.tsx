@@ -143,6 +143,7 @@ interface FirstPrinciplesAnalysisProps {
   onPatentSave?: (patentData: unknown) => void;
   externalData?: unknown;
   onDataLoaded?: (data: unknown) => void;
+  renderMode?: "disrupt" | "redesign";
 }
 
 const REASON_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -324,7 +325,7 @@ function NextSectionButton({ label, onClick }: { label: string; onClick: () => v
   );
 }
 
-export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
+export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, renderMode }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
   const [data, setData] = useState<FirstPrinciplesData | null>((externalData as FirstPrinciplesData) || null);
@@ -474,6 +475,136 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <p className="text-[11px] text-muted-foreground">
           Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
         </p>
+      </div>
+    );
+  }
+
+  // ── REDESIGN MODE ──
+  if (renderMode === "redesign") {
+    const concept = data.redesignedConcept;
+    if (!concept) {
+      return (
+        <div className="py-12 text-center">
+          <Sparkles size={32} className="mx-auto mb-3 opacity-20" />
+          <p className="text-sm text-muted-foreground">Run the Disrupt analysis first to generate redesign concepts.</p>
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50%)" }}>
+              <Sparkles size={14} style={{ color: "white" }} />
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground text-sm leading-tight">{concept.conceptName}</h3>
+              <p className="text-[10px] text-muted-foreground">{concept.tagline}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Core insight */}
+        <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+          <p className="text-[10px] font-bold uppercase tracking-wider mb-1 text-muted-foreground">Core Insight</p>
+          <p className="text-sm leading-relaxed text-foreground/85">{concept.coreInsight}</p>
+        </div>
+
+        {/* Radical Differences */}
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Radical Differences</p>
+          <div className="space-y-1.5">
+            {concept.radicalDifferences.map((diff, i) => (
+              <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <Zap size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
+                <span className="text-foreground/80">{diff}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Physical Description */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Physical Form</p>
+            <p className="text-xs text-foreground/80">{concept.physicalDescription}</p>
+            {concept.sizeAndWeight && <p className="text-[10px] text-muted-foreground mt-1">Size: {concept.sizeAndWeight}</p>}
+          </div>
+          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Materials</p>
+            <div className="flex flex-wrap gap-1">
+              {concept.materials.map((m, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-medium" style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>{m}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Smart Features */}
+        {concept.smartFeatures?.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Smart Features</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {concept.smartFeatures.map((f, i) => (
+                <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <Cpu size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
+                  <span className="text-foreground/80">{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* UX Transformation & Friction Eliminated */}
+        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">User Experience Transformation</p>
+          <p className="text-xs text-foreground/80 leading-relaxed">{concept.userExperienceTransformation}</p>
+        </div>
+        {concept.frictionEliminated?.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Friction Eliminated</p>
+            <div className="space-y-1">
+              {concept.frictionEliminated.map((f, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs">
+                  <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
+                  <span className="text-foreground/80">{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Business details */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {[
+            { label: "Price Point", value: concept.pricePoint },
+            { label: "Target User", value: concept.targetUser },
+            { label: "Capital Required", value: concept.capitalRequired || "—" },
+            { label: "Risk Level", value: concept.riskLevel || "—" },
+          ].map((item) => (
+            <div key={item.label} className="p-2 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{item.label}</p>
+              <p className="text-xs font-bold text-foreground mt-0.5">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert}>
+          <div className="space-y-2 mb-2">
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Why Not Already Done</p>
+              <p className="text-xs text-foreground/80">{concept.whyItHasntBeenDone}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Biggest Risk</p>
+              <p className="text-xs text-foreground/80">{concept.biggestRisk}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Manufacturing Path</p>
+              <p className="text-xs text-foreground/80">{concept.manufacturingPath}</p>
+            </div>
+          </div>
+        </DetailPanel>
       </div>
     );
   }
