@@ -25,6 +25,9 @@ import FaqsPage from "./pages/FaqsPage";
 import PortfolioPage from "./pages/PortfolioPage";
 import ApiPage from "./pages/ApiPage";
 import ShareableAnalysisPage from "./pages/ShareableAnalysisPage";
+import StartProductPage from "./pages/StartProductPage";
+import StartServicePage from "./pages/StartServicePage";
+import StartBusinessPage from "./pages/StartBusinessPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +60,9 @@ function AppRoutes() {
       {user ? (
         <>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/start/product" element={<StartProductPage />} />
+          <Route path="/start/service" element={<StartServicePage />} />
+          <Route path="/start/business" element={<StartBusinessPage />} />
           <Route path="/analysis/:id/report" element={<ReportPage />} />
           <Route path="/analysis/:id/disrupt" element={<DisruptPage />} />
           <Route path="/analysis/:id/redesign" element={<RedesignPage />} />
