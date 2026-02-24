@@ -198,7 +198,7 @@ export default function DashboardPage() {
           <Target size={18} className="flex-shrink-0 mt-0.5 text-primary" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-foreground mb-1">What to expect</p>
-            <p className="text-xs leading-relaxed text-muted-foreground">
+            <p className="text-xs leading-relaxed text-foreground/70">
               The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
             </p>
           </div>
