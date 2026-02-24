@@ -34,7 +34,7 @@ export default function FaqsPage() {
       </div>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-        <Accordion type="single" collapsible className="space-y-3">
+        <Accordion type="single" collapsible defaultValue="faq-0" className="space-y-3">
           {FAQS.map((faq, i) => (
             <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded-lg px-4 sm:px-5 bg-card shadow-sm">
               <AccordionTrigger className="text-sm font-semibold text-foreground py-4 hover:no-underline text-left">

@@ -79,7 +79,7 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
         </div>
 
         {/* Pipeline steps — vertical on mobile, horizontal on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 sm:gap-4">
           {PIPELINE_STEPS.map(({ icon: Icon, label, desc, detail, color }, i) => {
             const isActive = activeStep !== undefined && activeStep === i + 1;
             const isPast = activeStep !== undefined && activeStep > i + 1;
@@ -94,8 +94,8 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
               >
                 {/* Connector arrow — desktop only, between cards */}
                 {i < PIPELINE_STEPS.length - 1 && (
-                  <div className="hidden lg:flex absolute -right-[14px] top-1/2 -translate-y-1/2 z-10">
-                    <ArrowRight size={16} className="text-muted-foreground/40" strokeWidth={2.5} />
+                  <div className="hidden lg:flex absolute -right-[18px] top-1/2 -translate-y-1/2 z-10">
+                    <ArrowRight size={20} className="text-muted-foreground/60" strokeWidth={2.5} />
                   </div>
                 )}
 
