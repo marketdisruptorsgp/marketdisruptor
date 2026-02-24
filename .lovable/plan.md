@@ -1,34 +1,64 @@
+# No do not do number 5. I want the tracker card below patent section like it is for other steps/sectionx. 
+
+&nbsp;
+
+&nbsp;
+
+# Homepage Cleanup and Loading Tracker Repositioning
+
+## Changes
+
+### 1. Increase "Rethink any [mode]" font size
+
+**File: `src/pages/DashboardPage.tsx**` (line 151)
+
+Current: `text-2xl sm:text-4xl md:text-5xl`
+New: `text-3xl sm:text-5xl md:text-6xl` -- bumps each breakpoint up one notch for a more impactful hero headline.
+
+### 2. Remove "Continue where you left off" banner
+
+**File: `src/pages/DashboardPage.tsx**` (lines 218-223)
+
+Remove the `<ContinueBanner>` block and its import (line 16). The component file `src/components/ContinueBanner.tsx` can remain in the codebase (unused code is tree-shaken out).
+
+### 3. Remove Welcome Modal
+
+**File: `src/pages/Index.tsx**`
+
+- Remove the `WelcomeModal` import (line 20)
+- Remove the `showWelcome` state (line 184-186)
+- Remove `handleCloseWelcome` function (lines 255-258)
+- Remove the WelcomeModal render block (lines 542-545)
+- Remove the `!showWelcome` guard on MobileTour (line 548 -- simplify to just `user &&`)
+
+Also remove the "Welcome back" toast:
+**File: `src/hooks/useAuth.tsx**` (line 45) -- Remove the `toast.success("Welcome back...")` call.
+
+### 4. "Edit with Lovable" badge
+
+This badge is injected by the Lovable platform itself and is not part of the project's source code. It cannot be hidden or removed via code changes. It is only visible in the preview/development environment and does not appear on the published production URL.
+
+### 5. Move Loading Tracker inside the analysis form parent card
+
+**File: `src/pages/Index.tsx**` (lines 685-692)
+
+Currently the `<LoadingTracker>` renders as a separate block BELOW the tab card. Move it INSIDE the tab card's `<div className="p-5">` area, directly below the `<AnalysisForm>`, so it appears within the same parent container when analysis is running. This gives a cohesive feel -- the tasks/activity log appears right under the form that triggered it.
+
+Specifically:
+
+- Remove the standalone `LoadingTracker` block at lines 685-692
+- Insert `{isLoading && <LoadingTracker ... />}` inside the tab card div, right after the `<AnalysisForm>` component (after line 677)
+
+---
+
+## Technical Details
 
 
-# Replace "Blue Team" with "Green Team" Across the Site
+| File                          | Changes                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------- |
+| `src/pages/DashboardPage.tsx` | Increase h1 font classes; remove ContinueBanner import + render               |
+| `src/pages/Index.tsx`         | Remove WelcomeModal import/state/render; move LoadingTracker inside form card |
+| `src/hooks/useAuth.tsx`       | Remove "Welcome back" toast                                                   |
 
-## Summary
-Several pages still reference "Blue Team" instead of the correct "Green Team" terminology. The `CriticalValidation` component already renders the label as "Green Team" in the UI, but surrounding pages, descriptions, and the edge function prompt still say "Blue Team."
 
-## What Changes
-
-### User-Facing Text Updates (6 files)
-
-| File | What to change |
-|---|---|
-| `src/pages/BusinessResultsPage.tsx` | Line 17: "Blue Team defenses" -> "Green Team defenses"; Line 137: "Blue Team" -> "Green Team" |
-| `src/components/DisruptionPathBanner.tsx` | Lines 41-42: Both "Blue Team" references -> "Green Team" |
-| `src/pages/DashboardPage.tsx` | Line 43: "Blue Team" -> "Green Team" in the tips array |
-| `src/pages/MethodologyPage.tsx` | Line 28: "Blue Team defends" -> "Green Team defends" |
-| `src/pages/Index.tsx` | Lines 1591, 1811: "Blue Team" -> "Green Team" in stress test descriptions |
-
-### Edge Function Prompt (1 file)
-
-| File | What to change |
-|---|---|
-| `supabase/functions/critical-validation/index.ts` | Replace all "Blue Team" mentions in the system prompt and user prompt text with "Green Team" (approximately 8 occurrences). The JSON key `blueTeam` will remain unchanged since it is a data contract used by the frontend. |
-
-### No Structural Changes
-- The TypeScript interface `BlueTeamArg` and the JSON key `blueTeam` in the response schema stay as-is to avoid breaking existing saved data and the frontend parser
-- Only human-readable strings change
-
-## Technical Notes
-- Total: ~15 string replacements across 7 files
-- No logic, routing, or data model changes
-- Edge function will need redeployment after prompt text updates
-
+No new dependencies. No database changes.
