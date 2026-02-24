@@ -13,6 +13,7 @@ import {
   Star, AlertTriangle, Download, ChevronRight, Rocket,
 } from "lucide-react";
 import { SectionHeader, NextSectionButton, SectionPills, AllExploredBadge, DetailPanel } from "@/components/SectionNav";
+import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
 
 interface FinancialModel {
   unitEconomics: {
@@ -140,6 +141,17 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData }: PitchDe
     }
   };
 
+  if (!data && loading) {
+    return (
+      <StepLoadingTracker
+        title="Building Pitch Deck"
+        tasks={PITCH_DECK_TASKS}
+        estimatedSeconds={35}
+        accentColor="hsl(var(--primary))"
+      />
+    );
+  }
+
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
@@ -155,7 +167,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData }: PitchDe
         <button onClick={runAnalysis} disabled={loading}
           className="flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-colors"
           style={{ background: "hsl(var(--primary))", color: "white", opacity: loading ? 0.7 : 1 }}>
-          {loading ? <><RefreshCw size={15} className="animate-spin" /> Building…</> : <><Presentation size={15} /> Generate Full Pitch Deck</>}
+          <Presentation size={15} /> Generate Full Pitch Deck
         </button>
         <p className="text-[11px] text-muted-foreground">Uses Gemini 2.5 Pro · ~20–40 seconds</p>
       </div>

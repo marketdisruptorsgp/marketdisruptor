@@ -9,6 +9,7 @@ import {
 import { InsightRating } from "./InsightRating";
 import { DataLabel } from "./DataLabel";
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
+import { StepLoadingTracker, STRESS_TEST_TASKS } from "@/components/StepLoadingTracker";
 
 interface RedTeamArg {
   title: string;
@@ -140,6 +141,17 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
     }
   };
 
+  if (!data && loading) {
+    return (
+      <StepLoadingTracker
+        title="Running Stress Test"
+        tasks={STRESS_TEST_TASKS}
+        estimatedSeconds={30}
+        accentColor="hsl(350 80% 55%)"
+      />
+    );
+  }
+
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-5 text-center">
@@ -168,11 +180,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           className="flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-colors"
           style={{ background: "hsl(350 80% 55%)", color: "white", opacity: loading ? 0.7 : 1 }}
         >
-          {loading ? (
-            <><RefreshCw size={15} className="animate-spin" /> Stress-testing concept…</>
-          ) : (
-            <><Swords size={15} /> Run Critical Validation</>
-          )}
+          <Swords size={15} /> Run Critical Validation
         </button>
         <p className="text-[10px] text-muted-foreground">Requires completed Disrupt analysis · ~20-30s</p>
       </div>
