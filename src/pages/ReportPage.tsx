@@ -236,12 +236,13 @@ export default function ReportPage() {
         {analysis.detailTab === "community" && (
           <div className="space-y-4">
             <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Community Intel" description={SECTION_DESCRIPTIONS.community} icon={MessageSquare} />
-            {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; nostalgiaTriggers?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
+            {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
               (() => {
-                const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; nostalgiaTriggers?: string[]; competitorComplaints?: string[] } }).communityInsights;
+                const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights;
+                const hasRealSentiment = ci.redditSentiment && !/no direct.*found|not found|no.*sentiment.*found|no.*reddit.*found/i.test(ci.redditSentiment);
                 return (
                   <>
-                     {ci.redditSentiment && (
+                     {hasRealSentiment && (
                       <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                         <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(25 90% 40%)" }}>Community Sentiment</p>
                         <p className="text-xs leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>

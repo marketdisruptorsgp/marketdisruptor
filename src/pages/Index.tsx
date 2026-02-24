@@ -1008,13 +1008,14 @@ export default function Index() {
                   {detailTab === "community" && (
                     <div className="space-y-6">
                       {/* Reddit Sentiment */}
-                      {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; nostalgiaTriggers?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
+                      {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
                         <>
                           {(() => {
-                            const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; nostalgiaTriggers?: string[]; competitorComplaints?: string[] } }).communityInsights;
+                            const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights;
+                            const hasRealSentiment = ci.redditSentiment && !/no direct.*found|not found|no.*sentiment.*found|no.*reddit.*found/i.test(ci.redditSentiment);
                             return (
                               <div className="space-y-5">
-                                {ci.redditSentiment && (
+                                {hasRealSentiment && (
                                   <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                                     <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(25 90% 40%)" }}>
                                       <MessageSquare size={12} /> Community Sentiment
