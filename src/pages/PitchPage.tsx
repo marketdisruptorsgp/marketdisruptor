@@ -6,6 +6,7 @@ import { PitchDeck } from "@/components/PitchDeck";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner, getPitchTakeaway } from "@/components/KeyTakeawayBanner";
+import { ShareAnalysis } from "@/components/ShareAnalysis";
 
 export default function PitchPage() {
   const analysis = useAnalysis();
@@ -38,6 +39,7 @@ export default function PitchPage() {
         />
 
         <StepNavBar backLabel="Stress Test" backPath={`${baseUrl}/stress-test`} accentColor="hsl(var(--primary))" />
+        <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} /></div>
 
         {(() => {
           const takeaway = getPitchTakeaway(analysis.pitchDeckData as Record<string, unknown> | null);

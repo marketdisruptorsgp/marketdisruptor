@@ -21,6 +21,7 @@ import ResourcesPage from "./pages/ResourcesPage";
 import IntelPage from "./pages/IntelPage";
 import MethodologyPage from "./pages/MethodologyPage";
 import FaqsPage from "./pages/FaqsPage";
+import PortfolioPage from "./pages/PortfolioPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ function AppRoutes() {
           <Route path="/intel" element={<IntelPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/faqs" element={<FaqsPage />} />
+          <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="*" element={<NotFound />} />
         </>
       ) : (

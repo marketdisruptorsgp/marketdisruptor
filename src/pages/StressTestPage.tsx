@@ -9,6 +9,7 @@ import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { SectionWorkflowNav } from "@/components/SectionNav";
 import { KeyTakeawayBanner, getStressTestTakeaway } from "@/components/KeyTakeawayBanner";
+import { ShareAnalysis } from "@/components/ShareAnalysis";
 
 const STRESS_TEST_DESCRIPTIONS: Record<string, string> = {
   debate: "Red Team attacks vs Green Team defenses",
@@ -50,6 +51,7 @@ export default function StressTestPage() {
         />
 
         <StepNavBar backLabel="Redesign" backPath={`${baseUrl}/redesign`} accentColor="hsl(350 80% 55%)" />
+        <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor="hsl(350 80% 55%)" /></div>
 
         {(() => {
           const takeaway = getStressTestTakeaway(analysis.stressTestData as Record<string, unknown> | null);

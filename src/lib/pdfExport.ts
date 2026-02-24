@@ -60,11 +60,47 @@ function pill(doc: jsPDF, text: string, x: number, y: number, bg: [number,number
 }
 
 function checkY(doc: jsPDF, y: number, needed = 20): number {
-  if (y + needed > PAGE_H - 16) {
+  if (y + needed > PAGE_H - 20) {
     doc.addPage();
+    addPageFooter(doc);
     return 20;
   }
   return y;
+}
+
+function addPageFooter(doc: jsPDF) {
+  const pageCount = doc.getNumberOfPages();
+  const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+  // Footer line
+  doc.setDrawColor(220, 220, 220);
+  doc.line(ML, PAGE_H - 14, PAGE_W - MR, PAGE_H - 14);
+  // Footer text
+  doc.setFontSize(6.5);
+  doc.setFont("helvetica", "normal");
+  rgb(doc, GRAY);
+  doc.text("Market Disruptor · Confidential", ML, PAGE_H - 10);
+  doc.text(`Page ${currentPage} of ${pageCount}`, PAGE_W - MR, PAGE_H - 10, { align: "right" });
+  // Watermark
+  doc.setFontSize(48);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(200, 200, 200);
+  doc.setGState(new (doc as any).GState({ opacity: 0.04 }));
+  doc.text("MARKET DISRUPTOR", PAGE_W / 2, PAGE_H / 2, { align: "center", angle: 45 });
+  doc.setGState(new (doc as any).GState({ opacity: 1 }));
+}
+
+function addFootersToAllPages(doc: jsPDF) {
+  const total = doc.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setFontSize(6.5);
+    doc.setFont("helvetica", "normal");
+    rgb(doc, GRAY);
+    doc.setDrawColor(220, 220, 220);
+    doc.line(ML, PAGE_H - 14, PAGE_W - MR, PAGE_H - 14);
+    doc.text("Market Disruptor · Confidential", ML, PAGE_H - 10);
+    doc.text(`Page ${i} of ${total}`, PAGE_W - MR, PAGE_H - 10, { align: "right" });
+  }
 }
 
 // ── Cover page ─────────────────────────────────────────────
@@ -267,6 +303,7 @@ export function downloadFullAnalysisPDF(product: Product) {
     });
   }
 
+  addFootersToAllPages(doc);
   doc.save(`${product.name.replace(/[^a-z0-9]/gi, "_")}_analysis.pdf`);
 }
 
