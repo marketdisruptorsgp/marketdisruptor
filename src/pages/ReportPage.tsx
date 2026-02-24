@@ -54,7 +54,6 @@ export default function ReportPage() {
     { id: "community", label: "Community Intel", icon: MessageSquare },
     { id: "pricing", label: "Pricing Intel", icon: DollarSign },
     { id: "supply", label: "Supply Chain", icon: Package },
-    { id: "action", label: "Action Plan", icon: Rocket },
     ...(!isService ? [{ id: "patents", label: "Patent Intel", icon: ScrollText }] : []),
   ];
 
@@ -93,8 +92,9 @@ export default function ReportPage() {
           visitedSteps={new Set([2])}
           onStepChange={(s) => {
             if (s === 3) navigate(`${baseUrl}/disrupt`);
-            else if (s === 4) navigate(`${baseUrl}/stress-test`);
-            else if (s === 5) navigate(`${baseUrl}/pitch`);
+            else if (s === 4) navigate(`${baseUrl}/redesign`);
+            else if (s === 5) navigate(`${baseUrl}/stress-test`);
+            else if (s === 6) navigate(`${baseUrl}/pitch`);
           }}
         />
 
@@ -150,7 +150,7 @@ export default function ReportPage() {
                   border: `1px solid ${selectedProduct?.id === product.id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
                 }}
               >
-                <RevivalScoreBadge score={product.revivalScore} size="sm" />
+                {product.name}
                 {product.name}
               </button>
             ))}
@@ -241,8 +241,8 @@ export default function ReportPage() {
                 const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; nostalgiaTriggers?: string[]; competitorComplaints?: string[] } }).communityInsights;
                 return (
                   <>
-                    {ci.redditSentiment && (
-                      <div className="p-4 rounded-lg" style={{ background: "hsl(25 90% 50% / 0.08)", border: "1px solid hsl(25 90% 50% / 0.3)" }}>
+                     {ci.redditSentiment && (
+                      <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                         <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(25 90% 40%)" }}>Community Sentiment</p>
                         <p className="text-xs leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
                       </div>
@@ -279,9 +279,8 @@ export default function ReportPage() {
                         </div>
                         <div className="space-y-1.5">
                           {selectedProduct.socialSignals?.map((sig, i) => (
-                            <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ background: "hsl(var(--primary-muted))" }}>
+                            <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                               <div>
-                                <p className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>{sig.platform}</p>
                                 <p className="text-[10px] text-muted-foreground">{sig.signal}</p>
                               </div>
                               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--primary))", color: "white" }}>{sig.volume}</span>
@@ -381,69 +380,7 @@ export default function ReportPage() {
           </div>
         )}
 
-        {/* Tab: Action Plan */}
-        {analysis.detailTab === "action" && (
-          <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Action Plan" description={SECTION_DESCRIPTIONS.action} icon={Rocket} />
-            {selectedProduct.actionPlan ? (
-              <>
-                <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>Strategic Direction</p>
-                  <p className="text-xs" style={{ color: "hsl(var(--primary-dark))" }}>{selectedProduct.actionPlan.strategy}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Quick Wins</p>
-                  <div className="space-y-1.5">
-                    {selectedProduct.actionPlan.quickWins.slice(0, 3).map((win, i) => (
-                      <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(142 70% 45% / 0.08)" }}>
-                        <CheckCircle2 size={12} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
-                        <span style={{ color: "hsl(142 70% 25%)" }}>{win}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <DetailPanel title={`Execution Roadmap (${selectedProduct.actionPlan.phases.length} phases)`} icon={Clock}>
-                  <div className="space-y-3 mb-2">
-                    {selectedProduct.actionPlan.phases.map((phase, i) => (
-                      <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", borderLeft: `3px solid ${i === 0 ? "hsl(142 70% 45%)" : i === 1 ? "hsl(var(--primary))" : "hsl(32 100% 50%)"}` }}>
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-bold text-xs text-foreground">{phase.phase}</h4>
-                          <span className="text-[10px] text-muted-foreground">{phase.timeline} · {phase.budget}</span>
-                        </div>
-                        <ul className="space-y-0.5">
-                          {phase.actions.map((action, j) => (
-                            <li key={j} className="text-[11px] text-foreground/80">• {action}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </DetailPanel>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))" }}>
-                    <p className="text-[10px] text-muted-foreground uppercase">Investment</p>
-                    <p className="text-sm font-extrabold text-foreground">{selectedProduct.actionPlan.totalInvestment}</p>
-                  </div>
-                  <div className="p-3 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)" }}>
-                    <p className="text-[10px] uppercase" style={{ color: "hsl(142 70% 35%)" }}>ROI</p>
-                    <p className="text-sm font-extrabold" style={{ color: "hsl(142 70% 28%)" }}>{selectedProduct.actionPlan.expectedROI}</p>
-                  </div>
-                  <div className="p-3 rounded-lg" style={{ background: "hsl(var(--primary-muted))" }}>
-                    <p className="text-[10px] text-muted-foreground uppercase mb-1">Channels</p>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedProduct.actionPlan.channels.slice(0, 3).map((ch) => (
-                        <span key={ch} className="px-1.5 py-0.5 rounded-full text-[9px]" style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>{ch}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No action plan available.</p>
-            )}
-            {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-          </div>
-        )}
+        {/* Action Plan tab removed - hidden from Intel Report */}
 
         {/* Tab: Patent Intel */}
         {analysis.detailTab === "patents" && !isService && (
@@ -494,25 +431,7 @@ export default function ReportPage() {
           allSectionsVisited={allSectionsVisited}
         />
 
-        {/* SGP Capital CTA */}
-        <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
-          <div className="px-6 py-6 flex flex-col sm:flex-row items-center gap-5">
-            <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-              <Rocket size={18} className="text-white" />
-            </div>
-            <div className="flex-1 text-center sm:text-left">
-              <h3 className="text-base font-bold text-foreground mb-1">Ready to Bring This to Life?</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                SGP Capital helps entrepreneurs and investors turn market intelligence into real businesses.
-              </p>
-            </div>
-            <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer"
-              className="px-4 py-2 rounded text-sm font-medium text-white transition-opacity hover:opacity-90 flex items-center gap-2"
-              style={{ background: "hsl(var(--primary))" }}>
-              <Globe size={14} /> Visit SGP Capital
-            </a>
-          </div>
-        </div>
+        {/* SGP Capital CTA moved to PitchDeck */}
       </main>
     </div>
   );

@@ -3,11 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { downloadPitchDeckPDF } from "@/lib/pdfExport";
+import { useAuth } from "@/hooks/useAuth";
+import { Slider } from "@/components/ui/slider";
 import {
   Presentation, RefreshCw, DollarSign, TrendingUp, Users, Factory, Truck,
   Package, Globe, Target, Zap, CheckCircle2, ArrowRight, BarChart3,
   ShieldAlert, Lightbulb, Store, Phone, Mail, ExternalLink, Clock,
-  Star, AlertTriangle, Download, ChevronRight,
+  Star, AlertTriangle, Download, ChevronRight, Rocket,
 } from "lucide-react";
 import { SectionHeader, NextSectionButton, SectionPills, AllExploredBadge, DetailPanel } from "@/components/SectionNav";
 
@@ -97,10 +99,12 @@ const SLIDE_TABS = [
 type SlideTab = typeof SLIDE_TABS[number]["id"];
 
 export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => {
+  const { user, profile } = useAuth();
   const [data, setData] = useState<PitchDeckData | null>((externalData as PitchDeckData) || null);
   const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState<SlideTab>("pitch");
   const [visitedSlides, setVisitedSlides] = useState<Set<string>>(new Set(["pitch"]));
+  const [userScore, setUserScore] = useState<number>(product.revivalScore || 7);
 
   const handleDownloadPDF = () => { if (!data) return; downloadPitchDeckPDF(product, data); };
 
@@ -493,6 +497,67 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
           )}
 
           <AllExploredBadge />
+
+          {/* Revival Score + User Ranking */}
+          <div className="p-5 rounded-lg space-y-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Revival Potential Score</p>
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <p className="text-[10px] text-muted-foreground mb-1">AI Score</p>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-extrabold" style={{ background: "hsl(var(--primary))", color: "white" }}>
+                  {product.revivalScore || "—"}
+                </div>
+              </div>
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] text-muted-foreground">Your Rating</p>
+                  <span className="text-sm font-extrabold" style={{ color: "hsl(var(--primary))" }}>{userScore}/10</span>
+                </div>
+                <Slider value={[userScore]} onValueChange={(v) => setUserScore(v[0])} min={1} max={10} step={1} />
+              </div>
+            </div>
+          </div>
+
+          {/* Tailored SGP Capital CTA */}
+          <div className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
+            <div className="px-5 py-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary))" }}>
+                  <Rocket size={16} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">How SGP Capital Can Help</h3>
+                  <p className="text-[10px] text-muted-foreground">Tailored support for bringing {product.name} to market</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {(() => {
+                  const bullets: string[] = [];
+                  if (product.supplyChain?.manufacturers?.length) bullets.push(`Connect with manufacturers & suppliers in ${product.supplyChain.manufacturers[0]?.region || "key regions"}`);
+                  if (data?.gtmStrategy) bullets.push(`Refine go-to-market strategy across ${data.gtmStrategy.keyChannels?.slice(0, 2).join(" & ") || "target channels"}`);
+                  if (data?.financialModel) bullets.push("Fine-tune financial model and identify potential investors");
+                  if (product.category) bullets.push(`Strategic positioning in the ${product.category} space`);
+                  if (bullets.length === 0) {
+                    bullets.push("Investor introductions & fundraising strategy");
+                    bullets.push("Sales, marketing & go-to-market execution");
+                  }
+                  return bullets.slice(0, 4).map((b, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs">
+                      <CheckCircle2 size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
+                      <span className="text-foreground/80">{b}</span>
+                    </div>
+                  ));
+                })()}
+              </div>
+              <a
+                href={`mailto:steven@sgpcapital.com?subject=${encodeURIComponent(`Help Disrupt: ${product.name}`)}&body=${encodeURIComponent(`Product: ${product.name}\nCategory: ${product.category}\nAI Revival Score: ${product.revivalScore}/10\nUser Score: ${userScore}/10\n\nBuilt by: ${profile?.first_name || "User"} (${user?.email || ""})\n\n---\nGenerated via Product Ideas platform`)}`}
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-opacity hover:opacity-90"
+                style={{ background: "hsl(var(--primary))", color: "white" }}
+              >
+                <Rocket size={14} /> Help Disrupt
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -360,9 +360,9 @@ export default function Index() {
     await new Promise(r => setTimeout(r, 600));
     pushLog("Crawling marketplace data for trend signals...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Mining community forums for sentiment & pain points...");
+    pushLog("Analyzing community sentiment data...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Scanning search & social data for demand signals...");
+    pushLog("Collecting demand & trend signals...");
     await new Promise(r => setTimeout(r, 600));
     pushLog("Searching wholesale directories for supply chain data...");
     await new Promise(r => setTimeout(r, 600));
@@ -383,7 +383,7 @@ export default function Index() {
 
       // Log scrape results
       if (scrapeData.stats) {
-        pushLog(`Collected data from ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} community posts, ${scrapeData.stats.complaintSignals} complaint signals`);
+        pushLog(`Collected data from ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} community posts, ${scrapeData.stats.complaintSignals} signals`);
       } else {
         pushLog(`Web scraping complete — data collected from ${(scrapeData.sources || []).length} sources`);
       }
@@ -400,9 +400,9 @@ export default function Index() {
       await new Promise(r => setTimeout(r, 800));
       pushLog("Generating flipped ideas from community pain points...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("Scoring Revival Potential & building action plans...");
+      pushLog("Searching patent databases for relevant filings...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("Searching for real product images across data sources...");
+      pushLog("Finalizing intelligence report...");
 
       const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke(
         "analyze-products",
@@ -695,9 +695,10 @@ export default function Index() {
             <StepNavigator
               steps={[
                 { step: 2, label: "Intelligence Report", description: "Deep market data, pricing & supply chain intel", icon: Target, color: modeAccent },
-                { step: 3, label: "Disrupt", description: "First principles deconstruction & flip ideas", icon: Brain, color: "hsl(271 81% 55%)" },
-                { step: 4, label: "Stress Test", description: "Red vs Green team critical validation", icon: Swords, color: "hsl(350 80% 55%)" },
-                { step: 5, label: "Pitch Deck", description: "Investor-ready presentation builder", icon: Presentation, color: "hsl(var(--primary))" },
+                { step: 3, label: "Disrupt", description: "Assumptions, flip the logic & flipped ideas", icon: Brain, color: "hsl(271 81% 55%)" },
+                { step: 4, label: "Redesign", description: "Interactive concept illustrations", icon: Sparkles, color: "hsl(38 92% 50%)" },
+                { step: 5, label: "Stress Test", description: "Red vs Green team critical validation", icon: Swords, color: "hsl(350 80% 55%)" },
+                { step: 6, label: "Pitch Deck", description: "Investor-ready presentation builder", icon: Presentation, color: "hsl(var(--primary))" },
               ]}
               activeStep={activeStep}
               visitedSteps={visitedSteps}
@@ -818,7 +819,6 @@ export default function Index() {
                       { id: "community" as const, label: "Community", icon: Users },
                       { id: "pricing" as const, label: "Pricing", icon: DollarSign },
                       { id: "supply" as const, label: "Supply Chain", icon: Package },
-                      { id: "action" as const, label: "Action Plan", icon: Rocket },
                     ];
                     const currentIdx = DETAIL_TABS.findIndex(t => t.id === detailTab);
                     return (
@@ -851,7 +851,8 @@ export default function Index() {
                   {detailTab === "overview" && (
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Product image with refined frame */}
+                        {/* Product image - only show if user-uploaded */}
+                        {(selectedProduct as unknown as { imageSource?: string }).imageSource === "user" && (
                         <div className="md:col-span-1">
                           <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                             <img
@@ -864,7 +865,8 @@ export default function Index() {
                             />
                           </div>
                         </div>
-                        <div className="md:col-span-2 space-y-4">
+                        )}
+                        <div className={`${(selectedProduct as unknown as { imageSource?: string }).imageSource === "user" ? "md:col-span-2" : "md:col-span-3"} space-y-4`}>
                           {/* Tags & score */}
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="tag-pill">{selectedProduct.category}</span>
@@ -1071,14 +1073,13 @@ export default function Index() {
                         </div>
                         <div>
                           <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                            <TrendingUp size={12} /> Social Signals
+                            <TrendingUp size={12} /> Demand Signals
                           </p>
                           <div className="space-y-2">
                             {selectedProduct.socialSignals?.map((sig, i) => (
                               <div key={i} className="flex items-center justify-between p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <p className="text-xs font-semibold text-foreground">{sig.platform}</p>
                                     <TrendBadge trend={sig.trend} />
                                   </div>
                                   <p className="text-[11px] text-muted-foreground">{sig.signal}</p>
@@ -1087,11 +1088,6 @@ export default function Index() {
                                   <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>
                                     {sig.volume}
                                   </span>
-                                  {sig.url && (
-                                    <a href={sig.url} target="_blank" rel="noopener noreferrer">
-                                      <ExternalLink size={11} style={{ color: "hsl(var(--primary))" }} />
-                                    </a>
-                                  )}
                                 </div>
                               </div>
                             ))}
@@ -1394,7 +1390,7 @@ export default function Index() {
             </>
             )}
 
-            {/* ── STEP 3: FIRST PRINCIPLES DEEP DIVE ── */}
+            {/* ── STEP 3: DISRUPT ── */}
             {activeStep === 3 && selectedProduct && (
               <div className="space-y-4">
                 <button
@@ -1434,8 +1430,49 @@ export default function Index() {
               </div>
             )}
 
-            {/* ── STEP 4: STRESS TEST ── */}
+            {/* ── STEP 4: REDESIGN ── */}
             {activeStep === 4 && selectedProduct && (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setActiveStep(3)}
+                  className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: "hsl(38 92% 50%)" }}
+                >
+                  <ArrowLeft size={16} />
+                  Back to Disrupt
+                </button>
+                <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+                  <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(38 92% 50%)" }}>4</div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-bold text-foreground">Redesign</h2>
+                      <p className="text-sm text-muted-foreground">Interactive concept illustrations for <strong className="text-foreground">{selectedProduct.name}</strong> — visualizing the reinvented model.</p>
+                    </div>
+                  </div>
+                  <div className="p-5" style={{ background: "hsl(var(--card))" }}>
+                    <FirstPrinciplesAnalysis
+                      product={selectedProduct}
+                      onSaved={() => setSavedRefreshTrigger((n) => n + 1)}
+                      flippedIdeas={selectedProduct.flippedIdeas}
+                      onRegenerateIdeas={(ctx) => handleRegenerateIdeas(selectedProduct, ctx)}
+                      generatingIdeas={generatingIdeasFor === selectedProduct.id}
+                      renderMode="redesign"
+                      onPatentSave={(patentData) => {
+                        const updated = products.map(p =>
+                          p.id === selectedProduct.id ? { ...p, patentData } : p
+                        );
+                        setProducts(updated);
+                        setSelectedProduct({ ...selectedProduct, patentData });
+                        if (analysisParams) saveAnalysis(updated, analysisParams);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 5: STRESS TEST ── */}
+            {activeStep === 5 && selectedProduct && (
               <div className="space-y-4">
                 <button
                   onClick={() => setActiveStep(2)}
@@ -1447,7 +1484,7 @@ export default function Index() {
                 </button>
                 <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
-                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(350 80% 55%)" }}>4</div>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(350 80% 55%)" }}>5</div>
                     <div className="flex-1 min-w-0">
                       <h2 className="text-lg font-bold text-foreground">Stress Test</h2>
                       <p className="text-sm text-muted-foreground">Red Team vs Blue Team critical validation for <strong className="text-foreground">{selectedProduct.name}</strong> — counter-examples, feasibility, confidence scoring.</p>
@@ -1494,8 +1531,8 @@ export default function Index() {
               </div>
             )}
 
-            {/* ── STEP 5: PITCH DECK ── */}
-            {activeStep === 5 && selectedProduct && (
+            {/* ── STEP 6: PITCH DECK ── */}
+            {activeStep === 6 && selectedProduct && (
               <div className="space-y-4">
                 <button
                   onClick={() => setActiveStep(2)}
@@ -1507,7 +1544,7 @@ export default function Index() {
                 </button>
                 <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
-                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
+                    <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(var(--primary))" }}>6</div>
                     <div className="flex-1 min-w-0">
                       <h2 className="text-lg font-bold text-foreground">Investor Pitch Deck</h2>
                       <p className="text-sm text-muted-foreground">Professional pitch deck for <strong className="text-foreground">{selectedProduct.name}</strong> — TAM/SAM/SOM, unit economics, go-to-market strategy.</p>
@@ -1557,9 +1594,10 @@ export default function Index() {
             <StepNavigator
               steps={[
                 { step: 2, label: "Intelligence Report", description: "Business model deep analysis", icon: Target, color: bizAccent },
-                { step: 3, label: "Disrupt", description: "Challenge assumptions & reinvent", icon: Brain, color: "hsl(350 80% 55%)" },
-                { step: 4, label: "Stress Test", description: "Red vs Green team debate", icon: Swords, color: "hsl(38 92% 50%)" },
-                { step: 5, label: "Pitch Deck", description: "Investor-ready pitch builder", icon: Presentation, color: "hsl(var(--primary))" },
+                { step: 3, label: "Disrupt", description: "Challenge assumptions & reinvent", icon: Brain, color: "hsl(271 81% 55%)" },
+                { step: 4, label: "Redesign", description: "Reinvented concept illustrations", icon: Sparkles, color: "hsl(38 92% 50%)" },
+                { step: 5, label: "Stress Test", description: "Red vs Green team debate", icon: Swords, color: "hsl(350 80% 55%)" },
+                { step: 6, label: "Pitch Deck", description: "Investor-ready pitch builder", icon: Presentation, color: "hsl(var(--primary))" },
               ]}
               activeStep={businessActiveStep}
               visitedSteps={businessVisitedSteps}
@@ -1745,42 +1783,7 @@ export default function Index() {
           </div>
         )}
 
-        {/* ── SGP CAPITAL CTA ── */}
-        {(step === "done" || businessAnalysisData) && (
-          <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
-            <div className="px-6 py-6 flex flex-col sm:flex-row items-center gap-5">
-              <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-                <Rocket size={18} className="text-white" />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <h3 className="text-base font-bold text-foreground mb-1">Ready to Bring This to Life?</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  SGP Capital helps entrepreneurs and investors turn market intelligence into real businesses. From product sourcing to launch strategy — let's build together.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row items-center gap-2 flex-shrink-0">
-                <a
-                  href="https://sgpcapital.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 rounded text-sm font-medium text-white transition-opacity hover:opacity-90 flex items-center gap-2"
-                  style={{ background: "hsl(var(--primary))" }}
-                >
-                  <Globe size={14} />
-                  Visit SGP Capital
-                </a>
-                <a
-                  href="mailto:steven@sgpcapital.com"
-                  className="px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2"
-                  style={{ border: "1.5px solid hsl(var(--primary))", color: "hsl(var(--primary))" }}
-                >
-                  <Users size={14} />
-                  Get in Touch
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* SGP Capital CTA moved to PitchDeck component */}
 
       </main>
 
@@ -1789,8 +1792,6 @@ export default function Index() {
           <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80" style={{ color: "hsl(var(--primary))" }}>
             Built by SGP Capital
           </a>
-          <span className="text-muted-foreground"> · </span>
-          <a href="mailto:steven@sgpcapital.com" className="text-muted-foreground hover:underline">steven@sgpcapital.com</a>
           {profile && <span className="text-muted-foreground"> · Signed in as <strong className="text-foreground">{profile.first_name}</strong></span>}
         </p>
       </footer>

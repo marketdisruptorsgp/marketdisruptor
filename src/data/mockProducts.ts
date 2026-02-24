@@ -121,9 +121,9 @@ export const sampleProducts: Product[] = [
       { text: "The unpredictability is both the charm and the frustration.", sentiment: "neutral" },
     ],
     socialSignals: [
-      { platform: "Instagram", signal: "#polaroid aesthetic posts", volume: "52M+ posts", trend: "up", url: "https://www.instagram.com/explore/tags/polaroid/" },
-      { platform: "TikTok", signal: "Photo developing ASMR", volume: "180M+ views", trend: "up", url: "https://www.tiktok.com/tag/polaroidaesthetic" },
-      { platform: "Pinterest", signal: "Polaroid wall display boards", volume: "8M+ pins", trend: "stable" },
+      { platform: "Social Media", signal: "Polaroid aesthetic posts", volume: "52M+ posts", trend: "up" },
+      { platform: "Social Video", signal: "Photo developing ASMR", volume: "180M+ views", trend: "up" },
+      { platform: "Visual Discovery", signal: "Polaroid wall display boards", volume: "8M+ pins", trend: "stable" },
     ],
     competitors: ["Fujifilm Instax Mini", "Kodak Mini Shot", "HP Sprocket"],
     pricingIntel: {
@@ -160,7 +160,7 @@ export const sampleProducts: Product[] = [
         { name: "Ingram Entertainment", region: "North America", notes: "Mass market distribution" },
       ],
     },
-    trendAnalysis: "Instant photography market hit $3.1B in 2024, driven entirely by Gen Z 'analog revival'. Fujifilm Instax generated $680M revenue in FY2024. Film cost remains the #1 barrier — customers want the ritual, not the expense. 'Photo book subscription' services growing 40% YoY. TikTok 'film unboxing' content averages 2.4M views per post.",
+    trendAnalysis: "Instant photography market hit $3.1B in 2024, driven entirely by Gen Z 'analog revival'. Fujifilm Instax generated $680M revenue in FY2024. Film cost remains the #1 barrier — customers want the ritual, not the expense. 'Photo book subscription' services growing 40% YoY. Social video 'film unboxing' content averages 2.4M views per post.",
     actionPlan: {
       strategy: "Attack the film cost barrier with a subscription model. Or source vintage units, refurbish, and resell at 3–5x margin through lifestyle retailers. Either path is validated.",
       phases: [
@@ -262,10 +262,10 @@ export const sampleProducts: Product[] = [
       { text: "The cartridge format created a huge physical library but storage is bulky.", sentiment: "neutral" },
     ],
     socialSignals: [
-      { platform: "TikTok", signal: "Game Boy nostalgia & modding content", volume: "640M+ views", trend: "up", url: "https://www.tiktok.com/tag/gameboy" },
-      { platform: "Reddit", signal: "r/gameboy modding/collecting", volume: "110K members", trend: "up", url: "https://reddit.com/r/gameboy" },
-      { platform: "Etsy", signal: "Custom painted Game Boys", volume: "15K+ listings", trend: "up", url: "https://etsy.com/search?q=game+boy+color+custom" },
-      { platform: "StockX", signal: "Sealed GBC appreciation", volume: "$180–$400 per unit", trend: "up" },
+      { platform: "Social Video", signal: "Game Boy nostalgia & modding content", volume: "640M+ views", trend: "up" },
+      { platform: "Community Forum", signal: "Modding/collecting community", volume: "110K members", trend: "up" },
+      { platform: "Marketplace", signal: "Custom painted Game Boys", volume: "15K+ listings", trend: "up" },
+      { platform: "Resale Market", signal: "Sealed GBC appreciation", volume: "$180–$400 per unit", trend: "up" },
     ],
     competitors: ["Analogue Pocket", "RG35XX (Anbernic)", "Steam Deck", "Nintendo Switch Lite"],
     pricingIntel: {
@@ -304,7 +304,7 @@ export const sampleProducts: Product[] = [
         { name: "DKOldies", region: "US", url: "https://dkoldies.com", notes: "Refurbished retro hardware wholesale" },
       ],
     },
-    trendAnalysis: "Retro gaming hit cultural mainstream 2022–2024. GBC prices rose 340% on eBay since 2019. Analogue Pocket ($220) sold out in 4 minutes globally — proving massive unmet demand. Modding sub-culture exploding: IPS screen mod tutorials get 2M+ YouTube views. Anbernic RG35XX clone ($60) sold 500K+ units in 2023. The market wants authentic nostalgia with modern convenience — nobody is doing this perfectly yet.",
+    trendAnalysis: "Retro gaming hit cultural mainstream 2022–2024. GBC prices rose 340% on resale platforms since 2019. Analogue Pocket ($220) sold out in 4 minutes globally — proving massive unmet demand. Modding sub-culture exploding: IPS screen mod tutorials get 2M+ video views. Anbernic RG35XX clone ($60) sold 500K+ units in 2023. The market wants authentic nostalgia with modern convenience — nobody is doing this perfectly yet.",
     actionPlan: {
       strategy: "Three parallel revenue streams: (1) Buy-refurb-sell modded GBCs for immediate cash flow, (2) Build modding tutorial/kit business, (3) Long-term: develop original retro-aesthetic device competing with Analogue Pocket.",
       phases: [
