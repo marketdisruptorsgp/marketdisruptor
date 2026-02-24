@@ -750,7 +750,7 @@ export default function Index() {
                 <div className="flex-1 min-w-0">
                   <h2 className="text-base font-bold text-foreground">Intelligence Report</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {products.length} product{products.length > 1 ? "s" : ""} · {totalSources} sources · {totalIdeas} ideas · {avgScore}/10 avg
+                    {products.length} product{products.length > 1 ? "s" : ""} · {totalSources} sources · {totalIdeas} ideas
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -793,7 +793,6 @@ export default function Index() {
                       border: `1px solid ${selectedProduct?.id === product.id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
                     }}
                   >
-                    <RevivalScoreBadge score={product.revivalScore} size="sm" />
                     {product.name}
                   </button>
                 ))}
@@ -869,8 +868,6 @@ export default function Index() {
                           {/* Tags & score */}
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="tag-pill">{selectedProduct.category}</span>
-                            <span className="tag-pill">{selectedProduct.era}</span>
-                            <RevivalScoreBadge score={selectedProduct.revivalScore} size="md" />
                           </div>
 
                           {/* Key Insight — professional callout */}
@@ -924,29 +921,9 @@ export default function Index() {
                             </div>
                           </div>
 
-                          {/* Confidence Scores */}
-                          <div className="section-panel">
-                            <p className="section-label text-[10px] mb-3">Confidence Scores</p>
-                            <div className="grid grid-cols-1 gap-3">
-                              <ScoreBar label="Adoption Likelihood" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
-                              <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
-                              <ScoreBar label="Emotional Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
-                            </div>
-                          </div>
                         </div>
                       </div>
-
-                      {/* Trend analysis */}
-                      {selectedProduct.trendAnalysis && (
-                        <div className="insight-callout">
-                          <p className="section-label text-[10px] mb-2 flex items-center gap-1">
-                            <TrendingUp size={11} /> Trend Analysis
-                          </p>
-                          <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{selectedProduct.trendAnalysis}</p>
-                        </div>
-                      )}
-
-                      {/* Reviews + Social */}
+                      {/* Reviews & Competitors */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="section-panel">
                           <p className="section-label text-[10px] mb-3 flex items-center gap-1">
@@ -967,44 +944,11 @@ export default function Index() {
                         </div>
 
                         <div className="section-panel">
-                          <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                            <TrendingUp size={12} /> Social Signals
-                          </p>
-                          <div className="space-y-2">
-                            {selectedProduct.socialSignals?.map((sig, i) => (
-                              <div
-                                key={i}
-                                className="flex items-center justify-between p-3 rounded-lg"
-                                style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.1)" }}
-                              >
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-xs font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>{sig.platform}</p>
-                                    <TrendBadge trend={sig.trend} />
-                                  </div>
-                                  <p className="text-[11px] text-muted-foreground">{sig.signal}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>
-                                    {sig.volume}
-                                  </span>
-                                  {sig.url && (
-                                    <a href={sig.url} target="_blank" rel="noopener noreferrer">
-                                      <ExternalLink size={11} style={{ color: "hsl(var(--primary))" }} />
-                                    </a>
-                                  )}
-                                </div>
-                              </div>
+                          <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">Competitors</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {selectedProduct.competitors?.map((c) => (
+                              <span key={c} className="tag-pill">{c}</span>
                             ))}
-                          </div>
-
-                          <div className="mt-4 pt-3" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">Competitors</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {selectedProduct.competitors?.map((c) => (
-                                <span key={c} className="tag-pill">{c}</span>
-                              ))}
-                            </div>
                           </div>
                         </div>
                       </div>
