@@ -1,45 +1,97 @@
 
-# Save Password Checkbox + Button Visibility Improvements
 
-## 1. "Remember Me" Checkbox on Password Login
+# Redesign: User Workflow Section in Disrupt Step
 
-Add a "Remember me" checkbox to the password sign-in form that saves the user's email to `localStorage`. When they return, the email field is pre-filled so they only need to type their password.
+## What We're Changing
 
-**How it works:**
-- A styled checkbox appears between the password field and the Sign In button
-- When checked and login succeeds, the email is saved to `localStorage` under `saved_login_email`
-- On page load, if a saved email exists, it pre-fills the email field, auto-switches to password mode, and focuses the password field
-- Unchecking and logging in clears the saved email
+The "User Workflow" section (Section 3 inside the Disrupt step) currently shows the product's user journey as small text pills connected by tiny chevron arrows, with text-only friction point cards below. We'll transform this into a prominent, interactive visual workflow diagram that works across all 3 modes (Product, Service, Business Model).
 
-**File: `src/pages/AuthPage.tsx`**
-- Add `rememberMe` state (boolean), initialized from whether `localStorage` has `saved_login_email`
-- Add `useEffect` to load saved email on mount and auto-switch to password mode
-- Add a checkbox row (using the existing Checkbox component from `@radix-ui/react-checkbox`) between the password input and the submit button
-- On successful password login: if `rememberMe` is true, save email; if false, clear it
+---
 
-## 2. Button & Navigation Visibility Improvements
+## Current State
 
-Audit and upgrade all interactive elements to ensure they're unmissable.
+- Steps shown as small inline `flex-wrap` text badges with `ChevronRight` arrows
+- Friction points listed as flat colored cards below
+- No visual connection between steps and their friction points
+- Cognitive Load, Context, and Optimizations hidden in a collapsible panel
 
-**File: `src/pages/AuthPage.tsx`**
-- Increase submit button height from `py-3` to `py-3.5`
-- Add a subtle shadow (`shadow-md`) to make the CTA pop against the background
-- Make the mode toggle buttons slightly taller (`py-3` instead of `py-2.5`) with bolder text
+## New Design
 
-**File: `src/components/PlatformNav.tsx`**
-- Increase nav text from `text-sm` to `text-sm font-semibold` for top-level nav triggers (Access Modes, Workspace, Resources)
-- Make the "About" and "Pricing" direct links use `font-semibold` consistently
-- Add a subtle bottom border indicator on the active page link (2px primary-colored underline)
+### 1. Visual Workflow Pipeline
 
-**File: `src/components/StepNavigator.tsx`**
-- Increase step button padding from `px-3 py-2` to `px-4 py-2.5`
-- Make the active step more prominent with a slight shadow
-- Increase the connector line width from `w-4` to `w-6` for better visual flow
+Replace the inline text pills with a **vertical timeline** layout (mobile-first) that becomes a **horizontal pipeline** on desktop:
+
+- Each step rendered as a prominent card with a numbered circle, step title, and connecting line to the next step
+- Friction points displayed as colored badges directly attached to their corresponding step
+- Steps are clickable/tappable to expand and show the full step description and root cause of friction
+- Active/expanded step gets a highlighted border and subtle scale effect
+
+```text
+Desktop (horizontal):
+  [1. Unbox] -----> [2. Setup] -----> [3. First Use] -----> [4. Daily Use]
+     |                  |                   |
+   (low)            (HIGH!)             (medium)
+                   "Complex           "Cognitive
+                    pairing"           overload"
+
+Mobile (vertical timeline):
+  o-- [1. Unbox] .............. (low friction)
+  |
+  o-- [2. Setup] .............. (HIGH friction)
+  |     > "Complex pairing process"
+  |
+  o-- [3. First Use] ......... (medium)
+  |
+  o-- [4. Daily Use]
+```
+
+### 2. Interactive Friction Overlay
+
+- Each step card shows a small severity indicator (colored dot: red/amber/green)
+- Tapping a step expands it inline to reveal: friction description, root cause, and severity badge
+- The expanded state uses the existing `SEVERITY_COLORS` for consistency
+
+### 3. Context Cards Below
+
+- Cognitive Load and Context of Use shown as two side-by-side summary cards (not hidden in a collapsible)
+- Workflow Optimizations remain in a collapsible detail panel
+
+### 4. Cross-Mode Support
+
+- Product mode: "User Workflow" label, physical product journey steps
+- Service mode: "Customer Journey" label (already handled via `isService` flag)
+- Business Model mode: Uses the same component since Disrupt shares `FirstPrinciplesAnalysis`
+
+---
 
 ## Technical Details
 
-| File | Changes |
-|---|---|
-| `src/pages/AuthPage.tsx` | Add `rememberMe` state + checkbox UI, load saved email on mount, save/clear on login, increase button sizing and add shadow |
-| `src/components/PlatformNav.tsx` | Bump nav trigger font weight to semibold, add active-page bottom border indicator |
-| `src/components/StepNavigator.tsx` | Increase button padding, add shadow on active step, widen connector lines |
+### Files Modified
+
+**`src/components/FirstPrinciplesAnalysis.tsx`** (lines ~561-629)
+
+Replace the current workflow section with:
+
+1. A new inline `WorkflowTimeline` component that:
+   - Maps `data.userWorkflow.stepByStep` into numbered step cards
+   - Cross-references `data.userWorkflow.frictionPoints` by matching step names
+   - Uses `useState` to track which step is expanded
+   - Renders a vertical timeline on mobile (`flex-col`) and horizontal on desktop (`sm:flex-row` with overflow-x-auto)
+
+2. Each step card includes:
+   - Numbered circle with connecting line/border
+   - Step title text
+   - Severity dot if a friction point exists for that step
+   - Expandable area showing friction detail and root cause
+
+3. Cognitive Load and Context of Use promoted to visible cards (2-column grid) instead of being hidden in a collapsible
+
+### Visual Specifications (matching design system)
+
+- Step cards: `rounded-lg`, `bg: hsl(var(--muted))`, `border: 1px solid hsl(var(--border))`
+- Active/expanded card: `border: 1.5px solid hsl(var(--primary))`, slight scale via CSS
+- Timeline connector: 2px solid line using `hsl(var(--border))`
+- Friction severity dots use existing `SEVERITY_COLORS` map
+- No gradients, no glow, no emojis per design system rules
+- All text uses existing font sizes (10px labels, xs body text)
+
