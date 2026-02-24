@@ -13,7 +13,7 @@ export function ReferralCTA({ compact }: ReferralCTAProps) {
 
   if (!user) return null;
 
-  const referralLink = `https://productideas.lovable.app?ref=${user.id}`;
+  const referralLink = `http://marketdisruptor.sgpcapital.com?ref=${user.id}`;
 
   const handleCopy = async () => {
     try {
