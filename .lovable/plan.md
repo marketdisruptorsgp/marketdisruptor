@@ -1,123 +1,152 @@
 
-# Institutional-Grade Pitch Presentation Overhaul
 
-## Summary
-Redesign the entire pitch slide system to match the Axial.net capital-markets aesthetic: flat surfaces, typography-driven hierarchy, neutral backgrounds, zero decoration. Add a fullscreen "Present" mode. Consolidate from 12 to 10 slides. Move SGP Capital CTA to the completion page. Make the completion action prominent.
+# Portfolio Action Items, Notes, and Pitch Persistence
 
----
-
-## 1. Redesign PitchSlideFrame -- Institutional Style
-
-**File: `src/components/pitch/PitchSlideFrame.tsx`**
-
-Remove all current decorative elements (accent bar, colored icon box, rounded-xl, box-shadow, gradient footer). Replace with:
-
-- **Flat white background** (`hsl(var(--card))`) with a single thin `1px` border, no shadow, no rounded corners beyond `rounded-md`
-- **Header**: Left-aligned slide title in 22-24px Space Grotesk 700, subtitle below in 12px Inter 400 muted. No icon box -- just the text. Slide number right-aligned in `11px` muted (`01 / 10` format with zero-padded numbers)
-- **Footer**: Thin `1px` top border. "MARKET DISRUPTOR" left, "CONFIDENTIAL" center, product name right. All in `9px` uppercase tracking-widest muted
-- **No accent bar, no colored icon container, no box-shadow**
-- **Aspect ratio**: Keep `16 / 9`
-
-Update `SlideStatCard`: Remove colored accent values. Use black text for the metric value, muted label above, thin border. Flat muted background.
-
-Update `SlideBullet`: Replace colored icon with a simple `4px` circle (muted-foreground) or em-dash prefix. Text in `13-14px` Inter.
+## Overview
+Three interconnected features: (1) a cross-project Action Items panel at the top of the Portfolio dashboard, (2) per-project Notes that persist with the analysis, and (3) saving investor pitch deck data so it shows in the portfolio and is accessible from project cards.
 
 ---
 
-## 2. Consolidate to 10 Slides
+## 1. New Database Table: `portfolio_action_items`
 
-**File: `src/components/PitchDeck.tsx`**
+A dedicated table for user-managed action items that span across all projects.
 
-Merge 12 slides into 10 standard VC sections:
-1. Problem
-2. Solution
-3. Why Now
-4. Market Opportunity
-5. Product / Innovation
-6. Business Model
-7. Traction and Metrics (merge slides 7+9)
-8. Risks and Mitigation
-9. Go-to-Market (merge with Competitive into GTM + Positioning)
-10. The Ask (Investment)
+```text
+portfolio_action_items
+  id            uuid (PK, default gen_random_uuid())
+  user_id       uuid (NOT NULL)
+  analysis_id   uuid (nullable -- links to a project, optional)
+  text          text (NOT NULL)
+  notes         text (nullable)
+  position      integer (NOT NULL, default 0)  -- for drag/reorder
+  completed     boolean (NOT NULL, default false)
+  created_at    timestamptz (default now())
+  updated_at    timestamptz (default now())
+```
 
-Update `SLIDE_TABS`, `SLIDE_TITLES`, and `PITCH_SLIDE_DESCRIPTIONS` accordingly.
+RLS policies: full CRUD for `auth.uid() = user_id`.
 
----
-
-## 3. Strip Decorative Styling from All Slide Content
-
-**File: `src/components/PitchDeck.tsx`**
-
-For every slide's JSX content:
-- **Remove** all colored background panels (`hsl(var(--destructive) / 0.05)`, gradient elevator pitch box, colored border-top on phases, colored pills for revenue streams)
-- **Replace** with flat `hsl(var(--muted))` backgrounds with `1px solid hsl(var(--border))` borders
-- **Remove** all accent-colored text for labels -- use `text-muted-foreground` for all section labels
-- **Section labels**: 10px uppercase tracking-widest in muted foreground (same pattern but no color variation)
-- **Body text**: 13-14px Inter, `text-foreground/85`, `leading-relaxed`
-- **Key metrics**: Bold foreground, no colored backgrounds on badges
-- **Severity tags** (risks): Use text-only labels with foreground weight differences, not colored pills
+This table is separate from `saved_analyses` because action items are portfolio-level (cross-project), not scoped to a single analysis.
 
 ---
 
-## 4. Create Fullscreen Presentation Mode
+## 2. Per-Project Notes (stored in `analysis_data` JSONB)
 
-**New file: `src/components/pitch/PresentationMode.tsx`**
+No schema change needed. Notes will be stored as `analysis_data.projectNotes` (a string) inside the existing `saved_analyses` row. This follows the same pattern used by `steeringMemory`, `userScores`, and other step-level data.
 
-- Fixed 1920x1080 slide rendered at center, scaled via `transform: scale()` to fit viewport
-- **Black background** (neutral, not decorative)
-- No decorative overlays -- only a subtle slide counter in bottom-right (`01 / 10` in 12px muted white)
-- Keyboard navigation: ArrowRight/Space = next, ArrowLeft = prev, Escape = exit
-- Uses browser Fullscreen API
-- Each slide's content is passed as render functions extracted from PitchDeck
-- No auto-advance, no transitions, no animations
-- Exit button: small "ESC" label in top-right, auto-hides after 3 seconds of no mouse movement
-
-**Integration in PitchDeck toolbar**: Add a "Present" button next to Export and Regenerate, using the `Presentation` icon.
+- Saved via the existing `saveStepData("projectNotes", text)` pattern
+- Loaded in `handleLoadSaved` alongside other step data
+- Editable from both the Portfolio project card (inline) and the Report/analysis pages
 
 ---
 
-## 5. Fix SectionWorkflowNav Grid for 10 Tabs
+## 3. Pitch Deck Persistence in Portfolio
 
-**File: `src/components/SectionNav.tsx`**
-
-Update `gridCols` logic to add a case for 7-12 tabs:
-- `grid-cols-2 sm:grid-cols-5 lg:grid-cols-5` for exactly 10 tabs (2 rows of 5 on tablet/desktop)
-
----
-
-## 6. Move SGP Capital CTA to Completion Page
-
-**File: `src/components/PitchDeck.tsx`**
-- Remove the entire SGP Capital block (lines 688-740) from the Investment slide footer
-- Replace with a prominent "Complete Analysis" button (full-width, primary background, Sparkles icon)
-
-**File: `src/components/CompletionExperience.tsx`**
-- Add the SGP Capital partnership CTA between the main completion card and the Evolution View
-- Accept additional props: `product`, `profile`, `user`, `userScore`, `analysisId`
+Pitch deck data is already saved as `analysis_data.pitchDeck`. The portfolio will now:
+- Show a "Pitch Deck" badge on project cards that have pitch data
+- Allow clicking to navigate directly to the pitch page (`/analysis/:id/pitch`)
 
 ---
 
-## 7. Update stepConfigs
+## File Changes
 
-**File: `src/lib/stepConfigs.ts`**
-- Update `PITCH_SLIDE_DESCRIPTIONS` to reflect the new 10-slide structure
+### A. `src/components/portfolio/ActionItemsPanel.tsx` (NEW)
+
+A new component rendered at the top of the Portfolio page. Features:
+- Fetches from `portfolio_action_items` table ordered by `position`
+- Each item shows: text, optional linked project name, notes (expandable), completed toggle
+- Inline editing of text and notes
+- Add new item (text input + optional project link dropdown)
+- Delete item (trash icon with confirm)
+- Move up/down buttons to reorder (updates `position` column)
+- Auto-generates suggested action items from analyses (e.g., "Review high-scoring project X", "Stress-test project Y") -- shown as suggestions the user can add with one click
+- All mutations use optimistic UI with `supabase.from("portfolio_action_items")`
+
+### B. `src/components/portfolio/ProjectNotesEditor.tsx` (NEW)
+
+A small notes editor component (textarea + save button) used in two places:
+- Inside the Portfolio's project card (via a collapsible "Notes" section)
+- On the Report/analysis page (always-visible notes section at the bottom)
+- Persists via `saveStepData("projectNotes", text)` or direct Supabase update
+- Shows last-edited timestamp
+
+### C. `src/pages/PortfolioPage.tsx` (MODIFIED)
+
+- Import and render `ActionItemsPanel` between the stats row and Score Intelligence Panel
+- Update `ProjectInsightCard` usage to pass notes and pitch data
+- Add a notes section that expands inline on each project card
+
+### D. `src/components/portfolio/ProjectInsightCard.tsx` (MODIFIED)
+
+- Show a small "Pitch Deck" badge if `analysis_data?.pitchDeck` exists
+- Show a truncated notes preview if `analysis_data?.projectNotes` exists
+- Add an inline collapsible notes editor (click "Notes" to expand)
+- Notes save directly to `saved_analyses.analysis_data` via Supabase update
+
+### E. `src/contexts/AnalysisContext.tsx` (MODIFIED)
+
+- In `handleLoadSaved`: restore `projectNotes` from `analysis_data`
+- Add `projectNotes` / `setProjectNotes` state
+- Expose in context so Report pages can show/edit notes
+
+### F. `src/pages/ReportPage.tsx` (MODIFIED)
+
+- Add a "Notes" section at the bottom of the report view using `ProjectNotesEditor`
+- Connected to `analysis.projectNotes` and saves via `saveStepData`
 
 ---
 
-## Files Modified
-| File | Change |
-|---|---|
-| `src/components/pitch/PitchSlideFrame.tsx` | Institutional flat redesign, remove all decoration |
-| `src/components/pitch/PresentationMode.tsx` | New fullscreen presenter component |
-| `src/components/PitchDeck.tsx` | 10-slide consolidation, strip decorative styling, add Present button, remove SGP CTA, prominent completion button |
-| `src/components/SectionNav.tsx` | Fix grid for 10 tabs |
-| `src/components/CompletionExperience.tsx` | Add SGP Capital CTA section |
-| `src/lib/stepConfigs.ts` | Update slide descriptions for 10 slides |
+## Action Items Intelligence
 
-## Design Principles Applied
-- Flat surfaces, no gradients, no shadows
-- Typography-driven hierarchy (size + weight only)
-- Neutral muted background, semantic accent only for data meaning (score thresholds)
-- Max 5 bullets, max 12 words per bullet
-- Generous whitespace, information-first
-- Identical structure across all modes (Product, Service, Business)
+The `ActionItemsPanel` will auto-suggest action items based on analysis data:
+- Projects with score >= 7.5 but no pitch deck: "Generate pitch deck for [Project]"
+- Projects with no stress test: "Run stress test for [Project]"
+- Projects marked outdated: "Re-run analysis for [Project]"
+- Highest-scoring project: "Focus on [Project] -- your strongest opportunity"
+
+These appear as grey suggestion chips that the user can click to add to their list.
+
+---
+
+## Technical Details
+
+### Database Migration SQL
+```sql
+CREATE TABLE public.portfolio_action_items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  analysis_id uuid,
+  text text NOT NULL,
+  notes text,
+  position integer NOT NULL DEFAULT 0,
+  completed boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.portfolio_action_items ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can select their own action items"
+  ON public.portfolio_action_items FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own action items"
+  ON public.portfolio_action_items FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own action items"
+  ON public.portfolio_action_items FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own action items"
+  ON public.portfolio_action_items FOR DELETE USING (auth.uid() = user_id);
+```
+
+### Notes Storage Pattern
+Notes are stored in the existing `analysis_data` JSONB column as:
+```json
+{
+  "projectNotes": "User's free-text notes about this project...",
+  "pitchDeck": { ... },
+  "disrupt": { ... }
+}
+```
+
+This requires zero schema changes and follows the established pattern.
+
+### Reorder Logic
+Move up/down swaps `position` values between adjacent items and batch-updates both rows in a single call.
