@@ -1,64 +1,40 @@
-# No do not do number 5. I want the tracker card below patent section like it is for other steps/sectionx. 
 
-&nbsp;
 
-&nbsp;
+# Enforce Fresh Data (< 30 Days) for Patent & Market News Intel
 
-# Homepage Cleanup and Loading Tracker Repositioning
+## Problem
+Currently the patent filings stored in the database have filing dates as old as 2007, and market news has items dating back to 2024. The scraper searches are broad and don't enforce recency, so stale data gets displayed.
 
 ## Changes
 
-### 1. Increase "Rethink any [mode]" font size
+### 1. Patent Scraper -- target last 24 hours / 50 most recent (`supabase/functions/scrape-patent-intel/index.ts`)
 
-**File: `src/pages/DashboardPage.tsx**` (line 151)
+- Update `PATENT_SEARCHES` queries to explicitly target "past 24 hours" / "today" / "yesterday" phrasing and current date context (2025-2026)
+- Add the Firecrawl `tbs: "qdr:d"` parameter (last 24 hours) to the search request, matching how market news already uses `tbs: "qdr:w"`
+- In the AI extraction prompt, instruct the model to only extract patents with filing/publication dates within the last 30 days; discard anything older
+- Cap total stored patents at 50 most recent (by filing_date descending) when inserting
+- Before insert, delete all existing rows (current behavior) to ensure stale data doesn't persist
 
-Current: `text-2xl sm:text-4xl md:text-5xl`
-New: `text-3xl sm:text-5xl md:text-6xl` -- bumps each breakpoint up one notch for a more impactful hero headline.
+### 2. Market News Scraper -- enforce 30-day freshness (`supabase/functions/scrape-market-news/index.ts`)
 
-### 2. Remove "Continue where you left off" banner
+- Change `tbs: "qdr:w"` (last week) to `tbs: "qdr:m"` (last month) to cast a wider net while staying within the 30-day window
+- In the AI extraction prompt, instruct the model to only include articles published within the last 30 days
+- After extraction, programmatically filter out any items with `published_at` older than 30 days before inserting
 
-**File: `src/pages/DashboardPage.tsx**` (lines 218-223)
+### 3. Frontend -- filter stale data client-side as a safety net (`src/pages/IntelPage.tsx`)
 
-Remove the `<ContinueBanner>` block and its import (line 16). The component file `src/components/ContinueBanner.tsx` can remain in the codebase (unused code is tree-shaken out).
-
-### 3. Remove Welcome Modal
-
-**File: `src/pages/Index.tsx**`
-
-- Remove the `WelcomeModal` import (line 20)
-- Remove the `showWelcome` state (line 184-186)
-- Remove `handleCloseWelcome` function (lines 255-258)
-- Remove the WelcomeModal render block (lines 542-545)
-- Remove the `!showWelcome` guard on MobileTour (line 548 -- simplify to just `user &&`)
-
-Also remove the "Welcome back" toast:
-**File: `src/hooks/useAuth.tsx**` (line 45) -- Remove the `toast.success("Welcome back...")` call.
-
-### 4. "Edit with Lovable" badge
-
-This badge is injected by the Lovable platform itself and is not part of the project's source code. It cannot be hidden or removed via code changes. It is only visible in the preview/development environment and does not appear on the published production URL.
-
-### 5. Move Loading Tracker inside the analysis form parent card
-
-**File: `src/pages/Index.tsx**` (lines 685-692)
-
-Currently the `<LoadingTracker>` renders as a separate block BELOW the tab card. Move it INSIDE the tab card's `<div className="p-5">` area, directly below the `<AnalysisForm>`, so it appears within the same parent container when analysis is running. This gives a cohesive feel -- the tasks/activity log appears right under the form that triggered it.
-
-Specifically:
-
-- Remove the standalone `LoadingTracker` block at lines 685-692
-- Insert `{isLoading && <LoadingTracker ... />}` inside the tab card div, right after the `<AnalysisForm>` component (after line 677)
-
----
+- After fetching patents and news from the database, apply a 30-day cutoff filter on `filing_date` (patents) and `published_at` (news)
+- This ensures even if scraper data slips through, the UI never shows anything older than 30 days
+- Add `.gte("filing_date", thirtyDaysAgo)` to the patent query and `.gte("published_at", thirtyDaysAgo)` to the news query directly in the Supabase calls
+- Limit patent query to `.limit(50)` to enforce the 50 most recent cap
 
 ## Technical Details
 
+| File | Changes |
+|---|---|
+| `supabase/functions/scrape-patent-intel/index.ts` | Add `tbs: "qdr:d"` to Firecrawl searches; update AI prompt to enforce 30-day recency; cap at 50 rows |
+| `supabase/functions/scrape-market-news/index.ts` | Change `tbs: "qdr:w"` to `tbs: "qdr:m"`; add 30-day filter in prompt and post-extraction |
+| `src/pages/IntelPage.tsx` | Add `.gte()` date filters and `.limit(50)` to patent/news queries |
 
-| File                          | Changes                                                                       |
-| ----------------------------- | ----------------------------------------------------------------------------- |
-| `src/pages/DashboardPage.tsx` | Increase h1 font classes; remove ContinueBanner import + render               |
-| `src/pages/Index.tsx`         | Remove WelcomeModal import/state/render; move LoadingTracker inside form card |
-| `src/hooks/useAuth.tsx`       | Remove "Welcome back" toast                                                   |
+No database schema changes needed. Edge functions will be redeployed after changes.
 
-
-No new dependencies. No database changes.
