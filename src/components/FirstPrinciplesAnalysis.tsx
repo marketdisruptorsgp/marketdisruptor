@@ -123,6 +123,8 @@ interface FirstPrinciplesAnalysisProps {
   onRegenerateIdeas?: (userContext?: string) => void;
   generatingIdeas?: boolean;
   onPatentSave?: (patentData: unknown) => void;
+  externalData?: unknown;
+  onDataLoaded?: (data: unknown) => void;
 }
 
 const REASON_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -211,10 +213,10 @@ function NextSectionButton({ label, onClick }: { label: string; onClick: () => v
   );
 }
 
-export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
+export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
-  const [data, setData] = useState<FirstPrinciplesData | null>(null);
+  const [data, setData] = useState<FirstPrinciplesData | null>((externalData as FirstPrinciplesData) || null);
   const [loading, setLoading] = useState(false);
   const [patentLoading, setPatentLoading] = useState(false);
   const isService = product.category === "Service";
@@ -278,6 +280,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           }
         } else {
           setData(result.analysis);
+          onDataLoaded?.(result.analysis);
           setActiveStep("reality");
           toast.success("Disrupt analysis complete!");
           await saveToWorkspace(result.analysis);

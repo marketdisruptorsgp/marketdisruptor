@@ -50,6 +50,10 @@ interface AnalysisContextType {
   visitedDetailTabs: Set<string>;
   setVisitedDetailTabs: (s: Set<string>) => void;
 
+  // Disrupt
+  disruptData: unknown;
+  setDisruptData: (d: unknown) => void;
+
   // Stress test
   stressTestData: unknown;
   setStressTestData: (d: unknown) => void;
@@ -57,6 +61,10 @@ interface AnalysisContextType {
   setStressTestTab: (t: "debate" | "validate") => void;
   visitedStressTestTabs: Set<string>;
   setVisitedStressTestTabs: (s: Set<string>) => void;
+
+  // Pitch deck
+  pitchDeckData: unknown;
+  setPitchDeckData: (d: unknown) => void;
 
   // Business model
   businessAnalysisData: BusinessModelAnalysisData | null;
@@ -88,6 +96,7 @@ interface AnalysisContextType {
   handleManualSave: () => Promise<void>;
   handleLoadSaved: (analysis: any) => void;
   saveAnalysis: (products: Product[], params: { category: string; era: string; batchSize: number }) => Promise<void>;
+  saveStepData: (stepKey: string, data: unknown) => Promise<void>;
 
   // Analysis ID for routing
   analysisId: string | null;
@@ -118,9 +127,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<string>("overview");
   const [visitedDetailTabs, setVisitedDetailTabs] = useState<Set<string>>(new Set(["overview"]));
+  const [disruptData, setDisruptData] = useState<unknown>(null);
   const [stressTestData, setStressTestData] = useState<unknown>(null);
   const [stressTestTab, setStressTestTab] = useState<"debate" | "validate">("debate");
   const [visitedStressTestTabs, setVisitedStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
+  const [pitchDeckData, setPitchDeckData] = useState<unknown>(null);
   const [businessAnalysisData, setBusinessAnalysisData] = useState<BusinessModelAnalysisData | null>(null);
   const [businessModelInput, setBusinessModelInput] = useState<BusinessModelInput | null>(null);
   const [businessStressTestData, setBusinessStressTestData] = useState<unknown>(null);
@@ -215,6 +226,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setAnalysisParams(baseParams);
     setStep("scraping");
     setErrorMsg("");
+    setDisruptData(null);
+    setStressTestData(null);
+    setPitchDeckData(null);
     startLoadingTimer();
 
     const hasCustom = customProducts && customProducts.length > 0;
@@ -391,8 +405,34 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     await saveAnalysis(products, analysisParams);
   }, [analysisParams, products, saveAnalysis]);
 
+  // Persist step-level data (disrupt, stress-test, pitch) into analysis_data JSON
+  const saveStepData = useCallback(async (stepKey: string, data: unknown) => {
+    if (!analysisId) return;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: existing } = await (supabase.from("saved_analyses") as any)
+        .select("analysis_data")
+        .eq("id", analysisId)
+        .single();
+      const prev = (existing?.analysis_data as Record<string, unknown>) || {};
+      const merged = { ...prev, [stepKey]: data };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from("saved_analyses") as any)
+        .update({ analysis_data: merged })
+        .eq("id", analysisId);
+    } catch (err) {
+      console.error("Failed to persist step data:", err);
+    }
+  }, [analysisId]);
+
   const handleLoadSaved = useCallback((analysis: any) => {
     setLoadedFromSaved(true);
+    // Restore persisted step data
+    const ad = analysis.analysis_data as Record<string, unknown> | null;
+    if (ad?.disrupt) setDisruptData(ad.disrupt);
+    if (ad?.stressTest) setStressTestData(ad.stressTest);
+    if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
+
     if (analysis.analysis_type === "business_model") {
       setBusinessAnalysisData(analysis.analysis_data as BusinessModelAnalysisData);
       const titleParts = (analysis.title || "").split(" — ");
@@ -435,8 +475,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       mainTab, setMainTab, activeMode, setActiveMode,
       elapsedSeconds, loadingLog, stepMessage,
       detailTab, setDetailTab, visitedDetailTabs, setVisitedDetailTabs,
+      disruptData, setDisruptData,
       stressTestData, setStressTestData, stressTestTab, setStressTestTab,
       visitedStressTestTabs, setVisitedStressTestTabs,
+      pitchDeckData, setPitchDeckData,
       businessAnalysisData, setBusinessAnalysisData,
       businessModelInput, setBusinessModelInput,
       businessStressTestData, setBusinessStressTestData,
@@ -444,7 +486,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       visitedBusinessStressTestTabs, setVisitedBusinessStressTestTabs,
       generatingIdeasFor, savedRefreshTrigger, setSavedRefreshTrigger,
       loadedFromSaved, setLoadedFromSaved,
-      handleAnalyze, handleRegenerateIdeas, handleManualSave, handleLoadSaved, saveAnalysis,
+      handleAnalyze, handleRegenerateIdeas, handleManualSave, handleLoadSaved, saveAnalysis, saveStepData,
       analysisId, setAnalysisId,
     }}>
       {children}
