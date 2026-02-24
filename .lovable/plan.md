@@ -1,86 +1,216 @@
 
 
-# Output Quality & Completion Experience Upgrades
+# Analysis Memory, Structured Export & Pitch Deck Visual Upgrade
+
+This plan covers three major feature areas across the platform. Given the scope, changes are organized into clear phases.
 
 ---
 
-## 1. Completion Experience Component
+## Phase 1: Analysis Timeline & Evolution View
 
-**New file: `src/components/CompletionExperience.tsx`**
+### New file: `src/components/analysis/AnalysisTimeline.tsx`
 
-A reusable completion panel that replaces the inline completion screen currently hardcoded in PitchDeck.tsx.
+A chronological event feed built from `analysis_data` stored in `saved_analyses`.
 
-Props:
-- `productName` (string)
-- `completionMessage` (string) -- the AI-generated strategic insight
-- `onExportPDF` (callback)
-- `onBackToSections` (callback)
-- `accentColor` (string)
+- Reads the analysis_data JSON blob and extracts timestamps/presence of each step key (disrupt, redesign, stressTest, pitchDeck, userScores)
+- Renders a vertical timeline with event cards: "Initial Analysis", "Disrupt Completed", "Redesign Generated", "Score Adjusted", "Pitch Generated"
+- Uses existing `created_at` from saved_analyses + step presence as markers
+- Color-coded by mode theme (Product blue, Service rose, Business violet)
 
-Features:
-- Rotating success messages based on analysis outcome type (opportunity framing, disruption potential, creative reframing, breakthrough insight)
-- "Project saved" confirmation badge
-- "Next: View Portfolio" CTA button
-- PDF export button
-- Back-to-sections link
+### New file: `src/components/analysis/EvolutionView.tsx`
 
-**Edit: `src/components/PitchDeck.tsx`**
-- Replace the inline completion screen (lines 224-267) with `<CompletionExperience>` component
-- Pass through `completionMessage`, product name, PDF handler, and accent color
+A horizontal pipeline visualization showing the progression:
 
----
+```text
+Original Idea --> Disrupt Concept --> Redesign --> Stress Test --> Pitch Outcome
+```
 
-## 2. Header Mode Consistency
+- Each node shows a summary snippet extracted from the corresponding step data
+- Connected with directional arrows
+- Completed nodes are filled with mode accent color; pending nodes are muted
+- Expandable: clicking a node shows a brief summary card
 
-**Edit: `src/pages/ReportPage.tsx`**
-- Import and use `useModeTheme` hook
-- Pass `theme.primary` as `accentColor` to `ModeHeader`, `StepNavBar`, `ShareAnalysis`, `KeyTakeawayBanner`, and `NextStepButton`
-- This is the only step page currently missing the mode theme integration
+Both components will be added to the **Pitch step completion screen** (inside CompletionExperience) and to the **Portfolio page** as an expandable section on project cards.
 
 ---
 
-## 3. Intel Engine Minimum Results Enforcement
+## Phase 2: Version Comparison System
 
-### News scraper
+### New file: `src/components/analysis/VersionComparison.tsx`
 
-**Edit: `supabase/functions/scrape-market-news/index.ts`**
-- Add `MIN_RESULTS = 10` constant
-- After initial scrape loop, check if `recentNews.length < MIN_RESULTS`
-- If below minimum, run a broadened fallback query with `tbs: "qdr:y"` (last year) to backfill
-- Remove hardcoded category assignments on queries -- instead let AI dynamically categorize each article from content
+- Compares the current analysis state with a previous version (if the project has been re-analyzed)
+- Uses `analysis_data` to extract score sets, redesign outputs, and pitch revisions
+- Displays side-by-side diff cards with highlighted changes:
+  - Score deltas (up/down arrows with magnitude)
+  - Redesign concept text diffs (bold changed sections)
+  - Pitch section changes (highlight new vs old content)
+- Since we store a single `analysis_data` blob (no version history in DB), comparison will work by storing a `previousSnapshot` key inside analysis_data when regeneration occurs
 
-### Trend scraper
+### Edit: `src/contexts/AnalysisContext.tsx`
 
-**Edit: `supabase/functions/scrape-trend-intel/index.ts`**
-- Add `MIN_RESULTS = 10` constant
-- Expand `TREND_KEYWORDS` from 8 to 12+ broad keywords covering more sectors
-- After initial loop, if `allTrends.length < MIN_RESULTS`, run additional broad keyword searches to fill the gap
-- Remove hardcoded category mapping -- let AI dynamically assign categories from trend content
-
-### Patent scraper
-- Already has `MIN_RESULTS = 10` with broadening logic -- no changes needed
+- In `saveStepData`, before merging new data, save the previous value under `previousSnapshot.{stepKey}` if it already exists
+- This creates a lightweight version trail without schema changes
 
 ---
 
-## 4. Pitch Structure Verification
+## Phase 3: Steering Memory Service
 
-The pitch edge function (`generate-pitch-deck/index.ts`) already:
-- Follows the 12-section order (Problem, Solution, Why Now, Market, Product, Business Model, Traction, Risks, Metrics, GTM, Competitive, Investment Ask)
-- Incorporates `redesignData`, `userScores`, `stressTestData`
-- Uses realistic risk framing with severity tagging
-- Includes `completionMessage` field for strategic insight
+### New file: `src/services/steeringMemory.ts`
 
-The PitchDeck.tsx component already renders all 12 sections via `SLIDE_TABS` in the correct order.
+A persistence service for user steering context:
 
-**No changes needed** -- structure is already compliant.
+- Stores: user context inputs, rationale notes, score adjustments
+- Uses `analysis_data` blob -- saves under `steeringMemory` key
+- Functions:
+  - `saveSteeringContext(analysisId, stepKey, context)` -- persists to DB
+  - `loadSteeringContext(analysisData, stepKey)` -- retrieves from loaded data
+  - `getAllSteeringHistory(analysisData)` -- returns all steering inputs across steps
+- Auto-loads when reopening analysis via `handleLoadSaved`
+
+### Edit: `src/contexts/AnalysisContext.tsx`
+
+- Add `steeringContext` state: `Record<string, string>`
+- In `handleLoadSaved`, restore `steeringMemory` from analysis_data
+- Expose `setSteeringContext(stepKey, text)` and `steeringContext` through context
+
+### Edit: Steering panels across steps
+
+- Pre-populate the SteeringPanel textarea with saved context when analysis is loaded from saved
+- Affected files: `PitchDeck.tsx`, `StressTestPage.tsx`, `DisruptPage.tsx` (anywhere SteeringPanel or "Guide the AI" inputs exist)
 
 ---
 
-## 5. Share/Referral Verification
+## Phase 4: Resume Workflow Entry Point
 
-Both `ShareAnalysis.tsx` and `ReferralCTA.tsx` already use `http://marketdisruptor.sgpcapital.com` as the referral destination. The share dropdown already has `z-[9999]` and `overflow: visible`.
+### Edit: `src/contexts/AnalysisContext.tsx` -- `handleLoadSaved`
 
-**No changes needed.**
+- After loading, determine the last completed step using `getCompletedSteps` from `StepProgressDots.tsx`
+- Navigate to the next incomplete step (or pitch if all done)
+- Show toast: "Resuming where you left off -- {Step Name}"
+
+### Edit: `src/components/SavedAnalyses.tsx`
+
+- Add a "Resume" badge next to the step progress dots showing the last active step name
+- E.g., "Resume at Stress Test" in small text below the progress dots
+
+---
+
+## Phase 5: Structured Export System
+
+### New file: `src/services/export/pitchFormatter.ts`
+
+Converts PitchDeckData into a structured slide model:
+
+```typescript
+interface SlideModel {
+  title: string;
+  sections: Array<{
+    heading: string;
+    bullets: string[];
+    evidenceTag?: string; // VERIFIED, MODELED, ASSUMPTION
+    dataRef?: string;
+  }>;
+  metadata: { timestamp: string; platform: string };
+}
+```
+
+- Maps each of the 12 pitch sections into this format
+- Preserves confidence labels from the AI output
+- Used as input for both PDF generation and shareable view
+
+### New file: `src/services/export/pdfGenerator.ts`
+
+An executive-grade PDF slide renderer:
+
+- Uses jsPDF (already installed) with a standardized slide template
+- Each "slide" is a full A4 page with:
+  - Top header band: slide title + confidence indicator
+  - Main content: headline claim + 3-5 bullets (max 12 words each)
+  - Optional data panel: single key metric or visual
+  - Footer: data source type, timestamp, "Market Disruptor | Confidential"
+- Design system:
+  - White background, neutral text, subtle gray dividers
+  - Mode accent color used sparingly for section markers and data highlights
+  - Generous whitespace, strict alignment
+  - No decorative graphics or heavy gradients
+- Replaces the current `downloadPitchDeckPDF` for the investor deck export
+
+### New file: `src/services/export/opportunityBrief.ts`
+
+Generates a 2-3 page opportunity brief PDF:
+
+- Extracts from analysis_data: disruption thesis (from disrupt), risk profile (from stressTest), market opportunity (from pitchDeck), recommended actions (from gtmStrategy)
+- Structured sections: Opportunity Summary, Disruption Thesis, Risk Profile, Recommended Next Actions, Confidence Summary
+- Uses the same jsPDF template system from pdfGenerator
+
+### New file: `src/components/export/ExportPanel.tsx`
+
+Export UI accessible from the Pitch step:
+
+- Three export options:
+  1. "Investor Pitch PDF" -- calls new pdfGenerator
+  2. "Opportunity Brief" -- calls opportunityBrief
+  3. "Copy Shareable Link" -- uses existing ShareAnalysis logic
+- Replaces the single PDF download button in PitchDeck header
+- Styled as a dropdown panel with icons and descriptions
+
+### Edit: `src/components/PitchDeck.tsx`
+
+- Replace the PDF download button with ExportPanel component
+- Wire up all three export actions
+
+---
+
+## Phase 6: Shareable Analysis View
+
+### Edit: `src/App.tsx`
+
+- Add route: `/analysis/share/:id`
+- Maps to new ShareableAnalysisPage
+
+### New file: `src/pages/ShareableAnalysisPage.tsx`
+
+- Read-only view of a shared analysis
+- Fetches analysis from `saved_analyses` by ID (requires public read or share token -- will use existing `share_token` column if present, otherwise fetch by ID with RLS bypass via edge function)
+- Renders: Intelligence Summary, Redesign Concept, Stress Test Results, Decision Recommendation
+- Professional, minimal layout suitable for external viewing
+- No edit controls, no navigation to other steps
+
+### New edge function: `supabase/functions/fetch-shared-analysis/index.ts`
+
+- Accepts analysis ID and optional share token
+- Returns the analysis data (products, analysis_data) in read-only format
+- No auth required (public endpoint for shared links)
+
+---
+
+## Phase 7: Pitch Deck Visual Upgrade
+
+### Edit: `src/components/PitchDeck.tsx`
+
+Redesign all 12 slide sections to follow executive-grade visual standards:
+
+- **Layout grid**: Each section gets a consistent structure -- header band, primary content area, optional data callout, footer metadata
+- **Typography hierarchy**:
+  - Slide title: text-lg font-bold, minimal wording
+  - Headline claim: text-base font-semibold, prominent positioning
+  - Body bullets: text-sm, max 5 bullets, max 12 words each
+  - Metadata: text-[10px] text-muted-foreground
+- **Color system**:
+  - White/card background base
+  - Mode accent used only for section markers, data highlights, confidence indicators
+  - Confidence tags: Verified (neutral/dark), Modeled (muted accent), Assumption (subtle amber)
+- **Data visualization**: Simple bar indicators for metrics, clean comparison tables for scenarios, minimal signal indicators
+- **Visual hierarchy**: claim then evidence then implication -- headline readable in under 3 seconds
+- **Whitespace**: Increased padding between sections, generous spacing within cards
+
+### Edit: `src/lib/pdfExport.ts` -- `downloadPitchDeckPDF`
+
+- Restructure to render one section per page (slide format)
+- Each page follows the slide template: header, content, data panel, footer
+- Consistent margins and typography scale
+- Pixel-consistent spacing for stable PDF rendering
+- Suitable for investor distribution, email sharing, presentation display
 
 ---
 
@@ -88,11 +218,22 @@ Both `ShareAnalysis.tsx` and `ReferralCTA.tsx` already use `http://marketdisrupt
 
 | Change | Files | Type |
 |---|---|---|
-| CompletionExperience component | New `src/components/CompletionExperience.tsx` | New |
-| Use CompletionExperience in PitchDeck | Edit `src/components/PitchDeck.tsx` | Edit |
-| Mode theme on ReportPage | Edit `src/pages/ReportPage.tsx` | Edit |
-| News scraper min results | Edit `supabase/functions/scrape-market-news/index.ts` | Edit |
-| Trend scraper min results | Edit `supabase/functions/scrape-trend-intel/index.ts` | Edit |
+| AnalysisTimeline | `src/components/analysis/AnalysisTimeline.tsx` | New |
+| EvolutionView | `src/components/analysis/EvolutionView.tsx` | New |
+| VersionComparison | `src/components/analysis/VersionComparison.tsx` | New |
+| SteeringMemory service | `src/services/steeringMemory.ts` | New |
+| PitchFormatter | `src/services/export/pitchFormatter.ts` | New |
+| PDFGenerator | `src/services/export/pdfGenerator.ts` | New |
+| OpportunityBrief | `src/services/export/opportunityBrief.ts` | New |
+| ExportPanel | `src/components/export/ExportPanel.tsx` | New |
+| ShareableAnalysisPage | `src/pages/ShareableAnalysisPage.tsx` | New |
+| fetch-shared-analysis | `supabase/functions/fetch-shared-analysis/index.ts` | New |
+| AnalysisContext | `src/contexts/AnalysisContext.tsx` | Edit |
+| CompletionExperience | `src/components/CompletionExperience.tsx` | Edit |
+| PitchDeck visual upgrade | `src/components/PitchDeck.tsx` | Edit |
+| PDF export upgrade | `src/lib/pdfExport.ts` | Edit |
+| SavedAnalyses resume | `src/components/SavedAnalyses.tsx` | Edit |
+| App routes | `src/App.tsx` | Edit |
 
-**No database changes. No new dependencies.**
-Edge functions `scrape-market-news` and `scrape-trend-intel` will be redeployed after edits.
+**No database schema changes. No new dependencies.** All changes use existing jsPDF, Recharts, and AnalysisContext patterns.
+
