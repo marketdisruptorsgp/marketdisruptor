@@ -68,8 +68,10 @@ Return ONLY a valid JSON array with exactly ${MIN_RESULTS} items:
   "category": "Dynamically assigned 2-3 word category",
   "interest_over_time": [{"month": "Mar 2025", "value": 45}, {"month": "Apr 2025", "value": 52}, ...],
   "related_queries": ["related term 1", "related term 2", "related term 3"],
-  "growth_note": "One sentence with specific data from the sources",
-  "data_quality": "high" | "medium"
+  "growth_note": "One sentence with specific data/stats from the sources (cite numbers, percentages, dollar figures)",
+  "opportunity_angle": "2-3 sentences explaining the business opportunity this trend creates for entrepreneurs or investors. Be specific about WHO could capitalize, HOW, and what the addressable market looks like.",
+  "data_quality": "high" or "medium" (high = multiple corroborating sources with hard data, medium = single source or directional signals only),
+  "source_urls": ["https://source1.com/article", "https://source2.com/report"]
 }]
 
 Search results:
@@ -79,7 +81,9 @@ Rules:
 - interest_over_time MUST have exactly 12 monthly data points (values 0-100, showing growth trajectory)
 - Base the trajectory shape on real evidence from the articles (growing, peaking, accelerating, etc.)
 - related_queries should be 3-5 real related search terms
-- growth_note must reference specific data found in the sources
+- growth_note must reference specific data found in the sources — cite real numbers
+- opportunity_angle must be actionable — explain the gap, the timing advantage, and the target customer
+- source_urls MUST be real URLs extracted from the search results — include 1-3 per trend
 - Each keyword should be distinct and specific (not generic like "AI" — use "AI code assistants" or "AI skincare diagnostics")
 - Categories must be dynamically inferred from content, NOT from any preset list`;
 
@@ -117,6 +121,9 @@ Rules:
       interest_over_time: Array.isArray(t.interest_over_time) ? t.interest_over_time : [],
       related_queries: Array.isArray(t.related_queries) ? t.related_queries : [],
       growth_note: t.growth_note || null,
+      opportunity_angle: t.opportunity_angle || null,
+      source_urls: Array.isArray(t.source_urls) ? t.source_urls : [],
+      data_quality: t.data_quality || "medium",
       source: "web_search",
       scraped_at: new Date().toISOString(),
     }));

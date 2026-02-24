@@ -309,35 +309,44 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          data_quality: string | null
           growth_note: string | null
           id: string
           interest_over_time: Json | null
           keyword: string
+          opportunity_angle: string | null
           related_queries: Json | null
           scraped_at: string
           source: string | null
+          source_urls: string[] | null
         }
         Insert: {
           category: string
           created_at?: string
+          data_quality?: string | null
           growth_note?: string | null
           id?: string
           interest_over_time?: Json | null
           keyword: string
+          opportunity_angle?: string | null
           related_queries?: Json | null
           scraped_at?: string
           source?: string | null
+          source_urls?: string[] | null
         }
         Update: {
           category?: string
           created_at?: string
+          data_quality?: string | null
           growth_note?: string | null
           id?: string
           interest_over_time?: Json | null
           keyword?: string
+          opportunity_angle?: string | null
           related_queries?: Json | null
           scraped_at?: string
           source?: string | null
+          source_urls?: string[] | null
         }
         Relationships: []
       }

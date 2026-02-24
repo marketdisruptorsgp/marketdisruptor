@@ -342,7 +342,18 @@ export default function IntelPage() {
                 {/* Header with key stats */}
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                   <div>
-                    <p className="text-sm font-bold text-foreground">{activeTrend.keyword}</p>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-sm font-bold text-foreground">{activeTrend.keyword}</p>
+                      {activeTrend.data_quality && (
+                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                          activeTrend.data_quality === "high"
+                            ? "bg-green-500/10 text-green-600 border border-green-500/20"
+                            : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                        }`}>
+                          {activeTrend.data_quality === "high" ? "✓ Verified" : "◐ Directional"}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-muted-foreground">{activeTrend.category} · Relative search interest (0-100)</p>
                   </div>
                   {(() => {
@@ -379,10 +390,26 @@ export default function IntelPage() {
 
                 {/* Growth note / insight */}
                 {activeTrend.growth_note && (
-                  <div className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                  <div className="mb-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
                     <div className="flex items-start gap-2">
                       <Zap size={12} className="text-primary mt-0.5 flex-shrink-0" />
-                      <p className="text-xs text-foreground leading-relaxed">{activeTrend.growth_note}</p>
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-1">Key Signal</p>
+                        <p className="text-xs text-foreground leading-relaxed">{activeTrend.growth_note}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Opportunity angle */}
+                {activeTrend.opportunity_angle && (
+                  <div className="mb-4 p-3 rounded-lg bg-accent/50 border border-border">
+                    <div className="flex items-start gap-2">
+                      <Lightbulb size={12} className="text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground mb-1">Opportunity Angle</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{activeTrend.opportunity_angle}</p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -405,17 +432,67 @@ export default function IntelPage() {
                   <p className="text-sm text-muted-foreground text-center py-8">No trend line data available for this keyword yet.</p>
                 )}
 
-                {/* Related queries */}
-                {activeTrend?.related_queries?.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-border">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Related Searches</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(activeTrend.related_queries as string[]).map((q: string, i: number) => (
-                        <span key={i} className="text-[10px] px-2 py-1 rounded bg-muted text-muted-foreground">{q}</span>
-                      ))}
+                {/* Sources + Related queries */}
+                <div className="mt-4 pt-3 border-t border-border flex flex-col sm:flex-row gap-4">
+                  {/* Sources */}
+                  {activeTrend.source_urls && (activeTrend.source_urls as string[]).length > 0 && (
+                    <div className="flex-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Sources</p>
+                      <div className="space-y-1">
+                        {(activeTrend.source_urls as string[]).slice(0, 3).map((url: string, i: number) => {
+                          let hostname = "";
+                          try { hostname = new URL(url).hostname.replace("www.", ""); } catch { hostname = url; }
+                          return (
+                            <a
+                              key={i}
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 text-[11px] text-primary hover:underline"
+                            >
+                              <ExternalLink size={9} className="flex-shrink-0" />
+                              {hostname}
+                            </a>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+
+                  {/* Related queries */}
+                  {activeTrend?.related_queries?.length > 0 && (
+                    <div className="flex-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Related Searches</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(activeTrend.related_queries as string[]).map((q: string, i: number) => (
+                          <a
+                            key={i}
+                            href={`https://trends.google.com/trends/explore?q=${encodeURIComponent(q)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] px-2 py-1 rounded bg-muted text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors cursor-pointer"
+                          >
+                            {q} ↗
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Google Trends link */}
+                <div className="mt-3 pt-2 border-t border-border">
+                  <a
+                    href={`https://trends.google.com/trends/explore?q=${encodeURIComponent(activeTrend.keyword)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:underline"
+                  >
+                    <TrendingUp size={10} />
+                    Explore "{activeTrend.keyword}" on Google Trends
+                    <ExternalLink size={9} />
+                  </a>
+                </div>
               </div>
             )}
           </section>
