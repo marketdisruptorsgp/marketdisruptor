@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
   AlertCircle, Upload, Briefcase, Building2, ShieldCheck, BookOpen,
-  Rocket, TrendingUp, Users, FileText,
+  Rocket, TrendingUp, Users, FileText, ArrowRight,
 } from "lucide-react";
 
 const MODE_WORDS = [
@@ -141,7 +141,7 @@ export default function DashboardPage() {
 
       {/* Hero Section */}
       <section className="bg-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 sm:pt-20 pb-8 sm:pb-16 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-5 sm:pb-10 text-center">
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight">
             Rethink any{" "}
             <span
@@ -154,10 +154,10 @@ export default function DashboardPage() {
               {MODE_WORDS[wordIndex].label}
             </span>
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-4 sm:mt-5 max-w-2xl mx-auto leading-relaxed px-2">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed px-2">
             Deconstruct markets, stress-test strategies, and build what's next with AI-powered competitive intelligence.
           </p>
-          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8">
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button
               onClick={() => navigate("/about")}
               className="px-4 sm:px-6 py-2.5 rounded-full text-sm font-semibold border border-border text-foreground transition-colors hover:bg-muted"
@@ -166,24 +166,24 @@ export default function DashboardPage() {
             </button>
           </div>
           {/* Streak Badge */}
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-3">
             <StreakBadge />
           </div>
 
           {/* Built For */}
-          <p className="text-sm sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mt-10 sm:mt-14 mb-4 sm:mb-6 text-center">Built For</p>
-          <div className="grid grid-cols-2 gap-2 sm:gap-4 max-w-3xl mx-auto text-left">
+          <p className="text-sm sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mt-8 sm:mt-10 mb-3 sm:mb-4 text-center">Built For</p>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-3xl mx-auto text-left">
             {[
               { icon: Rocket, title: "Entrepreneurs", desc: "Data-driven conviction, not guesswork." },
               { icon: TrendingUp, title: "Investors", desc: "Adversarial rigor before committing capital." },
               { icon: Users, title: "Product Teams", desc: "Stress-test strategy before launch." },
               { icon: FileText, title: "Agencies", desc: "Data-backed perspectives beyond surface-level." },
             ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="rounded-xl border border-border bg-card p-3.5 sm:p-6 flex flex-col items-start">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-2.5 sm:mb-3">
-                  <Icon size={16} className="text-primary sm:w-[18px] sm:h-[18px]" />
+              <div key={title} className="rounded-xl border border-border bg-card p-3 sm:p-5 flex flex-col items-start">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mb-2 sm:mb-2.5">
+                  <Icon size={16} className="text-primary" />
                 </div>
-                <p className="text-xs sm:text-sm font-bold text-foreground mb-0.5 sm:mb-1">{title}</p>
+                <p className="text-xs sm:text-sm font-bold text-foreground mb-0.5">{title}</p>
                 <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </div>
             ))}
@@ -194,8 +194,38 @@ export default function DashboardPage() {
       {/* Workflow Pipeline — prominent position */}
       <DisruptionPathBanner />
 
+      {/* Scrutiny CTA */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
+        <div
+          className="rounded-2xl px-5 py-6 sm:py-8 text-center cursor-pointer transition-all hover:shadow-md"
+          style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
+          onClick={() => {
+            const formEl = document.querySelector('[data-tour="analysis-form"]');
+            if (formEl) {
+              formEl.scrollIntoView({ behavior: "smooth", block: "start" });
+            } else {
+              // If no mode selected yet, select Product and scroll
+              handleModeSelect("custom");
+            }
+          }}
+        >
+          <p className="text-sm sm:text-base font-bold text-foreground mb-1.5">
+            Apply a level of scrutiny that exceeds normal bandwidth.
+          </p>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-4">
+            See what a deep deconstruction reveals about your market.
+          </p>
+          <button
+            className="inline-flex items-center gap-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-full text-sm font-semibold text-primary-foreground transition-colors"
+            style={{ background: "hsl(var(--primary))" }}
+          >
+            Start Analysis <ArrowRight size={15} />
+          </button>
+        </div>
+      </div>
+
       {/* Value Proposition Callout */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 my-10 sm:my-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 my-6 sm:my-10">
         <div className="rounded-2xl px-4 sm:px-5 py-4 sm:py-5 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
           <Target size={18} className="flex-shrink-0 mt-0.5 text-primary" />
           <div className="flex-1 min-w-0">
