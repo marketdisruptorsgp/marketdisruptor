@@ -16,7 +16,7 @@ import {
   Layers, Shield,
 } from "lucide-react";
 import { NextSectionButton, SectionWorkflowNav, AllExploredBadge } from "@/components/SectionNav";
-import { PitchSlideFrame, PitchCoverSlide, SlideStatCard, SlideBullet, MarketSizeVisual, RiskSeverityBar, ScenarioBarChart, SlideQuoteBlock, SlideTimeline, MetricBar } from "@/components/pitch/PitchSlideFrame";
+import { PitchSlideFrame, PitchCoverSlide, SlideStatCard, SlideBullet, MarketSizeVisual, RiskSeverityBar, ScenarioBarChart, SlideQuoteBlock, SlideTimeline, MetricBar, FunnelVisual, DonutChart } from "@/components/pitch/PitchSlideFrame";
 import { PresentationMode } from "@/components/pitch/PresentationMode";
 import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
 import { CompletionExperience } from "@/components/CompletionExperience";
@@ -318,18 +318,22 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   const slideContent: Record<string, React.ReactNode> = {
     /* ═══ 1. PROBLEM ═══ */
     problem: (
-      <div className="space-y-5 h-full flex flex-col justify-center">
+      <div className="space-y-3 h-full flex flex-col justify-center">
         <SlideQuoteBlock quote={data.problemStatement} accentColor={accentColor} label="Problem Statement" />
         {data.customerPersona && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Target Customer</p>
-              <p className="text-sm font-bold text-foreground">{data.customerPersona.name}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Age: {data.customerPersona.age} · {data.customerPersona.buyingBehavior}</p>
-              <p className="text-[10px] text-muted-foreground mt-1.5">Willingness: {data.customerPersona.willingness}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-3">
+            <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Target Customer Profile</p>
+              <p className="text-xs font-bold text-foreground">{data.customerPersona.name}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Age: {data.customerPersona.age}</p>
+              <p className="text-[10px] text-muted-foreground">{data.customerPersona.buyingBehavior}</p>
+              <div className="mt-2 pt-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Willingness to Pay</p>
+                <p className="text-[10px] text-foreground/80">{data.customerPersona.willingness}</p>
+              </div>
             </div>
-            <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Pain Points</p>
+            <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Key Pain Points</p>
               <div className="space-y-1.5">
                 {data.customerPersona.painPoints.slice(0, 4).map((p, i) => (
                   <SlideBullet key={i} index={i} accentColor={accentColor}>{p}</SlideBullet>
@@ -343,15 +347,15 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 2. SOLUTION ═══ */
     solution: (
-      <div className="space-y-5 h-full flex flex-col justify-center">
+      <div className="space-y-3 h-full flex flex-col justify-center">
         <SlideQuoteBlock quote={data.elevatorPitch} accentColor={accentColor} label="Elevator Pitch" />
-        <div className="p-5 sm:p-6 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Solution Overview</p>
-          <p className="text-sm sm:text-base leading-relaxed text-foreground/85">{data.solutionStatement}</p>
+        <div className="p-3 sm:p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+          <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Solution Overview</p>
+          <p className="text-[11px] sm:text-xs leading-relaxed text-foreground/85">{data.solutionStatement}</p>
         </div>
         {data.competitiveAdvantages?.length > 0 && (
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Differentiators</p>
+          <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Key Differentiators</p>
             <div className="space-y-1.5">
               {data.competitiveAdvantages.slice(0, 3).map((a, i) => (
                 <SlideBullet key={i} index={i} accentColor={accentColor}>{a}</SlideBullet>
@@ -364,30 +368,28 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 3. WHY NOW ═══ */
     whynow: (
-      <div className="space-y-5 h-full flex flex-col justify-center">
-        <SlideQuoteBlock quote={data.whyNow} accentColor={accentColor} label="Market Timing & Tailwinds" />
-        {/* Visual tailwind indicators */}
-        <div className="grid grid-cols-3 gap-3">
+      <div className="space-y-3 h-full flex flex-col justify-center">
+        <SlideQuoteBlock quote={data.whyNow} accentColor={accentColor} label="Market Timing Thesis" />
+        <div className="grid grid-cols-3 gap-2">
           {[
-            { label: "Market Shift", icon: "↗", desc: "Structural change underway" },
-            { label: "Tech Enabler", icon: "⚡", desc: "New capabilities available" },
-            { label: "Demand Signal", icon: "📈", desc: "Consumer behavior evolving" },
+            { label: "Market Shift", desc: "Structural industry change creating new entry points" },
+            { label: "Tech Enabler", desc: "New capabilities reducing cost and complexity barriers" },
+            { label: "Demand Signal", desc: "Consumer behavior evolution favoring this approach" },
           ].map((item) => (
-            <div key={item.label} className="p-3 rounded-md text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <span className="text-xl block mb-1">{item.icon}</span>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-0.5">{item.label}</p>
-              <p className="text-[9px] text-muted-foreground">{item.desc}</p>
+            <div key={item.label} className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderTop: `2px solid ${accentColor}` }}>
+              <p className="text-[9px] font-bold text-foreground mb-0.5">{item.label}</p>
+              <p className="text-[8px] text-muted-foreground leading-snug">{item.desc}</p>
             </div>
           ))}
         </div>
         {data.marketOpportunity?.growthRate && (
-          <div className="flex items-center gap-4 p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
+          <div className="flex items-center gap-3 p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Market Growth</p>
-              <p className="text-lg font-extrabold text-foreground">{data.marketOpportunity.growthRate}</p>
+              <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground">Market CAGR</p>
+              <p className="text-base font-extrabold text-foreground">{data.marketOpportunity.growthRate}</p>
             </div>
-            <div className="h-8 w-px" style={{ background: "hsl(var(--border))" }} />
-            <p className="text-[11px] text-muted-foreground flex-1">Accelerating tailwinds create a narrow window for first-mover advantage</p>
+            <div className="h-6 w-px" style={{ background: "hsl(var(--border))" }} />
+            <p className="text-[10px] text-muted-foreground flex-1">Accelerating tailwinds create a narrow window for first-mover advantage</p>
           </div>
         )}
       </div>
@@ -395,29 +397,22 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 4. MARKET ═══ */
     market: data.marketOpportunity ? (
-      <div className="space-y-4 h-full flex flex-col justify-center">
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-4 items-start">
-          {/* Concentric circles visual */}
-          <MarketSizeVisual
-            tam={data.marketOpportunity.tam}
-            sam={data.marketOpportunity.sam}
-            som={data.marketOpportunity.som}
-            accentColor={accentColor}
-          />
-          {/* Stats stacked vertically */}
+      <div className="space-y-3 h-full flex flex-col justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-3 items-start">
+          <MarketSizeVisual tam={data.marketOpportunity.tam} sam={data.marketOpportunity.sam} som={data.marketOpportunity.som} accentColor={accentColor} />
           <div className="space-y-2">
-            <SlideStatCard label="TAM" value={data.marketOpportunity.tam} accentColor={accentColor} />
-            <SlideStatCard label="SAM" value={data.marketOpportunity.sam} accentColor={accentColor} />
-            <SlideStatCard label="SOM" value={data.marketOpportunity.som} accentColor={accentColor} />
+            <SlideStatCard label="Total Addressable Market (TAM)" value={data.marketOpportunity.tam} accentColor={accentColor} />
+            <SlideStatCard label="Serviceable Addressable Market (SAM)" value={data.marketOpportunity.sam} accentColor={accentColor} />
+            <SlideStatCard label="Serviceable Obtainable Market (SOM)" value={data.marketOpportunity.som} accentColor={accentColor} sublabel="Initial target within 3 years" />
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Growth Rate</p>
-            <p className="text-lg font-extrabold text-foreground">{data.marketOpportunity.growthRate}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Growth Rate</p>
+            <p className="text-base font-extrabold text-foreground">{data.marketOpportunity.growthRate}</p>
           </div>
-          <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Drivers</p>
+          <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Key Drivers</p>
             <div className="space-y-1">
               {data.marketOpportunity.keyDrivers.slice(0, 3).map((d, i) => (
                 <SlideBullet key={i}>{d}</SlideBullet>
@@ -430,22 +425,22 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 5. PRODUCT ═══ */
     product: (
-      <div className="space-y-5 h-full flex flex-col justify-center">
+      <div className="space-y-3 h-full flex flex-col justify-center">
         {data.productInnovation && (
-          <SlideQuoteBlock quote={data.productInnovation} accentColor={accentColor} label="What Makes It Different" />
+          <SlideQuoteBlock quote={data.productInnovation} accentColor={accentColor} label="Innovation Thesis" />
         )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Competitive Advantages</p>
-            <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Competitive Advantages</p>
+            <div className="space-y-1.5">
               {data.competitiveAdvantages.slice(0, 4).map((adv, i) => (
                 <SlideBullet key={i} index={i} accentColor={accentColor}>{adv}</SlideBullet>
               ))}
             </div>
           </div>
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Investor Highlights</p>
-            <div className="space-y-2">
+          <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Investor Highlights</p>
+            <div className="space-y-1.5">
               {data.investorHighlights.slice(0, 4).map((h, i) => (
                 <SlideBullet key={i} index={i} accentColor="hsl(142 71% 45%)">{h}</SlideBullet>
               ))}
@@ -457,13 +452,13 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 6. BUSINESS MODEL ═══ */
     businessmodel: (
-      <div className="space-y-5 h-full flex flex-col justify-center">
+      <div className="space-y-3 h-full flex flex-col justify-center">
         {data.businessModel?.revenueStreams && (
-          <div className="space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Revenue Streams</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="space-y-1.5">
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">Revenue Streams</p>
+            <div className="flex flex-wrap gap-1.5">
               {data.businessModel.revenueStreams.map((s, i) => (
-                <span key={i} className="px-3 py-1.5 rounded-md text-xs font-semibold"
+                <span key={i} className="px-2.5 py-1 rounded-md text-[10px] font-semibold"
                   style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
                   {s}
                 </span>
@@ -473,33 +468,33 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         )}
         {fm && (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
-                { label: "COGS", value: fm.unitEconomics.cogs },
-                { label: "Price", value: fm.unitEconomics.retailPrice },
-                { label: "Gross Margin", value: fm.unitEconomics.grossMargin },
-                { label: "Payback", value: fm.unitEconomics.paybackPeriod },
+                { label: "COGS", value: fm.unitEconomics.cogs, sub: "Cost of goods sold" },
+                { label: "Price", value: fm.unitEconomics.retailPrice, sub: "Retail price point" },
+                { label: "Gross Margin", value: fm.unitEconomics.grossMargin, sub: "Revenue minus COGS" },
+                { label: "Payback", value: fm.unitEconomics.paybackPeriod, sub: "Time to recoup CAC" },
               ].map((item) => (
-                <SlideStatCard key={item.label} label={item.label} value={item.value} accentColor={accentColor} />
+                <SlideStatCard key={item.label} label={item.label} value={item.value} accentColor={accentColor} sublabel={item.sub} />
               ))}
             </div>
             {fm.unitEconomics.ltv && fm.unitEconomics.cac && (
-              <div className="grid grid-cols-2 gap-3">
-                <SlideStatCard label="LTV" value={fm.unitEconomics.ltv} accentColor="hsl(142 71% 45%)" />
-                <SlideStatCard label="CAC" value={fm.unitEconomics.cac} accentColor="hsl(38 92% 50%)" />
+              <div className="grid grid-cols-2 gap-2">
+                <SlideStatCard label="Lifetime Value (LTV)" value={fm.unitEconomics.ltv} accentColor="hsl(142 71% 45%)" sublabel="Total customer revenue" />
+                <SlideStatCard label="Customer Acquisition Cost" value={fm.unitEconomics.cac} accentColor="hsl(38 92% 50%)" sublabel="Cost to acquire one customer" />
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {fm.pricingStrategy && (
-                <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Pricing Strategy</p>
-                  <p className="text-[13px] text-foreground/85 leading-relaxed">{fm.pricingStrategy}</p>
+                <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Pricing Strategy</p>
+                  <p className="text-[11px] text-foreground/85 leading-relaxed">{fm.pricingStrategy}</p>
                 </div>
               )}
               {fm.breakEvenAnalysis && (
-                <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Break-Even</p>
-                  <p className="text-[13px] text-foreground/85 leading-relaxed">{fm.breakEvenAnalysis}</p>
+                <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Break-Even Analysis</p>
+                  <p className="text-[11px] text-foreground/85 leading-relaxed">{fm.breakEvenAnalysis}</p>
                 </div>
               )}
             </div>
@@ -510,45 +505,42 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 7. TRACTION & METRICS ═══ */
     traction: (
-      <div className="space-y-4 h-full flex flex-col justify-center">
-        {/* Traction signals */}
+      <div className="space-y-3 h-full flex flex-col justify-center">
         {data.tractionSignals?.length ? (
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Traction Signals</p>
-            <div className="space-y-2">
+          <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Traction Signals</p>
+            <div className="space-y-1.5">
               {data.tractionSignals.slice(0, 4).map((s, i) => (
                 <SlideBullet key={i} index={i} accentColor="hsl(142 71% 45%)">{s}</SlideBullet>
               ))}
             </div>
           </div>
         ) : (
-          <div className="p-5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-sm text-muted-foreground text-center">Pre-launch — traction targets defined below</p>
+          <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[10px] text-muted-foreground text-center">Pre-launch — traction targets defined below</p>
           </div>
         )}
-        {/* Key metrics as visual bars */}
         {data.keyMetrics?.length > 0 && (
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Key Metrics & Targets</p>
-            <div className="space-y-3">
+          <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Performance Indicators</p>
+            <div className="space-y-2.5">
               {data.keyMetrics.slice(0, 5).map((m, i) => (
-                <MetricBar key={i} metric={m.metric} target={m.target} accentColor={accentColor} />
+                <MetricBar key={i} metric={m.metric} target={m.target} why={m.why} accentColor={accentColor} />
               ))}
             </div>
           </div>
         )}
-        {/* Score */}
-        <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Revival Potential Score</p>
-          <div className="flex items-center gap-6">
+        <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
+          <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Revival Potential Score</p>
+          <div className="flex items-center gap-4">
             <div className="text-center">
-              <p className="text-[10px] text-muted-foreground mb-1">AI Score</p>
-              <p className="text-2xl font-extrabold text-foreground">{product.revivalScore || "—"}</p>
+              <p className="text-[8px] text-muted-foreground mb-0.5">AI Score</p>
+              <p className="text-xl font-extrabold text-foreground">{product.revivalScore || "—"}</p>
             </div>
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-1.5">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] text-muted-foreground">Your Rating</p>
-                <span className="text-sm font-extrabold text-foreground">{userScore}/10</span>
+                <p className="text-[9px] text-muted-foreground">Your Rating</p>
+                <span className="text-xs font-extrabold text-foreground">{userScore}/10</span>
               </div>
               <Slider value={[userScore]} onValueChange={(v) => setUserScore(v[0])} min={1} max={10} step={1} />
             </div>
@@ -559,26 +551,22 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 8. RISKS ═══ */
     risks: (
-      <div className="space-y-3 h-full flex flex-col justify-center">
+      <div className="space-y-2 h-full flex flex-col justify-center">
         {data.risks.map((r, i) => (
           <div key={i} className="rounded-md overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-            <div className="flex items-center justify-between gap-3 px-4 py-3" style={{ background: "hsl(var(--muted))" }}>
-              <p className="text-[13px] font-bold text-foreground flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0"
-                  style={{
-                    background: r.severity === "high" ? "hsl(0 72% 51%)" : r.severity === "medium" ? "hsl(38 92% 50%)" : "hsl(142 71% 45%)",
-                    color: "white",
-                  }}
-                >
+            <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: "hsl(var(--muted))" }}>
+              <p className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black flex-shrink-0"
+                  style={{ background: r.severity === "high" ? "hsl(0 72% 51%)" : r.severity === "medium" ? "hsl(38 92% 50%)" : "hsl(142 71% 45%)", color: "white" }}>
                   {i + 1}
                 </span>
                 {r.risk}
               </p>
               <RiskSeverityBar severity={r.severity} />
             </div>
-            <div className="px-4 py-3" style={{ borderLeft: `3px solid ${r.severity === "high" ? "hsl(0 72% 51%)" : r.severity === "medium" ? "hsl(38 92% 50%)" : "hsl(142 71% 45%)"}` }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Mitigation</p>
-              <p className="text-[13px] text-foreground/85 leading-relaxed">{r.mitigation}</p>
+            <div className="px-3 py-2" style={{ borderLeft: `3px solid ${r.severity === "high" ? "hsl(0 72% 51%)" : r.severity === "medium" ? "hsl(38 92% 50%)" : "hsl(142 71% 45%)"}` }}>
+              <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Mitigation Strategy</p>
+              <p className="text-[11px] text-foreground/85 leading-relaxed">{r.mitigation}</p>
             </div>
           </div>
         ))}
@@ -587,29 +575,38 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 9. GTM & POSITIONING ═══ */
     gtm: data.gtmStrategy ? (
-      <div className="space-y-4 h-full flex flex-col justify-center">
-        {/* Timeline-style GTM phases */}
-        <SlideTimeline
-          steps={[
-            { label: "Phase 1: Launch", content: data.gtmStrategy.phase1 },
-            { label: "Phase 2: Scale", content: data.gtmStrategy.phase2 },
-            { label: "Phase 3: Dominate", content: data.gtmStrategy.phase3 },
-          ]}
-          accentColor={accentColor}
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Channels</p>
-            <div className="flex flex-wrap gap-1.5">
+      <div className="space-y-3 h-full flex flex-col justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+          <SlideTimeline
+            steps={[
+              { label: "Phase 1: Launch", content: data.gtmStrategy.phase1 },
+              { label: "Phase 2: Scale", content: data.gtmStrategy.phase2 },
+              { label: "Phase 3: Dominate", content: data.gtmStrategy.phase3 },
+            ]}
+            accentColor={accentColor}
+          />
+          <FunnelVisual
+            stages={[
+              { label: "Awareness" },
+              { label: "Consideration" },
+              { label: "Conversion" },
+              { label: "Retention" },
+            ]}
+            accentColor={accentColor}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Distribution Channels</p>
+            <div className="flex flex-wrap gap-1">
               {data.gtmStrategy.keyChannels.map((ch, i) => (
-                <span key={i} className="px-2.5 py-1 rounded-md text-xs font-semibold"
-                  style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", borderLeft: `2px solid ${accentColor}` }}>{ch}</span>
+                <span key={i} className="px-2 py-0.5 rounded-md text-[10px] font-semibold"
+                  style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", borderLeft: `2px solid ${accentColor}` }}>{ch}</span>
               ))}
             </div>
           </div>
-          <SlideStatCard label="Launch Budget" value={data.gtmStrategy.launchBudget} accentColor={accentColor} />
+          <SlideStatCard label="Launch Budget" value={data.gtmStrategy.launchBudget} accentColor={accentColor} sublabel="Initial go-to-market investment" />
         </div>
-        {/* Competitive positioning */}
         {data.competitiveLandscape?.moat && (
           <SlideQuoteBlock quote={data.competitiveLandscape.moat} accentColor={accentColor} label="Defensible Moat" />
         )}
@@ -618,36 +615,54 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 10. THE ASK ═══ */
     invest: (
-      <div className="space-y-5 h-full flex flex-col justify-center">
-        <div className="p-5 rounded-md text-center relative overflow-hidden" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `4px solid ${accentColor}` }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Total Funding Ask</p>
-          <p className="text-2xl sm:text-3xl font-extrabold text-foreground">{fm?.fundingAsk || data.investmentAsk?.amount || "TBD"}</p>
+      <div className="space-y-3 h-full flex flex-col justify-center">
+        <div className="p-4 rounded-md text-center relative overflow-hidden" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `4px solid ${accentColor}` }}>
+          <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Total Funding Ask</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-foreground">{fm?.fundingAsk || data.investmentAsk?.amount || "TBD"}</p>
         </div>
-        {fm?.scenarios && (
-          <div className="space-y-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Revenue Scenarios</p>
-            <ScenarioBarChart
-              scenarios={[
-                { label: "Conservative", value: fm.scenarios.conservative?.revenue || "—" },
-                { label: "Base Case", value: fm.scenarios.base?.revenue || "—" },
-                { label: "Optimistic", value: fm.scenarios.optimistic?.revenue || "—" },
-              ]}
-              accentColor={accentColor}
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+          <div className="space-y-2">
+            {fm?.scenarios && (
+              <ScenarioBarChart
+                scenarios={[
+                  { label: "Conservative", value: fm.scenarios.conservative?.revenue || "—" },
+                  { label: "Base Case", value: fm.scenarios.base?.revenue || "—" },
+                  { label: "Optimistic", value: fm.scenarios.optimistic?.revenue || "—" },
+                ]}
+                accentColor={accentColor}
+              />
+            )}
           </div>
-        )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Use of Funds</p>
-            <div className="space-y-1.5">
+          {/* Use of Funds donut */}
+          {(fm?.useOfFunds || data.investmentAsk?.useOfFunds)?.length ? (
+            <DonutChart
+              label="Use of Funds Allocation"
+              segments={(() => {
+                const funds = (fm?.useOfFunds || data.investmentAsk?.useOfFunds || []).slice(0, 5);
+                const pct = Math.floor(100 / Math.max(funds.length, 1));
+                const remainder = 100 - (pct * funds.length);
+                return funds.map((f, i) => ({
+                  label: f.length > 20 ? f.slice(0, 20) + "..." : f,
+                  pct: i === 0 ? pct + remainder : pct,
+                }));
+              })()}
+              accentColor={accentColor}
+              size={90}
+            />
+          ) : null}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Use of Funds</p>
+            <div className="space-y-1">
               {(fm?.useOfFunds || data.investmentAsk?.useOfFunds || []).slice(0, 5).map((u, i) => (
                 <SlideBullet key={i} index={i} accentColor={accentColor}>{u}</SlideBullet>
               ))}
             </div>
           </div>
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Exit Strategy</p>
-            <p className="text-[13px] text-foreground/85 leading-relaxed">{fm?.exitStrategy || data.investmentAsk?.exitStrategy || "TBD"}</p>
+          <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Exit Strategy</p>
+            <p className="text-[11px] text-foreground/85 leading-relaxed">{fm?.exitStrategy || data.investmentAsk?.exitStrategy || "TBD"}</p>
           </div>
         </div>
       </div>

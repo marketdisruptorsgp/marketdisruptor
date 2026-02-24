@@ -65,7 +65,7 @@ function MonogramLogo({ name, accentColor, size = 48 }: { name: string; accentCo
 }
 
 /**
- * Institutional 16:9 slide frame with subtle visual design elements.
+ * Institutional 16:9 slide frame.
  */
 export function PitchSlideFrame({
   slideNumber,
@@ -83,99 +83,51 @@ export function PitchSlideFrame({
     <div className="w-full relative" style={{ aspectRatio: "16 / 9" }}>
       <div
         className="w-full h-full flex flex-col rounded-md overflow-hidden relative"
-        style={{
-          background: "hsl(var(--card))",
-          border: "1px solid hsl(var(--border))",
-        }}
+        style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
       >
-        {/* Background dot grid */}
         <DotGrid />
-        {/* Diagonal accent lines */}
         <DiagonalAccent accentColor={accentColor} />
 
-        {/* ─── Accent top bar — gradient ─── */}
-        <div
-          className="w-full flex-shrink-0"
-          style={{
-            height: 3,
-            background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88 60%, transparent)`,
-          }}
-        />
+        {/* Accent top bar */}
+        <div className="w-full flex-shrink-0" style={{ height: 3, background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88 60%, transparent)` }} />
 
-        {/* ─── Slide header ─── */}
-        <div
-          className="flex items-end justify-between px-6 sm:px-10 pt-5 sm:pt-7 pb-4 sm:pb-5 flex-shrink-0 relative z-10"
-          style={{ borderBottom: "1px solid hsl(var(--border))" }}
-        >
+        {/* Header */}
+        <div className="flex items-end justify-between px-5 sm:px-8 pt-4 sm:pt-5 pb-3 sm:pb-4 flex-shrink-0 relative z-10" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
           <div>
             {categoryLabel && (
-              <p
-                className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.2em] mb-1.5"
-                style={{ color: accentColor, opacity: 0.8 }}
-              >
-                {categoryLabel}
-              </p>
+              <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.2em] mb-1" style={{ color: accentColor, opacity: 0.8 }}>{categoryLabel}</p>
             )}
-            <h2
-              className="text-lg sm:text-[22px] font-extrabold tracking-tight leading-tight"
-              style={{ color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}
-            >
-              {title}
-            </h2>
+            <h2 className="text-base sm:text-lg font-extrabold tracking-tight leading-tight" style={{ color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h2>
             {subtitle && (
-              <p className="text-[11px] sm:text-xs text-muted-foreground font-normal mt-1 leading-snug">
-                {subtitle}
-              </p>
+              <p className="text-[10px] sm:text-[11px] text-muted-foreground font-normal mt-0.5 leading-snug">{subtitle}</p>
             )}
           </div>
-          <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground flex-shrink-0 tabular-nums">
-            {padNum(slideNumber)} / {padNum(totalSlides)}
-          </span>
+          <span className="text-[9px] sm:text-[10px] font-medium text-muted-foreground flex-shrink-0 tabular-nums">{padNum(slideNumber)} / {padNum(totalSlides)}</span>
         </div>
 
-        {/* ─── Slide content ─── */}
-        <div className="flex-1 overflow-y-auto px-6 sm:px-10 py-5 sm:py-7 relative z-10">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-4 sm:py-5 relative z-10">
           {children}
         </div>
 
-        {/* ─── Slide footer ─── */}
-        <div
-          className="flex items-center justify-between px-6 sm:px-10 py-2 sm:py-2.5 flex-shrink-0 relative z-10"
-          style={{ borderTop: "1px solid hsl(var(--border))" }}
-        >
-          <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-            Market Disruptor
-          </span>
-          <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-            Confidential
-          </span>
+        {/* Footer */}
+        <div className="flex items-center justify-between px-5 sm:px-8 py-1.5 sm:py-2 flex-shrink-0 relative z-10" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+          <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Market Disruptor</span>
+          <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Confidential</span>
           {productName && (
-            <span className="text-[8px] sm:text-[9px] font-medium text-muted-foreground truncate max-w-[30%]">
-              {productName}
-            </span>
+            <span className="text-[7px] sm:text-[8px] font-medium text-muted-foreground truncate max-w-[30%]">{productName}</span>
           )}
         </div>
 
-        {/* ─── Geometric corner accent (bottom-right "L") ─── */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            bottom: 28,
-            right: 16,
-            width: 18,
-            height: 18,
-            borderRight: `2px solid ${accentColor}`,
-            borderBottom: `2px solid ${accentColor}`,
-            opacity: 0.18,
-          }}
-        />
+        {/* Corner accent */}
+        <div className="absolute pointer-events-none" style={{ bottom: 24, right: 14, width: 16, height: 16, borderRight: `2px solid ${accentColor}`, borderBottom: `2px solid ${accentColor}`, opacity: 0.18 }} />
       </div>
     </div>
   );
 }
 
 /**
- * Cover/Title slide with monogram logo and gradient accent.
+ * Cover/Title slide.
  */
 export function PitchCoverSlide({
   productName,
@@ -188,173 +140,84 @@ export function PitchCoverSlide({
   accentColor?: string;
   totalSlides: number;
 }) {
-  const today = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   return (
     <div className="w-full relative" style={{ aspectRatio: "16 / 9" }}>
-      <div
-        className="w-full h-full flex flex-col rounded-md overflow-hidden relative"
-        style={{
-          background: "hsl(var(--card))",
-          border: "1px solid hsl(var(--border))",
-        }}
-      >
-        {/* Background elements */}
+      <div className="w-full h-full flex flex-col rounded-md overflow-hidden relative" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
         <DotGrid opacity={0.03} />
-
-        {/* Large decorative circle — top right */}
         <svg className="absolute pointer-events-none" style={{ top: -40, right: -40, opacity: 0.05 }} width="260" height="260">
           <circle cx="130" cy="130" r="120" fill="none" stroke={accentColor} strokeWidth="1.5" />
           <circle cx="130" cy="130" r="90" fill="none" stroke={accentColor} strokeWidth="0.8" />
           <circle cx="130" cy="130" r="60" fill="none" stroke={accentColor} strokeWidth="0.5" />
         </svg>
-
-        {/* Gradient accent bar */}
-        <div
-          className="w-full flex-shrink-0"
-          style={{
-            height: 4,
-            background: `linear-gradient(90deg, ${accentColor}, ${accentColor}66 50%, transparent)`,
-          }}
-        />
-
-        {/* Cover content */}
-        <div className="flex-1 flex flex-col justify-center px-10 sm:px-16 py-10 relative z-10">
-          <div className="flex items-start gap-5 mb-8 sm:mb-12">
-            <MonogramLogo name={productName} accentColor={accentColor} size={56} />
+        <div className="w-full flex-shrink-0" style={{ height: 4, background: `linear-gradient(90deg, ${accentColor}, ${accentColor}66 50%, transparent)` }} />
+        <div className="flex-1 flex flex-col justify-center px-8 sm:px-14 py-8 relative z-10">
+          <div className="flex items-start gap-4 mb-6 sm:mb-10">
+            <MonogramLogo name={productName} accentColor={accentColor} size={52} />
             <div>
-              <p
-                className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.25em] mb-1"
-                style={{ color: accentColor, opacity: 0.7 }}
-              >
-                Market Disruptor
-              </p>
-              <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-                Investor Pitch Deck
-              </p>
+              <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.25em] mb-0.5" style={{ color: accentColor, opacity: 0.7 }}>Market Disruptor</p>
+              <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.25em] text-muted-foreground">Investor Pitch Deck</p>
             </div>
           </div>
-
-          <h1
-            className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.1] mb-4"
-            style={{ color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            {productName}
-          </h1>
-
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-[1.1] mb-3" style={{ color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}>{productName}</h1>
           {subtitle && (
-            <p className="text-sm sm:text-base text-muted-foreground max-w-[85%] leading-relaxed mb-8 sm:mb-12">
-              {subtitle}
-            </p>
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-[85%] leading-relaxed mb-6 sm:mb-10">{subtitle}</p>
           )}
-
-          {/* Horizontal rule accent */}
-          <div className="w-16 mb-6" style={{ height: 2, background: accentColor, opacity: 0.3 }} />
-
+          <div className="w-14 mb-5" style={{ height: 2, background: accentColor, opacity: 0.3 }} />
           <div className="mt-auto">
-            <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">{today}</p>
-            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mt-1">
-              Confidential · {totalSlides} Slides
-            </p>
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">{today}</p>
+            <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground mt-1">Confidential · {totalSlides} Slides</p>
           </div>
         </div>
-
-        {/* Geometric corner accent — larger on cover */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            bottom: 20,
-            right: 20,
-            width: 32,
-            height: 32,
-            borderRight: `2px solid ${accentColor}`,
-            borderBottom: `2px solid ${accentColor}`,
-            opacity: 0.18,
-          }}
-        />
+        <div className="absolute pointer-events-none" style={{ bottom: 18, right: 18, width: 28, height: 28, borderRight: `2px solid ${accentColor}`, borderBottom: `2px solid ${accentColor}`, opacity: 0.18 }} />
       </div>
     </div>
   );
 }
 
 /**
- * Stat card with accent left border and subtle gradient.
+ * Stat card with accent left border.
  */
-export function SlideStatCard({
-  label,
-  value,
-  accentColor,
-}: {
-  label: string;
-  value: string;
-  accentColor?: string;
-}) {
+export function SlideStatCard({ label, value, accentColor, sublabel }: { label: string; value: string; accentColor?: string; sublabel?: string }) {
   return (
-    <div
-      className="p-3 sm:p-4 rounded-md relative overflow-hidden"
-      style={{
-        background: "hsl(var(--muted))",
-        border: "1px solid hsl(var(--border))",
-        borderLeft: accentColor ? `3px solid ${accentColor}` : "1px solid hsl(var(--border))",
-      }}
-    >
-      <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
-        {label}
-      </p>
-      <p className="text-sm sm:text-base font-extrabold leading-tight" style={{ color: "hsl(var(--foreground))" }}>
-        {value}
-      </p>
+    <div className="p-2.5 sm:p-3 rounded-md relative overflow-hidden" style={{ background: "hsl(var(--muted))", borderTop: "1px solid hsl(var(--border))", borderRight: "1px solid hsl(var(--border))", borderBottom: "1px solid hsl(var(--border))", borderLeft: accentColor ? `3px solid ${accentColor}` : "1px solid hsl(var(--border))" }}>
+      <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{label}</p>
+      <p className="text-xs sm:text-sm font-extrabold leading-tight" style={{ color: "hsl(var(--foreground))" }}>{value}</p>
+      {sublabel && <p className="text-[8px] text-muted-foreground mt-0.5">{sublabel}</p>}
     </div>
   );
 }
 
 /**
- * TAM/SAM/SOM concentric circles visual — labels placed outside the circles to avoid overlap.
+ * TAM/SAM/SOM concentric circles visual — clean, no text overlap.
  */
-export function MarketSizeVisual({
-  tam,
-  sam,
-  som,
-  accentColor = "hsl(var(--primary))",
-}: {
-  tam: string;
-  sam: string;
-  som: string;
-  accentColor?: string;
-}) {
-  // Extract just the dollar amount (first "$X.XB/M/K" part) for the circle labels
+export function MarketSizeVisual({ tam, sam, som, accentColor = "hsl(var(--primary))" }: { tam: string; sam: string; som: string; accentColor?: string }) {
   const extractAmount = (s: string) => {
-    const match = s.match(/\$[\d.,]+\s*[BMKT]?(?:illion|illion)?/i);
+    const match = s.match(/\$[\d.,]+\s*[BMKT]?/i);
     return match ? match[0] : s.split(" ")[0];
   };
 
   return (
-    <div className="flex flex-col items-center gap-3 py-2">
-      <svg width="200" height="200" viewBox="0 0 200 200">
-        {/* TAM - outer */}
-        <circle cx="100" cy="100" r="90" fill={accentColor} opacity="0.05" stroke={accentColor} strokeWidth="1" strokeOpacity="0.2" />
-        {/* SAM - middle */}
-        <circle cx="100" cy="100" r="60" fill={accentColor} opacity="0.08" stroke={accentColor} strokeWidth="1" strokeOpacity="0.25" />
-        {/* SOM - inner */}
-        <circle cx="100" cy="100" r="32" fill={accentColor} opacity="0.14" stroke={accentColor} strokeWidth="1.5" strokeOpacity="0.35" />
-        {/* Center SOM label */}
-        <text x="100" y="96" textAnchor="middle" fontSize="8" fontWeight="700" fill={accentColor} opacity="0.9">SOM</text>
-        <text x="100" y="109" textAnchor="middle" fontSize="10" fontWeight="800" fill="hsl(var(--foreground))">{extractAmount(som)}</text>
+    <div className="flex flex-col items-center gap-2">
+      <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground">Addressable Market Layers</p>
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <circle cx="80" cy="80" r="75" fill={accentColor} opacity="0.05" stroke={accentColor} strokeWidth="1" strokeOpacity="0.15" />
+        <circle cx="80" cy="80" r="50" fill={accentColor} opacity="0.08" stroke={accentColor} strokeWidth="1" strokeOpacity="0.2" />
+        <circle cx="80" cy="80" r="26" fill={accentColor} opacity="0.14" stroke={accentColor} strokeWidth="1.5" strokeOpacity="0.3" />
+        <text x="80" y="76" textAnchor="middle" fontSize="7" fontWeight="700" fill={accentColor} opacity="0.9">SOM</text>
+        <text x="80" y="87" textAnchor="middle" fontSize="9" fontWeight="800" fill="hsl(var(--foreground))">{extractAmount(som)}</text>
       </svg>
-      {/* Legend below */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {[
-          { label: "TAM", color: 0.2 },
-          { label: "SAM", color: 0.35 },
-          { label: "SOM", color: 0.5 },
-        ].map(({ label, color }) => (
-          <div key={label} className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: accentColor, opacity: color }} />
-            <span className="text-[9px] font-bold text-muted-foreground">{label}</span>
+          { label: "TAM", opacity: 0.15, val: extractAmount(tam) },
+          { label: "SAM", opacity: 0.3, val: extractAmount(sam) },
+          { label: "SOM", opacity: 0.5, val: extractAmount(som) },
+        ].map(({ label, opacity, val }) => (
+          <div key={label} className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full" style={{ background: accentColor, opacity }} />
+            <span className="text-[8px] font-bold text-muted-foreground">{label}</span>
+            <span className="text-[8px] font-bold text-foreground">{val}</span>
           </div>
         ))}
       </div>
@@ -377,37 +240,25 @@ export function RiskSeverityBar({ severity }: { severity: "high" | "medium" | "l
       <div className="flex-1 h-1.5 rounded-full" style={{ background: "hsl(var(--muted))" }}>
         <div className="h-full rounded-full transition-all" style={{ width: c.width, background: c.fill }} />
       </div>
-      <span className="text-[8px] font-bold uppercase tracking-wider" style={{ color: c.fill }}>{severity}</span>
+      <span className="text-[7px] font-bold uppercase tracking-wider" style={{ color: c.fill }}>{severity}</span>
     </div>
   );
 }
 
 /**
- * Mini horizontal bar chart for scenario comparison.
+ * Horizontal bar chart for scenario comparison.
  */
-export function ScenarioBarChart({
-  scenarios,
-  accentColor = "hsl(var(--primary))",
-}: {
-  scenarios: { label: string; value: string }[];
-  accentColor?: string;
-}) {
-  const widths = [45, 70, 100]; // conservative, base, optimistic proportional widths
+export function ScenarioBarChart({ scenarios, accentColor = "hsl(var(--primary))" }: { scenarios: { label: string; value: string }[]; accentColor?: string }) {
+  const widths = [40, 65, 100];
   return (
-    <div className="space-y-2 py-1">
+    <div className="space-y-1.5">
+      <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Projected Revenue by Scenario</p>
       {scenarios.map((s, i) => (
-        <div key={s.label} className="flex items-center gap-3">
-          <span className="text-[9px] font-bold text-muted-foreground w-20 text-right shrink-0">{s.label}</span>
-          <div className="flex-1 h-5 rounded-sm overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-            <div
-              className="h-full rounded-sm flex items-center px-2"
-              style={{
-                width: `${widths[i] || 50}%`,
-                background: accentColor,
-                opacity: 0.15 + (i * 0.12),
-              }}
-            >
-              <span className="text-[9px] font-bold" style={{ color: "hsl(var(--foreground))" }}>{s.value}</span>
+        <div key={s.label} className="flex items-center gap-2">
+          <span className="text-[8px] font-bold text-muted-foreground w-16 text-right shrink-0">{s.label}</span>
+          <div className="flex-1 h-4 rounded-sm overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+            <div className="h-full rounded-sm flex items-center px-1.5" style={{ width: `${widths[i] || 50}%`, background: accentColor, opacity: 0.12 + (i * 0.12) }}>
+              <span className="text-[8px] font-bold" style={{ color: "hsl(var(--foreground))" }}>{s.value}</span>
             </div>
           </div>
         </div>
@@ -417,99 +268,49 @@ export function ScenarioBarChart({
 }
 
 /**
- * Numbered icon bullet — more visual than em-dash.
+ * Bullet item with numbered circle or dash.
  */
-export function SlideBullet({
-  children,
-  index,
-  accentColor,
-}: {
-  icon?: React.ElementType;
-  iconColor?: string;
-  children: React.ReactNode;
-  index?: number;
-  accentColor?: string;
-}) {
+export function SlideBullet({ children, index, accentColor }: { icon?: React.ElementType; iconColor?: string; children: React.ReactNode; index?: number; accentColor?: string }) {
   return (
-    <div className="flex gap-2.5 items-start">
+    <div className="flex gap-2 items-start">
       {typeof index === "number" ? (
-        <span
-          className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0 mt-0.5"
-          style={{
-            background: accentColor || "hsl(var(--foreground))",
-            color: "hsl(var(--background))",
-            opacity: 0.8,
-          }}
-        >
-          {index + 1}
-        </span>
+        <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black flex-shrink-0 mt-0.5" style={{ background: accentColor || "hsl(var(--foreground))", color: "hsl(var(--background))", opacity: 0.8 }}>{index + 1}</span>
       ) : (
-        <span className="text-muted-foreground font-bold flex-shrink-0 mt-px text-sm">—</span>
+        <span className="text-muted-foreground font-bold flex-shrink-0 mt-px text-xs">—</span>
       )}
-      <p className="text-[13px] sm:text-sm text-foreground/85 leading-relaxed">{children}</p>
+      <p className="text-[11px] sm:text-xs text-foreground/85 leading-relaxed">{children}</p>
     </div>
   );
 }
 
 /**
- * Decorative quote accent for headline claims.
+ * Quote block with accent border and label.
  */
-export function SlideQuoteBlock({
-  quote,
-  accentColor = "hsl(var(--primary))",
-  label,
-}: {
-  quote: string;
-  accentColor?: string;
-  label?: string;
-}) {
+export function SlideQuoteBlock({ quote, accentColor = "hsl(var(--primary))", label }: { quote: string; accentColor?: string; label?: string }) {
   return (
-    <div className="relative p-5 sm:p-6 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
-      {/* Oversized quote mark */}
-      <span
-        className="absolute pointer-events-none font-serif select-none"
-        style={{ top: -8, left: 12, fontSize: 60, color: accentColor, opacity: 0.08, lineHeight: 1 }}
-      >
-        "
-      </span>
-      {label && (
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">{label}</p>
-      )}
-      <p className="text-sm sm:text-base leading-relaxed text-foreground/85 relative z-10">{quote}</p>
+    <div className="relative p-4 sm:p-5 rounded-md" style={{ background: "hsl(var(--muted))", borderTop: "1px solid hsl(var(--border))", borderRight: "1px solid hsl(var(--border))", borderBottom: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
+      <span className="absolute pointer-events-none font-serif select-none" style={{ top: -6, left: 10, fontSize: 48, color: accentColor, opacity: 0.07, lineHeight: 1 }}>"</span>
+      {label && <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{label}</p>}
+      <p className="text-[11px] sm:text-xs leading-relaxed text-foreground/85 relative z-10">{quote}</p>
     </div>
   );
 }
 
 /**
- * Vertical step timeline — for GTM phases, traction milestones etc.
+ * Vertical step timeline for GTM phases.
  */
-export function SlideTimeline({
-  steps,
-  accentColor = "hsl(var(--primary))",
-}: {
-  steps: { label: string; content: string }[];
-  accentColor?: string;
-}) {
+export function SlideTimeline({ steps, accentColor = "hsl(var(--primary))" }: { steps: { label: string; content: string }[]; accentColor?: string }) {
   return (
     <div className="space-y-0">
       {steps.map((step, i) => (
-        <div key={i} className="flex gap-3">
-          {/* Timeline rail */}
+        <div key={i} className="flex gap-2.5">
           <div className="flex flex-col items-center">
-            <div
-              className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0"
-              style={{ background: accentColor, color: "white", opacity: 0.85 }}
-            >
-              {i + 1}
-            </div>
-            {i < steps.length - 1 && (
-              <div className="w-[2px] flex-1 min-h-[20px]" style={{ background: accentColor, opacity: 0.15 }} />
-            )}
+            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black flex-shrink-0" style={{ background: accentColor, color: "white", opacity: 0.85 }}>{i + 1}</div>
+            {i < steps.length - 1 && <div className="w-[1.5px] flex-1 min-h-[16px]" style={{ background: accentColor, opacity: 0.15 }} />}
           </div>
-          {/* Content */}
-          <div className="pb-4 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{step.label}</p>
-            <p className="text-[13px] text-foreground/85 leading-relaxed">{step.content}</p>
+          <div className="pb-3 flex-1">
+            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">{step.label}</p>
+            <p className="text-[11px] text-foreground/85 leading-relaxed">{step.content}</p>
           </div>
         </div>
       ))}
@@ -518,27 +319,97 @@ export function SlideTimeline({
 }
 
 /**
- * Simple horizontal bar chart for key metrics.
+ * Horizontal progress bar for a metric.
  */
-export function MetricBar({
-  metric,
-  target,
-  accentColor = "hsl(var(--primary))",
-}: {
-  metric: string;
-  target: string;
-  accentColor?: string;
-}) {
-  // Use a pseudo-random width based on string hash for visual variety
-  const hashWidth = ((metric.length * 7 + target.length * 13) % 60) + 35;
+export function MetricBar({ metric, target, why, accentColor = "hsl(var(--primary))" }: { metric: string; target: string; why?: string; accentColor?: string }) {
+  const hashWidth = ((metric.length * 7 + target.length * 13) % 55) + 35;
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold text-foreground">{metric}</span>
-        <span className="text-[10px] font-bold" style={{ color: accentColor }}>{target}</span>
+        <span className="text-[10px] font-bold text-foreground">{metric}</span>
+        <span className="text-[9px] font-bold" style={{ color: accentColor }}>{target}</span>
       </div>
-      <div className="h-1.5 rounded-full" style={{ background: "hsl(var(--border))" }}>
-        <div className="h-full rounded-full" style={{ width: `${hashWidth}%`, background: accentColor, opacity: 0.5 }} />
+      <div className="h-1 rounded-full" style={{ background: "hsl(var(--border))" }}>
+        <div className="h-full rounded-full" style={{ width: `${hashWidth}%`, background: accentColor, opacity: 0.45 }} />
+      </div>
+      {why && <p className="text-[8px] text-muted-foreground">{why}</p>}
+    </div>
+  );
+}
+
+/**
+ * SVG funnel/pipeline visual for GTM or conversion flow.
+ */
+export function FunnelVisual({ stages, accentColor = "hsl(var(--primary))" }: { stages: { label: string; value?: string }[]; accentColor?: string }) {
+  const stageCount = stages.length;
+  const barHeight = 18;
+  const gap = 3;
+  const totalH = stageCount * (barHeight + gap);
+  const maxW = 200;
+
+  return (
+    <div className="flex flex-col items-center">
+      <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Conversion Funnel</p>
+      <svg width={maxW + 40} height={totalH + 10} viewBox={`0 0 ${maxW + 40} ${totalH + 10}`}>
+        {stages.map((stage, i) => {
+          const w = maxW - (i * (maxW * 0.15));
+          const x = (maxW - w) / 2 + 20;
+          const y = i * (barHeight + gap) + 5;
+          const opacity = 0.12 + (i * 0.08);
+          return (
+            <g key={i}>
+              <rect x={x} y={y} width={w} height={barHeight} rx={3} fill={accentColor} opacity={opacity} stroke={accentColor} strokeWidth="0.5" strokeOpacity={0.2} />
+              <text x={x + w / 2} y={y + barHeight / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="700" fill="hsl(var(--foreground))" opacity="0.8">
+                {stage.label}{stage.value ? ` · ${stage.value}` : ""}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+/**
+ * Simple donut chart for allocation visuals.
+ */
+export function DonutChart({ segments, label, size = 100, accentColor = "hsl(var(--primary))" }: { segments: { label: string; pct: number }[]; label?: string; size?: number; accentColor?: string }) {
+  const r = (size / 2) - 8;
+  const circumference = 2 * Math.PI * r;
+  let offset = 0;
+  const opacities = [0.6, 0.4, 0.25, 0.15, 0.1];
+
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      {label && <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>}
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth="10" />
+        {segments.map((seg, i) => {
+          const dashLen = (seg.pct / 100) * circumference;
+          const dashOffset = -offset;
+          offset += dashLen;
+          return (
+            <circle
+              key={i}
+              cx={size / 2} cy={size / 2} r={r}
+              fill="none"
+              stroke={accentColor}
+              strokeWidth="10"
+              strokeDasharray={`${dashLen} ${circumference - dashLen}`}
+              strokeDashoffset={dashOffset}
+              opacity={opacities[i] || 0.1}
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
+            />
+          );
+        })}
+      </svg>
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5 justify-center">
+        {segments.map((seg, i) => (
+          <div key={i} className="flex items-center gap-1">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: accentColor, opacity: opacities[i] || 0.1 }} />
+            <span className="text-[7px] text-muted-foreground">{seg.label} ({seg.pct}%)</span>
+          </div>
+        ))}
       </div>
     </div>
   );
