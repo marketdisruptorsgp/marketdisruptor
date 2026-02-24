@@ -156,7 +156,10 @@ export default function BusinessResultsPage() {
                   analysisData={businessAnalysisData}
                   activeTab={analysis.businessStressTestTab}
                   externalData={analysis.businessStressTestData}
-                  onDataLoaded={analysis.setBusinessStressTestData}
+                  onDataLoaded={(d) => {
+                    analysis.setBusinessStressTestData(d);
+                    analysis.saveStepData("businessStressTest", d);
+                  }}
                 />
               </div>
             </div>
@@ -176,7 +179,14 @@ export default function BusinessResultsPage() {
                   <p className="text-sm text-muted-foreground">Investor-ready pitch for <strong className="text-foreground">{bizName}</strong></p></div>
               </div>
               <div className="p-5" style={{ background: "hsl(var(--card))" }}>
-                <PitchDeck product={bizSyntheticProduct} />
+                <PitchDeck
+                  product={bizSyntheticProduct}
+                  externalData={analysis.pitchDeckData}
+                  onSave={(d) => {
+                    analysis.setPitchDeckData(d);
+                    analysis.saveStepData("businessPitchDeck", d);
+                  }}
+                />
               </div>
             </div>
           </div>
