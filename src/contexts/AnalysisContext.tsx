@@ -478,6 +478,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [analysisParams, products, saveAnalysis]);
 
   // Persist step-level data (disrupt, stress-test, pitch, userScores) into analysis_data JSON
+  // Also snapshot previous values for version comparison
   const saveStepData = useCallback(async (stepKey: string, data: unknown) => {
     if (!analysisId) return;
     try {
@@ -487,7 +488,14 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         .eq("id", analysisId)
         .single();
       const prev = (existing?.analysis_data as Record<string, unknown>) || {};
-      const merged = { ...prev, [stepKey]: data };
+
+      // Snapshot previous value for version comparison
+      const previousSnapshot = (prev.previousSnapshot as Record<string, unknown>) || {};
+      if (prev[stepKey] && JSON.stringify(prev[stepKey]) !== JSON.stringify(data)) {
+        previousSnapshot[stepKey] = prev[stepKey];
+      }
+
+      const merged = { ...prev, [stepKey]: data, previousSnapshot };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any)
         .update({ analysis_data: merged })
@@ -538,8 +546,35 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setDetailTab("overview");
       setStep("done");
       setAnalysisId(analysis.id);
-      toast.success("Analysis loaded from saved workspace!");
-      navigate(`/analysis/${analysis.id}/report`);
+
+      // Determine last completed step for resume
+      const resumeStepMap = [
+        { key: "pitchDeck", route: "pitch", label: "Pitch Deck" },
+        { key: "stressTest", route: "stress-test", label: "Stress Test" },
+        { key: "redesign", route: "redesign", label: "Redesign" },
+        { key: "disrupt", route: "disrupt", label: "Disrupt" },
+      ];
+      let resumeRoute = "report";
+      let resumeLabel = "Intelligence Report";
+      if (ad) {
+        for (const s of resumeStepMap) {
+          if (ad[s.key]) {
+            // Navigate to the NEXT step after the last completed one
+            const idx = resumeStepMap.indexOf(s);
+            if (idx > 0) {
+              resumeRoute = resumeStepMap[idx - 1].route;
+              resumeLabel = resumeStepMap[idx - 1].label;
+            } else {
+              resumeRoute = s.route;
+              resumeLabel = s.label;
+            }
+            break;
+          }
+        }
+      }
+
+      toast.success(`Resuming where you left off — ${resumeLabel}`);
+      navigate(`/analysis/${analysis.id}/${resumeRoute}`);
     }
   }, [navigate]);
 

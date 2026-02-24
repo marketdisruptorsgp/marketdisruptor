@@ -5,6 +5,7 @@ import type { Product } from "@/data/mockProducts";
 import { downloadPitchDeckPDF } from "@/lib/pdfExport";
 import { useAuth } from "@/hooks/useAuth";
 import { ReferralCTA } from "@/components/ReferralCTA";
+import { ExportPanel } from "@/components/export/ExportPanel";
 import { Slider } from "@/components/ui/slider";
 import {
   Presentation, RefreshCw, DollarSign, TrendingUp, Users, Factory, Truck,
@@ -231,6 +232,16 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         onExportPDF={handleDownloadPDF}
         onBackToSections={() => setShowCompletion(false)}
         accentColor="hsl(var(--primary))"
+        analysisData={(() => {
+          const ad: Record<string, unknown> = {};
+          if (disruptData) ad.disrupt = disruptData;
+          if (redesignData) ad.redesign = redesignData;
+          if (stressTestData) ad.stressTest = stressTestData;
+          if (data) ad.pitchDeck = data;
+          if (userScores) ad.userScores = userScores;
+          return ad;
+        })()}
+        createdAt={new Date().toISOString()}
       />
     );
   }
@@ -259,11 +270,13 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleDownloadPDF}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-            style={{ background: "hsl(var(--primary))", color: "white" }}>
-            <Download size={11} /> PDF
-          </button>
+          <ExportPanel
+            product={product}
+            pitchDeckData={data}
+            analysisId={analysisId}
+            userId={user?.id}
+            accentColor="hsl(var(--primary))"
+          />
           <button onClick={runAnalysis} disabled={loading}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
             style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
