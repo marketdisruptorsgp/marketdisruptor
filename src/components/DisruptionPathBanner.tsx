@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { Target, Brain, Swords, Presentation, ArrowRight, Sparkles } from "lucide-react";
+import { Crosshair, Target, Brain, Swords, Presentation, ArrowRight, Sparkles } from "lucide-react";
 
 const PIPELINE_STEPS = [
+  {
+    icon: Crosshair,
+    label: "Choose What to Disrupt",
+    shortLabel: "Choose",
+    desc: "Select your target — a product, service, or business model to deconstruct",
+    detail: "Pick your disruptor mode and enter the product, service, or business model you want to analyze. This sets the context for the entire pipeline.",
+    color: "230 90% 63%",
+  },
   {
     icon: Target,
     label: "Intelligence Report",
@@ -58,12 +66,12 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
             From raw data to investor-ready output
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground mt-2 max-w-xl mx-auto">
-            Four stages of AI-powered analysis, each building on the last
+            Five stages of AI-powered analysis, each building on the last
           </p>
         </div>
 
         {/* Pipeline steps — vertical on mobile, horizontal on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-3">
           {PIPELINE_STEPS.map(({ icon: Icon, label, desc, detail, color }, i) => {
             const isActive = activeStep !== undefined && activeStep === i + 1;
             const isPast = activeStep !== undefined && activeStep > i + 1;
