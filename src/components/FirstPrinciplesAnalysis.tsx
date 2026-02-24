@@ -30,8 +30,6 @@ const DISRUPT_SECTION_DESCRIPTIONS: Record<string, string> = {
   ideas: "Flipped product ideas & innovations",
   patents: "Expired patents & IP opportunities",
 };
-
-
 interface CoreReality {
   trueProblem: string;
   actualUsage: string;
@@ -153,6 +151,125 @@ const SEVERITY_COLORS = {
   medium: { bg: "hsl(38 92% 50% / 0.08)", border: "hsl(38 92% 50% / 0.3)", text: "hsl(38 92% 35%)" },
   low: { bg: "hsl(142 70% 45% / 0.07)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)" },
 };
+
+/* ── Interactive Workflow Timeline ──────────────────────── */
+function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; frictionPoints: WorkflowFriction[] }) {
+  const [expandedStep, setExpandedStep] = useState<number | null>(null);
+
+  const getFriction = (stepName: string): WorkflowFriction | undefined => {
+    return frictionPoints?.find(fp =>
+      stepName.toLowerCase().includes(fp.step.toLowerCase()) ||
+      fp.step.toLowerCase().includes(stepName.toLowerCase().slice(0, 12))
+    );
+  };
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row sm:overflow-x-auto sm:pb-2 gap-0">
+        {steps.slice(0, 8).map((step, i) => {
+          const friction = getFriction(step);
+          const isExpanded = expandedStep === i;
+          const sevCol = friction ? (SEVERITY_COLORS[friction.severity] || SEVERITY_COLORS.medium) : null;
+          const isLast = i === Math.min(steps.length, 8) - 1;
+
+          return (
+            <div key={i} className="flex sm:flex-col sm:items-center relative sm:min-w-[140px]">
+              {/* Mobile: vertical timeline */}
+              <div className="flex sm:hidden items-start gap-3 w-full">
+                <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-extrabold z-10 transition-all"
+                    style={{
+                      background: isExpanded ? "hsl(var(--primary))" : "hsl(var(--foreground))",
+                      color: isExpanded ? "white" : "hsl(var(--background))",
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                  {!isLast && (
+                    <div className="w-[2px] flex-1 min-h-[24px]" style={{ background: "hsl(var(--border))" }} />
+                  )}
+                </div>
+                <button
+                  onClick={() => setExpandedStep(isExpanded ? null : i)}
+                  className="flex-1 text-left rounded-lg p-2.5 mb-2 transition-all"
+                  style={{
+                    background: isExpanded ? "hsl(var(--primary) / 0.04)" : "hsl(var(--muted))",
+                    border: isExpanded ? "1.5px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold text-foreground leading-tight">{step.length > 50 ? step.slice(0, 50) + "…" : step}</p>
+                    {sevCol && <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: sevCol.text }} />}
+                  </div>
+                  {friction && !isExpanded && (
+                    <span className="text-[9px] font-bold mt-1 inline-block px-1.5 py-0.5 rounded" style={{ background: sevCol!.bg, color: sevCol!.text }}>{friction.severity}</span>
+                  )}
+                  {isExpanded && friction && (
+                    <div className="mt-2 space-y-1.5">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: sevCol!.bg, color: sevCol!.text, border: `1px solid ${sevCol!.border}` }}>{friction.severity}</span>
+                      <p className="text-[11px] text-foreground/80 leading-relaxed">{friction.friction}</p>
+                      {friction.rootCause && (
+                        <p className="text-[10px] text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
+                      )}
+                    </div>
+                  )}
+                </button>
+              </div>
+
+              {/* Desktop: horizontal pipeline */}
+              <div className="hidden sm:flex sm:flex-col sm:items-center sm:w-full">
+                <div className="flex items-center w-full">
+                  {i > 0 ? <div className="h-[2px] flex-1" style={{ background: "hsl(var(--border))" }} /> : <div className="flex-1" />}
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-extrabold z-10 flex-shrink-0 transition-all"
+                    style={{
+                      background: isExpanded ? "hsl(var(--primary))" : "hsl(var(--foreground))",
+                      color: isExpanded ? "white" : "hsl(var(--background))",
+                      transform: isExpanded ? "scale(1.15)" : "scale(1)",
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                  {!isLast ? <div className="h-[2px] flex-1" style={{ background: "hsl(var(--border))" }} /> : <div className="flex-1" />}
+                </div>
+                <button
+                  onClick={() => setExpandedStep(isExpanded ? null : i)}
+                  className="mt-2 w-full text-left rounded-lg p-2.5 transition-all cursor-pointer"
+                  style={{
+                    background: isExpanded ? "hsl(var(--primary) / 0.04)" : "hsl(var(--muted))",
+                    border: isExpanded ? "1.5px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
+                    transform: isExpanded ? "scale(1.03)" : "scale(1)",
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="text-[10px] font-bold text-foreground leading-tight">{step.length > 30 ? step.slice(0, 30) + "…" : step}</p>
+                    {sevCol && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: sevCol.text }} />}
+                  </div>
+                  {friction && !isExpanded && (
+                    <span className="text-[9px] font-bold mt-1 inline-block px-1.5 py-0.5 rounded" style={{ background: sevCol!.bg, color: sevCol!.text }}>{friction.severity}</span>
+                  )}
+                  {isExpanded && friction && (
+                    <div className="mt-2 space-y-1">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: sevCol!.bg, color: sevCol!.text, border: `1px solid ${sevCol!.border}` }}>{friction.severity}</span>
+                      <p className="text-[11px] text-foreground/80 leading-relaxed">{friction.friction}</p>
+                      {friction.rootCause && (
+                        <p className="text-[10px] text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
+                      )}
+                    </div>
+                  )}
+                </button>
+                {!isExpanded && friction && (
+                  <p className="text-[9px] font-bold mt-1 text-center" style={{ color: sevCol!.text }}>{friction.step}</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 /* ── Collapsible detail panel — PROMINENT ──────────────────────── */
 function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
@@ -558,70 +675,41 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         </div>
       )}
 
-      {/* Section 3: User Workflow */}
+      {/* Section 3: User Workflow — Visual Timeline */}
       {activeStep === "workflow" && data.userWorkflow && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label={isService ? "Customer Journey" : "User Workflow"} icon={Navigation} />
 
-          {/* Compact journey */}
-          <div className="flex flex-wrap gap-1.5 items-center">
-            {data.userWorkflow.stepByStep.slice(0, 6).map((step, i) => (
-              <div key={i} className="flex items-center gap-1">
-                <span className="px-2 py-1 rounded text-[10px] font-semibold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
-                  {i + 1}. {step.length > 40 ? step.slice(0, 40) + "…" : step}
-                </span>
-                {i < Math.min(data.userWorkflow.stepByStep.length, 6) - 1 && (
-                  <ChevronRight size={10} className="text-muted-foreground" />
-                )}
-              </div>
-            ))}
+          <WorkflowTimeline
+            steps={data.userWorkflow.stepByStep}
+            frictionPoints={data.userWorkflow.frictionPoints}
+          />
+
+          {/* Cognitive Load & Context — visible cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Cognitive Load</p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.cognitiveLoad}</p>
+            </div>
+            <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Context of Use</p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.contextOfUse}</p>
+            </div>
           </div>
 
-          {/* Friction highlights — top 3 only */}
-          {data.userWorkflow.frictionPoints?.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Top Friction Points</p>
-              {data.userWorkflow.frictionPoints.slice(0, 3).map((fp, i) => {
-                const col = SEVERITY_COLORS[fp.severity] || SEVERITY_COLORS.medium;
-                return (
-                  <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
-                    <div className="flex items-center justify-between mb-0.5">
-                      <p className="text-[10px] font-bold" style={{ color: col.text }}>{fp.step}</p>
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: col.bg, color: col.text }}>{fp.severity}</span>
-                    </div>
-                    <p className="text-xs text-foreground/80 leading-relaxed">{fp.friction}</p>
+          {/* Optimizations in collapsible */}
+          {data.userWorkflow.workflowOptimizations?.length > 0 && (
+            <DetailPanel title={`Workflow Optimizations (${data.userWorkflow.workflowOptimizations.length})`} icon={Wrench}>
+              <div className="space-y-1.5 mb-2">
+                {data.userWorkflow.workflowOptimizations.map((opt, i) => (
+                  <div key={i} className="flex gap-2 items-start text-xs">
+                    <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+                    <span className="text-foreground/80">{opt}</span>
                   </div>
-                );
-              })}
-              {data.userWorkflow.frictionPoints.length > 3 && (
-                <p className="text-[10px] text-muted-foreground">+{data.userWorkflow.frictionPoints.length - 3} more friction points in full details</p>
-              )}
-            </div>
+                ))}
+              </div>
+            </DetailPanel>
           )}
-
-          <DetailPanel title="Cognitive Load, Context & Optimizations" icon={Brain}>
-            <div className="space-y-3 mb-2">
-              <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Cognitive Load</p>
-                <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.cognitiveLoad}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Context of Use</p>
-                <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.contextOfUse}</p>
-              </div>
-              {data.userWorkflow.workflowOptimizations?.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Optimizations</p>
-                  {data.userWorkflow.workflowOptimizations.map((opt, i) => (
-                    <div key={i} className="flex gap-2 items-start text-xs mb-1">
-                      <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-                      <span className="text-foreground/80">{opt}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </DetailPanel>
 
           <InsightRating sectionId="workflow" compact />
           {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
