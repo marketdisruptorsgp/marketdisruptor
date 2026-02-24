@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { SectionHeader, NextSectionButton, SectionPills, AllExploredBadge, DetailPanel } from "@/components/SectionNav";
 import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
+import { CompletionExperience } from "@/components/CompletionExperience";
 import { useNavigate } from "react-router-dom";
 
 interface FinancialModel {
@@ -224,46 +225,13 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   if (showCompletion) {
     const completionMsg = data.completionMessage || `${product.name} represents a structurally differentiated opportunity in a market where incumbents have stopped questioning their own assumptions.`;
     return (
-      <div className="space-y-6">
-        <div className="p-8 rounded-2xl text-center space-y-5" style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0.02))", border: "2px solid hsl(var(--primary) / 0.2)" }}>
-          <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-            <Sparkles size={28} className="text-white" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Pitch Deck Complete</h3>
-            <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
-              Your 12-section investor deck for <strong className="text-foreground">{product.name}</strong> is ready.
-            </p>
-          </div>
-          <div className="p-4 rounded-xl max-w-lg mx-auto" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Strategic Insight</p>
-            <p className="text-sm text-foreground/80 leading-relaxed italic">"{completionMsg}"</p>
-          </div>
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <button onClick={handleDownloadPDF}
-              className="flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors"
-              style={{ background: "hsl(var(--primary))", color: "white" }}>
-              <Download size={14} /> Export PDF
-            </button>
-            <button onClick={() => navigate("/portfolio")}
-              className="flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors"
-              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
-              <Award size={14} /> View Portfolio
-            </button>
-          </div>
-          <p className="text-[11px] text-muted-foreground">
-            <CheckCircle2 size={10} className="inline mr-1" style={{ color: "hsl(142 70% 40%)" }} />
-            Project saved to your portfolio
-          </p>
-        </div>
-
-        <button onClick={() => setShowCompletion(false)}
-          className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-          ← Back to deck sections
-        </button>
-
-        <ReferralCTA />
-      </div>
+      <CompletionExperience
+        productName={product.name}
+        completionMessage={completionMsg}
+        onExportPDF={handleDownloadPDF}
+        onBackToSections={() => setShowCompletion(false)}
+        accentColor="hsl(var(--primary))"
+      />
     );
   }
 

@@ -5,6 +5,7 @@ import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useModeTheme } from "@/hooks/useModeTheme";
 import { usePersistedSections } from "@/hooks/usePersistedSections";
 import { StepNavigator } from "@/components/StepNavigator";
 import { getStepConfigs, SECTION_DESCRIPTIONS } from "@/lib/stepConfigs";
@@ -36,6 +37,7 @@ export default function ReportPage() {
   const analysis = useAnalysis();
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const theme = useModeTheme();
   const sectionTabsRef = useRef<HTMLDivElement>(null);
 
   const { products, selectedProduct, analysisParams, analysisId } = analysis;
@@ -45,8 +47,7 @@ export default function ReportPage() {
     return null;
   }
 
-  const isCustomMode = analysisParams?.category === "Custom";
-  const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
+  const modeAccent = theme.primary;
   const totalSources = products.reduce((a, p) => a + (p.sources?.length || 0), 0);
   const totalIdeas = products.reduce((acc, p) => acc + (p.flippedIdeas?.length || 0), 0);
   const avgScore = (products.reduce((acc, p) => acc + p.revivalScore, 0) / products.length).toFixed(1);

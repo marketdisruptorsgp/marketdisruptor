@@ -7,14 +7,70 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MIN_RESULTS = 10;
+
 const NEWS_QUERIES = [
-  { query: "startup funding round 2025 2026 product launch", category: "Startups & Funding" },
-  { query: "consumer product innovation 2025 2026 new launch", category: "Product Innovation" },
-  { query: "SEC filing IPO acquisition merger 2025 2026", category: "Regulatory & M&A" },
-  { query: "ecommerce DTC brand trend 2025 2026", category: "E-Commerce" },
-  { query: "AI machine learning product application 2025 2026", category: "AI & Technology" },
-  { query: "sustainability circular economy product 2025 2026", category: "Sustainability" },
+  "startup funding round 2025 2026 product launch",
+  "consumer product innovation 2025 2026 new launch",
+  "SEC filing IPO acquisition merger 2025 2026",
+  "ecommerce DTC brand trend 2025 2026",
+  "AI machine learning product application 2025 2026",
+  "sustainability circular economy product 2025 2026",
 ];
+
+const FALLBACK_QUERIES = [
+  "venture capital startup news",
+  "product market disruption trend",
+  "technology innovation business 2025",
+  "retail consumer brand growth",
+];
+
+async function extractNews(
+  results: any[],
+  query: string,
+  cutoffDate: string,
+  LOVABLE_API_KEY: string,
+): Promise<any[]> {
+  const extractPrompt = `Extract news items from these search results about "${query}". For each item, assign the most fitting category from: Startups & Funding, Product Innovation, Regulatory & M&A, E-Commerce, AI & Technology, Sustainability, Health & Wellness, Fintech, Climate Tech, Consumer Electronics.
+
+Return ONLY valid JSON array:
+[{"title":"Headline","summary":"1-2 sentence summary","source_name":"Publication Name","source_url":"https://...","published_at":"YYYY-MM-DD","category":"Best Fitting Category"}]
+
+Search results:
+${results.map((r: any) => `Title: ${r.title}\nURL: ${r.url}\nDescription: ${r.description || ""}`).join("\n---\n")}
+
+Return 3-5 items maximum. Only include real news with verifiable titles and sources. CRITICAL: Only include articles published on or after ${cutoffDate}. Return empty array [] if nothing qualifies.`;
+
+  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      messages: [{ role: "user", content: extractPrompt }],
+      temperature: 0.1,
+      max_tokens: 3000,
+    }),
+  });
+
+  if (!aiRes.ok) return [];
+
+  const aiData = await aiRes.json();
+  const raw = aiData.choices?.[0]?.message?.content || "[]";
+  const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  try {
+    let items = JSON.parse(cleaned);
+    if (!Array.isArray(items)) return [];
+    return items.map((item: any) => ({
+      ...item,
+      scraped_at: new Date().toISOString(),
+    }));
+  } catch {
+    return [];
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -31,8 +87,12 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const allNews: any[] = [];
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const cutoffDate = thirtyDaysAgo.toISOString().split("T")[0];
 
-    for (const { query, category } of NEWS_QUERIES) {
+    // Phase 1: primary queries (last month)
+    for (const query of NEWS_QUERIES) {
       try {
         const searchRes = await fetch("https://api.firecrawl.dev/v1/search", {
           method: "POST",
@@ -40,63 +100,51 @@ serve(async (req) => {
             Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            query,
-            limit: 5,
-            tbs: "qdr:m", // last month
-          }),
+          body: JSON.stringify({ query, limit: 5, tbs: "qdr:m" }),
         });
 
-        if (!searchRes.ok) {
-          console.error(`Search failed for ${category}: ${searchRes.status}`);
-          continue;
-        }
+        if (!searchRes.ok) { console.error(`Search failed for query: ${searchRes.status}`); continue; }
 
         const searchData = await searchRes.json();
         const results = searchData?.data || [];
-
         if (results.length === 0) continue;
 
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const cutoffDate = thirtyDaysAgo.toISOString().split("T")[0];
-
-        const extractPrompt = `Extract news items from these search results about "${query}". Return ONLY valid JSON array:
-[{"title":"Headline","summary":"1-2 sentence summary","source_name":"Publication Name","source_url":"https://...","published_at":"YYYY-MM-DD"}]
-
-Search results:
-${results.map((r: any) => `Title: ${r.title}\nURL: ${r.url}\nDescription: ${r.description || ""}`).join("\n---\n")}
-
-Return 3-5 items maximum. Only include real news with verifiable titles and sources. CRITICAL: Only include articles published on or after ${cutoffDate} (within the last 30 days). Return empty array [] if nothing qualifies.`;
-
-        const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [{ role: "user", content: extractPrompt }],
-            temperature: 0.1,
-            max_tokens: 3000,
-          }),
-        });
-
-        if (aiRes.ok) {
-          const aiData = await aiRes.json();
-          const raw = aiData.choices?.[0]?.message?.content || "[]";
-          const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-          try {
-            let items = JSON.parse(cleaned);
-            if (!Array.isArray(items)) items = [];
-            for (const item of items) {
-              allNews.push({ ...item, category, scraped_at: new Date().toISOString() });
-            }
-          } catch { console.error(`JSON parse failed for ${category}`); }
-        }
+        const items = await extractNews(results, query, cutoffDate, LOVABLE_API_KEY);
+        allNews.push(...items);
       } catch (err) {
-        console.error(`Error processing ${category}:`, err);
+        console.error(`Error processing query:`, err);
+      }
+    }
+
+    // Phase 2: broadened fallback if below minimum
+    if (allNews.length < MIN_RESULTS) {
+      console.log(`Only ${allNews.length} results after phase 1, broadening to last year...`);
+      const yearAgoCutoff = new Date();
+      yearAgoCutoff.setFullYear(yearAgoCutoff.getFullYear() - 1);
+      const yearCutoffDate = yearAgoCutoff.toISOString().split("T")[0];
+
+      for (const query of FALLBACK_QUERIES) {
+        if (allNews.length >= MIN_RESULTS) break;
+        try {
+          const searchRes = await fetch("https://api.firecrawl.dev/v1/search", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ query, limit: 5, tbs: "qdr:y" }),
+          });
+
+          if (!searchRes.ok) continue;
+          const searchData = await searchRes.json();
+          const results = searchData?.data || [];
+          if (results.length === 0) continue;
+
+          const items = await extractNews(results, query, yearCutoffDate, LOVABLE_API_KEY);
+          allNews.push(...items);
+        } catch (err) {
+          console.error(`Fallback error:`, err);
+        }
       }
     }
 
@@ -106,12 +154,20 @@ Return 3-5 items maximum. Only include real news with verifiable titles and sour
       return /^\d{4}-\d{2}-\d{2}/.test(d) && !isNaN(Date.parse(d));
     };
 
-    // Filter out anything older than 30 days programmatically
-    const thirtyDaysAgoCutoff = new Date();
-    thirtyDaysAgoCutoff.setDate(thirtyDaysAgoCutoff.getDate() - 30);
+    // Deduplicate by title
+    const seen = new Set<string>();
     const recentNews = allNews.filter((n) => {
-      if (!n.published_at || !isValidDate(n.published_at)) return true;
-      return new Date(n.published_at) >= thirtyDaysAgoCutoff;
+      const key = (n.title || "").toLowerCase().trim();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Sort newest first
+    recentNews.sort((a, b) => {
+      const da = isValidDate(a.published_at) ? new Date(a.published_at).getTime() : 0;
+      const db = isValidDate(b.published_at) ? new Date(b.published_at).getTime() : 0;
+      return db - da;
     });
 
     // Clear old and insert new
@@ -123,7 +179,7 @@ Return 3-5 items maximum. Only include real news with verifiable titles and sour
         summary: n.summary || null,
         source_name: n.source_name || "Unknown",
         source_url: n.source_url || null,
-        category: n.category,
+        category: n.category || "General",
         published_at: isValidDate(n.published_at) ? n.published_at : null,
         scraped_at: n.scraped_at,
       }));
@@ -132,7 +188,7 @@ Return 3-5 items maximum. Only include real news with verifiable titles and sour
       if (error) throw new Error(`News insert failed: ${error.message}`);
     }
 
-    return new Response(JSON.stringify({ success: true, news: allNews.length }), {
+    return new Response(JSON.stringify({ success: true, news: recentNews.length }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
