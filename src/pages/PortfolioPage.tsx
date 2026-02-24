@@ -70,6 +70,26 @@ export default function PortfolioPage() {
     setLoading(false);
   };
 
+  // Filters
+  const [filterMode, setFilterMode] = useState<string>("all");
+  const [filterScore, setFilterScore] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"date" | "score">("date");
+
+  const uniqueModes = useMemo(() => {
+    const modes = new Set(analyses.map(a => a.analysis_type || "product"));
+    return Array.from(modes);
+  }, [analyses]);
+
+  const filteredAnalyses = useMemo(() => {
+    let result = [...analyses];
+    if (filterMode !== "all") result = result.filter(a => (a.analysis_type || "product") === filterMode);
+    if (filterScore === "high") result = result.filter(a => (a.avg_revival_score || 0) >= 7.5);
+    else if (filterScore === "mid") result = result.filter(a => (a.avg_revival_score || 0) >= 5 && (a.avg_revival_score || 0) < 7.5);
+    else if (filterScore === "low") result = result.filter(a => (a.avg_revival_score || 0) < 5);
+    if (sortBy === "score") result.sort((a, b) => (b.avg_revival_score || 0) - (a.avg_revival_score || 0));
+    return result;
+  }, [analyses, filterMode, filterScore, sortBy]);
+
   const totalProjects = analyses.length;
   const avgScore = totalProjects > 0
     ? Math.round((analyses.reduce((s, a) => s + (a.avg_revival_score || 0), 0) / totalProjects) * 10) / 10
@@ -250,15 +270,63 @@ export default function PortfolioPage() {
               <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
                 All your saved analyses. Click any project to reopen the full analysis flow.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {analyses.map((a) => (
-                  <ProjectInsightCard
-                    key={a.id}
-                    analysis={a}
-                    onOpen={() => analysis.handleLoadSaved(a as any)}
-                  />
-                ))}
+
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <select
+                  value={filterMode}
+                  onChange={(e) => setFilterMode(e.target.value)}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="all">All Modes</option>
+                  {uniqueModes.map(m => (
+                    <option key={m} value={m}>{(CATEGORY_MAP[m] || CATEGORY_MAP.custom).label}</option>
+                  ))}
+                </select>
+                <select
+                  value={filterScore}
+                  onChange={(e) => setFilterScore(e.target.value)}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="all">All Scores</option>
+                  <option value="high">High (≥ 7.5)</option>
+                  <option value="mid">Mid (5–7.4)</option>
+                  <option value="low">Low (&lt; 5)</option>
+                </select>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as "date" | "score")}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="date">Newest First</option>
+                  <option value="score">Highest Score</option>
+                </select>
+                {(filterMode !== "all" || filterScore !== "all") && (
+                  <button
+                    onClick={() => { setFilterMode("all"); setFilterScore("all"); }}
+                    className="text-[10px] text-primary hover:underline font-semibold"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+                <span className="text-[10px] text-muted-foreground ml-auto">{filteredAnalyses.length} of {analyses.length} projects</span>
               </div>
+
+              {filteredAnalyses.length === 0 ? (
+                <div className="py-10 text-center border border-border rounded-xl bg-card">
+                  <p className="text-sm text-muted-foreground">No projects match the selected filters.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredAnalyses.map((a) => (
+                    <ProjectInsightCard
+                      key={a.id}
+                      analysis={a}
+                      onOpen={() => analysis.handleLoadSaved(a as any)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </>
         )}
