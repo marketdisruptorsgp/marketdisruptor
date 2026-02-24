@@ -1132,17 +1132,18 @@ export default function Index() {
                   {detailTab === "workflow" && (
                     <div className="space-y-4">
                       {(() => {
-                        const takeaway = getWorkflowTakeaway(disruptData as Record<string, unknown> | null);
+                        const productData = selectedProduct as unknown as Record<string, unknown>;
+                        const takeaway = getWorkflowTakeaway(productData);
                         return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(217 91% 55%)" /> : null;
                       })()}
                       {(() => {
-                        const dd = disruptData as Record<string, unknown> | null;
-                        const uw = dd?.userWorkflow as { stepByStep?: string[]; frictionPoints?: { step: string; friction: string; severity: "high" | "medium" | "low"; rootCause: string }[]; cognitiveLoad?: string; contextOfUse?: string } | undefined;
+                        const uw = (selectedProduct as unknown as { userWorkflow?: { stepByStep?: string[]; frictionPoints?: { step: string; friction: string; severity: "high" | "medium" | "low"; rootCause: string }[]; cognitiveLoad?: string; contextOfUse?: string } }).userWorkflow;
                         if (!uw?.stepByStep?.length) {
                           return (
                             <div className="py-8 text-center">
                               <Clock size={32} className="mx-auto mb-3 opacity-20" />
-                              <p className="text-sm text-muted-foreground">User journey data becomes available after running the Disrupt analysis (Step 3).</p>
+                              <p className="text-sm text-muted-foreground">No user journey data available for this product.</p>
+                              <p className="text-xs text-muted-foreground mt-1">Try running a new analysis to generate journey data.</p>
                             </div>
                           );
                         }
