@@ -101,6 +101,7 @@ Return this EXACT structure with sections in this ORDER:
     },
     "exitStrategy": "M&A targets, IPO path, or strategic buyers"
   },
+  "tagline": "A concise, punchy one-liner (under 10 words) that captures the core value proposition. Think investor headline — bold, memorable, no fluff.",
   "elevatorPitch": "2-3 sentence pitch a VC would hear in an elevator. Bold, specific, memorable.",
   "competitiveAdvantages": ["Advantage 1", "Advantage 2", "Advantage 3"],
   "customerPersona": {
