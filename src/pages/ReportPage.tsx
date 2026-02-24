@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -467,7 +468,18 @@ export default function ReportPage() {
                 );
                 analysis.setProducts(updated);
                 analysis.setSelectedProduct({ ...selectedProduct, patentData });
-                if (analysisParams) analysis.saveAnalysis(updated, analysisParams);
+                // Persist updated products array (with patent data) back to database
+                if (analysisId) {
+                  (async () => {
+                    try {
+                      await (supabase.from("saved_analyses") as any)
+                        .update({ products: JSON.parse(JSON.stringify(updated)) })
+                        .eq("id", analysisId);
+                    } catch (err) {
+                      console.error("Failed to persist patent data:", err);
+                    }
+                  })();
+                }
               }}
             />
           </div>

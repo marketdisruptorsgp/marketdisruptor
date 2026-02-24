@@ -432,6 +432,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.disrupt) setDisruptData(ad.disrupt);
     if (ad?.stressTest) setStressTestData(ad.stressTest);
     if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
+    if (ad?.businessStressTest) setBusinessStressTestData(ad.businessStressTest);
+    if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
 
     if (analysis.analysis_type === "business_model") {
       setBusinessAnalysisData(analysis.analysis_data as BusinessModelAnalysisData);
