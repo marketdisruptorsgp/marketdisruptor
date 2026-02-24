@@ -6,7 +6,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Database, TrendingUp, Award, Calendar, ArrowLeft, ChevronRight, Star } from "lucide-react";
+import { Database, TrendingUp, Award, Calendar, ArrowLeft } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ProjectInsightCard } from "@/components/portfolio/ProjectInsightCard";
 import { ScoreInsightPanel } from "@/components/portfolio/ScoreInsightPanel";
@@ -161,24 +161,10 @@ export default function PortfolioPage() {
               ))}
             </div>
 
-            {/* Project Insight Grid */}
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Project Intelligence</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {analyses.map((a) => (
-                  <ProjectInsightCard
-                    key={a.id}
-                    analysis={a}
-                    onOpen={() => analysis.handleLoadSaved(a as any)}
-                  />
-                ))}
-              </div>
-            </div>
-
             {/* Score Intelligence Panel */}
             <ScoreInsightPanel analyses={analyses} />
 
-            {/* Category Breakdown - cleaned up */}
+            {/* Category Breakdown */}
             <div className="rounded-xl border border-border bg-card p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Category Breakdown</p>
               <div className="flex items-center justify-center">
@@ -193,7 +179,6 @@ export default function PortfolioPage() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              {/* Legend */}
               <div className="flex flex-wrap justify-center gap-3 mt-2">
                 {categoryBreakdown.map((entry) => (
                   <div key={entry.name} className="flex items-center gap-1.5">
@@ -203,6 +188,26 @@ export default function PortfolioPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Comparison Insight View */}
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Insight Comparison</p>
+              <p className="text-[10px] text-muted-foreground mb-3">Select up to 3 projects to compare side-by-side</p>
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {analyses.slice(0, 20).map((a) => (
+                  <button key={a.id} onClick={() => toggleCompare(a.id)}
+                    className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors"
+                    style={{
+                      background: compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                      color: compareIds.has(a.id) ? "white" : "hsl(var(--foreground))",
+                      border: `1px solid ${compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+                    }}>
+                    {a.title.length > 25 ? a.title.slice(0, 25) + "…" : a.title}
+                  </button>
+                ))}
+              </div>
+              <ComparisonInsightView compareList={compareList} />
             </div>
 
             {/* Timeline */}
@@ -220,43 +225,16 @@ export default function PortfolioPage() {
               </div>
             )}
 
-            {/* Comparison Insight View */}
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Insight Comparison</p>
-              <p className="text-[10px] text-muted-foreground mb-3">Select up to 3 projects to compare</p>
-              <div className="flex flex-wrap gap-1.5 mb-4">
-                {analyses.slice(0, 20).map((a) => (
-                  <button key={a.id} onClick={() => toggleCompare(a.id)}
-                    className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors"
-                    style={{
-                      background: compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--muted))",
-                      color: compareIds.has(a.id) ? "white" : "hsl(var(--foreground))",
-                      border: `1px solid ${compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-                    }}>
-                    {a.title.length > 25 ? a.title.slice(0, 25) + "…" : a.title}
-                  </button>
-                ))}
-              </div>
-              <ComparisonInsightView compareList={compareList} />
-            </div>
-
-            {/* All projects list (secondary) */}
+            {/* Saved Projects Grid */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">All Projects</p>
-              <div className="space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Saved Projects</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {analyses.map((a) => (
-                  <button key={a.id} onClick={() => analysis.handleLoadSaved(a as any)}
-                    className="w-full text-left p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors flex items-center gap-3 group">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-foreground truncate">{a.title}</p>
-                      <p className="text-[10px] text-muted-foreground">{a.category} · {format(parseISO(a.created_at), "MMM d, yyyy")}</p>
-                    </div>
-                    {a.avg_revival_score >= 7.5 && <Star size={12} style={{ color: "hsl(var(--score-high))", fill: "hsl(var(--score-high))" }} />}
-                    <span className="text-[11px] font-bold" style={{ color: (a.avg_revival_score || 0) >= 7.5 ? "hsl(var(--score-high))" : "hsl(var(--foreground))" }}>
-                      {a.avg_revival_score}/10
-                    </span>
-                    <ChevronRight size={14} className="text-muted-foreground/40 group-hover:text-foreground transition-colors" />
-                  </button>
+                  <ProjectInsightCard
+                    key={a.id}
+                    analysis={a}
+                    onOpen={() => analysis.handleLoadSaved(a as any)}
+                  />
                 ))}
               </div>
             </div>
