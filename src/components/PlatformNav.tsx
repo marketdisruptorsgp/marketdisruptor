@@ -49,17 +49,15 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
   const analysis = useAnalysis();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const MODE_PATHS: Record<string, string> = {
+    custom: "/start/product",
+    service: "/start/service",
+    business: "/start/business",
+  };
+
   const handleModeSelect = (modeId: "custom" | "service" | "business") => {
-    analysis.setMainTab(modeId);
-    analysis.setActiveMode(modeId as AnalysisMode);
-    // Navigate to dashboard and scroll to form
-    if (location.pathname !== "/") navigate("/");
+    navigate(MODE_PATHS[modeId]);
     setMobileOpen(false);
-    // Scroll to form area after navigation
-    setTimeout(() => {
-      const formEl = document.querySelector('[data-tour="analysis-form"]');
-      if (formEl) formEl.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 200);
   };
 
   const isActive = (path: string) => location.pathname === path;

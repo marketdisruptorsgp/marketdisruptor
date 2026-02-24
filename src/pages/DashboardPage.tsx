@@ -1,64 +1,35 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import { AnalysisForm, type AnalysisMode } from "@/components/AnalysisForm";
 import { SavedAnalyses } from "@/components/SavedAnalyses";
-import { BusinessModelAnalysis, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
-
-import { ContextualTip } from "@/components/ContextualTip";
 import MobileTour from "@/components/MobileTour";
 import { HeroSection } from "@/components/HeroSection";
 import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
 import { Target } from "lucide-react";
-import { LoadingTracker } from "@/components/LoadingTracker";
 import PaywallModal from "@/components/PaywallModal";
 import { MarketChangeAlert } from "@/components/MarketChangeAlert";
 import { StreakBadge } from "@/components/StreakBadge";
+import { ShowcaseGallery } from "@/components/ShowcaseGallery";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
-  AlertCircle, Upload, Briefcase, Building2, ShieldCheck, BookOpen,
+  Upload, Briefcase, Building2, ShieldCheck, BookOpen,
   Rocket, TrendingUp, Users, FileText, ArrowRight,
 } from "lucide-react";
 
 const MODE_WORDS = [
-  { label: "product", mode: "custom" as const, color: "hsl(var(--mode-product))" },
-  { label: "service", mode: "service" as const, color: "hsl(var(--mode-service))" },
-  { label: "business model", mode: "business" as const, color: "hsl(var(--mode-business))" },
+  { label: "product", color: "hsl(var(--mode-product))" },
+  { label: "service", color: "hsl(var(--mode-service))" },
+  { label: "business model", color: "hsl(var(--mode-business))" },
 ];
 
 const MODE_PILLS = [
-  { id: "custom" as const, label: "Product", icon: Upload, cssVar: "--mode-product" },
-  { id: "service" as const, label: "Service", icon: Briefcase, cssVar: "--mode-service" },
-  { id: "business" as const, label: "Business Model", icon: Building2, cssVar: "--mode-business" },
+  { id: "custom" as const, label: "Product", icon: Upload, cssVar: "--mode-product", path: "/start/product" },
+  { id: "service" as const, label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/start/service" },
+  { id: "business" as const, label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/start/business" },
 ];
-
-const MODE_TIPS: Record<"custom" | "service" | "business", string[]> = {
-  custom: [
-    "Upload a product photo alongside the URL — the AI uses computer vision to catch design details that text listings miss, like material quality, ergonomic flaws, and packaging inefficiencies.",
-    "Add competitor URLs in the same batch. The analysis cross-references pricing, features, and positioning across all inputs to find gaps no single product review would reveal.",
-    "The Disrupt step doesn't just improve — it deliberately flips every assumption. If a product is heavy, it asks: what if weight is the feature? That's where breakthrough ideas live.",
-    "After analysis, use the Red Team / Green Team debate to stress-test the AI's own conclusions. The best strategies survive adversarial scrutiny.",
-  ],
-  service: [
-    "Paste your service's landing page URL — the AI maps the entire customer journey, from first impression to post-purchase, and flags friction points competitors accept as normal.",
-    "Describe your service in the notes field even if you add a URL. Insider context about operational pain points gives the AI a sharper starting point for deconstruction.",
-    "Service analysis skips product-centric logic and focuses on what matters: customer journey friction, operational workflows, and where technology can create structural advantages.",
-    "The best service disruptions come from questioning delivery models, not just pricing. The AI tests configurations like unbundling, self-service layers, and subscription pivots.",
-  ],
-  business: [
-    "Be specific about your revenue model and pain points — the more context you provide, the deeper the AI can go on operational audits and revenue reinvention.",
-    "The analysis deconstructs your model across multiple dimensions: core reality, operations audit, revenue structure, and adjacency opportunities most teams overlook.",
-    "Try running the same business type with different geography or scale inputs. A laundromat strategy in a dense urban market looks completely different from a suburban one.",
-    "After the intelligence report, the Disrupt step generates flipped concepts you can guide with custom goals — tell the AI what constraints or objectives matter most to you.",
-  ],
-};
-
-const SESSION_SEED = Math.random();
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
@@ -69,16 +40,6 @@ export default function DashboardPage() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showSavedPanel, setShowSavedPanel] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
-  const [selectedMode, setSelectedMode] = useState<"custom" | "service" | "business" | null>(null);
-  const formRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = analysis.mainTab;
-    if (ctx === "custom" || ctx === "service" || ctx === "business") {
-      setSelectedMode(ctx);
-    }
-  }, [analysis.mainTab]);
-  const modeTabsRef = useRef<HTMLDivElement>(null);
 
   const [wordIndex, setWordIndex] = useState(0);
   const [visible, setVisible] = useState(true);
@@ -93,23 +54,6 @@ export default function DashboardPage() {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
-
-
-  const handleModeSelect = (mode: "custom" | "service" | "business") => {
-    setSelectedMode(mode);
-    analysis.setMainTab(mode);
-    analysis.setActiveMode(mode as AnalysisMode);
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
-  };
-
-
-  const isLoading = analysis.step === "scraping" || analysis.step === "analyzing";
-
-  const modeColor = selectedMode
-    ? MODE_PILLS.find((m) => m.id === selectedMode)?.cssVar ?? "--mode-product"
-    : "--mode-product";
 
   return (
     <div className="min-h-screen bg-background">
@@ -191,7 +135,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Workflow Pipeline — prominent position */}
+      {/* Workflow Pipeline */}
       <DisruptionPathBanner />
 
       {/* Scrutiny CTA */}
@@ -199,15 +143,7 @@ export default function DashboardPage() {
         <div
           className="rounded-2xl px-5 py-6 sm:py-8 text-center cursor-pointer transition-all hover:shadow-md"
           style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
-          onClick={() => {
-            const formEl = document.querySelector('[data-tour="analysis-form"]');
-            if (formEl) {
-              formEl.scrollIntoView({ behavior: "smooth", block: "start" });
-            } else {
-              // If no mode selected yet, select Product and scroll
-              handleModeSelect("custom");
-            }
-          }}
+          onClick={() => navigate("/start/product")}
         >
           <p className="text-sm sm:text-base font-bold text-foreground mb-1.5">
             Apply a level of scrutiny that exceeds normal bandwidth.
@@ -224,6 +160,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Showcase Gallery */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-10 sm:mt-14">
+        <ShowcaseGallery />
+      </div>
+
       {/* Value Proposition Callout */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 my-6 sm:my-10">
         <div className="rounded-2xl px-4 sm:px-5 py-4 sm:py-5 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
@@ -237,114 +178,31 @@ export default function DashboardPage() {
         </div>
       </div>
 
-
-      {/* Mode Pills */}
-      <div ref={modeTabsRef} className="border-t border-border bg-card">
+      {/* Mode Pills — navigate to start pages */}
+      <div className="border-t border-border bg-card">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
             {MODE_PILLS.map((pill) => {
               const Icon = pill.icon;
-              const isActive = selectedMode === pill.id;
               return (
                 <button
                   key={pill.id}
-                  onClick={() => handleModeSelect(pill.id)}
-                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold border transition-colors"
-                  style={
-                    isActive
-                      ? {
-                          backgroundColor: `hsl(var(${pill.cssVar}))`,
-                          borderColor: `hsl(var(${pill.cssVar}))`,
-                          color: "white",
-                        }
-                      : {
-                          borderColor: "hsl(var(--border))",
-                          color: "hsl(var(--foreground))",
-                        }
-                  }
+                  onClick={() => navigate(pill.path)}
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold border transition-colors hover:shadow-sm"
+                  style={{
+                    borderColor: `hsl(var(${pill.cssVar}))`,
+                    color: `hsl(var(${pill.cssVar}))`,
+                  }}
                 >
                   <Icon size={14} />
                   {pill.label}
+                  <ArrowRight size={12} />
                 </button>
               );
             })}
           </div>
         </div>
       </div>
-
-      {/* Analysis Form */}
-      {selectedMode && (
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10" ref={formRef}>
-          <div
-            className="rounded-lg overflow-hidden border border-border bg-card shadow-sm"
-            style={{ borderTop: `3px solid hsl(var(${modeColor}))` }}
-          >
-            <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-2 border-b border-border">
-              <p
-                className="text-xs font-bold uppercase tracking-widest"
-                style={{ color: `hsl(var(${modeColor}))` }}
-              >
-                {selectedMode === "custom" ? "Disrupt This Product" : selectedMode === "service" ? "Disrupt This Service" : "Disrupt This Business Model"}
-              </p>
-            </div>
-            <div className="p-4 sm:p-6">
-              {(() => {
-                const tips = MODE_TIPS[selectedMode!];
-                const tipIndex = Math.floor(SESSION_SEED * tips.length);
-                const tipColor = `hsl(var(${modeColor}))`;
-                return (
-                  <ContextualTip
-                    id={`tip-${selectedMode}-${tipIndex}`}
-                    message={tips[tipIndex]}
-                    accentColor={tipColor}
-                  />
-                );
-              })()}
-              <div className="mt-4" data-tour="analysis-form">
-                <AnalysisForm
-                  onAnalyze={analysis.handleAnalyze}
-                  isLoading={isLoading}
-                  mode={analysis.activeMode}
-                  onModeChange={(m) => {
-                    analysis.setActiveMode(m);
-                    analysis.setMainTab(m as typeof analysis.mainTab);
-                  }}
-                  onBusinessAnalysis={(data) => {
-                    analysis.setBusinessAnalysisData(data as BusinessModelAnalysisData);
-                    const id = crypto.randomUUID();
-                    analysis.setAnalysisId(id);
-                    navigate(`/business/${id}`);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {isLoading && (
-            <div className="mt-6 sm:mt-8">
-              <LoadingTracker
-                step={analysis.step as "scraping" | "analyzing"}
-                elapsedSeconds={analysis.elapsedSeconds}
-                loadingLog={analysis.loadingLog}
-              />
-            </div>
-          )}
-
-          {analysis.step === "error" && (
-            <div className="mt-6 sm:mt-8 p-4 sm:p-6 rounded-lg flex items-start gap-3 bg-destructive/5 border border-destructive/20">
-              <AlertCircle size={20} className="text-destructive flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-sm text-destructive">Analysis Failed</p>
-                <p className="text-sm text-muted-foreground mt-1">{analysis.errorMsg}</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Tip: Try a more specific category or reduce batch size.
-                </p>
-              </div>
-            </div>
-          )}
-        </main>
-      )}
-
 
       {/* Footer */}
       <footer className="border-t border-border mt-0">
