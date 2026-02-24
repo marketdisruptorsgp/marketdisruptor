@@ -15,11 +15,13 @@ import {
   Star, AlertTriangle, Download, ChevronRight, Rocket, Sparkles,
   Award, Layers, Shield, LineChart,
 } from "lucide-react";
-import { SectionHeader, NextSectionButton, SectionWorkflowNav, AllExploredBadge, DetailPanel } from "@/components/SectionNav";
+import { NextSectionButton, SectionWorkflowNav, AllExploredBadge } from "@/components/SectionNav";
+import { PitchSlideFrame, SlideStatCard, SlideBullet } from "@/components/pitch/PitchSlideFrame";
 import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
 import { CompletionExperience } from "@/components/CompletionExperience";
 import { useNavigate } from "react-router-dom";
 
+// Interfaces
 interface FinancialModel {
   unitEconomics: {
     cogs: string;
@@ -137,6 +139,8 @@ const SLIDE_TABS = [
 
 type SlideTab = typeof SLIDE_TABS[number]["id"];
 
+const TOTAL = SLIDE_TABS.length;
+
 export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptData, stressTestData, redesignData, userScores }: PitchDeckProps) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -150,7 +154,8 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   const handleDownloadPDF = () => { if (!data) return; downloadPitchDeckPDF(product, data); };
 
   const currentIdx = SLIDE_TABS.findIndex(t => t.id === activeSlide);
-  const nextSlide = currentIdx < SLIDE_TABS.length - 1 ? SLIDE_TABS[currentIdx + 1] : null;
+  const currentTab = SLIDE_TABS[currentIdx];
+  const nextSlide = currentIdx < TOTAL - 1 ? SLIDE_TABS[currentIdx + 1] : null;
 
   const goNext = () => {
     if (!nextSlide) {
@@ -223,7 +228,6 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     );
   }
 
-  // Completion screen
   if (showCompletion) {
     const completionMsg = data.completionMessage || `${product.name} represents a structurally differentiated opportunity in a market where incumbents have stopped questioning their own assumptions.`;
     return (
@@ -257,9 +261,24 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     exitStrategy: data.investmentAsk?.exitStrategy || "",
   } : null);
 
+  /* ── Helper: wrap content in a slide ── */
+  const Slide = ({ children }: { children: React.ReactNode }) => (
+    <PitchSlideFrame
+      slideNumber={currentIdx + 1}
+      totalSlides={TOTAL}
+      title={currentTab.label === "GTM" ? "Go-to-Market Strategy" : currentTab.label === "Why Now" ? "Why Now" : SLIDE_TITLES[activeSlide] || currentTab.label}
+      subtitle={PITCH_SLIDE_DESCRIPTIONS[activeSlide]}
+      icon={currentTab.icon}
+      accentColor="hsl(var(--primary))"
+      productName={product.name}
+    >
+      {children}
+    </PitchSlideFrame>
+  );
+
   return (
     <div className="space-y-4">
-      {/* Header */}
+      {/* Header toolbar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
@@ -267,7 +286,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           </div>
           <div>
             <h3 className="font-bold text-foreground text-sm">Pitch Deck: {product.name}</h3>
-            <p className="text-[10px] text-muted-foreground">{SLIDE_TABS.length} sections · Click any to jump</p>
+            <p className="text-[10px] text-muted-foreground">{TOTAL} slides · Click any to jump</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -295,404 +314,378 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         journeyLabel="Pitch Deck Sections"
       />
 
-      {/* 1. PROBLEM */}
+      {/* ═══════ SLIDE 1: PROBLEM ═══════ */}
       {activeSlide === "problem" && (
-        <div className="space-y-4">
-          <SectionHeader current={1} total={SLIDE_TABS.length} label="The Problem" icon={AlertTriangle} />
-          <div className="p-5 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "hsl(var(--destructive))" }}>Problem Statement</p>
-            <p className="text-sm leading-relaxed text-foreground/90">{data.problemStatement}</p>
+        <Slide>
+          <div className="space-y-5 h-full flex flex-col justify-center">
+            <div className="p-5 sm:p-6 rounded-xl" style={{ background: "hsl(var(--destructive) / 0.05)", border: "1px solid hsl(var(--destructive) / 0.15)" }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(var(--destructive))" }}>Problem Statement</p>
+              <p className="text-sm sm:text-base leading-relaxed text-foreground/90">{data.problemStatement}</p>
+            </div>
+            {data.customerPersona && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Target Customer</p>
+                  <p className="text-sm font-bold text-foreground">{data.customerPersona.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Age: {data.customerPersona.age} · {data.customerPersona.buyingBehavior}</p>
+                </div>
+                <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Pain Points</p>
+                  <div className="space-y-1.5">
+                    {data.customerPersona.painPoints.slice(0, 3).map((p, i) => (
+                      <SlideBullet key={i} icon={AlertTriangle} iconColor="hsl(var(--destructive))">{p}</SlideBullet>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          {data.customerPersona && (
-            <DetailPanel title="Target Customer Persona" icon={Users}>
-              <div className="space-y-2 mb-2">
-                <p className="text-xs font-bold text-foreground">{data.customerPersona.name}</p>
-                <p className="text-xs text-foreground/70">Age: {data.customerPersona.age} · {data.customerPersona.buyingBehavior}</p>
-                <div className="space-y-1">
-                  {data.customerPersona.painPoints.map((p, i) => (
+        </Slide>
+      )}
+
+      {/* ═══════ SLIDE 2: SOLUTION ═══════ */}
+      {activeSlide === "solution" && (
+        <Slide>
+          <div className="space-y-5 h-full flex flex-col justify-center">
+            <div className="p-5 sm:p-6 rounded-xl" style={{ background: "hsl(142 70% 45% / 0.05)", border: "1px solid hsl(142 70% 45% / 0.15)" }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(142 70% 35%)" }}>Our Solution</p>
+              <p className="text-sm sm:text-base leading-relaxed text-foreground/90">{data.solutionStatement}</p>
+            </div>
+            <div className="p-5 sm:p-7 rounded-xl text-white" style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)" }}>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-3 opacity-60">Elevator Pitch</p>
+              <p className="text-base sm:text-lg font-bold leading-relaxed">{data.elevatorPitch}</p>
+            </div>
+          </div>
+        </Slide>
+      )}
+
+      {/* ═══════ SLIDE 3: WHY NOW ═══════ */}
+      {activeSlide === "whynow" && (
+        <Slide>
+          <div className="h-full flex flex-col justify-center">
+            <div className="p-6 sm:p-8 rounded-xl" style={{ background: "hsl(38 92% 50% / 0.05)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: "hsl(38 92% 35%)" }}>Market Timing & Tailwinds</p>
+              <p className="text-sm sm:text-base leading-relaxed text-foreground/90">{data.whyNow}</p>
+            </div>
+          </div>
+        </Slide>
+      )}
+
+      {/* ═══════ SLIDE 4: MARKET ═══════ */}
+      {activeSlide === "market" && data.marketOpportunity && (
+        <Slide>
+          <div className="space-y-5 h-full flex flex-col justify-center">
+            <div className="grid grid-cols-3 gap-3">
+              <SlideStatCard label="TAM" value={data.marketOpportunity.tam} accentColor="hsl(var(--primary))" />
+              <SlideStatCard label="SAM" value={data.marketOpportunity.sam} accentColor="hsl(217 91% 55%)" />
+              <SlideStatCard label="SOM" value={data.marketOpportunity.som} accentColor="hsl(142 70% 40%)" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Growth Rate</p>
+                <p className="text-xl font-extrabold" style={{ color: "hsl(var(--primary))" }}>{data.marketOpportunity.growthRate}</p>
+              </div>
+              <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Drivers</p>
+                <div className="space-y-1.5">
+                  {data.marketOpportunity.keyDrivers.slice(0, 3).map((d, i) => (
                     <div key={i} className="flex gap-2 items-start text-xs">
-                      <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-                      <span className="text-foreground/80">{p}</span>
+                      <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
+                      <span className="text-foreground/80">{d}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            </DetailPanel>
-          )}
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* 2. SOLUTION */}
-      {activeSlide === "solution" && (
-        <div className="space-y-4">
-          <SectionHeader current={2} total={SLIDE_TABS.length} label="The Solution" icon={Lightbulb} />
-          <div className="p-5 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "hsl(142 70% 35%)" }}>Solution</p>
-            <p className="text-sm leading-relaxed text-foreground/90">{data.solutionStatement}</p>
-          </div>
-          <div className="p-5 rounded-lg text-white" style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-2 opacity-70">Elevator Pitch</p>
-            <p className="text-base font-bold leading-relaxed">{data.elevatorPitch}</p>
-          </div>
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* 3. WHY NOW */}
-      {activeSlide === "whynow" && (
-        <div className="space-y-4">
-          <SectionHeader current={3} total={SLIDE_TABS.length} label="Why Now" icon={Clock} />
-          <div className="p-5 rounded-lg" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.2)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "hsl(38 92% 35%)" }}>Market Timing</p>
-            <p className="text-sm leading-relaxed text-foreground/90">{data.whyNow}</p>
-          </div>
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* 4. MARKET */}
-      {activeSlide === "market" && data.marketOpportunity && (
-        <div className="space-y-4">
-          <SectionHeader current={4} total={SLIDE_TABS.length} label="Market Opportunity" icon={Globe} />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { label: "TAM", value: data.marketOpportunity.tam, color: "hsl(var(--primary))" },
-              { label: "SAM", value: data.marketOpportunity.sam, color: "hsl(217 91% 55%)" },
-              { label: "SOM", value: data.marketOpportunity.som, color: "hsl(142 70% 40%)" },
-            ].map((m) => (
-              <div key={m.label} className="p-4 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{m.label}</p>
-                <p className="text-xl font-extrabold" style={{ color: m.color }}>{m.value}</p>
-              </div>
-            ))}
-          </div>
-          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-xs font-bold text-foreground flex items-center gap-1"><TrendingUp size={12} style={{ color: "hsl(var(--primary))" }} /> Growth Rate</p>
-            <p className="text-lg font-extrabold" style={{ color: "hsl(var(--primary))" }}>{data.marketOpportunity.growthRate}</p>
-          </div>
-          <DetailPanel title={`Key Drivers (${data.marketOpportunity.keyDrivers.length})`} icon={BarChart3}>
-            <div className="space-y-1.5 mb-2">
-              {data.marketOpportunity.keyDrivers.map((d, i) => (
-                <div key={i} className="flex gap-2 items-start text-xs">
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
-                  <span className="text-foreground/80">{d}</span>
-                </div>
-              ))}
             </div>
-          </DetailPanel>
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
+          </div>
+        </Slide>
       )}
 
-      {/* 5. PRODUCT / INNOVATION */}
+      {/* ═══════ SLIDE 5: PRODUCT ═══════ */}
       {activeSlide === "product" && (
-        <div className="space-y-4">
-          <SectionHeader current={5} total={SLIDE_TABS.length} label="Product / Innovation" icon={Layers} />
-          {data.productInnovation && (
-            <div className="p-5 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-2 text-primary">What Makes It Different</p>
-              <p className="text-sm leading-relaxed text-foreground/90">{data.productInnovation}</p>
-            </div>
-          )}
-          <DetailPanel title={`Competitive Advantages (${data.competitiveAdvantages.length})`} icon={Star}>
-            <div className="space-y-1.5 mb-2">
-              {data.competitiveAdvantages.map((adv, i) => (
-                <div key={i} className="flex gap-2 items-start text-xs">
-                  <ArrowRight size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                  <span className="text-foreground/80">{adv}</span>
+        <Slide>
+          <div className="space-y-5 h-full flex flex-col justify-center">
+            {data.productInnovation && (
+              <div className="p-5 sm:p-6 rounded-xl" style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-3 text-primary">What Makes It Different</p>
+                <p className="text-sm sm:text-base leading-relaxed text-foreground/90">{data.productInnovation}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Competitive Advantages</p>
+                <div className="space-y-2">
+                  {data.competitiveAdvantages.slice(0, 4).map((adv, i) => (
+                    <SlideBullet key={i} icon={ArrowRight}>{adv}</SlideBullet>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </DetailPanel>
-          <DetailPanel title={`Investor Highlights (${data.investorHighlights.length})`} icon={Zap}>
-            <div className="space-y-1.5 mb-2">
-              {data.investorHighlights.map((h, i) => (
-                <div key={i} className="flex gap-2 items-start text-xs">
-                  <Zap size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                  <span className="text-foreground/80">{h}</span>
+              </div>
+              <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Investor Highlights</p>
+                <div className="space-y-2">
+                  {data.investorHighlights.slice(0, 4).map((h, i) => (
+                    <SlideBullet key={i} icon={Zap}>{h}</SlideBullet>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </DetailPanel>
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
+          </div>
+        </Slide>
       )}
 
-      {/* 6. BUSINESS MODEL */}
+      {/* ═══════ SLIDE 6: BUSINESS MODEL ═══════ */}
       {activeSlide === "businessmodel" && (
-        <div className="space-y-4">
-          <SectionHeader current={6} total={SLIDE_TABS.length} label="Business Model" icon={DollarSign} />
-          {data.businessModel?.revenueStreams && (
-            <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Revenue Streams</p>
-              {data.businessModel.revenueStreams.map((s, i) => (
-                <div key={i} className="flex gap-2 items-center text-xs p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <DollarSign size={11} style={{ color: "hsl(var(--primary))" }} />
-                  <span className="text-foreground">{s}</span>
+        <Slide>
+          <div className="space-y-5 h-full flex flex-col justify-center">
+            {data.businessModel?.revenueStreams && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Revenue Streams</p>
+                <div className="flex flex-wrap gap-2">
+                  {data.businessModel.revenueStreams.map((s, i) => (
+                    <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
+                      style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+                      <DollarSign size={11} /> {s}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-          {fm && (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { label: "COGS", value: fm.unitEconomics.cogs },
-                  { label: "Price", value: fm.unitEconomics.retailPrice },
-                  { label: "Gross Margin", value: fm.unitEconomics.grossMargin, highlight: true },
-                  { label: "Payback", value: fm.unitEconomics.paybackPeriod },
-                ].map((item) => (
-                  <div key={item.label} className="p-2 rounded-lg text-center"
-                    style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{item.label}</p>
-                    <p className="text-sm font-extrabold" style={{ color: item.highlight ? "hsl(var(--primary))" : "hsl(var(--foreground))" }}>{item.value}</p>
-                  </div>
-                ))}
               </div>
-              <DetailPanel title="Pricing Strategy & Break-Even" icon={DollarSign}>
-                <div className="space-y-2 mb-2 text-xs">
-                  {fm.pricingStrategy && <div><p className="font-bold text-foreground mb-0.5">Pricing</p><p className="text-foreground/70">{fm.pricingStrategy}</p></div>}
-                  {fm.breakEvenAnalysis && <div><p className="font-bold text-foreground mb-0.5">Break-Even</p><p className="text-foreground/70">{fm.breakEvenAnalysis}</p></div>}
+            )}
+            {fm && (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: "COGS", value: fm.unitEconomics.cogs },
+                    { label: "Price", value: fm.unitEconomics.retailPrice },
+                    { label: "Gross Margin", value: fm.unitEconomics.grossMargin, highlight: true },
+                    { label: "Payback", value: fm.unitEconomics.paybackPeriod },
+                  ].map((item) => (
+                    <SlideStatCard key={item.label} label={item.label} value={item.value} accentColor={item.highlight ? "hsl(var(--primary))" : undefined} />
+                  ))}
                 </div>
-              </DetailPanel>
-            </>
-          )}
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {fm.pricingStrategy && (
+                    <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Pricing Strategy</p>
+                      <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed">{fm.pricingStrategy}</p>
+                    </div>
+                  )}
+                  {fm.breakEvenAnalysis && (
+                    <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Break-Even</p>
+                      <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed">{fm.breakEvenAnalysis}</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </Slide>
       )}
 
-      {/* 7. TRACTION SIGNALS */}
+      {/* ═══════ SLIDE 7: TRACTION ═══════ */}
       {activeSlide === "traction" && (
-        <div className="space-y-4">
-          <SectionHeader current={7} total={SLIDE_TABS.length} label="Traction Signals" icon={TrendingUp} />
-          {data.tractionSignals?.map((s, i) => (
-            <div key={i} className="flex gap-3 items-start p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <TrendingUp size={14} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-              <p className="text-sm text-foreground/90">{s}</p>
-            </div>
-          ))}
-          {(!data.tractionSignals || data.tractionSignals.length === 0) && (
-            <div className="p-5 text-center rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-sm text-muted-foreground">No explicit traction signals available yet. This section strengthens as you gather pre-launch data.</p>
-            </div>
-          )}
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* 8. RISKS & MITIGATION */}
-      {activeSlide === "risks" && (
-        <div className="space-y-4">
-          <SectionHeader current={8} total={SLIDE_TABS.length} label="Risks & Mitigation" icon={ShieldAlert} />
-          {data.risks.map((r, i) => {
-            const sColor = r.severity === "high" ? "hsl(var(--destructive))" : r.severity === "medium" ? "hsl(38 92% 45%)" : "hsl(142 70% 40%)";
-            return (
-              <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-                <div className="flex items-center gap-2 px-3 py-2" style={{ background: "hsl(var(--muted))" }}>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase" style={{ color: sColor }}>{r.severity}</span>
-                  <p className="text-xs font-bold text-foreground">{r.risk}</p>
-                </div>
-                <div className="px-3 py-2 flex gap-2 items-start" style={{ background: "hsl(var(--muted))" }}>
-                  <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-                  <p className="text-xs text-foreground/70">{r.mitigation}</p>
-                </div>
+        <Slide>
+          <div className="space-y-4 h-full flex flex-col justify-center">
+            {data.tractionSignals?.length ? data.tractionSignals.map((s, i) => (
+              <div key={i} className="flex gap-3 items-start p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <TrendingUp size={16} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+                <p className="text-sm text-foreground/90 leading-relaxed">{s}</p>
               </div>
-            );
-          })}
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* 9. METRICS THAT MATTER */}
-      {activeSlide === "metrics" && (
-        <div className="space-y-4">
-          <SectionHeader current={9} total={SLIDE_TABS.length} label="Metrics That Matter" icon={BarChart3} />
-          {data.keyMetrics.map((m, i) => (
-            <div key={i} className="flex items-center justify-between p-3 rounded-lg"
-              style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <div>
-                <p className="text-xs font-bold text-foreground">{m.metric}</p>
-                <p className="text-[10px] text-muted-foreground">{m.why}</p>
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap"
-                style={{ background: "hsl(var(--primary))", color: "white" }}>{m.target}</span>
-            </div>
-          ))}
-
-          {/* Score Comparison */}
-          <div className="p-5 rounded-lg space-y-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Revival Potential Score</p>
-            <div className="flex items-center gap-6">
-              <div className="text-center">
-                <p className="text-[10px] text-muted-foreground mb-1">AI Score</p>
-                <div className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-extrabold" style={{ background: "hsl(var(--primary))", color: "white" }}>
-                  {product.revivalScore || "—"}
-                </div>
-              </div>
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] text-muted-foreground">Your Rating</p>
-                  <span className="text-sm font-extrabold" style={{ color: "hsl(var(--primary))" }}>{userScore}/10</span>
-                </div>
-                <Slider value={[userScore]} onValueChange={(v) => setUserScore(v[0])} min={1} max={10} step={1} />
-              </div>
-            </div>
-            {Math.abs(userScore - (product.revivalScore || 0)) >= 2 && (
-              <div className="p-2.5 rounded-lg text-xs" style={{ background: "hsl(38 92% 50% / 0.08)", border: "1px solid hsl(38 92% 50% / 0.2)" }}>
-                <p className="font-semibold" style={{ color: "hsl(38 92% 35%)" }}>
-                  Notable difference: You rated {userScore > (product.revivalScore || 0) ? "higher" : "lower"} than the AI by {Math.abs(userScore - (product.revivalScore || 0))} points
-                </p>
+            )) : (
+              <div className="p-6 text-center rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-sm text-muted-foreground">No explicit traction signals available yet. This section strengthens as you gather pre-launch data.</p>
               </div>
             )}
           </div>
-
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
+        </Slide>
       )}
 
-      {/* 10. GO-TO-MARKET */}
-      {activeSlide === "gtm" && data.gtmStrategy && (
-        <div className="space-y-4">
-          <SectionHeader current={10} total={SLIDE_TABS.length} label="Go-to-Market" icon={Target} />
-          {[
-            { label: "Phase 1: Launch", content: data.gtmStrategy.phase1, color: "hsl(142 70% 45%)" },
-            { label: "Phase 2: Scale", content: data.gtmStrategy.phase2, color: "hsl(var(--primary))" },
-            { label: "Phase 3: Dominate", content: data.gtmStrategy.phase3, color: "hsl(38 92% 50%)" },
-          ].map((phase, i) => (
-            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-xs font-bold mb-1" style={{ color: phase.color }}>{phase.label}</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{phase.content}</p>
-            </div>
-          ))}
-          <DetailPanel title="Channels & Budget" icon={Globe}>
-            <div className="space-y-3 mb-2">
-              <div className="flex flex-wrap gap-1.5">
-                {data.gtmStrategy.keyChannels.map((ch, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-full text-xs font-semibold"
-                    style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary-dark))", border: "1px solid hsl(var(--primary) / 0.25)" }}>{ch}</span>
-                ))}
-              </div>
-              <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold uppercase" style={{ color: "hsl(142 70% 35%)" }}>Launch Budget</p>
-                <p className="text-xl font-extrabold" style={{ color: "hsl(142 70% 28%)" }}>{data.gtmStrategy.launchBudget}</p>
-              </div>
-            </div>
-          </DetailPanel>
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* 11. COMPETITIVE LANDSCAPE */}
-      {activeSlide === "competitive" && (
-        <div className="space-y-4">
-          <SectionHeader current={11} total={SLIDE_TABS.length} label="Competitive Landscape" icon={Shield} />
-          {data.competitiveLandscape?.directCompetitors?.map((c, i) => (
-            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-sm font-bold text-foreground mb-2">{c.name}</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Strength</p>
-                  <p className="text-foreground/80">{c.strength}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase mb-0.5" style={{ color: "hsl(var(--destructive))" }}>Weakness</p>
-                  <p className="text-foreground/80">{c.weakness}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-          {data.competitiveLandscape?.moat && (
-            <div className="p-4 rounded-lg" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1 text-primary">Defensible Moat</p>
-              <p className="text-sm text-foreground/90">{data.competitiveLandscape.moat}</p>
-            </div>
-          )}
-          {/* Fallback to old competitiveAdvantages if no landscape */}
-          {(!data.competitiveLandscape?.directCompetitors?.length) && data.competitiveAdvantages.length > 0 && (
-            <div className="space-y-2">
-              {data.competitiveAdvantages.map((a, i) => (
-                <div key={i} className="flex gap-2 items-start text-xs p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <ArrowRight size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                  <span className="text-foreground/80">{a}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* 12. INVESTMENT ASK */}
-      {activeSlide === "invest" && (
-        <div className="space-y-4">
-          <SectionHeader current={12} total={SLIDE_TABS.length} label="Investment Ask" icon={Rocket} />
-
-          {/* Funding amount */}
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--primary))" }}>Funding Ask</p>
-              <span className="text-lg font-extrabold" style={{ color: "hsl(var(--primary))" }}>{fm?.fundingAsk || data.investmentAsk?.amount || "TBD"}</span>
-            </div>
-          </div>
-
-          {/* Revenue Scenarios */}
-          {fm?.scenarios && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { key: "conservative", label: "Conservative", color: "hsl(217 91% 55%)", data: fm.scenarios.conservative },
-                { key: "base", label: "Base Case", color: "hsl(var(--primary))", data: fm.scenarios.base },
-                { key: "optimistic", label: "Optimistic", color: "hsl(142 70% 40%)", data: fm.scenarios.optimistic },
-              ].map((s) => s.data && (
-                <div key={s.key} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", borderTop: `3px solid ${s.color}` }}>
-                  <p className="text-xs font-bold mb-1.5" style={{ color: s.color }}>{s.label}</p>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between"><span className="text-muted-foreground">Revenue</span><span className="font-bold" style={{ color: s.color }}>{s.data.revenue}</span></div>
-                    {s.data.units && <div className="flex justify-between"><span className="text-muted-foreground">Units</span><span className="font-bold">{s.data.units}</span></div>}
+      {/* ═══════ SLIDE 8: RISKS ═══════ */}
+      {activeSlide === "risks" && (
+        <Slide>
+          <div className="space-y-3 h-full flex flex-col justify-center">
+            {data.risks.map((r, i) => {
+              const sColor = r.severity === "high" ? "hsl(var(--destructive))" : r.severity === "medium" ? "hsl(38 92% 45%)" : "hsl(142 70% 40%)";
+              return (
+                <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+                  <div className="flex items-center gap-3 px-4 py-3" style={{ background: "hsl(var(--muted))" }}>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ color: sColor, background: `${sColor}10`, border: `1px solid ${sColor}30` }}>{r.severity}</span>
+                    <p className="text-xs sm:text-sm font-bold text-foreground">{r.risk}</p>
+                  </div>
+                  <div className="px-4 py-3 flex gap-3 items-start">
+                    <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
+                    <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed">{r.mitigation}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
+        </Slide>
+      )}
 
-          <DetailPanel title="Use of Funds & Exit" icon={DollarSign}>
-            <div className="space-y-3 mb-2">
-              {(fm?.useOfFunds || data.investmentAsk?.useOfFunds || []).map((u, i) => (
-                <div key={i} className="flex gap-2 items-center text-xs">
-                  <CheckCircle2 size={10} style={{ color: "hsl(var(--primary))", flexShrink: 0 }} />
-                  <span>{u}</span>
+      {/* ═══════ SLIDE 9: METRICS ═══════ */}
+      {activeSlide === "metrics" && (
+        <Slide>
+          <div className="space-y-4 h-full flex flex-col justify-center">
+            <div className="space-y-3">
+              {data.keyMetrics.map((m, i) => (
+                <div key={i} className="flex items-center justify-between p-3 sm:p-4 rounded-xl"
+                  style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold text-foreground">{m.metric}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{m.why}</p>
+                  </div>
+                  <span className="px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap"
+                    style={{ background: "hsl(var(--primary))", color: "white" }}>{m.target}</span>
                 </div>
               ))}
-              <div className="pt-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Exit Strategy</p>
-                <p className="text-xs text-foreground/80">{fm?.exitStrategy || data.investmentAsk?.exitStrategy || "TBD"}</p>
+            </div>
+            {/* Score comparison */}
+            <div className="p-4 sm:p-5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Revival Potential Score</p>
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground mb-1">AI Score</p>
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-extrabold" style={{ background: "hsl(var(--primary))", color: "white" }}>
+                    {product.revivalScore || "—"}
+                  </div>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-muted-foreground">Your Rating</p>
+                    <span className="text-sm font-extrabold" style={{ color: "hsl(var(--primary))" }}>{userScore}/10</span>
+                  </div>
+                  <Slider value={[userScore]} onValueChange={(v) => setUserScore(v[0])} min={1} max={10} step={1} />
+                </div>
               </div>
             </div>
-          </DetailPanel>
+          </div>
+        </Slide>
+      )}
 
-          {/* Suppliers */}
-          {data.supplierContacts?.length > 0 && (
-            <DetailPanel title={`Suppliers (${data.supplierContacts.length}) & Distributors (${data.distributorContacts?.length || 0})`} icon={Factory}>
-              <div className="space-y-3 mb-2">
-                {data.supplierContacts.slice(0, 3).map((s, i) => (
-                  <ContactCard key={`s-${i}`} contact={s} accentColor="hsl(var(--primary))" />
-                ))}
-                {data.distributorContacts?.length > 0 && (
-                  <>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pt-2">Distributors</p>
-                    {data.distributorContacts.slice(0, 2).map((d, i) => (
-                      <ContactCard key={`d-${i}`} contact={d} accentColor="hsl(217 91% 55%)" />
-                    ))}
-                  </>
-                )}
+      {/* ═══════ SLIDE 10: GTM ═══════ */}
+      {activeSlide === "gtm" && data.gtmStrategy && (
+        <Slide>
+          <div className="space-y-4 h-full flex flex-col justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { label: "Phase 1: Launch", content: data.gtmStrategy.phase1, color: "hsl(142 70% 45%)" },
+                { label: "Phase 2: Scale", content: data.gtmStrategy.phase2, color: "hsl(var(--primary))" },
+                { label: "Phase 3: Dominate", content: data.gtmStrategy.phase3, color: "hsl(38 92% 50%)" },
+              ].map((phase, i) => (
+                <div key={i} className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", borderTop: `3px solid ${phase.color}`, border: "1px solid hsl(var(--border))" }}>
+                  <p className="text-xs font-bold mb-2" style={{ color: phase.color }}>{phase.label}</p>
+                  <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed">{phase.content}</p>
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Channels</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {data.gtmStrategy.keyChannels.map((ch, i) => (
+                    <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold"
+                      style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.2)" }}>{ch}</span>
+                  ))}
+                </div>
               </div>
-            </DetailPanel>
-          )}
+              <SlideStatCard label="Launch Budget" value={data.gtmStrategy.launchBudget} accentColor="hsl(142 70% 35%)" />
+            </div>
+          </div>
+        </Slide>
+      )}
 
+      {/* ═══════ SLIDE 11: COMPETITIVE ═══════ */}
+      {activeSlide === "competitive" && (
+        <Slide>
+          <div className="space-y-4 h-full flex flex-col justify-center">
+            {data.competitiveLandscape?.directCompetitors?.map((c, i) => (
+              <div key={i} className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-sm font-bold text-foreground mb-2">{c.name}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Strength</p>
+                    <p className="text-xs sm:text-sm text-foreground/80">{c.strength}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase mb-0.5" style={{ color: "hsl(var(--destructive))" }}>Weakness</p>
+                    <p className="text-xs sm:text-sm text-foreground/80">{c.weakness}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {data.competitiveLandscape?.moat && (
+              <div className="p-5 rounded-xl" style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2 text-primary">Defensible Moat</p>
+                <p className="text-sm text-foreground/90 leading-relaxed">{data.competitiveLandscape.moat}</p>
+              </div>
+            )}
+            {(!data.competitiveLandscape?.directCompetitors?.length) && data.competitiveAdvantages.length > 0 && (
+              <div className="space-y-2">
+                {data.competitiveAdvantages.map((a, i) => (
+                  <SlideBullet key={i} icon={ArrowRight}>{a}</SlideBullet>
+                ))}
+              </div>
+            )}
+          </div>
+        </Slide>
+      )}
+
+      {/* ═══════ SLIDE 12: INVESTMENT ═══════ */}
+      {activeSlide === "invest" && (
+        <Slide>
+          <div className="space-y-5 h-full flex flex-col justify-center">
+            {/* Funding ask hero */}
+            <div className="p-5 rounded-xl text-center" style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Total Funding Ask</p>
+              <p className="text-2xl sm:text-3xl font-extrabold" style={{ color: "hsl(var(--primary))" }}>{fm?.fundingAsk || data.investmentAsk?.amount || "TBD"}</p>
+            </div>
+
+            {/* Revenue scenarios */}
+            {fm?.scenarios && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { key: "conservative", label: "Conservative", color: "hsl(217 91% 55%)", data: fm.scenarios.conservative },
+                  { key: "base", label: "Base Case", color: "hsl(var(--primary))", data: fm.scenarios.base },
+                  { key: "optimistic", label: "Optimistic", color: "hsl(142 70% 40%)", data: fm.scenarios.optimistic },
+                ].map((s) => s.data && (
+                  <div key={s.key} className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", borderTop: `3px solid ${s.color}` }}>
+                    <p className="text-xs font-bold mb-2" style={{ color: s.color }}>{s.label}</p>
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between"><span className="text-muted-foreground">Revenue</span><span className="font-bold" style={{ color: s.color }}>{s.data.revenue}</span></div>
+                      {s.data.units && <div className="flex justify-between"><span className="text-muted-foreground">Units</span><span className="font-bold">{s.data.units}</span></div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Use of funds & Exit */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Use of Funds</p>
+                <div className="space-y-1.5">
+                  {(fm?.useOfFunds || data.investmentAsk?.useOfFunds || []).slice(0, 5).map((u, i) => (
+                    <SlideBullet key={i} icon={CheckCircle2}>{u}</SlideBullet>
+                  ))}
+                </div>
+              </div>
+              <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Exit Strategy</p>
+                <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed">{fm?.exitStrategy || data.investmentAsk?.exitStrategy || "TBD"}</p>
+              </div>
+            </div>
+          </div>
+        </Slide>
+      )}
+
+      {/* Navigation below the slide */}
+      {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
+      {!nextSlide && activeSlide === "invest" && (
+        <>
           <AllExploredBadge />
-
           {/* SGP Capital CTA */}
-          <div className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
+          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
             <div className="px-5 py-5 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary))" }}>
@@ -715,10 +708,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
                     bullets.push("Sales, marketing & go-to-market execution");
                   }
                   return bullets.slice(0, 4).map((b, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs">
-                      <CheckCircle2 size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                      <span className="text-foreground/80">{b}</span>
-                    </div>
+                    <SlideBullet key={i} icon={CheckCircle2}>{b}</SlideBullet>
                   ));
                 })()}
               </div>
@@ -734,8 +724,11 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
                     `I've been working through a disruption analysis on ${product.name} in the ${product.category} space and I think there's real potential here.`, ``,
                   ];
                   if (product.revivalScore) { lines.push(`The AI scored it ${product.revivalScore}/10 for revival potential and I rated it ${userScore}/10.`); lines.push(``); }
-                  lines.push(`You can view my full analysis here:`); lines.push(projectUrl); lines.push(``);
-                  lines.push(`Best,`); lines.push(name);
+                  lines.push(`You can view my full analysis here:`);
+                  lines.push(projectUrl);
+                  lines.push(``);
+                  lines.push(`Best,`);
+                  lines.push(name);
                   if (email) lines.push(email);
                   return `mailto:steven@sgpcapital.com?subject=${encodeURIComponent(`Help Disrupt: ${product.name}`)}&body=${encodeURIComponent(lines.join("\n"))}`;
                 })()}
@@ -745,9 +738,8 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
               </a>
             </div>
           </div>
-
           <NextSectionButton label="View Completion Summary" onClick={goNext} />
-        </div>
+        </>
       )}
 
       {/* Referral CTA */}
@@ -756,6 +748,22 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       </div>
     </div>
   );
+};
+
+/* ── Slide title map ── */
+const SLIDE_TITLES: Record<string, string> = {
+  problem: "The Problem",
+  solution: "The Solution",
+  whynow: "Why Now",
+  market: "Market Opportunity",
+  product: "Product / Innovation",
+  businessmodel: "Business Model",
+  traction: "Traction Signals",
+  risks: "Risks & Mitigation",
+  metrics: "Metrics That Matter",
+  gtm: "Go-to-Market Strategy",
+  competitive: "Competitive Landscape",
+  invest: "Investment Ask",
 };
 
 function ContactCard({ contact, accentColor }: { contact: SupplierContact; accentColor: string }) {
