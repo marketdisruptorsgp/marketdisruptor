@@ -62,8 +62,8 @@ export function NextSectionButton({ label, onClick }: { label: string; onClick: 
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center justify-center gap-2 text-sm font-extrabold px-5 py-4 rounded-xl transition-colors mt-5"
-      style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
+      className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-full text-white transition-colors hover:opacity-90 mt-5"
+      style={{ background: "hsl(var(--primary))" }}
     >
       Next: {label} <ArrowRight size={15} />
     </button>
@@ -83,12 +83,11 @@ export function NextStepButton({ stepNumber, label, onClick, color, allSectionsV
         </div>
         <button
           disabled
-          className="w-full flex items-center justify-center gap-3 text-base font-extrabold px-6 py-5 rounded-xl opacity-40 cursor-not-allowed"
-          style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", border: "2px solid hsl(var(--border))" }}
+          className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-full opacity-40 cursor-not-allowed"
+          style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
         >
-          <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black" style={{ background: "hsl(var(--border))" }}>{stepNumber}</span>
           Go to Step {stepNumber}: {label}
-          <ArrowRight size={18} />
+          <ArrowRight size={15} />
         </button>
       </div>
     );
@@ -102,12 +101,11 @@ export function NextStepButton({ stepNumber, label, onClick, color, allSectionsV
       </div>
       <button
         onClick={onClick}
-        className="w-full flex items-center justify-center gap-3 text-base font-extrabold px-6 py-5 rounded-xl transition-all hover:opacity-90"
-        style={{ background: bg, color: "white", boxShadow: `0 6px 24px ${bg.replace(")", " / 0.4)")}` }}
+        className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-full text-white transition-colors hover:opacity-90"
+        style={{ background: bg }}
       >
-        <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black" style={{ background: "rgba(255,255,255,0.25)" }}>{stepNumber}</span>
         Go to Step {stepNumber}: {label}
-        <ArrowRight size={18} />
+        <ArrowRight size={15} />
       </button>
     </div>
   );
