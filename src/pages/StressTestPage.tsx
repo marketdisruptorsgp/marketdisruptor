@@ -10,6 +10,7 @@ import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { SectionWorkflowNav } from "@/components/SectionNav";
 import { KeyTakeawayBanner, getStressTestTakeaway } from "@/components/KeyTakeawayBanner";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
+import { OutdatedBanner } from "@/components/OutdatedBanner";
 
 const STRESS_TEST_DESCRIPTIONS: Record<string, string> = {
   debate: "Red Team attacks vs Green Team defenses",
@@ -30,6 +31,7 @@ export default function StressTestPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isCustomMode = analysis.analysisParams?.category === "Custom";
   const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
+  const isOutdated = analysis.outdatedSteps.has("stressTest");
 
   const { visited: persistedVisited, markVisited } = usePersistedSections(analysisId, "stress-test", ["debate"]);
   const mergedVisited = new Set([...analysis.visitedStressTestTabs, ...persistedVisited]);
@@ -48,12 +50,17 @@ export default function StressTestPage() {
             else if (s === 4) navigate(`${baseUrl}/redesign`);
             else if (s === 6) navigate(`${baseUrl}/pitch`);
           }}
+          outdatedSteps={analysis.outdatedSteps}
         />
 
         <StepNavBar backLabel="Redesign" backPath={`${baseUrl}/redesign`} accentColor="hsl(350 80% 55%)" />
         <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor="hsl(350 80% 55%)" /></div>
 
-        {(() => {
+        {isOutdated && (
+          <OutdatedBanner stepName="Stress Test" accentColor="hsl(350 80% 55%)" />
+        )}
+
+        {!isOutdated && (() => {
           const takeaway = getStressTestTakeaway(analysis.stressTestData as Record<string, unknown> | null);
           return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(350 80% 55%)" /> : null;
         })()}
@@ -90,6 +97,9 @@ export default function StressTestPage() {
               onDataLoaded={(d) => {
                 analysis.setStressTestData(d);
                 analysis.saveStepData("stressTest", d);
+                // Stress test regenerated — clear outdated, mark pitch outdated
+                analysis.clearStepOutdated("stressTest");
+                analysis.markStepOutdated("pitch");
               }}
             />
           </div>

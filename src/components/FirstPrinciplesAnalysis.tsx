@@ -326,12 +326,11 @@ function NextSectionButton({ label, onClick }: { label: string; onClick: () => v
   );
 }
 
-export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, renderMode }: FirstPrinciplesAnalysisProps & { onSaved?: () => void }) => {
+export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, renderMode, userScores, onScoreChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
   const [data, setData] = useState<FirstPrinciplesData | null>((externalData as FirstPrinciplesData) || null);
   const [loading, setLoading] = useState(false);
-  const [patentLoading, setPatentLoading] = useState(false);
   const isService = product.category === "Service";
   const [activeStep, setActiveStep] = useState<"assumptions" | "flip" | "ideas">("assumptions");
   const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set(["assumptions"]));
@@ -363,60 +362,32 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
   const runAnalysis = async () => {
     setLoading(true);
-    if (!isService) setPatentLoading(true);
     try {
-      const promises: Promise<unknown>[] = [
-        supabase.functions.invoke("first-principles-analysis", {
-          body: { product, userSuggestions: rerunSuggestions || undefined },
-        }),
-      ];
-      if (!isService) {
-        promises.push(
-          supabase.functions.invoke("patent-analysis", {
-            body: { productName: product.name, category: product.category, era: product.era },
-          })
-        );
-      }
-      const results = await Promise.allSettled(promises);
+      const { data: result, error } = await supabase.functions.invoke("first-principles-analysis", {
+        body: { product, userSuggestions: rerunSuggestions || undefined },
+      });
 
-      const fpResult = results[0];
-      if (fpResult.status === "fulfilled") {
-        const { data: result, error } = fpResult.value as { data: { success: boolean; analysis: FirstPrinciplesData; error?: string }; error: { message: string } | null };
-        if (error || !result?.success) {
-          const msg = result?.error || error?.message || "Analysis failed";
-          if (msg.includes("Rate limit") || msg.includes("429")) {
-            toast.error("Rate limit hit — please wait a moment and try again.");
-          } else if (msg.includes("credits") || msg.includes("402")) {
-            toast.error("AI credits exhausted — add credits in Settings → Workspace → Usage.");
-          } else {
-            toast.error("First principles analysis failed: " + msg);
-          }
+      if (error || !result?.success) {
+        const msg = result?.error || error?.message || "Analysis failed";
+        if (msg.includes("Rate limit") || msg.includes("429")) {
+          toast.error("Rate limit hit — please wait a moment and try again.");
+        } else if (msg.includes("credits") || msg.includes("402")) {
+          toast.error("AI credits exhausted — add credits in Settings → Workspace → Usage.");
         } else {
-          setData(result.analysis);
-          onDataLoaded?.(result.analysis);
-          setActiveStep("assumptions");
-          toast.success("Disrupt analysis complete!");
-          await saveToWorkspace(result.analysis);
+          toast.error("First principles analysis failed: " + msg);
         }
-      } else {
-        toast.error("Disrupt analysis failed: " + String(fpResult.reason));
+        return;
       }
 
-      if (!isService && results[1]) {
-        const patentResult = results[1];
-        if (patentResult.status === "fulfilled") {
-          const { data: patData, error: patError } = patentResult.value as { data: { success: boolean; patentData: unknown }; error: { message: string } | null };
-          if (!patError && patData?.success) {
-            onPatentSave?.(patData.patentData);
-            toast.success("Patent intelligence loaded!");
-          }
-        }
-      }
+      setData(result.analysis);
+      onDataLoaded?.(result.analysis);
+      setActiveStep("assumptions");
+      toast.success("Disrupt analysis complete!");
+      await saveToWorkspace(result.analysis);
     } catch (err) {
       toast.error("Unexpected error: " + String(err));
     } finally {
       setLoading(false);
-      setPatentLoading(false);
     }
   };
 
@@ -798,7 +769,14 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               </div>
               <div className="space-y-4">
                 {flippedIdeas.map((idea, i) => (
-                  <FlippedIdeaCard key={`${idea.name}-${i}`} idea={idea} rank={i + 1} productName={product.name} />
+                  <FlippedIdeaCard
+                    key={`${idea.name}-${i}`}
+                    idea={idea}
+                    rank={i + 1}
+                    productName={product.name}
+                    userScores={userScores?.[idea.name || `idea-${i}`]}
+                    onScoreChange={onScoreChange ? (scoreKey, value) => onScoreChange(idea.name || `idea-${i}`, scoreKey, value) : undefined}
+                  />
                 ))}
               </div>
             </>
