@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ArrowRight, ChevronDown, Home, CheckCircle2 } from "lucide-react";
+import { scrollToTop } from "@/utils/scrollToTop";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 
@@ -61,7 +62,7 @@ export function SectionHeader({ current, total, label, description, icon: Icon }
 export function NextSectionButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => { onClick(); scrollToTop(); }}
       className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-full text-white transition-colors hover:opacity-90 mt-5"
       style={{ background: "hsl(var(--primary))" }}
     >
@@ -100,7 +101,7 @@ export function NextStepButton({ stepNumber, label, onClick, color, allSectionsV
         </span>
       </div>
       <button
-        onClick={onClick}
+        onClick={() => { onClick(); scrollToTop(); }}
         className="w-full flex items-center justify-center gap-2 text-sm font-bold py-3 rounded-full text-white transition-colors hover:opacity-90"
         style={{ background: bg }}
       >
