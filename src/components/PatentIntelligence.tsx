@@ -296,7 +296,7 @@ export function PatentIntelligence({ product, onSave }: Props) {
       )}
 
       {/* Secondary sections — all collapsed */}
-      <DetailPanel title={`Active IP Minefield (${patentData.activeMinefield?.length || 0})`} icon={Lock}>
+      <DetailPanel title={`Active IP Minefield (${patentData.activeMinefield?.length || 0})`} icon={Lock} defaultOpen>
         <div className="space-y-2 mb-2">
           {patentData.activeMinefield?.map((item, i) => (
             <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>

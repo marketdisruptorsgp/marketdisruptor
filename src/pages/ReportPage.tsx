@@ -224,7 +224,7 @@ export default function ReportPage() {
               </div>
             </div>
 
-            <DetailPanel title={`Sources & Trend Analysis`} icon={TrendingUp}>
+            <DetailPanel title={`Sources & Trend Analysis`} icon={TrendingUp} defaultOpen>
               {selectedProduct.trendAnalysis && (
                 <p className="text-xs text-foreground/80 leading-relaxed mb-2">{selectedProduct.trendAnalysis}</p>
               )}
@@ -270,7 +270,7 @@ export default function ReportPage() {
                         <p className="text-xs leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
                       </div>
                     )}
-                    <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown}>
+                    <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown} defaultOpen>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
                         {ci.topComplaints?.length ? (
                           <div className="space-y-1.5">
@@ -395,7 +395,7 @@ export default function ReportPage() {
                     </div>
                   ))}
                 </div>
-                <DetailPanel title="Margins & Price Range" icon={DollarSign}>
+                <DetailPanel title="Margins & Price Range" icon={DollarSign} defaultOpen>
                   <div className="space-y-2 mb-2">
                     <p className="text-xs text-foreground/80">{selectedProduct.pricingIntel.margins}</p>
                     <div className="flex items-center gap-3">
@@ -426,7 +426,7 @@ export default function ReportPage() {
                 <SupplySection title="Suppliers & IP Owners" icon={<Factory size={14} style={{ color: "hsl(var(--primary))" }} />}
                   items={selectedProduct.supplyChain.suppliers.map((s) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
                   color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
-                <DetailPanel title={`Manufacturers, Vendors & More (${selectedProduct.supplyChain.manufacturers.length + selectedProduct.supplyChain.vendors.length + selectedProduct.supplyChain.distributors.length})`} icon={Package}>
+                <DetailPanel title={`Manufacturers, Vendors & More (${selectedProduct.supplyChain.manufacturers.length + selectedProduct.supplyChain.vendors.length + selectedProduct.supplyChain.distributors.length})`} icon={Package} defaultOpen>
                   <div className="space-y-3 mb-2">
                     <SupplySection title="Manufacturers / OEM" icon={<Package size={12} style={{ color: "hsl(217 91% 60%)" }} />}
                       items={selectedProduct.supplyChain.manufacturers.map((m) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}

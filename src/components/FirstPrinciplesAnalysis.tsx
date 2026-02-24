@@ -262,25 +262,30 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
   );
 }
 
-/* ── Collapsible detail panel — CLEAN ──────────────────────── */
+/* ── Collapsible detail panel — Presentation style ──────────────────────── */
 function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger
-        className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg text-left transition-all group"
+        className="w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-2xl text-left transition-all group cursor-pointer"
         style={{
-          background: open ? "hsl(var(--muted))" : "hsl(var(--card))",
-          border: "1px solid hsl(var(--border))",
+          background: "hsl(var(--card))",
+          border: "1.5px solid hsl(var(--border))",
         }}
       >
-        <span className="flex items-center gap-2 text-xs font-bold text-foreground">
-          <Icon size={14} className="text-muted-foreground" />
+        <span className="flex items-center gap-3 text-sm font-bold text-foreground">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.08)" }}>
+            <Icon size={14} style={{ color: "hsl(var(--primary))" }} />
+          </div>
           {title}
         </span>
-        <ChevronDown size={16} className="transition-transform text-muted-foreground" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+        <span className="flex items-center gap-1.5 flex-shrink-0">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden sm:inline">Details</span>
+          <ChevronDown size={14} className="transition-transform text-muted-foreground" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+        </span>
       </CollapsibleTrigger>
-      <CollapsibleContent className="px-4 pt-3 pb-1">
+      <CollapsibleContent className="px-5 pt-3 pb-2">
         {children}
       </CollapsibleContent>
     </Collapsible>
@@ -568,7 +573,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           ))}
         </div>
 
-        <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert}>
+        <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert} defaultOpen>
           <div className="space-y-2 mb-2">
             <div>
               <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Why Not Already Done</p>
@@ -717,7 +722,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                   <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(var(--primary-dark))" }}>{item.boldAlternative}</p>
                 </div>
               </div>
-              <DetailPanel title="Why it creates value & mechanism" icon={Lightbulb}>
+              <DetailPanel title="Why it creates value & mechanism" icon={Lightbulb} defaultOpen>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                   <div>
                     <p className="text-[9px] font-bold uppercase text-muted-foreground mb-0.5">Value Created</p>

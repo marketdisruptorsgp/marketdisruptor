@@ -112,27 +112,30 @@ export function NextStepButton({ stepNumber, label, onClick, color, allSectionsV
   );
 }
 
-/* ── Collapsible detail panel — CLEAN ──────────────────────── */
+/* ── Collapsible detail panel — Presentation style ──────────────────────── */
 export function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger
-        className="w-full flex items-center justify-between gap-2 px-4 py-3.5 rounded-xl text-left transition-all group cursor-pointer"
+        className="w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-2xl text-left transition-all group cursor-pointer"
         style={{
-          background: open ? "hsl(var(--muted))" : "hsl(var(--card))",
-          border: "1px solid hsl(var(--border))",
+          background: "hsl(var(--card))",
+          border: "1.5px solid hsl(var(--border))",
         }}
       >
-        <span className="flex items-center gap-2.5 text-xs font-extrabold text-foreground">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
-            <Icon size={13} className="text-muted-foreground" />
+        <span className="flex items-center gap-3 text-sm font-bold text-foreground">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.08)" }}>
+            <Icon size={14} style={{ color: "hsl(var(--primary))" }} />
           </div>
           {title}
         </span>
-        <ChevronDown size={16} className="transition-transform text-muted-foreground" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+        <span className="flex items-center gap-1.5 flex-shrink-0">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden sm:inline">Details</span>
+          <ChevronDown size={14} className="transition-transform text-muted-foreground" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+        </span>
       </CollapsibleTrigger>
-      <CollapsibleContent className="px-4 pt-3 pb-1">
+      <CollapsibleContent className="px-5 pt-3 pb-2">
         {children}
       </CollapsibleContent>
     </Collapsible>
