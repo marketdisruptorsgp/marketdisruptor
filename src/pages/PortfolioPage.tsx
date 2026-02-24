@@ -67,7 +67,11 @@ export default function PortfolioPage() {
       .eq("user_id", user!.id)
       .order("created_at", { ascending: false })
       .limit(100);
-    setAnalyses((data as unknown as SavedAnalysis[]) || []);
+    // Hide standalone first_principles entries — they clutter the portfolio
+    const all = ((data as unknown as SavedAnalysis[]) || []).filter(
+      (a) => a.analysis_type !== "first_principles"
+    );
+    setAnalyses(all);
     setLoading(false);
   };
 
