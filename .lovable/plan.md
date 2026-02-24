@@ -1,66 +1,40 @@
 
 
-# Redesign: User Workflow Section in Disrupt Step
+# Auto-Persist All Step Data Across All Modes
 
-## What We're Changing
+## Problem
 
-The "User Workflow" section (Section 3 inside the Disrupt step) currently shows the product's user journey as small text pills connected by tiny chevron arrows, with text-only friction point cards below. We'll transform this into a prominent, interactive visual workflow diagram that works across all 3 modes (Product, Service, Business Model).
+When a user generates results for any step (Intel Report, Disrupt, Stress Test, Pitch Deck), the data is only partially saved. If they reload from Saved Projects, some steps must be re-run. Specifically:
+
+- **Business Model mode**: Stress Test and Pitch Deck results are never persisted to the database
+- **Business Model Disrupt**: Not persisted separately
+- **Patent Intelligence** (Report step): Data is saved on the product object but the updated products array isn't always re-saved to the database
+- **ReportPage patent save**: Updates products in memory but doesn't persist the updated array back to the database
+
+## Solution
+
+Add `saveStepData` calls everywhere step data is generated, and ensure `handleLoadSaved` restores all of it.
 
 ---
 
-## Current State
+## Changes
 
-- Steps shown as small inline `flex-wrap` text badges with `ChevronRight` arrows
-- Friction points listed as flat colored cards below
-- No visual connection between steps and their friction points
-- Cognitive Load, Context, and Optimizations hidden in a collapsible panel
+### 1. BusinessResultsPage.tsx -- Persist business stress test and pitch deck
 
-## New Design
+- **Stress Test** (line ~159): Change `onDataLoaded={analysis.setBusinessStressTestData}` to also call `saveStepData("businessStressTest", d)`
+- **Pitch Deck** (line ~179): Add `onSave` callback that calls `setPitchDeckData` and `saveStepData("businessPitchDeck", d)`
 
-### 1. Visual Workflow Pipeline
+### 2. ReportPage.tsx -- Persist patent data back to database
 
-Replace the inline text pills with a **vertical timeline** layout (mobile-first) that becomes a **horizontal pipeline** on desktop:
+- In the `onSave` callback for `PatentIntelligence`, after updating `products` in memory, also call `saveAnalysis(updated, analysisParams)` to write the updated product array (with patent data) back to the database
 
-- Each step rendered as a prominent card with a numbered circle, step title, and connecting line to the next step
-- Friction points displayed as colored badges directly attached to their corresponding step
-- Steps are clickable/tappable to expand and show the full step description and root cause of friction
-- Active/expanded step gets a highlighted border and subtle scale effect
+### 3. AnalysisContext.tsx -- Restore all persisted step data on load
 
-```text
-Desktop (horizontal):
-  [1. Unbox] -----> [2. Setup] -----> [3. First Use] -----> [4. Daily Use]
-     |                  |                   |
-   (low)            (HIGH!)             (medium)
-                   "Complex           "Cognitive
-                    pairing"           overload"
+Update `handleLoadSaved` to also restore:
+- `ad?.businessStressTest` into `setBusinessStressTestData`
+- `ad?.businessPitchDeck` into `setPitchDeckData`
 
-Mobile (vertical timeline):
-  o-- [1. Unbox] .............. (low friction)
-  |
-  o-- [2. Setup] .............. (HIGH friction)
-  |     > "Complex pairing process"
-  |
-  o-- [3. First Use] ......... (medium)
-  |
-  o-- [4. Daily Use]
-```
-
-### 2. Interactive Friction Overlay
-
-- Each step card shows a small severity indicator (colored dot: red/amber/green)
-- Tapping a step expands it inline to reveal: friction description, root cause, and severity badge
-- The expanded state uses the existing `SEVERITY_COLORS` for consistency
-
-### 3. Context Cards Below
-
-- Cognitive Load and Context of Use shown as two side-by-side summary cards (not hidden in a collapsible)
-- Workflow Optimizations remain in a collapsible detail panel
-
-### 4. Cross-Mode Support
-
-- Product mode: "User Workflow" label, physical product journey steps
-- Service mode: "Customer Journey" label (already handled via `isService` flag)
-- Business Model mode: Uses the same component since Disrupt shares `FirstPrinciplesAnalysis`
+This ensures that when a user opens a saved Business Model project, the Stress Test and Pitch Deck results are fully restored without re-running.
 
 ---
 
@@ -68,30 +42,15 @@ Mobile (vertical timeline):
 
 ### Files Modified
 
-**`src/components/FirstPrinciplesAnalysis.tsx`** (lines ~561-629)
+| File | Change |
+|------|--------|
+| `src/pages/BusinessResultsPage.tsx` | Add `saveStepData` calls for stress test and pitch deck |
+| `src/pages/ReportPage.tsx` | Persist updated products array after patent data is saved |
+| `src/contexts/AnalysisContext.tsx` | Restore `businessStressTest` and `businessPitchDeck` in `handleLoadSaved` |
 
-Replace the current workflow section with:
+### What Already Works (no changes needed)
 
-1. A new inline `WorkflowTimeline` component that:
-   - Maps `data.userWorkflow.stepByStep` into numbered step cards
-   - Cross-references `data.userWorkflow.frictionPoints` by matching step names
-   - Uses `useState` to track which step is expanded
-   - Renders a vertical timeline on mobile (`flex-col`) and horizontal on desktop (`sm:flex-row` with overflow-x-auto)
-
-2. Each step card includes:
-   - Numbered circle with connecting line/border
-   - Step title text
-   - Severity dot if a friction point exists for that step
-   - Expandable area showing friction detail and root cause
-
-3. Cognitive Load and Context of Use promoted to visible cards (2-column grid) instead of being hidden in a collapsible
-
-### Visual Specifications (matching design system)
-
-- Step cards: `rounded-lg`, `bg: hsl(var(--muted))`, `border: 1px solid hsl(var(--border))`
-- Active/expanded card: `border: 1.5px solid hsl(var(--primary))`, slight scale via CSS
-- Timeline connector: 2px solid line using `hsl(var(--border))`
-- Friction severity dots use existing `SEVERITY_COLORS` map
-- No gradients, no glow, no emojis per design system rules
-- All text uses existing font sizes (10px labels, xs body text)
+- Product/Service mode: Disrupt, Stress Test, and Pitch Deck pages already call `saveStepData`
+- Initial analysis products are auto-saved via `saveAnalysis` after the analysis pipeline completes
+- `saveStepData` merges into the existing `analysis_data` JSON column, so multiple step saves don't overwrite each other
 
