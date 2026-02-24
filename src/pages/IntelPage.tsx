@@ -337,13 +337,43 @@ export default function IntelPage() {
               })}
             </div>
 
-            {activeTrend && (
+            {activeTrend && (() => {
+              const data = activeTrend.interest_over_time as any[] || [];
+              const lastVal = data.length > 0 ? data[data.length - 1]?.value : null;
+              const firstVal = data.length > 0 ? data[0]?.value : null;
+              const peakVal = data.length > 0 ? Math.max(...data.map((d: any) => d.value || 0)) : null;
+              const peakMonth = data.length > 0 ? data.find((d: any) => d.value === peakVal)?.month : null;
+              const momentum = lastVal !== null && firstVal !== null ? Math.round(((lastVal - firstVal) / Math.max(firstVal, 1)) * 100) : null;
+              const avgVal = data.length > 0 ? Math.round(data.reduce((s: number, d: any) => s + (d.value || 0), 0) / data.length) : null;
+              const minVal = data.length > 0 ? Math.min(...data.map((d: any) => d.value || 0)) : null;
+              const minMonth = data.length > 0 ? data.find((d: any) => d.value === minVal)?.month : null;
+              // Recent velocity (last 3 months vs prior 3)
+              const recent3 = data.slice(-3);
+              const prior3 = data.slice(-6, -3);
+              const recent3Avg = recent3.length > 0 ? recent3.reduce((s: number, d: any) => s + (d.value || 0), 0) / recent3.length : null;
+              const prior3Avg = prior3.length > 0 ? prior3.reduce((s: number, d: any) => s + (d.value || 0), 0) / prior3.length : null;
+              const velocity = recent3Avg !== null && prior3Avg !== null ? Math.round(((recent3Avg - prior3Avg) / Math.max(prior3Avg, 1)) * 100) : null;
+              // Trend phase classification
+              const isAccelerating = velocity !== null && velocity > 15;
+              const isDecelerating = velocity !== null && velocity < -10;
+              const isPeaking = peakVal !== null && lastVal !== null && lastVal >= peakVal * 0.9 && velocity !== null && velocity < 5;
+              const isEmerging = firstVal !== null && firstVal < 20 && momentum !== null && momentum > 50;
+              const phase = isEmerging ? "Emerging" : isAccelerating ? "Accelerating" : isPeaking ? "Near Peak" : isDecelerating ? "Cooling" : "Steady";
+              const phaseColor = phase === "Emerging" ? "text-blue-600 bg-blue-500/10 border-blue-500/20" : phase === "Accelerating" ? "text-green-600 bg-green-500/10 border-green-500/20" : phase === "Near Peak" ? "text-amber-600 bg-amber-500/10 border-amber-500/20" : phase === "Cooling" ? "text-destructive bg-destructive/10 border-destructive/20" : "text-muted-foreground bg-muted border-border";
+              const phaseAdvice = phase === "Emerging" ? "Early mover advantage — low competition, high upside if this trend sustains." : phase === "Accelerating" ? "Strong momentum — ideal window to enter before saturation. Move fast." : phase === "Near Peak" ? "Market awareness is high. Differentiation is critical; avoid me-too positioning." : phase === "Cooling" ? "Interest is waning. Only enter with a contrarian angle or wait for a second wave." : "Stable demand. Good for steady-state businesses, less exciting for VCs.";
+              // Volatility
+              const volatility = data.length > 1 ? Math.round(Math.sqrt(data.reduce((s: number, d: any, i: number) => i === 0 ? 0 : s + Math.pow((d.value || 0) - (data[i-1]?.value || 0), 2), 0) / (data.length - 1))) : null;
+
+              return (
               <div className="border border-border rounded-xl bg-card shadow-sm p-4 sm:p-6 mb-4">
-                {/* Header with key stats */}
+                {/* Phase badge + Header */}
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                   <div>
-                    <div className="flex items-center gap-2 mb-0.5">
+                    <div className="flex items-center gap-2 mb-1">
                       <p className="text-sm font-bold text-foreground">{activeTrend.keyword}</p>
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${phaseColor}`}>
+                        {phase}
+                      </span>
                       {activeTrend.data_quality && (
                         <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
                           activeTrend.data_quality === "high"
@@ -356,36 +386,75 @@ export default function IntelPage() {
                     </div>
                     <p className="text-[10px] text-muted-foreground">{activeTrend.category} · Relative search interest (0-100)</p>
                   </div>
-                  {(() => {
-                    const data = activeTrend.interest_over_time as any[] || [];
-                    const lastVal = data.length > 0 ? data[data.length - 1]?.value : null;
-                    const firstVal = data.length > 0 ? data[0]?.value : null;
-                    const peakVal = data.length > 0 ? Math.max(...data.map((d: any) => d.value || 0)) : null;
-                    return (
-                      <div className="flex gap-4">
-                        {lastVal !== null && (
-                          <div className="text-center">
-                            <p className="text-lg font-bold text-foreground">{lastVal}</p>
-                            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Current</p>
-                          </div>
-                        )}
-                        {peakVal !== null && (
-                          <div className="text-center">
-                            <p className="text-lg font-bold text-primary">{peakVal}</p>
-                            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Peak</p>
-                          </div>
-                        )}
-                        {firstVal !== null && lastVal !== null && (
-                          <div className="text-center">
-                            <p className={`text-lg font-bold ${lastVal >= firstVal ? "text-green-600" : "text-destructive"}`}>
-                              {lastVal >= firstVal ? "+" : ""}{Math.round(((lastVal - firstVal) / Math.max(firstVal, 1)) * 100)}%
-                            </p>
-                            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">12mo Δ</p>
-                          </div>
-                        )}
+                  <div className="flex gap-3 sm:gap-4 flex-wrap">
+                    {lastVal !== null && (
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-foreground">{lastVal}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Current</p>
                       </div>
-                    );
-                  })()}
+                    )}
+                    {peakVal !== null && (
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-primary">{peakVal}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Peak</p>
+                      </div>
+                    )}
+                    {avgVal !== null && (
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-muted-foreground">{avgVal}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-wider">12mo Avg</p>
+                      </div>
+                    )}
+                    {momentum !== null && (
+                      <div className="text-center">
+                        <p className={`text-lg font-bold ${momentum >= 0 ? "text-green-600" : "text-destructive"}`}>
+                          {momentum >= 0 ? "+" : ""}{momentum}%
+                        </p>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-wider">12mo Δ</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Phase intelligence callout */}
+                <div className="mb-3 p-3 rounded-lg bg-muted/60 border border-border">
+                  <div className="flex items-start gap-2">
+                    <Star size={12} className="text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground mb-1">Trend Phase: {phase}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{phaseAdvice}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mini stats row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                  {velocity !== null && (
+                    <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">3mo Velocity</p>
+                      <p className={`text-sm font-bold ${velocity >= 0 ? "text-green-600" : "text-destructive"}`}>
+                        {velocity >= 0 ? "+" : ""}{velocity}%
+                      </p>
+                    </div>
+                  )}
+                  {volatility !== null && (
+                    <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Volatility</p>
+                      <p className="text-sm font-bold text-foreground">{volatility < 5 ? "Low" : volatility < 12 ? "Moderate" : "High"} ({volatility})</p>
+                    </div>
+                  )}
+                  {peakMonth && (
+                    <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Peak Month</p>
+                      <p className="text-sm font-bold text-foreground">{peakMonth}</p>
+                    </div>
+                  )}
+                  {minMonth && minVal !== null && (
+                    <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Floor</p>
+                      <p className="text-sm font-bold text-foreground">{minVal} ({minMonth})</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Growth note / insight */}
@@ -434,7 +503,6 @@ export default function IntelPage() {
 
                 {/* Sources + Related queries */}
                 <div className="mt-4 pt-3 border-t border-border flex flex-col sm:flex-row gap-4">
-                  {/* Sources */}
                   {activeTrend.source_urls && (activeTrend.source_urls as string[]).length > 0 && (
                     <div className="flex-1">
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Sources</p>
@@ -443,35 +511,20 @@ export default function IntelPage() {
                           let hostname = "";
                           try { hostname = new URL(url).hostname.replace("www.", ""); } catch { hostname = url; }
                           return (
-                            <a
-                              key={i}
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1.5 text-[11px] text-primary hover:underline"
-                            >
-                              <ExternalLink size={9} className="flex-shrink-0" />
-                              {hostname}
+                            <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[11px] text-primary hover:underline">
+                              <ExternalLink size={9} className="flex-shrink-0" /> {hostname}
                             </a>
                           );
                         })}
                       </div>
                     </div>
                   )}
-
-                  {/* Related queries */}
                   {activeTrend?.related_queries?.length > 0 && (
                     <div className="flex-1">
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Related Searches</p>
                       <div className="flex flex-wrap gap-1.5">
                         {(activeTrend.related_queries as string[]).map((q: string, i: number) => (
-                          <a
-                            key={i}
-                            href={`https://trends.google.com/trends/explore?q=${encodeURIComponent(q)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[10px] px-2 py-1 rounded bg-muted text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors cursor-pointer"
-                          >
+                          <a key={i} href={`https://trends.google.com/trends/explore?q=${encodeURIComponent(q)}`} target="_blank" rel="noopener noreferrer" className="text-[10px] px-2 py-1 rounded bg-muted text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors cursor-pointer">
                             {q} ↗
                           </a>
                         ))}
@@ -482,19 +535,15 @@ export default function IntelPage() {
 
                 {/* Google Trends link */}
                 <div className="mt-3 pt-2 border-t border-border">
-                  <a
-                    href={`https://trends.google.com/trends/explore?q=${encodeURIComponent(activeTrend.keyword)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:underline"
-                  >
+                  <a href={`https://trends.google.com/trends/explore?q=${encodeURIComponent(activeTrend.keyword)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:underline">
                     <TrendingUp size={10} />
                     Explore "{activeTrend.keyword}" on Google Trends
                     <ExternalLink size={9} />
                   </a>
                 </div>
               </div>
-            )}
+              );
+            })()}
           </section>
         )}
 
