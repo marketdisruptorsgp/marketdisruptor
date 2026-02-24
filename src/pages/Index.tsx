@@ -74,6 +74,7 @@ import {
   Upload,
   Database,
   ArrowLeft,
+  ArrowRight,
   ChevronLeft,
   ChevronRight,
   Briefcase,
@@ -1464,6 +1465,14 @@ export default function Index() {
                     />
                   </div>
                 </div>
+                {/* Next Step: Redesign */}
+                <button
+                  onClick={() => { setActiveStep(4); setVisitedSteps(prev => new Set([...prev, 4])); setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
+                  className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-lg transition-colors"
+                  style={{ background: "hsl(38 92% 50%)", color: "white" }}
+                >
+                  Next: Redesign <ArrowRight size={14} />
+                </button>
               </div>
             )}
 
@@ -1505,6 +1514,14 @@ export default function Index() {
                     />
                   </div>
                 </div>
+                {/* Next Step: Stress Test */}
+                <button
+                  onClick={() => { setActiveStep(5); setVisitedSteps(prev => new Set([...prev, 5])); setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
+                  className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-lg transition-colors"
+                  style={{ background: "hsl(350 80% 55%)", color: "white" }}
+                >
+                  Next: Stress Test <ArrowRight size={14} />
+                </button>
               </div>
             )}
 
@@ -1512,12 +1529,12 @@ export default function Index() {
             {activeStep === 5 && selectedProduct && (
               <div className="space-y-4">
                 <button
-                  onClick={() => setActiveStep(2)}
+                  onClick={() => setActiveStep(4)}
                   className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
                   style={{ color: "hsl(350 80% 55%)" }}
                 >
                   <ArrowLeft size={16} />
-                  Back to Intelligence Report
+                  Back to Redesign
                 </button>
                 <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
@@ -1565,6 +1582,14 @@ export default function Index() {
                     />
                   </div>
                 </div>
+                {/* Next Step: Pitch Deck */}
+                <button
+                  onClick={() => { setActiveStep(6); setVisitedSteps(prev => new Set([...prev, 6])); setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
+                  className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-lg transition-colors"
+                  style={{ background: "hsl(var(--primary))", color: "white" }}
+                >
+                  Next: Pitch Deck <ArrowRight size={14} />
+                </button>
               </div>
             )}
 
@@ -1572,12 +1597,12 @@ export default function Index() {
             {activeStep === 6 && selectedProduct && (
               <div className="space-y-4">
                 <button
-                  onClick={() => setActiveStep(2)}
+                  onClick={() => setActiveStep(5)}
                   className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
                   style={{ color: "hsl(var(--primary))" }}
                 >
                   <ArrowLeft size={16} />
-                  Back to Intelligence Report
+                  Back to Stress Test
                 </button>
                 <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
                   <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>

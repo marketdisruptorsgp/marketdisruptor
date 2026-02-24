@@ -119,3 +119,17 @@ export function getPitchTakeaway(data: Record<string, unknown> | null) {
   if (slides?.length) return `${slides.length}-slide investor deck generated — ready to present`;
   return null;
 }
+
+/** Derive a user workflow takeaway */
+export function getWorkflowTakeaway(data: Record<string, unknown> | null) {
+  if (!data) return null;
+  const uw = data.userWorkflow as { stepByStep?: string[]; frictionPoints?: unknown[]; cognitiveLoad?: string } | undefined;
+  if (!uw) return null;
+  const steps = uw.stepByStep?.length || 0;
+  const friction = uw.frictionPoints?.length || 0;
+  if (steps === 0) return null;
+  const parts: string[] = [`${steps}-step user journey mapped`];
+  if (friction > 0) parts.push(`${friction} friction point${friction > 1 ? "s" : ""} identified`);
+  if (uw.cognitiveLoad) parts.push(`cognitive load: ${uw.cognitiveLoad}`);
+  return parts.join(" · ");
+}

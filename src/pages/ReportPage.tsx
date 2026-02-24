@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges } from "@/components/KeyTakeawayBanner";
+import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
+import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,6 +54,7 @@ export default function ReportPage() {
   const DETAIL_TABS = [
     { id: "overview", label: "Overview", icon: Target },
     { id: "community", label: "Community Intel", icon: MessageSquare },
+    { id: "workflow", label: "User Journey", icon: Clock },
     { id: "pricing", label: "Pricing Intel", icon: DollarSign },
     { id: "supply", label: "Supply Chain", icon: Package },
     ...(!isService ? [{ id: "patents", label: "Patent Intel", icon: ScrollText }] : []),
@@ -315,6 +317,49 @@ export default function ReportPage() {
                 <p className="text-sm text-muted-foreground">Community insights appear after running a live analysis.</p>
               </div>
             )}
+            {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
+          </div>
+        )}
+
+        {/* Tab: User Journey */}
+        {analysis.detailTab === "workflow" && (
+          <div className="space-y-4">
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="User Journey" description={SECTION_DESCRIPTIONS.workflow} icon={Clock} />
+            {(() => {
+              const disruptData = analysis.disruptData as Record<string, unknown> | null;
+              const takeaway = getWorkflowTakeaway(disruptData);
+              return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(217 91% 55%)" /> : null;
+            })()}
+            {(() => {
+              const disruptData = analysis.disruptData as Record<string, unknown> | null;
+              const uw = disruptData?.userWorkflow as { stepByStep?: string[]; frictionPoints?: { step: string; friction: string; severity: "high" | "medium" | "low"; rootCause: string }[]; cognitiveLoad?: string; contextOfUse?: string } | undefined;
+              if (!uw?.stepByStep?.length) {
+                return (
+                  <div className="py-8 text-center">
+                    <Clock size={32} className="mx-auto mb-3 opacity-20" />
+                    <p className="text-sm text-muted-foreground">User journey data becomes available after running the Disrupt analysis.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Navigate to Step 3 (Disrupt) to generate this data.</p>
+                  </div>
+                );
+              }
+              return (
+                <div className="space-y-4">
+                  <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
+                  {uw.cognitiveLoad && (
+                    <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Cognitive Load</p>
+                      <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
+                    </div>
+                  )}
+                  {uw.contextOfUse && (
+                    <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Context of Use</p>
+                      <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
           </div>
         )}
