@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
+import { usePersistedSections } from "@/hooks/usePersistedSections";
 import { StepNavigator } from "@/components/StepNavigator";
 import { getStepConfigs, SECTION_DESCRIPTIONS } from "@/lib/stepConfigs";
 import { ProductCard } from "@/components/ProductCard";
@@ -56,7 +57,10 @@ export default function ReportPage() {
     ...(!isService ? [{ id: "patents", label: "Patent Intel", icon: ScrollText }] : []),
   ];
 
-  const allSectionsVisited = DETAIL_TABS.every(t => analysis.visitedDetailTabs.has(t.id));
+  const { visited: persistedVisited, markVisited } = usePersistedSections(analysisId, "report", ["overview"]);
+  // Merge persisted + context visited tabs
+  const mergedVisited = new Set([...analysis.visitedDetailTabs, ...persistedVisited]);
+  const allSectionsVisited = DETAIL_TABS.every(t => mergedVisited.has(t.id));
 
   const currentIdx = DETAIL_TABS.findIndex(t => t.id === analysis.detailTab);
   const currentTab = DETAIL_TABS[currentIdx];
@@ -64,7 +68,8 @@ export default function ReportPage() {
 
   const goToTab = (tabId: string) => {
     analysis.setDetailTab(tabId);
-    analysis.setVisitedDetailTabs(new Set([...analysis.visitedDetailTabs, tabId]));
+    analysis.setVisitedDetailTabs(new Set([...mergedVisited, tabId]));
+    markVisited(tabId);
     setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
 
@@ -158,7 +163,7 @@ export default function ReportPage() {
         <div ref={sectionTabsRef} className="flex flex-wrap gap-1.5">
           {DETAIL_TABS.map((tab) => {
             const isActive = analysis.detailTab === tab.id;
-            const isVisited = analysis.visitedDetailTabs.has(tab.id);
+            const isVisited = mergedVisited.has(tab.id);
             const TabIcon = tab.icon;
             return (
               <button

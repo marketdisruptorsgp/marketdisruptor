@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
+import { usePersistedSections } from "@/hooks/usePersistedSections";
 import { StepNavigator } from "@/components/StepNavigator";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { Swords, CheckCircle2 } from "lucide-react";
@@ -22,7 +23,9 @@ export default function StressTestPage() {
   const isCustomMode = analysis.analysisParams?.category === "Custom";
   const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
 
-  const allTabsVisited = analysis.visitedStressTestTabs.has("debate") && analysis.visitedStressTestTabs.has("validate");
+  const { visited: persistedVisited, markVisited } = usePersistedSections(analysisId, "stress-test", ["debate"]);
+  const mergedVisited = new Set([...analysis.visitedStressTestTabs, ...persistedVisited]);
+  const allTabsVisited = mergedVisited.has("debate") && mergedVisited.has("validate");
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
@@ -55,14 +58,15 @@ export default function StressTestPage() {
                 { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
               ].map(tab => {
                 const isActive = analysis.stressTestTab === tab.id;
-                const isVisited = analysis.visitedStressTestTabs.has(tab.id);
+                const isVisited = mergedVisited.has(tab.id);
                 const TabIcon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => {
                       analysis.setStressTestTab(tab.id);
-                      analysis.setVisitedStressTestTabs(new Set([...analysis.visitedStressTestTabs, tab.id]));
+                      analysis.setVisitedStressTestTabs(new Set([...mergedVisited, tab.id]));
+                      markVisited(tab.id);
                     }}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors relative"
                     style={{
