@@ -92,30 +92,30 @@ export function PitchSlideFrame({
         <div className="w-full flex-shrink-0" style={{ height: 3, background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88 60%, transparent)` }} />
 
         {/* Header */}
-        <div className="flex items-end justify-between px-5 sm:px-8 pt-4 sm:pt-5 pb-3 sm:pb-4 flex-shrink-0 relative z-10" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+        <div className="flex items-end justify-between px-4 sm:px-7 pt-3 sm:pt-4 pb-2.5 sm:pb-3 flex-shrink-0 relative z-10" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
           <div>
             {categoryLabel && (
-              <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.2em] mb-1" style={{ color: accentColor, opacity: 0.8 }}>{categoryLabel}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] mb-1" style={{ color: accentColor, opacity: 0.8 }}>{categoryLabel}</p>
             )}
-            <h2 className="text-lg sm:text-xl font-extrabold tracking-tight leading-tight" style={{ color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h2>
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight" style={{ color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h2>
             {subtitle && (
-              <p className="text-[11px] sm:text-xs text-muted-foreground font-normal mt-0.5 leading-snug">{subtitle}</p>
+              <p className="text-xs sm:text-[13px] text-muted-foreground font-normal mt-0.5 leading-snug">{subtitle}</p>
             )}
           </div>
-          <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground flex-shrink-0 tabular-nums">{padNum(slideNumber)} / {padNum(totalSlides)}</span>
+          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground flex-shrink-0 tabular-nums">{padNum(slideNumber)} / {padNum(totalSlides)}</span>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-4 sm:py-5 relative z-10">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-7 py-3 sm:py-4 relative z-10">
           {children}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 sm:px-8 py-1.5 sm:py-2 flex-shrink-0 relative z-10" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-          <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Market Disruptor</span>
-          <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Confidential</span>
+        <div className="flex items-center justify-between px-4 sm:px-7 py-1.5 sm:py-2 flex-shrink-0 relative z-10" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Market Disruptor</span>
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Confidential</span>
           {productName && (
-            <span className="text-[8px] sm:text-[9px] font-medium text-muted-foreground truncate max-w-[30%]">{productName}</span>
+            <span className="text-[9px] sm:text-[10px] font-medium text-muted-foreground truncate max-w-[30%]">{productName}</span>
           )}
         </div>
 
@@ -152,22 +152,22 @@ export function PitchCoverSlide({
           <circle cx="130" cy="130" r="60" fill="none" stroke={accentColor} strokeWidth="0.5" />
         </svg>
         <div className="w-full flex-shrink-0" style={{ height: 4, background: `linear-gradient(90deg, ${accentColor}, ${accentColor}66 50%, transparent)` }} />
-        <div className="flex-1 flex flex-col justify-center px-8 sm:px-14 py-8 relative z-10">
-          <div className="flex items-start gap-4 mb-6 sm:mb-10">
-            <MonogramLogo name={productName} accentColor={accentColor} size={52} />
+        <div className="flex-1 flex flex-col justify-center px-7 sm:px-12 py-7 relative z-10">
+          <div className="flex items-start gap-4 mb-5 sm:mb-8">
+            <MonogramLogo name={productName} accentColor={accentColor} size={56} />
             <div>
-              <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.25em] mb-0.5" style={{ color: accentColor, opacity: 0.7 }}>Market Disruptor</p>
-              <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.25em] text-muted-foreground">Investor Pitch Deck</p>
+              <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.25em] mb-0.5" style={{ color: accentColor, opacity: 0.7 }}>Market Disruptor</p>
+              <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">Investor Pitch Deck</p>
             </div>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-[1.1] mb-3" style={{ color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}>{productName}</h1>
+          <h1 className="text-3xl sm:text-[2.75rem] font-extrabold tracking-tight leading-[1.1] mb-3" style={{ color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}>{productName}</h1>
           {subtitle && (
-            <p className="text-xs sm:text-sm text-muted-foreground max-w-[85%] leading-relaxed mb-6 sm:mb-10">{subtitle}</p>
+            <p className="text-[13px] sm:text-base text-muted-foreground max-w-[85%] leading-relaxed mb-5 sm:mb-8">{subtitle}</p>
           )}
-          <div className="w-14 mb-5" style={{ height: 2, background: accentColor, opacity: 0.3 }} />
+          <div className="w-14 mb-4" style={{ height: 2, background: accentColor, opacity: 0.3 }} />
           <div className="mt-auto">
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">{today}</p>
-            <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground mt-1">Confidential · {totalSlides} Slides</p>
+            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium">{today}</p>
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mt-1">Confidential · {totalSlides} Slides</p>
           </div>
         </div>
         <div className="absolute pointer-events-none" style={{ bottom: 18, right: 18, width: 28, height: 28, borderRight: `2px solid ${accentColor}`, borderBottom: `2px solid ${accentColor}`, opacity: 0.18 }} />
@@ -182,9 +182,9 @@ export function PitchCoverSlide({
 export function SlideStatCard({ label, value, accentColor, sublabel }: { label: string; value: string; accentColor?: string; sublabel?: string }) {
   return (
     <div className="p-2.5 sm:p-3 rounded-md relative overflow-hidden" style={{ background: "hsl(var(--muted))", borderTop: "1px solid hsl(var(--border))", borderRight: "1px solid hsl(var(--border))", borderBottom: "1px solid hsl(var(--border))", borderLeft: accentColor ? `3px solid ${accentColor}` : "1px solid hsl(var(--border))" }}>
-      <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{label}</p>
-      <p className="text-xs sm:text-sm font-extrabold leading-tight" style={{ color: "hsl(var(--foreground))" }}>{value}</p>
-      {sublabel && <p className="text-[9px] text-muted-foreground mt-0.5">{sublabel}</p>}
+      <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{label}</p>
+      <p className="text-[13px] sm:text-sm font-extrabold leading-tight" style={{ color: "hsl(var(--foreground))" }}>{value}</p>
+      {sublabel && <p className="text-[10px] text-muted-foreground mt-0.5">{sublabel}</p>}
     </div>
   );
 }
@@ -200,28 +200,28 @@ export function MarketSizeVisual({ tam, sam, som, accentColor = "hsl(var(--prima
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Addressable Market Layers</p>
-      <svg width="220" height="220" viewBox="0 0 220 220">
-        <circle cx="110" cy="110" r="105" fill={accentColor} opacity="0.07" stroke={accentColor} strokeWidth="1.5" strokeOpacity="0.25" />
-        <circle cx="110" cy="110" r="70" fill={accentColor} opacity="0.12" stroke={accentColor} strokeWidth="1.5" strokeOpacity="0.35" />
-        <circle cx="110" cy="110" r="36" fill={accentColor} opacity="0.2" stroke={accentColor} strokeWidth="2" strokeOpacity="0.5" />
-        <text x="110" y="20" textAnchor="middle" fontSize="9" fontWeight="700" fill={accentColor} opacity="0.9">TAM</text>
-        <text x="110" y="32" textAnchor="middle" fontSize="11" fontWeight="800" fill="hsl(var(--foreground))">{extractAmount(tam)}</text>
-        <text x="110" y="52" textAnchor="middle" fontSize="9" fontWeight="700" fill={accentColor} opacity="0.9">SAM</text>
-        <text x="110" y="64" textAnchor="middle" fontSize="11" fontWeight="800" fill="hsl(var(--foreground))">{extractAmount(sam)}</text>
-        <text x="110" y="104" textAnchor="middle" fontSize="9" fontWeight="700" fill={accentColor} opacity="0.9">SOM</text>
-        <text x="110" y="118" textAnchor="middle" fontSize="12" fontWeight="800" fill="hsl(var(--foreground))">{extractAmount(som)}</text>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Addressable Market Layers</p>
+      <svg width="250" height="250" viewBox="0 0 250 250">
+        <circle cx="125" cy="125" r="120" fill={accentColor} opacity="0.09" stroke={accentColor} strokeWidth="2" strokeOpacity="0.3" />
+        <circle cx="125" cy="125" r="80" fill={accentColor} opacity="0.15" stroke={accentColor} strokeWidth="2" strokeOpacity="0.4" />
+        <circle cx="125" cy="125" r="40" fill={accentColor} opacity="0.25" stroke={accentColor} strokeWidth="2.5" strokeOpacity="0.55" />
+        <text x="125" y="22" textAnchor="middle" fontSize="10" fontWeight="700" fill={accentColor} opacity="0.9">TAM</text>
+        <text x="125" y="36" textAnchor="middle" fontSize="13" fontWeight="800" fill="hsl(var(--foreground))">{extractAmount(tam)}</text>
+        <text x="125" y="58" textAnchor="middle" fontSize="10" fontWeight="700" fill={accentColor} opacity="0.9">SAM</text>
+        <text x="125" y="72" textAnchor="middle" fontSize="13" fontWeight="800" fill="hsl(var(--foreground))">{extractAmount(sam)}</text>
+        <text x="125" y="118" textAnchor="middle" fontSize="10" fontWeight="700" fill={accentColor} opacity="0.9">SOM</text>
+        <text x="125" y="134" textAnchor="middle" fontSize="14" fontWeight="800" fill="hsl(var(--foreground))">{extractAmount(som)}</text>
       </svg>
       <div className="flex items-center gap-4">
         {[
-          { label: "TAM", opacity: 0.2, val: extractAmount(tam) },
-          { label: "SAM", opacity: 0.4, val: extractAmount(sam) },
-          { label: "SOM", opacity: 0.65, val: extractAmount(som) },
+          { label: "TAM", opacity: 0.25, val: extractAmount(tam) },
+          { label: "SAM", opacity: 0.45, val: extractAmount(sam) },
+          { label: "SOM", opacity: 0.7, val: extractAmount(som) },
         ].map(({ label, opacity, val }) => (
           <div key={label} className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: accentColor, opacity }} />
-            <span className="text-[10px] font-bold text-muted-foreground">{label}</span>
-            <span className="text-[10px] font-bold text-foreground">{val}</span>
+            <div className="w-3 h-3 rounded-full" style={{ background: accentColor, opacity }} />
+            <span className="text-[11px] font-bold text-muted-foreground">{label}</span>
+            <span className="text-[11px] font-bold text-foreground">{val}</span>
           </div>
         ))}
       </div>
@@ -244,7 +244,7 @@ export function RiskSeverityBar({ severity }: { severity: "high" | "medium" | "l
       <div className="flex-1 h-1.5 rounded-full" style={{ background: "hsl(var(--muted))" }}>
         <div className="h-full rounded-full transition-all" style={{ width: c.width, background: c.fill }} />
       </div>
-      <span className="text-[7px] font-bold uppercase tracking-wider" style={{ color: c.fill }}>{severity}</span>
+      <span className="text-[8px] font-bold uppercase tracking-wider" style={{ color: c.fill }}>{severity}</span>
     </div>
   );
 }
@@ -256,13 +256,13 @@ export function ScenarioBarChart({ scenarios, accentColor = "hsl(var(--primary))
   const widths = [40, 65, 100];
   return (
     <div className="space-y-1.5">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Projected Revenue by Scenario</p>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Projected Revenue by Scenario</p>
       {scenarios.map((s, i) => (
         <div key={s.label} className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-muted-foreground w-16 text-right shrink-0">{s.label}</span>
-          <div className="flex-1 h-5 rounded-sm overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+          <span className="text-[11px] font-bold text-muted-foreground w-16 text-right shrink-0">{s.label}</span>
+          <div className="flex-1 h-6 rounded-sm overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
             <div className="h-full rounded-sm flex items-center px-2" style={{ width: `${widths[i] || 50}%`, background: accentColor, opacity: 0.15 + (i * 0.15) }}>
-              <span className="text-[10px] font-bold" style={{ color: "hsl(var(--foreground))" }}>{s.value}</span>
+              <span className="text-[11px] font-bold" style={{ color: "hsl(var(--foreground))" }}>{s.value}</span>
             </div>
           </div>
         </div>
@@ -278,11 +278,11 @@ export function SlideBullet({ children, index, accentColor }: { icon?: React.Ele
   return (
     <div className="flex gap-2 items-start">
       {typeof index === "number" ? (
-        <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black flex-shrink-0 mt-0.5" style={{ background: accentColor || "hsl(var(--foreground))", color: "hsl(var(--background))", opacity: 0.8 }}>{index + 1}</span>
+        <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0 mt-0.5" style={{ background: accentColor || "hsl(var(--foreground))", color: "hsl(var(--background))", opacity: 0.8 }}>{index + 1}</span>
       ) : (
-        <span className="text-muted-foreground font-bold flex-shrink-0 mt-px text-xs">—</span>
+        <span className="text-muted-foreground font-bold flex-shrink-0 mt-px text-[13px]">—</span>
       )}
-      <p className="text-xs sm:text-[13px] text-foreground/85 leading-relaxed">{children}</p>
+      <p className="text-[13px] sm:text-sm text-foreground/85 leading-relaxed">{children}</p>
     </div>
   );
 }
@@ -292,10 +292,10 @@ export function SlideBullet({ children, index, accentColor }: { icon?: React.Ele
  */
 export function SlideQuoteBlock({ quote, accentColor = "hsl(var(--primary))", label }: { quote: string; accentColor?: string; label?: string }) {
   return (
-    <div className="relative p-4 sm:p-5 rounded-md" style={{ background: "hsl(var(--muted))", borderTop: "1px solid hsl(var(--border))", borderRight: "1px solid hsl(var(--border))", borderBottom: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
-      <span className="absolute pointer-events-none font-serif select-none" style={{ top: -6, left: 10, fontSize: 48, color: accentColor, opacity: 0.07, lineHeight: 1 }}>"</span>
-      {label && <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{label}</p>}
-      <p className="text-xs sm:text-[13px] leading-relaxed text-foreground/85 relative z-10">{quote}</p>
+    <div className="relative p-3.5 sm:p-4 rounded-md" style={{ background: "hsl(var(--muted))", borderTop: "1px solid hsl(var(--border))", borderRight: "1px solid hsl(var(--border))", borderBottom: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
+      <span className="absolute pointer-events-none font-serif select-none" style={{ top: -6, left: 10, fontSize: 52, color: accentColor, opacity: 0.07, lineHeight: 1 }}>"</span>
+      {label && <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{label}</p>}
+      <p className="text-[13px] sm:text-sm leading-relaxed text-foreground/85 relative z-10">{quote}</p>
     </div>
   );
 }
@@ -309,12 +309,12 @@ export function SlideTimeline({ steps, accentColor = "hsl(var(--primary))" }: { 
       {steps.map((step, i) => (
         <div key={i} className="flex gap-2.5">
           <div className="flex flex-col items-center">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black flex-shrink-0" style={{ background: accentColor, color: "white", opacity: 0.85 }}>{i + 1}</div>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0" style={{ background: accentColor, color: "white", opacity: 0.85 }}>{i + 1}</div>
             {i < steps.length - 1 && <div className="w-[1.5px] flex-1 min-h-[16px]" style={{ background: accentColor, opacity: 0.15 }} />}
           </div>
           <div className="pb-3 flex-1">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">{step.label}</p>
-            <p className="text-xs text-foreground/85 leading-relaxed">{step.content}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">{step.label}</p>
+            <p className="text-[13px] text-foreground/85 leading-relaxed">{step.content}</p>
           </div>
         </div>
       ))}
@@ -330,13 +330,13 @@ export function MetricBar({ metric, target, why, accentColor = "hsl(var(--primar
   return (
     <div className="space-y-0.5">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold text-foreground">{metric}</span>
-        <span className="text-[10px] font-bold" style={{ color: accentColor }}>{target}</span>
+        <span className="text-xs font-bold text-foreground">{metric}</span>
+        <span className="text-[11px] font-bold" style={{ color: accentColor }}>{target}</span>
       </div>
-      <div className="h-1 rounded-full" style={{ background: "hsl(var(--border))" }}>
+      <div className="h-1.5 rounded-full" style={{ background: "hsl(var(--border))" }}>
         <div className="h-full rounded-full" style={{ width: `${hashWidth}%`, background: accentColor, opacity: 0.45 }} />
       </div>
-      {why && <p className="text-[9px] text-muted-foreground">{why}</p>}
+      {why && <p className="text-[10px] text-muted-foreground">{why}</p>}
     </div>
   );
 }
@@ -346,24 +346,24 @@ export function MetricBar({ metric, target, why, accentColor = "hsl(var(--primar
  */
 export function FunnelVisual({ stages, accentColor = "hsl(var(--primary))" }: { stages: { label: string; value?: string }[]; accentColor?: string }) {
   const stageCount = stages.length;
-  const barHeight = 24;
-  const gap = 4;
+  const barHeight = 28;
+  const gap = 5;
   const totalH = stageCount * (barHeight + gap);
-  const maxW = 260;
+  const maxW = 300;
 
   return (
     <div className="flex flex-col items-center">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Conversion Funnel</p>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Conversion Funnel</p>
       <svg width={maxW + 60} height={totalH + 10} viewBox={`0 0 ${maxW + 60} ${totalH + 10}`}>
         {stages.map((stage, i) => {
           const w = maxW - (i * (maxW * 0.15));
           const x = (maxW + 60 - w) / 2;
           const y = i * (barHeight + gap) + 5;
-          const opacity = 0.15 + (i * 0.12);
+          const opacity = 0.18 + (i * 0.14);
           return (
             <g key={i}>
-              <rect x={x} y={y} width={w} height={barHeight} rx={3} fill={accentColor} opacity={opacity} stroke={accentColor} strokeWidth="1" strokeOpacity={0.35} />
-              <text x={x + w / 2} y={y + barHeight / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="700" fill="hsl(var(--foreground))" opacity="0.9">
+              <rect x={x} y={y} width={w} height={barHeight} rx={3} fill={accentColor} opacity={opacity} stroke={accentColor} strokeWidth="1.5" strokeOpacity="0.4" />
+              <text x={x + w / 2} y={y + barHeight / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="11" fontWeight="700" fill="hsl(var(--foreground))" opacity="0.9">
                 {stage.label}{stage.value ? ` · ${stage.value}` : ""}
               </text>
             </g>
@@ -377,7 +377,7 @@ export function FunnelVisual({ stages, accentColor = "hsl(var(--primary))" }: { 
 /**
  * Simple donut chart for allocation visuals.
  */
-export function DonutChart({ segments, label, size = 100, accentColor = "hsl(var(--primary))" }: { segments: { label: string; pct: number }[]; label?: string; size?: number; accentColor?: string }) {
+export function DonutChart({ segments, label, size = 110, accentColor = "hsl(var(--primary))" }: { segments: { label: string; pct: number }[]; label?: string; size?: number; accentColor?: string }) {
   const r = (size / 2) - 8;
   const circumference = 2 * Math.PI * r;
   let offset = 0;
@@ -385,9 +385,9 @@ export function DonutChart({ segments, label, size = 100, accentColor = "hsl(var
 
   return (
     <div className="flex flex-col items-center gap-1.5">
-      {label && <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>}
+      {label && <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>}
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth="10" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth="11" />
         {segments.map((seg, i) => {
           const dashLen = (seg.pct / 100) * circumference;
           const dashOffset = -offset;
@@ -398,7 +398,7 @@ export function DonutChart({ segments, label, size = 100, accentColor = "hsl(var
               cx={size / 2} cy={size / 2} r={r}
               fill="none"
               stroke={accentColor}
-              strokeWidth="10"
+              strokeWidth="11"
               strokeDasharray={`${dashLen} ${circumference - dashLen}`}
               strokeDashoffset={dashOffset}
               opacity={opacities[i] || 0.1}
@@ -410,8 +410,8 @@ export function DonutChart({ segments, label, size = 100, accentColor = "hsl(var
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 justify-center">
         {segments.map((seg, i) => (
           <div key={i} className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: accentColor, opacity: opacities[i] || 0.1 }} />
-            <span className="text-[9px] text-muted-foreground">{seg.label} ({seg.pct}%)</span>
+            <div className="w-2 h-2 rounded-full" style={{ background: accentColor, opacity: opacities[i] || 0.1 }} />
+            <span className="text-[10px] text-muted-foreground">{seg.label} ({seg.pct}%)</span>
           </div>
         ))}
       </div>
