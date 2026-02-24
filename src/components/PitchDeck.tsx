@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { downloadPitchDeckPDF } from "@/lib/pdfExport";
 import { useAuth } from "@/hooks/useAuth";
+import { ReferralCTA } from "@/components/ReferralCTA";
 import { Slider } from "@/components/ui/slider";
 import {
   Presentation, RefreshCw, DollarSign, TrendingUp, Users, Factory, Truck,
@@ -604,6 +605,11 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData }: PitchDe
           </div>
         </div>
       )}
+
+      {/* Referral CTA */}
+      <div className="mt-6">
+        <ReferralCTA />
+      </div>
     </div>
   );
 };
