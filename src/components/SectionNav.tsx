@@ -164,7 +164,7 @@ export function SectionPills<T extends string>({
             style={{
               background: isActive ? "hsl(var(--foreground))" : isVisited ? "hsl(var(--foreground) / 0.05)" : "transparent",
               color: isActive ? "hsl(var(--background))" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-              border: isActive ? "1.5px solid hsl(var(--foreground))" : isVisited ? "1.5px solid hsl(var(--foreground) / 0.15)" : "1.5px dashed hsl(var(--border))",
+              border: isActive ? "1.5px solid hsl(var(--foreground))" : isVisited ? "1.5px solid hsl(var(--foreground) / 0.15)" : "1.5px solid hsl(var(--border))",
             }}
           >
             {!isActive && !isVisited && (
@@ -261,7 +261,7 @@ export function SectionWorkflowNav<T extends string>({
               }}
             >
               {isUnvisited && (
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full animate-pulse" style={{ background: "hsl(var(--primary))" }} />
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ background: "hsl(var(--primary))" }} />
               )}
               <div
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2 transition-all duration-200 group-hover:scale-110"

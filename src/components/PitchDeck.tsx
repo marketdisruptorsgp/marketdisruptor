@@ -137,7 +137,7 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
-        <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: "hsl(var(--primary-muted))" }}>
+        <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
           <Presentation size={36} style={{ color: "hsl(var(--primary))" }} />
         </div>
         <div>
@@ -201,19 +201,19 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-4 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+            <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
               <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--destructive))" }}>The Problem</p>
               <p className="text-sm leading-relaxed text-foreground/80">{data.problemStatement}</p>
             </div>
-            <div className="p-4 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
+            <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
               <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 35%)" }}>The Solution</p>
               <p className="text-sm leading-relaxed text-foreground/80">{data.solutionStatement}</p>
             </div>
           </div>
 
-          <div className="p-3 rounded-lg" style={{ background: "hsl(38 92% 50% / 0.08)", borderLeft: "3px solid hsl(38 92% 50%)" }}>
+          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(38 92% 35%)" }}>Why Now?</p>
-            <p className="text-sm leading-relaxed" style={{ color: "hsl(38 92% 25%)" }}>{data.whyNow}</p>
+            <p className="text-sm leading-relaxed text-foreground/80">{data.whyNow}</p>
           </div>
 
           <DetailPanel title={`Investor Highlights (${data.investorHighlights.length}) & Competitive Advantages`} icon={Star}>
@@ -267,7 +267,7 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
             ))}
           </div>
 
-          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-xs font-bold text-foreground flex items-center gap-1"><TrendingUp size={12} style={{ color: "hsl(var(--primary))" }} /> Growth Rate</p>
             <p className="text-lg font-extrabold" style={{ color: "hsl(var(--primary))" }}>{data.marketOpportunity.growthRate}</p>
           </div>
@@ -302,9 +302,9 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
               { label: "Payback", value: data.financialModel.unitEconomics.paybackPeriod },
             ].map((item) => (
               <div key={item.label} className="p-2 rounded-lg text-center"
-                style={{ background: item.highlight ? "hsl(var(--primary-muted))" : "hsl(var(--muted))", border: `1px solid ${item.highlight ? "hsl(var(--primary) / 0.3)" : "hsl(var(--border))"}` }}>
+                style={{ background: item.highlight ? "hsl(var(--muted))" : "hsl(var(--muted))", border: `1px solid hsl(var(--border))` }}>
                 <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{item.label}</p>
-                <p className="text-sm font-extrabold" style={{ color: item.highlight ? "hsl(var(--primary-dark))" : "hsl(var(--foreground))" }}>{item.value}</p>
+                <p className="text-sm font-extrabold" style={{ color: item.highlight ? "hsl(var(--primary))" : "hsl(var(--foreground))" }}>{item.value}</p>
               </div>
             ))}
           </div>
@@ -327,7 +327,7 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
           </div>
 
           {/* Funding ask */}
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.25)" }}>
+          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--primary))" }}>Funding Ask</p>
               <span className="text-lg font-extrabold" style={{ color: "hsl(var(--primary))" }}>{data.financialModel.fundingAsk}</span>
@@ -407,7 +407,7 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
             { label: "Phase 2: Scale", content: data.gtmStrategy.phase2, color: "hsl(var(--primary))" },
             { label: "Phase 3: Dominate", content: data.gtmStrategy.phase3, color: "hsl(38 92% 50%)" },
           ].map((phase, i) => (
-            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", borderLeft: `3px solid ${phase.color}` }}>
+            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
               <p className="text-xs font-bold mb-1" style={{ color: phase.color }}>{phase.label}</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{phase.content}</p>
             </div>
@@ -421,7 +421,7 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
                     style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary-dark))", border: "1px solid hsl(var(--primary) / 0.25)" }}>{ch}</span>
                 ))}
               </div>
-              <div className="p-3 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.3)" }}>
+              <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 <p className="text-[10px] font-bold uppercase" style={{ color: "hsl(142 70% 35%)" }}>Launch Budget</p>
                 <p className="text-xl font-extrabold" style={{ color: "hsl(142 70% 28%)" }}>{data.gtmStrategy.launchBudget}</p>
               </div>
@@ -460,8 +460,8 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
           {data.risks.slice(0, 2).map((r, i) => {
             const sColor = r.severity === "high" ? "hsl(var(--destructive))" : r.severity === "medium" ? "hsl(38 92% 45%)" : "hsl(142 70% 40%)";
             return (
-              <div key={i} className="rounded-lg overflow-hidden" style={{ border: `1px solid ${sColor}30` }}>
-                <div className="flex items-center gap-2 px-3 py-2" style={{ background: `${sColor}10` }}>
+              <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+                <div className="flex items-center gap-2 px-3 py-2" style={{ background: "hsl(var(--muted))" }}>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase" style={{ color: sColor }}>{r.severity}</span>
                   <p className="text-xs font-bold text-foreground">{r.risk}</p>
                 </div>
@@ -502,7 +502,7 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
 function ContactCard({ contact, accentColor }: { contact: SupplierContact; accentColor: string }) {
   return (
     <div className="p-3 rounded-lg space-y-2"
-      style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
+      style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
       <div className="flex items-start justify-between gap-2 flex-wrap">
         <div>
           <p className="text-sm font-bold text-foreground">{contact.name}</p>

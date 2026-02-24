@@ -41,14 +41,14 @@ export const AssumptionsMap = ({ product }: AssumptionsMapProps) => {
           <div
             className="flex-1 p-3 rounded-lg text-sm"
             style={{
-              background: "hsl(var(--primary-muted))",
-              borderLeft: "3px solid hsl(var(--primary))",
+              background: "hsl(var(--muted))",
+              border: "1px solid hsl(var(--border))",
             }}
           >
             <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>
               Challenge
             </p>
-            <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--primary-dark))" }}>
+            <p className="text-xs leading-relaxed text-foreground/80">
               {item.challenge}
             </p>
           </div>

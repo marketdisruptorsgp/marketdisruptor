@@ -81,8 +81,8 @@ export const BundleDeepDive = ({ opportunity, businessContext, index }: BundleDe
     <div
       className="rounded-xl overflow-hidden transition-all"
       style={{
-        background: isOpen ? "hsl(var(--primary-muted))" : "hsl(var(--muted))",
-        border: `1px solid ${isOpen ? "hsl(var(--primary) / 0.3)" : "hsl(var(--border))"}`,
+        background: isOpen ? "hsl(var(--muted))" : "hsl(var(--muted))",
+        border: `1px solid hsl(var(--border))`,
       }}
     >
       {/* Trigger */}
@@ -95,11 +95,7 @@ export const BundleDeepDive = ({ opportunity, businessContext, index }: BundleDe
         </div>
         <div className="flex-1">
           <span className="text-xs text-foreground/80 leading-relaxed">{opportunity}</span>
-          {!isOpen && !data && (
-            <p className="text-[10px] mt-1 font-medium" style={{ color: "hsl(var(--primary))" }}>
-              Tap to explore deeper →
-            </p>
-          )}
+          
         </div>
       </button>
 
@@ -128,8 +124,8 @@ export const BundleDeepDive = ({ opportunity, businessContext, index }: BundleDe
 
               {/* Value Proposition */}
               <div className="p-3 rounded-lg text-xs leading-relaxed"
-                style={{ background: "hsl(var(--primary) / 0.08)", borderLeft: "3px solid hsl(var(--primary))" }}>
-                <span className="font-semibold" style={{ color: "hsl(var(--primary-dark))" }}>Why this works: </span>
+                style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                <span className="font-semibold" style={{ color: "hsl(var(--primary))" }}>Why this works: </span>
                 <span className="text-foreground/80">{data.valueProposition}</span>
               </div>
 
@@ -160,15 +156,15 @@ export const BundleDeepDive = ({ opportunity, businessContext, index }: BundleDe
 
               {/* Quick Win */}
               <div className="p-3 rounded-lg text-xs leading-relaxed"
-                style={{ background: "hsl(142 70% 45% / 0.08)", borderLeft: "3px solid hsl(142 70% 45%)" }}>
+                style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                 <span className="font-semibold" style={{ color: "hsl(142 70% 30%)" }}>Quick Win: </span>
                 <span className="text-foreground/80">{data.quickWin}</span>
               </div>
 
               {/* Competitive Moat */}
               <div className="p-3 rounded-lg text-xs leading-relaxed"
-                style={{ background: "hsl(var(--primary) / 0.05)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
-                <span className="font-semibold flex items-center gap-1 mb-1" style={{ color: "hsl(var(--primary-dark))" }}>
+                style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                <span className="font-semibold flex items-center gap-1 mb-1" style={{ color: "hsl(var(--primary))" }}>
                   <Shield size={10} /> Competitive Moat
                 </span>
                 <span className="text-foreground/80">{data.competitiveMoat}</span>
@@ -182,7 +178,7 @@ export const BundleDeepDive = ({ opportunity, businessContext, index }: BundleDe
                   </p>
                   {data.risks.map((risk, i) => (
                     <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs"
-                      style={{ background: "hsl(var(--destructive) / 0.06)" }}>
+                      style={{ background: "hsl(var(--muted))" }}>
                       <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{risk}</span>
                     </div>

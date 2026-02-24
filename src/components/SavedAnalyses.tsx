@@ -167,7 +167,7 @@ function SpotlightCard({ analysis, onLoad, onDelete }: { analysis: SavedAnalysis
 
         {/* Snippet / opportunity callout */}
         {snippet && (
-          <div className="rounded-md p-2 mb-2.5" style={{ background: "hsl(var(--primary) / 0.04)", border: "1px dashed hsl(var(--primary) / 0.2)" }}>
+          <div className="rounded-md p-2 mb-2.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <div className="flex items-center gap-1 mb-0.5">
               <Zap size={10} style={{ color: "hsl(var(--primary))" }} />
               <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--primary))" }}>Top Idea</span>

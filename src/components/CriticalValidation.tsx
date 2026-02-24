@@ -78,26 +78,26 @@ interface CriticalValidationProps {
 }
 
 const SEVERITY_STYLES = {
-  critical: { bg: "hsl(var(--destructive) / 0.08)", border: "hsl(var(--destructive) / 0.3)", text: "hsl(var(--destructive))", label: "CRITICAL" },
-  major: { bg: "hsl(38 92% 50% / 0.08)", border: "hsl(38 92% 50% / 0.3)", text: "hsl(38 92% 35%)", label: "MAJOR" },
+  critical: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--destructive))", label: "CRITICAL" },
+  major: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(38 92% 35%)", label: "MAJOR" },
   minor: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--muted-foreground))", label: "MINOR" },
 };
 
 const STRENGTH_STYLES = {
-  strong: { bg: "hsl(142 70% 45% / 0.08)", border: "hsl(142 70% 45% / 0.3)", text: "hsl(142 70% 30%)", label: "STRONG" },
-  moderate: { bg: "hsl(var(--primary-muted))", border: "hsl(var(--primary) / 0.3)", text: "hsl(var(--primary))", label: "MODERATE" },
-  conditional: { bg: "hsl(38 92% 50% / 0.08)", border: "hsl(38 92% 50% / 0.3)", text: "hsl(38 92% 35%)", label: "CONDITIONAL" },
+  strong: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(142 70% 30%)", label: "STRONG" },
+  moderate: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--primary))", label: "MODERATE" },
+  conditional: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(38 92% 35%)", label: "CONDITIONAL" },
 };
 
 const OUTCOME_STYLES = {
-  succeeded: { bg: "hsl(142 70% 45% / 0.1)", text: "hsl(142 70% 30%)", icon: TrendingUp },
-  failed: { bg: "hsl(var(--destructive) / 0.1)", text: "hsl(var(--destructive))", icon: TrendingDown },
-  pivoted: { bg: "hsl(38 92% 50% / 0.1)", text: "hsl(38 92% 35%)", icon: RefreshCw },
+  succeeded: { bg: "hsl(var(--muted))", text: "hsl(142 70% 30%)", icon: TrendingUp },
+  failed: { bg: "hsl(var(--muted))", text: "hsl(var(--destructive))", icon: TrendingDown },
+  pivoted: { bg: "hsl(var(--muted))", text: "hsl(38 92% 35%)", icon: RefreshCw },
 };
 
 const STATUS_STYLES = {
-  critical: { bg: "hsl(var(--destructive) / 0.08)", border: "hsl(var(--destructive) / 0.25)", text: "hsl(var(--destructive))" },
-  important: { bg: "hsl(38 92% 50% / 0.08)", border: "hsl(38 92% 50% / 0.25)", text: "hsl(38 92% 35%)" },
+  critical: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--destructive))" },
+  important: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(38 92% 35%)" },
   "nice-to-have": { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--muted-foreground))" },
 };
 
@@ -143,7 +143,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-5 text-center">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: "hsl(350 80% 55% / 0.12)" }}>
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
           <Swords size={30} style={{ color: "hsl(350 80% 55%)" }} />
         </div>
         <div>
@@ -210,7 +210,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         </DetailPanel>
 
         {/* Red Team — AGAINST the idea */}
-        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--destructive) / 0.06)", borderLeft: "4px solid hsl(var(--destructive))", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--destructive))" }}>
               <XCircle size={14} style={{ color: "white" }} />
@@ -258,7 +258,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         )}
 
         {/* Kill Shot */}
-        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.1)", border: "2px solid hsl(var(--destructive) / 0.3)" }}>
+        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <p className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
             <Flame size={11} /> Kill Shot
           </p>
@@ -275,7 +275,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         </div>
 
         {/* Green Team — FOR the idea */}
-        <div className="p-4 rounded-xl" style={{ background: "hsl(142 70% 45% / 0.06)", borderLeft: "4px solid hsl(142 70% 45%)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(142 70% 45%)" }}>
               <CheckCircle2 size={14} style={{ color: "white" }} />
@@ -323,7 +323,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         )}
 
         {/* Moonshot */}
-        <div className="p-3 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.1)", border: "2px solid hsl(142 70% 45% / 0.3)" }}>
+        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <p className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}>
             <Target size={11} /> Moonshot Potential
           </p>
@@ -359,7 +359,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             <div className="space-y-1.5 mb-2">
               {data.strategicRecommendations.map((rec, i) => (
                 <div key={i} className="flex gap-2 items-start p-2 rounded-lg text-xs"
-                  style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+                  style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                   <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
                     style={{ background: "hsl(142 70% 45% / 0.15)", color: "hsl(142 70% 30%)" }}>{i + 1}</span>
                   <span className="text-foreground/80 leading-relaxed">{rec}</span>
@@ -375,7 +375,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             <div className="space-y-2 mb-2">
               {data.currentApproachAssessment.keepAsIs?.length > 0 && (
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(142 70% 35%)" }}>✓ Keep As-Is</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 35%)" }}><CheckCircle2 size={10} /> Keep As-Is</p>
                   {data.currentApproachAssessment.keepAsIs.map((item, i) => (
                     <div key={i} className="flex gap-2 items-start text-xs mb-1">
                       <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
@@ -386,7 +386,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               )}
               {data.currentApproachAssessment.fullyReinvent?.length > 0 && (
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>⟳ Fully Reinvent</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}><RefreshCw size={10} /> Fully Reinvent</p>
                   {data.currentApproachAssessment.fullyReinvent.map((item, i) => (
                     <div key={i} className="flex gap-2 items-start text-xs mb-1">
                       <Flame size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
@@ -395,7 +395,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                   ))}
                 </div>
               )}
-              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 <p className="text-[10px] font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Verdict</p>
                 <p className="text-xs text-foreground/80 leading-relaxed">{data.currentApproachAssessment.verdict}</p>
               </div>
