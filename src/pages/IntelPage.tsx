@@ -41,11 +41,15 @@ export default function IntelPage() {
 
   async function fetchAllData() {
     setLoading(true);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const cutoff = thirtyDaysAgo.toISOString();
+
     const [patentRes, trendRes, intelRes, newsRes] = await Promise.all([
-      supabase.from("patent_filings").select("*").order("filing_date", { ascending: false }),
+      supabase.from("patent_filings").select("*").gte("filing_date", cutoff).order("filing_date", { ascending: false }).limit(50),
       supabase.from("trend_signals").select("*").order("scraped_at", { ascending: false }),
       supabase.from("platform_intel").select("*").order("computed_at", { ascending: false }),
-      supabase.from("market_news").select("*").order("scraped_at", { ascending: false }),
+      supabase.from("market_news").select("*").gte("published_at", cutoff).order("scraped_at", { ascending: false }),
     ]);
 
     if (patentRes.data) setPatents(patentRes.data);
