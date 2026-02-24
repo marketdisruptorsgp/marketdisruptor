@@ -1,118 +1,120 @@
+Is this all the things we were planning on or only some?
 
-# Remove Nostalgia Mode, Era References, and Fix Analysis Naming
+&nbsp;
+
+# UX Improvements: Key Takeaways, Progress Indicators, Analysis Aging, Referral Hook & Continue Banner
 
 ## Overview
 
-Three core changes:
-
-1. **Remove the "Disrupt This Nostalgia" mode entirely** from the tab bar and all related UI/logic -- the platform keeps 3 modes: Product, Service, Business Model
-2. **Strip all era-related fields, labels, and descriptions** across every component -- no more "80s", "vintage", "nostalgia triggers", era badges, era dropdowns, era-based context
-3. **Use the exact user-typed name** for the analysis title (from the input field), and append version numbers for duplicates instead of AI-generated names
+Five improvements to make the platform stickier, findings clearer, and users more engaged post-analysis.
 
 ---
 
-## Technical Plan
+## 1. Key Takeaway Banners on Report Sections
 
-### File 1: `src/components/AnalysisForm.tsx`
-- Remove the `"discover"` entry from `MODE_OPTIONS` array (lines 93-101)
-- Remove `ERAS` constant (lines 34-36)
-- Remove `era` state variable (line 124) and the Era dropdown from the discover form (lines 279-289)
-- Remove the entire `mode === "discover"` form block (lines 265-352) since the mode no longer exists
-- Remove `discoverAudience`, `discoverBudget`, `discoverNotes` state (lines 131-133)
-- Update the `handleSubmit` to remove the `else` branch for discover mode (lines 165-174)
-- The `onAnalyze` callback still accepts `era` param for backward compat but it will always be `"All Eras / Current"`
-- Update `Mode` type to remove `"discover"` -- becomes `"custom" | "service" | "business"`
+**What**: A bold, single-sentence "Key Takeaway" callout at the top of each report sub-section (Overview, Community, Pricing, Supply Chain) -- dynamically pulled from the AI data.
 
-### File 2: `src/pages/Index.tsx`
+**Where**: `src/pages/Index.tsx` (inside each `detailTab` block) and `src/pages/ReportPage.tsx`
 
-**Tab bar (lines 629-634):**
-- Remove the `"discover"` tab entry (`{ id: "discover", label: "Disrupt This Nostalgia", ... }`)
-- Only 3 tabs remain: Product, Service, Business Model
+**How**:
 
-**State/types (line 168):**
-- Change `mainTab` type from `"discover" | "custom" | "service" | "business"` to `"custom" | "service" | "business"`
-- Remove all `setMainTab("discover")` calls (lines 327, 350)
-- Change fallback for loading saved analyses: if `isCustom` just use `"custom"`
-
-**Loading messages (lines 386-406):**
-- Remove `${params.era}` from log messages -- just use category
-- Remove era references from step messages
-
-**`handleRegenerateIdeas` (line 509):**
-- Replace `Focus on ${analysisParams.era} nostalgia and ${analysisParams.category} market trends` with `Focus on ${analysisParams.category} market trends`
-
-**`saveAnalysis` (lines 272-299):**
-- Change title logic: use the first product's `customName` (user-typed name) as the title
-- For discover/batch mode: keep existing product-name-based logic but strip era from the title
-- For duplicates: query existing saved_analyses with the same title and append ` v2`, ` v3`, etc.
-
-**Community Intel nostalgia triggers (lines 1052-1064):**
-- Remove the "Nostalgia Triggers" section entirely
-
-**`analysisParams` type and all references:**
-- Keep `era` field in the type for backward compatibility but always set to `"All Eras / Current"` and never display it
-
-### File 3: `src/contexts/AnalysisContext.tsx`
-- Update `mainTab` type to remove `"discover"` union member (lines 37-38)
-- Remove `setMainTab("discover")` fallback logic (lines 463-464)
-- Update `handleRegenerateIdeas` to remove nostalgia/era from context string (line 376)
-
-### File 4: `src/components/SavedAnalyses.tsx`
-- Remove era display from the SpotlightCard meta row (line 182: `<span>{analysis.era}</span>`)
-- Remove era from `deduplicateAnalyses` key (line 71) -- use `category|analysis_type|batch_size` instead
-
-### File 5: `src/components/WelcomeModal.tsx`
-- Update slide 2 (lines 24-33): remove era/nostalgia references
-  - Change body text from "Enter a category and era" to something like "Enter a product, service, or business model"
-  - Remove "Try surprising combos: '80s Fitness', 'Millennial Nostalgia'" tip
-  - Update "Let's Discover" button text (line 165) to "Let's Go"
-
-### File 6: `src/data/mockProducts.ts`
-- Remove `era` field from all mock product objects
-- Remove `nostalgiaTriggers` from `communityInsights` objects
-- Clean any remaining nostalgia/vintage language from `trendAnalysis` and `description` fields
-
-### File 7: `src/components/ProductCard.tsx`
-- Remove any remaining `era` display (already partially cleaned in prior changes, but verify no references remain)
-
-### File 8: `src/pages/ReportPage.tsx`
-- Remove nostalgia triggers section from community intel (same pattern as Index.tsx)
-- Remove era display from product header if present
-
-### File 9: Edge functions (backend -- no changes needed)
-- The `analyze-products` function still receives `era` but the UI will always send `"All Eras / Current"` which triggers `eraLabel()` to return empty string -- so the AI prompt naturally omits era context
-- `nostalgiaTriggers` may still be returned by AI but the UI will simply not render them
+- At the top of each tab's content block, render a styled callout if relevant data exists:
+  - **Overview**: Use `selectedProduct.keyInsight` (already exists, but will add a more prominent "Key Takeaway" banner style above the existing card)
+  - **Community**: Summarize top complaint count + sentiment direction (e.g., "3 recurring complaints identified -- users want X")
+  - **Pricing**: Pull `selectedProduct.pricing?.verdict` or compute from margin data (e.g., "Underpriced by 20-35% vs. market average")
+  - **Supply Chain**: Count of manufacturers + regions (e.g., "4 verified suppliers across 2 regions -- lead times 15-30 days")
+- Styled as a full-width banner with left border accent, matching the section's color theme
+- Also add **Verdict Badges** inline: colored pills like "Underpriced", "Supply Chain Risk", "High Demand" derived from scores and data thresholds
 
 ---
 
-## Analysis Title Logic (Duplicate Handling)
+## 2. Step Progress on Saved Project Cards
 
-When saving an analysis, the title will be set as follows:
+**What**: Show which steps the user has completed on each saved project card, so they can see at a glance what's left to explore.
 
-1. **Custom/Service mode**: Use `customName` exactly as the user typed it (e.g., "Vintage Camera" stays "Vintage Camera")
-2. **Business mode**: Use `businessInput.type` exactly as typed
-3. **If a saved analysis with the same title already exists**: Query existing titles, find the highest version, and append ` v2`, ` v3`, etc.
+**Where**: `src/components/SavedAnalyses.tsx`
 
-This replaces the current logic that auto-generates titles from AI-returned product names.
+**How**:
+
+- The `analysis_data` JSON blob already stores step completion data (visited steps, visited detail tabs, stress test data, pitch data)
+- Extract a `completedSteps` count from `analysis_data` and render a small progress indicator on SpotlightCard and ProjectCard
+- Show as a row of 5 small dots/circles (one per step: Intel, Disrupt, Redesign, Stress Test, Pitch) -- filled if the user visited that step, hollow if not
+- Add a text label: "3 of 5 steps explored" below the dots
+- For projects with all steps completed, show a green checkmark badge: "Complete"
 
 ---
 
-## What Gets Removed
+## 3. Analysis Aging + "Re-run Intel" Button
 
-| Item | Where |
-|------|-------|
-| "Disrupt This Nostalgia" tab | Index.tsx tab bar, AnalysisForm MODE_OPTIONS |
-| Era dropdown (70s, 80s, 90s...) | AnalysisForm discover form |
-| `ERAS` constant | AnalysisForm |
-| Era display in saved analyses | SavedAnalyses |
-| "Nostalgia Triggers" section | Index.tsx, ReportPage.tsx community intel |
-| Era in loading messages | Index.tsx |
-| "nostalgia" in context prompts | Index.tsx, AnalysisContext |
-| WelcomeModal era/nostalgia tips | WelcomeModal |
-| `era` from mock products | mockProducts.ts |
+**What**: Show how old each analysis is (e.g., "Analyzed 47 days ago") with a "Re-run Intel" button on stale analyses.
 
-## What Stays
+**Where**: `src/components/SavedAnalyses.tsx` (SpotlightCard and ProjectCard), and when loading a saved analysis in `src/pages/Index.tsx`
 
-- Backend `era` field in DB and edge functions (backward compatible, always receives "All Eras / Current")
-- The 3 remaining modes: Product, Service, Business Model
-- All other analysis pipeline logic unchanged
+**How**:
+
+- Replace or supplement the date display with a relative time label using `date-fns`'s `formatDistanceToNow` (already installed)
+- For analyses older than 30 days, show an amber "Stale" badge and a small "Re-run Intel" button
+- The re-run button triggers a re-analysis with the same parameters (product name, URLs, mode) and updates the existing record
+- On the loaded analysis view (Index.tsx), show a banner at the top: "This analysis is X days old. Market conditions may have changed." with a "Refresh Intel" CTA
+
+---
+
+## 4. "Continue Where You Left Off" Banner
+
+**What**: A prominent banner on the dashboard when the user has an incomplete analysis (not all steps visited).
+
+**Where**: `src/pages/DashboardPage.tsx` (between the DisruptionPathBanner and the mode pills)
+
+**How**:
+
+- On mount, query `saved_analyses` for the user's most recent analysis
+- Check `analysis_data` for step completion -- if fewer than 5 steps visited, show the banner
+- Banner content: "[Project Name] -- You've explored 2 of 5 steps. [Continue]"
+- "Continue" button loads the analysis and navigates to the next unvisited step
+- Dismissible with an X button (session-only, reappears next visit)
+- Styled with a subtle gradient left border matching the analysis mode color
+
+---
+
+## 5. Surface Referral Program After Completed Analyses
+
+**What**: After a user completes all 5 steps (or reaches Pitch Deck), show a referral CTA card.
+
+**Where**: `src/components/PitchDeck.tsx` (at the bottom, after the SGP Capital CTA) and `src/pages/Index.tsx` (after step 6 content)
+
+**How**:
+
+- Add a "Share & Earn" card after the Help Disrupt CTA in PitchDeck:
+  - Headline: "Know someone who'd use this?"
+  - Body: "Share your referral link and earn extended access when they sign up."
+  - Button: "Copy Referral Link" -- copies `https://productideas.lovable.app?ref=[userId]`
+  - Uses existing `claim-referral` and `send-referral-email` edge functions
+- Also show a smaller inline prompt when a user finishes the Stress Test step (step 5) before they reach Pitch Deck
+
+---
+
+## Technical Details
+
+### Files Modified
+
+
+| File                               | Changes                                                                                                              |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `src/pages/Index.tsx`              | Key takeaway banners in each detailTab block; stale analysis banner on loaded projects; referral prompt after step 6 |
+| `src/pages/ReportPage.tsx`         | Key takeaway banners matching Index.tsx pattern                                                                      |
+| `src/components/SavedAnalyses.tsx` | Step progress dots on cards; relative time labels; stale badge + re-run button                                       |
+| `src/pages/DashboardPage.tsx`      | "Continue where you left off" banner                                                                                 |
+| `src/components/PitchDeck.tsx`     | Referral CTA card after SGP Capital section                                                                          |
+
+
+### No New Dependencies
+
+- `date-fns` already installed for `formatDistanceToNow`
+- All existing edge functions reused (no new backend)
+- No database schema changes needed
+
+### Patterns Followed
+
+- Dismissible UI uses existing `localStorage` + `dismissed_tips` pattern from `ContextualTip`
+- Card styling uses existing `hsl(var(--muted))`, `hsl(var(--border))`, accent color conventions
+- Step progress derives from existing `analysis_data` JSON structure in `saved_analyses`
