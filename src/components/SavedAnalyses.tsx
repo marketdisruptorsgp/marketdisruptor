@@ -91,15 +91,15 @@ function getScoreLabel(score: number) {
 function StatCard({ icon: Icon, label, value, accent }: { icon: typeof Star; label: string; value: string | number; accent?: string }) {
   return (
     <div
-      className="rounded-lg border border-border bg-card p-3 flex items-center gap-3"
+      className="rounded-lg border border-border bg-card p-2.5 sm:p-3 flex items-center gap-2 sm:gap-3"
       style={{ borderLeft: accent ? `3px solid ${accent}` : undefined }}
     >
-      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: accent ? `${accent}14` : "hsl(var(--muted))" }}>
-        <Icon size={14} style={{ color: accent || "hsl(var(--muted-foreground))" }} />
+      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: accent ? `${accent}14` : "hsl(var(--muted))" }}>
+        <Icon size={13} style={{ color: accent || "hsl(var(--muted-foreground))" }} />
       </div>
-      <div>
-        <p className="text-lg font-bold text-foreground leading-tight">{value}</p>
-        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+      <div className="min-w-0">
+        <p className="text-base sm:text-lg font-bold text-foreground leading-tight">{value}</p>
+        <p className="text-[9px] sm:text-[10px] font-medium text-muted-foreground uppercase tracking-wider truncate">{label}</p>
       </div>
     </div>
   );
@@ -362,7 +362,7 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
     <div className="space-y-5">
       {/* Stats row */}
       {analyses.length > 0 && (
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-3 gap-2">
           <StatCard icon={Database} label="Projects" value={analyses.length} accent="hsl(var(--primary))" />
           <StatCard icon={TrendingUp} label="Avg Score" value={avgScore} accent="hsl(var(--warning))" />
           <StatCard icon={Award} label="Top Score" value={topScore} accent="hsl(var(--score-high))" />

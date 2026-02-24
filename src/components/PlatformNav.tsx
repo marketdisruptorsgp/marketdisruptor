@@ -215,11 +215,16 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 <p className="section-label text-[10px] px-3 pt-2 pb-1">Disruptor Modes</p>
                 {ACCESS_MODES.map((mode) => {
                   const Icon = mode.icon;
+                  const active = analysis.mainTab === mode.id;
                   return (
                     <button
                       key={mode.id}
                       onClick={() => handleModeSelect(mode.id)}
                       className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                      style={{
+                        background: active ? "hsl(var(--primary) / 0.06)" : undefined,
+                        borderLeft: active ? `3px solid hsl(var(${mode.cssVar}))` : "3px solid transparent",
+                      }}
                     >
                       <Icon size={14} style={{ color: `hsl(var(${mode.cssVar}))` }} />
                       <span className="text-sm font-semibold text-foreground">{mode.label}</span>
@@ -235,13 +240,11 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 >
                   <FolderOpen size={14} className="text-muted-foreground" />
                   <span className="text-sm font-semibold text-foreground">Saved Projects</span>
-                </button>
-                <button
-                  onClick={() => { navigate("/pricing"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
-                  <BarChart3 size={14} className="text-muted-foreground" />
-                  <span className="text-sm font-semibold text-foreground">Plan & Usage</span>
+                  {typeof savedCount === "number" && savedCount > 0 && (
+                    <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground leading-none">
+                      {savedCount}
+                    </span>
+                  )}
                 </button>
 
                 <div className="h-px bg-border my-2" />

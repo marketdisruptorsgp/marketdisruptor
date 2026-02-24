@@ -145,8 +145,8 @@ export default function DashboardPage() {
 
       {/* Hero Section */}
       <section className="bg-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-10 sm:pb-16 text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 sm:pt-20 pb-8 sm:pb-16 text-center">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
             Rethink any{" "}
             <span
               className="inline-block transition-opacity duration-300"
@@ -178,7 +178,7 @@ export default function DashboardPage() {
 
           {/* Built For */}
           <p className="text-sm sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mt-10 sm:mt-14 mb-4 sm:mb-6 text-center">Built For</p>
-          <div className="grid grid-cols-2 sm:grid-cols-2 gap-2.5 sm:gap-4 max-w-3xl mx-auto text-left">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 max-w-3xl mx-auto text-left">
             {[
               { icon: Rocket, title: "Entrepreneurs", desc: "Data-driven conviction, not guesswork." },
               { icon: TrendingUp, title: "Investors", desc: "Adversarial rigor before committing capital." },
@@ -308,18 +308,18 @@ export default function DashboardPage() {
 
       {/* Footer */}
       <footer className="border-t border-border mt-0">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
             <span className="flex items-center gap-1"><ShieldCheck size={11} /> Your data is encrypted & never shared</span>
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:flex items-center gap-1"><BookOpen size={11} /> Analyses scoped to your account via RLS</span>
           </div>
           <div className="flex items-center gap-3">
-            <a href="/pricing" className="font-semibold text-primary hover:underline">Enterprise & Teams</a>
+            <a href="/pricing" className="font-semibold text-primary hover:underline py-1">Enterprise & Teams</a>
           </div>
         </div>
-        <div className="border-t border-border py-4 sm:py-6 text-center px-4">
-          <p className="text-xs">
+        <div className="border-t border-border py-5 sm:py-6 text-center px-4">
+          <p className="text-xs leading-relaxed">
             <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80 text-primary">
               Built by SGP Capital
             </a>
