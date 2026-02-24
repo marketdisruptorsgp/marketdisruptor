@@ -247,7 +247,7 @@ export function PitchCoverSlide({
           </h1>
 
           {subtitle && (
-            <p className="text-sm sm:text-base text-muted-foreground max-w-[65%] leading-relaxed mb-8 sm:mb-12">
+            <p className="text-sm sm:text-base text-muted-foreground max-w-[85%] leading-relaxed mb-8 sm:mb-12">
               {subtitle}
             </p>
           )}
