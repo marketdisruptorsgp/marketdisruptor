@@ -56,7 +56,7 @@ export default function PitchPage() {
         <ModeHeader
           stepNumber={6}
           stepTitle="Investor Pitch Deck"
-          subtitle={`Professional pitch deck for <strong class="text-foreground">${selectedProduct.name}</strong>`}
+          subtitle={`Professional pitch deck for <strong class="text-foreground">${selectedProduct.name}</strong> — 10 slides`}
           accentColor={theme.primary}
         />
 
