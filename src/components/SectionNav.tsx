@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowRight, ChevronDown, Home } from "lucide-react";
+import { ArrowRight, ChevronDown, Home, CheckCircle2 } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 
@@ -192,6 +192,123 @@ export function AllExploredBadge() {
     <div className="text-center py-4">
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold" style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 25%)", border: "1.5px solid hsl(142 70% 45% / 0.3)" }}>
         ✓ All sections explored!
+      </div>
+    </div>
+  );
+}
+
+/* ── Reusable Section Workflow Navigator (grid cards) ────────────── */
+export function SectionWorkflowNav<T extends string>({
+  tabs,
+  activeId,
+  visitedIds,
+  onSelect,
+  descriptions,
+  journeyLabel = "Your Analysis Journey",
+}: {
+  tabs: { id: T; label: string; icon: React.ElementType }[];
+  activeId: T;
+  visitedIds: Set<string>;
+  onSelect: (id: T) => void;
+  descriptions?: Record<string, string>;
+  journeyLabel?: string;
+}) {
+  const allVisited = tabs.every(t => visitedIds.has(t.id) || t.id === activeId);
+  const visitedCount = tabs.filter(t => visitedIds.has(t.id) || t.id === activeId).length;
+
+  // Determine grid columns based on tab count
+  const gridCols = tabs.length <= 3
+    ? `grid-cols-${tabs.length}`
+    : tabs.length <= 4
+      ? "grid-cols-2 sm:grid-cols-4"
+      : tabs.length <= 6
+        ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
+        : "grid-cols-2 sm:grid-cols-4 lg:grid-cols-8";
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border: "1.5px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
+      {/* Progress header */}
+      <div className="px-4 py-2.5 flex items-center justify-between" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {journeyLabel}
+        </p>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-bold" style={{ color: allVisited ? "hsl(142 70% 35%)" : "hsl(var(--primary))" }}>
+            {visitedCount}/{tabs.length}
+          </span>
+          <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--border))" }}>
+            <div className="h-full rounded-full transition-all duration-500" style={{
+              width: `${(visitedCount / tabs.length) * 100}%`,
+              background: allVisited ? "hsl(142 70% 45%)" : "hsl(var(--primary))",
+            }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Grid cards */}
+      <div className={`grid ${gridCols} gap-0`}>
+        {tabs.map((tab, i) => {
+          const isActive = activeId === tab.id;
+          const isVisited = visitedIds.has(tab.id) && !isActive;
+          const isUnvisited = !isActive && !isVisited;
+          const TabIcon = tab.icon;
+          const desc = descriptions?.[tab.id] || "";
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onSelect(tab.id)}
+              className="relative flex flex-col items-center text-center px-2 py-4 sm:py-5 transition-all duration-200 group"
+              style={{
+                background: isActive
+                  ? "hsl(var(--foreground))"
+                  : isVisited
+                    ? "hsl(var(--primary) / 0.04)"
+                    : "transparent",
+                borderRight: i < tabs.length - 1 ? "1px solid hsl(var(--border) / 0.5)" : "none",
+              }}
+            >
+              {isUnvisited && (
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full animate-pulse" style={{ background: "hsl(var(--primary))" }} />
+              )}
+              <div
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2 transition-all duration-200 group-hover:scale-110"
+                style={{
+                  background: isActive
+                    ? "hsl(var(--background))"
+                    : isVisited
+                      ? "hsl(var(--primary) / 0.1)"
+                      : "hsl(var(--muted))",
+                }}
+              >
+                {isVisited ? (
+                  <CheckCircle2 size={16} style={{ color: "hsl(142 70% 45%)" }} />
+                ) : (
+                  <TabIcon size={16} style={{ color: isActive ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }} />
+                )}
+              </div>
+              <span className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{
+                color: isActive ? "hsl(var(--background) / 0.5)" : "hsl(var(--muted-foreground) / 0.6)",
+              }}>
+                {i + 1}/{tabs.length}
+              </span>
+              <p className="text-[11px] sm:text-xs font-bold leading-tight" style={{
+                color: isActive ? "hsl(var(--background))" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+              }}>
+                {tab.label}
+              </p>
+              {desc && (
+                <p className="hidden lg:block text-[9px] leading-snug mt-1 max-w-[120px]" style={{
+                  color: isActive ? "hsl(var(--background) / 0.6)" : "hsl(var(--muted-foreground) / 0.7)",
+                }}>
+                  {desc}
+                </p>
+              )}
+              {isActive && (
+                <div className="absolute bottom-0 left-2 right-2 h-[3px] rounded-t-full" style={{ background: "hsl(var(--primary))" }} />
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

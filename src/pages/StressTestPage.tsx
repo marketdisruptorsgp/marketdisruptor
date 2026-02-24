@@ -7,6 +7,12 @@ import { CriticalValidation } from "@/components/CriticalValidation";
 import { Swords, CheckCircle2 } from "lucide-react";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
+import { SectionWorkflowNav } from "@/components/SectionNav";
+
+const STRESS_TEST_DESCRIPTIONS: Record<string, string> = {
+  debate: "Red Team attacks vs Green Team defenses",
+  validate: "Feasibility checklist & confidence scores",
+};
 
 export default function StressTestPage() {
   const analysis = useAnalysis();
@@ -52,38 +58,21 @@ export default function StressTestPage() {
             </div>
           </div>
           <div className="p-3 sm:p-5 space-y-4 sm:space-y-6" style={{ background: "hsl(var(--card))" }}>
-            <div className="flex gap-2">
-              {[
+            <SectionWorkflowNav
+              tabs={[
                 { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
                 { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
-              ].map(tab => {
-                const isActive = analysis.stressTestTab === tab.id;
-                const isVisited = mergedVisited.has(tab.id);
-                const TabIcon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => {
-                      analysis.setStressTestTab(tab.id);
-                      analysis.setVisitedStressTestTabs(new Set([...mergedVisited, tab.id]));
-                      markVisited(tab.id);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors relative"
-                    style={{
-                      background: isActive ? "hsl(var(--foreground))" : isVisited ? "hsl(var(--foreground) / 0.05)" : "transparent",
-                      color: isActive ? "hsl(var(--background))" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                      border: isActive ? "1.5px solid hsl(var(--foreground))" : isVisited ? "1.5px solid hsl(var(--foreground) / 0.15)" : "1.5px dashed hsl(var(--border))",
-                    }}
-                  >
-                    {!isActive && !isVisited && (
-                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "hsl(var(--primary))" }} />
-                    )}
-                    <TabIcon size={14} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
+              ]}
+              activeId={analysis.stressTestTab}
+              visitedIds={mergedVisited}
+              onSelect={(id) => {
+                analysis.setStressTestTab(id);
+                analysis.setVisitedStressTestTabs(new Set([...mergedVisited, id]));
+                markVisited(id);
+              }}
+              descriptions={STRESS_TEST_DESCRIPTIONS}
+              journeyLabel="Stress Test Journey"
+            />
             <CriticalValidation
               product={selectedProduct}
               analysisData={selectedProduct}
