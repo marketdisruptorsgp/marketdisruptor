@@ -31,15 +31,15 @@ async function extractNews(
   cutoffDate: string,
   LOVABLE_API_KEY: string,
 ): Promise<any[]> {
-  const extractPrompt = `Extract news items from these search results about "${query}". For each item, assign the most fitting category from: Startups & Funding, Product Innovation, Regulatory & M&A, E-Commerce, AI & Technology, Sustainability, Health & Wellness, Fintech, Climate Tech, Consumer Electronics.
+  const extractPrompt = `Extract news items from these search results about "${query}". For each item, dynamically assign the best-fitting category based on the article's actual content — do NOT use a fixed category list.
 
 Return ONLY valid JSON array:
-[{"title":"Headline","summary":"1-2 sentence summary","source_name":"Publication Name","source_url":"https://...","published_at":"YYYY-MM-DD","category":"Best Fitting Category"}]
+[{"title":"Headline","summary":"1-2 sentence summary","source_name":"Publication Name","source_url":"https://...","published_at":"YYYY-MM-DD","category":"Dynamically Assigned Category"}]
 
 Search results:
 ${results.map((r: any) => `Title: ${r.title}\nURL: ${r.url}\nDescription: ${r.description || ""}`).join("\n---\n")}
 
-Return 3-5 items maximum. Only include real news with verifiable titles and sources. CRITICAL: Only include articles published on or after ${cutoffDate}. Return empty array [] if nothing qualifies.`;
+Return up to 5 items. Only include real news with verifiable titles and sources. CRITICAL: Only include articles published on or after ${cutoffDate}. Return empty array [] if nothing qualifies.`;
 
   const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",

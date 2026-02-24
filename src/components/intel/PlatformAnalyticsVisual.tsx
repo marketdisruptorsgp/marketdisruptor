@@ -1,9 +1,9 @@
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area, RadarChart, PolarGrid,
+  PieChart, Pie, Cell, RadarChart, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis, Radar,
 } from "recharts";
-import { BarChart3, TrendingUp, Zap, Target, Users, Layers, ArrowUpRight } from "lucide-react";
+import { BarChart3, TrendingUp, Layers, Target, Users, Lightbulb, Compass, Flame } from "lucide-react";
 
 const MODE_COLORS: Record<string, string> = {
   product: "hsl(var(--primary))",
@@ -28,7 +28,7 @@ interface Props {
   monthlyActivity?: any[];
 }
 
-export function PlatformAnalyticsVisual({ overview, topCategories, notableScores, monthlyActivity }: Props) {
+export function PlatformAnalyticsVisual({ overview, topCategories, notableScores }: Props) {
   if (!overview) return null;
 
   const totalAnalyses = overview.totalAnalyses || 0;
@@ -36,36 +36,20 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
   const typeBreakdown = overview.typeBreakdown || {};
   const totalCategories = overview.totalCategories || 0;
 
-  // Build pie data from type breakdown
   const pieData = Object.entries(typeBreakdown).map(([type, count]) => ({
     name: MODE_LABELS[type] || type,
     value: count as number,
     color: MODE_COLORS[type] || "hsl(var(--muted-foreground))",
   }));
 
-  // Projection data (simple linear extrapolation)
-  const monthlyData = monthlyActivity && monthlyActivity.length > 0
-    ? monthlyActivity
-    : [{ month: "Feb 2026", count: totalAnalyses }];
-
-  const lastCount = monthlyData[monthlyData.length - 1]?.count || totalAnalyses;
-  const projectedData = [
-    ...monthlyData.map(m => ({ ...m, projected: null as number | null })),
-    { month: "Mar (proj.)", count: null, projected: Math.round(lastCount * 1.15) },
-    { month: "Apr (proj.)", count: null, projected: Math.round(lastCount * 1.35) },
-    { month: "May (proj.)", count: null, projected: Math.round(lastCount * 1.55) },
-  ];
-
-  // Radar for platform health
   const radarData = [
     { metric: "Volume", value: Math.min(totalAnalyses / 2, 100) },
     { metric: "Diversity", value: Math.min(totalCategories * 5, 100) },
     { metric: "Quality", value: avgScore * 10 },
     { metric: "Depth", value: Object.keys(typeBreakdown).length * 25 },
-    { metric: "Consistency", value: monthlyData.length > 1 ? 70 : 50 },
+    { metric: "Consistency", value: 65 },
   ];
 
-  // Top categories bar chart (top 6)
   const catBarData = topCategories.slice(0, 6).map((c, i) => ({
     name: c.name?.length > 14 ? c.name.slice(0, 14) + "…" : c.name,
     count: c.count,
@@ -73,20 +57,11 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
     fill: PIE_COLORS[i % PIE_COLORS.length],
   }));
 
-  // Score distribution buckets
-  const scoreBuckets = [
-    { range: "0–4", count: 0, color: "hsl(var(--destructive))" },
-    { range: "4–6", count: 0, color: "hsl(var(--warning))" },
-    { range: "6–8", count: 0, color: "hsl(var(--primary))" },
-    { range: "8–10", count: 0, color: "hsl(142 76% 36%)" },
-  ];
-  for (const s of notableScores) {
-    const sc = s.score || 0;
-    if (sc < 4) scoreBuckets[0].count++;
-    else if (sc < 6) scoreBuckets[1].count++;
-    else if (sc < 8) scoreBuckets[2].count++;
-    else scoreBuckets[3].count++;
-  }
+  // Derive community insights from real data
+  const topMode = Object.entries(typeBreakdown).sort((a, b) => (b[1] as number) - (a[1] as number))[0];
+  const topCat = topCategories[0];
+  const highScorers = notableScores.filter(s => s.score >= 8).length;
+  const modeCount = Object.keys(typeBreakdown).length;
 
   return (
     <section className="space-y-6">
@@ -95,16 +70,16 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
         <h2 className="text-lg font-bold text-foreground">Platform Analytics</h2>
       </div>
       <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-        Anonymized intelligence from all analyses run across the platform. Patterns, projections, and strategic signals — no individual data exposed.
+        Anonymized, aggregated intelligence from all analyses run across the platform. See what the community is exploring, which categories attract the most attention, and how scores distribute.
       </p>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { icon: Layers, label: "Total Analyses", value: totalAnalyses, sub: `across ${totalCategories} categories`, accent: "hsl(var(--primary))" },
-          { icon: TrendingUp, label: "Platform Avg Score", value: `${avgScore}/10`, sub: avgScore >= 7.5 ? "Strong ecosystem" : "Growing ecosystem", accent: "hsl(var(--warning))" },
-          { icon: Users, label: "Mode Diversity", value: Object.keys(typeBreakdown).length, sub: "active analysis types", accent: "hsl(271 81% 55%)" },
-          { icon: Target, label: "Top Performers", value: notableScores.filter(s => s.score >= 8).length, sub: "scored 8+ / 10", accent: "hsl(142 76% 36%)" },
+          { icon: Layers, label: "Analyses Run", value: totalAnalyses, sub: "Total disruption analyses completed by all users on the platform", accent: "hsl(var(--primary))" },
+          { icon: TrendingUp, label: "Avg Revival Score", value: `${avgScore}/10`, sub: "Mean score across all completed analyses — higher means stronger disruption potential", accent: "hsl(var(--warning))" },
+          { icon: Users, label: "Analysis Modes Used", value: modeCount, sub: `Users have explored ${modeCount} of 4 available modes (Product, Service, Business, First Principles)`, accent: "hsl(271 81% 55%)" },
+          { icon: Target, label: "High-Potential Finds", value: highScorers, sub: "Analyses scoring 8+/10 — ideas the platform flagged as strong disruption candidates", accent: "hsl(142 76% 36%)" },
         ].map(s => (
           <div key={s.label} className="rounded-xl border border-border bg-card p-4" style={{ borderLeft: `3px solid ${s.accent}` }}>
             <div className="flex items-center gap-2 mb-2">
@@ -114,17 +89,18 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{s.label}</span>
             </div>
             <p className="text-xl font-bold text-foreground">{s.value}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{s.sub}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{s.sub}</p>
           </div>
         ))}
       </div>
 
       {/* Row: Mode Distribution + Platform Health Radar */}
       <div className="grid sm:grid-cols-2 gap-4">
-        {/* Pie: mode distribution */}
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs font-bold text-foreground mb-1">Analysis Mode Distribution</p>
-          <p className="text-[10px] text-muted-foreground mb-3">How platform users choose to analyze</p>
+          <p className="text-xs font-bold text-foreground mb-1">How Users Analyze</p>
+          <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
+            Breakdown of which analysis modes the community uses most. Product mode deconstructs physical/digital products. Service mode targets service businesses. Business Model mode examines revenue structures. First Principles strips assumptions entirely.
+          </p>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -148,10 +124,11 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
           </div>
         </div>
 
-        {/* Radar: platform health */}
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs font-bold text-foreground mb-1">Platform Health Index</p>
-          <p className="text-[10px] text-muted-foreground mb-3">Composite signal across volume, quality, and diversity</p>
+          <p className="text-xs font-bold text-foreground mb-1">Platform Engagement Snapshot</p>
+          <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
+            A radar view of platform health across 5 dimensions: Volume (total analyses), Diversity (category spread), Quality (average score), Depth (mode variety), and Consistency (usage regularity). Higher values indicate stronger engagement.
+          </p>
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData} cx="50%" cy="50%" outerRadius={70}>
@@ -165,121 +142,72 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
         </div>
       </div>
 
-      {/* Growth Projection */}
-      <div className="rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center gap-2 mb-1">
-          <ArrowUpRight size={14} className="text-primary" />
-          <p className="text-xs font-bold text-foreground">Growth Trajectory & Projection</p>
-        </div>
-        <p className="text-[10px] text-muted-foreground mb-4">Actual activity with 3-month linear projection based on current momentum</p>
-        <div className="h-[200px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={projectedData}>
-              <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-              <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
-              <Area type="monotone" dataKey="count" fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth={2} name="Actual" />
-              <Area type="monotone" dataKey="projected" fill="hsl(271 81% 55% / 0.1)" stroke="hsl(271 81% 55%)" strokeWidth={2} strokeDasharray="6 3" name="Projected" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="flex items-center gap-4 mt-2">
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-0.5 rounded" style={{ background: "hsl(var(--primary))" }} />
-            <span className="text-[10px] text-muted-foreground">Actual</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-0.5 rounded" style={{ background: "hsl(271 81% 55%)", borderTop: "2px dashed hsl(271 81% 55%)" }} />
-            <span className="text-[10px] text-muted-foreground">Projected</span>
+      {/* Top Categories — full width */}
+      {catBarData.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-xs font-bold text-foreground mb-1">Most Explored Categories</p>
+          <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
+            The product and service categories that users have analyzed most frequently. This shows where the community sees the most disruption opportunity — or where they're applying the most scrutiny.
+          </p>
+          <div className="h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={catBarData} layout="vertical">
+                <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" width={100} />
+                <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`${v} analyses`, "Count"]} />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                  {catBarData.map((e, i) => (
+                    <Cell key={i} fill={e.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Top Categories + Score Distribution */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        {catBarData.length > 0 && (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-xs font-bold text-foreground mb-1">Most Explored Categories</p>
-            <p className="text-[10px] text-muted-foreground mb-3">Where the platform's analytical attention concentrates</p>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={catBarData} layout="vertical">
-                  <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" width={100} />
-                  <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`${v} analyses`, "Count"]} />
-                  <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                    {catBarData.map((e, i) => (
-                      <Cell key={i} fill={e.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
-        {notableScores.length > 0 && (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-xs font-bold text-foreground mb-1">Score Distribution</p>
-            <p className="text-[10px] text-muted-foreground mb-3">Revival scores across all notable analyses</p>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={scoreBuckets}>
-                  <XAxis dataKey="range" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
-                  <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`${v} projects`, "Count"]} />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {scoreBuckets.map((b, i) => (
-                      <Cell key={i} fill={b.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Insight callouts */}
+      {/* Community Insight Cards — actionable for users */}
       <div className="grid sm:grid-cols-3 gap-3">
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Zap size={12} className="text-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Signal</span>
+            <Flame size={12} className="text-primary" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">What's Hot</span>
           </div>
           <p className="text-xs font-semibold text-foreground mb-1">
-            {Object.keys(typeBreakdown).length >= 3 ? "Multi-modal adoption detected" : "Mode specialization trend"}
+            {topCat ? `"${topCat.name}" leads with ${topCat.count} analyses` : "Community is warming up"}
           </p>
           <p className="text-[10px] text-muted-foreground leading-relaxed">
-            {Object.keys(typeBreakdown).length >= 3
-              ? `Users are exploring ${Object.keys(typeBreakdown).length} distinct analysis modes, suggesting strategic maturity in approach diversity.`
-              : `The platform shows concentration in ${Object.keys(typeBreakdown)[0] || "product"} mode. Diversifying modes may unlock hidden opportunities.`}
+            {topCat
+              ? `This is the most scrutinized category on the platform. If you're working in this space, the community's attention suggests both opportunity and competition. Consider a First Principles analysis to find angles others may have missed.`
+              : `Run your first analysis to start contributing to community intelligence.`}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp size={12} style={{ color: "hsl(142 76% 36%)" }} />
-            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(142 76% 36%)" }}>Projection</span>
+            <Compass size={12} style={{ color: "hsl(271 81% 55%)" }} />
+            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(271 81% 55%)" }}>Underexplored</span>
           </div>
           <p className="text-xs font-semibold text-foreground mb-1">
-            {avgScore >= 7.5 ? "Above-average ecosystem quality" : "Growth-phase ecosystem"}
+            {totalCategories < 20 ? `${50 - totalCategories}+ categories untouched` : "Deep coverage building"}
           </p>
           <p className="text-[10px] text-muted-foreground leading-relaxed">
-            At current momentum, the platform is projected to reach ~{Math.round(totalAnalyses * 1.55)} analyses by May 2026 with an estimated average score of {Math.min(avgScore + 0.3, 9.5).toFixed(1)}/10.
+            {totalCategories < 20
+              ? `The community has only explored ${totalCategories} categories so far. Industries like construction tech, elder care, logistics, and agriculture remain largely unanalyzed — potential whitespace for early movers.`
+              : `With ${totalCategories} categories covered, the platform is building a broad disruption map. Look for cross-category patterns in your Portfolio.`}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Target size={12} style={{ color: "hsl(var(--warning))" }} />
-            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--warning))" }}>Opportunity</span>
+            <Lightbulb size={12} style={{ color: "hsl(var(--warning))" }} />
+            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--warning))" }}>Try This</span>
           </div>
           <p className="text-xs font-semibold text-foreground mb-1">
-            {totalCategories > 15 ? "Category saturation approaching" : "Category whitespace available"}
+            {topMode ? `${(topMode[1] as number)} of ${totalAnalyses} analyses use ${MODE_LABELS[topMode[0]] || topMode[0]}` : "Pick a mode"}
           </p>
           <p className="text-[10px] text-muted-foreground leading-relaxed">
-            {totalCategories > 15
-              ? `With ${totalCategories} categories explored, niche cross-category analyses may yield the highest marginal insight.`
-              : `Only ${totalCategories} of 50+ possible categories explored. Expanding into adjacent verticals could reveal untapped disruption opportunities.`}
+            {modeCount < 4
+              ? `The community hasn't fully adopted all analysis modes yet. Try ${modeCount === 1 ? "Service or Business Model" : "a mode you haven't used"} mode on a product you've already analyzed — different lenses often reveal different opportunities.`
+              : `All 4 modes are active. For your next analysis, try running the same product through multiple modes to compare what each lens reveals.`}
           </p>
         </div>
       </div>
