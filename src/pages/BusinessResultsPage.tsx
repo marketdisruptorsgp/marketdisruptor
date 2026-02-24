@@ -14,7 +14,7 @@ import {
 import { SectionWorkflowNav } from "@/components/SectionNav";
 
 const BIZ_STRESS_DESCRIPTIONS: Record<string, string> = {
-  debate: "Red Team attacks vs Blue Team defenses",
+  debate: "Red Team attacks vs Green Team defenses",
   validate: "Feasibility checklist & confidence scores",
 };
 
@@ -134,12 +134,12 @@ export default function BusinessResultsPage() {
               <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                 <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(38 92% 50%)" }}>4</div>
                 <div className="flex-1"><h2 className="text-lg font-bold text-foreground">Stress Test</h2>
-                  <p className="text-sm text-muted-foreground">Red Team vs Blue Team for <strong className="text-foreground">{bizName}</strong></p></div>
+                  <p className="text-sm text-muted-foreground">Red Team vs Green Team for <strong className="text-foreground">{bizName}</strong></p></div>
               </div>
               <div className="p-5 space-y-6" style={{ background: "hsl(var(--card))" }}>
                 <SectionWorkflowNav
                   tabs={[
-                    { id: "debate" as const, label: "Red vs Blue Debate", icon: Swords },
+                    { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
                     { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
                   ]}
                   activeId={analysis.businessStressTestTab}

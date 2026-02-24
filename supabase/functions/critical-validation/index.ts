@@ -49,15 +49,15 @@ CRITICAL RULES:
 1. NEVER give generic dismissals like "undifferentiated offering" or "no competitive moat" without citing SPECIFIC evidence.
 2. Every attack must name a specific constraint, market reality, or technical challenge — not just "it's generic."
 3. For NOVEL concepts with no direct competitors, evaluate based on: customer behavior change required, technical complexity, market timing, and adjacent market signals — don't penalize innovation for being unprecedented.
-4. Blue Team should be genuinely constructive — find the real reasons this COULD work, including structural advantages of being first-to-market or creating a new category.
+4. Green Team should be genuinely constructive — find the real reasons this COULD work, including structural advantages of being first-to-market or creating a new category.
 5. If the concept is truly novel, compare to ADJACENT category successes (e.g., how Airbnb had no direct competitor but could be compared to Couchsurfing + hotels).
 6. IMPORTANT: If parts of the CURRENT product/service already have strong market fit, feasibility, or user loyalty, explicitly call that out. Not everything needs to change — identify what should be PRESERVED and what should be EVOLVED vs completely reinvented.
 
 THE DIFFERENCE BETWEEN GENERIC AND USEFUL STRESS TESTING:
 - BAD RED TEAM: "This is a generic, undifferentiated offering destined to fail" (lazy, unhelpful)
 - GOOD RED TEAM: "The core challenge is customer education — users don't know they need this yet. Customer acquisition costs for new-category products average 3-5x higher than established categories (per a16z benchmarks)."
-- BAD BLUE TEAM: "This could succeed with good execution" (empty)
-- GOOD BLUE TEAM: "Category-creation plays like Peloton and Oura Ring show that passionate niche communities can drive viral adoption before mass-market awareness. The key metric is whether the first 100 users become evangelists."
+- BAD GREEN TEAM: "This could succeed with good execution" (empty)
+- GOOD GREEN TEAM: "Category-creation plays like Peloton and Oura Ring show that passionate niche communities can drive viral adoption before mass-market awareness. The key metric is whether the first 100 users become evangelists."
 
 Respond ONLY with a single valid JSON object — no markdown, no explanation.
 
@@ -160,13 +160,13 @@ ${analysisData.flippedLogic?.map((f: { originalAssumption: string; boldAlternati
 
 CRITICAL INSTRUCTIONS:
 1. RED TEAM: Be SPECIFIC. Every attack must name a real competitor, cite a real market data point, or identify a specific technical constraint. NO generic dismissals.
-2. BLUE TEAM: Be EVIDENCE-BASED. Every defense must cite a real analogous success (company name, revenue/growth data, year).
+2. GREEN TEAM: Be EVIDENCE-BASED. Every defense must cite a real analogous success (company name, revenue/growth data, year).
 3. COUNTER-EXAMPLES: Use REAL companies/products — no fabrication. Include year AND revenue/funding data. Pick examples that are STRUCTURALLY similar, not just thematically similar.
 4. FEASIBILITY CHECKLIST: Actionable items with cost estimates. Tell me WHO to call, WHERE to look, WHAT to test.
 5. CONFIDENCE SCORES: 1-10, evidence-based. Each score must cite specific evidence. Don't default to middle scores — take a position.
 6. STRATEGIC RECOMMENDATIONS: Give 3 specific next steps, including the CHEAPEST way to validate demand (under $500).
 7. BLIND SPOTS: What data is missing? Where would you find it?
-8. Provide 4-6 arguments for both Red and Blue teams.
+8. Provide 4-6 arguments for both Red and Green teams.
 9. Provide 3-5 counter-examples, 6-10 feasibility items, and 3-4 blind spots.
 
 Return ONLY the JSON object.`;

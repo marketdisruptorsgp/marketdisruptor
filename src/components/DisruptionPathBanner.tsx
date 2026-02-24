@@ -38,8 +38,8 @@ const PIPELINE_STEPS = [
     icon: Swords,
     label: "Stress Test",
     shortLabel: "Test",
-    desc: "Red vs Blue team adversarial validation & critical debate",
-    detail: "Your best ideas face adversarial scrutiny — a Red Team attacks while a Blue Team defends, revealing blind spots before they cost you.",
+    desc: "Red vs Green team adversarial validation & critical debate",
+    detail: "Your best ideas face adversarial scrutiny — a Red Team attacks while a Green Team defends, revealing blind spots before they cost you.",
     color: "350 80% 55%",
   },
   {

@@ -25,7 +25,7 @@ const METHODOLOGY_STEPS = [
     title: "Adversarial Red Teaming",
     icon: Swords,
     desc: "A simulated adversary stress-tests your strategy by attacking key assumptions, identifying blind spots, and pressure-testing market positioning. This is how you find weaknesses before competitors do.",
-    details: ["Red Team challenges every strategic claim", "Blue Team defends with data-backed rebuttals", "Result: battle-tested strategy with known vulnerabilities addressed"],
+    details: ["Red Team challenges every strategic claim", "Green Team defends with data-backed rebuttals", "Result: battle-tested strategy with known vulnerabilities addressed"],
   },
 ];
 

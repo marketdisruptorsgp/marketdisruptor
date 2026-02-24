@@ -40,7 +40,7 @@ const MODE_TIPS: Record<"custom" | "service" | "business", string[]> = {
     "Upload a product photo alongside the URL — the AI uses computer vision to catch design details that text listings miss, like material quality, ergonomic flaws, and packaging inefficiencies.",
     "Add competitor URLs in the same batch. The analysis cross-references pricing, features, and positioning across all inputs to find gaps no single product review would reveal.",
     "The Disrupt step doesn't just improve — it deliberately flips every assumption. If a product is heavy, it asks: what if weight is the feature? That's where breakthrough ideas live.",
-    "After analysis, use the Red Team / Blue Team debate to stress-test the AI's own conclusions. The best strategies survive adversarial scrutiny.",
+    "After analysis, use the Red Team / Green Team debate to stress-test the AI's own conclusions. The best strategies survive adversarial scrutiny.",
   ],
   service: [
     "Paste your service's landing page URL — the AI maps the entire customer journey, from first impression to post-purchase, and flags friction points competitors accept as normal.",
