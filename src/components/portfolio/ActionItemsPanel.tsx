@@ -4,9 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import {
-  Plus, Trash2, ChevronUp, ChevronDown, StickyNote, Sparkles, X,
-  ChevronRight, Presentation, AlertTriangle, Target, Zap,
+  Plus, Trash2, ChevronUp, ChevronDown, StickyNote, Sparkles,
+  ChevronRight, Target, Loader2,
 } from "lucide-react";
 
 interface ActionItem {
@@ -27,45 +28,14 @@ interface SavedAnalysis {
   avg_revival_score: number;
   analysis_data?: any;
   analysis_type?: string;
+  products?: any[];
 }
 
-function generateSuggestions(analyses: SavedAnalysis[]): { text: string; analysisId?: string; icon: typeof Sparkles }[] {
-  const suggestions: { text: string; analysisId?: string; icon: typeof Sparkles }[] = [];
-  if (!analyses.length) return suggestions;
-
-  // Highest scoring project
-  const sorted = [...analyses].sort((a, b) => (b.avg_revival_score || 0) - (a.avg_revival_score || 0));
-  const best = sorted[0];
-  if (best && (best.avg_revival_score || 0) >= 7) {
-    suggestions.push({ text: `Focus on "${best.title}" — your strongest opportunity`, analysisId: best.id, icon: Target });
-  }
-
-  // High score but no pitch
-  for (const a of analyses) {
-    if ((a.avg_revival_score || 0) >= 7.5 && !a.analysis_data?.pitchDeck) {
-      suggestions.push({ text: `Generate pitch deck for "${a.title}"`, analysisId: a.id, icon: Presentation });
-      break;
-    }
-  }
-
-  // No stress test
-  for (const a of analyses) {
-    if (!a.analysis_data?.stressTest && a.analysis_type !== "business_model") {
-      suggestions.push({ text: `Run stress test for "${a.title}"`, analysisId: a.id, icon: AlertTriangle });
-      break;
-    }
-  }
-
-  // Outdated
-  for (const a of analyses) {
-    const outdated = a.analysis_data?.outdatedSteps;
-    if (outdated && Array.isArray(outdated) && outdated.length > 0) {
-      suggestions.push({ text: `Re-run analysis for "${a.title}" (outdated steps)`, analysisId: a.id, icon: Zap });
-      break;
-    }
-  }
-
-  return suggestions.slice(0, 4);
+interface AISuggestion {
+  text: string;
+  projectTitle: string;
+  projectId: string;
+  priority: "high" | "medium" | "low";
 }
 
 export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
@@ -76,8 +46,8 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
   const [editingNote, setEditingNote] = useState<{ id: string; value: string } | null>(null);
   const [editingText, setEditingText] = useState<{ id: string; value: string } | null>(null);
   const [collapsed, setCollapsed] = useState(false);
-
-  const suggestions = generateSuggestions(analyses);
+  const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
+  const [generating, setGenerating] = useState(false);
 
   const fetchItems = useCallback(async () => {
     if (!user) return;
@@ -89,6 +59,34 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
   }, [user]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  const generateAISuggestions = async () => {
+    if (analyses.length === 0) {
+      toast.info("Run some analyses first to get AI-powered suggestions.");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-action-items", {
+        body: { analyses: analyses.slice(0, 10) },
+      });
+      if (error) throw error;
+      if (data?.items) {
+        setAiSuggestions(data.items);
+        if (data.items.length === 0) toast.info("No new suggestions — your portfolio looks well-covered.");
+      } else {
+        throw new Error(data?.error || "No suggestions returned");
+      }
+    } catch (err: any) {
+      console.error("AI suggestions error:", err);
+      const msg = err?.message || "Failed to generate suggestions";
+      if (msg.includes("Rate limit")) toast.error("Rate limit reached — try again in a moment.");
+      else if (msg.includes("credits")) toast.error("AI credits exhausted. Add credits to continue.");
+      else toast.error(msg);
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const addItem = async (text: string, analysisId?: string) => {
     if (!user || !text.trim()) return;
@@ -106,6 +104,8 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
     };
     setItems(prev => [...prev, optimistic]);
     setNewText("");
+    // Remove from AI suggestions
+    setAiSuggestions(prev => prev.filter(s => s.text !== text));
     await (supabase.from("portfolio_action_items") as any).insert({
       user_id: user.id,
       analysis_id: analysisId || null,
@@ -168,6 +168,15 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
   const activeItems = items.filter(i => !i.completed);
   const completedItems = items.filter(i => i.completed);
 
+  // Filter AI suggestions that haven't already been added
+  const visibleSuggestions = aiSuggestions.filter(s => !items.some(i => i.text === s.text));
+
+  const priorityColor = (p: string) => {
+    if (p === "high") return { bg: "hsl(0 84% 60% / 0.1)", text: "hsl(0 84% 40%)" };
+    if (p === "medium") return { bg: "hsl(38 92% 50% / 0.1)", text: "hsl(38 92% 35%)" };
+    return { bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))" };
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card">
       <button
@@ -188,26 +197,54 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
 
       {!collapsed && (
         <div className="px-4 pb-4 space-y-3">
-          {/* Suggestions */}
-          {suggestions.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Suggested</p>
-              <div className="flex flex-wrap gap-1.5">
-                {suggestions.filter(s => !items.some(i => i.text === s.text)).map((s, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => addItem(s.text, s.analysisId)}
-                    className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-colors"
-                    style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}
-                  >
-                    <s.icon size={10} />
-                    <span className="truncate max-w-[220px]">{s.text}</span>
-                    <Plus size={10} />
-                  </button>
-                ))}
-              </div>
+          {/* AI Suggestions */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">AI Suggestions</p>
+              <button
+                onClick={generateAISuggestions}
+                disabled={generating || analyses.length === 0}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors disabled:opacity-40"
+                style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+              >
+                {generating ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+                {generating ? "Analyzing…" : visibleSuggestions.length > 0 ? "Refresh" : "Generate Suggestions"}
+              </button>
             </div>
-          )}
+
+            {visibleSuggestions.length > 0 && (
+              <div className="space-y-1">
+                {visibleSuggestions.map((s, idx) => {
+                  const pc = priorityColor(s.priority);
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => addItem(s.text, s.projectId)}
+                      className="w-full flex items-start gap-2 px-2.5 py-2 rounded-lg text-left text-[11px] transition-colors hover:border-primary/40"
+                      style={{ background: "hsl(var(--muted) / 0.5)", border: "1px solid hsl(var(--border))" }}
+                    >
+                      <Plus size={12} className="text-primary flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground leading-relaxed">{s.text}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-[9px] text-muted-foreground">→ {s.projectTitle}</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: pc.bg, color: pc.text }}>
+                            {s.priority}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {!generating && visibleSuggestions.length === 0 && aiSuggestions.length === 0 && analyses.length > 0 && (
+              <p className="text-[10px] text-muted-foreground text-center py-1">
+                Click "Generate Suggestions" to get AI-powered strategic action items from your analyses.
+              </p>
+            )}
+          </div>
 
           {/* Add new */}
           <div className="flex gap-2">
@@ -229,8 +266,8 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
           </div>
 
           {/* Active items */}
-          {activeItems.length === 0 && completedItems.length === 0 && (
-            <p className="text-[11px] text-muted-foreground text-center py-3">No action items yet. Add one or click a suggestion above.</p>
+          {activeItems.length === 0 && completedItems.length === 0 && visibleSuggestions.length === 0 && (
+            <p className="text-[11px] text-muted-foreground text-center py-3">No action items yet. Add one or generate AI suggestions.</p>
           )}
 
           <div className="space-y-1">
