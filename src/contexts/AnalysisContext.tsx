@@ -367,6 +367,22 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const customName = customProducts?.find(cp => cp.productName)?.productName;
       await saveAnalysis(liveProducts, baseParams, customName);
 
+      // Fire webhooks (best effort)
+      try {
+        await supabase.functions.invoke("fire-webhook", {
+          body: {
+            event: "analysis.completed",
+            data: {
+              title: liveProducts[0]?.name || "Analysis",
+              category: params.category,
+              avg_revival_score: Math.round(liveProducts.reduce((a, p) => a + p.revivalScore, 0) / liveProducts.length * 10) / 10,
+              product_count: liveProducts.length,
+              top_idea: liveProducts[0]?.flippedIdeas?.[0]?.name || null,
+            },
+          },
+        });
+      } catch (_) { /* best effort */ }
+
       // Navigate to report page
       navigate(`/analysis/${analysisId || id}/report`);
     } catch (err: unknown) {

@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, Database, Upload, Briefcase, Building2,
   FolderOpen, BarChart3, BookOpen, HelpCircle, Lightbulb, TrendingUp, Radar,
-  Menu, PieChart,
+  Menu, PieChart, Code2,
 } from "lucide-react";
 
 interface PlatformNavProps {
@@ -34,6 +34,7 @@ const ACCESS_MODES = [
 const RESOURCES_ITEMS = [
   { label: "FAQs", desc: "Common questions answered", icon: HelpCircle, path: "/faqs" },
   { label: "Methodology", desc: "Our 4-step analysis pipeline", icon: Lightbulb, path: "/methodology" },
+  { label: "API & Integrations", desc: "Connect your tools via REST API", icon: Code2, path: "/api" },
 ];
 
 const MODE_LABELS: Record<string, string> = {
