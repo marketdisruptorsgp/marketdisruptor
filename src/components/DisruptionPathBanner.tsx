@@ -22,9 +22,17 @@ const PIPELINE_STEPS = [
     icon: Brain,
     label: "Disrupt & Reinvent",
     shortLabel: "Disrupt",
-    desc: "First principles deconstruction & AI-generated flip ideas",
+    desc: "Challenge assumptions & generate radical flip ideas",
     detail: "Every assumption gets challenged. The AI breaks down the product to fundamentals and generates novel concepts from community pain points.",
     color: "271 81% 55%",
+  },
+  {
+    icon: Sparkles,
+    label: "Redesign",
+    shortLabel: "Redesign",
+    desc: "Interactive redesigned concept with detailed illustrations",
+    detail: "A fully reimagined product concept with physical specs, materials, smart features, and go-to-market strategy — brought to life visually.",
+    color: "38 92% 50%",
   },
   {
     icon: Swords,
@@ -66,12 +74,12 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
             From raw data to investor-ready output
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground mt-2 max-w-xl mx-auto">
-            Five stages of AI-powered analysis, each building on the last
+            Six stages of AI-powered analysis, each building on the last
           </p>
         </div>
 
         {/* Pipeline steps — vertical on mobile, horizontal on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-3">
           {PIPELINE_STEPS.map(({ icon: Icon, label, desc, detail, color }, i) => {
             const isActive = activeStep !== undefined && activeStep === i + 1;
             const isPast = activeStep !== undefined && activeStep > i + 1;

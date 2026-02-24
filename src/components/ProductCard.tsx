@@ -1,6 +1,5 @@
 import { ExternalLink, TrendingUp, TrendingDown, Minus, ImageOff } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
-import { RevivalScoreBadge } from "./RevivalScoreBadge";
 import { DataLabel } from "./DataLabel";
 
 interface ProductCardProps {
@@ -9,13 +8,10 @@ interface ProductCardProps {
   onClick: () => void;
 }
 
-function TrendIcon({ trend }: { trend?: "up" | "down" | "stable" }) {
-  if (trend === "up") return <TrendingUp size={10} style={{ color: "hsl(var(--success))" }} />;
-  if (trend === "down") return <TrendingDown size={10} style={{ color: "hsl(var(--destructive))" }} />;
-  return <Minus size={10} style={{ color: "hsl(var(--warning))" }} />;
-}
-
 export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) => {
+  // Only show image if user-uploaded (imageSource === "user")
+  const showImage = product.image && product.image !== "PLACEHOLDER_IMAGE" && product.image !== "" && (product as unknown as { imageSource?: string }).imageSource === "user";
+
   return (
     <div
       onClick={onClick}
@@ -32,8 +28,8 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         />
       )}
 
-      {/* Image — only show if we have a real image */}
-      {product.image && product.image !== "PLACEHOLDER_IMAGE" && product.image !== "" ? (
+      {/* Image — only show if user-uploaded */}
+      {showImage ? (
         <div className="relative overflow-hidden bg-muted">
           <img
             src={product.image}
@@ -41,18 +37,10 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
             className="w-full h-56 object-contain"
             loading="lazy"
             onError={(e) => {
-              // Hide entire image container on error
               const container = (e.target as HTMLImageElement).closest('.relative.overflow-hidden');
               if (container) (container as HTMLElement).style.display = 'none';
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-          <span
-            className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-medium"
-            style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
-          >
-            {product.era}
-          </span>
           {product.pricingIntel && (
             <span
               className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"
@@ -64,21 +52,15 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
           )}
         </div>
       ) : (
-        /* No image: just show era badge and pricing inline */
-        <div className="px-4 pt-3 flex items-center justify-between">
-          <span
-            className="px-2 py-0.5 rounded text-[10px] font-medium"
-            style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
-          >
-            {product.era}
-          </span>
-          {product.pricingIntel && (
+        /* No image: just show pricing inline */
+        product.pricingIntel && (
+          <div className="px-4 pt-3 flex items-center justify-end">
             <span className="text-[10px] font-medium flex items-center gap-1 text-muted-foreground">
               {product.pricingIntel.currentMarketPrice}
               <DataLabel label={(product.pricingIntel as unknown as Record<string, unknown>).currentMarketPriceDataLabel as string} />
             </span>
-          )}
-        </div>
+          </div>
+        )
       )}
 
       <div className="p-3 sm:p-4 space-y-2">
@@ -93,8 +75,7 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
           </p>
         )}
 
-        <div className="flex items-center justify-between pt-1">
-          <RevivalScoreBadge score={product.revivalScore} size="sm" />
+        <div className="flex items-center justify-end pt-1">
           <div className="flex gap-1 flex-wrap justify-end">
             {product.sources.slice(0, 2).map((s) => (
               <a
@@ -110,23 +91,6 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
               </a>
             ))}
           </div>
-        </div>
-
-        {/* Social signals */}
-        <div className="flex flex-wrap gap-1 pt-1">
-          {product.socialSignals.slice(0, 2).map((sig) => (
-            <span
-              key={sig.platform}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium"
-              style={{
-                background: "hsl(var(--muted))",
-                color: "hsl(var(--muted-foreground))",
-              }}
-            >
-              <TrendIcon trend={sig.trend} />
-              {sig.platform}: {sig.volume}
-            </span>
-          ))}
         </div>
 
         {product.marketSizeEstimate && (

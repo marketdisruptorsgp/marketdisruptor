@@ -151,7 +151,7 @@ export function UserHeader() {
           >
             {initials}
           </div>
-          <span className="text-xs sm:text-sm font-bold hidden sm:inline" style={{ color: open ? "white" : "hsl(var(--primary))" }}>
+          <span className="text-xs sm:text-sm font-bold" style={{ color: open ? "white" : "hsl(var(--primary))" }}>
             {profile.first_name}
           </span>
           <ChevronDown size={12} style={{ color: open ? "white" : "hsl(var(--primary))", transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }} />

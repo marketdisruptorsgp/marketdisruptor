@@ -20,16 +20,23 @@ import { InsightRating } from "./InsightRating";
 import { SectionWorkflowNav } from "@/components/SectionNav";
 
 const DISRUPT_SECTION_DESCRIPTIONS: Record<string, string> = {
+  assumptions: "Hidden assumptions & challenge ideas",
+  flip: "Inverted logic & bold alternatives",
+  ideas: "Flipped product ideas & innovations",
+};
+
+// ── Exported section descriptions for Intel Report tabs ──
+export const INTEL_SECTION_DESCRIPTIONS: Record<string, string> = {
   reality: "True problem, actual usage & user hacks",
   physical: "Size, weight, form factor & ergonomic gaps",
   workflow: "Step-by-step journey & friction points",
-  smarttech: "Missed tech opportunities & integrations",
-  assumptions: "Hidden assumptions & challenge ideas",
-  flip: "Inverted logic & bold alternatives",
-  concept: "Redesigned concept & radical differences",
-  ideas: "Flipped product ideas & innovations",
-  patents: "Expired patents & IP opportunities",
 };
+
+// ── Exported section descriptions for Redesign step ──
+export const REDESIGN_SECTION_DESCRIPTIONS: Record<string, string> = {
+  concept: "Redesigned concept & radical differences",
+};
+
 interface CoreReality {
   trueProblem: string;
   actualUsage: string;
@@ -117,7 +124,7 @@ interface CurrentStrengths {
   keepVsAdapt: string;
 }
 
-interface FirstPrinciplesData {
+export interface FirstPrinciplesData {
   currentStrengths?: CurrentStrengths;
   coreReality: CoreReality;
   physicalDimensions: PhysicalDimensions;
@@ -146,14 +153,8 @@ const REASON_COLORS: Record<string, { bg: string; text: string; label: string }>
   habit: { bg: "hsl(330 80% 55% / 0.1)", text: "hsl(330 80% 40%)", label: "Habit" },
 };
 
-const SEVERITY_COLORS = {
-  high: { bg: "hsl(var(--destructive) / 0.08)", border: "hsl(var(--destructive) / 0.3)", text: "hsl(var(--destructive))" },
-  medium: { bg: "hsl(38 92% 50% / 0.08)", border: "hsl(38 92% 50% / 0.3)", text: "hsl(38 92% 35%)" },
-  low: { bg: "hsl(142 70% 45% / 0.07)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)" },
-};
-
-/* ── Interactive Workflow Timeline ──────────────────────── */
-function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; frictionPoints: WorkflowFriction[] }) {
+/* ── Interactive Workflow Timeline — neutral, no severity colors ──────────────────────── */
+export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; frictionPoints: WorkflowFriction[] }) {
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
 
   const getFriction = (stepName: string): WorkflowFriction | undefined => {
@@ -169,7 +170,6 @@ function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; friction
         {steps.slice(0, 8).map((step, i) => {
           const friction = getFriction(step);
           const isExpanded = expandedStep === i;
-          const sevCol = friction ? (SEVERITY_COLORS[friction.severity] || SEVERITY_COLORS.medium) : null;
           const isLast = i === Math.min(steps.length, 8) - 1;
 
           return (
@@ -200,14 +200,10 @@ function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; friction
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-bold text-foreground leading-tight">{step}</p>
-                    {sevCol && <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: sevCol.text }} />}
+                    {friction && <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--muted-foreground))" }} />}
                   </div>
-                  {friction && !isExpanded && (
-                    <span className="text-[9px] font-bold mt-1 inline-block px-1.5 py-0.5 rounded" style={{ background: sevCol!.bg, color: sevCol!.text }}>{friction.severity}</span>
-                  )}
                   {isExpanded && friction && (
                     <div className="mt-2 space-y-1.5">
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: sevCol!.bg, color: sevCol!.text, border: `1px solid ${sevCol!.border}` }}>{friction.severity}</span>
                       <p className="text-[11px] text-foreground/80 leading-relaxed">{friction.friction}</p>
                       {friction.rootCause && (
                         <p className="text-[10px] text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
@@ -244,14 +240,10 @@ function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; friction
                 >
                   <div className="flex items-center justify-between gap-1">
                     <p className="text-[10px] font-bold text-foreground leading-tight">{step}</p>
-                    {sevCol && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: sevCol.text }} />}
+                    {friction && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "hsl(var(--muted-foreground))" }} />}
                   </div>
-                  {friction && !isExpanded && (
-                    <span className="text-[9px] font-bold mt-1 inline-block px-1.5 py-0.5 rounded" style={{ background: sevCol!.bg, color: sevCol!.text }}>{friction.severity}</span>
-                  )}
                   {isExpanded && friction && (
                     <div className="mt-2 space-y-1">
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: sevCol!.bg, color: sevCol!.text, border: `1px solid ${sevCol!.border}` }}>{friction.severity}</span>
                       <p className="text-[11px] text-foreground/80 leading-relaxed">{friction.friction}</p>
                       {friction.rootCause && (
                         <p className="text-[10px] text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
@@ -259,9 +251,6 @@ function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; friction
                     </div>
                   )}
                 </button>
-                {!isExpanded && friction && (
-                  <p className="text-[9px] font-bold mt-1 text-center" style={{ color: sevCol!.text }}>{friction.step}</p>
-                )}
               </div>
             </div>
           );
@@ -309,7 +298,6 @@ function SectionHeader({ current, total, label, icon: Icon }: { current: number;
           <p className="text-[10px] text-muted-foreground font-medium">Section {current} of {total}</p>
         </div>
       </div>
-      {/* Progress dots */}
       <div className="flex items-center gap-1">
         {Array.from({ length: total }, (_, i) => (
           <div key={i} className="rounded-full transition-all" style={{
@@ -343,8 +331,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [loading, setLoading] = useState(false);
   const [patentLoading, setPatentLoading] = useState(false);
   const isService = product.category === "Service";
-  const [activeStep, setActiveStep] = useState<"reality" | "physical" | "workflow" | "smarttech" | "assumptions" | "flip" | "concept" | "ideas" | "patents">("reality");
-  const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set(["reality"]));
+  const [activeStep, setActiveStep] = useState<"assumptions" | "flip" | "ideas">("assumptions");
+  const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set(["assumptions"]));
   const [userContext, setUserContext] = useState("");
   const [rerunSuggestions, setRerunSuggestions] = useState("");
 
@@ -404,7 +392,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         } else {
           setData(result.analysis);
           onDataLoaded?.(result.analysis);
-          setActiveStep("reality");
+          setActiveStep("assumptions");
           toast.success("Disrupt analysis complete!");
           await saveToWorkspace(result.analysis);
         }
@@ -431,13 +419,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   };
 
   const allSteps = [
-    { id: "reality" as const, label: "Core Reality", icon: Eye },
-    ...(!isService ? [{ id: "physical" as const, label: "Physical Form", icon: Ruler }] : []),
-    { id: "workflow" as const, label: isService ? "Customer Journey" : "User Workflow", icon: Navigation },
-    { id: "smarttech" as const, label: "Smart Tech", icon: Cpu },
     { id: "assumptions" as const, label: "Assumptions", icon: Brain },
     { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal },
-    { id: "concept" as const, label: "Redesign", icon: Sparkles },
     { id: "ideas" as const, label: "Flipped Ideas", icon: Zap },
   ];
   const totalSections = allSteps.length;
@@ -464,11 +447,10 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             Deep analysis of <strong>{product.name}</strong> — questioning every assumption and generating radical reinvention ideas.
           </p>
         </div>
-        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl`}>
+        <div className="grid grid-cols-3 gap-3 max-w-sm">
           {[
-            { icon: isService ? Navigation : Ruler, label: isService ? "Customer Journey" : "Physical Form" },
-            { icon: Cpu, label: "Smart Tech" },
-            { icon: Sparkles, label: "Redesign" },
+            { icon: Brain, label: "Assumptions" },
+            { icon: FlipHorizontal, label: "Flip Logic" },
             { icon: Zap, label: "Flipped Ideas" },
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="p-3 rounded text-center" style={{ background: "hsl(var(--muted))" }}>
@@ -541,209 +523,14 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         tabs={allSteps}
         activeId={activeStep}
         visitedIds={visitedFPSteps}
-        onSelect={(id) => { setActiveStep(id); setVisitedFPSteps(prev => new Set([...prev, id])); scrollToSteps(); }}
+        onSelect={(id) => { setActiveStep(id as typeof activeStep); setVisitedFPSteps(prev => new Set([...prev, id])); scrollToSteps(); }}
         descriptions={DISRUPT_SECTION_DESCRIPTIONS}
         journeyLabel="Disrupt Analysis Journey"
       />
 
       {/* ═══════ SECTION CONTENT ═══════ */}
 
-      {/* Section 1: Core Reality */}
-      {activeStep === "reality" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentSectionNum} total={totalSections} label="Core Reality" icon={Eye} />
-
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">The Real Problem</p>
-            <p className="text-sm text-foreground leading-relaxed">{data.coreReality.trueProblem}</p>
-          </div>
-
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">How People Actually Use It</p>
-            <p className="text-xs text-foreground/80 leading-relaxed">{data.coreReality.actualUsage}</p>
-          </div>
-
-          {/* Collapsible details */}
-          {data.currentStrengths && (
-            <DetailPanel title={`What's Working (${data.currentStrengths.whatWorks.length} strengths)`} icon={Shield} defaultOpen={false}>
-              <div className="space-y-1.5 mb-2">
-                {data.currentStrengths.whatWorks.slice(0, 3).map((item, i) => (
-                  <div key={i} className="flex gap-2 items-start text-xs leading-relaxed">
-                    <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-                    <span className="text-foreground/80">{item}</span>
-                  </div>
-                ))}
-                {data.currentStrengths.whatWorks.length > 3 && (
-                  <p className="text-[10px] text-muted-foreground ml-5">+{data.currentStrengths.whatWorks.length - 3} more</p>
-                )}
-              </div>
-              {data.currentStrengths.competitiveAdvantages?.length > 0 && (
-                <div className="pt-2 mb-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Competitive Advantages</p>
-                  {data.currentStrengths.competitiveAdvantages.map((adv, i) => (
-                    <div key={i} className="flex gap-2 items-start text-xs leading-relaxed mb-1">
-                      <Shield size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-                      <span className="text-foreground/80">{adv}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </DetailPanel>
-          )}
-
-          <DetailPanel title={`Frustrations & Workarounds (${data.coreReality.normalizedFrustrations.length + data.coreReality.userHacks.length})`} icon={ShieldAlert}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Frustrations</p>
-                {data.coreReality.normalizedFrustrations.slice(0, 3).map((f, i) => (
-                  <div key={i} className="flex gap-2 items-start text-xs leading-relaxed">
-                    <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-                    <span className="text-foreground/80">{f}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">User Hacks</p>
-                {data.coreReality.userHacks.slice(0, 3).map((h, i) => (
-                  <div key={i} className="flex gap-2 items-start text-xs leading-relaxed">
-                    <Wrench size={10} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 2 }} />
-                    <span className="text-foreground/80">{h}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </DetailPanel>
-
-          <InsightRating sectionId="core-reality" />
-          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* Section 2: Physical Dimensions */}
-      {activeStep === "physical" && data.physicalDimensions && (
-        <div className="space-y-4">
-          <SectionHeader current={currentSectionNum} total={totalSections} label="Physical Form" icon={Ruler} />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {[
-              { label: "Size", text: data.physicalDimensions.sizeAnalysis },
-              { label: "Weight", text: data.physicalDimensions.weightAnalysis },
-              { label: "Shape", text: data.physicalDimensions.formFactorAnalysis },
-              { label: "Rigidity", text: data.physicalDimensions.staticVsDynamic },
-            ].map(({ label, text }) => (
-              <div key={label} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
-                <p className="text-xs text-foreground/80 leading-relaxed">{text}</p>
-              </div>
-            ))}
-          </div>
-
-          <DetailPanel title={`Ergonomic Gaps & Opportunities (${(data.physicalDimensions.ergonomicGaps?.length || 0) + (data.physicalDimensions.dimensionOpportunities?.length || 0)})`} icon={Maximize2}>
-            {data.physicalDimensions.ergonomicGaps?.length > 0 && (
-              <div className="space-y-1.5 mb-3">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Gaps</p>
-                {data.physicalDimensions.ergonomicGaps.map((gap, i) => (
-                  <div key={i} className="flex gap-2 items-start text-xs">
-                    <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-                    <span className="text-foreground/80">{gap}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {data.physicalDimensions.dimensionOpportunities?.length > 0 && (
-              <div className="space-y-1.5 mb-2">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Opportunities</p>
-                {data.physicalDimensions.dimensionOpportunities.map((opp, i) => (
-                  <div key={i} className="flex gap-2 items-start text-xs">
-                    <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-                    <span className="text-foreground/80">{opp}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </DetailPanel>
-
-          <InsightRating sectionId="physical-form" compact />
-          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* Section 3: User Workflow — Visual Timeline */}
-      {activeStep === "workflow" && data.userWorkflow && (
-        <div className="space-y-4">
-          <SectionHeader current={currentSectionNum} total={totalSections} label={isService ? "Customer Journey" : "User Workflow"} icon={Navigation} />
-
-          <WorkflowTimeline
-            steps={data.userWorkflow.stepByStep}
-            frictionPoints={data.userWorkflow.frictionPoints}
-          />
-
-          {/* Cognitive Load & Context — visible cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Cognitive Load</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.cognitiveLoad}</p>
-            </div>
-            <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Context of Use</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.userWorkflow.contextOfUse}</p>
-            </div>
-          </div>
-
-          {/* Optimizations in collapsible */}
-          {data.userWorkflow.workflowOptimizations?.length > 0 && (
-            <DetailPanel title={`Workflow Optimizations (${data.userWorkflow.workflowOptimizations.length})`} icon={Wrench}>
-              <div className="space-y-1.5 mb-2">
-                {data.userWorkflow.workflowOptimizations.map((opt, i) => (
-                  <div key={i} className="flex gap-2 items-start text-xs">
-                    <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-                    <span className="text-foreground/80">{opt}</span>
-                  </div>
-                ))}
-              </div>
-            </DetailPanel>
-          )}
-
-          <InsightRating sectionId="workflow" compact />
-          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* Section 4: Smart Tech */}
-      {activeStep === "smarttech" && data.smartTechAnalysis && (
-        <div className="space-y-4">
-          <SectionHeader current={currentSectionNum} total={totalSections} label="Smart Tech" icon={Cpu} />
-
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Current Tech Level</p>
-            <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.currentTechLevel}</p>
-          </div>
-
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Highest-Leverage Integration</p>
-            <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.recommendedIntegration}</p>
-          </div>
-
-          <DetailPanel title={`Missed Opportunities (${data.smartTechAnalysis.missedOpportunities?.length || 0}) & Barriers`} icon={Wifi}>
-            {data.smartTechAnalysis.missedOpportunities?.map((opp, i) => (
-              <div key={i} className="mb-2 p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full mr-2 text-muted-foreground" style={{ background: "hsl(var(--muted))" }}>{opp.tech}</span>
-                <p className="text-xs font-semibold text-foreground/90 mt-1">{opp.application}</p>
-                <p className="text-[11px] text-muted-foreground">{opp.valueCreated}</p>
-              </div>
-            ))}
-            <div className="mt-2">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Why Not Done Yet</p>
-              <p className="text-xs text-foreground/80">{data.smartTechAnalysis.whyNotAlreadyDone}</p>
-            </div>
-          </DetailPanel>
-
-          <InsightRating sectionId="smarttech" compact />
-          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* Section 5: Hidden Assumptions */}
+      {/* Section 1: Hidden Assumptions */}
       {activeStep === "assumptions" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
@@ -800,7 +587,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         </div>
       )}
 
-      {/* Section 6: Flip the Logic */}
+      {/* Section 2: Flip the Logic */}
       {activeStep === "flip" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
@@ -839,96 +626,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         </div>
       )}
 
-      {/* Section 7: Redesigned Concept */}
-      {activeStep === "concept" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
-
-          <div className="p-5 rounded-lg relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white" }}>
-            <div className="relative">
-              <h2 className="text-xl font-black mb-0.5">{data.redesignedConcept.conceptName}</h2>
-              <p className="text-sm opacity-85 font-medium mb-2">{data.redesignedConcept.tagline}</p>
-              <p className="text-xs leading-relaxed opacity-80">{data.redesignedConcept.coreInsight}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <RiskBadge type="Risk" level={data.redesignedConcept.riskLevel} />
-                <RiskBadge type="Capital" level={data.redesignedConcept.capitalRequired} />
-              </div>
-            </div>
-          </div>
-
-          {/* Key differences — compact chips */}
-          <div className="flex flex-wrap gap-1.5">
-            {data.redesignedConcept.radicalDifferences.map((d, i) => (
-              <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium" style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary-dark))", border: "1px solid hsl(var(--primary) / 0.15)" }}>
-                <CheckCircle2 size={10} /> {d}
-              </span>
-            ))}
-          </div>
-
-          <DetailPanel title="Physical specs, materials & smart features" icon={Package}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-              <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Physical Form</p>
-                <p className="text-xs text-foreground/80">{data.redesignedConcept.physicalDescription}</p>
-                {data.redesignedConcept.sizeAndWeight && <p className="text-[11px] text-muted-foreground mt-1">Size: {data.redesignedConcept.sizeAndWeight}</p>}
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Materials</p>
-                {data.redesignedConcept.materials.map((m, i) => (
-                  <p key={i} className="text-xs text-foreground/80">{i + 1}. {m}</p>
-                ))}
-              </div>
-            </div>
-            {data.redesignedConcept.smartFeatures?.length > 0 && (
-              <div className="mb-2">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Smart Features</p>
-                {data.redesignedConcept.smartFeatures.map((f, i) => (
-                  <div key={i} className="flex items-start gap-1.5 text-xs text-foreground/80 mb-0.5">
-                    <Wifi size={10} style={{ color: "hsl(271 81% 45%)", flexShrink: 0, marginTop: 2 }} /> {f}
-                  </div>
-                ))}
-              </div>
-            )}
-          </DetailPanel>
-
-          <DetailPanel title="UX transformation, risks & go-to-market" icon={Users}>
-            <div className="space-y-3 mb-2">
-              <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">UX Transformation</p>
-                <p className="text-xs text-foreground/80">{data.redesignedConcept.userExperienceTransformation}</p>
-              </div>
-              {data.redesignedConcept.frictionEliminated?.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Friction Eliminated</p>
-                  {data.redesignedConcept.frictionEliminated.map((f, i) => (
-                    <div key={i} className="flex gap-1.5 items-start text-xs mb-0.5"><CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />{f}</div>
-                  ))}
-                </div>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div><p className="text-[10px] font-bold text-muted-foreground uppercase">Manufacturing</p><p className="text-xs text-foreground/80">{data.redesignedConcept.manufacturingPath}</p></div>
-                <div><p className="text-[10px] font-bold text-muted-foreground uppercase">Price Point</p><p className="text-xs text-foreground/80">{data.redesignedConcept.pricePoint}</p></div>
-                <div><p className="text-[10px] font-bold text-muted-foreground uppercase">Target Buyer</p><p className="text-xs text-foreground/80">{data.redesignedConcept.targetUser}</p></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div className="p-2 rounded" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="text-[10px] font-bold text-muted-foreground">Why Not Done</p>
-                  <p className="text-xs text-foreground/80">{data.redesignedConcept.whyItHasntBeenDone}</p>
-                </div>
-                <div className="p-2 rounded" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="text-[10px] font-bold" style={{ color: "hsl(var(--destructive))" }}>Biggest Risk</p>
-                  <p className="text-xs text-foreground/80">{data.redesignedConcept.biggestRisk}</p>
-                </div>
-              </div>
-            </div>
-          </DetailPanel>
-
-          <InsightRating sectionId="concept" compact />
-          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* Section 8: Flipped Ideas */}
+      {/* Section 3: Flipped Ideas */}
       {activeStep === "ideas" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Flipped Ideas" icon={Zap} />
@@ -970,9 +668,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               No flipped ideas yet. Run the intelligence report first.
             </div>
           )}
-          {nextStep ? (
-            <NextSectionButton label={nextStep.label} onClick={goNext} />
-          ) : (
+          {!nextStep && (
             <div className="text-center py-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
                 <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} /> All sections explored
