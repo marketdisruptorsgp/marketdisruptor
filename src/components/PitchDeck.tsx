@@ -82,6 +82,7 @@ interface PitchDeckData {
 interface PitchDeckProps {
   product: Product;
   onSave?: (deckData: PitchDeckData) => void;
+  externalData?: unknown;
 }
 
 const SLIDE_TABS = [
@@ -95,8 +96,8 @@ const SLIDE_TABS = [
 
 type SlideTab = typeof SLIDE_TABS[number]["id"];
 
-export const PitchDeck = ({ product, onSave }: PitchDeckProps) => {
-  const [data, setData] = useState<PitchDeckData | null>(null);
+export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => {
+  const [data, setData] = useState<PitchDeckData | null>((externalData as PitchDeckData) || null);
   const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState<SlideTab>("pitch");
   const [visitedSlides, setVisitedSlides] = useState<Set<string>>(new Set(["pitch"]));

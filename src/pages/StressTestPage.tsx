@@ -89,7 +89,10 @@ export default function StressTestPage() {
               analysisData={selectedProduct}
               activeTab={analysis.stressTestTab}
               externalData={analysis.stressTestData}
-              onDataLoaded={analysis.setStressTestData}
+              onDataLoaded={(d) => {
+                analysis.setStressTestData(d);
+                analysis.saveStepData("stressTest", d);
+              }}
             />
           </div>
         </div>

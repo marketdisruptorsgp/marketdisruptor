@@ -52,6 +52,11 @@ export default function DisruptPage() {
               flippedIdeas={selectedProduct.flippedIdeas}
               onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
               generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
+              externalData={analysis.disruptData}
+              onDataLoaded={(d) => {
+                analysis.setDisruptData(d);
+                analysis.saveStepData("disrupt", d);
+              }}
               onPatentSave={(patentData) => {
                 const updated = products.map(p =>
                   p.id === selectedProduct.id ? { ...p, patentData } : p
