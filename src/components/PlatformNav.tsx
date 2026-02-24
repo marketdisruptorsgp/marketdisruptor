@@ -52,8 +52,14 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
   const handleModeSelect = (modeId: "custom" | "service" | "business") => {
     analysis.setMainTab(modeId);
     analysis.setActiveMode(modeId as AnalysisMode);
+    // Navigate to dashboard and scroll to form
     if (location.pathname !== "/") navigate("/");
     setMobileOpen(false);
+    // Scroll to form area after navigation
+    setTimeout(() => {
+      const formEl = document.querySelector('[data-tour="analysis-form"]');
+      if (formEl) formEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 200);
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -80,7 +86,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
                     <span className="flex items-center gap-2">
-                      Disruptor Modes
+                      Start Disrupting
                     </span>
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
@@ -228,7 +234,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 <p className="text-sm font-bold text-foreground">Menu</p>
               </div>
               <div className="p-3 space-y-1">
-                <p className="section-label text-[10px] px-3 pt-2 pb-1">Disruptor Modes</p>
+                <p className="section-label text-[10px] px-3 pt-2 pb-1">Start Disrupting</p>
                 {ACCESS_MODES.map((mode) => {
                   const Icon = mode.icon;
                   const active = analysis.mainTab === mode.id;
