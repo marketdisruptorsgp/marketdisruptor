@@ -8,6 +8,8 @@ const corsHeaders = {
 };
 
 const MIN_RESULTS = 10;
+const SERPAPI_BUDGET_PER_REFRESH = 5; // Only use SerpAPI for top 5 keywords
+const MONTHLY_LIMIT = 250;
 
 const DISCOVERY_QUERIES = [
   "fastest growing consumer search trends 2025 2026",
@@ -18,95 +20,98 @@ const DISCOVERY_QUERIES = [
   "top rising search queries retail technology 2025 2026",
 ];
 
-// ── Fetch REAL Google Trends interest-over-time via unofficial API ──
-async function fetchRealTrendsData(keyword: string): Promise<{ month: string; value: number }[] | null> {
+// ── Fetch real Google Trends data via SerpAPI ──
+async function fetchSerpApiTrends(
+  keyword: string,
+  apiKey: string
+): Promise<{ month: string; value: number }[] | null> {
   try {
-    // Google Trends explore endpoint (unofficial, same as what pytrends/deno-google-trends uses)
-    const now = Math.floor(Date.now() / 1000);
-    const oneYearAgo = now - 365 * 24 * 60 * 60;
-
-    // Use the Google Trends multiline API with a single keyword
-    const encodedKeyword = encodeURIComponent(keyword);
-    const url = `https://trends.google.com/trends/api/widgetdata/multiline?hl=en-US&tz=-300&req=${encodeURIComponent(
-      JSON.stringify({
-        time: `${new Date(oneYearAgo * 1000).toISOString().split("T")[0]} ${new Date().toISOString().split("T")[0]}`,
-        resolution: "MONTH",
-        locale: "en-US",
-        comparisonItem: [{ keyword, geo: "", time: `${new Date(oneYearAgo * 1000).toISOString().split("T")[0]} ${new Date().toISOString().split("T")[0]}` }],
-        requestOptions: { property: "", backend: "IZG", category: 0 },
-      })
-    )}&token=`;
-
-    // The unofficial API requires a token; instead, use the simpler embed endpoint
-    const embedUrl = `https://trends.google.com/trends/api/explore?hl=en-US&tz=-300&req=${encodeURIComponent(
-      JSON.stringify({
-        comparisonItem: [{ keyword, geo: "", time: "today 12-m" }],
-        category: 0,
-        property: "",
-      })
-    )}`;
-
-    const exploreRes = await fetch(embedUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; TrendBot/1.0)" },
+    const params = new URLSearchParams({
+      engine: "google_trends",
+      q: keyword,
+      date: "today 12-m",
+      api_key: apiKey,
     });
 
-    if (!exploreRes.ok) {
-      console.log(`Google Trends explore failed for "${keyword}": ${exploreRes.status}`);
+    const res = await fetch(`https://serpapi.com/search.json?${params}`);
+    if (!res.ok) {
+      console.log(`SerpAPI failed for "${keyword}": ${res.status}`);
       return null;
     }
 
-    const exploreText = await exploreRes.text();
-    // Google prepends ")]}'" to prevent JSON hijacking
-    const cleanExplore = exploreText.replace(/^\)\]\}\'\n/, "");
-    const exploreData = JSON.parse(cleanExplore);
-
-    // Extract the token for the TIMESERIES widget
-    const timeseriesWidget = exploreData?.widgets?.find((w: any) => w.id === "TIMESERIES");
-    if (!timeseriesWidget?.token) {
-      console.log(`No TIMESERIES widget found for "${keyword}"`);
+    const data = await res.json();
+    const timeline = data?.interest_over_time?.timeline_data;
+    if (!Array.isArray(timeline) || timeline.length === 0) {
+      console.log(`No SerpAPI timeline data for "${keyword}"`);
       return null;
     }
 
-    // Now fetch actual timeseries data
-    const timeseriesReq = timeseriesWidget.request;
-    const multilineUrl = `https://trends.google.com/trends/api/widgetdata/multiline?hl=en-US&tz=-300&req=${encodeURIComponent(
-      JSON.stringify(timeseriesReq)
-    )}&token=${timeseriesWidget.token}`;
-
-    const dataRes = await fetch(multilineUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; TrendBot/1.0)" },
-    });
-
-    if (!dataRes.ok) {
-      console.log(`Google Trends data fetch failed for "${keyword}": ${dataRes.status}`);
-      return null;
-    }
-
-    const dataText = await dataRes.text();
-    const cleanData = dataText.replace(/^\)\]\}\'\n/, "");
-    const parsed = JSON.parse(cleanData);
-
-    const timelineData = parsed?.default?.timelineData;
-    if (!Array.isArray(timelineData) || timelineData.length === 0) {
-      console.log(`No timeline data for "${keyword}"`);
-      return null;
-    }
-
-    // Convert to monthly points — take last 12 months
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const points = timelineData.slice(-12).map((point: any) => {
-      const ts = parseInt(point.time) * 1000;
-      const date = new Date(ts);
-      const month = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
-      const value = point.value?.[0] ?? 0;
+    const points = timeline.slice(-12).map((point: any) => {
+      const dateStr = point.date || "";
+      // SerpAPI returns dates like "Jan 1 – 7, 2025" — extract month/year
+      const match = dateStr.match(/([A-Za-z]+)\s.*?(\d{4})/);
+      const month = match
+        ? `${match[1].substring(0, 3)} ${match[2]}`
+        : dateStr.substring(0, 8);
+      const value = point.values?.[0]?.extracted_value ?? 0;
       return { month, value };
     });
 
-    console.log(`✓ Real Google Trends data for "${keyword}": ${points.length} points`);
-    return points;
+    // Deduplicate by month (take last occurrence)
+    const seen = new Map<string, number>();
+    for (const p of points) {
+      seen.set(p.month, p.value);
+    }
+    const deduped = Array.from(seen.entries()).map(([month, value]) => ({ month, value }));
+
+    console.log(`✓ SerpAPI real data for "${keyword}": ${deduped.length} points`);
+    return deduped.length >= 2 ? deduped : null;
   } catch (err) {
-    console.error(`Google Trends fetch error for "${keyword}":`, err);
+    console.error(`SerpAPI error for "${keyword}":`, err);
     return null;
+  }
+}
+
+// ── Track and check API usage ──
+async function getUsageThisMonth(supabase: any): Promise<number> {
+  const periodStart = new Date();
+  periodStart.setDate(1);
+  periodStart.setHours(0, 0, 0, 0);
+
+  const { data } = await supabase
+    .from("api_usage")
+    .select("calls_used")
+    .eq("service", "serpapi")
+    .eq("period_start", periodStart.toISOString())
+    .maybeSingle();
+
+  return data?.calls_used ?? 0;
+}
+
+async function incrementUsage(supabase: any, count: number): Promise<void> {
+  const periodStart = new Date();
+  periodStart.setDate(1);
+  periodStart.setHours(0, 0, 0, 0);
+
+  const periodEnd = new Date(periodStart);
+  periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+  const current = await getUsageThisMonth(supabase);
+
+  if (current === 0) {
+    await supabase.from("api_usage").insert({
+      service: "serpapi",
+      calls_used: count,
+      period_start: periodStart.toISOString(),
+      period_end: periodEnd.toISOString(),
+    });
+  } else {
+    await supabase
+      .from("api_usage")
+      .update({ calls_used: current + count, updated_at: new Date().toISOString() })
+      .eq("service", "serpapi")
+      .eq("period_start", periodStart.toISOString());
   }
 }
 
@@ -120,9 +125,20 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    const SERPAPI_API_KEY = Deno.env.get("SERPAPI_API_KEY") || "";
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // ── Check SerpAPI budget ──
+    const usedThisMonth = await getUsageThisMonth(supabase);
+    const remainingBudget = Math.max(0, MONTHLY_LIMIT - usedThisMonth);
+    const serpApiSlots = SERPAPI_API_KEY
+      ? Math.min(SERPAPI_BUDGET_PER_REFRESH, remainingBudget)
+      : 0;
+
+    console.log(`SerpAPI budget: ${usedThisMonth}/${MONTHLY_LIMIT} used, ${serpApiSlots} slots this refresh`);
 
     // ── Phase 1: Discover trending keywords via Firecrawl + AI ──
     let allSearchContent = "";
@@ -139,9 +155,12 @@ serve(async (req) => {
         if (!searchRes.ok) continue;
         const searchData = await searchRes.json();
         const results = searchData?.data || [];
-        allSearchContent += results.map((r: any) =>
-          `Title: ${r.title}\nURL: ${r.url}\nSnippet: ${r.description || ""}\nContent: ${(r.markdown || "").substring(0, 500)}`
-        ).join("\n---\n") + "\n\n";
+        allSearchContent += results
+          .map(
+            (r: any) =>
+              `Title: ${r.title}\nURL: ${r.url}\nSnippet: ${r.description || ""}\nContent: ${(r.markdown || "").substring(0, 500)}`
+          )
+          .join("\n---\n") + "\n\n";
       } catch (err) {
         console.error(`Search error:`, err);
       }
@@ -149,7 +168,7 @@ serve(async (req) => {
 
     if (!allSearchContent) throw new Error("No search results obtained");
 
-    // ── Phase 2: AI extracts keyword list + enrichment (but NOT interest_over_time) ──
+    // ── Phase 2: AI extracts keyword list + enrichment ──
     const extractPrompt = `You are a market intelligence analyst. From the following real search results, identify the ${MIN_RESULTS} most compelling, specific trending keywords.
 
 Return ONLY a valid JSON array with exactly ${MIN_RESULTS} items:
@@ -202,52 +221,70 @@ Rules:
       throw new Error("Failed to parse keyword data");
     }
 
-    // ── Phase 3: Fetch REAL Google Trends data in parallel batches ──
+    // ── Phase 3: Hybrid data — SerpAPI for top N, modeled for rest ──
     const keywordSlice = keywords.slice(0, 12);
-    console.log(`Fetching real Google Trends data for ${keywordSlice.length} keywords...`);
+    const serpApiKeywords = keywordSlice.slice(0, serpApiSlots);
+    const modeledKeywords = keywordSlice.slice(serpApiSlots);
 
-    // Batch in groups of 3 for parallelism without hammering
-    const BATCH_SIZE = 3;
-    const trendResults: { keyword: string; data: any; realData: any[] | null }[] = [];
+    console.log(
+      `Fetching: ${serpApiKeywords.length} via SerpAPI, ${modeledKeywords.length} modeled-only`
+    );
 
-    for (let i = 0; i < keywordSlice.length; i += BATCH_SIZE) {
-      const batch = keywordSlice.slice(i, i + BATCH_SIZE);
-      const batchResults = await Promise.all(
-        batch.map(async (t: any) => {
-          const kw = t.keyword || "Unknown";
-          const realData = await fetchRealTrendsData(kw);
-          return { keyword: kw, data: t, realData };
-        })
-      );
-      trendResults.push(...batchResults);
-      // Brief pause between batches
-      if (i + BATCH_SIZE < keywordSlice.length) {
-        await new Promise((r) => setTimeout(r, 800));
-      }
-    }
+    // Fetch SerpAPI data (sequential to respect rate limits)
+    let serpApiCallsMade = 0;
+    const allTrends: any[] = [];
 
-    let realDataCount = 0;
-    let modeledDataCount = 0;
-    const allTrends = trendResults.map(({ keyword, data: t, realData }) => {
-      const hasRealData = realData && realData.length >= 6;
-      if (hasRealData) realDataCount++;
-      else modeledDataCount++;
+    for (const t of serpApiKeywords) {
+      const kw = t.keyword || "Unknown";
+      const realData = await fetchSerpApiTrends(kw, SERPAPI_API_KEY);
+      serpApiCallsMade++;
 
-      return {
-        keyword,
+      allTrends.push({
+        keyword: kw,
         category: t.category || "General",
-        interest_over_time: hasRealData ? realData : [],
+        interest_over_time: realData || [],
         related_queries: Array.isArray(t.related_queries) ? t.related_queries : [],
         growth_note: t.growth_note || null,
         opportunity_angle: t.opportunity_angle || null,
         source_urls: Array.isArray(t.source_urls) ? t.source_urls : [],
-        data_quality: hasRealData ? "high" : "medium",
-        source: hasRealData ? "google_trends" : "web_search",
+        data_quality: realData ? "high" : "medium",
+        source: realData ? "google_trends" : "web_search",
         scraped_at: new Date().toISOString(),
-      };
-    });
+      });
 
-    console.log(`Data quality: ${realDataCount} real Google Trends, ${modeledDataCount} without chart data`);
+      // Small delay between SerpAPI calls
+      if (serpApiKeywords.indexOf(t) < serpApiKeywords.length - 1) {
+        await new Promise((r) => setTimeout(r, 300));
+      }
+    }
+
+    // Modeled keywords (no API call, AI-enriched only)
+    for (const t of modeledKeywords) {
+      allTrends.push({
+        keyword: t.keyword || "Unknown",
+        category: t.category || "General",
+        interest_over_time: [],
+        related_queries: Array.isArray(t.related_queries) ? t.related_queries : [],
+        growth_note: t.growth_note || null,
+        opportunity_angle: t.opportunity_angle || null,
+        source_urls: Array.isArray(t.source_urls) ? t.source_urls : [],
+        data_quality: "medium",
+        source: "web_search",
+        scraped_at: new Date().toISOString(),
+      });
+    }
+
+    // Track SerpAPI usage
+    if (serpApiCallsMade > 0) {
+      await incrementUsage(supabase, serpApiCallsMade);
+    }
+
+    const realDataCount = allTrends.filter((t) => t.data_quality === "high").length;
+    const modeledDataCount = allTrends.length - realDataCount;
+    console.log(
+      `Data quality: ${realDataCount} real (SerpAPI), ${modeledDataCount} modeled. ` +
+        `SerpAPI calls this refresh: ${serpApiCallsMade}. Month total: ${usedThisMonth + serpApiCallsMade}/${MONTHLY_LIMIT}`
+    );
 
     // ── Phase 4: Store trends ──
     if (allTrends.length > 0) {
@@ -262,6 +299,8 @@ Rules:
         trends: allTrends.length,
         real_data: realDataCount,
         modeled_data: modeledDataCount,
+        serpapi_calls_made: serpApiCallsMade,
+        serpapi_budget_remaining: remainingBudget - serpApiCallsMade,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

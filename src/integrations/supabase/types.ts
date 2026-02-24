@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      api_usage: {
+        Row: {
+          calls_used: number
+          created_at: string
+          id: string
+          period_end: string
+          period_start: string
+          service: string
+          updated_at: string
+        }
+        Insert: {
+          calls_used?: number
+          created_at?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          service: string
+          updated_at?: string
+        }
+        Update: {
+          calls_used?: number
+          created_at?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          service?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       market_intel: {
         Row: {
           created_at: string
