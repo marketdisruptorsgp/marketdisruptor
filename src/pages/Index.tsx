@@ -1588,14 +1588,14 @@ export default function Index() {
                     <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(350 80% 55%)" }}>5</div>
                     <div className="flex-1 min-w-0">
                       <h2 className="text-lg font-bold text-foreground">Stress Test</h2>
-                      <p className="text-sm text-muted-foreground">Red Team vs Blue Team critical validation for <strong className="text-foreground">{selectedProduct.name}</strong> — counter-examples, feasibility, confidence scoring.</p>
+                      <p className="text-sm text-muted-foreground">Red Team vs Green Team critical validation for <strong className="text-foreground">{selectedProduct.name}</strong> — counter-examples, feasibility, confidence scoring.</p>
                     </div>
                   </div>
                   <div className="p-5 space-y-6" style={{ background: "hsl(var(--card))" }}>
                     {/* Sub-tabs for Debate and Validate */}
                     <div className="flex gap-2">
                       {[
-                        { id: "debate" as const, label: "Red vs Blue Debate", icon: Swords },
+                        { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
                         { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
                       ].map(tab => {
                         const isActive = (stressTestTab) === tab.id;
@@ -1808,13 +1808,13 @@ export default function Index() {
                     <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(38 92% 50%)" }}>4</div>
                     <div className="flex-1 min-w-0">
                       <h2 className="text-lg font-bold text-foreground">Stress Test</h2>
-                      <p className="text-sm text-muted-foreground">Red Team vs Blue Team critical validation for <strong className="text-foreground">{bizName}</strong></p>
+                      <p className="text-sm text-muted-foreground">Red Team vs Green Team critical validation for <strong className="text-foreground">{bizName}</strong></p>
                     </div>
                   </div>
                   <div className="p-5 space-y-6" style={{ background: "hsl(var(--card))" }}>
                     <div className="flex gap-2">
                       {[
-                        { id: "debate" as const, label: "Red vs Blue Debate", icon: Swords },
+                        { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
                         { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
                       ].map(tab => {
                         const isActive = businessStressTestTab === tab.id;
