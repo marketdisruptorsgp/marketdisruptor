@@ -11,6 +11,7 @@ import { format, parseISO } from "date-fns";
 import { ProjectInsightCard } from "@/components/portfolio/ProjectInsightCard";
 import { ScoreInsightPanel } from "@/components/portfolio/ScoreInsightPanel";
 import { ComparisonInsightView } from "@/components/portfolio/ComparisonInsightView";
+import { ActionItemsPanel } from "@/components/portfolio/ActionItemsPanel";
 
 interface SavedAnalysis {
   id: string;
@@ -191,6 +192,9 @@ export default function PortfolioPage() {
                 </div>
               ))}
             </div>
+
+            {/* Action Items Panel */}
+            <ActionItemsPanel analyses={analyses} />
 
             {/* Score Intelligence Panel */}
             <ScoreInsightPanel analyses={analyses} />

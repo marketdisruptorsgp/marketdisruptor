@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
@@ -12,6 +12,7 @@ import { getStepConfigs, SECTION_DESCRIPTIONS } from "@/lib/stepConfigs";
 import { ProductCard } from "@/components/ProductCard";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
+import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { SectionHeader, NextSectionButton, DetailPanel, NextStepButton, StepNavBar, SectionWorkflowNav } from "@/components/SectionNav";
@@ -23,7 +24,7 @@ import {
   TrendingUp, TrendingDown, Minus, DollarSign, Package, Store, Truck,
   Factory, Rocket, Globe, Users, ThumbsDown, ThumbsUp, Wrench, Heart,
   ShieldAlert, CheckCircle2, Lightbulb, AlertTriangle, Zap, Database,
-  Clock, ScrollText,
+  Clock, ScrollText, StickyNote,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 
@@ -497,6 +498,9 @@ export default function ReportPage() {
           </div>
         )}
 
+        {/* Project Notes */}
+        <ProjectNotesSection analysisId={analysisId} saveStepData={analysis.saveStepData} />
+
         {/* Next Step button — gated on all sections visited */}
         <NextStepButton
           stepNumber={3}
@@ -505,9 +509,39 @@ export default function ReportPage() {
           onClick={() => navigate(`${baseUrl}/disrupt`)}
           allSectionsVisited={allSectionsVisited}
         />
-
-        {/* SGP Capital CTA moved to PitchDeck */}
       </main>
+    </div>
+  );
+}
+
+function ProjectNotesSection({ analysisId, saveStepData }: { analysisId: string | null; saveStepData: (key: string, data: unknown) => Promise<void> }) {
+  const [notes, setNotes] = useState("");
+  const [loaded, setLoaded] = useState(false);
+
+  React.useEffect(() => {
+    if (!analysisId || loaded) return;
+    (async () => {
+      const { data } = await (supabase.from("saved_analyses") as any)
+        .select("analysis_data")
+        .eq("id", analysisId)
+        .single();
+      const ad = data?.analysis_data as Record<string, unknown> | null;
+      setNotes((ad?.projectNotes as string) || "");
+      setLoaded(true);
+    })();
+  }, [analysisId, loaded]);
+
+  const handleSave = async (text: string) => {
+    setNotes(text);
+    await saveStepData("projectNotes", text);
+  };
+
+  return (
+    <div className="rounded-lg p-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+        <StickyNote size={11} /> Project Notes
+      </p>
+      <ProjectNotesEditor value={notes} onSave={handleSave} compact />
     </div>
   );
 }
