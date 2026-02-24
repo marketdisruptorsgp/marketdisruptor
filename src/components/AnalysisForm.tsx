@@ -66,7 +66,7 @@ const MODE_OPTIONS: {
     description: "Drop in URLs or photos. AI scrapes pages, reads images, and builds a full commercial intelligence dossier.",
     bullets: ["Scrapes up to 3 URLs + analyzes 5 images", "Challenges every design and pricing assumption", "Reinvented concepts with go-to-market roadmaps"],
     icon: Upload,
-    accent: "hsl(217 91% 38%)",
+    accent: "hsl(var(--mode-product))",
   },
   {
     id: "service",
@@ -75,7 +75,7 @@ const MODE_OPTIONS: {
     description: "URLs, screenshots, or a description. AI maps the full competitive landscape and identifies growth opportunities.",
     bullets: ["Scrapes up to 3 URLs + analyzes 5 screenshots", "Questions every assumption about customer value & operations", "Growth strategies built on operational gaps competitors overlook"],
     icon: Briefcase,
-    accent: "hsl(340 65% 45%)",
+    accent: "hsl(var(--mode-service))",
   },
   {
     id: "business",
@@ -84,7 +84,7 @@ const MODE_OPTIONS: {
     description: "Describe any business. AI deconstructs it across 7 strategic dimensions and rebuilds a reinvented model.",
     bullets: ["7-dimension first-principles deconstruction", "Every assumption challenged and stress-tested", "Reinvention blueprint with phased financials"],
     icon: Building2,
-    accent: "hsl(271 70% 50%)",
+    accent: "hsl(var(--mode-business))",
   },
 ];
 
@@ -172,16 +172,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     }
   };
 
-  const inputStyle = {
-    border: "1px solid hsl(var(--border))",
-    background: "hsl(var(--background))",
-    color: "hsl(var(--foreground))",
-    borderRadius: "0.25rem",
-    padding: "0.5rem 0.75rem",
-    fontSize: "0.875rem",
-    width: "100%",
-    outline: "none",
-  } as React.CSSProperties;
+  const inputClassName = "input-executive";
 
   if (phase === "confirm" && pendingMode) {
     const modeOption = MODE_OPTIONS.find(m => m.id === pendingMode)!;
@@ -221,8 +212,9 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
             </div>
             <button
               onClick={handleConfirm}
-              className="w-full py-3 rounded font-bold text-sm text-white transition-colors hover:opacity-90"
-              style={{ background: modeOption.accent }}
+              className={`w-full py-3 rounded-lg font-bold text-sm text-white transition-colors ${
+                pendingMode === "service" ? "btn-mode-service" : pendingMode === "business" ? "btn-mode-business" : "btn-mode-product"
+              }`}
             >
               Start Analysis
             </button>
@@ -241,12 +233,11 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 {mode === "service" ? "Service Name" : "Product Name"}
               </label>
-              <input
+               <input
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
                 placeholder={mode === "service" ? "e.g. Acme Consulting" : "e.g. Vintage Camera"}
-                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                style={inputStyle}
+                className={inputClassName}
               />
             </div>
 
@@ -265,8 +256,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                       setCustomUrls(next);
                     }}
                     placeholder={`URL ${i + 1} — paste a product or service page`}
-                    className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                    style={inputStyle}
+                    className={inputClassName}
                   />
                   {customUrls.length > 1 && (
                     <button
@@ -283,8 +273,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 <button
                   type="button"
                   onClick={() => setCustomUrls([...customUrls, ""])}
-                  className="text-xs font-medium transition-colors"
-                  style={{ color: "hsl(var(--primary-light))" }}
+                  className="text-xs font-medium transition-colors text-primary-light"
                 >
                   + Add URL
                 </button>
@@ -347,16 +336,14 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 onChange={(e) => setCustomNotes(e.target.value)}
                 placeholder={mode === "service" ? "Describe the service, target market, pain points..." : "Add context: target audience, pricing goals, competitive landscape..."}
                 rows={4}
-                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
-                style={inputStyle}
+                className={`${inputClassName} resize-none`}
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading || !customName}
-              className="w-full py-3 rounded font-bold text-sm text-white transition-colors hover:opacity-90 disabled:opacity-50"
-              style={{ background: mode === "service" ? "hsl(340 65% 45%)" : "hsl(217 91% 38%)" }}
+              className={`w-full py-3 rounded-lg font-bold text-sm text-white transition-colors disabled:opacity-50 ${mode === "service" ? "btn-mode-service" : "btn-mode-product"}`}
             >
               {isLoading ? "Analyzing..." : "Start Analysis"}
             </button>
@@ -371,8 +358,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 value={businessInput.type}
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, type: e.target.value }))}
                 placeholder="e.g. Laundromat, SaaS, Agency..."
-                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                style={inputStyle}
+                className={inputClassName}
               />
             </div>
             <div className="space-y-1.5">
@@ -382,8 +368,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Describe the business model, revenue streams, and key operations..."
                 rows={3}
-                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
-                style={inputStyle}
+                className={`${inputClassName} resize-none`}
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -393,8 +378,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                   value={businessInput.revenueModel}
                   onChange={(e) => setBusinessInput(prev => ({ ...prev, revenueModel: e.target.value }))}
                   placeholder="e.g. Subscription, Per-unit, Commission, Freemium..."
-                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                  style={inputStyle}
+                  className={inputClassName}
                 />
               </div>
               <div className="space-y-1.5">
@@ -403,8 +387,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                   value={businessInput.size}
                   onChange={(e) => setBusinessInput(prev => ({ ...prev, size: e.target.value }))}
                   placeholder="e.g. Solo operator, 10 employees, $2M ARR..."
-                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                  style={inputStyle}
+                  className={inputClassName}
                 />
               </div>
             </div>
@@ -414,8 +397,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 value={businessInput.geography}
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, geography: e.target.value }))}
                 placeholder="e.g. Local (Austin, TX), National, Global..."
-                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                style={inputStyle}
+                className={inputClassName}
               />
             </div>
             <div className="space-y-1.5">
@@ -425,8 +407,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, painPoints: e.target.value }))}
                 placeholder="What are the biggest operational or customer pain points?"
                 rows={3}
-                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
-                style={inputStyle}
+                className={`${inputClassName} resize-none`}
               />
             </div>
             <div className="space-y-1.5">
@@ -436,15 +417,13 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="Competitive landscape, unique constraints, strategic goals..."
                 rows={3}
-                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
-                style={inputStyle}
+                className={`${inputClassName} resize-none`}
               />
             </div>
             <button
               onClick={runBusinessAnalysis}
               disabled={businessLoading || !businessInput.type || !businessInput.description}
-              className="w-full py-3 rounded font-bold text-sm text-white transition-colors hover:opacity-90 disabled:opacity-50"
-              style={{ background: "hsl(271 70% 50%)" }}
+              className="w-full py-3 rounded-lg font-bold text-sm text-white transition-colors btn-mode-business disabled:opacity-50"
             >
               {businessLoading ? "Deconstructing..." : "Deconstruct Business Model"}
             </button>

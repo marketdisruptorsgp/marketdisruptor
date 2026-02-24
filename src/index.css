@@ -183,6 +183,48 @@
     background: hsl(var(--border));
   }
 
+  .input-executive {
+    @apply w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1;
+    border: 1.5px solid hsl(var(--border));
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  .input-executive::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .btn-mode-product {
+    background: hsl(var(--mode-product));
+    color: hsl(var(--primary-foreground));
+  }
+  .btn-mode-product:hover { opacity: 0.9; }
+
+  .btn-mode-service {
+    background: hsl(var(--mode-service));
+    color: hsl(var(--primary-foreground));
+  }
+  .btn-mode-service:hover { opacity: 0.9; }
+
+  .btn-mode-business {
+    background: hsl(var(--mode-business));
+    color: hsl(var(--primary-foreground));
+  }
+  .btn-mode-business:hover { opacity: 0.9; }
+
+  .modal-overlay {
+    @apply fixed inset-0 flex items-center justify-center p-4;
+    z-index: 100000;
+    background: hsl(0 0% 0% / 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-panel {
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 20px 60px -15px rgba(0,0,0,0.4);
+    @apply w-full rounded-xl p-6 space-y-5;
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;

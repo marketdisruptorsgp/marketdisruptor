@@ -123,16 +123,7 @@ export function UserHeader() {
     }
   };
 
-  const inputStyle: React.CSSProperties = {
-    border: "1.5px solid hsl(var(--border))",
-    background: "hsl(var(--muted))",
-    color: "hsl(var(--foreground))",
-    borderRadius: "var(--radius)",
-    padding: "0.6rem 0.75rem",
-    fontSize: "0.875rem",
-    width: "100%",
-    outline: "none",
-  };
+  const inputClassName = "input-executive";
 
   return (
     <>
@@ -243,20 +234,16 @@ export function UserHeader() {
       {/* Set Password Modal */}
       {showPasswordModal && (
         <div
-          className="fixed inset-0 flex items-center justify-center p-4"
-          style={{ zIndex: 100000, background: "hsl(0 0% 0% / 0.6)", backdropFilter: "blur(4px)" }}
+          className="modal-overlay"
           onClick={(e) => { if (e.target === e.currentTarget) setShowPasswordModal(false); }}
         >
-          <div
-            className="w-full max-w-sm rounded p-6 space-y-5"
-            style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", boxShadow: "0 20px 60px -15px rgba(0,0,0,0.4)" }}
-          >
+          <div className="modal-panel max-w-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <KeyRound size={18} style={{ color: "hsl(var(--primary))" }} />
-                <h3 className="text-lg font-bold" style={{ color: "hsl(var(--foreground))" }}>Set Password</h3>
+                <KeyRound size={18} className="text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Set Password</h3>
               </div>
-              <button onClick={() => setShowPasswordModal(false)} className="p-1 rounded hover:bg-muted transition-colors">
+              <button onClick={() => setShowPasswordModal(false)} className="p-1 rounded hover:bg-muted transition-colors text-muted-foreground">
                 <X size={16} style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             </div>
@@ -265,9 +252,9 @@ export function UserHeader() {
             </p>
             <form onSubmit={handleSetPassword} className="space-y-3">
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>New Password</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">New Password</label>
                 <input
-                  style={inputStyle}
+                  className={inputClassName}
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -276,9 +263,9 @@ export function UserHeader() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--muted-foreground))" }}>Confirm Password</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Confirm Password</label>
                 <input
-                  style={inputStyle}
+                  className={inputClassName}
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -304,14 +291,10 @@ export function UserHeader() {
       {/* Share Modal */}
       {showShareModal && (
         <div
-          className="fixed inset-0 flex items-center justify-center p-4"
-          style={{ zIndex: 100000, background: "hsl(0 0% 0% / 0.6)", backdropFilter: "blur(4px)" }}
+          className="modal-overlay"
           onClick={(e) => { if (e.target === e.currentTarget) setShowShareModal(false); }}
         >
-          <div
-            className="w-full max-w-md rounded p-6 space-y-5"
-            style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", boxShadow: "0 20px 60px -15px rgba(0,0,0,0.4)" }}
-          >
+          <div className="modal-panel max-w-md">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Gift size={18} style={{ color: "hsl(142 71% 45%)" }} />
@@ -357,14 +340,14 @@ export function UserHeader() {
               </div>
               <form onSubmit={handleSendEmail} className="space-y-2">
                 <input
-                  style={inputStyle}
+                  className={inputClassName}
                   type="text"
                   placeholder="Their name (optional)"
                   value={recipientName}
                   onChange={(e) => setRecipientName(e.target.value)}
                 />
                 <input
-                  style={inputStyle}
+                  className={inputClassName}
                   type="email"
                   placeholder="Their email address"
                   value={recipientEmail}
