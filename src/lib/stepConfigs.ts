@@ -32,3 +32,19 @@ export const SECTION_DESCRIPTIONS: Record<string, string> = {
   supply: "Suppliers, manufacturers & distribution channels",
   patents: "Expired patents, IP gaps & innovation opportunities",
 };
+
+/** Section tab descriptions for Pitch Deck */
+export const PITCH_SLIDE_DESCRIPTIONS: Record<string, string> = {
+  problem: "The pain point your product solves",
+  solution: "Your unique approach & elevator pitch",
+  whynow: "Market timing & trend tailwinds",
+  market: "TAM, SAM, SOM & growth drivers",
+  product: "Innovation edge & competitive moat",
+  businessmodel: "Revenue streams & unit economics",
+  traction: "Early signals & validation proof",
+  risks: "Key threats & mitigation strategies",
+  metrics: "Success KPIs & milestone targets",
+  gtm: "Go-to-market phases & channels",
+  competitive: "Landscape, direct & indirect rivals",
+  invest: "Funding ask, use of funds & exit",
+};
