@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Download, Award, CheckCircle2, ArrowRight } from "lucide-react";
+import { Sparkles, Download, Award, CheckCircle2, ArrowRight, Clock } from "lucide-react";
 import { ReferralCTA } from "@/components/ReferralCTA";
+import { AnalysisTimeline } from "@/components/analysis/AnalysisTimeline";
+import { EvolutionView } from "@/components/analysis/EvolutionView";
 
 const SUCCESS_MESSAGES = [
   { type: "opportunity", prefix: "Opportunity Identified", emoji: "🎯" },
@@ -16,6 +18,8 @@ interface CompletionExperienceProps {
   onExportPDF: () => void;
   onBackToSections: () => void;
   accentColor: string;
+  analysisData?: Record<string, unknown> | null;
+  createdAt?: string;
 }
 
 export function CompletionExperience({
@@ -24,6 +28,8 @@ export function CompletionExperience({
   onExportPDF,
   onBackToSections,
   accentColor,
+  analysisData,
+  createdAt,
 }: CompletionExperienceProps) {
   const navigate = useNavigate();
   const [msgIndex] = useState(() => Math.floor(Math.random() * SUCCESS_MESSAGES.length));
@@ -95,6 +101,28 @@ export function CompletionExperience({
           Project saved to your portfolio
         </p>
       </div>
+
+      {/* Evolution View */}
+      {analysisData && (
+        <div className="rounded-xl p-4" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock size={13} style={{ color: accentColor }} />
+            <p className="text-xs font-bold text-foreground">Analysis Journey</p>
+          </div>
+          <EvolutionView analysisData={analysisData} productName={productName} accentColor={accentColor} />
+        </div>
+      )}
+
+      {/* Timeline */}
+      {analysisData && createdAt && (
+        <div className="rounded-xl p-4" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock size={13} style={{ color: accentColor }} />
+            <p className="text-xs font-bold text-foreground">Analysis Timeline</p>
+          </div>
+          <AnalysisTimeline analysisData={analysisData} createdAt={createdAt} accentColor={accentColor} />
+        </div>
+      )}
 
       <button
         onClick={onBackToSections}

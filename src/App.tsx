@@ -24,6 +24,7 @@ import MethodologyPage from "./pages/MethodologyPage";
 import FaqsPage from "./pages/FaqsPage";
 import PortfolioPage from "./pages/PortfolioPage";
 import ApiPage from "./pages/ApiPage";
+import ShareableAnalysisPage from "./pages/ShareableAnalysisPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/share" element={<SharePage />} />
+      <Route path="/analysis/share/:id" element={<ShareableAnalysisPage />} />
       {user ? (
         <>
           <Route path="/" element={<DashboardPage />} />

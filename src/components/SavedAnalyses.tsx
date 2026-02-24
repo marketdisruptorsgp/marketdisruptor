@@ -254,6 +254,28 @@ function ProjectCard({ analysis, onLoad, onDelete }: { analysis: SavedAnalysis; 
             )}
           </div>
           <StepProgressDots analysisData={analysis.analysis_data as Record<string, unknown> | null} analysisType={analysis.analysis_type} />
+          {(() => {
+            const ad = analysis.analysis_data as Record<string, unknown> | null;
+            if (!ad) return null;
+            const steps = [
+              { key: "pitchDeck", label: "Pitch" },
+              { key: "stressTest", label: "Stress Test" },
+              { key: "redesign", label: "Redesign" },
+              { key: "disrupt", label: "Disrupt" },
+            ];
+            for (const s of steps) {
+              if (ad[s.key]) {
+                const idx = steps.indexOf(s);
+                const next = idx > 0 ? steps[idx - 1].label : s.label;
+                return (
+                  <span className="text-[9px] font-medium" style={{ color: "hsl(var(--primary))" }}>
+                    Resume at {next}
+                  </span>
+                );
+              }
+            }
+            return null;
+          })()}
         </div>
         {score > 0 && (
           <span
