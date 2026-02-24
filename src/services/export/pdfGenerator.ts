@@ -30,11 +30,8 @@ function drawCornerAccent(doc: jsPDF) {
   doc.setLineWidth(0.4);
   const x = PAGE_W - MR;
   const y = PAGE_H - 22;
-  // Vertical line
   doc.line(x, y - 12, x, y);
-  // Horizontal line
   doc.line(x - 12, y, x, y);
-  // Reset
   doc.setDrawColor(220, 220, 220);
   doc.setLineWidth(0.2);
 }
@@ -43,6 +40,87 @@ function drawCornerAccent(doc: jsPDF) {
 function drawAccentBar(doc: jsPDF) {
   fill(doc, PRIMARY);
   doc.rect(0, 0, PAGE_W, 2, "F");
+}
+
+/** Draw subtle dot grid pattern */
+function drawDotGrid(doc: jsPDF) {
+  doc.setFillColor(100, 100, 120);
+  for (let x = ML; x < PAGE_W - MR; x += 12) {
+    for (let y = 30; y < PAGE_H - 30; y += 12) {
+      doc.circle(x, y, 0.25, "F");
+    }
+  }
+  // Reset opacity by drawing nothing visible
+}
+
+/** Draw diagonal accent lines in top-right corner */
+function drawDiagonalAccent(doc: jsPDF) {
+  doc.setDrawColor(79, 70, 229);
+  doc.setLineWidth(0.15);
+  doc.line(PAGE_W - 50, 4, PAGE_W, 54);
+  doc.line(PAGE_W - 35, 4, PAGE_W, 39);
+  doc.line(PAGE_W - 20, 4, PAGE_W, 24);
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.2);
+}
+
+/** Draw TAM/SAM/SOM concentric circles for market slide */
+function drawMarketCircles(doc: jsPDF, slide: SlideModel, x: number, y: number) {
+  const marketBullets = slide.sections.find(s => s.heading === "Market Size")?.bullets || [];
+  const tam = marketBullets[0]?.replace("TAM: ", "") || "";
+  const sam = marketBullets[1]?.replace("SAM: ", "") || "";
+  const som = marketBullets[2]?.replace("SOM: ", "") || "";
+  
+  // Outer circle (TAM)
+  doc.setDrawColor(79, 70, 229);
+  doc.setLineWidth(0.3);
+  fill(doc, [79, 70, 229] as [number, number, number]);
+  // Draw as outlines with very light fill
+  doc.setFillColor(237, 235, 254);
+  doc.circle(x, y, 28, "FD");
+  doc.setFontSize(5);
+  doc.setFont("helvetica", "bold");
+  rgb(doc, PRIMARY);
+  doc.text("TAM", x, y - 20, { align: "center" });
+  doc.setFontSize(6);
+  rgb(doc, DARK);
+  doc.text(tam, x, y - 15, { align: "center" });
+  
+  // Middle circle (SAM)
+  doc.setFillColor(225, 222, 252);
+  doc.circle(x, y, 19, "FD");
+  doc.setFontSize(5);
+  rgb(doc, PRIMARY);
+  doc.text("SAM", x, y - 10, { align: "center" });
+  doc.setFontSize(6);
+  rgb(doc, DARK);
+  doc.text(sam, x, y - 5, { align: "center" });
+  
+  // Inner circle (SOM)
+  doc.setFillColor(213, 208, 250);
+  doc.circle(x, y, 10, "FD");
+  doc.setFontSize(5);
+  rgb(doc, PRIMARY);
+  doc.text("SOM", x, y - 2, { align: "center" });
+  doc.setFontSize(6);
+  rgb(doc, DARK);
+  doc.text(som, x, y + 3, { align: "center" });
+  
+  doc.setDrawColor(220, 220, 220);
+}
+
+/** Draw risk severity bar */
+function drawRiskBar(doc: jsPDF, severity: string, x: number, y: number) {
+  const barW = 25;
+  const barH = 2;
+  // Background
+  doc.setFillColor(230, 230, 230);
+  doc.roundedRect(x, y, barW, barH, 1, 1, "F");
+  // Fill
+  const pct = severity === "high" ? 1 : severity === "medium" ? 0.6 : 0.3;
+  const color: [number, number, number] = severity === "high" ? [220, 38, 38] : severity === "medium" ? AMBER : GREEN;
+  fill(doc, color);
+  doc.roundedRect(x, y, barW * pct, barH, 1, 1, "F");
 }
 
 function addSlideFooter(doc: jsPDF, slide: SlideModel, pageNum: number, totalPages: number) {
@@ -72,6 +150,7 @@ function drawEvidenceTag(doc: jsPDF, tag: string, x: number, y: number) {
 
 function renderSlide(doc: jsPDF, slide: SlideModel) {
   drawAccentBar(doc);
+  drawDiagonalAccent(doc);
 
   let y = 24;
 
@@ -118,7 +197,13 @@ function renderSlide(doc: jsPDF, slide: SlideModel) {
   doc.line(ML, y, PAGE_W - MR, y);
   y += 8;
 
+  // Market slide — draw concentric circles visual
+  if (slide.id === "market") {
+    drawMarketCircles(doc, slide, PAGE_W - MR - 35, y + 30);
+  }
+
   // Sections
+  const sectionMaxX = slide.id === "market" ? CW * 0.55 : CW;
   for (const section of slide.sections) {
     if (y > PAGE_H - 50) break;
 
@@ -131,6 +216,11 @@ function renderSlide(doc: jsPDF, slide: SlideModel) {
     if (section.evidenceTag) {
       drawEvidenceTag(doc, section.evidenceTag, ML + doc.getTextWidth(section.heading) + 4, y);
     }
+
+    // Risk severity bar
+    if (slide.id === "risks" && section.dataRef) {
+      drawRiskBar(doc, section.dataRef, PAGE_W - MR - 30, y - 1);
+    }
     y += 6;
 
     // Bullets
@@ -139,7 +229,7 @@ function renderSlide(doc: jsPDF, slide: SlideModel) {
       doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
       rgb(doc, DARK);
-      const lines = doc.splitTextToSize(`•  ${bullet}`, CW - 6);
+      const lines = doc.splitTextToSize(`•  ${bullet}`, sectionMaxX - 6);
       doc.text(lines, ML + 3, y);
       y += lines.length * 3.8 + 2;
     }
