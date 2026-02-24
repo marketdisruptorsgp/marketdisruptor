@@ -503,9 +503,14 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
       const merged = { ...prev, [stepKey]: data, previousSnapshot };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from("saved_analyses") as any)
-        .update({ analysis_data: merged })
+      const { error: updateError } = await (supabase.from("saved_analyses") as any)
+        .update({ analysis_data: merged, updated_at: new Date().toISOString() })
         .eq("id", analysisId);
+      if (updateError) {
+        console.error("saveStepData update failed:", updateError, "analysisId:", analysisId, "stepKey:", stepKey);
+      } else {
+        console.log("saveStepData persisted:", stepKey, "to analysisId:", analysisId);
+      }
     } catch (err) {
       console.error("Failed to persist step data:", err);
     }
