@@ -1,106 +1,86 @@
 
 
-# Global Scroll-to-Top + Portfolio Intelligence Rebuild
+# Output Quality & Completion Experience Upgrades
 
 ---
 
-## 1. Global Scroll-to-Top Provider
+## 1. Completion Experience Component
 
-**New file: `src/components/ScrollToTopProvider.tsx`**
-- A component that uses `useLocation()` from react-router-dom
-- On every `pathname` change, calls `window.scrollTo({ top: 0, behavior: "smooth" })`
-- Renders `children` passthrough (no DOM output)
+**New file: `src/components/CompletionExperience.tsx`**
 
-**Edit: `src/App.tsx`**
-- Import `ScrollToTopProvider`
-- Place it inside `<BrowserRouter>` wrapping `<AuthProvider>` and everything below it
-- This ensures every route change auto-scrolls to top globally
+A reusable completion panel that replaces the inline completion screen currently hardcoded in PitchDeck.tsx.
 
-**Edit: `src/components/StepNavigator.tsx`**
-- Import and call `scrollToTop()` inside the `onStepChange` button click handler
+Props:
+- `productName` (string)
+- `completionMessage` (string) -- the AI-generated strategic insight
+- `onExportPDF` (callback)
+- `onBackToSections` (callback)
+- `accentColor` (string)
 
-**Edit: `src/components/SectionNav.tsx`**
-- Import and call `scrollToTop()` in `NextStepButton` and `NextSectionButton` click handlers
+Features:
+- Rotating success messages based on analysis outcome type (opportunity framing, disruption potential, creative reframing, breakthrough insight)
+- "Project saved" confirmation badge
+- "Next: View Portfolio" CTA button
+- PDF export button
+- Back-to-sections link
 
-**Edit: `src/components/PlatformNav.tsx`**
-- Import and call `scrollToTop()` after each `navigate()` call in desktop and mobile nav links
-
-**Existing `src/utils/scrollToTop.ts`** stays as-is -- already exports the utility.
-
----
-
-## 2. Portfolio: Project Insight Card Grid
-
-**New file: `src/components/portfolio/ProjectInsightCard.tsx`**
-- Props: `analysis` (SavedAnalysis), `onOpen` callback
-- Displays: title, category badge, score (color-coded), key insight (from `analysis_data` or first product), strongest projection, easiest GTM channel
-- Responsive card with hover state, click triggers `onOpen`
-
-**Edit: `src/pages/PortfolioPage.tsx`**
-- Replace the inline "Top Projects" card grid (lines 179-230) with `<ProjectInsightCard>` components
-- Show all analyses in the card grid (not just first 6), paginated or scrollable
-- Move "All Projects" list below the grid as secondary reference
+**Edit: `src/components/PitchDeck.tsx`**
+- Replace the inline completion screen (lines 224-267) with `<CompletionExperience>` component
+- Pass through `completionMessage`, product name, PDF handler, and accent color
 
 ---
 
-## 3. Score Distribution Fix + AI vs User Score Panel
+## 2. Header Mode Consistency
 
-**New file: `src/components/portfolio/ScoreInsightPanel.tsx`**
-- Reads `analysis_data.userScores` from each saved analysis
-- Computes two distributions: AI scores (from `avg_revival_score`) and user-adjusted scores (from `userScores` averages)
-- Renders side-by-side or overlaid bar chart using Recharts `BarChart` with two `Bar` series (AI in blue, User in amber)
-- Highlights buckets where deviation is largest (bold border or different opacity)
-
-**Edit: `src/pages/PortfolioPage.tsx`**
-- Replace the current single "Score Distribution" bar chart with the new `<ScoreInsightPanel>` component
-- Pass `analyses` array as prop
+**Edit: `src/pages/ReportPage.tsx`**
+- Import and use `useModeTheme` hook
+- Pass `theme.primary` as `accentColor` to `ModeHeader`, `StepNavBar`, `ShareAnalysis`, `KeyTakeawayBanner`, and `NextStepButton`
+- This is the only step page currently missing the mode theme integration
 
 ---
 
-## 4. Category Breakdown Cleanup
+## 3. Intel Engine Minimum Results Enforcement
 
-**Edit: `src/pages/PortfolioPage.tsx`**
-- Normalize category names in the `categoryBreakdown` memo:
-  - Map `"custom"` to `"Product"`, `"service"` to `"Service"`, `"business"` to `"Business"`, `"first_principles"` to `"First Principles"`
-- Use mode-consistent colors from the existing `modeTheme`:
-  - Product: blue (`#1249a3`), Service: rose (`#df2060`), Business: violet (`#8b3fd9`), First Principles: teal (`#0d9488`)
-- Use `label` rendering on the Pie chart with proper offsets to prevent overlap (use `labelLine={false}` and render a legend row below instead)
+### News scraper
 
----
+**Edit: `supabase/functions/scrape-market-news/index.ts`**
+- Add `MIN_RESULTS = 10` constant
+- After initial scrape loop, check if `recentNews.length < MIN_RESULTS`
+- If below minimum, run a broadened fallback query with `tbs: "qdr:y"` (last year) to backfill
+- Remove hardcoded category assignments on queries -- instead let AI dynamically categorize each article from content
 
-## 5. Comparison Tool: Insight-Focused View
+### Trend scraper
 
-**New file: `src/components/portfolio/ComparisonInsightView.tsx`**
-- Replaces the current table-based comparison
-- Props: `compareList` (array of SavedAnalysis)
-- For each selected project, extracts from `analysis_data`:
-  - Disruption thesis (from disrupt data / first-principles output)
-  - Risk profile (from stress test data)
-  - Opportunity magnitude (from pitch deck market opportunity)
-  - GTM difficulty (from pitch deck GTM strategy)
-  - Projected leverage (from product leverage scores)
-- Renders as side-by-side insight cards with visual difference highlights (color-coded bars showing relative values)
+**Edit: `supabase/functions/scrape-trend-intel/index.ts`**
+- Add `MIN_RESULTS = 10` constant
+- Expand `TREND_KEYWORDS` from 8 to 12+ broad keywords covering more sectors
+- After initial loop, if `allTrends.length < MIN_RESULTS`, run additional broad keyword searches to fill the gap
+- Remove hardcoded category mapping -- let AI dynamically assign categories from trend content
 
-**Edit: `src/pages/PortfolioPage.tsx`**
-- Replace the comparison table section (lines 279-332) with `<ComparisonInsightView>` component
-- Keep the project selector pills above it
+### Patent scraper
+- Already has `MIN_RESULTS = 10` with broadening logic -- no changes needed
 
 ---
 
-## 6. Final Portfolio Page Structure
+## 4. Pitch Structure Verification
 
-The page layout in `PortfolioPage.tsx` will follow this order:
+The pitch edge function (`generate-pitch-deck/index.ts`) already:
+- Follows the 12-section order (Problem, Solution, Why Now, Market, Product, Business Model, Traction, Risks, Metrics, GTM, Competitive, Investment Ask)
+- Incorporates `redesignData`, `userScores`, `stressTestData`
+- Uses realistic risk framing with severity tagging
+- Includes `completionMessage` field for strategic insight
 
-```text
-Back + Title
-Portfolio Summary Metrics (stats row -- existing)
-Project Insight Grid (new card grid)
-Score Intelligence Panel (new AI vs User chart)
-Category Breakdown (cleaned up pie chart)
-Activity Timeline (existing, if >1 month)
-Comparison Insight View (rebuilt)
-All Projects List (secondary, existing)
-```
+The PitchDeck.tsx component already renders all 12 sections via `SLIDE_TABS` in the correct order.
+
+**No changes needed** -- structure is already compliant.
+
+---
+
+## 5. Share/Referral Verification
+
+Both `ShareAnalysis.tsx` and `ReferralCTA.tsx` already use `http://marketdisruptor.sgpcapital.com` as the referral destination. The share dropdown already has `z-[9999]` and `overflow: visible`.
+
+**No changes needed.**
 
 ---
 
@@ -108,12 +88,11 @@ All Projects List (secondary, existing)
 
 | Change | Files | Type |
 |---|---|---|
-| ScrollToTopProvider | New `src/components/ScrollToTopProvider.tsx`, edit `App.tsx` | New + Edit |
-| Scroll calls | Edit `StepNavigator.tsx`, `SectionNav.tsx`, `PlatformNav.tsx` | Edit |
-| ProjectInsightCard | New `src/components/portfolio/ProjectInsightCard.tsx` | New |
-| ScoreInsightPanel | New `src/components/portfolio/ScoreInsightPanel.tsx` | New |
-| ComparisonInsightView | New `src/components/portfolio/ComparisonInsightView.tsx` | New |
-| PortfolioPage rebuild | Edit `src/pages/PortfolioPage.tsx` | Edit |
+| CompletionExperience component | New `src/components/CompletionExperience.tsx` | New |
+| Use CompletionExperience in PitchDeck | Edit `src/components/PitchDeck.tsx` | Edit |
+| Mode theme on ReportPage | Edit `src/pages/ReportPage.tsx` | Edit |
+| News scraper min results | Edit `supabase/functions/scrape-market-news/index.ts` | Edit |
+| Trend scraper min results | Edit `supabase/functions/scrape-trend-intel/index.ts` | Edit |
 
-**No database changes. No new dependencies.** All changes reuse existing AnalysisContext, saved analysis data structures, and Recharts.
-
+**No database changes. No new dependencies.**
+Edge functions `scrape-market-news` and `scrape-trend-intel` will be redeployed after edits.
