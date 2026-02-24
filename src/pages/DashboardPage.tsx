@@ -5,7 +5,7 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { AnalysisForm, type AnalysisMode } from "@/components/AnalysisForm";
 import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { BusinessModelAnalysis, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
-import WelcomeModal from "@/components/WelcomeModal";
+
 import { ContextualTip } from "@/components/ContextualTip";
 import MobileTour from "@/components/MobileTour";
 import { HeroSection } from "@/components/HeroSection";
@@ -13,7 +13,7 @@ import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
 import { Target } from "lucide-react";
 import { LoadingTracker } from "@/components/LoadingTracker";
 import PaywallModal from "@/components/PaywallModal";
-import { ContinueBanner } from "@/components/ContinueBanner";
+
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -67,9 +67,6 @@ export default function DashboardPage() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showSavedPanel, setShowSavedPanel] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
-  const [showWelcome, setShowWelcome] = useState(() => {
-    return !localStorage.getItem("welcomed_" + (user?.id ?? ""));
-  });
   const [selectedMode, setSelectedMode] = useState<"custom" | "service" | "business" | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -95,10 +92,6 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleCloseWelcome = () => {
-    localStorage.setItem("welcomed_" + (user?.id ?? ""), "1");
-    setShowWelcome(false);
-  };
 
   const handleModeSelect = (mode: "custom" | "service" | "business") => {
     setSelectedMode(mode);
@@ -121,10 +114,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {showWelcome && profile && (
-        <WelcomeModal firstName={profile.first_name} onClose={handleCloseWelcome} />
-      )}
-      {user && !showWelcome && <MobileTour userId={user.id} />}
+      {user && <MobileTour userId={user.id} />}
       {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
 
       <HeroSection tier={tier} remainingAnalyses={remainingAnalyses()} profileFirstName={profile?.first_name} onOpenSaved={() => setShowSavedPanel(true)} savedCount={savedCount} />
@@ -148,7 +138,7 @@ export default function DashboardPage() {
       {/* Hero Section */}
       <section className="bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 sm:pt-20 pb-8 sm:pb-16 text-center">
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight">
             Rethink any{" "}
             <span
               className="inline-block transition-opacity duration-300"
@@ -215,12 +205,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Continue where you left off */}
-      {user && (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
-          <ContinueBanner onContinue={(a) => { analysis.handleLoadSaved(a as any); }} />
-        </div>
-      )}
 
       {/* Mode Pills */}
       <div ref={modeTabsRef} className="border-t border-border bg-card">

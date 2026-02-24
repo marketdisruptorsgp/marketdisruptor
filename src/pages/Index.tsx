@@ -17,7 +17,7 @@ import { PitchDeck } from "@/components/PitchDeck";
 import { ReferralCTA } from "@/components/ReferralCTA";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
-import WelcomeModal from "@/components/WelcomeModal";
+
 import { ContextualTip } from "@/components/ContextualTip";
 import MobileTour from "@/components/MobileTour";
 import { HeroSection } from "@/components/HeroSection";
@@ -181,9 +181,6 @@ export default function Index() {
   const [isSaving, setIsSaving] = useState(false);
   const [showSavedPanel, setShowSavedPanel] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
-  const [showWelcome, setShowWelcome] = useState(() => {
-    return !localStorage.getItem("welcomed_" + (user?.id ?? ""));
-  });
   // Loading progress state
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [loadingLog, setLoadingLog] = useState<{ text: string; ts: number }[]>([]);
@@ -252,10 +249,6 @@ export default function Index() {
     };
   }, [step, visitedSteps, showExitPrompt]);
 
-  const handleCloseWelcome = () => {
-    localStorage.setItem("welcomed_" + (user?.id ?? ""), "1");
-    setShowWelcome(false);
-  };
 
   const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; batchSize: number }) => {
     try {
@@ -539,13 +532,8 @@ export default function Index() {
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
-      {/* Welcome Modal */}
-      {showWelcome && profile && (
-        <WelcomeModal firstName={profile.first_name} onClose={handleCloseWelcome} />
-      )}
-
       {/* Mobile Guided Tour */}
-      {user && !showWelcome && <MobileTour userId={user.id} />}
+      {user && <MobileTour userId={user.id} />}
 
       {/* Exit-Intent Prompt */}
       {showExitPrompt && (

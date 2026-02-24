@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Prevents onAuthStateChange from re-establishing a session we just cleared
   const signingOut = useRef(false);
 
-  const fetchOrCreateProfile = async (userId: string, showWelcome = false) => {
+  const fetchOrCreateProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
       .select("user_id, first_name")
@@ -41,11 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (data) {
       setProfile(data as Profile);
-      if (showWelcome) {
-        toast.success(`Welcome back, ${data.first_name}! 👋 Your workspace is ready.`, {
-          duration: 4000,
-        });
-      }
     } else {
       // No profile yet — new user, create from pending first name in localStorage
       const pendingName = localStorage.getItem("pending_first_name");
@@ -58,11 +53,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("pending_first_name");
         if (newProfile) {
           setProfile(newProfile as Profile);
-          if (showWelcome) {
-            toast.success(`Let's go, ${newProfile.first_name}! 🚀 Your workspace is all set.`, {
-              duration: 4000,
-            });
-          }
         }
       }
     }
@@ -77,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         const isSignIn = event === "SIGNED_IN";
-        fetchOrCreateProfile(session.user.id, isSignIn);
+        fetchOrCreateProfile(session.user.id);
         // Auto-claim referral if code stored from share page
         if (isSignIn) {
           const refCode = localStorage.getItem("referral_code");
@@ -102,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (signingOut.current) return;
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchOrCreateProfile(session.user.id, false);
+      if (session?.user) fetchOrCreateProfile(session.user.id);
       setLoading(false);
     });
 
