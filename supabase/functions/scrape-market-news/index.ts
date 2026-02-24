@@ -10,19 +10,25 @@ const corsHeaders = {
 const MIN_RESULTS = 10;
 
 const NEWS_QUERIES = [
-  "startup funding round 2025 2026 product launch",
-  "consumer product innovation 2025 2026 new launch",
-  "SEC filing IPO acquisition merger 2025 2026",
-  "ecommerce DTC brand trend 2025 2026",
-  "AI machine learning product application 2025 2026",
-  "sustainability circular economy product 2025 2026",
+  "startup funding round 2026 product launch",
+  "consumer product innovation 2026 new launch",
+  "SEC filing IPO acquisition merger 2026",
+  "ecommerce DTC brand trend 2026",
+  "AI machine learning product application 2026",
+  "sustainability circular economy product 2026",
+  "fintech payment startup funding 2026",
+  "health wellness consumer product launch 2026",
+  "retail technology disruption news 2026",
+  "venture capital deal announcement 2026",
 ];
 
 const FALLBACK_QUERIES = [
-  "venture capital startup news",
-  "product market disruption trend",
-  "technology innovation business 2025",
-  "retail consumer brand growth",
+  "venture capital startup news 2025 2026",
+  "product market disruption trend 2025 2026",
+  "technology innovation business 2025 2026",
+  "retail consumer brand growth 2025 2026",
+  "supply chain logistics innovation news",
+  "direct to consumer brand launch news",
 ];
 
 async function extractNews(

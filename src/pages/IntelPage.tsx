@@ -304,63 +304,118 @@ export default function IntelPage() {
               <h2 className="text-lg font-bold text-foreground">Search Trend Signals</h2>
             </div>
             <p className="text-sm text-muted-foreground mb-2 max-w-2xl">
-              Real search interest data showing relative volume over the trailing 12 months. Select a keyword to see its trajectory.
+              Real search interest data showing relative volume over the trailing 12 months. Select a keyword to see its trajectory and why it matters.
             </p>
             <p className="text-[10px] text-muted-foreground mb-6 flex items-center gap-1">
               <FileText size={10} /> {trends.length} keywords tracked · Interest scale 0–100
             </p>
 
             <div className="flex flex-wrap gap-2 mb-4">
-              {trends.map((t, i) => (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedTrend(i)}
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all ${
-                    selectedTrend === i
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-card text-muted-foreground hover:border-primary/40"
-                  }`}
-                >
-                  {t.keyword}
-                </button>
-              ))}
+              {trends.map((t, i) => {
+                const data = t.interest_over_time as any[] || [];
+                const lastVal = data.length > 0 ? data[data.length - 1]?.value : null;
+                const firstVal = data.length > 0 ? data[0]?.value : null;
+                const momentum = lastVal && firstVal ? Math.round(((lastVal - firstVal) / Math.max(firstVal, 1)) * 100) : null;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setSelectedTrend(i)}
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${
+                      selectedTrend === i
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                    }`}
+                  >
+                    {t.keyword}
+                    {momentum !== null && (
+                      <span className={`text-[9px] font-bold ${selectedTrend === i ? "text-primary-foreground/80" : momentum > 0 ? "text-green-600" : "text-destructive"}`}>
+                        {momentum > 0 ? "+" : ""}{momentum}%
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
-            {trendChartData.length > 0 ? (
+            {activeTrend && (
               <div className="border border-border rounded-xl bg-card shadow-sm p-4 sm:p-6 mb-4">
-                <div className="flex items-center justify-between mb-3">
+                {/* Header with key stats */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                   <div>
-                    <p className="text-sm font-bold text-foreground">{activeTrend?.keyword}</p>
-                    <p className="text-[10px] text-muted-foreground">{activeTrend?.category} · Relative search interest over time (0-100)</p>
+                    <p className="text-sm font-bold text-foreground">{activeTrend.keyword}</p>
+                    <p className="text-[10px] text-muted-foreground">{activeTrend.category} · Relative search interest (0-100)</p>
                   </div>
+                  {(() => {
+                    const data = activeTrend.interest_over_time as any[] || [];
+                    const lastVal = data.length > 0 ? data[data.length - 1]?.value : null;
+                    const firstVal = data.length > 0 ? data[0]?.value : null;
+                    const peakVal = data.length > 0 ? Math.max(...data.map((d: any) => d.value || 0)) : null;
+                    return (
+                      <div className="flex gap-4">
+                        {lastVal !== null && (
+                          <div className="text-center">
+                            <p className="text-lg font-bold text-foreground">{lastVal}</p>
+                            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Current</p>
+                          </div>
+                        )}
+                        {peakVal !== null && (
+                          <div className="text-center">
+                            <p className="text-lg font-bold text-primary">{peakVal}</p>
+                            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Peak</p>
+                          </div>
+                        )}
+                        {firstVal !== null && lastVal !== null && (
+                          <div className="text-center">
+                            <p className={`text-lg font-bold ${lastVal >= firstVal ? "text-green-600" : "text-destructive"}`}>
+                              {lastVal >= firstVal ? "+" : ""}{Math.round(((lastVal - firstVal) / Math.max(firstVal, 1)) * 100)}%
+                            </p>
+                            <p className="text-[9px] text-muted-foreground uppercase tracking-wider">12mo Δ</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
-                <div className="h-[240px] sm:h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendChartData}>
-                      <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" domain={[0, 100]} />
-                      <RechartsTooltip
-                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                      />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--primary))" }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            ) : (
-              <div className="border border-border rounded-xl bg-card shadow-sm p-6 text-center">
-                <p className="text-sm text-muted-foreground">No trend line data available for this keyword yet.</p>
-              </div>
-            )}
 
-            {activeTrend?.related_queries?.length > 0 && (
-              <div className="border border-border rounded-lg p-4 bg-card">
-                <p className="text-xs font-semibold text-foreground mb-2">Related Search Queries</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(activeTrend.related_queries as string[]).map((q: string, i: number) => (
-                    <span key={i} className="text-[10px] px-2 py-1 rounded bg-muted text-muted-foreground">{q}</span>
-                  ))}
-                </div>
+                {/* Growth note / insight */}
+                {activeTrend.growth_note && (
+                  <div className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                    <div className="flex items-start gap-2">
+                      <Zap size={12} className="text-primary mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-foreground leading-relaxed">{activeTrend.growth_note}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Chart */}
+                {trendChartData.length > 0 ? (
+                  <div className="h-[220px] sm:h-[260px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={trendChartData}>
+                        <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                        <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" domain={[0, 100]} />
+                        <RechartsTooltip
+                          contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                        />
+                        <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(var(--primary))" }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">No trend line data available for this keyword yet.</p>
+                )}
+
+                {/* Related queries */}
+                {activeTrend?.related_queries?.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Related Searches</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(activeTrend.related_queries as string[]).map((q: string, i: number) => (
+                        <span key={i} className="text-[10px] px-2 py-1 rounded bg-muted text-muted-foreground">{q}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </section>

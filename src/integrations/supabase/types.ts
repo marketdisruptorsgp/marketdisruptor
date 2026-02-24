@@ -309,6 +309,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          growth_note: string | null
           id: string
           interest_over_time: Json | null
           keyword: string
@@ -319,6 +320,7 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string
+          growth_note?: string | null
           id?: string
           interest_over_time?: Json | null
           keyword: string
@@ -329,6 +331,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          growth_note?: string | null
           id?: string
           interest_over_time?: Json | null
           keyword?: string
