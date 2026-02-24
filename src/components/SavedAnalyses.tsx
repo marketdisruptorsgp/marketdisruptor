@@ -319,7 +319,9 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
       console.error("Failed to load saved analyses:", error);
       toast.error("Could not load saved analyses");
     } else {
-      const deduped = deduplicateAnalyses(((data as unknown) as SavedAnalysis[]) || []);
+      const all = ((data as unknown) as SavedAnalysis[]) || [];
+      const withoutFirstPrinciples = all.filter((a) => a.analysis_type !== "first_principles");
+      const deduped = deduplicateAnalyses(withoutFirstPrinciples);
       setAnalyses(deduped);
       onCountChange?.(deduped.length);
     }
