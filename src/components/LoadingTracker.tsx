@@ -6,8 +6,8 @@ interface LoadingTrackerProps {
 
 const SCRAPE_SOURCES = [
   { label: "Market Data", detail: "Pricing, sold listings, trends" },
-  { label: "Community Intel", detail: "Sentiment & discussions" },
-  { label: "Trend Signals", detail: "Viral & search interest" },
+  { label: "Community Intel", detail: "Sentiment & pain points" },
+  { label: "Trend Signals", detail: "Demand & interest data" },
   { label: "Supply Chain", detail: "Suppliers, MOQs, distributors" },
   { label: "Complaint Mining", detail: "Pain points & feature gaps" },
 ];
@@ -18,7 +18,7 @@ const ANALYZE_TASKS = [
   { label: "Supply Chain", detail: "Suppliers, distributors" },
   { label: "Flip Ideas", detail: "Innovations from pain points" },
   { label: "Action Plans", detail: "Scoring + execution steps" },
-  { label: "Product Images", detail: "Real images from sources" },
+  { label: "Visual Intel", detail: "Product visuals & assets" },
 ];
 
 export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrackerProps) {

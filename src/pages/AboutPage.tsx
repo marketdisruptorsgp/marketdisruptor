@@ -15,7 +15,7 @@ export default function AboutPage() {
         <section className="mb-20">
           <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">About</p>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight mb-5">
-            Rethink The Game
+            Rethink The Possible
           </h1>
           <p className="text-base text-muted-foreground leading-relaxed max-w-xl mb-4">
             <em>Market Disruptor</em> is a proprietary deep analytics platform built for entrepreneurs, investors, and product teams who want to see opportunities others overlook. Not a surface-level tool or a simple AI wrapper.
@@ -83,7 +83,7 @@ export default function AboutPage() {
               Built by SGP Capital
             </a>
             <span className="text-muted-foreground"> · </span>
-            <a href="mailto:steven@sgpcapital.com" className="text-muted-foreground hover:underline">steven@sgpcapital.com</a>
+            
           </p>
         </footer>
       </main>
