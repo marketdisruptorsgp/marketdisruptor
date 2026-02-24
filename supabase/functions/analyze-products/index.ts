@@ -198,6 +198,15 @@ For each product, return an object with this EXACT structure:
   "assumptionsMap": [
     {"assumption": "Core design/market assumption", "challenge": "How this could be flipped/inverted for opportunity"}
   ],
+  "userWorkflow": {
+    "stepByStep": ["Step 1: what user does before using it", "Step 2: discovery/purchase", "Step 3: first use/setup", "Step 4: core use action", "Step 5: after/cleanup/rebuy"],
+    "frictionPoints": [
+      { "step": "step name", "friction": "specific friction description", "severity": "high|medium|low", "rootCause": "why this friction exists" }
+    ],
+    "cognitiveLoad": "What mental effort does the user expend? What do they have to remember, configure, or manage?",
+    "contextOfUse": "Where, when, in what state (rushed, relaxed, distracted) is this used? Does the design account for that context?",
+    "workflowOptimizations": ["Concrete optimization 1", "Concrete optimization 2", "Concrete optimization 3"]
+  },
   "flippedIdeas": [
     {
       "name": "Idea Name",
