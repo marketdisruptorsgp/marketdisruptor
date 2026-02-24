@@ -31,11 +31,7 @@ const CATEGORIES = [
   "Fitness & Health", "Music & Audio", "Office Supplies", "Multi-category",
 ];
 
-const ERAS = [
-  "70s", "80s", "80s–90s", "90s", "2000s", "All Eras / Current",
-];
-
-type Mode = "discover" | "custom" | "service" | "business";
+type Mode = "custom" | "service" | "business";
 
 interface BusinessInput {
   type: string;
@@ -73,7 +69,7 @@ const MODE_OPTIONS: {
     accent: "hsl(217 91% 38%)",
   },
   {
-    id: "service" as Mode,
+    id: "service",
     label: "Disrupt This Service",
     tagline: "Service Intelligence",
     description: "URLs, screenshots, or a description. AI maps the full competitive landscape and identifies growth opportunities.",
@@ -90,21 +86,12 @@ const MODE_OPTIONS: {
     icon: Building2,
     accent: "hsl(271 70% 50%)",
   },
-  {
-    id: "discover",
-    label: "Disrupt This Nostalgia",
-    tagline: "Market Intelligence",
-    description: "AI crawls the live web to find undervalued products with real comeback potential, then reinvents them.",
-    bullets: ["Live web scraping across marketplaces", "Every product assumption challenged and flipped", "Reinvented concepts with BOM and execution plans"],
-    icon: Telescope,
-    accent: "hsl(var(--primary))",
-  },
 ];
 
 export { type Mode as AnalysisMode };
 
 export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: externalMode, onModeChange }: AnalysisFormProps) => {
-  const [internalMode, setInternalMode] = useState<Mode>("discover");
+  const [internalMode, setInternalMode] = useState<Mode>("custom");
   const mode = externalMode ?? internalMode;
   const setMode = (m: Mode) => { onModeChange ? onModeChange(m) : setInternalMode(m); };
   
@@ -121,16 +108,12 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   }, [externalMode]);
 
   const [category, setCategory] = useState("Toys & Games");
-  const [era, setEra] = useState("80s–90s");
   const [batchSize, setBatchSize] = useState(10);
   const [customProducts, setCustomProducts] = useState<CustomProductInput[]>([{}]);
   const [customUrls, setCustomUrls] = useState<string[]>([""]);
   const [customImages, setCustomImages] = useState<{ file: File; dataUrl: string }[]>([]);
   const [customName, setCustomName] = useState("");
   const [customNotes, setCustomNotes] = useState("");
-  const [discoverAudience, setDiscoverAudience] = useState("");
-  const [discoverBudget, setDiscoverBudget] = useState("");
-  const [discoverNotes, setDiscoverNotes] = useState("");
   const [businessInput, setBusinessInput] = useState<BusinessInput>({
     type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "",
   });
@@ -162,16 +145,6 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
         imageFile: customImages[0]?.file,
       }];
       onAnalyze({ category: mode === "service" ? "Service" : "Custom", era: "All Eras / Current", batchSize: 1, customProducts: filled });
-    } else {
-      const contextParts = [
-        discoverAudience && `Target: ${discoverAudience}`,
-        discoverBudget && `Budget: ${discoverBudget}`,
-        discoverNotes,
-      ].filter(Boolean).join(". ");
-      onAnalyze({
-        category, era, batchSize,
-        ...(contextParts ? { customProducts: [{ notes: contextParts }] } : {}),
-      });
     }
   };
 
@@ -262,96 +235,6 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   if (phase === "form") {
     return (
       <div className="space-y-6">
-        {mode === "discover" && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                  style={inputStyle}
-                >
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Era</label>
-                <select
-                  value={era}
-                  onChange={(e) => setEra(e.target.value)}
-                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                  style={inputStyle}
-                >
-                  {ERAS.map(e => <option key={e} value={e}>{e}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Audience</label>
-                <input
-                  value={discoverAudience}
-                  onChange={(e) => setDiscoverAudience(e.target.value)}
-                  placeholder="e.g. Millennial collectors, Gen-Z hobbyists, Parents with kids 6-12..."
-                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                  style={inputStyle}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Budget Range</label>
-                <input
-                  value={discoverBudget}
-                  onChange={(e) => setDiscoverBudget(e.target.value)}
-                  placeholder="e.g. Under $50, $50-200, Premium $500+..."
-                  className="w-full rounded px-3 py-2.5 text-sm focus:outline-none"
-                  style={inputStyle}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Batch Size</label>
-              <div className="flex gap-2">
-                {[5, 10, 15].map(n => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setBatchSize(n)}
-                    className="flex-1 py-2 rounded text-sm font-bold transition-colors"
-                    style={{
-                      border: "1px solid hsl(var(--border))",
-                      background: batchSize === n ? "hsl(var(--primary))" : "hsl(var(--background))",
-                      color: batchSize === n ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
-                    }}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Context & Notes</label>
-              <textarea
-                value={discoverNotes}
-                onChange={(e) => setDiscoverNotes(e.target.value)}
-                placeholder="Any specific products, brands, or trends you want explored..."
-                rows={3}
-                className="w-full rounded px-3 py-2.5 text-sm focus:outline-none resize-none"
-                style={inputStyle}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 rounded font-bold text-sm text-white transition-colors hover:opacity-90 disabled:opacity-50"
-              style={{ background: "hsl(var(--primary))" }}
-            >
-              {isLoading ? "Running Analysis..." : "Start Discovery"}
-            </button>
-          </form>
-        )}
-
         {(mode === "custom" || mode === "service") && (
           <form onSubmit={handleSubmit} className="space-y-5">
              <div className="space-y-1.5">

@@ -68,7 +68,7 @@ function formatDate(iso: string) {
 function deduplicateAnalyses(items: SavedAnalysis[]): SavedAnalysis[] {
   const seen = new Set<string>();
   return items.filter((a) => {
-    const key = `${a.category}|${a.era}|${a.audience}|${a.analysis_type ?? "product"}|${a.batch_size}`;
+    const key = `${a.category}|${a.analysis_type ?? "product"}|${a.batch_size}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -179,7 +179,6 @@ function SpotlightCard({ analysis, onLoad, onDelete }: { analysis: SavedAnalysis
         {/* Meta */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="tag-pill text-[10px]">{analysis.category}</span>
-          <span className="text-[10px] text-muted-foreground">{analysis.era}</span>
         </div>
 
         {/* Footer */}
