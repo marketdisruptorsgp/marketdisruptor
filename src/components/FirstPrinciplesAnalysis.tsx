@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -341,7 +341,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set(["assumptions"]));
   const [userContext, setUserContext] = useState("");
   const [rerunSuggestions, setRerunSuggestions] = useState("");
-  const redesignAutoTriggeredRef = useRef(false);
+  
 
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
     try {
@@ -397,14 +397,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     }
   };
 
-  // Auto-trigger redesign generation on first visit
-  const redesignConcept = (externalData as FirstPrinciplesData)?.redesignedConcept;
-  useEffect(() => {
-    if (renderMode === "redesign" && !redesignConcept && !loading && !redesignAutoTriggeredRef.current) {
-      redesignAutoTriggeredRef.current = true;
-      runAnalysis();
-    }
-  }, [renderMode, redesignConcept, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const allSteps = [
     { id: "assumptions" as const, label: "Assumptions", icon: Brain },
@@ -489,9 +481,27 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         );
       }
       return (
-        <div className="py-12 text-center">
-          <Sparkles size={32} className="mx-auto mb-3 opacity-20" />
-          <p className="text-sm text-muted-foreground">Generating redesign concept…</p>
+        <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
+          <div className="w-20 h-20 rounded flex items-center justify-center" style={{ background: "hsl(38 92% 50% / 0.12)" }}>
+            <Sparkles size={36} style={{ color: "hsl(38 92% 50%)" }} />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-foreground mb-2">Redesign Concept</h3>
+            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+              Generate a radical reinvention of <strong>{product.name}</strong> — combining all flipped ideas into a cohesive redesigned concept.
+            </p>
+          </div>
+          <button
+            onClick={runAnalysis}
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm transition-colors"
+            style={{ background: "hsl(38 92% 50%)", color: "white", opacity: loading ? 0.7 : 1 }}
+          >
+            <Sparkles size={15} /> Generate Redesign
+          </button>
+          <p className="text-[11px] text-muted-foreground">
+            Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
+          </p>
         </div>
       );
     }
