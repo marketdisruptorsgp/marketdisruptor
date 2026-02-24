@@ -201,3 +201,11 @@
 .animate-pulse-subtle {
   animation: none;
 }
+
+/* 2x font scaling for presentation/fullscreen mode only */
+.pitch-scaled {
+  font-size: 200%;
+}
+.pitch-scaled svg text {
+  font-size: 200%;
+}

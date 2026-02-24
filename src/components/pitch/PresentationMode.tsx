@@ -80,6 +80,7 @@ export function PresentationMode({ slides, onExit }: PresentationModeProps) {
     >
       {/* Scaled slide container */}
       <div
+        className="pitch-scaled"
         style={{
           width: 1920,
           height: 1080,
