@@ -538,6 +538,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
     if (ad?.redesign) setRedesignData(ad.redesign);
     if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
+    // projectNotes is loaded on-demand in portfolio/report, no context state needed
 
     // Restore outdated steps
     if (ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)) {

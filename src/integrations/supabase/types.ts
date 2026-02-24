@@ -206,6 +206,42 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_action_items: {
+        Row: {
+          analysis_id: string | null
+          completed: boolean
+          created_at: string
+          id: string
+          notes: string | null
+          position: number
+          text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id?: string | null
+          completed?: boolean
+          created_at?: string
+          id?: string
+          notes?: string | null
+          position?: number
+          text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string | null
+          completed?: boolean
+          created_at?: string
+          id?: string
+          notes?: string | null
+          position?: number
+          text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
