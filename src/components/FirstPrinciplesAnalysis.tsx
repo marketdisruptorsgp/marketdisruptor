@@ -271,7 +271,7 @@ function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; friction
   );
 }
 
-/* ── Collapsible detail panel — PROMINENT ──────────────────────── */
+/* ── Collapsible detail panel — CLEAN ──────────────────────── */
 function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -279,22 +279,15 @@ function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { tit
       <CollapsibleTrigger
         className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg text-left transition-all group"
         style={{
-          background: open ? "hsl(var(--primary) / 0.06)" : "hsl(var(--primary) / 0.03)",
-          border: open ? "1.5px solid hsl(var(--primary) / 0.3)" : "1.5px dashed hsl(var(--primary) / 0.25)",
+          background: open ? "hsl(var(--muted))" : "hsl(var(--card))",
+          border: "1px solid hsl(var(--border))",
         }}
       >
-        <span className="flex items-center gap-2 text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>
-          <Icon size={14} />
+        <span className="flex items-center gap-2 text-xs font-bold text-foreground">
+          <Icon size={14} className="text-muted-foreground" />
           {title}
         </span>
-        <span className="flex items-center gap-1.5">
-          {!open && (
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-              Tap to expand
-            </span>
-          )}
-          <ChevronDown size={16} className="transition-transform" style={{ color: "hsl(var(--primary))", transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
-        </span>
+        <ChevronDown size={16} className="transition-transform text-muted-foreground" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
       </CollapsibleTrigger>
       <CollapsibleContent className="px-4 pt-3 pb-1">
         {children}
@@ -560,8 +553,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Core Reality" icon={Eye} />
 
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>The Real Problem</p>
+          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">The Real Problem</p>
             <p className="text-sm text-foreground leading-relaxed">{data.coreReality.trueProblem}</p>
           </div>
 
@@ -726,15 +719,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.currentTechLevel}</p>
           </div>
 
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>Highest-Leverage Integration</p>
+          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Highest-Leverage Integration</p>
             <p className="text-xs text-foreground/80 leading-relaxed">{data.smartTechAnalysis.recommendedIntegration}</p>
           </div>
 
           <DetailPanel title={`Missed Opportunities (${data.smartTechAnalysis.missedOpportunities?.length || 0}) & Barriers`} icon={Wifi}>
             {data.smartTechAnalysis.missedOpportunities?.map((opp, i) => (
-              <div key={i} className="mb-2 p-3 rounded-lg" style={{ background: "hsl(271 81% 56% / 0.05)", border: "1px solid hsl(271 81% 56% / 0.15)" }}>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full mr-2" style={{ background: "hsl(271 81% 56% / 0.12)", color: "hsl(271 81% 40%)" }}>{opp.tech}</span>
+              <div key={i} className="mb-2 p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full mr-2 text-muted-foreground" style={{ background: "hsl(var(--muted))" }}>{opp.tech}</span>
                 <p className="text-xs font-semibold text-foreground/90 mt-1">{opp.application}</p>
                 <p className="text-[11px] text-muted-foreground">{opp.valueCreated}</p>
               </div>
@@ -774,8 +767,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed ml-7">{a.currentAnswer}</p>
                   {a.challengeIdea && (
-                    <div className="ml-7 mt-1.5 p-2 rounded text-[11px]" style={{ background: "hsl(var(--primary-muted))", borderLeft: "2px solid hsl(var(--primary))" }}>
-                      <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>Challenge: </span>
+                    <div className="ml-7 mt-1.5 p-2 rounded text-[11px]" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <span className="font-bold text-foreground">Challenge: </span>
                       <span className="text-foreground/80">{a.challengeIdea}</span>
                     </div>
                   )}
@@ -918,11 +911,11 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 <div><p className="text-[10px] font-bold text-muted-foreground uppercase">Target Buyer</p><p className="text-xs text-foreground/80">{data.redesignedConcept.targetUser}</p></div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div className="p-2 rounded" style={{ background: "hsl(271 81% 56% / 0.05)" }}>
-                  <p className="text-[10px] font-bold" style={{ color: "hsl(271 81% 40%)" }}>Why Not Done</p>
+                <div className="p-2 rounded" style={{ background: "hsl(var(--muted))" }}>
+                  <p className="text-[10px] font-bold text-muted-foreground">Why Not Done</p>
                   <p className="text-xs text-foreground/80">{data.redesignedConcept.whyItHasntBeenDone}</p>
                 </div>
-                <div className="p-2 rounded" style={{ background: "hsl(var(--destructive) / 0.05)" }}>
+                <div className="p-2 rounded" style={{ background: "hsl(var(--muted))" }}>
                   <p className="text-[10px] font-bold" style={{ color: "hsl(var(--destructive))" }}>Biggest Risk</p>
                   <p className="text-xs text-foreground/80">{data.redesignedConcept.biggestRisk}</p>
                 </div>
@@ -981,8 +974,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             <NextSectionButton label={nextStep.label} onClick={goNext} />
           ) : (
             <div className="text-center py-4">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.25)" }}>
-                <CheckCircle2 size={14} /> All sections explored!
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
+                <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} /> All sections explored
               </div>
             </div>
           )}

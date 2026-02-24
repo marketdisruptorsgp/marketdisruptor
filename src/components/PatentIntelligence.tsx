@@ -169,12 +169,12 @@ export function PatentIntelligence({ product, onSave }: Props) {
     <div className="space-y-4">
       {/* Scorecards — concise top-level */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="p-3 rounded-xl space-y-2" style={{ background: "hsl(271 81% 55% / 0.08)", border: "1px solid hsl(271 81% 55% / 0.25)" }}>
+        <div className="p-3 rounded-xl space-y-2" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <ScoreMeter label="IP Landscape Clarity" score={patentData.landscapeScore} color="hsl(271 81% 55%)" />
           <ScoreMeter label="Innovation Opportunity" score={patentData.opportunityScore} color="hsl(142 70% 38%)" />
         </div>
-        <div className="p-3 rounded-xl flex flex-col gap-1.5" style={{ background: riskCfg.bg, border: `1px solid ${riskCfg.border}` }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: riskCfg.color }}>Patent Thicket Risk</p>
+        <div className="p-3 rounded-xl flex flex-col gap-1.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Patent Thicket Risk</p>
           <div className="flex items-center gap-2">
             <RiskIcon size={16} style={{ color: riskCfg.color }} />
             <span className="text-sm font-extrabold" style={{ color: riskCfg.color }}>{riskCfg.label}</span>
@@ -196,7 +196,7 @@ export function PatentIntelligence({ product, onSave }: Props) {
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(142 70% 38%)", color: "white" }}>FREE</span>
           </div>
           {patentData.expiredGoldmines.slice(0, 2).map((item, i) => (
-            <div key={i} className="p-3 rounded-xl" style={{ background: "hsl(142 70% 38% / 0.06)", border: "1px solid hsl(142 70% 38% / 0.25)" }}>
+            <div key={i} className="p-3 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(142 70% 38%)" }}>
               <p className="text-xs font-extrabold text-foreground">{item.title}</p>
               <p className="text-[10px] text-muted-foreground mb-1">By {item.originalHolder} · Expired {item.expiredYear}</p>
               <p className="text-xs text-foreground/80 line-clamp-2">{item.commercialOpportunity}</p>
@@ -207,11 +207,11 @@ export function PatentIntelligence({ product, onSave }: Props) {
             <DetailPanel title={`${patentData.expiredGoldmines.length - 2} more expired patents`} icon={Unlock}>
               <div className="space-y-2 mb-2">
                 {patentData.expiredGoldmines.slice(2).map((item, i) => (
-                  <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(142 70% 38% / 0.06)" }}>
+                  <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                     <p className="text-xs font-bold text-foreground">{item.title}</p>
                     <p className="text-[10px] text-muted-foreground">By {item.originalHolder} · Expired {item.expiredYear}</p>
                     <p className="text-xs text-foreground/80 mt-1">{item.whatItCovers}</p>
-                    <p className="text-xs mt-1" style={{ color: "hsl(142 70% 30%)" }}>💰 {item.commercialOpportunity}</p>
+                    <p className="text-xs mt-1" style={{ color: "hsl(142 70% 30%)" }}>{item.commercialOpportunity}</p>
                     <p className="text-[10px] text-muted-foreground mt-1">Example: "{item.exampleApplication}" · Value: ~{item.estimatedValue}</p>
                   </div>
                 ))}
@@ -235,8 +235,8 @@ export function PatentIntelligence({ product, onSave }: Props) {
               <div key={i} className="p-3 rounded-xl" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="text-xs font-bold text-foreground">{gap.gap}</p>
-                  <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: urgCfg.bg, color: urgCfg.color }}>
-                    {gap.urgency === "high" ? "🔥" : "⚡"} {gap.urgency}
+                  <span className="flex-shrink-0 text-[10px] font-bold" style={{ color: urgCfg.color }}>
+                    {gap.urgency.charAt(0).toUpperCase() + gap.urgency.slice(1)}
                   </span>
                 </div>
                 <p className="text-xs text-foreground/80">{gap.opportunity}</p>
@@ -268,7 +268,7 @@ export function PatentIntelligence({ product, onSave }: Props) {
             <Zap size={14} style={{ color: "hsl(38 92% 40%)" }} />
             <h3 className="font-extrabold text-sm text-foreground">Innovation Angles</h3>
           </div>
-          <div className="p-3 rounded-xl" style={{ background: "hsl(38 92% 40% / 0.05)", border: "1px solid hsl(38 92% 40% / 0.25)" }}>
+          <div className="p-3 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-xs font-extrabold text-foreground">{patentData.innovationAngles[0].angle}</p>
             <p className="text-[10px] text-muted-foreground">Based on: {patentData.innovationAngles[0].basedOn}</p>
             <p className="text-xs text-foreground/80 mt-1 line-clamp-2">{patentData.innovationAngles[0].description}</p>
@@ -278,7 +278,7 @@ export function PatentIntelligence({ product, onSave }: Props) {
             <DetailPanel title={`${patentData.innovationAngles.length - 1} more innovation angles`} icon={Zap}>
               <div className="space-y-3 mb-2">
                 {patentData.innovationAngles.slice(1).map((angle, i) => (
-                  <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(38 92% 40% / 0.05)" }}>
+                  <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                     <p className="text-xs font-bold text-foreground">{angle.angle}</p>
                     <p className="text-[10px] text-muted-foreground">Based on: {angle.basedOn}</p>
                     <p className="text-xs text-foreground/80 mt-1">{angle.description}</p>
@@ -299,11 +299,11 @@ export function PatentIntelligence({ product, onSave }: Props) {
       <DetailPanel title={`Active IP Minefield (${patentData.activeMinefield?.length || 0})`} icon={Lock}>
         <div className="space-y-2 mb-2">
           {patentData.activeMinefield?.map((item, i) => (
-            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(0 72% 50% / 0.06)", border: "1px solid hsl(0 72% 50% / 0.2)" }}>
+            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
               <div className="flex items-center justify-between mb-1">
                 <p className="text-xs font-bold text-foreground">{item.area}</p>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: item.risk === "high" ? "hsl(0 72% 50% / 0.15)" : "hsl(38 92% 40% / 0.15)", color: item.risk === "high" ? "hsl(0 72% 50%)" : "hsl(38 92% 40%)" }}>
-                  {item.risk === "high" ? "⚠️ High" : "⚡ Med"}
+                <span className="text-[10px] font-bold" style={{ color: item.risk === "high" ? "hsl(0 72% 50%)" : "hsl(38 92% 40%)" }}>
+                  {item.risk === "high" ? "High" : "Medium"}
                 </span>
               </div>
               <p className="text-[10px] text-muted-foreground">Holder: {item.holder}</p>
@@ -340,7 +340,7 @@ export function PatentIntelligence({ product, onSave }: Props) {
       <DetailPanel title={`Filing Trends (${patentData.filingTrends?.length || 0})`} icon={TrendingUp}>
         <div className="space-y-2 mb-2">
           {patentData.filingTrends?.map((trend, i) => (
-            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(271 81% 55% / 0.06)" }}>
+            <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
               <p className="text-xs font-bold text-foreground">{trend.trend}</p>
               <p className="text-xs text-foreground/80 mt-1">{trend.implication}</p>
               <p className="text-[10px] text-muted-foreground mt-1">Actors: {trend.actors} · Timeline: {trend.timeline}</p>
@@ -351,7 +351,7 @@ export function PatentIntelligence({ product, onSave }: Props) {
 
       {/* Quick Actions — concise */}
       {patentData.quickActions?.length > 0 && (
-        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.3)" }}>
+        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <p className="text-[10px] font-extrabold uppercase tracking-wider mb-2" style={{ color: "hsl(var(--primary))" }}>
             <Rocket size={11} className="inline mr-1" /> Quick Actions
           </p>

@@ -77,8 +77,8 @@ export function NextStepButton({ stepNumber, label, onClick, color, allSectionsV
     return (
       <div className="pt-6 pb-2">
         <div className="text-center mb-3">
-          <span className="text-xs font-extrabold px-4 py-2 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(38 92% 50% / 0.15)", color: "hsl(38 92% 30%)", border: "1px solid hsl(38 92% 50% / 0.3)" }}>
-            ⚠ Visit all sections above to unlock next step
+          <span className="text-xs font-extrabold px-4 py-2 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))", border: "1px solid hsl(var(--border))" }}>
+            Visit all sections above to unlock next step
           </span>
         </div>
         <button
@@ -95,8 +95,8 @@ export function NextStepButton({ stepNumber, label, onClick, color, allSectionsV
   return (
     <div className="pt-6 pb-2">
       <div className="text-center mb-3">
-        <span className="text-xs font-extrabold px-4 py-2 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 30%)", border: "1px solid hsl(142 70% 45% / 0.3)" }}>
-          ✓ All sections explored — ready for next step
+        <span className="text-xs font-extrabold px-4 py-2 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
+          <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} /> Ready for next step
         </span>
       </div>
       <button
@@ -111,32 +111,25 @@ export function NextStepButton({ stepNumber, label, onClick, color, allSectionsV
   );
 }
 
-/* ── Collapsible detail panel — HIGH CONTRAST ──────────────────────── */
+/* ── Collapsible detail panel — CLEAN ──────────────────────── */
 export function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger
-        className="w-full flex items-center justify-between gap-2 px-4 py-4 rounded-xl text-left transition-all group cursor-pointer"
+        className="w-full flex items-center justify-between gap-2 px-4 py-3.5 rounded-xl text-left transition-all group cursor-pointer"
         style={{
-          background: open ? "hsl(var(--foreground) / 0.04)" : "hsl(var(--foreground) / 0.02)",
-          border: open ? "2px solid hsl(var(--foreground) / 0.2)" : "2px dashed hsl(var(--foreground) / 0.25)",
+          background: open ? "hsl(var(--muted))" : "hsl(var(--card))",
+          border: "1px solid hsl(var(--border))",
         }}
       >
-        <span className="flex items-center gap-2.5 text-xs font-extrabold" style={{ color: "hsl(var(--foreground))" }}>
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--foreground) / 0.1)" }}>
-            <Icon size={13} style={{ color: "hsl(var(--foreground))" }} />
+        <span className="flex items-center gap-2.5 text-xs font-extrabold text-foreground">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
+            <Icon size={13} className="text-muted-foreground" />
           </div>
           {title}
         </span>
-        <span className="flex items-center gap-2">
-          {!open && (
-            <span className="text-[10px] font-extrabold px-3 py-1.5 rounded-full animate-pulse" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>
-              ▸ Tap to expand
-            </span>
-          )}
-          <ChevronDown size={16} className="transition-transform" style={{ color: "hsl(var(--foreground))", transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
-        </span>
+        <ChevronDown size={16} className="transition-transform text-muted-foreground" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
       </CollapsibleTrigger>
       <CollapsibleContent className="px-4 pt-3 pb-1">
         {children}
@@ -175,7 +168,7 @@ export function SectionPills<T extends string>({
             }}
           >
             {!isActive && !isVisited && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "hsl(var(--primary))" }} />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full" style={{ background: "hsl(var(--primary))" }} />
             )}
             <Icon size={12} />
             {s.label}
@@ -190,8 +183,8 @@ export function SectionPills<T extends string>({
 export function AllExploredBadge() {
   return (
     <div className="text-center py-4">
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold" style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 25%)", border: "1.5px solid hsl(142 70% 45% / 0.3)" }}>
-        ✓ All sections explored!
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
+        <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} /> All sections explored
       </div>
     </div>
   );
