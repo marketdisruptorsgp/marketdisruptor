@@ -9,6 +9,7 @@ import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import DashboardPage from "./pages/DashboardPage";
 import ReportPage from "./pages/ReportPage";
 import DisruptPage from "./pages/DisruptPage";
+import RedesignPage from "./pages/RedesignPage";
 import StressTestPage from "./pages/StressTestPage";
 import PitchPage from "./pages/PitchPage";
 import BusinessResultsPage from "./pages/BusinessResultsPage";
@@ -53,6 +54,7 @@ function AppRoutes() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/analysis/:id/report" element={<ReportPage />} />
           <Route path="/analysis/:id/disrupt" element={<DisruptPage />} />
+          <Route path="/analysis/:id/redesign" element={<RedesignPage />} />
           <Route path="/analysis/:id/stress-test" element={<StressTestPage />} />
           <Route path="/analysis/:id/pitch" element={<PitchPage />} />
           <Route path="/business/:id" element={<BusinessResultsPage />} />

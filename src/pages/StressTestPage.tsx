@@ -8,6 +8,7 @@ import { Swords, CheckCircle2 } from "lucide-react";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { SectionWorkflowNav } from "@/components/SectionNav";
+import { KeyTakeawayBanner, getStressTestTakeaway } from "@/components/KeyTakeawayBanner";
 
 const STRESS_TEST_DESCRIPTIONS: Record<string, string> = {
   debate: "Red Team attacks vs Green Team defenses",
@@ -38,20 +39,26 @@ export default function StressTestPage() {
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <StepNavigator
           steps={getStepConfigs(modeAccent)}
-          activeStep={4}
-          visitedSteps={new Set([2, 3, 4])}
+          activeStep={5}
+          visitedSteps={new Set([2, 3, 4, 5])}
           onStepChange={(s) => {
             if (s === 2) navigate(`${baseUrl}/report`);
             else if (s === 3) navigate(`${baseUrl}/disrupt`);
-            else if (s === 5) navigate(`${baseUrl}/pitch`);
+            else if (s === 4) navigate(`${baseUrl}/redesign`);
+            else if (s === 6) navigate(`${baseUrl}/pitch`);
           }}
         />
 
-        <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor="hsl(350 80% 55%)" />
+        <StepNavBar backLabel="Redesign" backPath={`${baseUrl}/redesign`} accentColor="hsl(350 80% 55%)" />
+
+        {(() => {
+          const takeaway = getStressTestTakeaway(analysis.stressTestData as Record<string, unknown> | null);
+          return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(350 80% 55%)" /> : null;
+        })()}
 
         <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(350 80% 55%)" }}>
           <div className="px-3 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--card))" }}>
-            <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-white font-semibold text-xs sm:text-sm" style={{ background: "hsl(350 80% 55%)" }}>4</div>
+            <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-white font-semibold text-xs sm:text-sm" style={{ background: "hsl(350 80% 55%)" }}>5</div>
             <div className="flex-1 min-w-0">
               <h2 className="text-base sm:text-lg font-bold text-foreground">Stress Test</h2>
               <p className="text-xs sm:text-sm text-muted-foreground">Red Team vs Green Team critical validation for <strong className="text-foreground">{selectedProduct.name}</strong></p>
@@ -88,7 +95,7 @@ export default function StressTestPage() {
 
         {/* Next Step button — gated */}
         <NextStepButton
-          stepNumber={5}
+          stepNumber={6}
           label="Pitch Deck"
           color="hsl(var(--primary))"
           onClick={() => navigate(`${baseUrl}/pitch`)}
