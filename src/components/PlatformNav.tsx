@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, Database, Upload, Briefcase, Building2,
   FolderOpen, BarChart3, BookOpen, HelpCircle, Lightbulb, TrendingUp, Radar,
-  Menu,
+  Menu, PieChart,
 } from "lucide-react";
 
 interface PlatformNavProps {
@@ -154,6 +154,16 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
 
                 <NavigationMenuItem>
                   <button
+                    onClick={() => navigate("/portfolio")}
+                    className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/portfolio") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                  >
+                    <PieChart size={13} />
+                    Portfolio
+                  </button>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <button
                     onClick={() => navigate("/about")}
                     className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 ${isActive("/about") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
                   >
@@ -281,6 +291,13 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 >
                   <BarChart3 size={14} className="text-muted-foreground" />
                   <span className="text-sm font-semibold text-foreground">Pricing</span>
+                </button>
+                <button
+                  onClick={() => { navigate("/portfolio"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                >
+                  <PieChart size={14} className="text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Portfolio</span>
                 </button>
               </div>
             </SheetContent>

@@ -148,6 +148,7 @@ export type Database = {
           created_at: string
           first_name: string
           id: string
+          last_seen_at: string | null
           updated_at: string
           user_id: string
         }
@@ -155,6 +156,7 @@ export type Database = {
           created_at?: string
           first_name: string
           id?: string
+          last_seen_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -162,6 +164,7 @@ export type Database = {
           created_at?: string
           first_name?: string
           id?: string
+          last_seen_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -302,6 +305,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_streaks: {
+        Row: {
+          analysis_count: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          analysis_count?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          analysis_count?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       user_usage: {
         Row: {
           analysis_count: number
@@ -338,6 +368,8 @@ export type Database = {
     }
     Functions: {
       increment_usage: { Args: { p_user_id: string }; Returns: number }
+      update_last_seen: { Args: { p_user_id: string }; Returns: undefined }
+      upsert_user_streak: { Args: { p_user_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

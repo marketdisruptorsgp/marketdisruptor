@@ -6,6 +6,7 @@ import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner, getDisruptTakeaway } from "@/components/KeyTakeawayBanner";
+import { ShareAnalysis } from "@/components/ShareAnalysis";
 
 export default function DisruptPage() {
   const analysis = useAnalysis();
@@ -38,6 +39,7 @@ export default function DisruptPage() {
         />
 
         <StepNavBar backLabel="Intelligence Report" backPath={`${baseUrl}/report`} accentColor="hsl(271 81% 55%)" />
+        <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor="hsl(271 81% 55%)" /></div>
 
         {(() => {
           const takeaway = getDisruptTakeaway(analysis.disruptData as Record<string, unknown> | null);

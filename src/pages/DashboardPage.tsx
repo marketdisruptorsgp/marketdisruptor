@@ -13,6 +13,8 @@ import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
 import { Target } from "lucide-react";
 import { LoadingTracker } from "@/components/LoadingTracker";
 import PaywallModal from "@/components/PaywallModal";
+import { MarketChangeAlert } from "@/components/MarketChangeAlert";
+import { StreakBadge } from "@/components/StreakBadge";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -119,6 +121,11 @@ export default function DashboardPage() {
 
       <HeroSection tier={tier} remainingAnalyses={remainingAnalyses()} profileFirstName={profile?.first_name} onOpenSaved={() => setShowSavedPanel(true)} savedCount={savedCount} />
 
+      {/* Market Change Notifications */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
+        <MarketChangeAlert />
+      </div>
+
       <Sheet open={showSavedPanel} onOpenChange={setShowSavedPanel}>
         <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader>
@@ -166,6 +173,10 @@ export default function DashboardPage() {
             >
               Learn More
             </button>
+          </div>
+          {/* Streak Badge */}
+          <div className="flex justify-center mt-4">
+            <StreakBadge />
           </div>
 
           {/* Built For */}

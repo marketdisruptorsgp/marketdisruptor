@@ -15,6 +15,7 @@ import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { SectionHeader, NextSectionButton, DetailPanel, NextStepButton, StepNavBar, SectionWorkflowNav } from "@/components/SectionNav";
 import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
+import { ShareAnalysis } from "@/components/ShareAnalysis";
 import {
   Target, Brain, Swords, Presentation, Save, RefreshCw, FileDown,
   ChevronLeft, ChevronRight, ExternalLink, MessageSquare,
@@ -132,6 +133,7 @@ export default function ReportPage() {
                 {isSaving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
                 {isSaving ? "Saving…" : "Save"}
               </button>
+              <ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={modeAccent} />
             </div>
           </div>
         </div>
