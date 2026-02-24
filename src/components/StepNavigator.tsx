@@ -51,19 +51,19 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
                   onClick={() => onStepChange(s.step)}
                   className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 rounded-xl text-left transition-all flex-shrink-0 min-w-[100px] sm:min-w-0 sm:flex-1"
                   style={{
-                    background: isCurrent ? "hsl(var(--foreground))" : isPast ? "hsl(var(--primary) / 0.06)" : "transparent",
+                    background: isCurrent ? "hsl(var(--foreground))" : isPast ? "hsl(var(--muted))" : "transparent",
                     color: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
                     border: isCurrent
                       ? "2px solid hsl(var(--foreground))"
                       : isPast
-                        ? "1.5px solid hsl(var(--primary) / 0.25)"
+                        ? "1.5px solid hsl(var(--border))"
                         : "1.5px solid hsl(var(--border))",
                     boxShadow: isCurrent ? "0 4px 16px hsl(var(--foreground) / 0.2)" : "none",
                     opacity: isFuture ? 0.5 : 1,
                   }}
                 >
                   <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center" style={{
-                    background: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--primary) / 0.12)" : "hsl(var(--muted))",
+                    background: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--muted))" : "hsl(var(--muted))",
                   }}>
                     {isPast ? (
                       <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} />

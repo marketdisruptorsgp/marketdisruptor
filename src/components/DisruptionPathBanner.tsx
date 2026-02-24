@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Crosshair, Target, Brain, Swords, Presentation, ArrowRight, Sparkles } from "lucide-react";
+import { Crosshair, Target, Brain, Swords, Presentation, ArrowRight, Sparkles, CheckCircle2, Circle } from "lucide-react";
 
 const PIPELINE_STEPS = [
   {
@@ -58,7 +58,7 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
         {/* Section heading */}
         <div className="text-center mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-4"
-            style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}>
+            style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
             <Sparkles size={12} />
             How It Works
           </div>
@@ -95,16 +95,16 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                   className="relative rounded-xl p-5 sm:p-6 transition-all duration-300 cursor-default h-full flex flex-col"
                   style={{
                     background: isActive
-                      ? `hsl(${color} / 0.08)`
+                      ? "hsl(var(--muted))"
                       : isPast
-                        ? "hsl(var(--primary) / 0.03)"
+                        ? "hsl(var(--muted))"
                         : isHovered
                           ? "hsl(var(--foreground) / 0.02)"
                           : "hsl(var(--background))",
                     border: isActive
                       ? `2px solid hsl(${color} / 0.35)`
                       : isPast
-                        ? "2px solid hsl(var(--primary) / 0.15)"
+                        ? "2px solid hsl(var(--border))"
                         : isHovered
                           ? "2px solid hsl(var(--border))"
                           : "2px solid hsl(var(--border) / 0.6)",
@@ -164,11 +164,12 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                       <span
                         className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full"
                         style={{
-                          background: isPast ? "hsl(152 60% 44% / 0.1)" : `hsl(${color} / 0.1)`,
+                          background: "hsl(var(--muted))",
                           color: isPast ? "hsl(152 60% 44%)" : `hsl(${color})`,
+                          border: "1px solid hsl(var(--border))",
                         }}
                       >
-                        {isPast ? "✓ Complete" : "● Current"}
+                        {isPast ? <><CheckCircle2 size={10} /> Complete</> : <><Circle size={10} /> Current</>}
                       </span>
                     </div>
                   )}
