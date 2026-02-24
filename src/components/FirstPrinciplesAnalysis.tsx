@@ -9,6 +9,7 @@ import { LeverageScore } from "@/components/LeverageScore";
 import { RiskBadge } from "@/components/RiskBadge";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { downloadPatentPDF } from "@/lib/pdfExport";
+import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import {
   Brain, Flame, Zap, ChevronRight, ChevronDown, RefreshCw, AlertTriangle, CheckCircle2,
@@ -436,6 +437,17 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     scrollToSteps();
   };
 
+  if (!data && loading) {
+    return (
+      <StepLoadingTracker
+        title="Building Disrupt Analysis"
+        tasks={DISRUPT_TASKS}
+        estimatedSeconds={50}
+        accentColor="hsl(271 81% 55%)"
+      />
+    );
+  }
+
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
@@ -466,11 +478,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm transition-colors"
           style={{ background: "hsl(var(--primary))", color: "white", opacity: loading ? 0.7 : 1 }}
         >
-          {loading ? (
-            <><RefreshCw size={15} className="animate-spin" /> Deconstructing {product.name}…</>
-          ) : (
-            <><Brain size={15} /> Run Disrupt Analysis</>
-          )}
+          <Brain size={15} /> Run Disrupt Analysis
         </button>
         <p className="text-[11px] text-muted-foreground">
           Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
