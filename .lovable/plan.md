@@ -1,4 +1,134 @@
 
+# Step-Level Picker — "Choose Your Analysis Depth"
+
+## Overview
+Allow users at Step 1 (input form) to select which analysis steps they want to run. Default is all 6 steps (full analysis). Users can uncheck steps they don't need, creating a shorter journey. This is a **step-level** picker (not section-level).
+
+---
+
+## Steps Available for Selection
+
+| Step | Name | Skippable? | Notes |
+|------|------|-----------|-------|
+| 1 | Choose What to Disrupt | ❌ No | Always required — it's the input form |
+| 2 | Intelligence Report | ❌ No | Foundation data needed by downstream steps |
+| 3 | Disrupt | ✅ Yes | Assumptions + Flip the Logic |
+| 4 | Redesign | ✅ Yes | Interactive concept illustrations |
+| 5 | Stress Test | ✅ Yes | Red vs Green debate |
+| 6 | Pitch Deck | ✅ Yes | Revival Score + investor slides |
+
+Steps 1 & 2 are always included. Steps 3–6 can be toggled individually.
+
+---
+
+## UI Design
+
+### Location
+Add a collapsible "Customize Analysis" section at the bottom of the `AnalysisForm` (Step 1), below existing inputs but above the submit button.
+
+### Layout
+```
+┌─────────────────────────────────────┐
+│  ⚙ Customize Analysis Steps        │
+│  ─────────────────────────────────  │
+│  ☑ Intelligence Report (required)   │
+│  ☑ Disrupt                          │
+│  ☑ Redesign                         │
+│  ☑ Stress Test                      │
+│  ☑ Pitch Deck                       │
+│                                     │
+│  Uncheck steps you want to skip.    │
+│  Skipped steps won't run AI models. │
+└─────────────────────────────────────┘
+```
+
+Default: all checked. A "Quick Mode" preset button unchecks Stress Test + Pitch Deck.
+
+---
+
+## Data Model Changes
+
+### AnalysisContext
+Add a new field to the analysis context:
+```typescript
+selectedSteps: number[] // e.g., [1, 2, 3, 4, 5, 6] for full, [1, 2, 3, 4] for quick
+```
+This gets persisted to `saved_analyses.analysis_data.selectedSteps`.
+
+### No DB migration needed
+`selectedSteps` is stored inside the existing `analysis_data` JSONB column.
+
+---
+
+## Implementation Changes
+
+### 1. `src/components/AnalysisForm.tsx`
+- Add a collapsible "Customize Analysis Steps" panel with checkboxes for steps 3–6
+- Add a "Quick Mode" preset button that unchecks steps 5 & 6
+- Pass `selectedSteps` to the analysis context on submit
+
+### 2. `src/contexts/AnalysisContext.tsx`
+- Add `selectedSteps` to context state (default: `[1, 2, 3, 4, 5, 6]`)
+- Persist to `analysis_data.selectedSteps` on save
+- Restore from saved analysis on load
+
+### 3. `src/lib/stepConfigs.ts`
+- Filter step configs based on `selectedSteps`
+- OR: add an `enabled` flag per step that the navigator respects
+
+### 4. `src/components/StepNavigator.tsx`
+- Skip disabled steps in navigation (next/prev buttons jump over them)
+- Show disabled steps as grayed-out dots in `StepProgressDots`
+
+### 5. `src/components/StepProgressDots.tsx`
+- Render skipped steps as hollow/grayed dots
+- Tooltip: "Skipped"
+
+### 6. Edge function prompt fallbacks
+- **Disrupt prompts** (first-principles-analysis): Already self-contained, no upstream dependency issues
+- **Stress Test** (critical-validation): If Disrupt was skipped, use the raw Intelligence Report data instead of disrupt output. Add a fallback in the prompt: "No disrupt analysis available — stress test the original concept."
+- **Pitch Deck** (generate-pitch-deck): If Stress Test was skipped, omit the debate section from the pitch. If Disrupt was skipped, pitch the original concept. Add conditional prompt sections.
+
+### 7. Portfolio & Timeline
+- `AnalysisTimeline` should only show steps that were selected, not mark skipped ones as incomplete
+- `ProjectInsightCard` already handles missing pitchDeck gracefully
+- `CompletionExperience` should trigger after the last selected step, not always after step 6
+
+---
+
+## Prompt Fallback Matrix
+
+| Step Generating | If Step 3 (Disrupt) Skipped | If Step 5 (Stress Test) Skipped |
+|----------------|---------------------------|-------------------------------|
+| Stress Test | Use raw Intel Report data for stress testing | N/A |
+| Pitch Deck | Pitch original concept, skip "disruption" narrative | Skip debate/validation slide |
+| Completion | Show completion after last active step | Show completion after last active step |
+
+---
+
+## Effort Estimate
+
+| Task | Effort |
+|------|--------|
+| UI (form + checkboxes) | Small |
+| Context + persistence | Small |
+| Step navigation filtering | Medium |
+| Prompt fallbacks (3 edge functions) | Medium |
+| Timeline/portfolio null handling | Small |
+| Testing all combinations | Medium |
+
+**Total: Medium effort** — ~2-3 focused sessions.
+
+---
+
+## Risk Mitigation
+
+- Default to full analysis (all steps) so existing behavior is unchanged
+- Skipped steps store `null` in `analysis_data` — all existing null checks already handle this
+- "Quick Mode" preset reduces decision fatigue while still offering customization
+- Edge function fallbacks should be tested with each skip combination
+
+---
 
 # Pitch Deck Visual Enhancement + Cover Slide
 
@@ -101,4 +231,3 @@ The "[L]" is the geometric corner accent -- two thin lines forming an angular de
 - PDF geometric elements use simple `doc.line()` calls -- no images or external assets needed
 - Category labels are static strings mapped per slide ID, not AI-generated
 - The cover slide's subtitle uses `data.elevatorPitch?.split(".")?.[0]` -- first sentence only, already available in the data
-
