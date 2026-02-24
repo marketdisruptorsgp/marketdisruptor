@@ -43,10 +43,21 @@ export default function PortfolioPage() {
   const [loading, setLoading] = useState(true);
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
 
+  // Pre-populate first project in comparison once loaded
+  const [didPreselect, setDidPreselect] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     fetchAll();
   }, [user]);
+
+  // Pre-select top-scoring project for comparison
+  useEffect(() => {
+    if (didPreselect || analyses.length === 0) return;
+    const best = [...analyses].sort((a, b) => (b.avg_revival_score || 0) - (a.avg_revival_score || 0))[0];
+    if (best) setCompareIds(new Set([best.id]));
+    setDidPreselect(true);
+  }, [analyses, didPreselect]);
 
   const fetchAll = async () => {
     const { data } = await supabase
@@ -164,9 +175,34 @@ export default function PortfolioPage() {
             {/* Score Intelligence Panel */}
             <ScoreInsightPanel analyses={analyses} />
 
+            {/* Comparison Insight View */}
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Insight Comparison</p>
+              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                Compare up to 3 projects across revival score, risk, market size, GTM readiness, innovation, and unit economics. Expand any dimension for detailed context.
+              </p>
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {analyses.slice(0, 20).map((a) => (
+                  <button key={a.id} onClick={() => toggleCompare(a.id)}
+                    className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors"
+                    style={{
+                      background: compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                      color: compareIds.has(a.id) ? "white" : "hsl(var(--foreground))",
+                      border: `1px solid ${compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+                    }}>
+                    {a.title.length > 25 ? a.title.slice(0, 25) + "…" : a.title}
+                  </button>
+                ))}
+              </div>
+              <ComparisonInsightView compareList={compareList} />
+            </div>
+
             {/* Category Breakdown */}
             <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Category Breakdown</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Category Breakdown</p>
+              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                Shows the distribution of your analyses across different modes — Product, Service, Business, and First Principles.
+              </p>
               <div className="flex items-center justify-center">
                 <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
@@ -190,30 +226,13 @@ export default function PortfolioPage() {
               </div>
             </div>
 
-            {/* Comparison Insight View */}
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Insight Comparison</p>
-              <p className="text-[10px] text-muted-foreground mb-3">Select up to 3 projects to compare side-by-side</p>
-              <div className="flex flex-wrap gap-1.5 mb-4">
-                {analyses.slice(0, 20).map((a) => (
-                  <button key={a.id} onClick={() => toggleCompare(a.id)}
-                    className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors"
-                    style={{
-                      background: compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--muted))",
-                      color: compareIds.has(a.id) ? "white" : "hsl(var(--foreground))",
-                      border: `1px solid ${compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-                    }}>
-                    {a.title.length > 25 ? a.title.slice(0, 25) + "…" : a.title}
-                  </button>
-                ))}
-              </div>
-              <ComparisonInsightView compareList={compareList} />
-            </div>
-
             {/* Timeline */}
             {timeline.length > 1 && (
               <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Activity Timeline</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Activity Timeline</p>
+                <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                  Your analysis activity over time. Consistent exploration leads to better strategic pattern recognition.
+                </p>
                 <ResponsiveContainer width="100%" height={140}>
                   <AreaChart data={timeline}>
                     <XAxis dataKey="month" tick={{ fontSize: 10 }} />
@@ -227,7 +246,10 @@ export default function PortfolioPage() {
 
             {/* Saved Projects Grid */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Saved Projects</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Saved Projects</p>
+              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                All your saved analyses. Click any project to reopen the full analysis flow.
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {analyses.map((a) => (
                   <ProjectInsightCard
