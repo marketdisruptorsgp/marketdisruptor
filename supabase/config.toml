@@ -27,3 +27,9 @@ verify_jwt = false
 [functions.scrape-market-news]
 verify_jwt = false
 
+[functions.api-proxy]
+verify_jwt = false
+
+[functions.fire-webhook]
+verify_jwt = false
+

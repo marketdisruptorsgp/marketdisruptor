@@ -22,6 +22,7 @@ import IntelPage from "./pages/IntelPage";
 import MethodologyPage from "./pages/MethodologyPage";
 import FaqsPage from "./pages/FaqsPage";
 import PortfolioPage from "./pages/PortfolioPage";
+import ApiPage from "./pages/ApiPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +67,7 @@ function AppRoutes() {
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/faqs" element={<FaqsPage />} />
           <Route path="/portfolio" element={<PortfolioPage />} />
+          <Route path="/api" element={<ApiPage />} />
           <Route path="*" element={<NotFound />} />
         </>
       ) : (
