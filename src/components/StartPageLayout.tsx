@@ -6,9 +6,10 @@ import { AnalysisForm, type AnalysisMode } from "@/components/AnalysisForm";
 import { BusinessModelAnalysis, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import { ContextualTip } from "@/components/ContextualTip";
 import { LoadingTracker } from "@/components/LoadingTracker";
+import { HeroSection } from "@/components/HeroSection";
 import PaywallModal from "@/components/PaywallModal";
-import { AlertCircle, ShieldCheck, BookOpen, Upload, Briefcase, Building2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { AlertCircle, ShieldCheck, BookOpen, Upload, Briefcase, Building2, ArrowLeft } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 
 const MODE_CONFIG = {
   custom: {
@@ -71,9 +72,20 @@ export default function StartPageLayout({ mode }: StartPageLayoutProps) {
   const tips = config.tips;
   const tipIndex = Math.floor(SESSION_SEED * tips.length);
 
+  const { tier } = useSubscription();
+
   return (
     <div className="min-h-screen bg-background">
+      <HeroSection tier={tier} remainingAnalyses={null} />
+
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10" ref={formRef}>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+        >
+          <ArrowLeft size={14} />
+          Back to Home
+        </Link>
         <div
           className="rounded-lg overflow-hidden border border-border bg-card shadow-sm"
           style={{ borderTop: `3px solid hsl(var(${modeColor}))` }}
