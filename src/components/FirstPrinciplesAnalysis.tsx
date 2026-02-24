@@ -17,6 +17,19 @@ import {
   Maximize2, Wifi, ScrollText, FileDown, Swords,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
+import { SectionWorkflowNav } from "@/components/SectionNav";
+
+const DISRUPT_SECTION_DESCRIPTIONS: Record<string, string> = {
+  reality: "True problem, actual usage & user hacks",
+  physical: "Size, weight, form factor & ergonomic gaps",
+  workflow: "Step-by-step journey & friction points",
+  smarttech: "Missed tech opportunities & integrations",
+  assumptions: "Hidden assumptions & challenge ideas",
+  flip: "Inverted logic & bold alternatives",
+  concept: "Redesigned concept & radical differences",
+  ideas: "Flipped product ideas & innovations",
+  patents: "Expired patents & IP opportunities",
+};
 
 
 interface CoreReality {
@@ -413,30 +426,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         />
       </DetailPanel>
 
-      {/* ── Section selector (linear list, not grid) ── */}
-      <div className="flex flex-wrap gap-1.5">
-        {allSteps.map((s, i) => {
-          const Icon = s.icon;
-          const isActive = activeStep === s.id;
-          const isVisited = visitedFPSteps.has(s.id);
-          return (
-            <button
-              key={s.id}
-              onClick={() => { setActiveStep(s.id); setVisitedFPSteps(prev => new Set([...prev, s.id])); }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
-              style={{
-                background: isActive ? "hsl(var(--primary))" : "transparent",
-                color: isActive ? "white" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                border: isActive ? "1px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
-              }}
-            >
-              <Icon size={12} />
-              <span className="hidden sm:inline">{s.label}</span>
-              <span className="sm:hidden">{i + 1}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* ── Section Workflow Navigator (grid) ── */}
+      <SectionWorkflowNav
+        tabs={allSteps}
+        activeId={activeStep}
+        visitedIds={visitedFPSteps}
+        onSelect={(id) => { setActiveStep(id); setVisitedFPSteps(prev => new Set([...prev, id])); scrollToSteps(); }}
+        descriptions={DISRUPT_SECTION_DESCRIPTIONS}
+        journeyLabel="Disrupt Analysis Journey"
+      />
 
       {/* ═══════ SECTION CONTENT ═══════ */}
 

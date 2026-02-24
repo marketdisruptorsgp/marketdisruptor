@@ -10,7 +10,7 @@ import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
-import { SectionHeader, NextSectionButton, DetailPanel, NextStepButton, StepNavBar } from "@/components/SectionNav";
+import { SectionHeader, NextSectionButton, DetailPanel, NextStepButton, StepNavBar, SectionWorkflowNav } from "@/components/SectionNav";
 import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
 import {
   Target, Brain, Swords, Presentation, Save, RefreshCw, FileDown,
@@ -160,101 +160,15 @@ export default function ReportPage() {
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
         {/* Section Workflow Navigator */}
-        <div ref={sectionTabsRef} className="rounded-xl overflow-hidden" style={{ border: "1.5px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
-          {/* Progress bar */}
-          <div className="px-4 py-2.5 flex items-center justify-between" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Your Analysis Journey
-            </p>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-bold" style={{ color: allSectionsVisited ? "hsl(var(--success))" : "hsl(var(--primary))" }}>
-                {mergedVisited.size}/{DETAIL_TABS.length}
-              </span>
-              <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--border))" }}>
-                <div className="h-full rounded-full transition-all duration-500" style={{
-                  width: `${(mergedVisited.size / DETAIL_TABS.length) * 100}%`,
-                  background: allSectionsVisited ? "hsl(var(--success))" : "hsl(var(--primary))",
-                }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Step cards grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-0">
-            {DETAIL_TABS.map((tab, i) => {
-              const isActive = analysis.detailTab === tab.id;
-              const isVisited = mergedVisited.has(tab.id) && !isActive;
-              const isUnvisited = !isActive && !isVisited;
-              const TabIcon = tab.icon;
-              const desc = SECTION_DESCRIPTIONS[tab.id] || "";
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => goToTab(tab.id)}
-                  className="relative flex flex-col items-center text-center px-2 py-4 sm:py-5 transition-all duration-200 group"
-                  style={{
-                    background: isActive
-                      ? "hsl(var(--foreground))"
-                      : isVisited
-                        ? "hsl(var(--primary) / 0.04)"
-                        : "transparent",
-                    borderRight: i < DETAIL_TABS.length - 1 ? "1px solid hsl(var(--border) / 0.5)" : "none",
-                  }}
-                >
-                  {/* Unvisited pulse dot */}
-                  {isUnvisited && (
-                    <span className="absolute top-2 right-2 w-2 h-2 rounded-full animate-pulse" style={{ background: "hsl(var(--primary))" }} />
-                  )}
-
-                  {/* Icon circle */}
-                  <div
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2 transition-all duration-200 group-hover:scale-110"
-                    style={{
-                      background: isActive
-                        ? "hsl(var(--background))"
-                        : isVisited
-                          ? "hsl(var(--primary) / 0.1)"
-                          : "hsl(var(--muted))",
-                    }}
-                  >
-                    {isVisited ? (
-                      <CheckCircle2 size={16} style={{ color: "hsl(var(--success))" }} />
-                    ) : (
-                      <TabIcon size={16} style={{ color: isActive ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }} />
-                    )}
-                  </div>
-
-                  {/* Step number */}
-                  <span className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{
-                    color: isActive ? "hsl(var(--background) / 0.5)" : "hsl(var(--muted-foreground) / 0.6)",
-                  }}>
-                    {i + 1}/{DETAIL_TABS.length}
-                  </span>
-
-                  {/* Label */}
-                  <p className="text-[11px] sm:text-xs font-bold leading-tight" style={{
-                    color: isActive ? "hsl(var(--background))" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                  }}>
-                    {tab.label}
-                  </p>
-
-                  {/* Description — hidden on mobile, visible on lg */}
-                  {desc && (
-                    <p className="hidden lg:block text-[9px] leading-snug mt-1 max-w-[120px]" style={{
-                      color: isActive ? "hsl(var(--background) / 0.6)" : "hsl(var(--muted-foreground) / 0.7)",
-                    }}>
-                      {desc}
-                    </p>
-                  )}
-
-                  {/* Active indicator bar */}
-                  {isActive && (
-                    <div className="absolute bottom-0 left-2 right-2 h-[3px] rounded-t-full" style={{ background: "hsl(var(--primary))" }} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        <div ref={sectionTabsRef}>
+          <SectionWorkflowNav
+            tabs={DETAIL_TABS}
+            activeId={analysis.detailTab}
+            visitedIds={mergedVisited}
+            onSelect={goToTab}
+            descriptions={SECTION_DESCRIPTIONS}
+            journeyLabel="Your Analysis Journey"
+          />
         </div>
 
         {/* Tab Content - Overview */}

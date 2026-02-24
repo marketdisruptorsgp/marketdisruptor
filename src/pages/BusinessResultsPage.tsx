@@ -11,6 +11,12 @@ import {
   Target, Brain, Swords, Presentation, ArrowLeft, FileDown,
   ChevronRight, CheckCircle2,
 } from "lucide-react";
+import { SectionWorkflowNav } from "@/components/SectionNav";
+
+const BIZ_STRESS_DESCRIPTIONS: Record<string, string> = {
+  debate: "Red Team attacks vs Blue Team defenses",
+  validate: "Feasibility checklist & confidence scores",
+};
 
 export default function BusinessResultsPage() {
   const analysis = useAnalysis();
@@ -131,26 +137,20 @@ export default function BusinessResultsPage() {
                   <p className="text-sm text-muted-foreground">Red Team vs Blue Team for <strong className="text-foreground">{bizName}</strong></p></div>
               </div>
               <div className="p-5 space-y-6" style={{ background: "hsl(var(--card))" }}>
-                <div className="flex gap-2">
-                  {[
+                <SectionWorkflowNav
+                  tabs={[
                     { id: "debate" as const, label: "Red vs Blue Debate", icon: Swords },
                     { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
-                  ].map(tab => {
-                    const isActive = analysis.businessStressTestTab === tab.id;
-                    const TabIcon = tab.icon;
-                    return (
-                      <button key={tab.id}
-                        onClick={() => { analysis.setBusinessStressTestTab(tab.id); analysis.setVisitedBusinessStressTestTabs(new Set([...analysis.visitedBusinessStressTestTabs, tab.id])); }}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded text-sm font-medium transition-colors relative"
-                        style={{ background: isActive ? "hsl(38 92% 50%)" : "transparent", color: isActive ? "white" : "hsl(var(--muted-foreground))", border: isActive ? "1px solid hsl(38 92% 50%)" : "1px solid hsl(var(--border))" }}>
-                        {!isActive && !analysis.visitedBusinessStressTestTabs.has(tab.id) && (
-                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(38 92% 50%)" }} />
-                        )}
-                        <TabIcon size={14} /> {tab.label}
-                      </button>
-                    );
-                  })}
-                </div>
+                  ]}
+                  activeId={analysis.businessStressTestTab}
+                  visitedIds={analysis.visitedBusinessStressTestTabs}
+                  onSelect={(id) => {
+                    analysis.setBusinessStressTestTab(id);
+                    analysis.setVisitedBusinessStressTestTabs(new Set([...analysis.visitedBusinessStressTestTabs, id]));
+                  }}
+                  descriptions={BIZ_STRESS_DESCRIPTIONS}
+                  journeyLabel="Stress Test Journey"
+                />
                 <CriticalValidation
                   product={{ name: bizName, category: "Business Model" }}
                   analysisData={businessAnalysisData}
