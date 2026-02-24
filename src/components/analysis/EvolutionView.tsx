@@ -72,7 +72,7 @@ export function EvolutionView({ analysisData, productName, accentColor = "hsl(va
       label: "Redesign",
       icon: Sparkles,
       color: "hsl(38 92% 50%)",
-      completed: !!analysisData?.redesign,
+      completed: !!(analysisData?.redesign || (analysisData?.disrupt as any)?.redesignedConcept || analysisData?.productVisuals),
       summary: getSummary(analysisData, "redesign"),
     },
     {
