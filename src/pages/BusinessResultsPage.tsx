@@ -1,6 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
+import { useSubscription } from "@/hooks/useSubscription";
+import { HeroSection } from "@/components/HeroSection";
 import { StepNavigator } from "@/components/StepNavigator";
 import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
 import { CriticalValidation } from "@/components/CriticalValidation";
@@ -21,6 +23,7 @@ const BIZ_STRESS_DESCRIPTIONS: Record<string, string> = {
 export default function BusinessResultsPage() {
   const analysis = useAnalysis();
   const navigate = useNavigate();
+  const { tier } = useSubscription();
 
   const [activeStep, setActiveStep] = React.useState(2);
   const [visitedSteps, setVisitedSteps] = React.useState<Set<number>>(new Set([2]));
@@ -57,6 +60,7 @@ export default function BusinessResultsPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
+      <HeroSection tier={tier} remainingAnalyses={null} />
       <main className="max-w-5xl mx-auto px-6 py-6 space-y-5">
         <StepNavigator
           steps={[
