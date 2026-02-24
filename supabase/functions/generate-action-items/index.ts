@@ -20,7 +20,6 @@ serve(async (req) => {
       });
     }
 
-    // Build a compact summary of each project for the AI
     const projectSummaries = analyses.slice(0, 10).map((a: any) => {
       const ad = a.analysis_data || {};
       const products = (a.products || []).slice(0, 2);
@@ -33,6 +32,8 @@ serve(async (req) => {
         hasPitch: !!ad.pitchDeck,
         hasStressTest: !!ad.stressTest,
         hasDisrupt: !!ad.disrupt,
+        hasBusinessModel: !!ad.businessModel,
+        hasFirstPrinciples: !!ad.firstPrinciples,
         keyInsight: firstProduct?.keyInsight || null,
         marketSize: firstProduct?.marketSizeEstimate || null,
         topComplaint: firstProduct?.communityInsights?.topComplaints?.[0] || null,
@@ -40,25 +41,23 @@ serve(async (req) => {
         topRisk: ad.stressTest?.criticalRisks?.[0]?.name || ad.stressTest?.vulnerabilities?.[0] || null,
         supplyChainGap: firstProduct?.supplyChainInsights?.suppliers?.[0]?.name || null,
         pricingInsight: firstProduct?.pricingInsights?.buyPrice || null,
+        revivalScore: firstProduct?.revivalScore || a.avg_revival_score || 0,
+        competitorCount: firstProduct?.competitorAnalysis?.competitors?.length || 0,
+        demandSignal: firstProduct?.communityInsights?.demandSignal || null,
       };
     });
 
-    const systemPrompt = `You are a strategic business advisor analyzing a user's portfolio of product/service analyses. Based on the project data, generate 4-6 specific, actionable action items the user should focus on next.
+    const systemPrompt = `You are a strategic business advisor analyzing a user's portfolio of product/service analyses on Market Disruptor OS. You must generate 3-5 high-value, reason-backed strategic action items.
 
-Each action item should be:
-- Specific to a project (reference by title)
-- Actionable and concrete (not vague)
-- Strategic (not just "complete step X")
-- Based on actual data patterns you see (pricing gaps, community complaints, market opportunities, risks to address)
+CRITICAL RULES:
+1. Every action item MUST cite a specific data point from the project data that justifies it (a score, a complaint, a market size, a risk, a gap).
+2. Every action item MUST explain WHY NOW — what's the urgency or opportunity cost of waiting?
+3. Action items should span different projects when possible, but ONLY if there's a real reason. Don't force cross-project items.
+4. Focus on the highest-leverage moves: things that unlock the most value with the least effort.
+5. Be brutally specific. Not "research competitors" but "investigate why [specific complaint] hasn't been addressed by the 3 existing competitors in [market]."
+6. If a project has a high revival score (7+), suggest offensive moves (launch, pitch, partner). If low (below 5), suggest diagnostic moves (validate demand, talk to customers, pivot angle).
 
-Examples of good action items:
-- "Validate pricing model for [Project] — current buy price suggests 40% margin opportunity"
-- "Research competitor patent filings related to [Project]'s core innovation"
-- "Survey 10 target customers about [specific complaint] flagged in [Project]"
-- "Develop partnership strategy with [supplier] for [Project]'s supply chain"
-- "A/B test messaging around [pain point] for [Project]'s go-to-market"
-
-Do NOT suggest generic items like "generate pitch deck" or "run stress test" — focus on strategic business actions.`;
+NEVER suggest generic items like "generate pitch deck" or "run stress test" — those are platform features, not strategy.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -70,14 +69,14 @@ Do NOT suggest generic items like "generate pitch deck" or "run stress test" —
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Here are my portfolio projects:\n\n${JSON.stringify(projectSummaries, null, 2)}\n\nGenerate strategic action items based on this data.` },
+          { role: "user", content: `Here are my portfolio projects:\n\n${JSON.stringify(projectSummaries, null, 2)}\n\nGenerate strategic action items. For each, explain the specific data point that triggered this recommendation and why it matters now.` },
         ],
         tools: [
           {
             type: "function",
             function: {
               name: "suggest_action_items",
-              description: "Return 4-6 strategic, data-driven action items for the user's portfolio.",
+              description: "Return 3-5 high-value, reason-backed strategic action items.",
               parameters: {
                 type: "object",
                 properties: {
@@ -86,12 +85,15 @@ Do NOT suggest generic items like "generate pitch deck" or "run stress test" —
                     items: {
                       type: "object",
                       properties: {
-                        text: { type: "string", description: "The action item text, specific and actionable" },
+                        text: { type: "string", description: "The action item — specific, concrete, actionable (max 20 words)" },
+                        reason: { type: "string", description: "Why this matters — cite the specific data point or pattern that triggered this (1-2 sentences)" },
+                        urgency: { type: "string", description: "Why now — what's the cost of waiting or the window of opportunity (1 sentence)" },
                         projectTitle: { type: "string", description: "The project title this relates to" },
                         projectId: { type: "string", description: "The project ID this relates to" },
-                        priority: { type: "string", enum: ["high", "medium", "low"], description: "Priority level" },
+                        priority: { type: "string", enum: ["high", "medium", "low"], description: "Priority: high = do this week, medium = do this month, low = backlog" },
+                        lever: { type: "string", enum: ["revenue", "risk", "validation", "growth", "differentiation"], description: "What strategic lever this pulls" },
                       },
-                      required: ["text", "projectTitle", "projectId", "priority"],
+                      required: ["text", "reason", "urgency", "projectTitle", "projectId", "priority", "lever"],
                       additionalProperties: false,
                     },
                   },

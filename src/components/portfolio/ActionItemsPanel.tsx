@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   Plus, Trash2, ChevronUp, ChevronDown, StickyNote, Sparkles,
-  ChevronRight, Target, Loader2,
+  ChevronRight, Target, Loader2, TrendingUp, Shield, Search, Rocket, Gem,
 } from "lucide-react";
 
 interface ActionItem {
@@ -33,10 +33,21 @@ interface SavedAnalysis {
 
 interface AISuggestion {
   text: string;
+  reason: string;
+  urgency: string;
   projectTitle: string;
   projectId: string;
   priority: "high" | "medium" | "low";
+  lever: "revenue" | "risk" | "validation" | "growth" | "differentiation";
 }
+
+const leverConfig: Record<string, { icon: typeof TrendingUp; label: string }> = {
+  revenue: { icon: TrendingUp, label: "Revenue" },
+  risk: { icon: Shield, label: "Risk" },
+  validation: { icon: Search, label: "Validation" },
+  growth: { icon: Rocket, label: "Growth" },
+  differentiation: { icon: Gem, label: "Differentiation" },
+};
 
 export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
   const { user } = useAuth();
@@ -104,7 +115,6 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
     };
     setItems(prev => [...prev, optimistic]);
     setNewText("");
-    // Remove from AI suggestions
     setAiSuggestions(prev => prev.filter(s => s.text !== text));
     await (supabase.from("portfolio_action_items") as any).insert({
       user_id: user.id,
@@ -167,14 +177,18 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
 
   const activeItems = items.filter(i => !i.completed);
   const completedItems = items.filter(i => i.completed);
-
-  // Filter AI suggestions that haven't already been added
   const visibleSuggestions = aiSuggestions.filter(s => !items.some(i => i.text === s.text));
 
-  const priorityColor = (p: string) => {
-    if (p === "high") return { bg: "hsl(0 84% 60% / 0.1)", text: "hsl(0 84% 40%)" };
-    if (p === "medium") return { bg: "hsl(38 92% 50% / 0.1)", text: "hsl(38 92% 35%)" };
-    return { bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))" };
+  const priorityStyle = (p: string) => {
+    if (p === "high") return "border-l-red-500/60";
+    if (p === "medium") return "border-l-amber-500/60";
+    return "border-l-muted-foreground/30";
+  };
+
+  const priorityLabel = (p: string) => {
+    if (p === "high") return "This week";
+    if (p === "medium") return "This month";
+    return "Backlog";
   };
 
   return (
@@ -200,7 +214,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
           {/* AI Suggestions */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">AI Suggestions</p>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Strategic Recommendations</p>
               <button
                 onClick={generateAISuggestions}
                 disabled={generating || analyses.length === 0}
@@ -208,32 +222,59 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
                 style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
               >
                 {generating ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
-                {generating ? "Analyzing…" : visibleSuggestions.length > 0 ? "Refresh" : "Generate Suggestions"}
+                {generating ? "Analyzing portfolio…" : visibleSuggestions.length > 0 ? "Refresh" : "Analyze & Suggest"}
               </button>
             </div>
 
             {visibleSuggestions.length > 0 && (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {visibleSuggestions.map((s, idx) => {
-                  const pc = priorityColor(s.priority);
+                  const lever = leverConfig[s.lever] || leverConfig.growth;
+                  const LeverIcon = lever.icon;
                   return (
-                    <button
+                    <div
                       key={idx}
-                      onClick={() => addItem(s.text, s.projectId)}
-                      className="w-full flex items-start gap-2 px-2.5 py-2 rounded-lg text-left text-[11px] transition-colors hover:border-primary/40"
-                      style={{ background: "hsl(var(--muted) / 0.5)", border: "1px solid hsl(var(--border))" }}
+                      className={`rounded-lg border border-border border-l-[3px] ${priorityStyle(s.priority)} overflow-hidden`}
+                      style={{ background: "hsl(var(--background))" }}
                     >
-                      <Plus size={12} className="text-primary flex-shrink-0 mt-0.5" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground leading-relaxed">{s.text}</p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <span className="text-[9px] text-muted-foreground">→ {s.projectTitle}</span>
-                          <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: pc.bg, color: pc.text }}>
-                            {s.priority}
+                      <div className="px-3 py-2.5 space-y-1.5">
+                        {/* Header: action + add button */}
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-xs font-semibold text-foreground leading-snug flex-1">{s.text}</p>
+                          <button
+                            onClick={() => addItem(s.text, s.projectId)}
+                            className="flex-shrink-0 p-1 rounded-md transition-colors hover:bg-primary/10"
+                            title="Add to action items"
+                          >
+                            <Plus size={14} className="text-primary" />
+                          </button>
+                        </div>
+
+                        {/* Reason */}
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          {s.reason}
+                        </p>
+
+                        {/* Urgency callout */}
+                        <p className="text-[10px] font-medium text-foreground/70 italic">
+                          ⏱ {s.urgency}
+                        </p>
+
+                        {/* Meta row */}
+                        <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold bg-muted text-muted-foreground">
+                            → {s.projectTitle}
+                          </span>
+                          <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full font-medium bg-muted text-muted-foreground">
+                            <LeverIcon size={8} />
+                            {lever.label}
+                          </span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium bg-muted text-muted-foreground">
+                            {priorityLabel(s.priority)}
                           </span>
                         </div>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -241,7 +282,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
 
             {!generating && visibleSuggestions.length === 0 && aiSuggestions.length === 0 && analyses.length > 0 && (
               <p className="text-[10px] text-muted-foreground text-center py-1">
-                Click "Generate Suggestions" to get AI-powered strategic action items from your analyses.
+                Click "Analyze & Suggest" to get data-backed strategic recommendations from your portfolio.
               </p>
             )}
           </div>
@@ -318,7 +359,6 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
                   </div>
                 </div>
 
-                {/* Expanded notes */}
                 {expandedNotes.has(item.id) && (
                   <div className="ml-6">
                     {editingNote?.id === item.id ? (
