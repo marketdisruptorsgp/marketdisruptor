@@ -48,7 +48,7 @@ export default function IntelPage() {
     const cutoff = thirtyDaysAgo.toISOString();
 
     const [patentRes, trendRes, intelRes, newsRes] = await Promise.all([
-      supabase.from("patent_filings").select("*").gte("filing_date", cutoff).order("filing_date", { ascending: false }).limit(50),
+      supabase.from("patent_filings").select("*").order("scraped_at", { ascending: false }).limit(50),
       supabase.from("trend_signals").select("*").order("scraped_at", { ascending: false }),
       supabase.from("platform_intel").select("*").order("computed_at", { ascending: false }),
       supabase.from("market_news").select("*").gte("published_at", cutoff).order("scraped_at", { ascending: false }),
