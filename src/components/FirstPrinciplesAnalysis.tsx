@@ -418,15 +418,44 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   if (!data && loading) {
     return (
       <StepLoadingTracker
-        title="Building Disrupt Analysis"
+        title={renderMode === "redesign" ? "Generating Redesign Concept" : "Building Disrupt Analysis"}
         tasks={DISRUPT_TASKS}
         estimatedSeconds={50}
-        accentColor="hsl(271 81% 55%)"
+        accentColor={renderMode === "redesign" ? "hsl(38 92% 50%)" : "hsl(271 81% 55%)"}
       />
     );
   }
 
   if (!data) {
+    // Redesign mode empty state
+    if (renderMode === "redesign") {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
+          <div className="w-20 h-20 rounded flex items-center justify-center" style={{ background: "hsl(38 92% 50% / 0.12)" }}>
+            <Sparkles size={36} style={{ color: "hsl(38 92% 50%)" }} />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-foreground mb-2">Redesign Concept</h3>
+            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+              Generate a radical reinvention of <strong>{product.name}</strong> — combining all flipped ideas into a cohesive redesigned concept.
+            </p>
+          </div>
+          <button
+            onClick={runAnalysis}
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm transition-colors"
+            style={{ background: "hsl(38 92% 50%)", color: "white", opacity: loading ? 0.7 : 1 }}
+          >
+            <Sparkles size={15} /> Generate Redesign
+          </button>
+          <p className="text-[11px] text-muted-foreground">
+            Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
+          </p>
+        </div>
+      );
+    }
+
+    // Disrupt mode empty state
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
         <div className="w-20 h-20 rounded flex items-center justify-center" style={{ background: "hsl(var(--primary-muted))" }}>
