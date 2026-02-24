@@ -166,8 +166,8 @@ export default function AuthPage() {
     <div className="min-h-screen flex bg-background text-foreground">
       <HeroPanel />
 
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 relative overflow-hidden">
-        <div className="relative z-10 w-full max-w-md space-y-8">
+      <div className="flex-1 flex items-center justify-center p-5 sm:p-8 relative overflow-hidden">
+        <div className="relative z-10 w-full max-w-md space-y-6 sm:space-y-8">
           {/* Mobile hero section */}
           <div className="lg:hidden space-y-6">
             <div className="flex items-center gap-2">
@@ -214,16 +214,16 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={() => setMode("magic")}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mode === "magic" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-colors ${mode === "magic" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/50"}`}
             >
-              <Mail size={14} /> Magic Link
+              <Mail size={13} /> Magic Link
             </button>
             <button
               type="button"
               onClick={() => setMode("password")}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mode === "password" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-colors ${mode === "password" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/50"}`}
             >
-              <Lock size={14} /> Password
+              <Lock size={13} /> Password
             </button>
           </div>
 

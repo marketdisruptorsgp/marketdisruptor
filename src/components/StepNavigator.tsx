@@ -19,8 +19,8 @@ interface StepNavigatorProps {
 export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }: StepNavigatorProps) {
   const totalSteps = steps.length + 1;
   return (
-    <div className="sticky top-0 z-30 -mx-4 px-3 sm:px-4 py-3 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="max-w-5xl mx-auto">
+    <div className="sticky top-0 z-30 -mx-4 px-3 sm:px-4 py-2.5 sm:py-3 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide">
         {/* Progress bar */}
         <div className="flex items-center justify-between mb-2">
           <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
@@ -39,7 +39,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
         </div>
 
         {/* Step cards */}
-        <div className="flex items-stretch gap-1 sm:gap-1.5">
+        <div className="flex items-stretch gap-1 sm:gap-1.5 min-w-max">
           {steps.map((s, i, arr) => {
             const isCurrent = activeStep === s.step;
             const isPast = visitedSteps.has(s.step) && !isCurrent;
@@ -49,7 +49,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
               <React.Fragment key={s.step}>
                 <button
                   onClick={() => onStepChange(s.step)}
-                  className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 rounded-xl text-left transition-all flex-1 min-w-0"
+                  className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 rounded-xl text-left transition-all flex-shrink-0 min-w-[100px] sm:min-w-0 sm:flex-1"
                   style={{
                     background: isCurrent ? "hsl(var(--foreground))" : isPast ? "hsl(var(--primary) / 0.06)" : "transparent",
                     color: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",

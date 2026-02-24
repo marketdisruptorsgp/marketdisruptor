@@ -14,8 +14,8 @@ interface DisruptionPathBannerProps {
 export function DisruptionPathBanner({ activeStep }: DisruptionPathBannerProps) {
   return (
     <div className="border-t border-border bg-card">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex items-center gap-1 sm:gap-2">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 overflow-x-auto scrollbar-hide">
+        <div className="flex items-center gap-1 sm:gap-2 min-w-max">
           {PIPELINE_STEPS.map(({ icon: Icon, label, shortLabel }, i) => {
             const isActive = activeStep !== undefined && activeStep === i + 1;
             const isPast = activeStep !== undefined && activeStep > i + 1;

@@ -139,7 +139,7 @@ export function UserHeader() {
       <div ref={containerRef} style={{ position: "relative" }}>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 px-3 py-2 rounded transition-colors"
+          className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded transition-colors"
           style={{
             background: open ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.12)",
             border: open ? "1.5px solid hsl(var(--primary))" : "1.5px solid hsl(var(--primary) / 0.4)",
@@ -151,10 +151,10 @@ export function UserHeader() {
           >
             {initials}
           </div>
-          <span className="text-sm font-bold" style={{ color: open ? "white" : "hsl(var(--primary))" }}>
+          <span className="text-xs sm:text-sm font-bold hidden sm:inline" style={{ color: open ? "white" : "hsl(var(--primary))" }}>
             {profile.first_name}
           </span>
-          <ChevronDown size={14} style={{ color: open ? "white" : "hsl(var(--primary))", transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }} />
+          <ChevronDown size={12} style={{ color: open ? "white" : "hsl(var(--primary))", transform: open ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }} />
         </button>
 
         {open && (
@@ -163,7 +163,7 @@ export function UserHeader() {
               position: "absolute",
               right: 0,
               top: "calc(100% + 8px)",
-              width: "14rem",
+              width: "min(14rem, calc(100vw - 2rem))",
               borderRadius: "var(--radius)",
               boxShadow: "0 20px 40px -10px rgba(0,0,0,0.35)",
               overflow: "hidden",
