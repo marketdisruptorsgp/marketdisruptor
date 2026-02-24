@@ -295,7 +295,7 @@ export function SlideStatCard({
 }) {
   return (
     <div
-      className="p-3 sm:p-4 rounded-md text-center relative overflow-hidden"
+      className="p-3 sm:p-4 rounded-md relative overflow-hidden"
       style={{
         background: "hsl(var(--muted))",
         border: "1px solid hsl(var(--border))",
@@ -305,7 +305,7 @@ export function SlideStatCard({
       <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
         {label}
       </p>
-      <p className="text-lg sm:text-2xl font-extrabold" style={{ color: "hsl(var(--foreground))" }}>
+      <p className="text-sm sm:text-base font-extrabold leading-tight" style={{ color: "hsl(var(--foreground))" }}>
         {value}
       </p>
     </div>
@@ -313,7 +313,7 @@ export function SlideStatCard({
 }
 
 /**
- * TAM/SAM/SOM concentric circles visual.
+ * TAM/SAM/SOM concentric circles visual — labels placed outside the circles to avoid overlap.
  */
 export function MarketSizeVisual({
   tam,
@@ -326,22 +326,38 @@ export function MarketSizeVisual({
   som: string;
   accentColor?: string;
 }) {
+  // Extract just the dollar amount (first "$X.XB/M/K" part) for the circle labels
+  const extractAmount = (s: string) => {
+    const match = s.match(/\$[\d.,]+\s*[BMKT]?(?:illion|illion)?/i);
+    return match ? match[0] : s.split(" ")[0];
+  };
+
   return (
-    <div className="flex items-center justify-center py-2">
-      <svg width="180" height="180" viewBox="0 0 180 180">
+    <div className="flex flex-col items-center gap-3 py-2">
+      <svg width="200" height="200" viewBox="0 0 200 200">
         {/* TAM - outer */}
-        <circle cx="90" cy="90" r="85" fill={accentColor} opacity="0.06" stroke={accentColor} strokeWidth="1" strokeOpacity="0.2" />
-        <text x="90" y="22" textAnchor="middle" fontSize="7" fontWeight="700" fill={accentColor} opacity="0.6">TAM</text>
-        <text x="90" y="32" textAnchor="middle" fontSize="8" fontWeight="800" fill="hsl(var(--foreground))" opacity="0.7">{tam}</text>
+        <circle cx="100" cy="100" r="90" fill={accentColor} opacity="0.05" stroke={accentColor} strokeWidth="1" strokeOpacity="0.2" />
         {/* SAM - middle */}
-        <circle cx="90" cy="90" r="58" fill={accentColor} opacity="0.08" stroke={accentColor} strokeWidth="1" strokeOpacity="0.25" />
-        <text x="90" y="48" textAnchor="middle" fontSize="7" fontWeight="700" fill={accentColor} opacity="0.7">SAM</text>
-        <text x="90" y="58" textAnchor="middle" fontSize="8" fontWeight="800" fill="hsl(var(--foreground))" opacity="0.8">{sam}</text>
+        <circle cx="100" cy="100" r="60" fill={accentColor} opacity="0.08" stroke={accentColor} strokeWidth="1" strokeOpacity="0.25" />
         {/* SOM - inner */}
-        <circle cx="90" cy="90" r="32" fill={accentColor} opacity="0.12" stroke={accentColor} strokeWidth="1.5" strokeOpacity="0.35" />
-        <text x="90" y="85" textAnchor="middle" fontSize="7" fontWeight="700" fill={accentColor} opacity="0.9">SOM</text>
-        <text x="90" y="97" textAnchor="middle" fontSize="9" fontWeight="800" fill="hsl(var(--foreground))">{som}</text>
+        <circle cx="100" cy="100" r="32" fill={accentColor} opacity="0.14" stroke={accentColor} strokeWidth="1.5" strokeOpacity="0.35" />
+        {/* Center SOM label */}
+        <text x="100" y="96" textAnchor="middle" fontSize="8" fontWeight="700" fill={accentColor} opacity="0.9">SOM</text>
+        <text x="100" y="109" textAnchor="middle" fontSize="10" fontWeight="800" fill="hsl(var(--foreground))">{extractAmount(som)}</text>
       </svg>
+      {/* Legend below */}
+      <div className="flex items-center gap-4">
+        {[
+          { label: "TAM", color: 0.2 },
+          { label: "SAM", color: 0.35 },
+          { label: "SOM", color: 0.5 },
+        ].map(({ label, color }) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ background: accentColor, opacity: color }} />
+            <span className="text-[9px] font-bold text-muted-foreground">{label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -401,19 +417,129 @@ export function ScenarioBarChart({
 }
 
 /**
- * Bullet list item — em-dash prefix.
+ * Numbered icon bullet — more visual than em-dash.
  */
 export function SlideBullet({
   children,
+  index,
+  accentColor,
 }: {
   icon?: React.ElementType;
   iconColor?: string;
   children: React.ReactNode;
+  index?: number;
+  accentColor?: string;
 }) {
   return (
     <div className="flex gap-2.5 items-start">
-      <span className="text-muted-foreground font-bold flex-shrink-0 mt-px text-sm">—</span>
+      {typeof index === "number" ? (
+        <span
+          className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0 mt-0.5"
+          style={{
+            background: accentColor || "hsl(var(--foreground))",
+            color: "hsl(var(--background))",
+            opacity: 0.8,
+          }}
+        >
+          {index + 1}
+        </span>
+      ) : (
+        <span className="text-muted-foreground font-bold flex-shrink-0 mt-px text-sm">—</span>
+      )}
       <p className="text-[13px] sm:text-sm text-foreground/85 leading-relaxed">{children}</p>
+    </div>
+  );
+}
+
+/**
+ * Decorative quote accent for headline claims.
+ */
+export function SlideQuoteBlock({
+  quote,
+  accentColor = "hsl(var(--primary))",
+  label,
+}: {
+  quote: string;
+  accentColor?: string;
+  label?: string;
+}) {
+  return (
+    <div className="relative p-5 sm:p-6 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
+      {/* Oversized quote mark */}
+      <span
+        className="absolute pointer-events-none font-serif select-none"
+        style={{ top: -8, left: 12, fontSize: 60, color: accentColor, opacity: 0.08, lineHeight: 1 }}
+      >
+        "
+      </span>
+      {label && (
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">{label}</p>
+      )}
+      <p className="text-sm sm:text-base leading-relaxed text-foreground/85 relative z-10">{quote}</p>
+    </div>
+  );
+}
+
+/**
+ * Vertical step timeline — for GTM phases, traction milestones etc.
+ */
+export function SlideTimeline({
+  steps,
+  accentColor = "hsl(var(--primary))",
+}: {
+  steps: { label: string; content: string }[];
+  accentColor?: string;
+}) {
+  return (
+    <div className="space-y-0">
+      {steps.map((step, i) => (
+        <div key={i} className="flex gap-3">
+          {/* Timeline rail */}
+          <div className="flex flex-col items-center">
+            <div
+              className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0"
+              style={{ background: accentColor, color: "white", opacity: 0.85 }}
+            >
+              {i + 1}
+            </div>
+            {i < steps.length - 1 && (
+              <div className="w-[2px] flex-1 min-h-[20px]" style={{ background: accentColor, opacity: 0.15 }} />
+            )}
+          </div>
+          {/* Content */}
+          <div className="pb-4 flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{step.label}</p>
+            <p className="text-[13px] text-foreground/85 leading-relaxed">{step.content}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Simple horizontal bar chart for key metrics.
+ */
+export function MetricBar({
+  metric,
+  target,
+  accentColor = "hsl(var(--primary))",
+}: {
+  metric: string;
+  target: string;
+  accentColor?: string;
+}) {
+  // Use a pseudo-random width based on string hash for visual variety
+  const hashWidth = ((metric.length * 7 + target.length * 13) % 60) + 35;
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-bold text-foreground">{metric}</span>
+        <span className="text-[10px] font-bold" style={{ color: accentColor }}>{target}</span>
+      </div>
+      <div className="h-1.5 rounded-full" style={{ background: "hsl(var(--border))" }}>
+        <div className="h-full rounded-full" style={{ width: `${hashWidth}%`, background: accentColor, opacity: 0.5 }} />
+      </div>
     </div>
   );
 }
