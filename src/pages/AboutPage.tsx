@@ -11,7 +11,7 @@ export default function AboutPage() {
     <div className="min-h-screen bg-background">
       <PlatformNav tier={tier} />
 
-      <main className="max-w-3xl mx-auto px-6 py-20">
+      <main className="max-w-5xl mx-auto px-6 sm:px-10 py-20">
         <section className="mb-20">
           <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">About</p>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight mb-5">
