@@ -90,7 +90,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                     </span>
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <div className="w-72 p-2 bg-background shadow-lg rounded-2xl border border-border">
+                    <div className="w-72 p-2 bg-background shadow-lg rounded-xl border border-border">
                       {ACCESS_MODES.map((mode) => {
                         const Icon = mode.icon;
                         const active = analysis.mainTab === mode.id;
@@ -159,7 +159,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                     Resources
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <div className="w-60 p-2 bg-background shadow-lg rounded-2xl border border-border">
+                    <div className="w-60 p-2 bg-background shadow-lg rounded-xl border border-border">
                       {RESOURCES_ITEMS.map((item) => {
                         const Icon = item.icon;
                         return (

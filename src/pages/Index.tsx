@@ -610,12 +610,12 @@ export default function Index() {
         {/* ── TOP-LEVEL TAB BAR ── */}
         {(() => {
           const TABS = [
-            { id: "custom" as const, label: "Disrupt This Product", icon: Upload, accent: "hsl(217 91% 38%)" },
-            { id: "service" as const, label: "Disrupt This Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
-            { id: "business" as const, label: "Disrupt This Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
+            { id: "custom" as const, label: "Disrupt This Product", icon: Upload, accent: "hsl(var(--mode-product))" },
+            { id: "service" as const, label: "Disrupt This Service", icon: Briefcase, accent: "hsl(var(--mode-service))" },
+            { id: "business" as const, label: "Disrupt This Business Model", icon: Building2, accent: "hsl(var(--mode-business))" },
           ];
           return (
-            <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
+            <div className="rounded-xl overflow-hidden border border-border bg-card">
               <div className="flex border-b" style={{ borderColor: "hsl(var(--border))" }}>
                 {TABS.map((tab) => {
                   const isActive = mainTab === tab.id;
