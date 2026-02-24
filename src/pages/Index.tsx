@@ -165,7 +165,7 @@ export default function Index() {
   const { canAnalyze, remainingAnalyses, tier, usage, checkSubscription } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
   const [step, setStep] = useState<AnalysisStep>("idle");
-  const [mainTab, setMainTab] = useState<"discover" | "custom" | "service" | "business">("custom");
+  const [mainTab, setMainTab] = useState<"custom" | "service" | "business">("custom");
   const [activeMode, setActiveMode] = useState<AnalysisMode>("custom");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -272,23 +272,31 @@ export default function Index() {
   const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; batchSize: number }) => {
     try {
       const avgScore = liveProducts.reduce((acc, p) => acc + p.revivalScore, 0) / liveProducts.length;
-      const productNames = liveProducts.map(p => p.name);
-      let title: string;
-      if (productNames.length === 1) {
-        title = productNames[0];
-      } else if (productNames.length === 2) {
-        title = `${productNames[0]} & ${productNames[1]}`;
-      } else if (productNames.length <= 4) {
-        title = productNames.slice(0, -1).join(", ") + " & " + productNames[productNames.length - 1];
-      } else {
-        title = `${productNames[0]}, ${productNames[1]}, ${productNames[2]} +${productNames.length - 3} more`;
+      // Use the user's custom name (from customName input) as title
+      const userTypedName = liveProducts[0]?.name || "Analysis";
+      let title = userTypedName;
+
+      // Check for duplicate titles and append version
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: existing } = await (supabase.from("saved_analyses") as any)
+        .select("title")
+        .eq("user_id", user?.id)
+        .like("title", `${userTypedName}%`);
+      if (existing && existing.length > 0) {
+        const versions = existing.map((e: { title: string }) => {
+          const match = e.title.match(/ v(\d+)$/);
+          return match ? parseInt(match[1]) : 1;
+        });
+        const nextVersion = Math.max(...versions) + 1;
+        title = `${userTypedName} v${nextVersion}`;
       }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any).insert({
         user_id: user?.id,
         title,
         category: params.category,
-        era: params.era,
+        era: "All Eras / Current",
         audience: "",
         batch_size: params.batchSize,
         products: JSON.parse(JSON.stringify(liveProducts)),
@@ -324,8 +332,8 @@ export default function Index() {
         setSelectedProduct(analysis.products[0]);
         setStep("done");
       }
-      setMainTab("discover");
-      setActiveMode("discover");
+      setMainTab("custom");
+      setActiveMode("custom");
       setExpandedSection("detail");
       setDetailTab("overview");
       setActiveStep(3);
@@ -346,9 +354,8 @@ export default function Index() {
       setProducts(analysis.products);
       setSelectedProduct(analysis.products[0] || null);
       setAnalysisParams({ category: analysis.category, era: analysis.era, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
-      const isCustom = analysis.category === "Custom" || analysis.era === "All Eras / Current";
-      setMainTab(isCustom ? "custom" : "discover");
-      setActiveMode(isCustom ? "custom" : "discover");
+      setMainTab("custom");
+      setActiveMode("custom");
       setExpandedSection("detail");
       setDetailTab("overview");
       setStep("done");
@@ -385,7 +392,7 @@ export default function Index() {
     // --- Scraping phase log messages ---
     pushLog(hasCustom
       ? "Starting analysis pipeline for your custom products..."
-      : `Starting product intelligence pipeline for ${params.era} ${params.category}...`
+      : `Starting product intelligence pipeline for ${params.category}...`
     );
     await new Promise(r => setTimeout(r, 300));
     pushLog("Querying pricing databases for market intelligence...");
@@ -403,7 +410,7 @@ export default function Index() {
     try {
       setStepMessage(hasCustom
         ? "Analyzing your product URLs across multiple data sources…"
-        : `Running deep market analysis for ${params.era} ${params.category} products…`
+        : `Running deep market analysis for ${params.category} products…`
       );
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
         "scrape-products",
@@ -506,7 +513,7 @@ export default function Index() {
     setGeneratingIdeasFor(product.id);
 
     try {
-      const baseContext = `Focus on ${analysisParams.era} nostalgia and ${analysisParams.category} market trends.`;
+      const baseContext = `Focus on ${analysisParams.category} market trends.`;
       const fullContext = userContext ? `${baseContext}\n\nUser's additional guidance: ${userContext}` : baseContext;
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: {
@@ -630,7 +637,6 @@ export default function Index() {
             { id: "custom" as const, label: "Disrupt This Product", icon: Upload, accent: "hsl(217 91% 38%)" },
             { id: "service" as const, label: "Disrupt This Service", icon: Briefcase, accent: "hsl(340 75% 50%)" },
             { id: "business" as const, label: "Disrupt This Business Model", icon: Building2, accent: "hsl(271 81% 55%)" },
-            { id: "discover" as const, label: "Disrupt This Nostalgia", icon: Telescope, accent: "hsl(var(--primary))" },
           ];
           return (
             <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
@@ -664,7 +670,7 @@ export default function Index() {
               <div className="p-5">
                 <ContextualTip
                   id="discovery-tip-1"
-                  message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in weird niches — try '70s Fitness Equipment', 'Y2K Gadgets', or 'Retro Office Tech'. The stranger the category, the less competition you'll face.`}
+                  message={`Pro tip, ${profile?.first_name ?? "explorer"}: The best opportunities are in unexpected niches. The stranger the category, the less competition you'll face.`}
                 />
                 <div className="mt-4" data-tour="analysis-form">
                   <AnalysisForm
@@ -1049,20 +1055,6 @@ export default function Index() {
                                   ) : null}
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  {ci.nostalgiaTriggers?.length ? (
-                                    <div>
-                                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
-                                        <Heart size={12} style={{ color: "hsl(330 80% 55%)" }} /> Nostalgia Triggers
-                                      </p>
-                                      <div className="flex flex-wrap gap-2">
-                                        {ci.nostalgiaTriggers.map((t, i) => (
-                                          <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: "hsl(var(--muted))", color: "hsl(330 80% 40%)", border: "1px solid hsl(var(--border))" }}>
-                                            {t}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  ) : null}
                                   {ci.competitorComplaints?.length ? (
                                     <div>
                                       <p className="section-label text-[10px] mb-3 flex items-center gap-1">

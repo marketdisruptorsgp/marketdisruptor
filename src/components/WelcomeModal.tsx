@@ -23,21 +23,21 @@ const SLIDES = [
   },
   {
     icon: Search,
-    title: () => "Analysis Type: Product Discovery",
-    subtitle: "Explore niches, uncover demand, and find the gaps.",
-    body: "Enter a category and era — '90s Gaming', 'Vintage Kitchen' — and the AI runs proprietary crawling pipelines to surface pricing intelligence.",
+    title: () => "Analysis Type: Product Deep Dive",
+    subtitle: "Drop in a product and let the AI tear it apart.",
+    body: "Enter a product name, paste URLs, or upload images — the AI runs proprietary crawling pipelines to surface pricing intelligence, supply chain data, and competitive gaps.",
     tips: [
-      "The weirder the niche, the bigger the gap",
-      "Try surprising combos: '80s Fitness', 'Millennial Nostalgia'",
-      "Custom mode lets you paste a URL or image",
+      "Paste up to 3 URLs + upload 5 images",
+      "AI challenges every assumption about the product",
+      "Custom mode lets you analyze any product or service",
     ],
     color: "hsl(217 91% 45%)",
   },
   {
     icon: Brain,
-    title: () => "Analysis Type: Product Deep Dive",
-    subtitle: "Every product card is a rabbit hole. Go deep.",
-    body: "Click any product card and explore multiple analytical lenses: pricing intelligence, supply chain mapping, flip ideas, and first principles deconstruction.",
+    title: () => "Analysis Type: Service Intelligence",
+    subtitle: "Every service is a rabbit hole. Go deep.",
+    body: "Analyze any service business — the AI maps competitive landscapes, identifies operational friction, and builds growth strategies from gaps competitors overlook.",
     tips: [
       "Flip Ideas = 3 bold commercial pivots",
       "First Principles = strip it down and redesign",
@@ -162,7 +162,7 @@ export default function WelcomeModal({ firstName, onClose }: WelcomeModalProps) 
                 style={{ background: current.color }}
               >
                 {isLast ? (
-                  <><Rocket size={13} /> Let's Discover</>
+                  <><Rocket size={13} /> Let's Go</>
                 ) : (
                   <>Next <ArrowRight size={13} /></>
                 )}

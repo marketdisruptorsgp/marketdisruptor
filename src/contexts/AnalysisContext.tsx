@@ -34,8 +34,8 @@ interface AnalysisContextType {
   setErrorMsg: (msg: string) => void;
 
   // Mode
-  mainTab: "discover" | "custom" | "service" | "business";
-  setMainTab: (t: "discover" | "custom" | "service" | "business") => void;
+  mainTab: "custom" | "service" | "business";
+  setMainTab: (t: "custom" | "service" | "business") => void;
   activeMode: AnalysisMode;
   setActiveMode: (m: AnalysisMode) => void;
 
@@ -117,7 +117,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   const [step, setStep] = useState<AnalysisStep>("idle");
-  const [mainTab, setMainTab] = useState<"discover" | "custom" | "service" | "business">("custom");
+  const [mainTab, setMainTab] = useState<"custom" | "service" | "business">("custom");
   const [activeMode, setActiveMode] = useState<AnalysisMode>("custom");
   const [stepMessage, setStepMessage] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -175,28 +175,31 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const saveAnalysis = useCallback(async (liveProducts: Product[], params: { category: string; era: string; batchSize: number }, customProductName?: string) => {
     try {
       const avgScore = liveProducts.reduce((acc, p) => acc + p.revivalScore, 0) / liveProducts.length;
-      // Use the user's custom product/service/business name if provided, otherwise derive from product names
-      let title: string;
-      if (customProductName?.trim()) {
-        title = customProductName.trim();
-      } else {
-        const productNames = liveProducts.map(p => p.name);
-        if (productNames.length === 1) {
-          title = productNames[0];
-        } else if (productNames.length === 2) {
-          title = `${productNames[0]} & ${productNames[1]}`;
-        } else if (productNames.length <= 4) {
-          title = productNames.slice(0, -1).join(", ") + " & " + productNames[productNames.length - 1];
-        } else {
-          title = `${productNames[0]}, ${productNames[1]}, ${productNames[2]} +${productNames.length - 3} more`;
-        }
+      // Use the user's custom name if provided, otherwise use first product name
+      const baseName = customProductName?.trim() || liveProducts[0]?.name || "Analysis";
+
+      // Check for duplicate titles and append version
+      let title = baseName;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: existing } = await (supabase.from("saved_analyses") as any)
+        .select("title")
+        .eq("user_id", user?.id)
+        .like("title", `${baseName}%`);
+      if (existing && existing.length > 0) {
+        const versions = existing.map((e: { title: string }) => {
+          const match = e.title.match(/ v(\d+)$/);
+          return match ? parseInt(match[1]) : 1;
+        });
+        const nextVersion = Math.max(...versions) + 1;
+        title = `${baseName} v${nextVersion}`;
       }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: insertedData } = await (supabase.from("saved_analyses") as any).insert({
         user_id: user?.id,
         title,
         category: params.category,
-        era: params.era,
+        era: "All Eras / Current",
         audience: "",
         batch_size: params.batchSize,
         products: JSON.parse(JSON.stringify(liveProducts)),
@@ -240,7 +243,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
     pushLog(hasCustom
       ? "Starting analysis pipeline for your custom products..."
-      : `Starting product intelligence pipeline for ${params.era} ${params.category}...`
+      : `Starting product intelligence pipeline for ${params.category}...`
     );
     await new Promise(r => setTimeout(r, 300));
     pushLog("Scanning market data across pricing & resale sources...");
@@ -258,7 +261,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     try {
       setStepMessage(hasCustom
         ? "Deep research across multiple data sources for your products…"
-        : `Deep research across multiple data sources for ${params.era} ${params.category} products…`
+        : `Deep research across multiple data sources for ${params.category} products…`
       );
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
         "scrape-products",
@@ -373,7 +376,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setGeneratingIdeasFor(product.id);
 
     try {
-      const baseContext = `Focus on ${analysisParams.era} nostalgia and ${analysisParams.category} market trends.`;
+      const baseContext = `Focus on ${analysisParams.category} market trends.`;
       const fullContext = userContext ? `${baseContext}\n\nUser's additional guidance: ${userContext}` : baseContext;
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: { product, additionalContext: fullContext },
@@ -450,8 +453,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         setSelectedProduct(analysis.products[0]);
         setStep("done");
       }
-      setMainTab("discover");
-      setActiveMode("discover");
+      setMainTab("custom");
+      setActiveMode("custom");
       setAnalysisId(analysis.id);
       toast.success("First principles analysis loaded — re-run to see full results.");
       navigate(`/analysis/${analysis.id}/disrupt`);
@@ -459,9 +462,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setProducts(analysis.products);
       setSelectedProduct(analysis.products[0] || null);
       setAnalysisParams({ category: analysis.category, era: analysis.era, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
-      const isCustom = analysis.category === "Custom" || analysis.era === "All Eras / Current";
-      setMainTab(isCustom ? "custom" : "discover");
-      setActiveMode(isCustom ? "custom" : "discover");
+      setMainTab("custom");
+      setActiveMode("custom");
       setDetailTab("overview");
       setStep("done");
       setAnalysisId(analysis.id);
