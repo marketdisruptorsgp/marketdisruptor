@@ -35,6 +35,7 @@ interface AISuggestion {
   text: string;
   reason: string;
   urgency: string;
+  outcome: string;
   projectTitle: string;
   projectId: string;
   priority: "high" | "medium" | "low";
@@ -58,6 +59,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
   const [editingText, setEditingText] = useState<{ id: string; value: string } | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
+  const [focusSummary, setFocusSummary] = useState("");
   const [generating, setGenerating] = useState(false);
 
   const fetchItems = useCallback(async () => {
@@ -84,6 +86,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
       if (error) throw error;
       if (data?.items) {
         setAiSuggestions(data.items);
+        setFocusSummary(data.focusSummary || "");
         if (data.items.length === 0) toast.info("No new suggestions — your portfolio looks well-covered.");
       } else {
         throw new Error(data?.error || "No suggestions returned");
@@ -226,6 +229,15 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
               </button>
             </div>
 
+            {/* Focus summary */}
+            {focusSummary && visibleSuggestions.length > 0 && (
+              <div className="rounded-lg px-3 py-2 bg-primary/5 border border-primary/10">
+                <p className="text-[11px] text-foreground/80 leading-relaxed">
+                  <span className="font-semibold text-primary">Focus:</span> {focusSummary}
+                </p>
+              </div>
+            )}
+
             {visibleSuggestions.length > 0 && (
               <div className="space-y-2">
                 {visibleSuggestions.map((s, idx) => {
@@ -250,13 +262,20 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
                           </button>
                         </div>
 
-                        {/* Reason */}
+                        {/* Reason — the data point */}
                         <p className="text-[11px] text-muted-foreground leading-relaxed">
                           {s.reason}
                         </p>
 
+                        {/* Outcome — what this unlocks */}
+                        {s.outcome && (
+                          <p className="text-[11px] text-foreground/70 leading-relaxed">
+                            <span className="font-semibold text-primary/80">→ Unlocks:</span> {s.outcome}
+                          </p>
+                        )}
+
                         {/* Urgency callout */}
-                        <p className="text-[10px] font-medium text-foreground/70 italic">
+                        <p className="text-[10px] font-medium text-foreground/60 italic">
                           ⏱ {s.urgency}
                         </p>
 
