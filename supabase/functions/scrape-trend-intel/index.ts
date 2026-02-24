@@ -116,6 +116,7 @@ Rules:
       category: t.category || "General",
       interest_over_time: Array.isArray(t.interest_over_time) ? t.interest_over_time : [],
       related_queries: Array.isArray(t.related_queries) ? t.related_queries : [],
+      growth_note: t.growth_note || null,
       source: "web_search",
       scraped_at: new Date().toISOString(),
     }));

@@ -1,0 +1,1 @@
+ALTER TABLE public.trend_signals ADD COLUMN IF NOT EXISTS growth_note TEXT;
