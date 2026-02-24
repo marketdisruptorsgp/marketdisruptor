@@ -1,145 +1,130 @@
+# I'm really only focused on the UI within each mode including the content in each step, section and related buttons. 
 
-# Polish UI Across All Modes, Steps, and Sections
+&nbsp;
+
+# UI Polish Pass: Tighter Spacing, Cleaner Cards, and Premium Feel
 
 ## Overview
 
-Apply consistent, professional styling across every component in the platform. Replace all colored tinted backgrounds (`primary-muted`, colored `/0.06` overlays), left-border accents, dashed borders, pulse animations, and emojis with clean neutral card styling. Mode colors (Blue for Product, Rose for Service, Violet for Business Model) will be used subtly for mode indicators only -- not for card backgrounds.
+Refine the homepage hero, nav bar, Built For section, DisruptionPathBanner, and all analysis step containers to match the clean minimal aesthetic from the ChatGPT reference -- but using our existing CSS variable system. No hardcoded hex colors. No emojis. No functional changes.
+
+The goal: tighter, more intentional spacing. Rounder cards (`rounded-2xl`). Lighter touch on borders and shadows. More whitespace between sections.
 
 ---
 
-## Files to Modify (8 files)
+## Files to Modify (5 files)
 
-### 1. `src/components/BusinessModelAnalysis.tsx` (782 lines, ~15 fixes)
+### 1. `src/components/PlatformNav.tsx`
 
-**Issues found:**
-- Line 264: `primary-muted` background on hero icon
-- Line 402: `primary-muted` + left-border on "True Job To Be Done" card
-- Line 533: `primary-muted` + left-border on challenge callouts
-- Line 599: `primary-muted` + left-border on "Platform Opportunity"
-- Line 643: `primary-muted` + left-border on "Bold Pricing Redesign"
-- Line 689: `primary-muted` + left-border on "If You Were Disrupting..." card
-- Lines 624, 663: Colored tinted backgrounds on revenue streams and disruptor cards
-- Line 719: `primary-muted` on key changes cards
-- Line 728-734: Green/blue tinted backgrounds + left-borders on value/economics cards
-- Line 751: Checkmark emoji in milestone text
-- Line 774: Green tinted "All sections explored" badge
+**Current issues:**
 
-**Fixes:**
-- All `primary-muted` backgrounds become `hsl(var(--muted))` with `1px solid hsl(var(--border))`
-- All colored left-borders removed; use bold header text for emphasis instead
-- Revenue stream cards: neutral `hsl(var(--card))` bg, keep colored severity text only
-- Disruptor card: neutral card bg, keep red text label
-- Hero icon container: `hsl(var(--muted))` instead of `primary-muted`
-- Challenge callouts: `hsl(var(--muted))` bg, remove left-border, keep bold colored label text
-- Milestone checkmark emoji replaced with CheckCircle2 icon
-- "All sections explored" badge: neutral `hsl(var(--muted))` bg with green CheckCircle2 icon (matching SectionNav style)
+- Logo icon uses `rounded-lg` (too sharp for a brand mark)
+- OS badge uses `rounded-md` and a border -- feels dated
+- Nav spacing is tight (`gap-1`)
+- Projects button uses `rounded-lg` instead of `rounded-xl`
+- Mobile menu active state still uses `primary / 0.06` tinted background and colored left-border (violates polish rules from previous pass)
 
-### 2. `src/components/PitchDeck.tsx` (530 lines, ~8 fixes)
+**Changes:**
 
-**Issues found:**
-- Line 140: `primary-muted` on hero icon
-- Line 204: Destructive tinted card for "The Problem"
-- Line 208: Green tinted card for "The Solution"
-- Line 214: Amber tinted + left-border "Why Now?" card
-- Line 270: `primary-muted` on growth rate card
-- Line 305: `primary-muted` on highlighted financial cards
-- Line 330: `primary-muted` on funding ask card
-- Line 410: Left-borders on GTM phase cards
-- Line 424: Green tinted launch budget card
-- Line 464: Colored tinted risk severity cards
+- Logo icon: `rounded-lg` stays (it's an 8px square, `rounded-full` would look odd at that size -- keep as-is)
+- OS badge: change to `rounded-full` with `bg-muted` and `text-primary` styling (softer pill)
+- Nav container: bump internal `gap-1` to `gap-2` for breathing room
+- Projects button: `rounded-xl` for consistency
+- Mobile active state: replace `primary / 0.06` bg with `hsl(var(--muted))`, remove colored left-border, keep colored icon only
+- Dropdown menus: change `rounded-xl` to `rounded-2xl` for softer feel
 
-**Fixes:**
-- Hero icon: `hsl(var(--muted))` bg
-- Problem/Solution/Why Now cards: all use `hsl(var(--card))` bg with `1px solid hsl(var(--border))`, keep colored header text labels
-- Growth rate, funding ask, highlighted financials: `hsl(var(--muted))` bg, `1px solid hsl(var(--border))`
-- GTM phases: remove left-borders, use numbered bold labels instead
-- Launch budget: neutral card with green text value
-- Risk cards: neutral bg, keep colored severity text label
+### 2. `src/components/DisruptionPathBanner.tsx`
 
-### 3. `src/components/CriticalValidation.tsx` (535 lines, ~10 fixes)
+**Current issues:**
 
-**Issues found:**
-- Line 80-101: `SEVERITY_STYLES`, `STRENGTH_STYLES`, `OUTCOME_STYLES`, `STATUS_STYLES` all use colored bg tints
-- Line 146: Colored tinted icon container on empty state
-- Line 213: Red tinted + left-border on Red Team header
-- Line 229, 246: Red tinted argument cards
-- Line 261: Red tinted "Kill Shot" card
-- Line 278: Green tinted + left-border on Green Team header
-- Line 294, 310: Green tinted argument cards
-- Line 326: Green tinted "Moonshot" card
-- Line 362: Green tinted strategic recommendation cards
-- Line 378-389: Emoji characters in Current Approach Assessment
-- Line 398: Primary tinted verdict card
-- Line 498: Colored status background cards in feasibility
+- "How It Works" pill uses `primary / 0.08` tinted background (violates neutral-only rule)
+- Active step cards use colored tinted backgrounds (`hsl(${color} / 0.08)`)
+- Past step cards use `primary / 0.03` tint
+- Active/completed indicator uses emoji "checkmark" character in `isPast ? "checkmark Complete" : "bullet Current"`
 
-**Fixes:**
-- All style maps: change `bg` values to `hsl(var(--muted))` or `hsl(var(--card))`, keep colored `text` values and border as subtle `hsl(var(--border))`
-- Red/Green Team headers: `hsl(var(--card))` bg, remove left-border, keep colored icon + label
-- Kill Shot / Moonshot: `hsl(var(--card))` bg, `1px solid hsl(var(--border))`, keep bold colored label
-- Emojis (checkmark, loop arrow): replace with lucide icons
-- Feasibility cards: neutral backgrounds, keep colored status text labels
+**Changes:**
 
-### 4. `src/components/BundleDeepDive.tsx` (207 lines, ~5 fixes)
+- "How It Works" pill: change to `hsl(var(--muted))` bg with `hsl(var(--foreground))` text
+- Active step card: use `hsl(var(--muted))` bg instead of colored tint, keep colored border
+- Past step card: use `hsl(var(--muted))` bg, `1px solid hsl(var(--border))`
+- Replace "checkmark" and "bullet" emoji characters with Lucide `CheckCircle2` and `Circle` icons
+- Card border-radius already `rounded-xl` -- good
 
-**Issues found:**
-- Line 84: `primary-muted` bg when open
-- Line 99: "Tap to explore deeper" text prompt
-- Line 131: Primary tinted + left-border "Why this works" card
-- Line 163: Green tinted + left-border "Quick Win" card
-- Line 170: Primary tinted "Competitive Moat" card
-- Line 185: Destructive tinted risk cards
+### 3. `src/pages/Index.tsx`
 
-**Fixes:**
-- Open state: `hsl(var(--muted))` bg
-- Remove "Tap to explore deeper" prompt
-- All content cards: `hsl(var(--card))` or `hsl(var(--muted))` bg, `1px solid hsl(var(--border))`, remove left-borders, keep bold colored label text
-- Risk cards: neutral bg, keep red icon
+**Current issues:**
 
-### 5. `src/components/SectionNav.tsx` (308 lines, 2 remaining fixes)
+- Line 601: Tab bar container uses `rounded` (too sharp) -- should be `rounded-2xl`
+- Line 856: SectionAccordion icon container uses `primary-muted` bg (line 1856)
+- Lines 975, 990, 1005, 1022, 1036: Community tab cards use colored tinted backgrounds (`hsl(25 90% 50% / 0.08)`, `hsl(var(--destructive) / 0.06)`, etc.)
+- Line 1132: Margin Analysis card uses green tinted background
+- Line 1242-1248: Strategic Direction card uses `primary-muted` bg + left-border
+- Line 1260: Quick Wins cards use green tinted backgrounds
+- Line 1280: Execution Roadmap phases still have colored left-borders
+- Line 1304-1305: Milestone badge uses `primary / 0.08` tinted bg
+- Line 1324: Go-To-Market channels card uses `primary-muted` bg
+- Line 1382: "All sections explored" uses green tinted bg
+- Line 1408, 1448, 1508, 1593, 1629, 1655, 1714: Step containers use colored left-borders (`borderLeft: "3px solid ..."`)
+- Line 914-915: Live Sources links use `primary / 0.06` tinted bg
 
-**Issues found:**
-- Line 167: Dashed border on unvisited pills
-- Line 264: `animate-pulse` on unvisited grid dots
+**Changes:**
 
-**Fixes:**
-- Unvisited pills: `1px solid hsl(var(--border))` (solid, not dashed)
-- Unvisited dots: remove `animate-pulse`, keep static dot
+- Tab bar: `rounded` to `rounded-2xl`
+- SectionAccordion icon container: `hsl(var(--muted))` instead of `primary-muted`
+- Community tab: all colored tinted cards become `hsl(var(--muted))` bg with `1px solid hsl(var(--border))`, keep colored icon and label text
+- Margin Analysis: `hsl(var(--muted))` bg, `1px solid hsl(var(--border))`, keep green text
+- Strategic Direction: `hsl(var(--muted))` bg, remove left-border, keep bold label
+- Quick Wins: `hsl(var(--muted))` bg, `1px solid hsl(var(--border))`, keep green CheckCircle2 icon
+- Execution Roadmap: remove colored left-borders from phases
+- Milestone badge: `hsl(var(--muted))` bg
+- Go-To-Market channels: `hsl(var(--muted))` bg, `1px solid hsl(var(--border))`
+- "All sections explored": `hsl(var(--muted))` bg with green text
+- Step containers: remove all colored left-borders (`borderLeft`), keep colored step number badge
+- Live Sources: `hsl(var(--muted))` bg, `1px solid hsl(var(--border))`, keep primary text color
 
-### 6. `src/components/SavedAnalyses.tsx` (~462 lines, 1 fix)
+### 4. `src/index.css`
 
-**Issue:** Line 170: `dashed` border on snippet card
+**Current issues:**
 
-**Fix:** Replace with `1px solid hsl(var(--border))`
+- `.insight-callout` uses `primary / 0.04` tinted bg + 3px primary left-border
+- `.insight-callout--success` uses `success / 0.04` tinted bg + success left-border
 
-### 7. `src/components/AssumptionsMap.tsx` (1 fix)
+**Changes:**
 
-**Issue:** Line 44: `primary-muted` + left-border on assumption card
+- `.insight-callout`: change to `hsl(var(--muted))` bg, remove left-border, use `1px solid hsl(var(--border))` all around
+- `.insight-callout--success`: same neutral treatment, keep green text inside via component
 
-**Fix:** `hsl(var(--muted))` bg, `1px solid hsl(var(--border))`, remove left-border
+### 5. `src/components/StepNavigator.tsx`
 
-### 8. `src/pages/Index.tsx` (~3 fixes)
+**Current issues:**
 
-**Issues:** Lines 686, 1134, 1176: `primary-muted` backgrounds on social signals and highlight cards
+- Past step button uses `primary / 0.06` tinted bg
+- Past step icon container uses `primary / 0.12` tinted bg
 
-**Fixes:** Replace with `hsl(var(--muted))` and `1px solid hsl(var(--border))`
+**Changes:**
+
+- Past step button: `hsl(var(--muted))` bg, `1.5px solid hsl(var(--border))`
+- Past step icon container: `hsl(var(--muted))` bg (already neutral -- just confirm the past state border is clean)
 
 ---
 
-## Design Rules Applied Everywhere
+## Design Rules Reinforced
 
-| Pattern | Before | After |
-|---------|--------|-------|
-| Card backgrounds | `primary-muted`, colored tints (`/0.06`, `/0.08`) | `hsl(var(--muted))` or `hsl(var(--card))` |
-| Emphasis borders | `borderLeft: 3px solid [color]` | Removed; bold header text carries emphasis |
-| Borders | Dashed borders | Solid `1px solid hsl(var(--border))` |
-| Animations | `animate-pulse` on dots/badges | Static elements |
-| Emojis | Checkmark, loop, fire emoji chars | Lucide icons (CheckCircle2, RefreshCw, etc.) |
-| Semantic colors | Card background tints | Text labels and small icons only |
-| Mode awareness | Mode color on card backgrounds | Mode color on step number badges and header accents only |
+
+| Pattern                     | Before                                           | After                                                 |
+| --------------------------- | ------------------------------------------------ | ----------------------------------------------------- |
+| Card border-radius          | `rounded` / `rounded-lg` / `rounded-xl` (mixed)  | `rounded-xl` or `rounded-2xl` consistently            |
+| Tinted backgrounds          | `primary/0.06`, `destructive/0.06`, `color/0.08` | `hsl(var(--muted))` or `hsl(var(--card))`             |
+| Step container left-borders | `borderLeft: 3px solid [color]`                  | Removed; colored step number badge carries the accent |
+| Callout styling             | Left-border + tinted bg                          | Neutral bg + full border + bold colored label text    |
+| Nav dropdowns               | `rounded-xl`                                     | `rounded-2xl`                                         |
+| Emoji indicators            | checkmark, bullet characters                     | Lucide `CheckCircle2`, `Circle` icons                 |
+
 
 ## What Stays the Same
 
-- Gradient hero banners (Elevator Pitch, Reinvented Model) -- these are intentional branding, not cheap tints
-- Score bar colors (confidence scores use green/amber/red on progress bars -- semantic and appropriate)
-- Tab navigation styling (already polished in SectionWorkflowNav)
-- The overall layout, typography hierarchy, and component structure
+- All CSS variables and theming infrastructure
+- All functional logic (mode switching, step navigation, auth)
+- Score bar colors (semantic green/amber/red on progress bars)
+- The overall layout structure and component hierarchy
+- Gradient hero banners in analysis result cards
