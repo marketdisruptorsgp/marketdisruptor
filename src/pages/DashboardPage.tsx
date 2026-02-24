@@ -160,11 +160,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Showcase Gallery */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-10 sm:mt-14">
-        <ShowcaseGallery />
-      </div>
-
       {/* Value Proposition Callout */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 my-6 sm:my-10">
         <div className="rounded-2xl px-4 sm:px-5 py-4 sm:py-5 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
@@ -176,6 +171,11 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Showcase Gallery */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-4 sm:mt-6 mb-6 sm:mb-10">
+        <ShowcaseGallery />
       </div>
 
       {/* Mode Pills — navigate to start pages */}
