@@ -14,6 +14,7 @@ import {
 import { PatentTreemap } from "@/components/intel/PatentTreemap";
 import { AboutDataPanel } from "@/components/intel/AboutDataPanel";
 import { MarketNewsSection } from "@/components/intel/MarketNewsSection";
+import { PlatformAnalyticsVisual } from "@/components/intel/PlatformAnalyticsVisual";
 
 const CATEGORY_COLORS = [
   "hsl(var(--primary))", "hsl(var(--destructive))", "hsl(142 76% 36%)",
@@ -36,6 +37,7 @@ export default function IntelPage() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [topFlippedIdeas, setTopFlippedIdeas] = useState<any[]>([]);
   const [notableScores, setNotableScores] = useState<any[]>([]);
+  const [monthlyActivity, setMonthlyActivity] = useState<any[]>([]);
 
   useEffect(() => { fetchAllData(); }, []);
 
@@ -63,6 +65,7 @@ export default function IntelPage() {
         else if (row.metric_type === "top_categories") setTopCategories(Array.isArray(payload) ? payload : []);
         else if (row.metric_type === "top_flipped_ideas") setTopFlippedIdeas(Array.isArray(payload) ? payload : []);
         else if (row.metric_type === "notable_scores") setNotableScores(Array.isArray(payload) ? payload : []);
+        else if (row.metric_type === "monthly_activity") setMonthlyActivity(Array.isArray(payload) ? payload : []);
       }
       if (intelRes.data.length > 0) setLastUpdated(intelRes.data[0].computed_at);
     }
@@ -368,62 +371,12 @@ export default function IntelPage() {
 
         {/* ── Platform Analytics ── */}
         {platformOverview && (
-          <section>
-            <div className="flex items-center gap-2 mb-1">
-              <BarChart3 size={16} className="text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Platform Analytics</h2>
-            </div>
-            <p className="text-sm text-muted-foreground mb-2 max-w-2xl">
-              Real usage data from analyses run on this platform. All metrics derived from actual user activity.
-            </p>
-            <p className="text-[10px] text-muted-foreground mb-6 flex items-center gap-1">
-              <FileText size={10} /> {platformOverview.totalAnalyses} analyses
-            </p>
-
-            <div className="grid gap-3 sm:grid-cols-3 mb-6">
-              <div className="border border-border rounded-lg p-4 bg-card">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Total Analyses</p>
-                <p className="text-2xl font-bold text-foreground">{platformOverview.totalAnalyses}</p>
-              </div>
-              <div className="border border-border rounded-lg p-4 bg-card">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Avg Revival Score</p>
-                <p className="text-2xl font-bold text-foreground">{platformOverview.avgScore}</p>
-              </div>
-              <div className="border border-border rounded-lg p-4 bg-card">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Analysis Types</p>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {Object.entries(platformOverview.typeBreakdown || {}).map(([type, count]) => (
-                    <span key={type} className="text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary font-semibold">
-                      {type}: {count as number}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {topCategories.length > 0 && (
-              <div className="border border-border rounded-xl bg-card shadow-sm p-4 sm:p-6">
-                <p className="text-sm font-bold text-foreground mb-4">Most Analyzed Categories</p>
-                <div className="h-[240px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={topCategories} layout="vertical">
-                      <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" width={120} />
-                      <RechartsTooltip
-                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                        formatter={(value: number) => [`${value} analyses`, "Count"]}
-                      />
-                      <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                        {topCategories.map((_, i) => (
-                          <Cell key={i} fill={CATEGORY_COLORS[i % CATEGORY_COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
-          </section>
+          <PlatformAnalyticsVisual
+            overview={platformOverview}
+            topCategories={topCategories}
+            notableScores={notableScores}
+            monthlyActivity={monthlyActivity}
+          />
         )}
 
         {/* ── Top Flipped Ideas ── */}
