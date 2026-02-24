@@ -67,6 +67,7 @@ export default function PitchPage() {
             externalData={analysis.pitchDeckData}
             disruptData={analysis.disruptData}
             stressTestData={analysis.stressTestData}
+            redesignData={analysis.redesignData}
             userScores={analysis.userScores}
             onSave={(d) => {
               analysis.setPitchDeckData(d);

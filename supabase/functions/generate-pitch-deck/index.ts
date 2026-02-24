@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, disruptData, stressTestData, userScores } = await req.json();
+    const { product, disruptData, stressTestData, userScores, redesignData } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -35,16 +35,17 @@ OUTPUT RULES:
 - Flag capital requirements: [Capital: Low/Medium/High]
 - Use directional indicators: ↑ ↓ → for trends
 
-You are also a world-class venture analyst and pitch deck strategist. You produce investor-grade business intelligence for products.
+You are a world-class venture analyst and pitch deck strategist. You produce investor-grade business intelligence.
+
+CRITICAL: Use REALISTIC risk framing. Avoid optimistic bias. Base all projections on structural feasibility and competitive density.
 
 You MUST respond with ONLY a valid JSON object (no markdown, no explanation, just raw JSON).
 
-Return this EXACT structure:
+Return this EXACT structure with sections in this ORDER:
 {
-  "elevatorPitch": "2-3 sentence pitch a VC would hear in an elevator. Bold, specific, memorable.",
-  "problemStatement": "Concrete problem description with market evidence",
-  "solutionStatement": "How this product/opportunity solves the problem",
-  "whyNow": "Why this is the exact right moment in time to pursue this — market timing, trends, regulatory, tech",
+  "problemStatement": "Concrete problem description with market evidence. Be specific about who suffers and why.",
+  "solutionStatement": "How this product/opportunity solves the problem in a differentiated way",
+  "whyNow": "Why this is the exact right moment — market timing, trends, regulatory shifts, tech enablers",
   "marketOpportunity": {
     "tam": "Total addressable market with source ($XB by YYYY)",
     "sam": "Serviceable addressable market",
@@ -52,119 +53,80 @@ Return this EXACT structure:
     "growthRate": "CAGR with source and time period",
     "keyDrivers": ["Driver 1 with data", "Driver 2", "Driver 3", "Driver 4", "Driver 5"]
   },
-  "competitiveAdvantages": ["Advantage 1 (specific)", "Advantage 2", "Advantage 3", "Advantage 4"],
+  "productInnovation": "What makes the product/service genuinely different — technical moat, design advantage, or structural innovation. Be specific.",
+  "businessModel": {
+    "revenueStreams": ["Primary revenue stream", "Secondary stream", "Tertiary stream"],
+    "pricingModel": "How you charge — subscription, one-time, freemium, marketplace take rate, etc.",
+    "unitEconomics": {
+      "cogs": "Cost per unit",
+      "retailPrice": "Price per unit",
+      "grossMargin": "Gross margin %",
+      "contributionMargin": "After variable costs",
+      "ltv": "Estimated customer lifetime value",
+      "cac": "Estimated customer acquisition cost",
+      "paybackPeriod": "Months to recover CAC"
+    }
+  },
+  "tractionSignals": ["Signal 1 — specific evidence of demand or traction", "Signal 2", "Signal 3"],
+  "risks": [
+    {"risk": "Specific risk with context", "mitigation": "Specific mitigation strategy", "severity": "high"},
+    {"risk": "Risk 2", "mitigation": "Mitigation 2", "severity": "medium"},
+    {"risk": "Risk 3", "mitigation": "Mitigation 3", "severity": "low"}
+  ],
+  "keyMetrics": [
+    {"metric": "Metric name", "target": "Target value", "why": "Why this matters"},
+    {"metric": "Metric 2", "target": "Target 2", "why": "Rationale"}
+  ],
+  "gtmStrategy": {
+    "phase1": "Month 1-3: Specific launch actions",
+    "phase2": "Month 4-9: Scale actions with KPIs",
+    "phase3": "Month 10-18: Growth and expansion",
+    "keyChannels": ["Channel 1", "Channel 2", "Channel 3", "Channel 4"],
+    "launchBudget": "$X–$Y"
+  },
+  "competitiveLandscape": {
+    "directCompetitors": [{"name": "Competitor", "strength": "What they do well", "weakness": "Where they fall short"}],
+    "indirectCompetitors": ["Category 1", "Category 2"],
+    "moat": "What creates a defensible advantage over time"
+  },
+  "investmentAsk": {
+    "amount": "$X–$Y seed/Series A",
+    "useOfFunds": ["X% Product development - $Y", "X% Marketing - $Y", "X% Operations - $Y"],
+    "scenarios": {
+      "conservative": {"revenue": "Year 1 revenue", "units": "Units", "assumptions": "Key assumptions"},
+      "base": {"revenue": "Revenue", "units": "Units", "assumptions": "Assumptions"},
+      "optimistic": {"revenue": "Revenue", "units": "Units", "assumptions": "Assumptions"}
+    },
+    "exitStrategy": "M&A targets, IPO path, or strategic buyers"
+  },
+  "elevatorPitch": "2-3 sentence pitch a VC would hear in an elevator. Bold, specific, memorable.",
+  "competitiveAdvantages": ["Advantage 1", "Advantage 2", "Advantage 3"],
   "customerPersona": {
-    "name": "Customer archetype name (e.g. 'The Nostalgic Millennial Parent')",
-    "age": "Age range and segment description",
+    "name": "Customer archetype name",
+    "age": "Age range",
     "painPoints": ["Pain 1", "Pain 2", "Pain 3"],
     "buyingBehavior": "Where and how they buy",
     "willingness": "Price they'll pay and why"
   },
-  "financialModel": {
-    "unitEconomics": {
-      "cogs": "Cost of goods sold per unit",
-      "retailPrice": "Recommended retail price",
-      "grossMargin": "Gross margin percentage",
-      "contributionMargin": "Contribution margin after variable costs",
-      "paybackPeriod": "Customer acquisition payback period"
-    },
-    "scenarios": {
-      "conservative": {
-        "units": "Units sold Year 1",
-        "revenue": "Revenue",
-        "profit": "Net profit/loss",
-        "assumptions": "Key assumptions for this scenario"
-      },
-      "base": {
-        "units": "Units sold Year 1",
-        "revenue": "Revenue",
-        "profit": "Net profit/loss",
-        "assumptions": "Key assumptions for this scenario"
-      },
-      "optimistic": {
-        "units": "Units sold Year 1",
-        "revenue": "Revenue",
-        "profit": "Net profit/loss",
-        "assumptions": "Key assumptions for this scenario"
-      }
-    },
-    "pricingStrategy": "Pricing model, rationale, and competitive positioning",
-    "breakEvenAnalysis": "Break-even point with units and timeline",
-    "fundingAsk": "$X–$Y seed/Series A ask",
-    "useOfFunds": ["X% Product development - $Y", "X% Marketing & GTM - $Y", "X% Operations - $Y", "X% Working capital - $Y"],
-    "exitStrategy": "M&A targets, IPO path, or strategic buyer options with rationale"
-  },
   "supplierContacts": [
-    {
-      "name": "Real company name",
-      "role": "OEM Manufacturer / Component Supplier / IP Licensor",
-      "region": "Country/Region",
-      "url": "https://real-url.com",
-      "email": "contact@example.com or inquiry@domain.com if real",
-      "phone": "+1-xxx-xxx-xxxx if known",
-      "moq": "Minimum order quantity",
-      "leadTime": "Production lead time",
-      "certifications": ["ISO 9001", "CE", "RoHS"],
-      "notes": "Specific context about why to approach them, specialization, pricing tier, negotiation tips"
-    }
+    {"name": "Real company name", "role": "OEM/Supplier", "region": "Region", "url": "https://...", "email": "contact@...", "phone": "+1...", "moq": "MOQ", "leadTime": "Lead time", "certifications": ["ISO 9001"], "notes": "Context"}
   ],
   "distributorContacts": [
-    {
-      "name": "Real distributor name",
-      "role": "National Distributor / 3PL / Retail Partner",
-      "region": "Region they cover",
-      "url": "https://real-url.com",
-      "email": "contact if known",
-      "moq": "Minimum shipment",
-      "leadTime": "Onboarding timeline",
-      "notes": "Why this distributor, their specialty, margin expectations, how to approach"
-    }
+    {"name": "Real distributor", "role": "Distributor/3PL", "region": "Region", "url": "https://...", "moq": "Min shipment", "leadTime": "Onboarding", "notes": "Context"}
   ],
-  "gtmStrategy": {
-    "phase1": "Month 1-3: Specific launch actions with platform names, budget, channels",
-    "phase2": "Month 4-9: Scale actions with specific targets and KPIs",
-    "phase3": "Month 10-18: Growth and expansion with specific milestones",
-    "keyChannels": ["Channel 1", "Channel 2", "Channel 3", "Channel 4"],
-    "launchBudget": "$X–$Y"
-  },
-  "risks": [
-    {
-      "risk": "Specific risk with context",
-      "mitigation": "Specific mitigation strategy",
-      "severity": "high"
-    },
-    {
-      "risk": "Risk 2",
-      "mitigation": "Mitigation 2",
-      "severity": "medium"
-    },
-    {
-      "risk": "Risk 3",
-      "mitigation": "Mitigation 3",
-      "severity": "low"
-    }
-  ],
-  "keyMetrics": [
-    {"metric": "Metric name", "target": "Target value", "why": "Why this metric matters"},
-    {"metric": "Metric 2", "target": "Target 2", "why": "Rationale"}
-  ],
-  "investorHighlights": [
-    "Specific, bold highlight 1 (ideally with a data point)",
-    "Highlight 2",
-    "Highlight 3",
-    "Highlight 4",
-    "Highlight 5"
-  ]
+  "investorHighlights": ["Highlight 1", "Highlight 2", "Highlight 3", "Highlight 4", "Highlight 5"],
+  "completionMessage": "A bold, memorable closing statement that frames the core opportunity — not generic congratulations but a strategic insight about what makes this worth pursuing"
 }
 
 CRITICAL RULES:
-- supplierContacts must include REAL company names — Alibaba suppliers, OEM factories, component suppliers
-- distributorContacts must include REAL companies — UNFI, KeHE, Ingram, Entertainment Earth, etc.
+- Structure follows the 12-section investor deck order: Problem → Solution → Why Now → Market → Product → Business Model → Traction → Risks → Metrics → GTM → Competitive → Investment Ask
+- supplierContacts must include REAL company names
 - All financial figures must be specific (not "varies" or "TBD")
 - Risks must have 3-6 items with mix of high/medium/low severity
 - keyMetrics must have 4-6 specific, measurable metrics
-- investorHighlights must be compelling and specific — a VC should want to read on
-- Be BOLD, SPECIFIC, and COMMERCIAL in all analysis`;
+- Be BOLD, SPECIFIC, and COMMERCIAL
+- AVOID optimistic bias — use realistic, defensible projections
+- completionMessage should be a unique strategic insight, not a generic statement`;
 
     const userPrompt = `Generate a full investor pitch deck for this product:
 
@@ -195,14 +157,18 @@ ${disruptData ? `DISRUPT ANALYSIS (upstream):
 - Hidden Assumptions: ${JSON.stringify((disruptData as Record<string, unknown>).hiddenAssumptions || [], null, 2)}
 - Flipped Logic: ${JSON.stringify((disruptData as Record<string, unknown>).flippedLogic || [], null, 2)}
 ` : ""}
+${redesignData ? `REDESIGN OUTPUT (latest concept):
+${JSON.stringify(redesignData, null, 2)}
+` : ""}
 ${stressTestData ? `STRESS TEST RESULTS (upstream):
 ${JSON.stringify(stressTestData, null, 2)}
 ` : ""}
 ${userScores ? `USER-ADJUSTED SCORES (override AI defaults with these):
 ${JSON.stringify(userScores, null, 2)}
 ` : ""}
-Build the most compelling, investor-ready pitch deck possible. Use all existing data as a foundation and expand significantly with deeper financial modeling, real supplier contacts (with emails/phones where available), and specific go-to-market tactics.
+Build the most compelling, investor-ready pitch deck possible. Use all upstream data.
 Base scores on realistic market signals, competitive density, and structural feasibility — avoid optimistic defaults.
+The completionMessage should be a sharp strategic insight about WHY this opportunity is worth pursuing.
 
 Return ONLY the JSON object.`;
 
@@ -246,7 +212,6 @@ Return ONLY the JSON object.`;
       .replace(/\s*```\s*$/m, "")
       .trim();
 
-    // Extract JSON object — find first { and last }
     const firstBrace = cleaned.indexOf("{");
     const lastBrace = cleaned.lastIndexOf("}");
     if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
@@ -259,6 +224,19 @@ Return ONLY the JSON object.`;
     } catch {
       console.error("JSON parse failed:", cleaned.slice(0, 500));
       throw new Error("AI returned invalid JSON. Please retry.");
+    }
+
+    // Ensure backward compatibility for fields the frontend expects
+    if (!deck.financialModel && deck.businessModel?.unitEconomics) {
+      deck.financialModel = {
+        unitEconomics: deck.businessModel.unitEconomics,
+        scenarios: deck.investmentAsk?.scenarios || {},
+        pricingStrategy: deck.businessModel.pricingModel || "",
+        breakEvenAnalysis: deck.businessModel.unitEconomics?.paybackPeriod || "",
+        fundingAsk: deck.investmentAsk?.amount || "",
+        useOfFunds: deck.investmentAsk?.useOfFunds || [],
+        exitStrategy: deck.investmentAsk?.exitStrategy || "",
+      };
     }
 
     return new Response(JSON.stringify({ success: true, deck }), {
