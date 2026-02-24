@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { StepNavigator } from "@/components/StepNavigator";
 import { CriticalValidation } from "@/components/CriticalValidation";
-import { Target, Brain, Swords, Presentation, CheckCircle2 } from "lucide-react";
+import { Swords, CheckCircle2 } from "lucide-react";
+import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 
 export default function StressTestPage() {
@@ -27,12 +28,7 @@ export default function StressTestPage() {
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <StepNavigator
-          steps={[
-            { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent },
-            { step: 3, label: "Disrupt", icon: Brain, color: "hsl(271 81% 55%)" },
-            { step: 4, label: "Stress Test", icon: Swords, color: "hsl(350 80% 55%)" },
-            { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))" },
-          ]}
+          steps={getStepConfigs(modeAccent)}
           activeStep={4}
           visitedSteps={new Set([2, 3, 4])}
           onStepChange={(s) => {
@@ -68,15 +64,15 @@ export default function StressTestPage() {
                       analysis.setStressTestTab(tab.id);
                       analysis.setVisitedStressTestTabs(new Set([...analysis.visitedStressTestTabs, tab.id]));
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded text-sm font-medium transition-colors relative"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors relative"
                     style={{
-                      background: isActive ? "hsl(350 80% 55%)" : "transparent",
-                      color: isActive ? "white" : "hsl(var(--muted-foreground))",
-                      border: isActive ? "1px solid hsl(350 80% 55%)" : "1px solid hsl(var(--border))",
+                      background: isActive ? "hsl(var(--foreground))" : isVisited ? "hsl(var(--foreground) / 0.05)" : "transparent",
+                      color: isActive ? "hsl(var(--background))" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                      border: isActive ? "1.5px solid hsl(var(--foreground))" : isVisited ? "1.5px solid hsl(var(--foreground) / 0.15)" : "1.5px dashed hsl(var(--border))",
                     }}
                   >
                     {!isActive && !isVisited && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: "hsl(350 80% 55%)" }} />
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "hsl(var(--primary))" }} />
                     )}
                     <TabIcon size={14} />
                     {tab.label}

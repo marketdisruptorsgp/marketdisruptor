@@ -54,10 +54,10 @@ export default function BusinessResultsPage() {
       <main className="max-w-5xl mx-auto px-6 py-6 space-y-5">
         <StepNavigator
           steps={[
-            { step: 2, label: "Intelligence Report", icon: Target, color: bizAccent },
-            { step: 3, label: "Disrupt", icon: Brain, color: "hsl(350 80% 55%)" },
-            { step: 4, label: "Stress Test", icon: Swords, color: "hsl(38 92% 50%)" },
-            { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))" },
+            { step: 2, label: "Intelligence Report", description: "Business model deep analysis", icon: Target, color: bizAccent },
+            { step: 3, label: "Disrupt", description: "Challenge assumptions & reinvent", icon: Brain, color: "hsl(350 80% 55%)" },
+            { step: 4, label: "Stress Test", description: "Red vs Green team debate", icon: Swords, color: "hsl(38 92% 50%)" },
+            { step: 5, label: "Pitch Deck", description: "Investor-ready pitch builder", icon: Presentation, color: "hsl(var(--primary))" },
           ]}
           activeStep={activeStep}
           visitedSteps={visitedSteps}

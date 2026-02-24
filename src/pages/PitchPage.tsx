@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { StepNavigator } from "@/components/StepNavigator";
 import { PitchDeck } from "@/components/PitchDeck";
-import { Target, Brain, Swords, Presentation } from "lucide-react";
+import { getStepConfigs } from "@/lib/stepConfigs";
 import { StepNavBar } from "@/components/SectionNav";
 
 export default function PitchPage() {
@@ -25,12 +25,7 @@ export default function PitchPage() {
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <StepNavigator
-          steps={[
-            { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent },
-            { step: 3, label: "Disrupt", icon: Brain, color: "hsl(271 81% 55%)" },
-            { step: 4, label: "Stress Test", icon: Swords, color: "hsl(350 80% 55%)" },
-            { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))" },
-          ]}
+          steps={getStepConfigs(modeAccent)}
           activeStep={5}
           visitedSteps={new Set([2, 3, 4, 5])}
           onStepChange={(s) => {

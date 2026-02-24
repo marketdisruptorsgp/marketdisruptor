@@ -694,10 +694,10 @@ export default function Index() {
             {/* ── STICKY STEP NAVIGATOR ── */}
             <StepNavigator
               steps={[
-                { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent },
-                { step: 3, label: "Disrupt", icon: Brain, color: "hsl(271 81% 55%)" },
-                { step: 4, label: "Stress Test", icon: Swords, color: "hsl(350 80% 55%)" },
-                { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))" },
+                { step: 2, label: "Intelligence Report", description: "Deep market data, pricing & supply chain intel", icon: Target, color: modeAccent },
+                { step: 3, label: "Disrupt", description: "First principles deconstruction & flip ideas", icon: Brain, color: "hsl(271 81% 55%)" },
+                { step: 4, label: "Stress Test", description: "Red vs Green team critical validation", icon: Swords, color: "hsl(350 80% 55%)" },
+                { step: 5, label: "Pitch Deck", description: "Investor-ready presentation builder", icon: Presentation, color: "hsl(var(--primary))" },
               ]}
               activeStep={activeStep}
               visitedSteps={visitedSteps}
@@ -1612,10 +1612,10 @@ export default function Index() {
             {/* ── STICKY STEP NAVIGATOR ── */}
             <StepNavigator
               steps={[
-                { step: 2, label: "Intelligence Report", icon: Target, color: bizAccent },
-                { step: 3, label: "Disrupt", icon: Brain, color: "hsl(350 80% 55%)" },
-                { step: 4, label: "Stress Test", icon: Swords, color: "hsl(38 92% 50%)" },
-                { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))" },
+                { step: 2, label: "Intelligence Report", description: "Business model deep analysis", icon: Target, color: bizAccent },
+                { step: 3, label: "Disrupt", description: "Challenge assumptions & reinvent", icon: Brain, color: "hsl(350 80% 55%)" },
+                { step: 4, label: "Stress Test", description: "Red vs Green team debate", icon: Swords, color: "hsl(38 92% 50%)" },
+                { step: 5, label: "Pitch Deck", description: "Investor-ready pitch builder", icon: Presentation, color: "hsl(var(--primary))" },
               ]}
               activeStep={businessActiveStep}
               visitedSteps={businessVisitedSteps}
