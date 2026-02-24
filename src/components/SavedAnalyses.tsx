@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Clock, Trash2, ChevronRight, Database, RotateCcw, Search, ShoppingBag, Building2, Microscope } from "lucide-react";
+import {
+  Clock, Trash2, ChevronRight, Database, RotateCcw, Search,
+  ShoppingBag, Building2, Microscope, Star, TrendingUp, Zap, Award,
+} from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 
 interface SavedAnalysis {
@@ -53,20 +56,212 @@ const TYPE_CONFIG = {
   },
 } as const;
 
+function getTypeConfig(type?: string) {
+  return TYPE_CONFIG[(type as keyof typeof TYPE_CONFIG) ?? "product"] ?? TYPE_CONFIG.product;
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function deduplicateAnalyses(items: SavedAnalysis[]): SavedAnalysis[] {
+  const seen = new Set<string>();
+  return items.filter((a) => {
+    const key = `${a.category}|${a.era}|${a.audience}|${a.analysis_type ?? "product"}|${a.batch_size}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function getScoreColor(score: number) {
+  if (score >= 8) return "hsl(var(--score-high))";
+  if (score >= 6) return "hsl(var(--primary))";
+  return "hsl(var(--warning))";
+}
+
+function getScoreLabel(score: number) {
+  if (score >= 8) return "High Potential";
+  if (score >= 6) return "Moderate";
+  return "Needs Work";
+}
+
+/* ──────── Stat Card ──────── */
+function StatCard({ icon: Icon, label, value, accent }: { icon: typeof Star; label: string; value: string | number; accent?: string }) {
+  return (
+    <div
+      className="rounded-lg border border-border bg-card p-3 flex items-center gap-3"
+      style={{ borderLeft: accent ? `3px solid ${accent}` : undefined }}
+    >
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: accent ? `${accent}14` : "hsl(var(--muted))" }}>
+        <Icon size={14} style={{ color: accent || "hsl(var(--muted-foreground))" }} />
+      </div>
+      <div>
+        <p className="text-lg font-bold text-foreground leading-tight">{value}</p>
+        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ──────── Spotlight Card (high-score projects) ──────── */
+function SpotlightCard({ analysis, onLoad, onDelete }: { analysis: SavedAnalysis; onLoad: () => void; onDelete: (e: React.MouseEvent) => void }) {
+  const cfg = getTypeConfig(analysis.analysis_type);
+  const TypeIcon = cfg.icon;
+  const score = analysis.avg_revival_score;
+
+  // Extract a snippet from analysis_data if available
+  const snippet = useMemo(() => {
+    const data = analysis.analysis_data as Record<string, unknown> | null;
+    if (!data) return null;
+    // Try disrupt data for a compelling snippet
+    const disrupt = data.disrupt as Record<string, unknown> | undefined;
+    if (disrupt) {
+      const ideas = (disrupt as any)?.flippedIdeas || (disrupt as any)?.ideas;
+      if (Array.isArray(ideas) && ideas.length > 0) {
+        const idea = ideas[0];
+        return idea?.name || idea?.title || idea?.concept || null;
+      }
+    }
+    return null;
+  }, [analysis.analysis_data]);
+
+  return (
+    <button
+      onClick={onLoad}
+      className="w-full text-left rounded-xl border-2 transition-all group hover:shadow-md relative overflow-hidden"
+      style={{
+        background: "hsl(var(--card))",
+        borderColor: `${getScoreColor(score)}30`,
+      }}
+    >
+      {/* Top accent bar */}
+      <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${getScoreColor(score)}, ${cfg.color})` }} />
+
+      <div className="p-4">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: cfg.bgColor }}>
+              <TypeIcon size={13} style={{ color: cfg.color }} />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: cfg.color }}>{cfg.label}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Award size={13} style={{ color: getScoreColor(score) }} />
+            <span className="text-sm font-bold" style={{ color: getScoreColor(score) }}>{score}/10</span>
+          </div>
+        </div>
+
+        {/* Title */}
+        <p className="text-sm font-bold text-foreground leading-snug mb-2 line-clamp-2">{analysis.title}</p>
+
+        {/* Score bar */}
+        <div className="h-1.5 rounded-full overflow-hidden bg-muted mb-2.5">
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{ width: `${(score / 10) * 100}%`, background: getScoreColor(score) }}
+          />
+        </div>
+
+        {/* Snippet / opportunity callout */}
+        {snippet && (
+          <div className="rounded-md p-2 mb-2.5" style={{ background: "hsl(var(--primary) / 0.04)", border: "1px dashed hsl(var(--primary) / 0.2)" }}>
+            <div className="flex items-center gap-1 mb-0.5">
+              <Zap size={10} style={{ color: "hsl(var(--primary))" }} />
+              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--primary))" }}>Top Idea</span>
+            </div>
+            <p className="text-[11px] text-foreground leading-snug line-clamp-2">{snippet}</p>
+          </div>
+        )}
+
+        {/* Meta */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="tag-pill text-[10px]">{analysis.category}</span>
+          <span className="text-[10px] text-muted-foreground">{analysis.era}</span>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border">
+          <div className="flex items-center gap-1">
+            <Clock size={10} className="text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground">{formatDate(analysis.created_at)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onDelete}
+              className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: "hsl(var(--destructive))" }}
+              title="Delete"
+            >
+              <Trash2 size={12} />
+            </button>
+            <ChevronRight size={14} className="text-muted-foreground/40 group-hover:text-foreground transition-colors" />
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ──────── Standard Card ──────── */
+function ProjectCard({ analysis, onLoad, onDelete }: { analysis: SavedAnalysis; onLoad: () => void; onDelete: (e: React.MouseEvent) => void }) {
+  const cfg = getTypeConfig(analysis.analysis_type);
+  const TypeIcon = cfg.icon;
+  const score = analysis.avg_revival_score;
+
+  return (
+    <button
+      onClick={onLoad}
+      className="w-full text-left p-3.5 rounded-lg transition-all group hover:bg-muted/50 hover:shadow-sm"
+      style={{
+        background: "hsl(var(--card))",
+        border: "1.5px solid hsl(var(--border))",
+        borderLeft: `3px solid ${cfg.color}`,
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{ background: cfg.bgColor }}>
+          <TypeIcon size={11} style={{ color: cfg.color }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold text-foreground truncate leading-tight">{analysis.title}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[10px] text-muted-foreground">{analysis.category}</span>
+            <span className="text-[10px] text-muted-foreground">·</span>
+            <span className="text-[10px] text-muted-foreground">{formatDate(analysis.created_at)}</span>
+          </div>
+        </div>
+        {score > 0 && (
+          <span
+            className="text-[11px] font-bold px-2 py-0.5 rounded flex-shrink-0"
+            style={{ background: `${getScoreColor(score)}14`, color: getScoreColor(score) }}
+          >
+            {score}/10
+          </span>
+        )}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={onDelete}
+            className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ color: "hsl(var(--destructive))" }}
+            title="Delete"
+          >
+            <Trash2 size={12} />
+          </button>
+          <ChevronRight size={14} className="text-muted-foreground/40 group-hover:text-foreground transition-colors" />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ──────── Main Component ──────── */
 export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }: SavedAnalysesProps) {
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-
-  const deduplicateAnalyses = (items: SavedAnalysis[]): SavedAnalysis[] => {
-    const seen = new Set<string>();
-    return items.filter((a) => {
-      const key = `${a.category}|${a.era}|${a.audience}|${a.analysis_type ?? "product"}|${a.batch_size}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  };
 
   const fetchAnalyses = async () => {
     setLoading(true);
@@ -109,14 +304,17 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
       a.era.toLowerCase().includes(search.toLowerCase())
   );
 
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-  };
+  // Dashboard metrics
+  const spotlightProjects = filtered.filter((a) => a.avg_revival_score >= 7.5);
+  const regularProjects = filtered.filter((a) => a.avg_revival_score < 7.5);
+  const avgScore = analyses.length > 0
+    ? Math.round((analyses.reduce((s, a) => s + (a.avg_revival_score || 0), 0) / analyses.length) * 10) / 10
+    : 0;
+  const topScore = analyses.length > 0
+    ? Math.max(...analyses.map((a) => a.avg_revival_score || 0))
+    : 0;
 
-  const getTypeConfig = (type?: string) =>
-    TYPE_CONFIG[(type as keyof typeof TYPE_CONFIG) ?? "product"] ?? TYPE_CONFIG.product;
-
+  /* ── Compact mode (sidebar) ── */
   if (compact) {
     const recentItems = filtered.slice(0, 5);
     if (loading) {
@@ -127,9 +325,7 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
       );
     }
     if (recentItems.length === 0) {
-      return (
-        <p className="text-xs text-muted-foreground py-4 text-center">No projects yet. Run your first analysis!</p>
-      );
+      return <p className="text-xs text-muted-foreground py-4 text-center">No projects yet. Run your first analysis!</p>;
     }
     return (
       <div className="space-y-1.5">
@@ -150,6 +346,9 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
                 <p className="text-[11px] font-semibold text-foreground truncate leading-tight">{analysis.title}</p>
                 <p className="text-[9px] text-muted-foreground">{formatDate(analysis.created_at)}</p>
               </div>
+              {analysis.avg_revival_score >= 7.5 && (
+                <Star size={10} className="flex-shrink-0" style={{ color: getScoreColor(analysis.avg_revival_score), fill: getScoreColor(analysis.avg_revival_score) }} />
+              )}
               <ChevronRight size={12} className="text-muted-foreground/40 group-hover:text-foreground flex-shrink-0 transition-colors" />
             </button>
           );
@@ -158,10 +357,20 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
     );
   }
 
+  /* ── Full dashboard mode ── */
   return (
-    <div className="space-y-4">
-      {/* Search + count bar */}
-      <div className="flex items-center gap-3">
+    <div className="space-y-5">
+      {/* Stats row */}
+      {analyses.length > 0 && (
+        <div className="grid grid-cols-3 gap-2.5">
+          <StatCard icon={Database} label="Projects" value={analyses.length} accent="hsl(var(--primary))" />
+          <StatCard icon={TrendingUp} label="Avg Score" value={avgScore} accent="hsl(var(--warning))" />
+          <StatCard icon={Award} label="Top Score" value={topScore} accent="hsl(var(--score-high))" />
+        </div>
+      )}
+
+      {/* Search + refresh */}
+      <div className="flex items-center gap-2.5">
         {analyses.length > 3 && (
           <div className="relative flex-1">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -169,8 +378,8 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, category, or era..."
-              className="w-full pl-9 pr-3 py-2.5 text-sm rounded focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Search projects..."
+              className="w-full pl-9 pr-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               style={{
                 border: "1.5px solid hsl(var(--border))",
                 background: "hsl(var(--background))",
@@ -179,21 +388,13 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
             />
           </div>
         )}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span
-            className="px-2.5 py-1 rounded text-xs font-bold"
-            style={{ background: "hsl(var(--primary))", color: "white" }}
-          >
-            {analyses.length} saved
-          </span>
-          <button
-            onClick={fetchAnalyses}
-            className="p-2 rounded transition-colors hover:bg-muted"
-            title="Refresh"
-          >
-            <RotateCcw size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
-          </button>
-        </div>
+        <button
+          onClick={fetchAnalyses}
+          className="p-2 rounded-lg transition-colors hover:bg-muted border border-border"
+          title="Refresh"
+        >
+          <RotateCcw size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
+        </button>
       </div>
 
       {loading ? (
@@ -210,81 +411,52 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {filtered.map((analysis) => {
-            const cfg = getTypeConfig(analysis.analysis_type);
-            const TypeIcon = cfg.icon;
-            return (
-              <button
-                key={analysis.id}
-                onClick={() => onLoad(analysis)}
-                className="w-full text-left p-4 rounded transition-colors group hover:bg-muted/50"
-                style={{
-                  background: "hsl(var(--card))",
-                  border: "2px solid hsl(var(--border))",
-                  borderLeft: `4px solid ${cfg.color}`,
-                }}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    {/* Type badge */}
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded"
-                        style={{ background: cfg.bgColor, color: cfg.color }}
-                      >
-                        <TypeIcon size={10} />
-                        {cfg.label}
-                      </span>
-                      {analysis.avg_revival_score && (
-                        <span
-                          className="text-[10px] font-bold px-2 py-0.5 rounded"
-                          style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}
-                        >
-                          {analysis.avg_revival_score}/10
-                        </span>
-                      )}
-                    </div>
-                    {/* Title */}
-                    <p className="text-sm font-bold text-foreground leading-snug mb-1.5 line-clamp-2">{analysis.title}</p>
-                    {/* Meta row */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span
-                        className="text-[11px] font-semibold px-2 py-0.5 rounded"
-                        style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}
-                      >
-                        {analysis.category}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">{analysis.era}</span>
-                      {analysis.product_count > 0 && (
-                        <span className="text-[11px] text-muted-foreground">{analysis.product_count} products</span>
-                      )}
-                    </div>
-                    {/* Date */}
-                    <div className="flex items-center gap-1 mt-2">
-                      <Clock size={10} className="text-muted-foreground" />
-                      <span className="text-[11px] text-muted-foreground">{formatDate(analysis.created_at)}</span>
-                    </div>
-                  </div>
-                  {/* Actions */}
-                  <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                    <ChevronRight size={16} style={{ color: cfg.color }} className="opacity-40 group-hover:opacity-100 transition-opacity" />
-                    <button
-                      onClick={(e) => handleDelete(analysis.id, e)}
-                      className="p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                      style={{ color: "hsl(var(--destructive))" }}
-                      title="Delete"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        <>
+          {/* Spotlight: high-scoring projects */}
+          {spotlightProjects.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Star size={13} style={{ color: "hsl(var(--score-high))", fill: "hsl(var(--score-high))" }} />
+                <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--score-high))" }}>
+                  Top Opportunities
+                </p>
+                <span className="text-[10px] text-muted-foreground">Score ≥ 7.5</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {spotlightProjects.map((a) => (
+                  <SpotlightCard
+                    key={a.id}
+                    analysis={a}
+                    onLoad={() => onLoad(a)}
+                    onDelete={(e) => handleDelete(a.id, e)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Regular projects */}
+          {regularProjects.length > 0 && (
+            <div>
+              {spotlightProjects.length > 0 && (
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">
+                  All Projects
+                </p>
+              )}
+              <div className="space-y-2">
+                {regularProjects.map((a) => (
+                  <ProjectCard
+                    key={a.id}
+                    analysis={a}
+                    onLoad={() => onLoad(a)}
+                    onDelete={(e) => handleDelete(a.id, e)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
-
