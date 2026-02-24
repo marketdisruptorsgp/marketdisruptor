@@ -10,6 +10,7 @@ import { ContextualTip } from "@/components/ContextualTip";
 import MobileTour from "@/components/MobileTour";
 import { HeroSection } from "@/components/HeroSection";
 import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
+import { Target } from "lucide-react";
 import { LoadingTracker } from "@/components/LoadingTracker";
 import PaywallModal from "@/components/PaywallModal";
 import { ContinueBanner } from "@/components/ContinueBanner";
@@ -200,6 +201,19 @@ export default function DashboardPage() {
 
       {/* Workflow Pipeline — prominent position */}
       <DisruptionPathBanner onStartAnalysis={handleStartAnalysis} />
+
+      {/* Value Proposition Callout */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4">
+        <div className="rounded-2xl px-4 sm:px-5 py-4 sm:py-5 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+          <Target size={18} className="flex-shrink-0 mt-0.5 text-primary" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-foreground mb-1">What to expect</p>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Continue where you left off */}
       {user && (
