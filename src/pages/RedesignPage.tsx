@@ -5,9 +5,9 @@ import { StepNavigator } from "@/components/StepNavigator";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
-import { KeyTakeawayBanner, getDisruptTakeaway } from "@/components/KeyTakeawayBanner";
+import { KeyTakeawayBanner } from "@/components/KeyTakeawayBanner";
 
-export default function DisruptPage() {
+export default function RedesignPage() {
   const analysis = useAnalysis();
   const navigate = useNavigate();
 
@@ -21,35 +21,42 @@ export default function DisruptPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isCustomMode = analysis.analysisParams?.category === "Custom";
   const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
+  const redesignColor = "hsl(38 92% 50%)";
+
+  // Derive takeaway from disrupt data
+  const disruptData = analysis.disruptData as Record<string, unknown> | null;
+  const concept = disruptData?.redesignedConcept as { conceptName?: string; tagline?: string } | undefined;
+  const takeaway = concept?.tagline
+    ? `Redesigned concept: "${concept.conceptName}" — ${concept.tagline}`
+    : null;
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <StepNavigator
           steps={getStepConfigs(modeAccent)}
-          activeStep={3}
-          visitedSteps={new Set([2, 3])}
+          activeStep={4}
+          visitedSteps={new Set([2, 3, 4])}
           onStepChange={(s) => {
             if (s === 2) navigate(`${baseUrl}/report`);
-            else if (s === 4) navigate(`${baseUrl}/redesign`);
+            else if (s === 3) navigate(`${baseUrl}/disrupt`);
             else if (s === 5) navigate(`${baseUrl}/stress-test`);
             else if (s === 6) navigate(`${baseUrl}/pitch`);
           }}
         />
 
-        <StepNavBar backLabel="Intelligence Report" backPath={`${baseUrl}/report`} accentColor="hsl(271 81% 55%)" />
+        <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor={redesignColor} />
 
-        {(() => {
-          const takeaway = getDisruptTakeaway(analysis.disruptData as Record<string, unknown> | null);
-          return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(271 81% 55%)" /> : null;
-        })()}
+        {takeaway && (
+          <KeyTakeawayBanner takeaway={takeaway} accentColor={redesignColor} />
+        )}
 
-        <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(271 81% 55%)" }}>
+        <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${redesignColor}` }}>
           <div className="px-3 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--card))" }}>
-            <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-white font-semibold text-xs sm:text-sm" style={{ background: "hsl(271 81% 55%)" }}>3</div>
+            <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-white font-semibold text-xs sm:text-sm" style={{ background: redesignColor }}>4</div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-foreground">Disrupt</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground">Deconstructing <strong className="text-foreground">{selectedProduct.name}</strong> — questioning every assumption and generating radical reinvention ideas.</p>
+              <h2 className="text-base sm:text-lg font-bold text-foreground">Redesign</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">Interactive concept illustrations for <strong className="text-foreground">{selectedProduct.name}</strong> — visualizing the reinvented model.</p>
             </div>
           </div>
           <div className="p-3 sm:p-5" style={{ background: "hsl(var(--card))" }}>
@@ -59,6 +66,7 @@ export default function DisruptPage() {
               flippedIdeas={selectedProduct.flippedIdeas}
               onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
               generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
+              renderMode="redesign"
               externalData={analysis.disruptData}
               onDataLoaded={(d) => {
                 analysis.setDisruptData(d);
@@ -76,12 +84,11 @@ export default function DisruptPage() {
           </div>
         </div>
 
-        {/* Next Step button */}
         <NextStepButton
-          stepNumber={4}
-          label="Redesign"
-          color="hsl(38 92% 50%)"
-          onClick={() => navigate(`${baseUrl}/redesign`)}
+          stepNumber={5}
+          label="Stress Test"
+          color="hsl(350 80% 55%)"
+          onClick={() => navigate(`${baseUrl}/stress-test`)}
         />
       </main>
     </div>

@@ -88,3 +88,34 @@ export function getVerdictBadges(product: {
   if ((product.supplyChain?.manufacturers?.length || 0) <= 1) badges.push({ label: "Supply Risk", color: "hsl(var(--destructive))" });
   return badges;
 }
+
+/** Derive a disrupt takeaway from first-principles data */
+export function getDisruptTakeaway(data: Record<string, unknown> | null) {
+  if (!data) return null;
+  const assumptions = data.hiddenAssumptions as { assumption?: string }[] | undefined;
+  const flipped = data.flippedLogic as unknown[] | undefined;
+  const parts: string[] = [];
+  if (assumptions?.length) parts.push(`${assumptions.length} hidden assumption${assumptions.length > 1 ? "s" : ""} uncovered`);
+  if (flipped?.length) parts.push(`${flipped.length} logic flip${flipped.length > 1 ? "s" : ""} generated`);
+  return parts.length > 0 ? parts.join(" and ") : null;
+}
+
+/** Derive a stress test takeaway */
+export function getStressTestTakeaway(data: Record<string, unknown> | null) {
+  if (!data) return null;
+  const redTeam = data.redTeamArguments as unknown[] | undefined;
+  const greenTeam = data.greenTeamArguments as unknown[] | undefined;
+  if (!redTeam?.length && !greenTeam?.length) return null;
+  const parts: string[] = [];
+  if (redTeam?.length) parts.push(`${redTeam.length} risk${redTeam.length > 1 ? "s" : ""} identified`);
+  if (greenTeam?.length) parts.push(`${greenTeam.length} defense${greenTeam.length > 1 ? "s" : ""} validated`);
+  return parts.join(", ");
+}
+
+/** Derive a pitch deck takeaway */
+export function getPitchTakeaway(data: Record<string, unknown> | null) {
+  if (!data) return null;
+  const slides = data.slides as unknown[] | undefined;
+  if (slides?.length) return `${slides.length}-slide investor deck generated — ready to present`;
+  return null;
+}
