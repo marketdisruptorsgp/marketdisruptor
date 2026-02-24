@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { ScrollToTopProvider } from "@/components/ScrollToTopProvider";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import DashboardPage from "./pages/DashboardPage";
@@ -85,13 +86,15 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <SubscriptionProvider>
-            <AnalysisProvider>
-              <AppRoutes />
-            </AnalysisProvider>
-          </SubscriptionProvider>
-        </AuthProvider>
+        <ScrollToTopProvider>
+          <AuthProvider>
+            <SubscriptionProvider>
+              <AnalysisProvider>
+                <AppRoutes />
+              </AnalysisProvider>
+            </SubscriptionProvider>
+          </AuthProvider>
+        </ScrollToTopProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

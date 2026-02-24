@@ -1,5 +1,6 @@
 import React from "react";
 import { CheckCircle2, AlertCircle } from "lucide-react";
+import { scrollToTop } from "@/utils/scrollToTop";
 
 export interface StepConfig {
   step: number;
@@ -59,7 +60,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
             return (
               <React.Fragment key={s.step}>
                 <button
-                  onClick={() => onStepChange(s.step)}
+                  onClick={() => { onStepChange(s.step); scrollToTop(); }}
                   className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 rounded-xl text-left transition-all flex-shrink-0 min-w-[100px] sm:min-w-0 sm:flex-1 relative"
                   style={{
                     background: isCurrent ? "hsl(var(--foreground))" : isPast ? "hsl(var(--muted))" : "transparent",

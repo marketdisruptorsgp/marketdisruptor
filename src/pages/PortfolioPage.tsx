@@ -5,15 +5,12 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { HeroSection } from "@/components/HeroSection";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area,
-} from "recharts";
-import {
-  Database, TrendingUp, Award, Calendar, ArrowLeft,
-  ChevronRight, Star, Lightbulb, Target, Rocket,
-} from "lucide-react";
+import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Database, TrendingUp, Award, Calendar, ArrowLeft, ChevronRight, Star } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { ProjectInsightCard } from "@/components/portfolio/ProjectInsightCard";
+import { ScoreInsightPanel } from "@/components/portfolio/ScoreInsightPanel";
+import { ComparisonInsightView } from "@/components/portfolio/ComparisonInsightView";
 
 interface SavedAnalysis {
   id: string;
@@ -29,7 +26,13 @@ interface SavedAnalysis {
   batch_size: number;
 }
 
-const PIE_COLORS = ["#4f68e8", "#df2060", "#1249a3", "#8b3fd9"];
+const CATEGORY_MAP: Record<string, { label: string; color: string }> = {
+  custom: { label: "Product", color: "#1249a3" },
+  product: { label: "Product", color: "#1249a3" },
+  service: { label: "Service", color: "#df2060" },
+  business: { label: "Business", color: "#8b3fd9" },
+  first_principles: { label: "First Principles", color: "#0d9488" },
+};
 
 export default function PortfolioPage() {
   const { user } = useAuth();
@@ -67,23 +70,18 @@ export default function PortfolioPage() {
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
 
-  const scoreDistribution = useMemo(() => {
-    const buckets: Record<string, number> = {};
-    for (let i = 1; i <= 10; i++) buckets[`${i}`] = 0;
-    analyses.forEach((a) => {
-      const score = Math.round(a.avg_revival_score || 0);
-      if (score >= 1 && score <= 10) buckets[`${score}`]++;
-    });
-    return Object.entries(buckets).map(([score, count]) => ({ score, count }));
-  }, [analyses]);
-
   const categoryBreakdown = useMemo(() => {
     const map: Record<string, number> = {};
     analyses.forEach((a) => {
-      const type = a.analysis_type || "product";
-      map[type] = (map[type] || 0) + 1;
+      const type = a.analysis_type || "custom";
+      const cat = CATEGORY_MAP[type] || CATEGORY_MAP.custom;
+      map[cat.label] = (map[cat.label] || 0) + 1;
     });
-    return Object.entries(map).map(([name, value]) => ({ name, value }));
+    return Object.entries(map).map(([name, value]) => ({
+      name,
+      value,
+      color: Object.values(CATEGORY_MAP).find((c) => c.label === name)?.color || "#1249a3",
+    }));
   }, [analyses]);
 
   const timeline = useMemo(() => {
@@ -103,19 +101,6 @@ export default function PortfolioPage() {
       else if (next.size < 3) next.add(id);
       return next;
     });
-  };
-
-  // Extract insights from analysis_data for visual cards
-  const getProjectInsight = (a: SavedAnalysis) => {
-    const data = a.analysis_data as any;
-    if (!data) return null;
-    const products = (a.products || []) as any[];
-    const firstProduct = products[0];
-    return {
-      keyInsight: firstProduct?.keyInsight || data?.pitchDeck?.elevatorPitch || null,
-      strongestProjection: data?.pitchDeck?.financialModel?.scenarios?.base?.revenue || data?.pitchDeck?.investmentAsk?.scenarios?.base?.revenue || null,
-      easiestGtm: data?.pitchDeck?.gtmStrategy?.keyChannels?.[0] || null,
-    };
   };
 
   if (loading) {
@@ -176,88 +161,47 @@ export default function PortfolioPage() {
               ))}
             </div>
 
-            {/* Visual Project Cards */}
+            {/* Project Insight Grid */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Top Projects</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Project Intelligence</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {analyses.slice(0, 6).map((a) => {
-                  const insights = getProjectInsight(a);
-                  const scoreColor = (a.avg_revival_score || 0) >= 7.5 ? "hsl(var(--score-high))" : (a.avg_revival_score || 0) >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
-                  return (
-                    <button
-                      key={a.id}
-                      onClick={() => analysis.handleLoadSaved(a as any)}
-                      className="text-left rounded-xl border border-border bg-card hover:border-primary/40 transition-all p-4 space-y-3 group"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{a.title}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{a.category} · {format(parseISO(a.created_at), "MMM d")}</p>
-                        </div>
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-extrabold flex-shrink-0"
-                          style={{ background: `${scoreColor}15`, color: scoreColor }}>
-                          {a.avg_revival_score || "—"}
-                        </div>
-                      </div>
-
-                      {insights?.keyInsight && (
-                        <div className="flex gap-2 items-start">
-                          <Lightbulb size={11} className="text-primary flex-shrink-0 mt-0.5" />
-                          <p className="text-[11px] text-foreground/70 leading-relaxed line-clamp-2">{insights.keyInsight}</p>
-                        </div>
-                      )}
-
-                      <div className="flex flex-wrap gap-1.5">
-                        {insights?.strongestProjection && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-                            <Rocket size={8} className="inline mr-0.5" /> {insights.strongestProjection}
-                          </span>
-                        )}
-                        {insights?.easiestGtm && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 35%)" }}>
-                            <Target size={8} className="inline mr-0.5" /> {insights.easiestGtm}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-end">
-                        <ChevronRight size={14} className="text-muted-foreground/40 group-hover:text-foreground transition-colors" />
-                      </div>
-                    </button>
-                  );
-                })}
+                {analyses.map((a) => (
+                  <ProjectInsightCard
+                    key={a.id}
+                    analysis={a}
+                    onOpen={() => analysis.handleLoadSaved(a as any)}
+                  />
+                ))}
               </div>
             </div>
 
-            {/* Charts row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Score Distribution</p>
+            {/* Score Intelligence Panel */}
+            <ScoreInsightPanel analyses={analyses} />
+
+            {/* Category Breakdown - cleaned up */}
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Category Breakdown</p>
+              <div className="flex items-center justify-center">
                 <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={scoreDistribution}>
-                    <XAxis dataKey="score" tick={{ fontSize: 10 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+                  <PieChart>
+                    <Pie data={categoryBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} labelLine={false}>
+                      {categoryBreakdown.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} />
+                      ))}
+                    </Pie>
                     <Tooltip />
-                    <Bar dataKey="count" fill="hsl(230 90% 63%)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
-
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Category Breakdown</p>
-                <div className="flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height={180}>
-                    <PieChart>
-                      <Pie data={categoryBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                        {categoryBreakdown.map((_, i) => (
-                          <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+              {/* Legend */}
+              <div className="flex flex-wrap justify-center gap-3 mt-2">
+                {categoryBreakdown.map((entry) => (
+                  <div key={entry.name} className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: entry.color }} />
+                    <span className="text-[10px] font-semibold text-foreground">{entry.name}</span>
+                    <span className="text-[10px] text-muted-foreground">({entry.value})</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -276,9 +220,9 @@ export default function PortfolioPage() {
               </div>
             )}
 
-            {/* Comparison */}
+            {/* Comparison Insight View */}
             <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Side-by-Side Comparison</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Insight Comparison</p>
               <p className="text-[10px] text-muted-foreground mb-3">Select up to 3 projects to compare</p>
               <div className="flex flex-wrap gap-1.5 mb-4">
                 {analyses.slice(0, 20).map((a) => (
@@ -293,45 +237,10 @@ export default function PortfolioPage() {
                   </button>
                 ))}
               </div>
-
-              {compareList.length > 0 && (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left py-2 pr-3 font-semibold text-muted-foreground">Metric</th>
-                        {compareList.map((a) => (
-                          <th key={a.id} className="text-left py-2 px-3 font-semibold text-foreground">{a.title.slice(0, 20)}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { label: "Revival Score", key: "avg_revival_score" },
-                        { label: "Category", key: "category" },
-                        { label: "Type", key: "analysis_type" },
-                        { label: "Created", key: "created_at" },
-                      ].map((row) => (
-                        <tr key={row.key} className="border-b border-border/50">
-                          <td className="py-2 pr-3 font-medium text-muted-foreground">{row.label}</td>
-                          {compareList.map((a) => (
-                            <td key={a.id} className="py-2 px-3 text-foreground">
-                              {row.key === "created_at"
-                                ? format(parseISO(a.created_at), "MMM d, yyyy")
-                                : row.key === "avg_revival_score"
-                                  ? <span className="font-bold" style={{ color: (a.avg_revival_score || 0) >= 7.5 ? "hsl(var(--score-high))" : "hsl(var(--foreground))" }}>{a.avg_revival_score}/10</span>
-                                  : (a as any)[row.key] || "—"}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              <ComparisonInsightView compareList={compareList} />
             </div>
 
-            {/* All projects list */}
+            {/* All projects list (secondary) */}
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">All Projects</p>
               <div className="space-y-2">
