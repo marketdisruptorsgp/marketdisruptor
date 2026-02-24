@@ -162,7 +162,7 @@ export function PitchCoverSlide({
           </div>
           <h1 className="text-3xl sm:text-[2.75rem] font-extrabold tracking-tight leading-[1.1] mb-3" style={{ color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}>{productName}</h1>
           {subtitle && (
-            <p className="text-[13px] sm:text-base text-muted-foreground max-w-[85%] leading-relaxed mb-5 sm:mb-8">{subtitle}</p>
+            <p className="text-2xl sm:text-3xl text-muted-foreground max-w-[90%] leading-snug mb-5 sm:mb-8 font-medium">{subtitle}</p>
           )}
           <div className="w-14 mb-4" style={{ height: 2, background: accentColor, opacity: 0.3 }} />
           <div className="mt-auto">
