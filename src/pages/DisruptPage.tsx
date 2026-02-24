@@ -36,6 +36,7 @@ export default function DisruptPage() {
             else if (s === 5) navigate(`${baseUrl}/stress-test`);
             else if (s === 6) navigate(`${baseUrl}/pitch`);
           }}
+          outdatedSteps={analysis.outdatedSteps}
         />
 
         <StepNavBar backLabel="Intelligence Report" backPath={`${baseUrl}/report`} accentColor="hsl(271 81% 55%)" />
@@ -65,6 +66,10 @@ export default function DisruptPage() {
               onDataLoaded={(d) => {
                 analysis.setDisruptData(d);
                 analysis.saveStepData("disrupt", d);
+                // Disrupt regenerated — mark downstream outdated
+                analysis.markStepOutdated("redesign");
+                analysis.markStepOutdated("stressTest");
+                analysis.markStepOutdated("pitch");
               }}
               onPatentSave={(patentData) => {
                 const updated = products.map(p =>
@@ -73,6 +78,14 @@ export default function DisruptPage() {
                 analysis.setProducts(updated);
                 analysis.setSelectedProduct({ ...selectedProduct, patentData });
                 if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
+              }}
+              userScores={analysis.userScores}
+              onScoreChange={(ideaId, scoreKey, value) => {
+                analysis.setUserScore(ideaId, scoreKey, value);
+                analysis.saveStepData("userScores", {
+                  ...analysis.userScores,
+                  [ideaId]: { ...(analysis.userScores[ideaId] || {}), [scoreKey]: value },
+                });
               }}
             />
           </div>

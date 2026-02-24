@@ -6,6 +6,7 @@ import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner } from "@/components/KeyTakeawayBanner";
+import { OutdatedBanner } from "@/components/OutdatedBanner";
 
 export default function RedesignPage() {
   const analysis = useAnalysis();
@@ -22,6 +23,7 @@ export default function RedesignPage() {
   const isCustomMode = analysis.analysisParams?.category === "Custom";
   const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
   const redesignColor = "hsl(38 92% 50%)";
+  const isOutdated = analysis.outdatedSteps.has("redesign");
 
   // Derive takeaway from disrupt data
   const disruptData = analysis.disruptData as Record<string, unknown> | null;
@@ -43,11 +45,16 @@ export default function RedesignPage() {
             else if (s === 5) navigate(`${baseUrl}/stress-test`);
             else if (s === 6) navigate(`${baseUrl}/pitch`);
           }}
+          outdatedSteps={analysis.outdatedSteps}
         />
 
         <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor={redesignColor} />
 
-        {takeaway && (
+        {isOutdated && (
+          <OutdatedBanner stepName="Redesign" accentColor={redesignColor} />
+        )}
+
+        {takeaway && !isOutdated && (
           <KeyTakeawayBanner takeaway={takeaway} accentColor={redesignColor} />
         )}
 
@@ -71,6 +78,9 @@ export default function RedesignPage() {
               onDataLoaded={(d) => {
                 analysis.setDisruptData(d);
                 analysis.saveStepData("disrupt", d);
+                // Redesign regenerated — clear outdated, mark pitch outdated
+                analysis.clearStepOutdated("redesign");
+                analysis.markStepOutdated("pitch");
               }}
               onPatentSave={(patentData) => {
                 const updated = products.map(p =>

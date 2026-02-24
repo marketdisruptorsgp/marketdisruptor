@@ -7,6 +7,7 @@ import { getStepConfigs } from "@/lib/stepConfigs";
 import { StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner, getPitchTakeaway } from "@/components/KeyTakeawayBanner";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
+import { OutdatedBanner } from "@/components/OutdatedBanner";
 
 export default function PitchPage() {
   const analysis = useAnalysis();
@@ -22,6 +23,7 @@ export default function PitchPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isCustomMode = analysis.analysisParams?.category === "Custom";
   const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
+  const isOutdated = analysis.outdatedSteps.has("pitch");
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
@@ -36,12 +38,17 @@ export default function PitchPage() {
             else if (s === 4) navigate(`${baseUrl}/redesign`);
             else if (s === 5) navigate(`${baseUrl}/stress-test`);
           }}
+          outdatedSteps={analysis.outdatedSteps}
         />
 
         <StepNavBar backLabel="Stress Test" backPath={`${baseUrl}/stress-test`} accentColor="hsl(var(--primary))" />
         <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} /></div>
 
-        {(() => {
+        {isOutdated && (
+          <OutdatedBanner stepName="Pitch Deck" accentColor="hsl(var(--primary))" />
+        )}
+
+        {!isOutdated && (() => {
           const takeaway = getPitchTakeaway(analysis.pitchDeckData as Record<string, unknown> | null);
           return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(var(--primary))" /> : null;
         })()}
@@ -59,9 +66,13 @@ export default function PitchPage() {
               product={selectedProduct}
               analysisId={analysisId}
               externalData={analysis.pitchDeckData}
+              disruptData={analysis.disruptData}
+              stressTestData={analysis.stressTestData}
+              userScores={analysis.userScores}
               onSave={(d) => {
                 analysis.setPitchDeckData(d);
                 analysis.saveStepData("pitchDeck", d);
+                analysis.clearStepOutdated("pitch");
               }}
             />
           </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, AlertCircle } from "lucide-react";
 
 export interface StepConfig {
   step: number;
@@ -14,9 +14,18 @@ interface StepNavigatorProps {
   activeStep: number;
   visitedSteps: Set<number>;
   onStepChange: (step: number) => void;
+  outdatedSteps?: Set<string>;
 }
 
-export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }: StepNavigatorProps) {
+// Map step numbers to step keys for outdated tracking
+const STEP_KEY_MAP: Record<number, string> = {
+  3: "disrupt",
+  4: "redesign",
+  5: "stressTest",
+  6: "pitch",
+};
+
+export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, outdatedSteps }: StepNavigatorProps) {
   const totalSteps = steps.length + 1;
   return (
     <div className="sticky top-0 z-30 -mx-4 px-3 sm:px-4 py-2.5 sm:py-3 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -45,11 +54,13 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
             const isPast = visitedSteps.has(s.step) && !isCurrent;
             const isFuture = !isCurrent && !isPast;
             const Icon = s.icon;
+            const stepKey = STEP_KEY_MAP[s.step];
+            const isOutdated = stepKey && outdatedSteps?.has(stepKey);
             return (
               <React.Fragment key={s.step}>
                 <button
                   onClick={() => onStepChange(s.step)}
-                  className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 rounded-xl text-left transition-all flex-shrink-0 min-w-[100px] sm:min-w-0 sm:flex-1"
+                  className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 rounded-xl text-left transition-all flex-shrink-0 min-w-[100px] sm:min-w-0 sm:flex-1 relative"
                   style={{
                     background: isCurrent ? "hsl(var(--foreground))" : isPast ? "hsl(var(--muted))" : "transparent",
                     color: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
@@ -62,11 +73,21 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }:
                     opacity: isFuture ? 0.5 : 1,
                   }}
                 >
+                  {/* Outdated indicator */}
+                  {isOutdated && (
+                    <div className="absolute -top-1.5 -right-1.5 z-10">
+                      <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold"
+                        style={{ background: "hsl(38 92% 50%)", color: "white" }}>
+                        <AlertCircle size={8} />
+                        <span className="hidden sm:inline">Outdated</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center" style={{
                     background: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--muted))" : "hsl(var(--muted))",
                   }}>
                     {isPast ? (
-                      <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} />
+                      <CheckCircle2 size={14} style={{ color: isOutdated ? "hsl(38 92% 50%)" : "hsl(142 70% 40%)" }} />
                     ) : (
                       <Icon size={14} style={{ color: isCurrent ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }} />
                     )}

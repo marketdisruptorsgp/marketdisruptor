@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product } = await req.json();
+    const { product, disruptData, stressTestData, userScores } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -190,7 +190,19 @@ ${JSON.stringify(product.actionPlan || {}, null, 2)}
 COMMUNITY INSIGHTS:
 ${JSON.stringify((product as Record<string, unknown>).communityInsights || {}, null, 2)}
 
+${disruptData ? `DISRUPT ANALYSIS (upstream):
+- Redesigned Concept: ${JSON.stringify((disruptData as Record<string, unknown>).redesignedConcept || {}, null, 2)}
+- Hidden Assumptions: ${JSON.stringify((disruptData as Record<string, unknown>).hiddenAssumptions || [], null, 2)}
+- Flipped Logic: ${JSON.stringify((disruptData as Record<string, unknown>).flippedLogic || [], null, 2)}
+` : ""}
+${stressTestData ? `STRESS TEST RESULTS (upstream):
+${JSON.stringify(stressTestData, null, 2)}
+` : ""}
+${userScores ? `USER-ADJUSTED SCORES (override AI defaults with these):
+${JSON.stringify(userScores, null, 2)}
+` : ""}
 Build the most compelling, investor-ready pitch deck possible. Use all existing data as a foundation and expand significantly with deeper financial modeling, real supplier contacts (with emails/phones where available), and specific go-to-market tactics.
+Base scores on realistic market signals, competitive density, and structural feasibility — avoid optimistic defaults.
 
 Return ONLY the JSON object.`;
 

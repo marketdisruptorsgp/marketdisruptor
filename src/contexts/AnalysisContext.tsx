@@ -101,6 +101,19 @@ interface AnalysisContextType {
   // Analysis ID for routing
   analysisId: string | null;
   setAnalysisId: (id: string | null) => void;
+
+  // Outdated step tracking (System Layer)
+  outdatedSteps: Set<string>;
+  markStepOutdated: (step: string) => void;
+  clearStepOutdated: (step: string) => void;
+
+  // User score overrides (System Layer)
+  userScores: Record<string, Record<string, number>>;
+  setUserScore: (ideaId: string, scoreKey: string, value: number) => void;
+
+  // Redesign data (isolated from Disrupt)
+  redesignData: unknown;
+  setRedesignData: (d: unknown) => void;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | null>(null);
@@ -140,6 +153,34 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [loadedFromSaved, setLoadedFromSaved] = useState(false);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
+
+  // ── System Layer: Outdated Step Tracking ──
+  const [outdatedSteps, setOutdatedSteps] = useState<Set<string>>(new Set());
+  const markStepOutdated = useCallback((step: string) => {
+    setOutdatedSteps(prev => new Set([...prev, step]));
+  }, []);
+  const clearStepOutdated = useCallback((step: string) => {
+    setOutdatedSteps(prev => {
+      const next = new Set(prev);
+      next.delete(step);
+      return next;
+    });
+  }, []);
+
+  // ── System Layer: User Score Overrides ──
+  const [userScores, setUserScores] = useState<Record<string, Record<string, number>>>({});
+  const setUserScore = useCallback((ideaId: string, scoreKey: string, value: number) => {
+    setUserScores(prev => ({
+      ...prev,
+      [ideaId]: { ...(prev[ideaId] || {}), [scoreKey]: value },
+    }));
+    // Mark downstream steps as outdated
+    markStepOutdated("redesign");
+    markStepOutdated("pitch");
+  }, [markStepOutdated]);
+
+  // ── Redesign Data (isolated from Disrupt) ──
+  const [redesignData, setRedesignData] = useState<unknown>(null);
 
   // Loading
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -232,6 +273,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setDisruptData(null);
     setStressTestData(null);
     setPitchDeckData(null);
+    setRedesignData(null);
+    setUserScores({});
+    setOutdatedSteps(new Set());
     startLoadingTimer();
 
     const hasCustom = customProducts && customProducts.length > 0;
@@ -418,6 +462,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       if (selectedProduct?.id === product.id) {
         setSelectedProduct({ ...product, flippedIdeas: newIdeas });
       }
+      if (analysisParams) await saveAnalysis(updated, analysisParams);
       toast.success("New flip ideas generated!");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -432,7 +477,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     await saveAnalysis(products, analysisParams);
   }, [analysisParams, products, saveAnalysis]);
 
-  // Persist step-level data (disrupt, stress-test, pitch) into analysis_data JSON
+  // Persist step-level data (disrupt, stress-test, pitch, userScores) into analysis_data JSON
   const saveStepData = useCallback(async (stepKey: string, data: unknown) => {
     if (!analysisId) return;
     try {
@@ -461,6 +506,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
     if (ad?.businessStressTest) setBusinessStressTestData(ad.businessStressTest);
     if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
+    if (ad?.redesign) setRedesignData(ad.redesign);
+    if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
 
     if (analysis.analysis_type === "business_model") {
       setBusinessAnalysisData(analysis.analysis_data as BusinessModelAnalysisData);
@@ -516,6 +563,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       loadedFromSaved, setLoadedFromSaved,
       handleAnalyze, handleRegenerateIdeas, handleManualSave, handleLoadSaved, saveAnalysis, saveStepData,
       analysisId, setAnalysisId,
+      outdatedSteps, markStepOutdated, clearStepOutdated,
+      userScores, setUserScore,
+      redesignData, setRedesignData,
     }}>
       {children}
     </AnalysisContext.Provider>

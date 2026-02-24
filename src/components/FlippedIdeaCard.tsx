@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, RefreshCw, Sparkles, ImageIcon, Rocket, DollarSign, Clock } from "lucide-react";
+import { TrendingUp, RefreshCw, Sparkles, ImageIcon, Rocket, DollarSign, Clock, Minus, Plus } from "lucide-react";
 import type { FlippedIdea } from "@/data/mockProducts";
 import { ScoreBar } from "./ScoreBar";
 import { RiskBadge } from "./RiskBadge";
@@ -10,18 +10,24 @@ interface FlippedIdeaCardProps {
   idea: FlippedIdea;
   rank: number;
   productName?: string;
+  userScores?: Record<string, number>;
+  onScoreChange?: (scoreKey: string, value: number) => void;
 }
 
-export const FlippedIdeaCard = ({ idea, rank, productName }: FlippedIdeaCardProps) => {
+export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange }: FlippedIdeaCardProps) => {
   const [mockupImage, setMockupImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const avgScore =
-    (idea.scores.feasibility +
-      idea.scores.desirability +
-      idea.scores.profitability +
-      idea.scores.novelty) /
-    4;
+  const scoreKeys = ["feasibility", "desirability", "profitability", "novelty"] as const;
+
+  const getDisplayScore = (key: string) => {
+    return userScores?.[key] ?? idea.scores[key as keyof typeof idea.scores] ?? 0;
+  };
+
+  const aiScore = (key: string) => idea.scores[key as keyof typeof idea.scores] ?? 0;
+  const hasOverride = (key: string) => userScores?.[key] !== undefined && userScores[key] !== aiScore(key);
+
+  const avgScore = scoreKeys.reduce((sum, k) => sum + getDisplayScore(k), 0) / 4;
 
   const handleGenerateVisual = async () => {
     setIsGenerating(true);
@@ -49,6 +55,12 @@ export const FlippedIdeaCard = ({ idea, rank, productName }: FlippedIdeaCardProp
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleScoreAdjust = (key: string, delta: number) => {
+    const current = getDisplayScore(key);
+    const next = Math.max(1, Math.min(10, current + delta));
+    onScoreChange?.(key, next);
   };
 
   return (
@@ -160,12 +172,72 @@ export const FlippedIdeaCard = ({ idea, rank, productName }: FlippedIdeaCardProp
         </div>
       </div>
 
-      {/* Scores */}
+      {/* Scores with User Override */}
       <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-        <ScoreBar label="Feasibility" score={idea.scores.feasibility} />
-        <ScoreBar label="Desirability" score={idea.scores.desirability} />
-        <ScoreBar label="Profitability" score={idea.scores.profitability} />
-        <ScoreBar label="Novelty" score={idea.scores.novelty} />
+        {scoreKeys.map((key) => {
+          const ai = aiScore(key);
+          const display = getDisplayScore(key);
+          const overridden = hasOverride(key);
+          return (
+            <div key={key} className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground capitalize">{key}</span>
+                <div className="flex items-center gap-1.5">
+                  {overridden && (
+                    <span className="text-[9px] text-muted-foreground">
+                      AI: {ai}
+                    </span>
+                  )}
+                  {onScoreChange && (
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        onClick={() => handleScoreAdjust(key, -1)}
+                        className="w-4 h-4 rounded flex items-center justify-center transition-colors hover:bg-muted"
+                        style={{ border: "1px solid hsl(var(--border))" }}
+                      >
+                        <Minus size={8} />
+                      </button>
+                      <span className="text-sm font-bold w-8 text-center" style={{
+                        color: overridden ? "hsl(38 92% 50%)" : display >= 8 ? "hsl(var(--success))" : display >= 6 ? "hsl(var(--primary))" : "hsl(var(--warning))",
+                      }}>
+                        {display}/10
+                      </span>
+                      <button
+                        onClick={() => handleScoreAdjust(key, 1)}
+                        className="w-4 h-4 rounded flex items-center justify-center transition-colors hover:bg-muted"
+                        style={{ border: "1px solid hsl(var(--border))" }}
+                      >
+                        <Plus size={8} />
+                      </button>
+                    </div>
+                  )}
+                  {!onScoreChange && (
+                    <span className="text-sm font-bold" style={{
+                      color: display >= 8 ? "hsl(var(--success))" : display >= 6 ? "hsl(var(--primary))" : "hsl(var(--warning))",
+                    }}>
+                      {display}/10
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden bg-muted">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${(display / 10) * 100}%`,
+                    background: overridden
+                      ? "hsl(38 92% 50%)"
+                      : display >= 8
+                        ? "hsl(var(--success))"
+                        : display >= 6
+                          ? "hsl(var(--primary))"
+                          : "hsl(var(--warning))",
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Action Plan */}

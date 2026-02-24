@@ -88,6 +88,9 @@ interface PitchDeckProps {
   analysisId?: string;
   onSave?: (deckData: PitchDeckData) => void;
   externalData?: unknown;
+  disruptData?: unknown;
+  stressTestData?: unknown;
+  userScores?: Record<string, Record<string, number>>;
 }
 
 const SLIDE_TABS = [
@@ -101,7 +104,7 @@ const SLIDE_TABS = [
 
 type SlideTab = typeof SLIDE_TABS[number]["id"];
 
-export const PitchDeck = ({ product, analysisId, onSave, externalData }: PitchDeckProps) => {
+export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptData, stressTestData, userScores }: PitchDeckProps) => {
   const { user, profile } = useAuth();
   const [data, setData] = useState<PitchDeckData | null>((externalData as PitchDeckData) || null);
   const [loading, setLoading] = useState(false);
@@ -123,7 +126,14 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData }: PitchDe
   const runAnalysis = async () => {
     setLoading(true);
     try {
-      const { data: result, error } = await supabase.functions.invoke("generate-pitch-deck", { body: { product } });
+      const { data: result, error } = await supabase.functions.invoke("generate-pitch-deck", {
+        body: {
+          product,
+          disruptData: disruptData || undefined,
+          stressTestData: stressTestData || undefined,
+          userScores: userScores || undefined,
+        },
+      });
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Generation failed";
         if (msg.includes("429") || msg.includes("Rate limit")) toast.error("Rate limit hit — please wait a moment and try again.");
