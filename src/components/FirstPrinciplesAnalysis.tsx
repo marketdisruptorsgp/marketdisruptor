@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -341,6 +341,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set(["assumptions"]));
   const [userContext, setUserContext] = useState("");
   const [rerunSuggestions, setRerunSuggestions] = useState("");
+  const redesignAutoTriggeredRef = useRef(false);
 
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
     try {
@@ -395,6 +396,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       setLoading(false);
     }
   };
+
+  // Auto-trigger redesign generation on first visit
+  const redesignConcept = (externalData as FirstPrinciplesData)?.redesignedConcept;
+  useEffect(() => {
+    if (renderMode === "redesign" && !redesignConcept && !loading && !redesignAutoTriggeredRef.current) {
+      redesignAutoTriggeredRef.current = true;
+      runAnalysis();
+    }
+  }, [renderMode, redesignConcept, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const allSteps = [
     { id: "assumptions" as const, label: "Assumptions", icon: Brain },
@@ -466,11 +476,22 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   // ── REDESIGN MODE ──
   if (renderMode === "redesign") {
     const concept = data.redesignedConcept;
+
     if (!concept) {
+      if (loading) {
+        return (
+          <StepLoadingTracker
+            title="Generating Redesign Concept"
+            tasks={DISRUPT_TASKS}
+            estimatedSeconds={50}
+            accentColor="hsl(38 92% 50%)"
+          />
+        );
+      }
       return (
         <div className="py-12 text-center">
           <Sparkles size={32} className="mx-auto mb-3 opacity-20" />
-          <p className="text-sm text-muted-foreground">Run the Disrupt analysis first to generate redesign concepts.</p>
+          <p className="text-sm text-muted-foreground">Generating redesign concept…</p>
         </div>
       );
     }
@@ -486,6 +507,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <p className="text-[10px] text-muted-foreground">{concept.tagline}</p>
             </div>
           </div>
+          <button
+            onClick={runAnalysis}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+          >
+            {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+            Regenerate
+          </button>
         </div>
 
         {/* Core insight */}
