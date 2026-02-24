@@ -1,4 +1,5 @@
 import { PlatformNav } from "@/components/PlatformNav";
+import { ShowcaseGallery } from "@/components/ShowcaseGallery";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { Rocket, Users, TrendingUp, FileText, ArrowRight } from "lucide-react";
@@ -50,6 +51,8 @@ export default function AboutPage() {
             ))}
           </div>
         </section>
+
+        <ShowcaseGallery />
 
         <section className="mb-20">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-8">Built For</p>
