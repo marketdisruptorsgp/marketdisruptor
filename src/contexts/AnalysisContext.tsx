@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { getResumeRoute } from "@/utils/analysisSteps";
 
 export type AnalysisStep = "idle" | "scraping" | "analyzing" | "done" | "error";
 
@@ -169,11 +170,16 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // ── System Layer: User Score Overrides ──
   const [userScores, setUserScores] = useState<Record<string, Record<string, number>>>({});
+  const pendingScoreSaveRef = useRef<Record<string, Record<string, number>> | null>(null);
   const setUserScore = useCallback((ideaId: string, scoreKey: string, value: number) => {
-    setUserScores(prev => ({
-      ...prev,
-      [ideaId]: { ...(prev[ideaId] || {}), [scoreKey]: value },
-    }));
+    setUserScores(prev => {
+      const next = {
+        ...prev,
+        [ideaId]: { ...(prev[ideaId] || {}), [scoreKey]: value },
+      };
+      pendingScoreSaveRef.current = next;
+      return next;
+    });
     // Mark downstream steps as outdated
     markStepOutdated("redesign");
     markStepOutdated("pitch");
@@ -505,6 +511,22 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [analysisId]);
 
+  // Auto-persist userScores when changed
+  useEffect(() => {
+    if (pendingScoreSaveRef.current && analysisId) {
+      const scores = pendingScoreSaveRef.current;
+      pendingScoreSaveRef.current = null;
+      saveStepData("userScores", scores);
+    }
+  }, [userScores, analysisId, saveStepData]);
+
+  // Auto-persist outdated steps when changed
+  useEffect(() => {
+    if (analysisId) {
+      saveStepData("outdatedSteps", Array.from(outdatedSteps));
+    }
+  }, [outdatedSteps, analysisId, saveStepData]);
+
   const handleLoadSaved = useCallback((analysis: any) => {
     setLoadedFromSaved(true);
     // Restore persisted step data
@@ -516,6 +538,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
     if (ad?.redesign) setRedesignData(ad.redesign);
     if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
+
+    // Restore outdated steps
+    if (ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)) {
+      setOutdatedSteps(new Set(ad.outdatedSteps as string[]));
+    } else {
+      setOutdatedSteps(new Set());
+    }
 
     if (analysis.analysis_type === "business_model") {
       setBusinessAnalysisData(analysis.analysis_data as BusinessModelAnalysisData);
@@ -547,31 +576,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setStep("done");
       setAnalysisId(analysis.id);
 
-      // Determine last completed step for resume
-      const resumeStepMap = [
-        { key: "pitchDeck", route: "pitch", label: "Pitch Deck" },
-        { key: "stressTest", route: "stress-test", label: "Stress Test" },
-        { key: "redesign", route: "redesign", label: "Redesign" },
-        { key: "disrupt", route: "disrupt", label: "Disrupt" },
-      ];
-      let resumeRoute = "report";
-      let resumeLabel = "Intelligence Report";
-      if (ad) {
-        for (const s of resumeStepMap) {
-          if (ad[s.key]) {
-            // Navigate to the NEXT step after the last completed one
-            const idx = resumeStepMap.indexOf(s);
-            if (idx > 0) {
-              resumeRoute = resumeStepMap[idx - 1].route;
-              resumeLabel = resumeStepMap[idx - 1].label;
-            } else {
-              resumeRoute = s.route;
-              resumeLabel = s.label;
-            }
-            break;
-          }
-        }
-      }
+      // Use centralized resume logic
+      const hasProducts = analysis.products && analysis.products.length > 0;
+      const { route: resumeRoute, label: resumeLabel } = getResumeRoute(ad, hasProducts);
 
       toast.success(`Resuming where you left off — ${resumeLabel}`);
       navigate(`/analysis/${analysis.id}/${resumeRoute}`);
