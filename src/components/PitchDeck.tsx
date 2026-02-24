@@ -59,6 +59,7 @@ interface SupplierContact {
 }
 
 interface PitchDeckData {
+  tagline?: string;
   elevatorPitch: string;
   problemStatement: string;
   solutionStatement: string;
@@ -673,7 +674,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   const coverSlide = (
     <PitchCoverSlide
       productName={product.name}
-      subtitle={data.elevatorPitch?.split(".")?.[0]}
+      subtitle={data.tagline || data.elevatorPitch?.split(".")?.[0]}
       accentColor={accentColor}
       totalSlides={TOTAL + 1}
     />
