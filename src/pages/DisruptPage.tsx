@@ -1,16 +1,20 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
+import { useModeTheme } from "@/hooks/useModeTheme";
 import { StepNavigator } from "@/components/StepNavigator";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner, getDisruptTakeaway } from "@/components/KeyTakeawayBanner";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
+import { ModeHeader } from "@/components/ModeHeader";
+import { scrollToTop } from "@/utils/scrollToTop";
 
 export default function DisruptPage() {
   const analysis = useAnalysis();
   const navigate = useNavigate();
+  const theme = useModeTheme();
 
   const { selectedProduct, analysisId, products } = analysis;
 
@@ -20,17 +24,16 @@ export default function DisruptPage() {
   }
 
   const baseUrl = `/analysis/${analysisId}`;
-  const isCustomMode = analysis.analysisParams?.category === "Custom";
-  const modeAccent = isCustomMode ? "hsl(217 91% 38%)" : "hsl(var(--primary))";
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <StepNavigator
-          steps={getStepConfigs(modeAccent)}
+          steps={getStepConfigs(theme.primary)}
           activeStep={3}
           visitedSteps={new Set([2, 3])}
           onStepChange={(s) => {
+            scrollToTop();
             if (s === 2) navigate(`${baseUrl}/report`);
             else if (s === 4) navigate(`${baseUrl}/redesign`);
             else if (s === 5) navigate(`${baseUrl}/stress-test`);
@@ -39,64 +42,60 @@ export default function DisruptPage() {
           outdatedSteps={analysis.outdatedSteps}
         />
 
-        <StepNavBar backLabel="Intelligence Report" backPath={`${baseUrl}/report`} accentColor="hsl(271 81% 55%)" />
-        <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor="hsl(271 81% 55%)" /></div>
+        <StepNavBar backLabel="Intelligence Report" backPath={`${baseUrl}/report`} accentColor={theme.primary} />
+        <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={theme.primary} /></div>
 
         {(() => {
           const takeaway = getDisruptTakeaway(analysis.disruptData as Record<string, unknown> | null);
-          return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(271 81% 55%)" /> : null;
+          return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} /> : null;
         })()}
 
-        <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(271 81% 55%)" }}>
-          <div className="px-3 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--card))" }}>
-            <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-white font-semibold text-xs sm:text-sm" style={{ background: "hsl(271 81% 55%)" }}>3</div>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-foreground">Disrupt</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground">Deconstructing <strong className="text-foreground">{selectedProduct.name}</strong> — questioning every assumption and generating radical reinvention ideas.</p>
-            </div>
-          </div>
-          <div className="p-3 sm:p-5" style={{ background: "hsl(var(--card))" }}>
-            <FirstPrinciplesAnalysis
-              product={selectedProduct}
-              onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
-              flippedIdeas={selectedProduct.flippedIdeas}
-              onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
-              generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
-              externalData={analysis.disruptData}
-              onDataLoaded={(d) => {
-                analysis.setDisruptData(d);
-                analysis.saveStepData("disrupt", d);
-                // Disrupt regenerated — mark downstream outdated
-                analysis.markStepOutdated("redesign");
-                analysis.markStepOutdated("stressTest");
-                analysis.markStepOutdated("pitch");
-              }}
-              onPatentSave={(patentData) => {
-                const updated = products.map(p =>
-                  p.id === selectedProduct.id ? { ...p, patentData } : p
-                );
-                analysis.setProducts(updated);
-                analysis.setSelectedProduct({ ...selectedProduct, patentData });
-                if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
-              }}
-              userScores={analysis.userScores}
-              onScoreChange={(ideaId, scoreKey, value) => {
-                analysis.setUserScore(ideaId, scoreKey, value);
-                analysis.saveStepData("userScores", {
-                  ...analysis.userScores,
-                  [ideaId]: { ...(analysis.userScores[ideaId] || {}), [scoreKey]: value },
-                });
-              }}
-            />
-          </div>
+        <ModeHeader
+          stepNumber={3}
+          stepTitle="Disrupt"
+          subtitle={`Deconstructing <strong class="text-foreground">${selectedProduct.name}</strong> — questioning every assumption and generating radical reinvention ideas.`}
+          accentColor={theme.primary}
+        />
+
+        <div className="rounded overflow-hidden p-3 sm:p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+          <FirstPrinciplesAnalysis
+            product={selectedProduct}
+            onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
+            flippedIdeas={selectedProduct.flippedIdeas}
+            onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
+            generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
+            externalData={analysis.disruptData}
+            onDataLoaded={(d) => {
+              analysis.setDisruptData(d);
+              analysis.saveStepData("disrupt", d);
+              analysis.markStepOutdated("redesign");
+              analysis.markStepOutdated("stressTest");
+              analysis.markStepOutdated("pitch");
+            }}
+            onPatentSave={(patentData) => {
+              const updated = products.map(p =>
+                p.id === selectedProduct.id ? { ...p, patentData } : p
+              );
+              analysis.setProducts(updated);
+              analysis.setSelectedProduct({ ...selectedProduct, patentData });
+              if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
+            }}
+            userScores={analysis.userScores}
+            onScoreChange={(ideaId, scoreKey, value) => {
+              analysis.setUserScore(ideaId, scoreKey, value);
+              analysis.saveStepData("userScores", {
+                ...analysis.userScores,
+                [ideaId]: { ...(analysis.userScores[ideaId] || {}), [scoreKey]: value },
+              });
+            }}
+          />
         </div>
 
-        {/* Next Step button */}
         <NextStepButton
           stepNumber={4}
           label="Redesign"
-          color="hsl(38 92% 50%)"
-          onClick={() => navigate(`${baseUrl}/redesign`)}
+          color={theme.primary}
+          onClick={() => { scrollToTop(); navigate(`${baseUrl}/redesign`); }}
         />
       </main>
     </div>

@@ -117,6 +117,38 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 {/* Workspace tab hidden */}
 
                 <NavigationMenuItem>
+                  <a
+                    href="/portfolio"
+                    onClick={(e) => { e.preventDefault(); navigate("/portfolio"); }}
+                    className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/portfolio") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                  >
+                    <PieChart size={13} />
+                    Portfolio
+                  </a>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <a
+                    href="/intel"
+                    onClick={(e) => { e.preventDefault(); navigate("/intel"); }}
+                    className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/intel") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                  >
+                    <Radar size={13} />
+                    Intel
+                  </a>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <a
+                    href="/about"
+                    onClick={(e) => { e.preventDefault(); navigate("/about"); }}
+                    className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 ${isActive("/about") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                  >
+                    About
+                  </a>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
                   <NavigationMenuTrigger className="text-sm font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
                     Resources
                   </NavigationMenuTrigger>
@@ -126,8 +158,9 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                         const Icon = item.icon;
                         return (
                           <NavigationMenuLink key={item.label} asChild>
-                            <button
-                              onClick={() => navigate(item.path)}
+                            <a
+                              href={item.path}
+                              onClick={(e) => { e.preventDefault(); navigate(item.path); }}
                               className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
                             >
                               <Icon size={14} className="text-muted-foreground" />
@@ -135,7 +168,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                                 <p className="text-sm font-semibold text-foreground">{item.label}</p>
                                 <p className="text-xs text-muted-foreground">{item.desc}</p>
                               </div>
-                            </button>
+                            </a>
                           </NavigationMenuLink>
                         );
                       })}
@@ -144,41 +177,13 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <button
-                    onClick={() => navigate("/intel")}
-                    className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/intel") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    <Radar size={13} />
-                    Intel
-                  </button>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <button
-                    onClick={() => navigate("/portfolio")}
-                    className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/portfolio") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    <PieChart size={13} />
-                    Portfolio
-                  </button>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <button
-                    onClick={() => navigate("/about")}
-                    className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 ${isActive("/about") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    About
-                  </button>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <button
-                    onClick={() => navigate("/pricing")}
+                  <a
+                    href="/pricing"
+                    onClick={(e) => { e.preventDefault(); navigate("/pricing"); }}
                     className={`text-sm font-semibold px-3 py-3 transition-colors border-b-2 ${isActive("/pricing") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
                   >
                     Pricing
-                  </button>
+                  </a>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
@@ -258,48 +263,58 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 </button>
 
                 <div className="h-px bg-border my-2" />
-                <p className="section-label text-[10px] px-3 pt-2 pb-1">Resources</p>
-                {RESOURCES_ITEMS.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.label}
-                      onClick={() => { navigate(item.path); setMobileOpen(false); }}
-                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                    >
-                      <Icon size={14} className="text-muted-foreground" />
-                      <span className="text-sm font-semibold text-foreground">{item.label}</span>
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => { navigate("/intel"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
-                  <Radar size={14} className="text-primary" />
-                  <span className="text-sm font-semibold text-foreground">Intel Dashboard</span>
-                </button>
-                <button
-                  onClick={() => { navigate("/about"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
-                  <BookOpen size={14} className="text-muted-foreground" />
-                  <span className="text-sm font-semibold text-foreground">About</span>
-                </button>
-                <button
-                  onClick={() => { navigate("/pricing"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
-                  <BarChart3 size={14} className="text-muted-foreground" />
-                  <span className="text-sm font-semibold text-foreground">Pricing</span>
-                </button>
-                <button
-                  onClick={() => { navigate("/portfolio"); setMobileOpen(false); }}
+                <p className="section-label text-[10px] px-3 pt-2 pb-1">Navigate</p>
+                <a
+                  href="/portfolio"
+                  onClick={(e) => { e.preventDefault(); navigate("/portfolio"); setMobileOpen(false); }}
                   className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
                 >
                   <PieChart size={14} className="text-primary" />
                   <span className="text-sm font-semibold text-foreground">Portfolio</span>
-                </button>
+                </a>
+                <a
+                  href="/intel"
+                  onClick={(e) => { e.preventDefault(); navigate("/intel"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                >
+                  <Radar size={14} className="text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Intel Dashboard</span>
+                </a>
+                <a
+                  href="/about"
+                  onClick={(e) => { e.preventDefault(); navigate("/about"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                >
+                  <BookOpen size={14} className="text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">About</span>
+                </a>
+
+                <div className="h-px bg-border my-2" />
+                <p className="section-label text-[10px] px-3 pt-2 pb-1">Resources</p>
+                {RESOURCES_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <a
+                      key={item.label}
+                      href={item.path}
+                      onClick={(e) => { e.preventDefault(); navigate(item.path); setMobileOpen(false); }}
+                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                    >
+                      <Icon size={14} className="text-muted-foreground" />
+                      <span className="text-sm font-semibold text-foreground">{item.label}</span>
+                    </a>
+                  );
+                })}
+
+                <div className="h-px bg-border my-2" />
+                <a
+                  href="/pricing"
+                  onClick={(e) => { e.preventDefault(); navigate("/pricing"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                >
+                  <BarChart3 size={14} className="text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Pricing</span>
+                </a>
               </div>
             </SheetContent>
           </Sheet>

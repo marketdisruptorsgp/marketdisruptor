@@ -102,7 +102,7 @@ export default function ReportPage() {
           }}
         />
 
-        <StepNavBar backLabel="Dashboard" backPath="/" accentColor={modeAccent} />
+        <StepNavBar backLabel="Home" backPath="/" accentColor={modeAccent} />
 
         {/* Header */}
         <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>

@@ -635,7 +635,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         visitedIds={visitedFPSteps}
         onSelect={(id) => { setActiveStep(id as typeof activeStep); setVisitedFPSteps(prev => new Set([...prev, id])); scrollToSteps(); }}
         descriptions={DISRUPT_SECTION_DESCRIPTIONS}
-        journeyLabel="Disrupt Analysis Journey"
+        journeyLabel="Disrupt Sections"
       />
 
       {/* ═══════ SECTION CONTENT ═══════ */}
@@ -646,11 +646,11 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
           <p className="text-xs text-muted-foreground">Every design choice rests on assumptions. Here are the ones worth challenging.</p>
 
-          <div className="space-y-2.5">
+           <div className="space-y-3">
             {data.hiddenAssumptions.slice(0, 4).map((a, i) => {
               const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
               return (
-                <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: `1px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))"}` }}>
+                <div key={i} className="p-3.5 rounded-lg" style={{ background: "hsl(var(--card))", border: `1.5px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}` }}>
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <p className="text-xs font-bold text-foreground flex items-center gap-2">
                       <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>

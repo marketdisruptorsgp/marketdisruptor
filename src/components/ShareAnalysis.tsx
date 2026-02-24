@@ -53,7 +53,7 @@ export function ShareAnalysis({ analysisId, analysisTitle, accentColor = "hsl(va
   };
 
   return (
-    <div className="relative">
+    <div className="relative" style={{ overflow: "visible" }}>
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded text-[11px] sm:text-xs font-medium transition-colors"
@@ -68,7 +68,7 @@ export function ShareAnalysis({ analysisId, analysisTitle, accentColor = "hsl(va
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-72 rounded-xl shadow-lg z-50 p-4 space-y-3"
+          className="absolute right-0 top-full mt-2 w-72 rounded-xl shadow-lg z-[9999] p-4 space-y-3"
           style={{
             background: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
