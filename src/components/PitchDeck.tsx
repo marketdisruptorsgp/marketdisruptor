@@ -6,6 +6,7 @@ import { downloadPitchDeckPDF } from "@/lib/pdfExport";
 import { useAuth } from "@/hooks/useAuth";
 import { ReferralCTA } from "@/components/ReferralCTA";
 import { ExportPanel } from "@/components/export/ExportPanel";
+import { PITCH_SLIDE_DESCRIPTIONS } from "@/lib/stepConfigs";
 import { Slider } from "@/components/ui/slider";
 import {
   Presentation, RefreshCw, DollarSign, TrendingUp, Users, Factory, Truck,
@@ -14,7 +15,7 @@ import {
   Star, AlertTriangle, Download, ChevronRight, Rocket, Sparkles,
   Award, Layers, Shield, LineChart,
 } from "lucide-react";
-import { SectionHeader, NextSectionButton, SectionPills, AllExploredBadge, DetailPanel } from "@/components/SectionNav";
+import { SectionHeader, NextSectionButton, SectionWorkflowNav, AllExploredBadge, DetailPanel } from "@/components/SectionNav";
 import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
 import { CompletionExperience } from "@/components/CompletionExperience";
 import { useNavigate } from "react-router-dom";
@@ -285,11 +286,13 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         </div>
       </div>
 
-      <SectionPills
-        steps={SLIDE_TABS.map(t => ({ id: t.id, label: t.label, icon: t.icon }))}
+      <SectionWorkflowNav
+        tabs={SLIDE_TABS.map(t => ({ id: t.id, label: t.label, icon: t.icon }))}
         activeId={activeSlide}
         visitedIds={visitedSlides}
         onSelect={(id) => { setActiveSlide(id); setVisitedSlides(prev => new Set([...prev, id])); }}
+        descriptions={PITCH_SLIDE_DESCRIPTIONS}
+        journeyLabel="Pitch Deck Sections"
       />
 
       {/* 1. PROBLEM */}

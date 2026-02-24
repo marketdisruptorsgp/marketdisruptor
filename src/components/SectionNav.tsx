@@ -139,46 +139,6 @@ export function DetailPanel({ title, icon: Icon, children, defaultOpen = false }
   );
 }
 
-/* ── Pill-style section selector — HIGH CONTRAST ──────────────────── */
-export function SectionPills<T extends string>({ 
-  steps, 
-  activeId, 
-  visitedIds, 
-  onSelect 
-}: { 
-  steps: { id: T; label: string; description?: string; icon: React.ElementType }[]; 
-  activeId: T; 
-  visitedIds: Set<string>; 
-  onSelect: (id: T) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {steps.map((s) => {
-        const Icon = s.icon;
-        const isActive = activeId === s.id;
-        const isVisited = visitedIds.has(s.id);
-        return (
-          <button
-            key={s.id}
-            onClick={() => onSelect(s.id)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all relative"
-            style={{
-              background: isActive ? "hsl(var(--foreground))" : isVisited ? "hsl(var(--foreground) / 0.05)" : "transparent",
-              color: isActive ? "hsl(var(--background))" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-              border: isActive ? "1.5px solid hsl(var(--foreground))" : isVisited ? "1.5px solid hsl(var(--foreground) / 0.15)" : "1.5px solid hsl(var(--border))",
-            }}
-          >
-            {!isActive && !isVisited && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full" style={{ background: "hsl(var(--primary))" }} />
-            )}
-            <Icon size={12} />
-            {s.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 /* ── "All sections explored" badge ────────────────── */
 export function AllExploredBadge() {
