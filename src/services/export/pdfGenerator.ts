@@ -24,6 +24,27 @@ const EVIDENCE_COLORS: Record<string, [number, number, number]> = {
 function rgb(doc: jsPDF, c: [number, number, number]) { doc.setTextColor(c[0], c[1], c[2]); }
 function fill(doc: jsPDF, c: [number, number, number]) { doc.setFillColor(c[0], c[1], c[2]); }
 
+/** Draw geometric "L" corner accent at bottom-right */
+function drawCornerAccent(doc: jsPDF) {
+  doc.setDrawColor(79, 70, 229);
+  doc.setLineWidth(0.4);
+  const x = PAGE_W - MR;
+  const y = PAGE_H - 22;
+  // Vertical line
+  doc.line(x, y - 12, x, y);
+  // Horizontal line
+  doc.line(x - 12, y, x, y);
+  // Reset
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.2);
+}
+
+/** Draw thin accent bar at top of page */
+function drawAccentBar(doc: jsPDF) {
+  fill(doc, PRIMARY);
+  doc.rect(0, 0, PAGE_W, 2, "F");
+}
+
 function addSlideFooter(doc: jsPDF, slide: SlideModel, pageNum: number, totalPages: number) {
   doc.setDrawColor(220, 220, 220);
   doc.line(ML, PAGE_H - 18, PAGE_W - MR, PAGE_H - 18);
@@ -34,6 +55,8 @@ function addSlideFooter(doc: jsPDF, slide: SlideModel, pageNum: number, totalPag
   doc.text(`${slide.metadata.dataSource || "Analysis"} · ${new Date(slide.metadata.timestamp).toLocaleDateString()}`, ML, PAGE_H - 13);
   doc.text("Market Disruptor | Confidential", PAGE_W / 2, PAGE_H - 13, { align: "center" });
   doc.text(`${pageNum} / ${totalPages}`, PAGE_W - MR, PAGE_H - 13, { align: "right" });
+
+  drawCornerAccent(doc);
 }
 
 function drawEvidenceTag(doc: jsPDF, tag: string, x: number, y: number) {
@@ -48,17 +71,29 @@ function drawEvidenceTag(doc: jsPDF, tag: string, x: number, y: number) {
 }
 
 function renderSlide(doc: jsPDF, slide: SlideModel) {
+  drawAccentBar(doc);
+
   let y = 24;
 
   // Header band
   fill(doc, PRIMARY);
-  doc.rect(0, 0, PAGE_W, 16, "F");
+  doc.rect(0, 4, PAGE_W, 14, "F");
+
+  // Category label (left side of header)
+  if (slide.categoryLabel) {
+    doc.setFontSize(5.5);
+    doc.setFont("helvetica", "bold");
+    rgb(doc, [199, 210, 254] as [number, number, number]);
+    doc.text(slide.categoryLabel.toUpperCase(), ML, 10);
+  }
+
+  // Slide title in header band
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   rgb(doc, WHITE);
-  doc.text(slide.title.toUpperCase(), ML, 10);
+  doc.text(slide.title.toUpperCase(), slide.categoryLabel ? ML + doc.getTextWidth(slide.categoryLabel.toUpperCase()) + 6 : ML, 14);
 
-  // Slide title
+  // Slide title (large)
   y = 30;
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
@@ -112,19 +147,23 @@ function renderSlide(doc: jsPDF, slide: SlideModel) {
     y += 4;
   }
 
-  // Data callout
+  // Data callout — left accent border style
   if (slide.dataCallout && y < PAGE_H - 60) {
     y += 4;
+    // Left accent border
+    fill(doc, PRIMARY);
+    doc.rect(ML, y - 2, 2.5, 18, "F");
+    // Background
     fill(doc, [245, 245, 250] as [number, number, number]);
-    doc.roundedRect(ML, y - 2, CW, 18, 2, 2, "F");
+    doc.roundedRect(ML + 2.5, y - 2, CW - 2.5, 18, 2, 2, "F");
     doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
     rgb(doc, GRAY);
-    doc.text(slide.dataCallout.label.toUpperCase(), ML + 6, y + 5);
+    doc.text(slide.dataCallout.label.toUpperCase(), ML + 8, y + 5);
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     rgb(doc, PRIMARY);
-    doc.text(slide.dataCallout.value, ML + 6, y + 13);
+    doc.text(slide.dataCallout.value, ML + 8, y + 13);
   }
 }
 
@@ -134,45 +173,76 @@ export function generateInvestorPitchPDF(product: Product, deck: any): void {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const totalPages = slides.length + 1; // +1 for cover
 
-  // Cover page
-  fill(doc, PRIMARY);
-  doc.rect(0, 0, PAGE_W, 100, "F");
-  doc.setFillColor(99, 102, 241);
-  doc.rect(0, 80, PAGE_W, 20, "F");
+  // ── Cover page ──
+  drawAccentBar(doc);
 
+  // Subtle geometric diagonal line
+  doc.setDrawColor(79, 70, 229);
+  doc.setLineWidth(0.3);
+  doc.line(PAGE_W - 60, 0, PAGE_W, 60);
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.2);
+
+  // Labels
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
-  rgb(doc, [199, 210, 254] as [number, number, number]);
-  doc.text("MARKET DISRUPTOR — INVESTOR PITCH DECK", ML, 24);
-
-  doc.setFontSize(24);
-  doc.setFont("helvetica", "bold");
-  rgb(doc, WHITE);
-  const nameLines = doc.splitTextToSize(product.name, CW);
-  doc.text(nameLines, ML, 42);
-
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  rgb(doc, [199, 210, 254] as [number, number, number]);
-  doc.text(`${product.category} · Revival Score ${product.revivalScore}/10`, ML, 42 + nameLines.length * 10 + 6);
-
+  rgb(doc, PRIMARY);
+  doc.text("MARKET DISRUPTOR", ML, 30);
   doc.setFontSize(7);
   rgb(doc, GRAY);
-  doc.text(`Generated ${new Date().toLocaleDateString()} · Confidential · ${slides.length} Slides`, ML, PAGE_H - 12);
+  doc.text("INVESTOR PITCH DECK", ML, 36);
 
-  // Render each slide on its own page
+  // Product name
+  doc.setFontSize(28);
+  doc.setFont("helvetica", "bold");
+  rgb(doc, DARK);
+  const nameLines = doc.splitTextToSize(product.name, CW);
+  doc.text(nameLines, ML, 60);
+
+  // AI-generated subtitle (first sentence of elevator pitch)
+  const elevatorPitch = deck.elevatorPitch || "";
+  const subtitle = elevatorPitch.split(".")?.[0];
+  if (subtitle) {
+    const subtitleY = 60 + nameLines.length * 12 + 6;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    rgb(doc, GRAY);
+    const subtitleLines = doc.splitTextToSize(subtitle + ".", CW * 0.75);
+    doc.text(subtitleLines, ML, subtitleY);
+  }
+
+  // Category & score
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  rgb(doc, GRAY);
+  doc.text(`${product.category} · Revival Score ${product.revivalScore}/10`, ML, PAGE_H - 40);
+
+  // Date & meta
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  rgb(doc, GRAY);
+  doc.text(new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }), ML, PAGE_H - 32);
+
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
+  rgb(doc, GRAY);
+  doc.text(`Confidential · ${slides.length} Slides`, ML, PAGE_H - 26);
+
+  // Cover page number
+  doc.setFontSize(6);
+  doc.setFont("helvetica", "normal");
+  rgb(doc, GRAY);
+  doc.text(`1 / ${totalPages}`, PAGE_W - MR, PAGE_H - 13, { align: "right" });
+
+  // Cover corner accent
+  drawCornerAccent(doc);
+
+  // ── Render each slide on its own page ──
   slides.forEach((slide, i) => {
     doc.addPage();
     renderSlide(doc, slide);
     addSlideFooter(doc, slide, i + 2, totalPages);
   });
-
-  // Add page numbers to cover
-  doc.setPage(1);
-  doc.setFontSize(6);
-  doc.setFont("helvetica", "normal");
-  rgb(doc, GRAY);
-  doc.text(`1 / ${totalPages}`, PAGE_W - MR, PAGE_H - 13, { align: "right" });
 
   doc.save(`${product.name.replace(/[^a-z0-9]/gi, "_")}_investor_pitch.pdf`);
 }
