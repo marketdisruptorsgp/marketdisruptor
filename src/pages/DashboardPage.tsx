@@ -197,6 +197,9 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* Workflow Pipeline — prominent position */}
+      <DisruptionPathBanner onStartAnalysis={handleStartAnalysis} />
+
       {/* Mode Pills */}
       <div ref={modeTabsRef} className="border-t border-border bg-card">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
@@ -304,7 +307,6 @@ export default function DashboardPage() {
         </main>
       )}
 
-      <DisruptionPathBanner />
 
       {/* Footer */}
       <footer className="border-t border-border mt-0">
