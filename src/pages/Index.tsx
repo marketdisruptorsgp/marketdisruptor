@@ -132,11 +132,6 @@ function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
 }
 
 function ValuePropCallout() {
-  const TIP_ID = "value_prop_callout";
-  const [dismissed, setDismissed] = React.useState(() => {
-    try { return JSON.parse(localStorage.getItem("dismissed_tips") || "[]").includes(TIP_ID); } catch { return false; }
-  });
-  if (dismissed) return null;
   return (
     <div className="rounded-2xl px-5 py-5 flex items-start gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
       <Target size={20} className="flex-shrink-0 mt-0.5 text-primary" />
@@ -146,18 +141,6 @@ function ValuePropCallout() {
           The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
         </p>
       </div>
-      <button
-        onClick={() => {
-          try {
-            const prev = JSON.parse(localStorage.getItem("dismissed_tips") || "[]");
-            localStorage.setItem("dismissed_tips", JSON.stringify([...prev, TIP_ID]));
-          } catch {}
-          setDismissed(true);
-        }}
-        className="flex-shrink-0 p-1 rounded hover:opacity-70 transition-opacity"
-      >
-        <X size={14} className="text-muted-foreground" />
-      </button>
     </div>
   );
 }
