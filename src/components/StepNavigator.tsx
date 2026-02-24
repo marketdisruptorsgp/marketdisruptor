@@ -1,8 +1,10 @@
 import React from "react";
+import { CheckCircle2 } from "lucide-react";
 
 export interface StepConfig {
   step: number;
   label: string;
+  description: string;
   icon: React.ElementType;
   color: string;
 }
@@ -15,58 +17,77 @@ interface StepNavigatorProps {
 }
 
 export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange }: StepNavigatorProps) {
-  const totalSteps = steps.length + 1; // +1 for step 1 (dashboard)
+  const totalSteps = steps.length + 1;
   return (
-    <div className="sticky top-0 z-30 -mx-4 px-3 sm:px-4 py-2 bg-background/95 backdrop-blur-sm border-b border-border">
+    <div className="sticky top-0 z-30 -mx-4 px-3 sm:px-4 py-3 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-5xl mx-auto">
-        {/* Step indicator */}
-        <div className="flex items-center justify-between mb-1.5">
-          <p className="text-[10px] font-bold text-muted-foreground">
+        {/* Progress bar */}
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
             Step {activeStep} of {totalSteps}
           </p>
           <div className="flex items-center gap-1">
             {Array.from({ length: totalSteps }, (_, i) => (
               <div key={i} className="rounded-full transition-all" style={{
-                width: i + 1 === activeStep ? 14 : 5,
-                height: 5,
+                width: i + 1 === activeStep ? 18 : 6,
+                height: 6,
                 background: i + 1 <= activeStep ? "hsl(var(--primary))" : "hsl(var(--border))",
                 borderRadius: 999,
               }} />
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-0.5 sm:gap-1">
+
+        {/* Step cards */}
+        <div className="flex items-stretch gap-1 sm:gap-1.5">
           {steps.map((s, i, arr) => {
             const isCurrent = activeStep === s.step;
-            const isPast = activeStep > s.step;
+            const isPast = visitedSteps.has(s.step) && !isCurrent;
+            const isFuture = !isCurrent && !isPast;
             const Icon = s.icon;
             return (
-              <div key={s.step} className="flex items-center flex-1 min-w-0">
+              <React.Fragment key={s.step}>
                 <button
                   onClick={() => onStepChange(s.step)}
-                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all w-full justify-center"
+                  className="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 rounded-xl text-left transition-all flex-1 min-w-0"
                   style={{
-                    background: isCurrent ? "hsl(var(--primary))" : isPast ? "hsl(var(--primary) / 0.08)" : "transparent",
-                    color: isCurrent ? "hsl(var(--primary-foreground))" : isPast ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-                    border: isCurrent ? "1px solid hsl(var(--primary))" : isPast ? "1px solid hsl(var(--primary) / 0.2)" : "1px solid transparent",
-                    boxShadow: isCurrent ? "0 2px 8px hsl(var(--primary) / 0.3)" : "none",
-                    fontWeight: isCurrent || isPast ? 700 : 500,
+                    background: isCurrent ? "hsl(var(--foreground))" : isPast ? "hsl(var(--primary) / 0.06)" : "transparent",
+                    color: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                    border: isCurrent
+                      ? "2px solid hsl(var(--foreground))"
+                      : isPast
+                        ? "1.5px solid hsl(var(--primary) / 0.25)"
+                        : "1.5px solid hsl(var(--border))",
+                    boxShadow: isCurrent ? "0 4px 16px hsl(var(--foreground) / 0.2)" : "none",
+                    opacity: isFuture ? 0.5 : 1,
                   }}
                 >
-                  <Icon size={14} className="flex-shrink-0" style={{ color: isCurrent ? "hsl(var(--primary-foreground))" : isPast ? "hsl(var(--primary))" : undefined }} />
-                  <span className="hidden sm:inline truncate text-sm">{s.label}</span>
-                  <span className="sm:hidden text-[10px] leading-tight truncate">
-                    {s.step === 2 ? "Report" : s.step === 3 ? "Disrupt" : s.step === 4 ? "Test" : "Pitch"}
-                  </span>
+                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center" style={{
+                    background: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--primary) / 0.12)" : "hsl(var(--muted))",
+                  }}>
+                    {isPast ? (
+                      <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} />
+                    ) : (
+                      <Icon size={14} style={{ color: isCurrent ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }} />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-extrabold leading-tight truncate">{s.label}</p>
+                    <p className="text-[9px] sm:text-[10px] leading-tight truncate hidden sm:block" style={{
+                      color: isCurrent ? "hsl(var(--background) / 0.7)" : "hsl(var(--muted-foreground))",
+                    }}>
+                      {s.description}
+                    </p>
+                  </div>
                 </button>
                 {i < arr.length - 1 && (
-                  <div className="flex-shrink-0 mx-1 sm:mx-2">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-muted-foreground">
-                      <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <div className="flex-shrink-0 flex items-center mx-0.5">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="text-muted-foreground/50">
+                      <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 )}
-              </div>
+              </React.Fragment>
             );
           })}
         </div>

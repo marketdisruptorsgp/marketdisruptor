@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
 import { StepNavigator } from "@/components/StepNavigator";
+import { getStepConfigs, SECTION_DESCRIPTIONS } from "@/lib/stepConfigs";
 import { ProductCard } from "@/components/ProductCard";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
@@ -81,12 +82,7 @@ export default function ReportPage() {
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <StepNavigator
-          steps={[
-            { step: 2, label: "Intelligence Report", icon: Target, color: modeAccent },
-            { step: 3, label: "Disrupt", icon: Brain, color: "hsl(271 81% 55%)" },
-            { step: 4, label: "Stress Test", icon: Swords, color: "hsl(350 80% 55%)" },
-            { step: 5, label: "Pitch Deck", icon: Presentation, color: "hsl(var(--primary))" },
-          ]}
+          steps={getStepConfigs(modeAccent)}
           activeStep={2}
           visitedSteps={new Set([2])}
           onStepChange={(s) => {
@@ -160,7 +156,7 @@ export default function ReportPage() {
 
         {/* Section pill nav */}
         <div ref={sectionTabsRef} className="flex flex-wrap gap-1.5">
-          {DETAIL_TABS.map((tab, i) => {
+          {DETAIL_TABS.map((tab) => {
             const isActive = analysis.detailTab === tab.id;
             const isVisited = analysis.visitedDetailTabs.has(tab.id);
             const TabIcon = tab.icon;
@@ -168,19 +164,18 @@ export default function ReportPage() {
               <button
                 key={tab.id}
                 onClick={() => goToTab(tab.id)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap relative"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap relative"
                 style={{
-                  background: isActive ? "hsl(var(--primary))" : "transparent",
-                  color: isActive ? "white" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                  border: isActive ? "1px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
+                  background: isActive ? "hsl(var(--foreground))" : isVisited ? "hsl(var(--foreground) / 0.05)" : "transparent",
+                  color: isActive ? "hsl(var(--background))" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                  border: isActive ? "1.5px solid hsl(var(--foreground))" : isVisited ? "1.5px solid hsl(var(--foreground) / 0.15)" : "1.5px dashed hsl(var(--border))",
                 }}
               >
                 {!isActive && !isVisited && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ background: "hsl(var(--primary))" }} />
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "hsl(var(--primary))" }} />
                 )}
                 <TabIcon size={12} />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{i + 1}</span>
+                {tab.label}
               </button>
             );
           })}
@@ -189,7 +184,7 @@ export default function ReportPage() {
         {/* Tab Content - Overview */}
         {analysis.detailTab === "overview" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Overview" icon={Target} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Overview" description={SECTION_DESCRIPTIONS.overview} icon={Target} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
@@ -249,7 +244,7 @@ export default function ReportPage() {
         {/* Tab: Community Intel */}
         {analysis.detailTab === "community" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Community Intel" icon={MessageSquare} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Community Intel" description={SECTION_DESCRIPTIONS.community} icon={MessageSquare} />
             {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; nostalgiaTriggers?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
               (() => {
                 const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; nostalgiaTriggers?: string[]; competitorComplaints?: string[] } }).communityInsights;
@@ -319,7 +314,7 @@ export default function ReportPage() {
         {/* Tab: Pricing Intel */}
         {analysis.detailTab === "pricing" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Pricing Intel" icon={DollarSign} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Pricing Intel" description={SECTION_DESCRIPTIONS.pricing} icon={DollarSign} />
             {selectedProduct.pricingIntel ? (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -360,7 +355,7 @@ export default function ReportPage() {
         {/* Tab: Supply Chain */}
         {analysis.detailTab === "supply" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Supply Chain" icon={Package} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Supply Chain" description={SECTION_DESCRIPTIONS.supply} icon={Package} />
             {selectedProduct.supplyChain ? (
               <>
                 <SupplySection title="Suppliers & IP Owners" icon={<Factory size={14} style={{ color: "hsl(var(--primary))" }} />}
@@ -398,7 +393,7 @@ export default function ReportPage() {
         {/* Tab: Action Plan */}
         {analysis.detailTab === "action" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Action Plan" icon={Rocket} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Action Plan" description={SECTION_DESCRIPTIONS.action} icon={Rocket} />
             {selectedProduct.actionPlan ? (
               <>
                 <div className="p-4 rounded-lg text-sm leading-relaxed" style={{ background: "hsl(var(--primary-muted))", borderLeft: "3px solid hsl(var(--primary))" }}>
@@ -462,7 +457,7 @@ export default function ReportPage() {
         {/* Tab: Patent Intel */}
         {analysis.detailTab === "patents" && !isService && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Patent Intel" icon={ScrollText} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Patent Intel" description={SECTION_DESCRIPTIONS.patents} icon={ScrollText} />
             {selectedProduct.patentData && (
               <div className="flex justify-end">
                 <button
