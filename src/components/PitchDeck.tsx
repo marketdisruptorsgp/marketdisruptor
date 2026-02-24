@@ -16,7 +16,7 @@ import {
   Layers, Shield,
 } from "lucide-react";
 import { NextSectionButton, SectionWorkflowNav, AllExploredBadge } from "@/components/SectionNav";
-import { PitchSlideFrame, PitchCoverSlide, SlideStatCard, SlideBullet } from "@/components/pitch/PitchSlideFrame";
+import { PitchSlideFrame, PitchCoverSlide, SlideStatCard, SlideBullet, MarketSizeVisual, RiskSeverityBar, ScenarioBarChart } from "@/components/pitch/PitchSlideFrame";
 import { PresentationMode } from "@/components/pitch/PresentationMode";
 import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
 import { CompletionExperience } from "@/components/CompletionExperience";
@@ -370,23 +370,33 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     /* ═══ 4. MARKET ═══ */
     market: data.marketOpportunity ? (
       <div className="space-y-5 h-full flex flex-col justify-center">
-        <div className="grid grid-cols-3 gap-3">
-          <SlideStatCard label="TAM" value={data.marketOpportunity.tam} />
-          <SlideStatCard label="SAM" value={data.marketOpportunity.sam} />
-          <SlideStatCard label="SOM" value={data.marketOpportunity.som} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Growth Rate</p>
-            <p className="text-xl font-extrabold text-foreground">{data.marketOpportunity.growthRate}</p>
-          </div>
-          <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Drivers</p>
-            <div className="space-y-1.5">
-              {data.marketOpportunity.keyDrivers.slice(0, 3).map((d, i) => (
-                <SlideBullet key={i}>{d}</SlideBullet>
-              ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+          {/* Concentric circles visual */}
+          <MarketSizeVisual
+            tam={data.marketOpportunity.tam}
+            sam={data.marketOpportunity.sam}
+            som={data.marketOpportunity.som}
+            accentColor={accentColor}
+          />
+          {/* Stats + growth */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2">
+              <SlideStatCard label="TAM" value={data.marketOpportunity.tam} accentColor={accentColor} />
+              <SlideStatCard label="SAM" value={data.marketOpportunity.sam} accentColor={accentColor} />
+              <SlideStatCard label="SOM" value={data.marketOpportunity.som} accentColor={accentColor} />
             </div>
+            <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Growth Rate</p>
+              <p className="text-xl font-extrabold text-foreground">{data.marketOpportunity.growthRate}</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Drivers</p>
+          <div className="space-y-1.5">
+            {data.marketOpportunity.keyDrivers.slice(0, 3).map((d, i) => (
+              <SlideBullet key={i}>{d}</SlideBullet>
+            ))}
           </div>
         </div>
       </div>
@@ -527,20 +537,17 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     /* ═══ 8. RISKS ═══ */
     risks: (
       <div className="space-y-3 h-full flex flex-col justify-center">
-        {data.risks.map((r, i) => {
-          const severityWeight = r.severity === "high" ? "font-extrabold" : r.severity === "medium" ? "font-bold" : "font-semibold";
-          return (
-            <div key={i} className="rounded-md overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-              <div className="flex items-center gap-3 px-4 py-3" style={{ background: "hsl(var(--muted))" }}>
-                <span className={`text-[10px] uppercase tracking-wider text-muted-foreground ${severityWeight}`}>{r.severity}</span>
-                <p className="text-[13px] font-bold text-foreground">{r.risk}</p>
-              </div>
-              <div className="px-4 py-3">
-                <SlideBullet>{r.mitigation}</SlideBullet>
-              </div>
+        {data.risks.map((r, i) => (
+          <div key={i} className="rounded-md overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+            <div className="flex items-center justify-between gap-3 px-4 py-3" style={{ background: "hsl(var(--muted))" }}>
+              <p className="text-[13px] font-bold text-foreground">{r.risk}</p>
+              <RiskSeverityBar severity={r.severity} />
             </div>
-          );
-        })}
+            <div className="px-4 py-3">
+              <SlideBullet>{r.mitigation}</SlideBullet>
+            </div>
+          </div>
+        ))}
       </div>
     ),
 
@@ -599,25 +606,21 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     /* ═══ 10. THE ASK ═══ */
     invest: (
       <div className="space-y-5 h-full flex flex-col justify-center">
-        <div className="p-5 rounded-md text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+        <div className="p-5 rounded-md text-center relative overflow-hidden" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `4px solid ${accentColor}` }}>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Total Funding Ask</p>
           <p className="text-2xl sm:text-3xl font-extrabold text-foreground">{fm?.fundingAsk || data.investmentAsk?.amount || "TBD"}</p>
         </div>
         {fm?.scenarios && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { key: "conservative", label: "Conservative", data: fm.scenarios.conservative },
-              { key: "base", label: "Base Case", data: fm.scenarios.base },
-              { key: "optimistic", label: "Optimistic", data: fm.scenarios.optimistic },
-            ].map((s) => s.data && (
-              <div key={s.key} className="p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{s.label}</p>
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Revenue</span><span className="font-bold text-foreground">{s.data.revenue}</span></div>
-                  {s.data.units && <div className="flex justify-between"><span className="text-muted-foreground">Units</span><span className="font-bold text-foreground">{s.data.units}</span></div>}
-                </div>
-              </div>
-            ))}
+          <div className="space-y-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Revenue Scenarios</p>
+            <ScenarioBarChart
+              scenarios={[
+                { label: "Conservative", value: fm.scenarios.conservative?.revenue || "—" },
+                { label: "Base Case", value: fm.scenarios.base?.revenue || "—" },
+                { label: "Optimistic", value: fm.scenarios.optimistic?.revenue || "—" },
+              ]}
+              accentColor={accentColor}
+            />
           </div>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
