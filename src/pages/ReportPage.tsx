@@ -5,7 +5,9 @@ import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useModeTheme } from "@/hooks/useModeTheme";
+import { HeroSection } from "@/components/HeroSection";
 import { usePersistedSections } from "@/hooks/usePersistedSections";
 import { StepNavigator } from "@/components/StepNavigator";
 import { getStepConfigs, SECTION_DESCRIPTIONS } from "@/lib/stepConfigs";
@@ -39,6 +41,7 @@ export default function ReportPage() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const theme = useModeTheme();
+  const { tier } = useSubscription();
   const sectionTabsRef = useRef<HTMLDivElement>(null);
 
   const { products, selectedProduct, analysisParams, analysisId } = analysis;
@@ -91,6 +94,7 @@ export default function ReportPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
+      <HeroSection tier={tier} remainingAnalyses={null} />
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <StepNavigator
           steps={getStepConfigs(modeAccent)}
