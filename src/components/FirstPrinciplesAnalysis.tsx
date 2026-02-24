@@ -199,7 +199,7 @@ function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; friction
                   }}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-bold text-foreground leading-tight">{step.length > 50 ? step.slice(0, 50) + "…" : step}</p>
+                    <p className="text-xs font-bold text-foreground leading-tight">{step}</p>
                     {sevCol && <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: sevCol.text }} />}
                   </div>
                   {friction && !isExpanded && (
@@ -243,7 +243,7 @@ function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; friction
                   }}
                 >
                   <div className="flex items-center justify-between gap-1">
-                    <p className="text-[10px] font-bold text-foreground leading-tight">{step.length > 30 ? step.slice(0, 30) + "…" : step}</p>
+                    <p className="text-[10px] font-bold text-foreground leading-tight">{step}</p>
                     {sevCol && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: sevCol.text }} />}
                   </div>
                   {friction && !isExpanded && (
@@ -633,7 +633,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             ].map(({ label, text }) => (
               <div key={label} className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
-                <p className="text-xs text-foreground/80 leading-relaxed line-clamp-3">{text}</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{text}</p>
               </div>
             ))}
           </div>
