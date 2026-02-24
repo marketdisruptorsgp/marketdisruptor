@@ -83,6 +83,7 @@ interface PitchDeckData {
 
 interface PitchDeckProps {
   product: Product;
+  analysisId?: string;
   onSave?: (deckData: PitchDeckData) => void;
   externalData?: unknown;
 }
@@ -98,7 +99,7 @@ const SLIDE_TABS = [
 
 type SlideTab = typeof SLIDE_TABS[number]["id"];
 
-export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => {
+export const PitchDeck = ({ product, analysisId, onSave, externalData }: PitchDeckProps) => {
   const { user, profile } = useAuth();
   const [data, setData] = useState<PitchDeckData | null>((externalData as PitchDeckData) || null);
   const [loading, setLoading] = useState(false);
@@ -550,7 +551,50 @@ export const PitchDeck = ({ product, onSave, externalData }: PitchDeckProps) => 
                 })()}
               </div>
               <a
-                href={`mailto:steven@sgpcapital.com?subject=${encodeURIComponent(`Help Disrupt: ${product.name}`)}&body=${encodeURIComponent(`Product: ${product.name}\nCategory: ${product.category}\nAI Revival Score: ${product.revivalScore}/10\nUser Score: ${userScore}/10\n\nBuilt by: ${profile?.first_name || "User"} (${user?.email || ""})\n\n---\nGenerated via Product Ideas platform`)}`}
+                href={(() => {
+                  const name = profile?.first_name || "there";
+                  const email = user?.email || "";
+                  const projectUrl = analysisId
+                    ? `https://productideas.lovable.app/analysis/${analysisId}/pitch`
+                    : "https://productideas.lovable.app";
+                  const lines: string[] = [
+                    `Hi SGP Capital team,`,
+                    ``,
+                    `I've been working through a disruption analysis on ${product.name} in the ${product.category} space and I think there's real potential here.`,
+                    ``,
+                  ];
+                  if (product.revivalScore) {
+                    lines.push(`The AI scored it ${product.revivalScore}/10 for revival potential and I rated it ${userScore}/10.`);
+                    lines.push(``);
+                  }
+                  if (data?.financialModel?.unitEconomics?.grossMargin) {
+                    const be = data.financialModel.breakEvenAnalysis || data.financialModel.unitEconomics.paybackPeriod || "";
+                    lines.push(`The projected gross margin is ${data.financialModel.unitEconomics.grossMargin}${be ? ` with a break-even timeline of ${be}` : ""}.`);
+                    lines.push(``);
+                  }
+                  const bullets = (() => {
+                    const b: string[] = [];
+                    if (product.supplyChain?.manufacturers?.length) b.push(`Connect with manufacturers & suppliers in ${product.supplyChain.manufacturers[0]?.region || "key regions"}`);
+                    if (data?.gtmStrategy) b.push(`Refine go-to-market strategy across ${data.gtmStrategy.keyChannels?.slice(0, 2).join(" & ") || "target channels"}`);
+                    if (data?.financialModel) b.push("Fine-tune financial model and identify potential investors");
+                    if (product.category) b.push(`Strategic positioning in the ${product.category} space`);
+                    if (b.length === 0) {
+                      b.push("Investor introductions & fundraising strategy");
+                      b.push("Sales, marketing & go-to-market execution");
+                    }
+                    return b.slice(0, 3);
+                  })();
+                  lines.push(`I'm looking for help with:`);
+                  bullets.forEach(b => lines.push(`- ${b}`));
+                  lines.push(``);
+                  lines.push(`You can view my full analysis here:`);
+                  lines.push(projectUrl);
+                  lines.push(``);
+                  lines.push(`Best,`);
+                  lines.push(name);
+                  if (email) lines.push(email);
+                  return `mailto:steven@sgpcapital.com?subject=${encodeURIComponent(`Help Disrupt: ${product.name}`)}&body=${encodeURIComponent(lines.join("\n"))}`;
+                })()}
                 className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-opacity hover:opacity-90"
                 style={{ background: "hsl(var(--primary))", color: "white" }}
               >

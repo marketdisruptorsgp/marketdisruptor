@@ -75,6 +75,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Briefcase,
+  X,
 } from "lucide-react";
 
 const STEPS = [
@@ -588,6 +589,38 @@ export default function Index() {
       <main className="max-w-5xl mx-auto px-6 py-10 space-y-6">
         {/* ── DISRUPTION PATH BANNER ── */}
         <DisruptionPathBanner />
+
+        {/* ── VALUE PROPOSITION CALLOUT ── */}
+        {(() => {
+          const TIP_ID = "value_prop_callout";
+          const [tipDismissed, setTipDismissed] = React.useState(() => {
+            try { return JSON.parse(localStorage.getItem("dismissed_tips") || "[]").includes(TIP_ID); } catch { return false; }
+          });
+          if (tipDismissed) return null;
+          return (
+            <div className="rounded-2xl px-5 py-5 flex items-start gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              <Target size={20} className="flex-shrink-0 mt-0.5 text-primary" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground mb-1">What to expect</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  try {
+                    const prev = JSON.parse(localStorage.getItem("dismissed_tips") || "[]");
+                    localStorage.setItem("dismissed_tips", JSON.stringify([...prev, TIP_ID]));
+                  } catch {}
+                  setTipDismissed(true);
+                }}
+                className="flex-shrink-0 p-1 rounded hover:opacity-70 transition-opacity"
+              >
+                <X size={14} className="text-muted-foreground" />
+              </button>
+            </div>
+          );
+        })()}
 
         {/* ── TOP-LEVEL TAB BAR ── */}
         {(() => {

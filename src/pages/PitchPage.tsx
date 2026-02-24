@@ -48,6 +48,7 @@ export default function PitchPage() {
           <div className="p-3 sm:p-5" style={{ background: "hsl(var(--card))" }}>
             <PitchDeck
               product={selectedProduct}
+              analysisId={analysisId}
               externalData={analysis.pitchDeckData}
               onSave={(d) => {
                 analysis.setPitchDeckData(d);
