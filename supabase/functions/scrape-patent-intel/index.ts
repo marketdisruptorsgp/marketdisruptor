@@ -9,12 +9,12 @@ const corsHeaders = {
 
 // Broad patent searches — recent filings across industries, not locked to categories
 const PATENT_SEARCHES = [
-  { query: "patent filed this week new invention 2025 2026", label: "Recent filings" },
-  { query: "new patent application consumer product 2025 2026 USPTO", label: "Consumer products" },
-  { query: "patent filed technology innovation hardware software 2025 2026", label: "Technology" },
-  { query: "patent application health wellness biotech 2025 2026", label: "Health & Biotech" },
-  { query: "new patent sustainable energy green technology 2025 2026", label: "Sustainability" },
-  { query: "patent filing ecommerce retail logistics 2025 2026", label: "Commerce & Logistics" },
+  { query: "patent filed today yesterday new invention 2025 2026", label: "Recent filings" },
+  { query: "new patent application consumer product today 2025 2026 USPTO", label: "Consumer products" },
+  { query: "patent filed today technology innovation hardware software 2025 2026", label: "Technology" },
+  { query: "patent application today health wellness biotech 2025 2026", label: "Health & Biotech" },
+  { query: "new patent today sustainable energy green technology 2025 2026", label: "Sustainability" },
+  { query: "patent filing today ecommerce retail logistics 2025 2026", label: "Commerce & Logistics" },
 ];
 
 serve(async (req) => {
@@ -45,6 +45,7 @@ serve(async (req) => {
           body: JSON.stringify({
             query: `${query} site:patents.google.com OR site:USPTO.gov`,
             limit: 8,
+            tbs: "qdr:d",
           }),
         });
 
@@ -61,6 +62,10 @@ serve(async (req) => {
           continue;
         }
 
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const cutoffDate = thirtyDaysAgo.toISOString().split("T")[0];
+
         const extractPrompt = `Extract real patent filing information from these search results. Return ONLY a valid JSON array:
 [{"title":"Patent Title","assignee":"Company Name","filing_date":"YYYY-MM-DD","patent_number":"US...","abstract":"One sentence summary","source_url":"https://...","category":"Short Category Name","status":"active"}]
 
@@ -69,10 +74,11 @@ ${results.map((r: any) => `Title: ${r.title}\nURL: ${r.url}\nDescription: ${r.de
 
 Rules:
 - Extract up to 6 patents maximum
+- CRITICAL: Only include patents with filing_date or publication_date on or after ${cutoffDate}. Discard anything older than 30 days.
 - Assign a short category (2-3 words, e.g. "Energy Storage", "Consumer Electronics", "Digital Health", "Food Tech", "AI & ML", etc.) based on the patent content
 - Set status to "expired" if the text clearly indicates it's expired/lapsed, otherwise "active"
 - Only include patents with real titles and assignees you can verify from the text
-- Return empty array [] if nothing is extractable`;
+- Return empty array [] if nothing is extractable or nothing is recent enough`;
 
         const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -120,11 +126,23 @@ Rules:
       return /^\d{4}-\d{2}-\d{2}/.test(d) && !isNaN(Date.parse(d));
     };
 
+    // Filter out anything older than 30 days programmatically
+    const thirtyDaysAgoCutoff = new Date();
+    thirtyDaysAgoCutoff.setDate(thirtyDaysAgoCutoff.getDate() - 30);
+    const recentPatents = dedupedPatents.filter((p) => {
+      const d = p.filing_date || p.publication_date;
+      if (!d || !isValidDate(d)) return true; // keep if no date (let AI handle)
+      return new Date(d) >= thirtyDaysAgoCutoff;
+    });
+
+    // Cap at 50 most recent
+    const capped = recentPatents.slice(0, 50);
+
     // Clear old and insert new
-    if (dedupedPatents.length > 0) {
+    if (capped.length > 0) {
       await supabase.from("patent_filings").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
-      const rows = dedupedPatents.map((p) => ({
+      const rows = capped.map((p) => ({
         title: p.title || "Untitled",
         assignee: p.assignee || "Unknown",
         filing_date: isValidDate(p.filing_date) ? p.filing_date : null,

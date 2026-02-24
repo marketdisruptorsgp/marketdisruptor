@@ -43,7 +43,7 @@ serve(async (req) => {
           body: JSON.stringify({
             query,
             limit: 5,
-            tbs: "qdr:w", // last week
+            tbs: "qdr:m", // last month
           }),
         });
 
@@ -57,13 +57,17 @@ serve(async (req) => {
 
         if (results.length === 0) continue;
 
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const cutoffDate = thirtyDaysAgo.toISOString().split("T")[0];
+
         const extractPrompt = `Extract news items from these search results about "${query}". Return ONLY valid JSON array:
 [{"title":"Headline","summary":"1-2 sentence summary","source_name":"Publication Name","source_url":"https://...","published_at":"YYYY-MM-DD"}]
 
 Search results:
 ${results.map((r: any) => `Title: ${r.title}\nURL: ${r.url}\nDescription: ${r.description || ""}`).join("\n---\n")}
 
-Return 3-5 items maximum. Only include real news with verifiable titles and sources. Return empty array [] if nothing qualifies.`;
+Return 3-5 items maximum. Only include real news with verifiable titles and sources. CRITICAL: Only include articles published on or after ${cutoffDate} (within the last 30 days). Return empty array [] if nothing qualifies.`;
 
         const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -102,11 +106,19 @@ Return 3-5 items maximum. Only include real news with verifiable titles and sour
       return /^\d{4}-\d{2}-\d{2}/.test(d) && !isNaN(Date.parse(d));
     };
 
+    // Filter out anything older than 30 days programmatically
+    const thirtyDaysAgoCutoff = new Date();
+    thirtyDaysAgoCutoff.setDate(thirtyDaysAgoCutoff.getDate() - 30);
+    const recentNews = allNews.filter((n) => {
+      if (!n.published_at || !isValidDate(n.published_at)) return true;
+      return new Date(n.published_at) >= thirtyDaysAgoCutoff;
+    });
+
     // Clear old and insert new
-    if (allNews.length > 0) {
+    if (recentNews.length > 0) {
       await supabase.from("market_news").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
-      const rows = allNews.map((n) => ({
+      const rows = recentNews.map((n) => ({
         title: n.title || "Untitled",
         summary: n.summary || null,
         source_name: n.source_name || "Unknown",
