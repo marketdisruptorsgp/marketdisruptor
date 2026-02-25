@@ -19,7 +19,7 @@ export function ShareAnalysis({ analysisId, analysisTitle, accentColor = "hsl(va
   const [recipientName, setRecipientName] = useState("");
   const [sending, setSending] = useState(false);
 
-  const shareUrl = `http://marketdisruptor.sgpcapital.com/share?ref=${user?.id}&preview=${analysisId}`;
+  const shareUrl = `${window.location.origin}/analysis/share/${analysisId}`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(shareUrl);

@@ -53,7 +53,7 @@ export function ExportPanel({
   };
 
   const handleCopyLink = async () => {
-    const shareUrl = `${window.location.origin}/share?ref=${userId || ""}&preview=${analysisId || ""}`;
+    const shareUrl = `${window.location.origin}/analysis/share/${analysisId || ""}`;
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     toast.success("Link copied!");
