@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabase
       .from("saved_analyses")
-      .select("title, category, avg_revival_score, products, analysis_data")
+      .select("title, category, avg_revival_score, products, analysis_data, analysis_type, era, batch_size")
       .eq("id", analysisId)
       .single();
 
