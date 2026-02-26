@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Crosshair, Target, Brain, Swords, Presentation, ArrowRight, Sparkles, CheckCircle2, Circle } from "lucide-react";
+import { Crosshair, Target, Brain, Swords, Presentation, ArrowRight, Sparkles } from "lucide-react";
 
 const PIPELINE_STEPS = [
   {
@@ -100,7 +100,7 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                 )}
 
                 <div
-                  className="relative rounded-xl p-5 sm:p-6 transition-all duration-300 cursor-default h-full flex flex-col"
+                  className="relative rounded-xl p-4 transition-all duration-300 cursor-default h-full flex flex-col"
                   style={{
                     background: isActive
                       ? "hsl(var(--muted))"
@@ -125,9 +125,9 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                   }}
                 >
                   {/* Step number + icon */}
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
                     <div
-                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-300"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-300"
                       style={{
                         background: isActive || isHovered ? `hsl(${color})` : "hsl(var(--foreground))",
                       }}
@@ -143,12 +143,12 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                   </div>
 
                   {/* Label */}
-                  <h3 className="text-sm sm:text-base font-bold text-foreground mb-1.5 leading-tight">
+                  <h3 className="text-sm sm:text-base font-bold text-foreground mb-1 leading-tight">
                     {label}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-3 flex-1">
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-2 flex-1">
                     {desc}
                   </p>
 
@@ -166,21 +166,6 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                     </p>
                   </div>
 
-                  {/* Active / completed indicator */}
-                  {(isActive || isPast) && (
-                    <div className="mt-3">
-                      <span
-                        className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full"
-                        style={{
-                          background: "hsl(var(--muted))",
-                          color: isPast ? "hsl(152 60% 44%)" : `hsl(${color})`,
-                          border: "1px solid hsl(var(--border))",
-                        }}
-                      >
-                        {isPast ? <><CheckCircle2 size={10} /> Complete</> : <><Circle size={10} /> Current</>}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             );

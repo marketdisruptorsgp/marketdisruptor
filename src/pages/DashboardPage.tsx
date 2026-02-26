@@ -9,7 +9,7 @@ import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
 import { Target } from "lucide-react";
 import PaywallModal from "@/components/PaywallModal";
 import { MarketChangeAlert } from "@/components/MarketChangeAlert";
-import { StreakBadge } from "@/components/StreakBadge";
+
 import { ShowcaseGallery } from "@/components/ShowcaseGallery";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -85,7 +85,7 @@ export default function DashboardPage() {
 
       {/* Hero Section */}
       <section className="bg-background">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-5 sm:pb-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-5 sm:pb-10 text-center">
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight whitespace-nowrap">
             Rethink any{" "}
             <span
@@ -108,10 +108,6 @@ export default function DashboardPage() {
             >
               Learn More
             </button>
-          </div>
-          {/* Streak Badge */}
-          <div className="flex justify-center mt-3">
-            <StreakBadge />
           </div>
 
           {/* Built For */}
