@@ -22,7 +22,7 @@ import {
 const MODE_WORDS = [
 { label: "product", color: "hsl(var(--mode-product))" },
 { label: "service", color: "hsl(var(--mode-service))" },
-{ label: "business model", color: "hsl(var(--mode-business))" }];
+{ label: "business", color: "hsl(var(--mode-business))" }];
 
 
 const MODE_PILLS = [
