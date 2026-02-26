@@ -771,7 +771,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           </DetailPanel>
 
           <div className="text-center py-3">
-            <span className="text-xs font-extrabold px-4 py-2 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
+            <span className="typo-button-secondary px-4 py-2 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
               <CheckCircle2 size={12} style={{ color: "hsl(142 70% 40%)" }} /> All sections explored
             </span>
           </div>

@@ -12,7 +12,7 @@ export const DataLabel = ({ label }: { label?: string }) => {
   const style = LABEL_STYLES[label] || LABEL_STYLES["[ASSUMPTION]"];
   return (
     <span
-      className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wide uppercase"
+      className="inline-flex items-center px-1.5 py-0.5 rounded typo-status-label"
       style={{ color: style.color, background: `${style.color}15`, border: `1px solid ${style.color}30` }}
     >
       {style.label}

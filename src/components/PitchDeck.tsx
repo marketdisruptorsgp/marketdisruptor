@@ -387,7 +387,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           <div className="flex items-center gap-3 p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
             <div>
               <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground">Market CAGR</p>
-              <p className="text-base font-extrabold text-foreground">{data.marketOpportunity.growthRate}</p>
+              <p className="text-base font-bold text-foreground">{data.marketOpportunity.growthRate}</p>
             </div>
             <div className="h-6 w-px" style={{ background: "hsl(var(--border))" }} />
             <p className="text-[10px] text-muted-foreground flex-1">Accelerating tailwinds create a narrow window for first-mover advantage</p>
@@ -410,7 +410,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
             <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Growth Rate</p>
-            <p className="text-base font-extrabold text-foreground">{data.marketOpportunity.growthRate}</p>
+            <p className="text-base font-bold text-foreground">{data.marketOpportunity.growthRate}</p>
           </div>
           <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Key Drivers</p>
@@ -536,12 +536,12 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           <div className="flex items-center gap-4">
             <div className="text-center">
               <p className="text-[8px] text-muted-foreground mb-0.5">AI Score</p>
-              <p className="text-xl font-extrabold text-foreground">{product.revivalScore || "—"}</p>
+              <p className="text-xl font-bold text-foreground">{product.revivalScore || "—"}</p>
             </div>
             <div className="flex-1 space-y-1.5">
               <div className="flex items-center justify-between">
                 <p className="text-[9px] text-muted-foreground">Your Rating</p>
-                <span className="text-xs font-extrabold text-foreground">{userScore}/10</span>
+                <span className="text-xs font-bold text-foreground">{userScore}/10</span>
               </div>
               <Slider value={[userScore]} onValueChange={(v) => setUserScore(v[0])} min={1} max={10} step={1} />
             </div>
@@ -619,7 +619,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       <div className="space-y-3 h-full flex flex-col justify-center">
         <div className="p-4 rounded-md text-center relative overflow-hidden" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `4px solid ${accentColor}` }}>
           <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Total Funding Ask</p>
-          <p className="text-xl sm:text-2xl font-extrabold text-foreground">{fm?.fundingAsk || data.investmentAsk?.amount || "TBD"}</p>
+          <p className="text-xl sm:text-2xl font-bold text-foreground">{fm?.fundingAsk || data.investmentAsk?.amount || "TBD"}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
           <div className="space-y-2">
