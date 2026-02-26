@@ -85,11 +85,11 @@ export default function DashboardPage() {
 
       {/* Hero Section */}
       <section className="bg-background">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-5 sm:pb-10 text-center">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight whitespace-nowrap">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-5 sm:pb-10">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight whitespace-nowrap pl-[15%] sm:pl-[20%]">
             Rethink any{" "}
             <span
-              className="inline-block transition-opacity duration-300"
+              className="inline-block transition-opacity duration-300 text-left min-w-[180px] sm:min-w-[320px]"
               style={{
                 opacity: visible ? 1 : 0,
                 color: MODE_WORDS[wordIndex].color,
@@ -98,7 +98,7 @@ export default function DashboardPage() {
               {MODE_WORDS[wordIndex].label}
             </span>
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed px-2">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed px-2 text-center">
             Deconstruct markets, stress-test strategies, and build what's next with AI-powered competitive intelligence.
           </p>
           <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
