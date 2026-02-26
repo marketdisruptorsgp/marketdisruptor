@@ -86,10 +86,10 @@ export default function DashboardPage() {
       {/* Hero Section */}
       <section className="bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-5 sm:pb-10 text-center">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight text-left mx-auto max-w-2xl">
             Rethink any{" "}
             <span
-              className="inline-block transition-opacity duration-300"
+              className="inline-block transition-opacity duration-300 min-w-[200px] sm:min-w-[320px] text-left"
               style={{
                 opacity: visible ? 1 : 0,
                 color: MODE_WORDS[wordIndex].color,
