@@ -43,7 +43,7 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
           />
           {product.pricingIntel && (
             <span
-              className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"
+              className="absolute bottom-2 left-2 px-2 py-0.5 rounded typo-card-meta flex items-center gap-1"
               style={{ background: "hsl(0 0% 0% / 0.7)", color: "hsl(0 0% 100% / 0.8)" }}
             >
               {product.pricingIntel.currentMarketPrice}
@@ -55,7 +55,7 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         /* No image: just show pricing inline */
         product.pricingIntel && (
           <div className="px-4 pt-3 flex items-center justify-end">
-            <span className="text-[10px] font-medium flex items-center gap-1 text-muted-foreground">
+            <span className="typo-card-meta flex items-center gap-1">
               {product.pricingIntel.currentMarketPrice}
               <DataLabel label={(product.pricingIntel as unknown as Record<string, unknown>).currentMarketPriceDataLabel as string} />
             </span>
@@ -65,12 +65,12 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
 
       <div className="p-3 sm:p-4 space-y-2">
         <div>
-          <p className="section-label text-[10px] mb-0.5">{product.category}</p>
-          <h3 className="font-semibold text-xs sm:text-sm leading-tight text-foreground">{product.name}</h3>
+          <p className="typo-card-eyebrow mb-0.5">{product.category}</p>
+          <h3 className="typo-card-title leading-tight">{product.name}</h3>
         </div>
 
         {product.keyInsight && (
-          <p className="text-[11px] leading-relaxed text-muted-foreground line-clamp-2">
+          <p className="typo-card-body leading-relaxed text-muted-foreground line-clamp-2">
             {product.keyInsight}
           </p>
         )}
@@ -94,7 +94,7 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         </div>
 
         {product.marketSizeEstimate && (
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground border-t pt-2" style={{ borderColor: "hsl(var(--border))" }}>
+          <div className="flex items-center gap-1.5 typo-card-meta border-t pt-2" style={{ borderColor: "hsl(var(--border))" }}>
             <span>{product.marketSizeEstimate}</span>
             <DataLabel label={(product as unknown as Record<string, unknown>).marketSizeEstimateDataLabel as string} />
           </div>

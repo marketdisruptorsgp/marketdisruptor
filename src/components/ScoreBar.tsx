@@ -16,8 +16,8 @@ export const ScoreBar = ({ label, score, maxScore = 10 }: ScoreBarProps) => {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        <span className="text-sm font-bold" style={{ color: barColor }}>
+        <span className="typo-card-meta">{label}</span>
+        <span className="typo-card-title" style={{ color: barColor }}>
           {score}/10
         </span>
       </div>

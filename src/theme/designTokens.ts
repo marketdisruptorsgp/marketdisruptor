@@ -146,13 +146,21 @@ export const maxWidths = {
 
 // ── Typography Scale ──
 export const typeScale = {
-  pageTitle:     { size: "1.5rem",    weight: 700, lineHeight: 1.2, family: "display" },
-  sectionHeader: { size: "1.125rem",  weight: 700, lineHeight: 1.3, family: "display" },
-  headlineClaim: { size: "1rem",      weight: 600, lineHeight: 1.4, family: "display" },
-  body:          { size: "0.875rem",  weight: 400, lineHeight: 1.6, family: "sans" },
-  smallBody:     { size: "0.8125rem", weight: 400, lineHeight: 1.5, family: "sans" },
-  metadata:      { size: "0.6875rem", weight: 600, lineHeight: 1.4, family: "sans" },
-  micro:         { size: "0.5625rem", weight: 600, lineHeight: 1.3, family: "sans" },
+  navPrimary:       { size: "0.875rem",  weight: 600, lineHeight: 1.4, family: "sans",    class: "typo-nav-primary" },
+  stepTitleActive:  { size: "0.8125rem", weight: 700, lineHeight: 1.3, family: "sans",    class: "typo-step-title-active" },
+  stepTitleInactive:{ size: "0.8125rem", weight: 700, lineHeight: 1.3, family: "sans",    class: "typo-step-title-inactive" },
+  stepSubtitle:     { size: "0.625rem",  weight: 500, lineHeight: 1.3, family: "sans",    class: "typo-step-subtitle" },
+  pageTitle:        { size: "1.875rem",  weight: 700, lineHeight: 1.2, family: "display",  class: "typo-page-title" },
+  pageMeta:         { size: "0.8125rem", weight: 400, lineHeight: 1.5, family: "sans",    class: "typo-page-meta" },
+  cardEyebrow:      { size: "0.6875rem", weight: 600, lineHeight: 1.4, family: "sans",    class: "typo-card-eyebrow" },
+  cardTitle:        { size: "0.875rem",  weight: 600, lineHeight: 1.3, family: "sans",    class: "typo-card-title" },
+  cardBody:         { size: "0.8125rem", weight: 400, lineHeight: 1.5, family: "sans",    class: "typo-card-body" },
+  cardMeta:         { size: "0.625rem",  weight: 500, lineHeight: 1.4, family: "sans",    class: "typo-card-meta" },
+  sectionTitle:     { size: "0.875rem",  weight: 700, lineHeight: 1.3, family: "display",  class: "typo-section-title" },
+  sectionDescription:{ size: "0.8125rem", weight: 400, lineHeight: 1.5, family: "sans",   class: "typo-section-description" },
+  statusLabel:      { size: "0.5625rem", weight: 600, lineHeight: 1.3, family: "sans",    class: "typo-status-label" },
+  buttonPrimary:    { size: "0.875rem",  weight: 600, lineHeight: 1,   family: "sans",    class: "typo-button-primary" },
+  buttonSecondary:  { size: "0.75rem",   weight: 600, lineHeight: 1,   family: "sans",    class: "typo-button-secondary" },
 } as const;
 
 // ── Transition Presets ──

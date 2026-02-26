@@ -32,14 +32,14 @@ export function JourneySection({
     >
       {/* 1. Section label — compact, not dominant */}
       <span
-        className="inline-block text-[0.6875rem] font-semibold uppercase tracking-wider text-muted-foreground"
+        className="inline-block typo-card-eyebrow"
         style={accentColor ? { color: accentColor } : undefined}
       >
         {label}
       </span>
 
       {/* 2. One-sentence analytical summary */}
-      <p className="text-sm font-medium leading-snug text-foreground">{summary}</p>
+      <p className="typo-card-body leading-snug text-foreground">{summary}</p>
 
       {/* 3. Primary insight content — highest visual emphasis */}
       <div className="space-y-3">{children}</div>

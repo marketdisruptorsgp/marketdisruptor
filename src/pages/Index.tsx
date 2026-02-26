@@ -901,7 +901,7 @@ export default function Index() {
                           {/* Key Insight — professional callout */}
                           {selectedProduct.keyInsight && (
                             <div className="insight-callout">
-                              <p className="section-label text-[10px] mb-1.5 flex items-center gap-1 not-italic">
+                              <p className="typo-card-eyebrow mb-1.5 flex items-center gap-1 not-italic">
                                 <Lightbulb size={10} /> Key Insight
                               </p>
                               <p className="text-sm italic leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.85)" }}>
@@ -931,7 +931,7 @@ export default function Index() {
 
                           {/* Live Sources */}
                           <div className="section-panel">
-                            <p className="section-label text-[10px] mb-2.5">Live Sources</p>
+                            <p className="typo-card-eyebrow mb-2.5">Live Sources</p>
                             <div className="flex flex-wrap gap-2">
                               {selectedProduct.sources?.map((src) => (
                                 <a
@@ -954,7 +954,7 @@ export default function Index() {
                       {/* Reviews & Competitors */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="section-panel">
-                          <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                          <p className="typo-card-eyebrow mb-3 flex items-center gap-1">
                             <MessageSquare size={12} /> Reviews & Sentiment
                           </p>
                           <div className="space-y-2">
@@ -983,7 +983,7 @@ export default function Index() {
 
                       {/* Assumptions Map */}
                       <div className="section-panel">
-                        <p className="section-label text-[10px] mb-3">Assumptions Map</p>
+                        <p className="typo-card-eyebrow mb-3">Assumptions Map</p>
                         <AssumptionsMap product={selectedProduct} />
                       </div>
                     </div>
@@ -1008,7 +1008,7 @@ export default function Index() {
                               <div className="space-y-5">
                                 {hasRealSentiment && (
                                   <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                                    <p className="section-label text-[10px] mb-2 flex items-center gap-1" style={{ color: "hsl(25 90% 40%)" }}>
+                                    <p className="typo-card-eyebrow mb-2 flex items-center gap-1" style={{ color: "hsl(25 90% 40%)" }}>
                                       <MessageSquare size={12} /> Community Sentiment
                                     </p>
                                     <p className="text-sm leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
@@ -1017,7 +1017,7 @@ export default function Index() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {ci.topComplaints?.length ? (
                                     <div>
-                                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                                       <p className="typo-card-eyebrow mb-3 flex items-center gap-1">
                                         <ThumbsDown size={12} style={{ color: "hsl(var(--destructive))" }} /> Top Complaints
                                       </p>
                                       <div className="space-y-2">
@@ -1032,7 +1032,7 @@ export default function Index() {
                                   ) : null}
                                   {ci.improvementRequests?.length ? (
                                     <div>
-                                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                                       <p className="typo-card-eyebrow mb-3 flex items-center gap-1">
                                         <Wrench size={12} style={{ color: "hsl(217 91% 60%)" }} /> Community Improvement Requests
                                       </p>
                                       <div className="space-y-2">
@@ -1049,7 +1049,7 @@ export default function Index() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {ci.competitorComplaints?.length ? (
                                     <div>
-                                      <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                                       <p className="typo-card-eyebrow mb-3 flex items-center gap-1">
                                         <ThumbsUp size={12} style={{ color: "hsl(142 70% 40%)" }} /> Why People Hate Current Alternatives
                                       </p>
                                       <div className="space-y-2">
@@ -1078,7 +1078,7 @@ export default function Index() {
                       {/* Reviews + Social Signals */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                          <p className="typo-card-eyebrow mb-3 flex items-center gap-1">
                             <MessageSquare size={12} /> Reviews & Sentiment
                           </p>
                           <div className="space-y-2">
@@ -1091,7 +1091,7 @@ export default function Index() {
                           </div>
                         </div>
                         <div>
-                          <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                          <p className="typo-card-eyebrow mb-3 flex items-center gap-1">
                             <TrendingUp size={12} /> Demand Signals
                           </p>
                           <div className="space-y-2">
@@ -1190,16 +1190,16 @@ export default function Index() {
                       </div>
 
                       <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 30%)" }}>
+                        <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(142 70% 30%)" }}>
                           <DollarSign size={10} className="inline mr-1" />Margin Analysis
                         </p>
                         <p className="text-sm" style={{ color: "hsl(142 70% 25%)" }}>{selectedProduct.pricingIntel.margins}</p>
                       </div>
 
                       <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))" }}>
-                        <p className="text-[10px] font-bold uppercase tracking-wider mb-2 text-muted-foreground">Full Price Range</p>
+                        <p className="typo-card-eyebrow mb-2">Full Price Range</p>
                         <div className="flex items-center gap-3">
-                          <span className="text-lg font-extrabold text-foreground">{selectedProduct.pricingIntel.priceRange}</span>
+                          <span className="text-lg font-bold text-foreground">{selectedProduct.pricingIntel.priceRange}</span>
                           <TrendBadge trend={selectedProduct.pricingIntel.priceDirection as "up" | "down" | "stable"} />
                         </div>
                       </div>
@@ -1262,7 +1262,7 @@ export default function Index() {
 
                       {/* Retailers */}
                       <div>
-                        <p className="section-label text-[10px] mb-3 flex items-center gap-2">
+                        <p className="typo-card-eyebrow mb-3 flex items-center gap-2">
                           <Store size={14} style={{ color: "hsl(142 70% 40%)" }} /> Retailers & Market Share
                         </p>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1270,7 +1270,7 @@ export default function Index() {
                             <div key={r.name} className="p-3 rounded-xl text-center space-y-1" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
                               <p className="text-xs font-bold text-foreground">{r.name}</p>
                               <p className="text-[10px] text-muted-foreground">{r.type}</p>
-                              <p className="text-lg font-extrabold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
+                              <p className="text-lg font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
                               {r.url && (
                                 <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[10px]" style={{ color: "hsl(var(--primary))" }}>
                                   <ExternalLink size={9} /> Visit
@@ -1308,13 +1308,13 @@ export default function Index() {
                         className="p-4 rounded-xl text-sm leading-relaxed"
                         style={{ background: "hsl(var(--primary-muted))", borderLeft: "4px solid hsl(var(--primary))" }}
                       >
-                        <p className="section-label text-[10px] mb-2">Strategic Direction</p>
+                        <p className="typo-card-eyebrow mb-2">Strategic Direction</p>
                         <p style={{ color: "hsl(var(--primary-dark))" }}>{selectedProduct.actionPlan.strategy}</p>
                       </div>
 
                       {/* Quick Wins */}
                       <div>
-                        <p className="section-label text-[10px] mb-3 flex items-center gap-1">
+                        <p className="typo-card-eyebrow mb-3 flex items-center gap-1">
                           <Zap size={11} /> Quick Wins (This Week)
                         </p>
                         <div className="space-y-2">
@@ -1333,7 +1333,7 @@ export default function Index() {
 
                       {/* Phases */}
                       <div>
-                        <p className="section-label text-[10px] mb-3">Execution Roadmap</p>
+                        <p className="typo-card-eyebrow mb-3">Execution Roadmap</p>
                         <div className="space-y-4">
                           {selectedProduct.actionPlan.phases.map((phase, i) => (
                             <div
@@ -1379,15 +1379,15 @@ export default function Index() {
                       {/* Summary metrics */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="p-4 rounded-xl text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Total Investment</p>
-                          <p className="text-lg font-extrabold text-foreground">{selectedProduct.actionPlan.totalInvestment}</p>
+                          <p className="typo-card-eyebrow mb-1">Total Investment</p>
+                          <p className="text-lg font-bold text-foreground">{selectedProduct.actionPlan.totalInvestment}</p>
                         </div>
                         <div className="p-4 rounded-xl text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.3)" }}>
-                          <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 35%)" }}>Expected ROI</p>
-                          <p className="text-lg font-extrabold" style={{ color: "hsl(142 70% 28%)" }}>{selectedProduct.actionPlan.expectedROI}</p>
+                          <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(142 70% 35%)" }}>Expected ROI</p>
+                          <p className="text-lg font-bold" style={{ color: "hsl(142 70% 28%)" }}>{selectedProduct.actionPlan.expectedROI}</p>
                         </div>
                         <div className="p-4 rounded-xl" style={{ background: "hsl(var(--primary-muted))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
-                          <p className="section-label text-[10px] mb-2">Go-To-Market Channels</p>
+                          <p className="typo-card-eyebrow mb-2">Go-To-Market Channels</p>
                           <div className="flex flex-wrap gap-1">
                             {selectedProduct.actionPlan.channels.map((ch) => (
                               <span key={ch} className="px-2 py-0.5 rounded-full text-[10px] font-medium" style={{ background: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
@@ -1912,7 +1912,7 @@ function SupplySection({
 }) {
   return (
     <div>
-      <p className="section-label text-[10px] mb-3 flex items-center gap-2">{icon} {title}</p>
+      <p className="typo-card-eyebrow mb-3 flex items-center gap-2">{icon} {title}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {items.map((item) => (
           <div

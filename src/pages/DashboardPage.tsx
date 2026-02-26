@@ -86,7 +86,7 @@ export default function DashboardPage() {
       {/* Hero Section */}
       <section className="bg-background">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-5 sm:pb-10">
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground leading-tight whitespace-nowrap pl-[15%] sm:pl-[20%] md:text-5xl text-center mx-px">
+          <h1 className="typo-page-title text-3xl sm:text-5xl tracking-tight leading-tight whitespace-nowrap pl-[15%] sm:pl-[20%] md:text-5xl text-center mx-px">
             Rethink any{" "}
             <span
               className="inline-block transition-opacity duration-300 text-left min-w-[180px] sm:min-w-[320px]"
@@ -98,20 +98,20 @@ export default function DashboardPage() {
               {MODE_WORDS[wordIndex].label}
             </span>
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed px-2 text-center">
+          <p className="typo-page-meta text-sm sm:text-base md:text-lg mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed px-2 text-center">
             Deconstruct markets, stress-test strategies, and build what's next with AI-powered competitive intelligence.
           </p>
           <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button
               onClick={() => navigate("/about")}
-              className="px-4 sm:px-6 py-2.5 rounded-full text-sm font-semibold border border-border text-foreground transition-colors hover:bg-muted">
+              className="px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary border border-border text-foreground transition-colors hover:bg-muted">
 
               Learn More
             </button>
           </div>
 
           {/* Built For */}
-          <p className="text-sm sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mt-8 sm:mt-10 mb-3 sm:mb-4 text-center">Built For</p>
+          <p className="typo-card-eyebrow mt-8 sm:mt-10 mb-3 sm:mb-4 text-center">Built For</p>
           <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-3xl mx-auto text-left">
             {[
             { icon: Rocket, title: "Entrepreneurs", desc: "Data-driven conviction, not guesswork." },
@@ -123,8 +123,8 @@ export default function DashboardPage() {
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mb-2 sm:mb-2.5">
                   <Icon size={16} className="text-primary" />
                 </div>
-                <p className="text-xs sm:text-sm font-bold text-foreground mb-0.5">{title}</p>
-                <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                <p className="typo-card-title mb-0.5">{title}</p>
+                <p className="typo-card-body text-muted-foreground leading-relaxed">{desc}</p>
               </div>
             )}
           </div>
@@ -141,14 +141,14 @@ export default function DashboardPage() {
           style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
           onClick={() => navigate("/start/product")}>
 
-          <p className="text-sm sm:text-base font-bold text-foreground mb-1.5">
+          <p className="typo-card-title mb-1.5">
             Apply a level of scrutiny that exceeds normal bandwidth.
           </p>
-          <p className="text-xs sm:text-sm text-muted-foreground mb-4">
+          <p className="typo-section-description mb-4">
             See what a deep deconstruction reveals about your market.
           </p>
           <button
-            className="inline-flex items-center gap-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-full text-sm font-semibold text-primary-foreground transition-colors"
+            className="inline-flex items-center gap-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-full typo-nav-primary text-primary-foreground transition-colors"
             style={{ background: "hsl(var(--primary))" }}>
 
             Start Analysis <ArrowRight size={15} />
@@ -161,8 +161,8 @@ export default function DashboardPage() {
         <div className="rounded-2xl px-4 sm:px-5 py-4 sm:py-5 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
           <Target size={18} className="flex-shrink-0 mt-0.5 text-primary" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-foreground mb-1">What to expect</p>
-            <p className="text-xs leading-relaxed text-foreground/70">
+            <p className="typo-card-title mb-1">What to expect</p>
+            <p className="typo-card-body text-foreground/70 leading-relaxed">
               The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
             </p>
           </div>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
                 <button
                   key={pill.id}
                   onClick={() => navigate(pill.path)}
-                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold border transition-colors hover:shadow-sm"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full typo-nav-primary border transition-colors hover:shadow-sm"
                   style={{
                     borderColor: `hsl(var(${pill.cssVar}))`,
                     color: `hsl(var(${pill.cssVar}))`

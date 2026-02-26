@@ -201,13 +201,13 @@ export default function ReportPage() {
               <div className="space-y-3">
                 {selectedProduct.keyInsight && (
                   <div className="insight-callout">
-                    <p className="section-label text-[10px] mb-1">Key Insight</p>
+                    <p className="typo-card-eyebrow mb-1">Key Insight</p>
                     <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.85)" }}>{selectedProduct.keyInsight}</p>
                   </div>
                 )}
                 {selectedProduct.description && (
                   <div className="section-panel">
-                    <p className="section-label text-[10px] mb-1">Description</p>
+                    <p className="typo-card-eyebrow mb-1">Description</p>
                     <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{selectedProduct.description}</p>
                   </div>
                 )}
@@ -219,7 +219,7 @@ export default function ReportPage() {
                   </div>
                 )}
                 <div className="section-panel">
-                  <p className="section-label text-[10px] mb-2">Confidence Scores</p>
+                  <p className="typo-card-eyebrow mb-2">Confidence Scores</p>
                   <div className="grid grid-cols-1 gap-2">
                     <ScoreBar label="Adoption Likelihood" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
                     <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
@@ -404,7 +404,7 @@ export default function ReportPage() {
                   <div className="space-y-2 mb-2">
                     <p className="text-xs text-foreground/80">{selectedProduct.pricingIntel.margins}</p>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-extrabold text-foreground">{selectedProduct.pricingIntel.priceRange}</span>
+                      <span className="text-sm font-bold text-foreground">{selectedProduct.pricingIntel.priceRange}</span>
                       <TrendBadge trend={selectedProduct.pricingIntel.priceDirection as "up" | "down" | "stable"} />
                     </div>
                   </div>
@@ -448,7 +448,7 @@ export default function ReportPage() {
                   {selectedProduct.supplyChain.retailers.map((r) => (
                     <div key={r.name} className="p-3 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
                       <p className="text-xs font-bold text-foreground">{r.name}</p>
-                      <p className="text-lg font-extrabold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
+                      <p className="text-lg font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
                     </div>
                   ))}
                 </div>
@@ -561,7 +561,7 @@ function SupplySection({
 }) {
   return (
     <div>
-      <p className="section-label text-[10px] mb-2 flex items-center gap-2">{icon} {title}</p>
+      <p className="typo-card-eyebrow mb-2 flex items-center gap-2">{icon} {title}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {items.map((item) => (
           <div key={item.name} className="p-3 rounded-lg flex items-start justify-between gap-2" style={{ background: color, border: `1px solid ${borderColor}` }}>

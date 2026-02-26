@@ -81,7 +81,7 @@ export default function SharePage() {
               <span className="text-xs font-bold" style={{ color: "hsl(var(--primary-light))" }}>AI-Powered Product Intelligence</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight">
               Analyze. Deconstruct.{" "}
               <span className="relative">
                 <span style={{ color: "hsl(var(--primary-light))" }}>Capitalize.</span>
@@ -120,7 +120,7 @@ export default function SharePage() {
       <div className="max-w-5xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
           <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(var(--primary-light))" }}>Revolutionary Data Model</p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             From raw market data to <span style={{ color: "hsl(var(--primary-light))" }}>actionable intelligence</span>
           </h2>
           <p className="text-base max-w-2xl mx-auto" style={{ color: "hsl(0 0% 100% / 0.5)" }}>

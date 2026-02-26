@@ -82,7 +82,7 @@ export function ProjectInsightCard({ analysis, onOpen }: { analysis: SavedAnalys
             </div>
           </div>
           <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-extrabold flex-shrink-0"
+            className="w-10 h-10 rounded-lg flex items-center justify-center typo-card-title flex-shrink-0"
             style={{ background: `${scoreColor}15`, color: scoreColor }}
           >
             {score || "—"}

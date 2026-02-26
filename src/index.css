@@ -73,6 +73,9 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.5;
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
   }
@@ -83,6 +86,152 @@
   }
 }
 
+/* ── Global Typography Roles ─────────────────────────────────────── */
+@layer components {
+
+  /* Navigation link text */
+  .typo-nav-primary {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: hsl(var(--foreground));
+  }
+
+  /* Active step label in StepNavigator */
+  .typo-step-title-active {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    /* color inherited from context (inverted on active) */
+  }
+
+  /* Inactive/past step label */
+  .typo-step-title-inactive {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Step description / subtitle */
+  .typo-step-subtitle {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.625rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Hero / page titles — base size, override responsively */
+  .typo-page-title {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 1.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+  }
+
+  /* Page-level metadata (subtitles, timestamps) */
+  .typo-page-meta {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Eyebrow / category labels — uppercase micro */
+  .typo-card-eyebrow {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Card heading / name */
+  .typo-card-title {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: hsl(var(--foreground));
+  }
+
+  /* Card body text */
+  .typo-card-body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: hsl(var(--foreground));
+  }
+
+  /* Card metadata (market size, dates, etc.) */
+  .typo-card-meta {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.625rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Section headers inside analysis panels */
+  .typo-section-title {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+  }
+
+  /* Section description / summary text */
+  .typo-section-description {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Status badges, counters, micro labels — 9px uppercase */
+  .typo-status-label {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    /* color inherited — varies by context */
+  }
+
+  /* Primary button text */
+  .typo-button-primary {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Secondary / ghost button text */
+  .typo-button-secondary {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    color: hsl(var(--foreground));
+  }
+}
+
+/* ── Component Classes ───────────────────────────────────────────── */
 @layer components {
   .card-intelligence {
     background: hsl(var(--card));
@@ -133,19 +282,19 @@
   }
 
   .tag-pill {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium;
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-md;
     background: hsl(var(--muted));
     color: hsl(var(--foreground));
     border: 1px solid hsl(var(--border));
   }
 
   .source-link {
-    @apply inline-flex items-center gap-1 text-xs underline-offset-2 hover:underline;
+    @apply inline-flex items-center gap-1 underline-offset-2 hover:underline;
     color: hsl(var(--primary));
   }
 
   .step-badge {
-    @apply flex items-center justify-center w-7 h-7 rounded-lg text-xs font-semibold;
+    @apply flex items-center justify-center w-7 h-7 rounded-lg;
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
   }
@@ -160,16 +309,10 @@
   .btn-primary {
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
-    @apply px-6 py-2.5 rounded-full text-sm font-semibold transition-colors duration-150;
+    @apply px-6 py-2.5 rounded-full transition-colors duration-150;
   }
   .btn-primary:hover {
     background: hsl(var(--primary-dark));
-  }
-
-  .section-label {
-    @apply text-[11px] font-semibold uppercase tracking-wider;
-    color: hsl(var(--muted-foreground));
-    letter-spacing: 0.06em;
   }
 
   .section-divider {
@@ -184,7 +327,7 @@
   }
 
   .input-executive {
-    @apply w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1;
+    @apply w-full rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1;
     border: 1.5px solid hsl(var(--border));
     background: hsl(var(--background));
     color: hsl(var(--foreground));

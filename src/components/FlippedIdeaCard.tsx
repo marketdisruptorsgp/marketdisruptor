@@ -98,7 +98,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
       {/* AI Visual Mockup */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="section-label text-[10px] flex items-center gap-1">
+          <p className="typo-card-eyebrow flex items-center gap-1">
             <ImageIcon size={10} /> AI Product Visual
           </p>
           <button
@@ -163,11 +163,11 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
       {/* Details grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
         <div className="space-y-1">
-          <p className="section-label text-[10px]">Visual / Mockup Notes</p>
+          <p className="typo-card-eyebrow">Visual / Mockup Notes</p>
           <p className="text-foreground/80 text-xs leading-relaxed">{idea.visualNotes}</p>
         </div>
         <div className="space-y-1">
-          <p className="section-label text-[10px]">Feasibility & Unit Economics</p>
+          <p className="typo-card-eyebrow">Feasibility & Unit Economics</p>
           <p className="text-foreground/80 text-xs leading-relaxed">{idea.feasibilityNotes}</p>
         </div>
       </div>
@@ -243,7 +243,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
       {/* Action Plan */}
       {idea.actionPlan && (
         <div className="space-y-3 pt-2 border-t border-border">
-          <p className="section-label text-[10px] flex items-center gap-1">
+          <p className="typo-card-eyebrow flex items-center gap-1">
             <Rocket size={11} /> Action Plan
           </p>
           <div className="grid grid-cols-1 gap-2">

@@ -33,7 +33,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
       <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide">
         {/* Progress bar */}
         <div className="flex items-center justify-between mb-2">
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+          <p className="typo-status-label text-muted-foreground">
             Step {activeStep} of {totalSteps}
           </p>
           <div className="flex items-center gap-1">
@@ -77,7 +77,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
                   {/* Outdated indicator */}
                   {isOutdated && (
                     <div className="absolute -top-1.5 -right-1.5 z-10">
-                      <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold"
+                      <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full typo-status-label"
                         style={{ background: "hsl(38 92% 50%)", color: "white" }}>
                         <AlertCircle size={8} />
                         <span className="hidden sm:inline">Outdated</span>
@@ -94,9 +94,11 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-extrabold leading-tight truncate">{s.label}</p>
-                    <p className="text-[9px] sm:text-[10px] leading-tight truncate hidden sm:block" style={{
-                      color: isCurrent ? "hsl(var(--background) / 0.7)" : "hsl(var(--muted-foreground))",
+                    <p className={isCurrent ? "typo-step-title-active" : "typo-step-title-inactive"}>
+                      {s.label}
+                    </p>
+                    <p className="typo-step-subtitle hidden sm:block truncate" style={{
+                      color: isCurrent ? "hsl(var(--background) / 0.7)" : undefined,
                     }}>
                       {s.description}
                     </p>

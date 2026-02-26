@@ -224,7 +224,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               <XCircle size={14} style={{ color: "white" }} />
             </div>
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>Red Team — Against This Idea</p>
+              <p className="typo-card-eyebrow" style={{ color: "hsl(var(--destructive))" }}>Red Team — Against This Idea</p>
               <p className="text-[10px] text-muted-foreground">Why this concept will fail</p>
             </div>
           </div>
@@ -289,7 +289,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               <CheckCircle2 size={14} style={{ color: "white" }} />
             </div>
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(142 70% 30%)" }}>Green Team — For This Idea</p>
+              <p className="typo-card-eyebrow" style={{ color: "hsl(142 70% 30%)" }}>Green Team — For This Idea</p>
               <p className="text-[10px] text-muted-foreground">Why this concept will succeed</p>
             </div>
           </div>
