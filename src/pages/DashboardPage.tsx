@@ -16,20 +16,20 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { useNavigate } from "react-router-dom";
 import {
   Upload, Briefcase, Building2, ShieldCheck, BookOpen,
-  Rocket, TrendingUp, Users, FileText, ArrowRight,
-} from "lucide-react";
+  Rocket, TrendingUp, Users, FileText, ArrowRight } from
+"lucide-react";
 
 const MODE_WORDS = [
-  { label: "product", color: "hsl(var(--mode-product))" },
-  { label: "service", color: "hsl(var(--mode-service))" },
-  { label: "business model", color: "hsl(var(--mode-business))" },
-];
+{ label: "product", color: "hsl(var(--mode-product))" },
+{ label: "service", color: "hsl(var(--mode-service))" },
+{ label: "business model", color: "hsl(var(--mode-business))" }];
+
 
 const MODE_PILLS = [
-  { id: "custom" as const, label: "Product", icon: Upload, cssVar: "--mode-product", path: "/start/product" },
-  { id: "service" as const, label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/start/service" },
-  { id: "business" as const, label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/start/business" },
-];
+{ id: "custom" as const, label: "Product", icon: Upload, cssVar: "--mode-product", path: "/start/product" },
+{ id: "service" as const, label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/start/service" },
+{ id: "business" as const, label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/start/business" }];
+
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
@@ -75,10 +75,10 @@ export default function DashboardPage() {
           </SheetHeader>
           <div className="mt-4">
             <SavedAnalyses
-              onLoad={(a) => { analysis.handleLoadSaved(a); setShowSavedPanel(false); }}
+              onLoad={(a) => {analysis.handleLoadSaved(a);setShowSavedPanel(false);}}
               refreshTrigger={analysis.savedRefreshTrigger}
-              onCountChange={setSavedCount}
-            />
+              onCountChange={setSavedCount} />
+
           </div>
         </SheetContent>
       </Sheet>
@@ -86,15 +86,15 @@ export default function DashboardPage() {
       {/* Hero Section */}
       <section className="bg-background">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-5 sm:pb-10">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight whitespace-nowrap pl-[15%] sm:pl-[20%]">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight whitespace-nowrap pl-[15%] sm:pl-[20%] text-center">
             Rethink any{" "}
             <span
               className="inline-block transition-opacity duration-300 text-left min-w-[180px] sm:min-w-[320px]"
               style={{
                 opacity: visible ? 1 : 0,
-                color: MODE_WORDS[wordIndex].color,
-              }}
-            >
+                color: MODE_WORDS[wordIndex].color
+              }}>
+
               {MODE_WORDS[wordIndex].label}
             </span>
           </h1>
@@ -104,8 +104,8 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button
               onClick={() => navigate("/about")}
-              className="px-4 sm:px-6 py-2.5 rounded-full text-sm font-semibold border border-border text-foreground transition-colors hover:bg-muted"
-            >
+              className="px-4 sm:px-6 py-2.5 rounded-full text-sm font-semibold border border-border text-foreground transition-colors hover:bg-muted">
+
               Learn More
             </button>
           </div>
@@ -114,19 +114,19 @@ export default function DashboardPage() {
           <p className="text-sm sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mt-8 sm:mt-10 mb-3 sm:mb-4 text-center">Built For</p>
           <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-3xl mx-auto text-left">
             {[
-              { icon: Rocket, title: "Entrepreneurs", desc: "Data-driven conviction, not guesswork." },
-              { icon: TrendingUp, title: "Investors", desc: "Adversarial rigor before committing capital." },
-              { icon: Users, title: "Product Teams", desc: "Stress-test strategy before launch." },
-              { icon: FileText, title: "Agencies", desc: "Data-backed perspectives beyond surface-level." },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="rounded-xl border border-border bg-card p-3 sm:p-5 flex flex-col items-start">
+            { icon: Rocket, title: "Entrepreneurs", desc: "Data-driven conviction, not guesswork." },
+            { icon: TrendingUp, title: "Investors", desc: "Adversarial rigor before committing capital." },
+            { icon: Users, title: "Product Teams", desc: "Stress-test strategy before launch." },
+            { icon: FileText, title: "Agencies", desc: "Data-backed perspectives beyond surface-level." }].
+            map(({ icon: Icon, title, desc }) =>
+            <div key={title} className="rounded-xl border border-border bg-card p-3 sm:p-5 flex flex-col items-start">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mb-2 sm:mb-2.5">
                   <Icon size={16} className="text-primary" />
                 </div>
                 <p className="text-xs sm:text-sm font-bold text-foreground mb-0.5">{title}</p>
                 <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -139,8 +139,8 @@ export default function DashboardPage() {
         <div
           className="rounded-2xl px-5 py-6 sm:py-8 text-center cursor-pointer transition-all hover:shadow-md"
           style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
-          onClick={() => navigate("/start/product")}
-        >
+          onClick={() => navigate("/start/product")}>
+
           <p className="text-sm sm:text-base font-bold text-foreground mb-1.5">
             Apply a level of scrutiny that exceeds normal bandwidth.
           </p>
@@ -149,8 +149,8 @@ export default function DashboardPage() {
           </p>
           <button
             className="inline-flex items-center gap-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-full text-sm font-semibold text-primary-foreground transition-colors"
-            style={{ background: "hsl(var(--primary))" }}
-          >
+            style={{ background: "hsl(var(--primary))" }}>
+
             Start Analysis <ArrowRight size={15} />
           </button>
         </div>
@@ -187,14 +187,14 @@ export default function DashboardPage() {
                   className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold border transition-colors hover:shadow-sm"
                   style={{
                     borderColor: `hsl(var(${pill.cssVar}))`,
-                    color: `hsl(var(${pill.cssVar}))`,
-                  }}
-                >
+                    color: `hsl(var(${pill.cssVar}))`
+                  }}>
+
                   <Icon size={14} />
                   {pill.label}
                   <ArrowRight size={12} />
-                </button>
-              );
+                </button>);
+
             })}
           </div>
         </div>
@@ -221,6 +221,6 @@ export default function DashboardPage() {
           </p>
         </div>
       </footer>
-    </div>
-  );
+    </div>);
+
 }
