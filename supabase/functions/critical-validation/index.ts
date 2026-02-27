@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
+import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +13,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, analysisData, userSuggestions } = await req.json();
+    const { product, analysisData, userSuggestions, lens } = await req.json();
     const mode = resolveMode(product.analysisType, product.category);
     const filterResult = filterInputData(mode, { ...product, ...analysisData });
     console.log(`[ModeEnforcement] critical-validation | ${mode} | ${missingDataWarning(mode)}`);
@@ -176,7 +177,7 @@ CRITICAL INSTRUCTIONS:
 8. Provide 4-6 arguments for both Red and Green teams.
 9. Provide 3-5 counter-examples, 6-10 feasibility items, and 3-4 blind spots.
 
-Return ONLY the JSON object.`;
+Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

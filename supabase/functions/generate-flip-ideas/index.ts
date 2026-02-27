@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, missingDataWarning } from "../_shared/modeEnforcement.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
+import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +13,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, audience, additionalContext, insightPreferences, steeringText } = await req.json();
+    const { product, audience, additionalContext, insightPreferences, steeringText, lens } = await req.json();
     const mode = resolveMode(undefined, product.category);
     const filterResult = filterInputData(mode, product);
     const filteredProduct = filterResult.filtered as typeof product;
@@ -136,7 +137,7 @@ ANTI-GENERIC RULES:
 - Each idea must be DIFFERENT in structural approach (e.g. one could be a material flip, one a business model flip, one an audience flip)
 - NOVEL ideas without precedent are WELCOME — explain why the timing is right and what signals support them
 
-Return ONLY a JSON array with exactly 3 flipped idea objects.`;
+Return ONLY a JSON array with exactly 3 flipped idea objects.${buildLensPrompt(lens)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

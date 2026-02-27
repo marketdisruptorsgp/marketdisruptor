@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
+import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +13,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, disruptData, stressTestData, userScores, redesignData, insightPreferences, steeringText } = await req.json();
+    const { product, disruptData, stressTestData, userScores, redesignData, insightPreferences, steeringText, lens } = await req.json();
     const mode = resolveMode(product.analysisType, product.category);
     const filterResult = filterInputData(mode, product);
     console.log(`[ModeEnforcement] pitch-deck | ${mode} | ${missingDataWarning(mode)}`);
@@ -268,7 +269,7 @@ ${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) =>
 ${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "dismissed").map(([id]) => `✗ DE-PRIORITIZE: ${id}`).join("\n")}` : ""}
 Build the most compelling, investor-ready pitch deck possible. Use all upstream data.
 Base scores on realistic market signals, competitive density, and structural feasibility.
-
+${buildLensPrompt(lens)}
 Return ONLY the JSON object.`;
     }
 

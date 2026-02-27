@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
+import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { businessModel, userSuggestions } = await req.json();
+    const { businessModel, userSuggestions, lens } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -154,7 +155,7 @@ CRITICAL INSTRUCTIONS:
 11. UNIT ECONOMICS: Include specific margin math for the reinvented model — revenue per customer, cost to serve, LTV, CAC estimate.
 12. COMPETITIVE MOAT: Explain specifically what prevents a competitor from copying the reinvented model within 12 months.
 
-Return ONLY the JSON object.`;
+Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
