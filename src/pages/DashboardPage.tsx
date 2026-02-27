@@ -106,8 +106,12 @@ export default function DashboardPage() {
             <button
               onClick={() => navigate("/about")}
               className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-primary text-primary-foreground transition-colors hover:opacity-90">
-
               Learn More
+            </button>
+            <button
+              onClick={() => navigate("/report")}
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-accent text-accent-foreground border border-border transition-colors hover:opacity-90">
+              View Example Output
             </button>
           </div>
 
