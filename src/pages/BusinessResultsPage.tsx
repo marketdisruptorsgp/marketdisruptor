@@ -10,7 +10,7 @@ import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { InfoExplainer } from "@/components/InfoExplainer";
-import { LensToggle } from "@/components/LensToggle";
+
 import type { Product } from "@/data/mockProducts";
 import {
   Target, Brain, Swords, Presentation, ArrowLeft, FileDown,
@@ -102,7 +102,7 @@ export default function BusinessResultsPage() {
                   </div>
                   <p className="typo-card-body text-muted-foreground">Deep business model deconstruction for <strong className="text-foreground">{bizName}</strong></p>
                 </div>
-                <LensToggle />
+                
                 <button onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded typo-button-secondary transition-colors"
                   style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
