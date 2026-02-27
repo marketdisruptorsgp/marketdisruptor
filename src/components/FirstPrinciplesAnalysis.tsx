@@ -57,7 +57,8 @@ interface PhysicalDimensions {
 }
 
 interface WorkflowFriction {
-  step: string;
+  step?: string;
+  stepIndex?: number;
   friction: string;
   severity: "high" | "medium" | "low";
   rootCause: string;
@@ -161,10 +162,16 @@ const REASON_COLORS: Record<string, { bg: string; text: string; label: string }>
 export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; frictionPoints: WorkflowFriction[] }) {
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
 
-  const getFriction = (stepName: string): WorkflowFriction | undefined => {
+  const getFriction = (stepIndex: number, stepName: string): WorkflowFriction | undefined => {
+    // First try matching by stepIndex (new format)
+    const byIndex = frictionPoints?.find(fp => fp.stepIndex === stepIndex);
+    if (byIndex) return byIndex;
+    // Fallback: match by step name (legacy data)
     return frictionPoints?.find(fp =>
-      stepName.toLowerCase().includes(fp.step.toLowerCase()) ||
-      fp.step.toLowerCase().includes(stepName.toLowerCase().slice(0, 12))
+      fp.step && (
+        stepName.toLowerCase().includes(fp.step.toLowerCase()) ||
+        fp.step.toLowerCase().includes(stepName.toLowerCase().slice(0, 12))
+      )
     );
   };
 
@@ -184,7 +191,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
       {/* Timeline cards — vertical on all sizes for clarity */}
       <div className="relative">
         {steps.slice(0, 8).map((step, i) => {
-          const friction = getFriction(step);
+          const friction = getFriction(i, step);
           const isExpanded = expandedStep === i;
           const isLast = i === Math.min(steps.length, 8) - 1;
 
@@ -197,9 +204,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
                   style={{
                     background: isExpanded
                       ? "hsl(var(--foreground))"
-                      : friction
-                        ? "hsl(var(--foreground) / 0.08)"
-                        : "hsl(var(--muted))",
+                      : "hsl(var(--muted))",
                     color: isExpanded
                       ? "hsl(var(--background))"
                       : "hsl(var(--foreground))",
@@ -227,15 +232,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
                     : "1px solid hsl(var(--border))",
                 }}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-[13px] font-bold text-foreground leading-snug flex-1">{step}</p>
-                  {friction && (
-                    <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
-                      <AlertTriangle size={11} style={{ color: "hsl(var(--muted-foreground))" }} />
-                      <span className="text-[10px] font-semibold text-muted-foreground">Friction</span>
-                    </div>
-                  )}
-                </div>
+                <p className="text-[13px] font-bold text-foreground leading-snug">{step}</p>
 
                 {isExpanded && friction && (
                   <div className="mt-2.5 space-y-2 pt-2.5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
