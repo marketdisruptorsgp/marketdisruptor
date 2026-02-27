@@ -21,6 +21,7 @@ import {
   SlideStatCard, SlideBullet, MarketSizeVisual, RiskSeverityBar,
   ScenarioBarChart, SlideQuoteBlock, SlideTimeline, MetricBar,
   FunnelVisual, DonutChart, KeyMetricPanel, EmphasisBox, SplitLayout,
+  InsightCard, ComparisonLayout, TakeawayCallout, ThreeColumnGrid,
 } from "@/components/pitch/PitchSlideFrame";
 import { PresentationMode } from "@/components/pitch/PresentationMode";
 import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
@@ -269,11 +270,11 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   } : null);
 
   // ── Inline styles for 1920×1080 canvas ──────────────────────
-  const panel: React.CSSProperties = { padding: 32, borderRadius: 12, background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" };
-  const lbl: React.CSSProperties = { fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))", marginBottom: 14 };
-  const txt: React.CSSProperties = { fontSize: 24, color: "hsl(var(--foreground))", opacity: 0.85, lineHeight: 1.55 };
-  const heading: React.CSSProperties = { fontSize: 30, fontWeight: 700, color: "hsl(var(--foreground))", lineHeight: 1.3 };
-  const gap32: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 32, height: "100%", justifyContent: "center" };
+  const panel: React.CSSProperties = { padding: 28, borderRadius: 10, background: "#fafafa", border: "1px solid #e8e8ec" };
+  const lbl: React.CSSProperties = { fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 14 };
+  const txt: React.CSSProperties = { fontSize: 21, color: "#0f0f12", opacity: 0.85, lineHeight: 1.55 };
+  const heading: React.CSSProperties = { fontSize: 28, fontWeight: 700, color: "#0f0f12", lineHeight: 1.3 };
+  const gap28: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 24 };
 
   // ── Raw slide builder (1920×1080, no ScaledSlide wrapper) ───
   const rawSlide = (slideId: string, children: React.ReactNode) => (
@@ -294,7 +295,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   const slideContent: Record<string, React.ReactNode> = {
     /* ═══ 1. PROBLEM ═══ */
     problem: (
-      <div style={gap32}>
+      <div style={gap28}>
         <SlideQuoteBlock quote={data.problemStatement} accentColor={accentColor} label="Problem Statement" />
         {data.customerPersona && (
           <SplitLayout
@@ -302,18 +303,18 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
               <div style={panel}>
                 <p style={lbl}>Target Customer</p>
                 <p style={heading}>{data.customerPersona.name}</p>
-                <p style={{ fontSize: 20, color: "hsl(var(--muted-foreground))", marginTop: 6 }}>Age: {data.customerPersona.age}</p>
-                <p style={{ ...txt, fontSize: 20, marginTop: 4 }}>{data.customerPersona.buyingBehavior}</p>
-                <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid hsl(var(--border))" }}>
-                  <p style={{ ...lbl, marginBottom: 8 }}>Willingness to Pay</p>
-                  <p style={{ fontSize: 22, color: "hsl(var(--foreground))", opacity: 0.8 }}>{data.customerPersona.willingness}</p>
+                <p style={{ fontSize: 18, color: "#71717a", marginTop: 6 }}>Age: {data.customerPersona.age}</p>
+                <p style={{ ...txt, fontSize: 19, marginTop: 4 }}>{data.customerPersona.buyingBehavior}</p>
+                <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #e8e8ec" }}>
+                  <p style={{ ...lbl, marginBottom: 6 }}>Willingness to Pay</p>
+                  <p style={{ fontSize: 20, color: "#0f0f12", opacity: 0.8 }}>{data.customerPersona.willingness}</p>
                 </div>
               </div>
             }
             right={
               <div style={panel}>
                 <p style={lbl}>Key Pain Points</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   {data.customerPersona.painPoints.slice(0, 4).map((p, i) => (
                     <SlideBullet key={i} index={i} accentColor={accentColor}>{p}</SlideBullet>
                   ))}
@@ -322,46 +323,40 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             }
           />
         )}
+        <TakeawayCallout text="This problem creates a structural gap — the market is underserved and ready for disruption." accentColor={accentColor} />
       </div>
     ),
 
     /* ═══ 2. SOLUTION ═══ */
     solution: (
-      <div style={gap32}>
-        <SlideQuoteBlock quote={data.elevatorPitch} accentColor={accentColor} label="Elevator Pitch" />
-        <div style={panel}>
-          <p style={lbl}>Solution Overview</p>
-          <p style={txt}>{data.solutionStatement}</p>
-        </div>
+      <div style={gap28}>
+        <KeyMetricPanel label="Elevator Pitch" value="→" accentColor={accentColor} sublabel={data.elevatorPitch} />
+        <InsightCard title="Solution Overview" body={data.solutionStatement} accentColor={accentColor} />
         {data.competitiveAdvantages?.length > 0 && (
-          <div style={panel}>
-            <p style={lbl}>Key Differentiators</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {data.competitiveAdvantages.slice(0, 3).map((a, i) => (
-                <SlideBullet key={i} index={i} accentColor={accentColor}>{a}</SlideBullet>
-              ))}
-            </div>
-          </div>
+          <ComparisonLayout
+            leftTitle="Market Standard"
+            leftItems={data.competitiveAdvantages.slice(0, 3).map(a => `Lacks: ${a.split(" ").slice(0, 6).join(" ")}...`)}
+            rightTitle="Our Differentiation"
+            rightItems={data.competitiveAdvantages.slice(0, 3)}
+            accentColor={accentColor}
+          />
         )}
       </div>
     ),
 
     /* ═══ 3. WHY NOW ═══ */
     whynow: (
-      <div style={gap32}>
+      <div style={gap28}>
         <SlideQuoteBlock quote={data.whyNow} accentColor={accentColor} label="Market Timing Thesis" />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24 }}>
+        <ThreeColumnGrid>
           {[
             { label: "Market Shift", desc: "Structural industry change creating new entry points" },
             { label: "Tech Enabler", desc: "New capabilities reducing cost and complexity barriers" },
             { label: "Demand Signal", desc: "Consumer behavior evolution favoring this approach" },
           ].map((item) => (
-            <div key={item.label} style={{ ...panel, borderTop: `3px solid ${accentColor}` }}>
-              <p style={{ fontSize: 22, fontWeight: 700, color: "hsl(var(--foreground))", marginBottom: 8 }}>{item.label}</p>
-              <p style={{ fontSize: 20, color: "hsl(var(--muted-foreground))", lineHeight: 1.45 }}>{item.desc}</p>
-            </div>
+            <InsightCard key={item.label} title={item.label} body={item.desc} accentColor={accentColor} />
           ))}
-        </div>
+        </ThreeColumnGrid>
         {data.marketOpportunity?.growthRate && (
           <KeyMetricPanel label="Market CAGR" value={data.marketOpportunity.growthRate} accentColor={accentColor} sublabel="Accelerating tailwinds create a narrow window for first-mover advantage" />
         )}
@@ -370,24 +365,24 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 4. MARKET ═══ */
     market: data.marketOpportunity ? (
-      <div style={gap32}>
+      <div style={gap28}>
         <SplitLayout
           left={<MarketSizeVisual tam={data.marketOpportunity.tam} sam={data.marketOpportunity.sam} som={data.marketOpportunity.som} accentColor={accentColor} />}
           right={
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <SlideStatCard label="Total Addressable Market (TAM)" value={data.marketOpportunity.tam} accentColor={accentColor} />
               <SlideStatCard label="Serviceable Addressable Market (SAM)" value={data.marketOpportunity.sam} accentColor={accentColor} />
               <SlideStatCard label="Serviceable Obtainable Market (SOM)" value={data.marketOpportunity.som} accentColor={accentColor} sublabel="Initial target within 3 years" />
             </div>
           }
         />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           <EmphasisBox accentColor={accentColor} label="Growth Rate">
-            <p style={{ fontSize: 28, fontWeight: 700, color: "hsl(var(--foreground))" }}>{data.marketOpportunity.growthRate}</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: "#0f0f12" }}>{data.marketOpportunity.growthRate}</p>
           </EmphasisBox>
           <div style={panel}>
             <p style={lbl}>Key Drivers</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {data.marketOpportunity.keyDrivers.slice(0, 3).map((d, i) => (
                 <SlideBullet key={i}>{d}</SlideBullet>
               ))}
@@ -399,49 +394,35 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 5. PRODUCT ═══ */
     product: (
-      <div style={gap32}>
-        {data.productInnovation && <SlideQuoteBlock quote={data.productInnovation} accentColor={accentColor} label="Innovation Thesis" />}
-        <SplitLayout
-          left={
-            <div style={panel}>
-              <p style={lbl}>Competitive Advantages</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {data.competitiveAdvantages.slice(0, 4).map((adv, i) => (
-                  <SlideBullet key={i} index={i} accentColor={accentColor}>{adv}</SlideBullet>
-                ))}
-              </div>
-            </div>
-          }
-          right={
-            <div style={panel}>
-              <p style={{ ...lbl, color: "hsl(142 71% 45%)" }}>Investor Highlights</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {data.investorHighlights.slice(0, 4).map((h, i) => (
-                  <SlideBullet key={i} index={i} accentColor="hsl(142 71% 45%)">{h}</SlideBullet>
-                ))}
-              </div>
-            </div>
-          }
+      <div style={gap28}>
+        {data.productInnovation && <InsightCard title="Innovation Thesis" body={data.productInnovation} accentColor={accentColor} />}
+        <ComparisonLayout
+          leftTitle="Competitive Advantages"
+          leftItems={data.competitiveAdvantages.slice(0, 4)}
+          rightTitle="Investor Highlights"
+          rightItems={data.investorHighlights.slice(0, 4)}
+          accentColor={accentColor}
         />
+        <TakeawayCallout text="Structurally differentiated — not just better features, but a fundamentally different approach." accentColor={accentColor} />
       </div>
     ),
 
     /* ═══ 6. BUSINESS MODEL ═══ */
     businessmodel: (
-      <div style={gap32}>
+      <div style={gap28}>
         {data.businessModel?.revenueStreams && (
           <div>
             <p style={lbl}>Revenue Streams</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
               {data.businessModel.revenueStreams.map((s, i) => (
-                <span key={i} style={{ padding: "10px 20px", borderRadius: 8, fontSize: 20, fontWeight: 600, background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", borderLeft: `4px solid ${accentColor}` }}>{s}</span>
+                <span key={i} style={{ padding: "8px 18px", borderRadius: 8, fontSize: 18, fontWeight: 600, background: "#fafafa", color: "#0f0f12", border: "1px solid #e8e8ec", borderLeft: `4px solid ${accentColor}` }}>{s}</span>
               ))}
             </div>
           </div>
         )}
         {fm && (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }}>
               {[
                 { label: "COGS", value: fm.unitEconomics.cogs, sub: "Cost of goods sold" },
                 { label: "Price", value: fm.unitEconomics.retailPrice, sub: "Retail price point" },
@@ -452,12 +433,12 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
               ))}
             </div>
             {fm.unitEconomics.ltv && fm.unitEconomics.cac && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <SlideStatCard label="Lifetime Value (LTV)" value={fm.unitEconomics.ltv} accentColor="hsl(142 71% 45%)" sublabel="Total customer revenue" />
-                <SlideStatCard label="Customer Acquisition Cost" value={fm.unitEconomics.cac} accentColor="hsl(38 92% 50%)" sublabel="Cost to acquire one customer" />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <SlideStatCard label="Lifetime Value (LTV)" value={fm.unitEconomics.ltv} accentColor="#22c55e" sublabel="Total customer revenue" />
+                <SlideStatCard label="Customer Acquisition Cost" value={fm.unitEconomics.cac} accentColor="#f59e0b" sublabel="Cost to acquire one customer" />
               </div>
             )}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               {fm.pricingStrategy && (
                 <EmphasisBox accentColor={accentColor} label="Pricing Strategy">
                   <p style={txt}>{fm.pricingStrategy}</p>
@@ -476,21 +457,21 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 7. TRACTION & METRICS ═══ */
     traction: (
-      <div style={gap32}>
+      <div style={gap28}>
         <SplitLayout
           left={
             data.tractionSignals?.length ? (
               <div style={panel}>
-                <p style={{ ...lbl, color: "hsl(142 71% 45%)" }}>Traction Signals</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <p style={{ ...lbl, color: "#22c55e" }}>Traction Signals</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   {data.tractionSignals.slice(0, 4).map((s, i) => (
-                    <SlideBullet key={i} index={i} accentColor="hsl(142 71% 45%)">{s}</SlideBullet>
+                    <SlideBullet key={i} index={i} accentColor="#22c55e">{s}</SlideBullet>
                   ))}
                 </div>
               </div>
             ) : (
-              <div style={{ ...panel, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <p style={{ fontSize: 20, color: "hsl(var(--muted-foreground))" }}>Pre-launch — traction targets defined</p>
+              <div style={{ ...panel, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200 }}>
+                <p style={{ fontSize: 18, color: "#a1a1aa" }}>Pre-launch — traction targets defined</p>
               </div>
             )
           }
@@ -498,7 +479,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             data.keyMetrics?.length > 0 ? (
               <div style={panel}>
                 <p style={lbl}>Key Performance Indicators</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                   {data.keyMetrics.slice(0, 5).map((m, i) => (
                     <MetricBar key={i} metric={m.metric} target={m.target} why={m.why} accentColor={accentColor} />
                   ))}
@@ -510,13 +491,13 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         <EmphasisBox accentColor={accentColor} label="Revival Potential Score">
           <div style={{ display: "flex", alignItems: "center", gap: 40 }}>
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: 16, color: "hsl(var(--muted-foreground))", marginBottom: 4 }}>AI Score</p>
-              <p style={{ fontSize: 48, fontWeight: 800, color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif" }}>{product.revivalScore || "—"}</p>
+              <p style={{ fontSize: 14, color: "#71717a", marginBottom: 4 }}>AI Score</p>
+              <p style={{ fontSize: 44, fontWeight: 800, color: accentColor, fontFamily: "'Space Grotesk', sans-serif" }}>{product.revivalScore || "—"}</p>
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <p style={{ fontSize: 18, color: "hsl(var(--muted-foreground))" }}>Your Rating</p>
-                <span style={{ fontSize: 22, fontWeight: 700, color: "hsl(var(--foreground))" }}>{userScore}/10</span>
+                <p style={{ fontSize: 16, color: "#71717a" }}>Your Rating</p>
+                <span style={{ fontSize: 20, fontWeight: 700, color: "#0f0f12" }}>{userScore}/10</span>
               </div>
               <Slider value={[userScore]} onValueChange={(v) => setUserScore(v[0])} min={1} max={10} step={1} />
             </div>
@@ -527,19 +508,19 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 8. RISKS ═══ */
     risks: (
-      <div style={{ display: "flex", flexDirection: "column", gap: 20, height: "100%", justifyContent: "center" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {data.risks.slice(0, 4).map((r, i) => (
-          <div key={i} style={{ borderRadius: 12, overflow: "hidden", border: "1px solid hsl(var(--border))" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "16px 28px", background: "hsl(var(--muted))" }}>
-              <p style={{ fontSize: 24, fontWeight: 700, color: "hsl(var(--foreground))", display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ width: 28, height: 28, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "white", background: r.severity === "high" ? "hsl(0 72% 51%)" : r.severity === "medium" ? "hsl(38 92% 50%)" : "hsl(142 71% 45%)" }}>{i + 1}</span>
+          <div key={i} style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #e8e8ec" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 24px", background: "#fafafa" }}>
+              <p style={{ fontSize: 21, fontWeight: 700, color: "#0f0f12", display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 26, height: 26, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#ffffff", background: r.severity === "high" ? "#ef4444" : r.severity === "medium" ? "#f59e0b" : "#22c55e" }}>{i + 1}</span>
                 {r.risk}
               </p>
               <RiskSeverityBar severity={r.severity} />
             </div>
-            <div style={{ padding: "16px 28px", borderLeft: `4px solid ${r.severity === "high" ? "hsl(0 72% 51%)" : r.severity === "medium" ? "hsl(38 92% 50%)" : "hsl(142 71% 45%)"}` }}>
-              <p style={{ ...lbl, fontSize: 12, marginBottom: 6 }}>Mitigation Strategy</p>
-              <p style={{ ...txt, fontSize: 22 }}>{r.mitigation}</p>
+            <div style={{ padding: "14px 24px", borderLeft: `4px solid ${r.severity === "high" ? "#ef4444" : r.severity === "medium" ? "#f59e0b" : "#22c55e"}` }}>
+              <p style={{ ...lbl, fontSize: 11, marginBottom: 4 }}>Mitigation Strategy</p>
+              <p style={{ ...txt, fontSize: 19 }}>{r.mitigation}</p>
             </div>
           </div>
         ))}
@@ -548,7 +529,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
     /* ═══ 9. GTM ═══ */
     gtm: data.gtmStrategy ? (
-      <div style={gap32}>
+      <div style={gap28}>
         <SplitLayout
           ratio="3:2"
           left={
@@ -568,24 +549,26 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             />
           }
         />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           <div style={panel}>
             <p style={lbl}>Distribution Channels</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {data.gtmStrategy.keyChannels.map((ch, i) => (
-                <span key={i} style={{ padding: "8px 16px", borderRadius: 8, fontSize: 18, fontWeight: 600, background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>{ch}</span>
+                <span key={i} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 16, fontWeight: 600, background: "#ffffff", color: "#0f0f12", border: "1px solid #e8e8ec", borderLeft: `3px solid ${accentColor}` }}>{ch}</span>
               ))}
             </div>
           </div>
           <SlideStatCard label="Launch Budget" value={data.gtmStrategy.launchBudget} accentColor={accentColor} sublabel="Initial go-to-market investment" />
         </div>
-        {data.competitiveLandscape?.moat && <SlideQuoteBlock quote={data.competitiveLandscape.moat} accentColor={accentColor} label="Defensible Moat" />}
+        {data.competitiveLandscape?.moat && (
+          <TakeawayCallout text={data.competitiveLandscape.moat} accentColor={accentColor} label="Defensible Moat" />
+        )}
       </div>
     ) : null,
 
     /* ═══ 10. THE ASK ═══ */
     invest: (
-      <div style={gap32}>
+      <div style={gap28}>
         <KeyMetricPanel label="Total Funding Ask" value={fm?.fundingAsk || data.investmentAsk?.amount || "TBD"} accentColor={accentColor} />
         <SplitLayout
           left={
@@ -616,10 +599,10 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             ) : <div />
           }
         />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           <div style={panel}>
             <p style={lbl}>Use of Funds</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {(fm?.useOfFunds || data.investmentAsk?.useOfFunds || []).slice(0, 5).map((u, i) => (
                 <SlideBullet key={i} index={i} accentColor={accentColor}>{u}</SlideBullet>
               ))}

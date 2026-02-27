@@ -3,7 +3,13 @@ import React, { useRef, useState, useEffect } from "react";
 /* ═══════════════════════════════════════════════════════════════
    PRESENTATION ENGINE — All components render at 1920×1080
    and scale to fit any container via ScaledSlide.
-   Typography uses fixed pixel values for predictable output.
+   
+   Design system:
+   - 72px side margins, 36px top/bottom content padding
+   - Consistent 12-column conceptual grid
+   - White background with restrained accent usage
+   - Top-aligned content (no vertical centering)
+   - Every slide has one clear visual focal point
    ═══════════════════════════════════════════════════════════════ */
 
 // ── ScaledSlide Container ─────────────────────────────────────
@@ -34,26 +40,17 @@ export function ScaledSlide({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Decorative Elements ───────────────────────────────────────
-function DotGrid({ color = "currentColor", opacity = 0.025 }: { color?: string; opacity?: number }) {
+// ── Subtle Background ─────────────────────────────────────────
+function SubtleGrid({ accentColor }: { accentColor: string }) {
   return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity }}>
+    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.018 }}>
       <defs>
-        <pattern id="pitch-dots-lg" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-          <circle cx="4" cy="4" r="1.2" fill={color} />
+        <pattern id="slide-grid" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+          <line x1="80" y1="0" x2="80" y2="80" stroke={accentColor} strokeWidth="0.5" />
+          <line x1="0" y1="80" x2="80" y2="80" stroke={accentColor} strokeWidth="0.5" />
         </pattern>
       </defs>
-      <rect width="100%" height="100%" fill="url(#pitch-dots-lg)" />
-    </svg>
-  );
-}
-
-function DiagonalAccent({ accentColor }: { accentColor: string }) {
-  return (
-    <svg className="absolute top-0 right-0 pointer-events-none" width="240" height="240" style={{ opacity: 0.05 }}>
-      <line x1="80" y1="0" x2="240" y2="160" stroke={accentColor} strokeWidth="1.5" />
-      <line x1="120" y1="0" x2="240" y2="120" stroke={accentColor} strokeWidth="1" />
-      <line x1="160" y1="0" x2="240" y2="80" stroke={accentColor} strokeWidth="0.7" />
+      <rect width="100%" height="100%" fill="url(#slide-grid)" />
     </svg>
   );
 }
@@ -94,45 +91,79 @@ export function PitchSlideFrame({
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <div style={{ width: 1920, height: 1080, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }}>
-      <DotGrid />
-      <DiagonalAccent accentColor={accentColor} />
+    <div style={{
+      width: 1920, height: 1080,
+      display: "flex", flexDirection: "column",
+      position: "relative", overflow: "hidden",
+      background: "#ffffff",
+      borderRadius: 12,
+    }}>
+      <SubtleGrid accentColor={accentColor} />
 
-      {/* Accent bar */}
-      <div style={{ width: "100%", height: 6, flexShrink: 0, background: `linear-gradient(90deg, ${accentColor}, ${accentColor}66 60%, transparent)` }} />
+      {/* Accent bar — thin top line */}
+      <div style={{ width: "100%", height: 4, flexShrink: 0, background: accentColor }} />
 
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "36px 72px 28px", flexShrink: 0, borderBottom: "1px solid hsl(var(--border))", position: "relative", zIndex: 10 }}>
-        <div>
-          {categoryLabel && (
-            <p style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.2em", color: accentColor, opacity: 0.85, marginBottom: 10, textTransform: "uppercase" }}>{categoryLabel}</p>
-          )}
-          <h2 style={{ fontSize: 48, fontWeight: 800, color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1.1, letterSpacing: "-0.01em" }}>{title}</h2>
-          {subtitle && (
-            <p style={{ fontSize: 22, color: "hsl(var(--muted-foreground))", marginTop: 8, lineHeight: 1.4 }}>{subtitle}</p>
-          )}
+      {/* Header — left-aligned with accent stripe */}
+      <div style={{
+        display: "flex", alignItems: "flex-end", justifyContent: "space-between",
+        padding: "32px 72px 24px", flexShrink: 0,
+        borderBottom: "1px solid #e8e8ec",
+        position: "relative", zIndex: 10,
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
+          {/* Vertical accent stripe */}
+          <div style={{ width: 4, height: 52, borderRadius: 2, background: accentColor, flexShrink: 0, marginTop: 4 }} />
+          <div>
+            {categoryLabel && (
+              <p style={{
+                fontSize: 13, fontWeight: 700, letterSpacing: "0.2em",
+                color: accentColor, opacity: 0.85, marginBottom: 8,
+                textTransform: "uppercase",
+              }}>{categoryLabel}</p>
+            )}
+            <h2 style={{
+              fontSize: 42, fontWeight: 800,
+              color: "#0f0f12",
+              fontFamily: "'Space Grotesk', sans-serif",
+              lineHeight: 1.1, letterSpacing: "-0.01em",
+            }}>{title}</h2>
+            {subtitle && (
+              <p style={{ fontSize: 20, color: "#71717a", marginTop: 6, lineHeight: 1.4 }}>{subtitle}</p>
+            )}
+          </div>
         </div>
-        <span style={{ fontSize: 18, fontWeight: 500, color: "hsl(var(--muted-foreground))", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
+        <span style={{
+          fontSize: 16, fontWeight: 600, color: "#a1a1aa",
+          flexShrink: 0, fontVariantNumeric: "tabular-nums",
+        }}>
           {pad(slideNumber)} / {pad(totalSlides)}
         </span>
       </div>
 
-      {/* Content — NO overflow scroll */}
-      <div style={{ flex: 1, padding: "36px 72px", position: "relative", zIndex: 10, display: "flex", flexDirection: "column" }}>
+      {/* Content — top-aligned, NO vertical centering */}
+      <div style={{
+        flex: 1, padding: "32px 72px",
+        position: "relative", zIndex: 10,
+        display: "flex", flexDirection: "column",
+        overflow: "hidden",
+      }}>
         {children}
       </div>
 
       {/* Footer */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 72px", flexShrink: 0, borderTop: "1px solid hsl(var(--border))", position: "relative", zIndex: 10 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.18em", color: "hsl(var(--muted-foreground))", textTransform: "uppercase" }}>Market Disruptor</span>
-        <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.18em", color: "hsl(var(--muted-foreground))", textTransform: "uppercase" }}>Confidential</span>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "12px 72px", flexShrink: 0,
+        borderTop: "1px solid #e8e8ec",
+        position: "relative", zIndex: 10,
+        background: "#fafafa",
+      }}>
+        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", color: "#a1a1aa", textTransform: "uppercase" }}>Market Disruptor</span>
         {productName && (
-          <span style={{ fontSize: 14, fontWeight: 500, color: "hsl(var(--muted-foreground))", maxWidth: "30%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{productName}</span>
+          <span style={{ fontSize: 12, fontWeight: 500, color: "#a1a1aa", maxWidth: "40%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{productName}</span>
         )}
+        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", color: "#a1a1aa", textTransform: "uppercase" }}>Confidential</span>
       </div>
-
-      {/* Corner accent */}
-      <div style={{ position: "absolute", bottom: 48, right: 32, width: 28, height: 28, borderRight: `2px solid ${accentColor}`, borderBottom: `2px solid ${accentColor}`, opacity: 0.18, pointerEvents: "none" }} />
     </div>
   );
 }
@@ -144,113 +175,253 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   return (
-    <div style={{ width: 1920, height: 1080, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }}>
-      <DotGrid opacity={0.02} />
-      <svg className="absolute pointer-events-none" style={{ top: -60, right: -60, opacity: 0.04 }} width="400" height="400">
-        <circle cx="200" cy="200" r="190" fill="none" stroke={accentColor} strokeWidth="2" />
-        <circle cx="200" cy="200" r="140" fill="none" stroke={accentColor} strokeWidth="1.2" />
-        <circle cx="200" cy="200" r="90" fill="none" stroke={accentColor} strokeWidth="0.7" />
-      </svg>
+    <div style={{
+      width: 1920, height: 1080,
+      display: "flex", flexDirection: "column",
+      position: "relative", overflow: "hidden",
+      background: "#ffffff",
+      borderRadius: 12,
+    }}>
+      <SubtleGrid accentColor={accentColor} />
 
       {/* Accent bar */}
-      <div style={{ width: "100%", height: 8, flexShrink: 0, background: `linear-gradient(90deg, ${accentColor}, ${accentColor}44 50%, transparent)` }} />
+      <div style={{ width: "100%", height: 6, flexShrink: 0, background: accentColor }} />
 
-      {/* Content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "80px 120px", position: "relative", zIndex: 10 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: 64 }}>
-          <MonogramLogo name={productName} accentColor={accentColor} size={96} />
+      {/* Left accent stripe */}
+      <div style={{ position: "absolute", left: 72, top: 140, width: 5, height: 200, borderRadius: 3, background: accentColor, opacity: 0.2 }} />
+
+      {/* Content — top-aligned */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "100px 120px 60px", position: "relative", zIndex: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 48 }}>
+          <MonogramLogo name={productName} accentColor={accentColor} size={80} />
           <div>
-            <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.25em", color: accentColor, opacity: 0.7, textTransform: "uppercase" }}>Market Disruptor</p>
-            <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.25em", color: "hsl(var(--muted-foreground))", textTransform: "uppercase", marginTop: 4 }}>Investor Pitch Deck</p>
+            <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.25em", color: accentColor, textTransform: "uppercase" }}>Market Disruptor</p>
+            <p style={{ fontSize: 14, fontWeight: 600, letterSpacing: "0.2em", color: "#a1a1aa", textTransform: "uppercase", marginTop: 4 }}>Investor Pitch Deck</p>
           </div>
         </div>
 
-        <h1 style={{ fontSize: 72, fontWeight: 800, color: "hsl(var(--foreground))", fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1.05, letterSpacing: "-0.02em", maxWidth: "80%" }}>{productName}</h1>
+        <h1 style={{
+          fontSize: 68, fontWeight: 800,
+          color: "#0f0f12",
+          fontFamily: "'Space Grotesk', sans-serif",
+          lineHeight: 1.05, letterSpacing: "-0.02em",
+          maxWidth: "75%",
+        }}>{productName}</h1>
 
         {subtitle && (
-          <p style={{ fontSize: 36, color: "hsl(var(--muted-foreground))", maxWidth: "75%", lineHeight: 1.3, marginTop: 24, fontWeight: 500 }}>{subtitle}</p>
+          <p style={{ fontSize: 30, color: "#71717a", maxWidth: "70%", lineHeight: 1.35, marginTop: 20, fontWeight: 500 }}>{subtitle}</p>
         )}
 
-        <div style={{ width: 80, height: 3, background: accentColor, opacity: 0.3, marginTop: 40 }} />
+        <div style={{ width: 64, height: 3, background: accentColor, opacity: 0.4, marginTop: 32 }} />
 
         <div style={{ marginTop: "auto" }}>
-          <p style={{ fontSize: 16, color: "hsl(var(--muted-foreground))", fontWeight: 500 }}>{today}</p>
-          <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", color: "hsl(var(--muted-foreground))", textTransform: "uppercase", marginTop: 8 }}>Confidential · {totalSlides} Slides</p>
+          <p style={{ fontSize: 15, color: "#71717a", fontWeight: 500 }}>{today}</p>
+          <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", color: "#a1a1aa", textTransform: "uppercase", marginTop: 6 }}>Confidential · {totalSlides} Slides</p>
         </div>
       </div>
 
-      {/* Corner accent */}
-      <div style={{ position: "absolute", bottom: 40, right: 40, width: 40, height: 40, borderRight: `2px solid ${accentColor}`, borderBottom: `2px solid ${accentColor}`, opacity: 0.18, pointerEvents: "none" }} />
+      {/* Bottom bar */}
+      <div style={{ height: 44, background: "#fafafa", borderTop: "1px solid #e8e8ec", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.2em", color: "#a1a1aa", textTransform: "uppercase" }}>Market Disruptor · Confidential</span>
+      </div>
     </div>
   );
 }
 
-// ── Layout Templates ──────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// LAYOUT TEMPLATES
+// ═══════════════════════════════════════════════════════════════
+
 export function SplitLayout({ left, right, ratio = "1:1" }: { left: React.ReactNode; right: React.ReactNode; ratio?: string }) {
   const [l, r] = ratio.split(":").map(Number);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `${l}fr ${r}fr`, gap: 40, flex: 1 }}>
+    <div style={{ display: "grid", gridTemplateColumns: `${l}fr ${r}fr`, gap: 32, flex: 1 }}>
       <div style={{ display: "flex", flexDirection: "column" }}>{left}</div>
       <div style={{ display: "flex", flexDirection: "column" }}>{right}</div>
     </div>
   );
 }
 
-export function KeyMetricPanel({ value, label, sublabel, accentColor = "#4b68f5" }: { value: string; label: string; sublabel?: string; accentColor?: string }) {
+export function ThreeColumnGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ padding: "32px 40px", borderRadius: 12, background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `5px solid ${accentColor}`, textAlign: "center" }}>
-      <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))", marginBottom: 12 }}>{label}</p>
-      <p style={{ fontSize: 56, fontWeight: 800, color: accentColor, fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1 }}>{value}</p>
-      {sublabel && <p style={{ fontSize: 18, color: "hsl(var(--muted-foreground))", marginTop: 8 }}>{sublabel}</p>}
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24 }}>
+      {children}
     </div>
   );
 }
 
-export function EmphasisBox({ children, accentColor = "#4b68f5", label }: { children: React.ReactNode; accentColor?: string; label?: string }) {
+// ═══════════════════════════════════════════════════════════════
+// STRUCTURED CONTENT BLOCKS
+// ═══════════════════════════════════════════════════════════════
+
+// ── Insight Card: bordered card with accent top and big idea ──
+export function InsightCard({ title, body, accentColor = "#4b68f5", icon }: {
+  title: string; body: string; accentColor?: string; icon?: React.ReactNode;
+}) {
   return (
-    <div style={{ padding: "28px 36px", borderRadius: 12, background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `4px solid ${accentColor}`, position: "relative" }}>
+    <div style={{
+      padding: "28px 32px", borderRadius: 10,
+      background: "#fafafa", border: "1px solid #e8e8ec",
+      borderTop: `3px solid ${accentColor}`,
+      display: "flex", flexDirection: "column", gap: 12,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        {icon && <span style={{ color: accentColor, flexShrink: 0 }}>{icon}</span>}
+        <p style={{ fontSize: 20, fontWeight: 700, color: "#0f0f12", lineHeight: 1.3 }}>{title}</p>
+      </div>
+      <p style={{ fontSize: 20, color: "#52525b", lineHeight: 1.55 }}>{body}</p>
+    </div>
+  );
+}
+
+// ── Key Metric Panel: big number as visual focal point ────────
+export function KeyMetricPanel({ value, label, sublabel, accentColor = "#4b68f5" }: {
+  value: string; label: string; sublabel?: string; accentColor?: string;
+}) {
+  return (
+    <div style={{
+      padding: "32px 40px", borderRadius: 10,
+      background: "#fafafa", border: "1px solid #e8e8ec",
+      borderLeft: `5px solid ${accentColor}`,
+      display: "flex", alignItems: "center", gap: 40,
+    }}>
+      <div style={{ flexShrink: 0 }}>
+        <p style={{ fontSize: 52, fontWeight: 800, color: accentColor, fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1 }}>{value}</p>
+      </div>
+      <div>
+        <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#71717a" }}>{label}</p>
+        {sublabel && <p style={{ fontSize: 18, color: "#52525b", marginTop: 4, lineHeight: 1.4 }}>{sublabel}</p>}
+      </div>
+    </div>
+  );
+}
+
+// ── Comparison Layout: side-by-side before/after or vs ────────
+export function ComparisonLayout({ leftTitle, leftItems, rightTitle, rightItems, accentColor = "#4b68f5" }: {
+  leftTitle: string; leftItems: string[]; rightTitle: string; rightItems: string[];
+  accentColor?: string;
+}) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, borderRadius: 10, overflow: "hidden", border: "1px solid #e8e8ec" }}>
+      <div style={{ padding: "28px 32px", background: "#fafafa" }}>
+        <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 16 }}>{leftTitle}</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {leftItems.map((item, i) => (
+            <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#d4d4d8", flexShrink: 0, marginTop: 8 }} />
+              <p style={{ fontSize: 19, color: "#52525b", lineHeight: 1.45 }}>{item}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ padding: "28px 32px", background: "#ffffff", borderLeft: `3px solid ${accentColor}` }}>
+        <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: accentColor, marginBottom: 16 }}>{rightTitle}</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {rightItems.map((item, i) => (
+            <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: accentColor, opacity: 0.5, flexShrink: 0, marginTop: 7 }} />
+              <p style={{ fontSize: 19, color: "#0f0f12", lineHeight: 1.45, fontWeight: 500 }}>{item}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Takeaway Callout: bottom-anchored key insight ─────────────
+export function TakeawayCallout({ text, accentColor = "#4b68f5", label = "Key Takeaway" }: {
+  text: string; accentColor?: string; label?: string;
+}) {
+  return (
+    <div style={{
+      padding: "20px 32px", borderRadius: 10,
+      background: accentColor, marginTop: "auto",
+      display: "flex", alignItems: "center", gap: 20,
+    }}>
+      <div style={{ width: 4, height: 40, borderRadius: 2, background: "#ffffff", opacity: 0.4, flexShrink: 0 }} />
+      <div>
+        <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#ffffff", opacity: 0.7, marginBottom: 4 }}>{label}</p>
+        <p style={{ fontSize: 20, color: "#ffffff", lineHeight: 1.45, fontWeight: 500 }}>{text}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Emphasis Box: accent-bordered content area ────────────────
+export function EmphasisBox({ children, accentColor = "#4b68f5", label }: {
+  children: React.ReactNode; accentColor?: string; label?: string;
+}) {
+  return (
+    <div style={{
+      padding: "24px 32px", borderRadius: 10,
+      background: "#fafafa", border: "1px solid #e8e8ec",
+      borderLeft: `4px solid ${accentColor}`,
+    }}>
       {label && <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: accentColor, marginBottom: 12 }}>{label}</p>}
       {children}
     </div>
   );
 }
 
-// ── Content Components (1920×1080 scale) ──────────────────────
-
-export function SlideStatCard({ label, value, accentColor, sublabel }: { label: string; value: string; accentColor?: string; sublabel?: string }) {
+// ── Stat Card: compact metric display ─────────────────────────
+export function SlideStatCard({ label, value, accentColor, sublabel }: {
+  label: string; value: string; accentColor?: string; sublabel?: string;
+}) {
   return (
-    <div style={{ padding: "24px 28px", borderRadius: 10, background: "hsl(var(--muted))", borderTop: "1px solid hsl(var(--border))", borderRight: "1px solid hsl(var(--border))", borderBottom: "1px solid hsl(var(--border))", borderLeft: accentColor ? `4px solid ${accentColor}` : "1px solid hsl(var(--border))", position: "relative", overflow: "hidden" }}>
-      <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))", marginBottom: 6 }}>{label}</p>
-      <p style={{ fontSize: 26, fontWeight: 800, color: "hsl(var(--foreground))", lineHeight: 1.2 }}>{value}</p>
-      {sublabel && <p style={{ fontSize: 16, color: "hsl(var(--muted-foreground))", marginTop: 4 }}>{sublabel}</p>}
+    <div style={{
+      padding: "20px 24px", borderRadius: 10,
+      background: "#fafafa", border: "1px solid #e8e8ec",
+      borderLeft: accentColor ? `4px solid ${accentColor}` : "1px solid #e8e8ec",
+    }}>
+      <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 6 }}>{label}</p>
+      <p style={{ fontSize: 28, fontWeight: 800, color: "#0f0f12", lineHeight: 1.2, fontFamily: "'Space Grotesk', sans-serif" }}>{value}</p>
+      {sublabel && <p style={{ fontSize: 15, color: "#71717a", marginTop: 4 }}>{sublabel}</p>}
     </div>
   );
 }
 
-export function SlideBullet({ children, index, accentColor }: { icon?: React.ElementType; iconColor?: string; children: React.ReactNode; index?: number; accentColor?: string }) {
+// ── Numbered Bullet ───────────────────────────────────────────
+export function SlideBullet({ children, index, accentColor }: {
+  icon?: React.ElementType; iconColor?: string; children: React.ReactNode; index?: number; accentColor?: string;
+}) {
   return (
-    <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+    <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
       {typeof index === "number" ? (
-        <span style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, flexShrink: 0, marginTop: 2, background: accentColor || "hsl(var(--foreground))", color: "hsl(var(--background))", opacity: 0.85 }}>{index + 1}</span>
+        <span style={{
+          width: 28, height: 28, borderRadius: "50%",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 13, fontWeight: 800, flexShrink: 0, marginTop: 2,
+          background: accentColor || "#0f0f12", color: "#ffffff", opacity: 0.85,
+        }}>{index + 1}</span>
       ) : (
-        <span style={{ color: "hsl(var(--muted-foreground))", fontWeight: 700, flexShrink: 0, marginTop: 2, fontSize: 22 }}>—</span>
+        <span style={{ color: "#a1a1aa", fontWeight: 700, flexShrink: 0, marginTop: 2, fontSize: 20 }}>—</span>
       )}
-      <p style={{ fontSize: 24, color: "hsl(var(--foreground))", opacity: 0.85, lineHeight: 1.5 }}>{children}</p>
+      <p style={{ fontSize: 21, color: "#0f0f12", opacity: 0.85, lineHeight: 1.5 }}>{children}</p>
     </div>
   );
 }
 
-export function SlideQuoteBlock({ quote, accentColor = "#4b68f5", label }: { quote: string; accentColor?: string; label?: string }) {
+// ── Quote Block: statement with left accent ───────────────────
+export function SlideQuoteBlock({ quote, accentColor = "#4b68f5", label }: {
+  quote: string; accentColor?: string; label?: string;
+}) {
   return (
-    <div style={{ position: "relative", padding: "32px 40px", borderRadius: 12, background: "hsl(var(--muted))", borderTop: "1px solid hsl(var(--border))", borderRight: "1px solid hsl(var(--border))", borderBottom: "1px solid hsl(var(--border))", borderLeft: `4px solid ${accentColor}` }}>
-      <span style={{ position: "absolute", top: -8, left: 16, fontSize: 72, color: accentColor, opacity: 0.06, lineHeight: 1, fontFamily: "serif", pointerEvents: "none", userSelect: "none" }}>"</span>
-      {label && <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))", marginBottom: 16 }}>{label}</p>}
-      <p style={{ fontSize: 26, color: "hsl(var(--foreground))", opacity: 0.85, lineHeight: 1.55, position: "relative", zIndex: 10 }}>{quote}</p>
+    <div style={{
+      padding: "28px 36px", borderRadius: 10,
+      background: "#fafafa", border: "1px solid #e8e8ec",
+      borderLeft: `4px solid ${accentColor}`,
+    }}>
+      {label && <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 14 }}>{label}</p>}
+      <p style={{ fontSize: 24, color: "#0f0f12", opacity: 0.85, lineHeight: 1.55 }}>{quote}</p>
     </div>
   );
 }
 
-export function MarketSizeVisual({ tam, sam, som, accentColor = "#4b68f5" }: { tam: string; sam: string; som: string; accentColor?: string }) {
+// ── Market Size Visual ────────────────────────────────────────
+export function MarketSizeVisual({ tam, sam, som, accentColor = "#4b68f5" }: {
+  tam: string; sam: string; som: string; accentColor?: string;
+}) {
   const extract = (s: string) => {
     const m = s.match(/\$[\d.,]+\s*[BMKT]?/i);
     return m ? m[0] : s.split(" ")[0];
@@ -258,28 +429,28 @@ export function MarketSizeVisual({ tam, sam, som, accentColor = "#4b68f5" }: { t
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-      <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))" }}>Addressable Market</p>
-      <svg width="380" height="380" viewBox="0 0 380 380">
-        <circle cx="190" cy="190" r="180" fill={accentColor} opacity="0.07" stroke={accentColor} strokeWidth="2.5" strokeOpacity="0.25" />
-        <circle cx="190" cy="190" r="125" fill={accentColor} opacity="0.12" stroke={accentColor} strokeWidth="2.5" strokeOpacity="0.35" />
-        <circle cx="190" cy="190" r="65" fill={accentColor} opacity="0.22" stroke={accentColor} strokeWidth="3" strokeOpacity="0.5" />
-        <text x="190" y="30" textAnchor="middle" fontSize="14" fontWeight="700" fill={accentColor} opacity="0.9">TAM</text>
-        <text x="190" y="52" textAnchor="middle" fontSize="20" fontWeight="800" fill="hsl(var(--foreground))">{extract(tam)}</text>
-        <text x="190" y="82" textAnchor="middle" fontSize="14" fontWeight="700" fill={accentColor} opacity="0.9">SAM</text>
-        <text x="190" y="104" textAnchor="middle" fontSize="20" fontWeight="800" fill="hsl(var(--foreground))">{extract(sam)}</text>
-        <text x="190" y="178" textAnchor="middle" fontSize="14" fontWeight="700" fill={accentColor} opacity="0.9">SOM</text>
-        <text x="190" y="202" textAnchor="middle" fontSize="22" fontWeight="800" fill="hsl(var(--foreground))">{extract(som)}</text>
+      <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#a1a1aa" }}>Addressable Market</p>
+      <svg width="340" height="340" viewBox="0 0 340 340">
+        <circle cx="170" cy="170" r="160" fill={accentColor} opacity="0.06" stroke={accentColor} strokeWidth="2" strokeOpacity="0.2" />
+        <circle cx="170" cy="170" r="110" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="2" strokeOpacity="0.3" />
+        <circle cx="170" cy="170" r="55" fill={accentColor} opacity="0.18" stroke={accentColor} strokeWidth="2.5" strokeOpacity="0.45" />
+        <text x="170" y="28" textAnchor="middle" fontSize="12" fontWeight="700" fill={accentColor} opacity="0.9">TAM</text>
+        <text x="170" y="48" textAnchor="middle" fontSize="18" fontWeight="800" fill="#0f0f12">{extract(tam)}</text>
+        <text x="170" y="78" textAnchor="middle" fontSize="12" fontWeight="700" fill={accentColor} opacity="0.9">SAM</text>
+        <text x="170" y="98" textAnchor="middle" fontSize="18" fontWeight="800" fill="#0f0f12">{extract(sam)}</text>
+        <text x="170" y="160" textAnchor="middle" fontSize="12" fontWeight="700" fill={accentColor} opacity="0.9">SOM</text>
+        <text x="170" y="182" textAnchor="middle" fontSize="20" fontWeight="800" fill="#0f0f12">{extract(som)}</text>
       </svg>
-      <div style={{ display: "flex", gap: 32 }}>
+      <div style={{ display: "flex", gap: 28 }}>
         {[
           { label: "TAM", opacity: 0.2, val: extract(tam) },
           { label: "SAM", opacity: 0.4, val: extract(sam) },
           { label: "SOM", opacity: 0.7, val: extract(som) },
         ].map(({ label, opacity, val }) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 14, height: 14, borderRadius: "50%", background: accentColor, opacity }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: "hsl(var(--muted-foreground))" }}>{label}</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "hsl(var(--foreground))" }}>{val}</span>
+            <div style={{ width: 12, height: 12, borderRadius: "50%", background: accentColor, opacity }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#71717a" }}>{label}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#0f0f12" }}>{val}</span>
           </div>
         ))}
       </div>
@@ -287,34 +458,43 @@ export function MarketSizeVisual({ tam, sam, som, accentColor = "#4b68f5" }: { t
   );
 }
 
+// ── Risk Severity Bar ─────────────────────────────────────────
 export function RiskSeverityBar({ severity }: { severity: "high" | "medium" | "low" }) {
   const map = {
-    high: { fill: "hsl(0 72% 51%)", width: "100%" },
-    medium: { fill: "hsl(38 92% 50%)", width: "60%" },
-    low: { fill: "hsl(142 71% 45%)", width: "30%" },
+    high: { fill: "#ef4444", width: "100%", bg: "#fef2f2" },
+    medium: { fill: "#f59e0b", width: "60%", bg: "#fffbeb" },
+    low: { fill: "#22c55e", width: "30%", bg: "#f0fdf4" },
   };
   const c = map[severity];
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 120 }}>
-      <div style={{ flex: 1, height: 6, borderRadius: 3, background: "hsl(var(--muted))" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 140 }}>
+      <div style={{ flex: 1, height: 6, borderRadius: 3, background: c.bg }}>
         <div style={{ height: "100%", borderRadius: 3, width: c.width, background: c.fill, transition: "width 0.3s" }} />
       </div>
-      <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: c.fill }}>{severity}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: c.fill }}>{severity}</span>
     </div>
   );
 }
 
-export function ScenarioBarChart({ scenarios, accentColor = "#4b68f5" }: { scenarios: { label: string; value: string }[]; accentColor?: string }) {
-  const widths = [40, 65, 100];
+// ── Scenario Bar Chart ────────────────────────────────────────
+export function ScenarioBarChart({ scenarios, accentColor = "#4b68f5" }: {
+  scenarios: { label: string; value: string }[]; accentColor?: string;
+}) {
+  const widths = [35, 60, 100];
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))", marginBottom: 4 }}>Revenue Scenarios</p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 4 }}>Revenue Scenarios</p>
       {scenarios.map((s, i) => (
-        <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <span style={{ fontSize: 18, fontWeight: 700, color: "hsl(var(--muted-foreground))", width: 120, textAlign: "right", flexShrink: 0 }}>{s.label}</span>
-          <div style={{ flex: 1, height: 40, borderRadius: 6, overflow: "hidden", background: "hsl(var(--muted))" }}>
-            <div style={{ height: "100%", borderRadius: 6, display: "flex", alignItems: "center", paddingLeft: 16, width: `${widths[i] || 50}%`, background: accentColor, opacity: 0.12 + (i * 0.14) }}>
-              <span style={{ fontSize: 20, fontWeight: 700, color: "hsl(var(--foreground))" }}>{s.value}</span>
+        <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, color: "#71717a", width: 110, textAlign: "right", flexShrink: 0 }}>{s.label}</span>
+          <div style={{ flex: 1, height: 36, borderRadius: 6, overflow: "hidden", background: "#f4f4f5" }}>
+            <div style={{
+              height: "100%", borderRadius: 6,
+              display: "flex", alignItems: "center", paddingLeft: 14,
+              width: `${widths[i] || 50}%`,
+              background: accentColor, opacity: 0.1 + (i * 0.15),
+            }}>
+              <span style={{ fontSize: 18, fontWeight: 700, color: "#0f0f12" }}>{s.value}</span>
             </div>
           </div>
         </div>
@@ -323,18 +503,26 @@ export function ScenarioBarChart({ scenarios, accentColor = "#4b68f5" }: { scena
   );
 }
 
-export function SlideTimeline({ steps, accentColor = "#4b68f5" }: { steps: { label: string; content: string }[]; accentColor?: string }) {
+// ── Timeline ──────────────────────────────────────────────────
+export function SlideTimeline({ steps, accentColor = "#4b68f5" }: {
+  steps: { label: string; content: string }[]; accentColor?: string;
+}) {
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       {steps.map((step, i) => (
-        <div key={i} style={{ display: "flex", gap: 20 }}>
+        <div key={i} style={{ display: "flex", gap: 18 }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 900, flexShrink: 0, background: accentColor, color: "white", opacity: 0.85 }}>{i + 1}</div>
-            {i < steps.length - 1 && <div style={{ width: 2, flex: 1, minHeight: 24, background: accentColor, opacity: 0.15 }} />}
+            <div style={{
+              width: 32, height: 32, borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 14, fontWeight: 900, flexShrink: 0,
+              background: accentColor, color: "#ffffff", opacity: 0.85,
+            }}>{i + 1}</div>
+            {i < steps.length - 1 && <div style={{ width: 2, flex: 1, minHeight: 20, background: accentColor, opacity: 0.12 }} />}
           </div>
-          <div style={{ paddingBottom: 24, flex: 1 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))", marginBottom: 6 }}>{step.label}</p>
-            <p style={{ fontSize: 22, color: "hsl(var(--foreground))", opacity: 0.85, lineHeight: 1.5 }}>{step.content}</p>
+          <div style={{ paddingBottom: 20, flex: 1 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 4 }}>{step.label}</p>
+            <p style={{ fontSize: 20, color: "#0f0f12", opacity: 0.85, lineHeight: 1.5 }}>{step.content}</p>
           </div>
         </div>
       ))}
@@ -342,43 +530,48 @@ export function SlideTimeline({ steps, accentColor = "#4b68f5" }: { steps: { lab
   );
 }
 
-export function MetricBar({ metric, target, why, accentColor = "#4b68f5" }: { metric: string; target: string; why?: string; accentColor?: string }) {
+// ── Metric Bar ────────────────────────────────────────────────
+export function MetricBar({ metric, target, why, accentColor = "#4b68f5" }: {
+  metric: string; target: string; why?: string; accentColor?: string;
+}) {
   const hashW = ((metric.length * 7 + target.length * 13) % 55) + 35;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 20, fontWeight: 700, color: "hsl(var(--foreground))" }}>{metric}</span>
-        <span style={{ fontSize: 18, fontWeight: 700, color: accentColor }}>{target}</span>
+        <span style={{ fontSize: 18, fontWeight: 700, color: "#0f0f12" }}>{metric}</span>
+        <span style={{ fontSize: 16, fontWeight: 700, color: accentColor }}>{target}</span>
       </div>
-      <div style={{ height: 8, borderRadius: 4, background: "hsl(var(--border))" }}>
-        <div style={{ height: "100%", borderRadius: 4, width: `${hashW}%`, background: accentColor, opacity: 0.4 }} />
+      <div style={{ height: 6, borderRadius: 3, background: "#f4f4f5" }}>
+        <div style={{ height: "100%", borderRadius: 3, width: `${hashW}%`, background: accentColor, opacity: 0.35 }} />
       </div>
-      {why && <p style={{ fontSize: 16, color: "hsl(var(--muted-foreground))" }}>{why}</p>}
+      {why && <p style={{ fontSize: 14, color: "#71717a" }}>{why}</p>}
     </div>
   );
 }
 
-export function FunnelVisual({ stages, accentColor = "#4b68f5" }: { stages: { label: string; value?: string }[]; accentColor?: string }) {
+// ── Funnel Visual ─────────────────────────────────────────────
+export function FunnelVisual({ stages, accentColor = "#4b68f5" }: {
+  stages: { label: string; value?: string }[]; accentColor?: string;
+}) {
   const count = stages.length;
-  const barH = 44;
-  const gap = 8;
+  const barH = 40;
+  const gap = 6;
   const totalH = count * (barH + gap);
-  const maxW = 420;
+  const maxW = 380;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))", marginBottom: 16 }}>Conversion Funnel</p>
-      <svg width={maxW + 80} height={totalH + 10} viewBox={`0 0 ${maxW + 80} ${totalH + 10}`}>
+      <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 14 }}>Conversion Funnel</p>
+      <svg width={maxW + 60} height={totalH + 10} viewBox={`0 0 ${maxW + 60} ${totalH + 10}`}>
         {stages.map((stage, i) => {
           const w = maxW - (i * (maxW * 0.15));
-          const x = (maxW + 80 - w) / 2;
+          const x = (maxW + 60 - w) / 2;
           const y = i * (barH + gap) + 5;
-          const opacity = 0.15 + (i * 0.14);
+          const opacity = 0.12 + (i * 0.14);
           return (
             <g key={i}>
-              <rect x={x} y={y} width={w} height={barH} rx={6} fill={accentColor} opacity={opacity} stroke={accentColor} strokeWidth="2" strokeOpacity="0.3" />
-              <text x={(maxW + 80) / 2} y={y + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="16" fontWeight="700" fill="hsl(var(--foreground))">{stage.label}</text>
-              {stage.value && <text x={(maxW + 80) / 2} y={y + barH / 2 + 16} textAnchor="middle" fontSize="12" fill="hsl(var(--muted-foreground))">{stage.value}</text>}
+              <rect x={x} y={y} width={w} height={barH} rx={6} fill={accentColor} opacity={opacity} stroke={accentColor} strokeWidth="1.5" strokeOpacity="0.25" />
+              <text x={(maxW + 60) / 2} y={y + barH / 2 + 1} textAnchor="middle" dominantBaseline="middle" fontSize="15" fontWeight="700" fill="#0f0f12">{stage.label}</text>
             </g>
           );
         })}
@@ -387,7 +580,10 @@ export function FunnelVisual({ stages, accentColor = "#4b68f5" }: { stages: { la
   );
 }
 
-export function DonutChart({ label, segments, accentColor = "#4b68f5", size = 160 }: { label?: string; segments: { label: string; pct: number }[]; accentColor?: string; size?: number }) {
+// ── Donut Chart ───────────────────────────────────────────────
+export function DonutChart({ label, segments, accentColor = "#4b68f5", size = 160 }: {
+  label?: string; segments: { label: string; pct: number }[]; accentColor?: string; size?: number;
+}) {
   const r = size / 2 - 16;
   const cx = size / 2;
   const cy = size / 2;
@@ -404,19 +600,19 @@ export function DonutChart({ label, segments, accentColor = "#4b68f5", size = 16
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-      {label && <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "hsl(var(--muted-foreground))" }}>{label}</p>}
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+      {label && <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a1a1aa" }}>{label}</p>}
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         {arcs.map((a, i) => (
-          <path key={i} d={a.d} fill="none" stroke={accentColor} strokeWidth={20} strokeLinecap="round" opacity={0.2 + i * 0.15} />
+          <path key={i} d={a.d} fill="none" stroke={accentColor} strokeWidth={18} strokeLinecap="round" opacity={0.18 + i * 0.15} />
         ))}
-        <circle cx={cx} cy={cy} r={r - 14} fill="none" stroke="hsl(var(--border))" strokeWidth="1" />
+        <circle cx={cx} cy={cy} r={r - 14} fill="none" stroke="#e8e8ec" strokeWidth="1" />
       </svg>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {segments.slice(0, 4).map((s, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: accentColor, opacity: 0.25 + i * 0.15 }} />
-            <span style={{ fontSize: 14, color: "hsl(var(--foreground))" }}>{s.label}</span>
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: accentColor, opacity: 0.22 + i * 0.15 }} />
+            <span style={{ fontSize: 13, color: "#0f0f12" }}>{s.label}</span>
           </div>
         ))}
       </div>
