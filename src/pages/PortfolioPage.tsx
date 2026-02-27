@@ -210,16 +210,16 @@ export default function PortfolioPage() {
             </div>
 
             {/* My Top Choices (favorites) */}
-            {favorites.length > 0 && (
-              <div className="rounded-xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 mb-1">
-                  <Heart size={16} className="text-primary fill-primary" />
-                  <p className="typo-section-title text-foreground">My Top Choices</p>
-                  <InfoExplainer text="Projects you've marked as favorites. These are your personal picks — the ideas you're most excited about pursuing." />
-                </div>
-                <p className="typo-card-body text-foreground/70 mb-4">
-                  Your hand-picked favorites — the ideas you're most excited about.
-                </p>
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <Heart size={16} className="text-primary fill-primary" />
+                <p className="typo-section-title text-foreground">My Top Choices</p>
+                <InfoExplainer text="Projects you've marked as favorites. These are your personal picks — the ideas you're most excited about pursuing." />
+              </div>
+              <p className="typo-card-body text-foreground/70 mb-4">
+                Your hand-picked favorites — the ideas you're most excited about.
+              </p>
+              {favorites.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {favorites.map((a) => {
                     const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
@@ -234,7 +234,6 @@ export default function PortfolioPage() {
                         onClick={() => analysis.handleLoadSaved(a as any)}
                         className="rounded-xl border border-primary/20 bg-primary/[0.03] overflow-hidden text-left transition-all hover:shadow-md group relative"
                       >
-                        {/* Unfavorite button */}
                         <div
                           className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border hover:bg-destructive/10 transition-colors"
                           onClick={(e) => { e.stopPropagation(); toggleFavorite(a.id); }}
@@ -259,8 +258,16 @@ export default function PortfolioPage() {
                     );
                   })}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col items-center py-6 text-center">
+                  <Heart size={28} className="text-muted-foreground/30 mb-3" />
+                  <p className="typo-card-body text-foreground/60 mb-1">No favorites yet</p>
+                  <p className="typo-card-meta text-foreground/50 max-w-sm">
+                    Tap the <Heart size={10} className="inline text-muted-foreground" /> icon on any project card below to add it to your top choices.
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Action Items Panel */}
             <ActionItemsPanel analyses={analyses} />
