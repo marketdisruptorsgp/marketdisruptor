@@ -82,4 +82,20 @@ export const EXPLAINERS: Record<string, string> = {
     "Business Stress Test challenges every revenue assumption and growth projection with Red Team scrutiny to find weaknesses before the market does.",
   "biz-pitch":
     "The Business Pitch Deck turns your model analysis into an investor-ready narrative with revenue projections, market sizing, and a defensible competitive moat.",
+
+  // ── Instant Photo Analysis ──────────────────────────────
+  "instant-user-journey":
+    "Maps every step a customer takes when interacting with this product or service — from first awareness through purchase and ongoing use — and flags where friction causes drop-off or frustration.",
+  "instant-supply-chain":
+    "Breaks down the manufacturing, sourcing, and logistics behind what you photographed. Identifies concentration risks, cost drivers, and vertical integration opportunities.",
+  "instant-operations":
+    "Analyzes the operational backbone — staffing, workflows, technology stack, and process efficiency — to surface bottlenecks and scaling constraints.",
+  "instant-sentiment":
+    "Predicts what customers love, hate, and struggle with based on the product's design, positioning, and market context. Surfaces pain points and adoption barriers before they show up in reviews.",
+  "instant-defensibility":
+    "Assesses the competitive moat: patent protection, trade secrets, brand strength, and switching costs. Identifies where the business is vulnerable to copycats or disruption.",
+  "instant-market":
+    "Positions the product within its competitive landscape — segment, price tier, key competitors, and the core differentiator that determines win/loss dynamics.",
+  "instant-disruption":
+    "Scores how ripe this market is for disruption. Identifies the biggest opportunities to reinvent the category and the risks that could derail a challenger.",
 };

@@ -3,6 +3,7 @@ import { useAnonymousAuth } from "@/hooks/useAnonymousAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, Lock, Eye, Share2, Copy, Check } from "lucide-react";
+import { InfoExplainer } from "@/components/InfoExplainer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -46,15 +47,6 @@ function ConfidenceBadge({ level }: { level: string }) {
   return <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border", styles[level] || styles.medium)}>{level}</span>;
 }
 
-function SourceTag({ source }: { source: string }) {
-  const clean = source.replace(/[\[\]]/g, "");
-  const styles: Record<string, string> = {
-    VISUAL: "bg-blue-50 text-blue-700",
-    CONTEXTUAL: "bg-purple-50 text-purple-700",
-    ASSUMPTION: "bg-amber-50 text-amber-700",
-  };
-  return <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium", styles[clean] || "bg-muted text-muted-foreground")}>{clean}</span>;
-}
 
 export default function InstantAnalysisPage() {
   const { user, loading: authLoading, isAnonymous, claimAccount } = useAnonymousAuth();
@@ -397,7 +389,7 @@ export default function InstantAnalysisPage() {
 
             {/* User Journey */}
             {result.userJourney && (
-              <ResultSection title="User Journey" modeColor={modeColor}>
+              <ResultSection title="User Journey" modeColor={modeColor} explainerKey="instant-user-journey">
                 <div className="space-y-2">
                   {result.userJourney.steps.map((step, i) => (
                     <div key={i} className="flex items-start gap-3 py-2">
@@ -420,7 +412,6 @@ export default function InstantAnalysisPage() {
                           <p className="typo-card-body text-foreground">{fp.friction}</p>
                           <p className="typo-card-meta text-muted-foreground mt-0.5">{fp.step}</p>
                         </div>
-                        <SourceTag source={fp.source} />
                       </div>
                     ))}
                   </div>
@@ -430,19 +421,19 @@ export default function InstantAnalysisPage() {
 
             {/* Supply Chain or Operational Intel */}
             {result.supplyChain && (
-              <ResultSection title="Supply Chain & Delivery" modeColor={modeColor}>
+              <ResultSection title="Supply Chain & Delivery" modeColor={modeColor} explainerKey="instant-supply-chain">
                 <InfoGrid data={result.supplyChain as Record<string, string>} />
               </ResultSection>
             )}
             {result.operationalIntel && (
-              <ResultSection title="Operational Intelligence" modeColor={modeColor}>
+              <ResultSection title="Operational Intelligence" modeColor={modeColor} explainerKey="instant-operations">
                 <InfoGrid data={result.operationalIntel as Record<string, unknown>} />
               </ResultSection>
             )}
 
             {/* Customer Sentiment */}
             {result.customerSentiment && (
-              <ResultSection title="Customer Sentiment" modeColor={modeColor}>
+              <ResultSection title="Customer Sentiment" modeColor={modeColor} explainerKey="instant-sentiment">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <SentimentList title="Likely Likes" items={result.customerSentiment.likelyLikes} type="positive" />
                   <SentimentList title="Likely Dislikes" items={result.customerSentiment.likelyDislikes} type="negative" />
@@ -454,12 +445,11 @@ export default function InstantAnalysisPage() {
 
             {/* Defensibility */}
             {result.defensibility && (
-              <ResultSection title="Patent & Defensibility" modeColor={modeColor}>
+              <ResultSection title="Patent & Defensibility" modeColor={modeColor} explainerKey="instant-defensibility">
                 <div className="space-y-3">
                   <div className="p-3 rounded-lg bg-muted">
                     <p className="typo-card-eyebrow text-muted-foreground mb-1">Patent Landscape</p>
                     <p className="typo-card-body text-foreground">{result.defensibility.patentLandscape}</p>
-                    <SourceTag source={result.defensibility.source} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <SentimentList title="Competitive Advantages" items={result.defensibility.competitiveAdvantages} type="positive" />
@@ -471,20 +461,19 @@ export default function InstantAnalysisPage() {
 
             {/* Market Position */}
             {result.marketPosition && (
-              <ResultSection title="Market Positioning" modeColor={modeColor}>
+              <ResultSection title="Market Positioning" modeColor={modeColor} explainerKey="instant-market">
                 <div className="grid grid-cols-2 gap-3">
                   <InfoItem label="Segment" value={result.marketPosition.segment} />
                   <InfoItem label="Price Range" value={result.marketPosition.priceRange} />
                   <InfoItem label="Differentiator" value={result.marketPosition.differentiator} />
                   <InfoItem label="Competitors" value={result.marketPosition.competitors.join(", ")} />
                 </div>
-                <div className="mt-2"><SourceTag source={result.marketPosition.source} /></div>
               </ResultSection>
             )}
 
             {/* Disruption Potential */}
             {result.disruptionPotential && (
-              <ResultSection title="Disruption Potential" modeColor={modeColor}>
+              <ResultSection title="Disruption Potential" modeColor={modeColor} explainerKey="instant-disruption">
                 <div className="flex items-center gap-3 mb-3">
                   <ScoreBadge score={result.disruptionPotential.score} />
                   <p className="typo-card-body text-foreground">{result.disruptionPotential.summary}</p>
@@ -691,11 +680,12 @@ function ShareAnalysisCTA({ result, modeColor, mode }: { result: PhotoAnalysisRe
 
 // --- Helper Components ---
 
-function ResultSection({ title, modeColor, children }: { title: string; modeColor: string; children: React.ReactNode }) {
+function ResultSection({ title, modeColor, children, explainerKey }: { title: string; modeColor: string; children: React.ReactNode; explainerKey?: string }) {
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
-      <div className="px-5 py-3 border-b border-border">
+      <div className="px-5 py-3 border-b border-border flex items-center gap-2">
         <h3 className="typo-card-title text-foreground">{title}</h3>
+        {explainerKey && <InfoExplainer explainerKey={explainerKey} />}
       </div>
       <div className="p-5">{children}</div>
     </div>
