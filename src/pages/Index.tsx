@@ -537,7 +537,7 @@ export default function Index() {
 
       {/* Exit-Intent Prompt */}
       {showExitPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "hsl(var(--foreground) / 0.5)", backdropFilter: "blur(4px)" }}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "hsl(var(--foreground) / 0.5)", backdropFilter: "blur(4px)" }}>
           <div className="w-full max-w-md rounded overflow-hidden" style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}>
             <div className="p-6">
               <h3 className="text-base font-bold text-foreground mb-2">You haven't explored everything</h3>

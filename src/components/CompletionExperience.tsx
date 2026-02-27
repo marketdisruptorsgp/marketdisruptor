@@ -84,7 +84,7 @@ export function CompletionExperience({
         </div>
 
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+          <p className="typo-card-eyebrow text-muted-foreground mb-1">
             {chosen.emoji} {chosen.prefix}
           </p>
           <h3 className="text-xl font-bold text-foreground mb-2">Analysis Complete</h3>
@@ -97,7 +97,7 @@ export function CompletionExperience({
           className="p-4 rounded-md max-w-lg mx-auto"
           style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
         >
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          <p className="typo-card-eyebrow text-muted-foreground mb-2">
             Strategic Insight
           </p>
           <p className="text-sm text-foreground/85 leading-relaxed italic">"{completionMessage}"</p>
@@ -124,7 +124,7 @@ export function CompletionExperience({
           </button>
         </div>
 
-        <p className="text-[11px] text-muted-foreground">
+        <p className="typo-card-meta text-muted-foreground">
           <CheckCircle2
             size={10}
             className="inline mr-1"
@@ -139,9 +139,9 @@ export function CompletionExperience({
         <div className="rounded-md overflow-hidden" style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}>
           <div className="px-5 py-5 space-y-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Partnership</p>
+              <p className="typo-card-eyebrow text-muted-foreground mb-1">Partnership</p>
               <h4 className="text-sm font-bold text-foreground">How SGP Capital Can Help</h4>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Tailored support for bringing {productName} to market</p>
+              <p className="typo-card-meta text-muted-foreground mt-0.5">Tailored support for bringing {productName} to market</p>
             </div>
             <div className="space-y-2">
               {(() => {

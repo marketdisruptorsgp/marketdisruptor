@@ -86,7 +86,7 @@ export default function MobileTour({ userId }: { userId: string }) {
   const tooltipLeft = Math.max(16, Math.min(targetRect.left, window.innerWidth - 300));
 
   return (
-    <div className="fixed inset-0" style={{ zIndex: 200000 }}>
+    <div className="fixed inset-0 z-[100]">
       {/* Overlay with cutout */}
       <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: "none" }}>
         <defs>
@@ -154,7 +154,7 @@ export default function MobileTour({ userId }: { userId: string }) {
               <Icon size={16} style={{ color: "hsl(var(--primary))" }} />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
+              <p className="typo-card-eyebrow" style={{ color: "hsl(var(--primary))" }}>
                 Step {step + 1} of {TOUR_STEPS.length}
               </p>
               <h3 className="text-sm font-extrabold" style={{ color: "hsl(var(--foreground))" }}>{current.title}</h3>

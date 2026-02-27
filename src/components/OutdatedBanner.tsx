@@ -20,7 +20,7 @@ export function OutdatedBanner({ stepName, onRegenerate, accentColor }: Outdated
         <p className="text-xs font-bold text-foreground">
           Upstream data has changed
         </p>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="typo-card-meta text-muted-foreground">
           Regenerate {stepName} to reflect your latest inputs and score adjustments.
         </p>
       </div>

@@ -68,7 +68,7 @@ export function ShareAnalysis({ analysisId, analysisTitle, accentColor = "hsl(va
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-72 rounded-xl shadow-lg z-[9999] p-4 space-y-3"
+          className="absolute right-0 top-full mt-2 w-72 rounded-xl shadow-lg z-30 p-4 space-y-3"
           style={{
             background: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
@@ -131,7 +131,7 @@ export function ShareAnalysis({ analysisId, analysisTitle, accentColor = "hsl(va
             </div>
           )}
 
-          <p className="text-[9px] text-muted-foreground text-center">
+          <p className="typo-card-meta text-muted-foreground text-center">
             Your referral link is embedded — every share earns you credit.
           </p>
         </div>

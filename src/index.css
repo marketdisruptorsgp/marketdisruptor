@@ -4,6 +4,23 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
+/*
+ * ── Global Z-Index Scale ────────────────────────────────────────
+ * All z-index values MUST use this scale. No local overrides.
+ *
+ *   z-0   — Base content
+ *   z-10  — In-component floating (badges, indicators, decorative)
+ *   z-20  — Sticky navigation (StepNavigator, sticky headers)
+ *   z-30  — Dropdowns, popovers, tooltips (within-page overlays)
+ *   z-40  — (reserved)
+ *   z-50  — Modals, sheets, dialogs (shadcn default layer)
+ *   z-[60] — App-level modals (PaywallModal, exit-intent prompt)
+ *   z-[100] — Tour/onboarding overlays (MobileTour)
+ *
+ *   Components MUST NOT introduce local z-index values outside this scale.
+ * ────────────────────────────────────────────────────────────────
+ */
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -362,7 +379,7 @@
 
   .modal-overlay {
     @apply fixed inset-0 flex items-center justify-center p-4;
-    z-index: 100000;
+    z-index: 60;
     background: hsl(0 0% 0% / 0.6);
     backdrop-filter: blur(4px);
   }
