@@ -138,7 +138,9 @@ CRITICAL RULES:
 - keyMetrics must have 4-6 specific, measurable metrics
 - EVERY bullet point must be ≤15 words. No exceptions.
 - Be BOLD, SPECIFIC, and COMMERCIAL
-- completionMessage should be a unique strategic insight`;
+- completionMessage should be a unique strategic insight
+- SCORING CALIBRATION: Apply realistic scoring. Revival scores 5-6 are the default. ≥8 requires cited evidence. 9-10 is almost never justified. Revenue projections must reflect realistic adoption curves, not best-case fantasies. Conservative scenario should be genuinely conservative (50% of base case or less).
+- OUTPUT FRAMING: Replace generic positives with: opportunity strength, required conditions, key constraints, execution difficulty, and confidence level.`;
 
     const isService = product.category === "Service";
     const isBusiness = product.analysisType === "business" || product.category === "Business Model" || product.category === "Business";

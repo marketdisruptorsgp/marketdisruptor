@@ -232,7 +232,8 @@ For each service, return an object with this EXACT structure:
       "visualNotes": "Service experience design notes — what the customer sees, feels, does differently",
       "reasoning": "Market + customer + operational reasoning with specific data from community sentiment",
       "feasibilityNotes": "Implementation estimate: tech stack, team, timeline, unit economics",
-      "scores": {"feasibility": 8, "desirability": 9, "profitability": 7, "novelty": 9},
+      "scores": {"feasibility": 5, "desirability": 6, "profitability": 5, "novelty": 7},
+      "feasibilityClass": "Near-term viable | Conditional opportunity | Long-horizon concept",
       "risks": "Specific risks with mitigation strategies",
       "actionPlan": {
         "phase1": "First 60 days: specific actions",
@@ -245,12 +246,12 @@ For each service, return an object with this EXACT structure:
       }
     }
   ],
-  "confidenceScores": {"adoptionLikelihood": 8, "feasibility": 7, "emotionalResonance": 9}
+  "confidenceScores": {"adoptionLikelihood": 5, "feasibility": 5, "emotionalResonance": 6}
 }
 
 CRITICAL RULES:
-- revivalScore 1-10 based on: market demand + feasibility + customer pain severity + profitability
-- All score fields MUST be integers 1-10
+- revivalScore 1-10: Apply SCORING CALIBRATION from the reasoning framework. 5-6 is the default range. Scores ≥8 require specific evidence and enabling conditions. Scores of 9-10 are almost never justified.
+- All score fields MUST be integers 1-10, following the calibration scale (most ideas land 4-7)
 - Return 1-3 service analyses maximum — quality over quantity
 - Set "image" to "PLACEHOLDER_IMAGE"
 - communityInsights MUST be based on real community data from the scraped content, not invented
@@ -374,7 +375,8 @@ For each product, return an object with this EXACT structure:
       "visualNotes": "Physical design, materials, UX notes",
       "reasoning": "Market + user + emotional reasoning with specific data from community sentiment",
       "feasibilityNotes": "BOM estimate, manufacturer sources, tech requirements, unit economics",
-      "scores": {"feasibility": 8, "desirability": 9, "profitability": 7, "novelty": 9},
+      "scores": {"feasibility": 5, "desirability": 6, "profitability": 5, "novelty": 7},
+      "feasibilityClass": "Near-term viable | Conditional opportunity | Long-horizon concept",
       "risks": "Specific risks with mitigation strategies",
       "actionPlan": {
         "phase1": "First 60 days: specific actions",
@@ -387,12 +389,13 @@ For each product, return an object with this EXACT structure:
       }
     }
   ],
-  "confidenceScores": {"adoptionLikelihood": 8, "feasibility": 7, "emotionalResonance": 9}
+  "confidenceScores": {"adoptionLikelihood": 5, "feasibility": 5, "emotionalResonance": 6}
 }
 
 CRITICAL RULES:
-- revivalScore 1-10 based on: emotional resonance + market signals + feasibility + profitability
-- All score fields MUST be integers 1-10
+- revivalScore 1-10: Apply SCORING CALIBRATION from the reasoning framework. 5-6 is the default range. Scores ≥8 require specific cited evidence and enabling conditions. 9-10 is almost never justified.
+- All score fields MUST be integers 1-10, following realistic calibration (most land 4-7)
+- Each flipped idea MUST include "feasibilityClass": one of "Near-term viable", "Conditional opportunity", or "Long-horizon concept". Long-horizon concepts CANNOT score above 6 on any dimension.
 - Return 3-5 products maximum — quality over quantity
 - Set "image" to "PLACEHOLDER_IMAGE" — images will be replaced with real ones after
 - communityInsights MUST be based on real Reddit/Google data from the scraped content, not invented
