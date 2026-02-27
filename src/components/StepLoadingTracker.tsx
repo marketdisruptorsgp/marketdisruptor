@@ -14,7 +14,7 @@ interface StepLoadingTrackerProps {
 
 const ACTIVITY_MESSAGES: Record<string, string[]> = {
   default: [
-    "Initializing AI reasoning engine…",
+    "Initializing analysis engine…",
     "Parsing collected data points…",
     "Cross-referencing market signals…",
     "Building structured analysis…",

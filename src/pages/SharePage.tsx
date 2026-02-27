@@ -5,8 +5,8 @@ import { Zap, Brain, TrendingUp, Sparkles, Eye, BarChart3, ArrowRight, CheckCirc
 const FEATURES = [
   {
     icon: Brain,
-    title: "AI Product Intelligence",
-    desc: "Deep-dive any product with live market data from a variety of sources — powered by AI.",
+    title: "Product Intelligence",
+    desc: "Deep-dive any product with live market data from a variety of sources.",
   },
   {
     icon: TrendingUp,
@@ -16,7 +16,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "Flip Ideas Generator",
-    desc: "AI-generated product concepts with feasibility scores, cost estimates, and go-to-market strategies ready to execute.",
+    desc: "Data-driven product concepts with feasibility scores, cost estimates, and go-to-market strategies ready to execute.",
   },
   {
     icon: Eye,
@@ -78,7 +78,7 @@ export default function SharePage() {
           <div className="max-w-3xl space-y-6 mb-12">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "hsl(var(--primary) / 0.12)", border: "1px solid hsl(var(--primary) / 0.25)" }}>
               <Sparkles size={12} style={{ color: "hsl(var(--primary-light))" }} />
-              <span className="text-xs font-bold" style={{ color: "hsl(var(--primary-light))" }}>AI-Powered Product Intelligence</span>
+              <span className="text-xs font-bold" style={{ color: "hsl(var(--primary-light))" }}>Deep Product Intelligence</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight">
@@ -90,7 +90,7 @@ export default function SharePage() {
             </h1>
 
             <p className="text-lg sm:text-xl leading-relaxed" style={{ color: "hsl(0 0% 100% / 0.65)" }}>
-              Market Disruptor is a first-of-its-kind AI platform that scrapes live market data, deconstructs any product to its first principles, and generates actionable business opportunities — complete with supply chains, pricing intel, and investor-ready pitch decks.
+              Market Disruptor is a first-of-its-kind intelligence platform that scrapes live market data, deconstructs any product to its first principles, and generates actionable business opportunities — complete with supply chains, pricing intel, and investor-ready pitch decks.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -124,7 +124,7 @@ export default function SharePage() {
             From raw market data to <span style={{ color: "hsl(var(--primary-light))" }}>actionable intelligence</span>
           </h2>
           <p className="text-base max-w-2xl mx-auto" style={{ color: "hsl(0 0% 100% / 0.5)" }}>
-            Most tools give you spreadsheets. We give you a complete business intelligence report powered by real-time web scraping and advanced AI reasoning.
+            Most tools give you spreadsheets. We give you a complete business intelligence report powered by real-time web scraping and advanced analytical reasoning.
           </p>
         </div>
 

@@ -17,7 +17,7 @@ const MODE_CONFIG = {
     icon: Upload,
     cssVar: "--mode-product",
     tips: [
-      "Upload a product photo alongside the URL — the AI uses computer vision to catch design details that text listings miss, like material quality, ergonomic flaws, and packaging inefficiencies.",
+      "Upload a product photo alongside the URL — the platform uses visual analysis to catch design details that text listings miss, like material quality, ergonomic flaws, and packaging inefficiencies.",
       "Add competitor URLs in the same batch. The analysis cross-references pricing, features, and positioning across all inputs to find gaps no single product review would reveal.",
       "The Disrupt step doesn't just improve — it deliberately flips every assumption. If a product is heavy, it asks: what if weight is the feature? That's where breakthrough ideas live.",
       "After analysis, use the Red Team / Green Team debate to stress-test the AI's own conclusions. The best strategies survive adversarial scrutiny.",
@@ -28,8 +28,8 @@ const MODE_CONFIG = {
     icon: Briefcase,
     cssVar: "--mode-service",
     tips: [
-      "Paste your service's landing page URL — the AI maps the entire customer journey, from first impression to post-purchase, and flags friction points competitors accept as normal.",
-      "Describe your service in the notes field even if you add a URL. Insider context about operational pain points gives the AI a sharper starting point for deconstruction.",
+      "Paste your service's landing page URL — the platform maps the entire customer journey, from first impression to post-purchase, and flags friction points competitors accept as normal.",
+      "Describe your service in the notes field even if you add a URL. Insider context about operational pain points gives the analysis a sharper starting point for deconstruction.",
       "Service analysis skips product-centric logic and focuses on what matters: customer journey friction, operational workflows, and where technology can create structural advantages.",
       "The best service disruptions come from questioning delivery models, not just pricing. The AI tests configurations like unbundling, self-service layers, and subscription pivots.",
     ],
@@ -40,9 +40,9 @@ const MODE_CONFIG = {
     cssVar: "--mode-business",
     tips: [
       "Be specific about your revenue model and pain points — the more context you provide, the deeper the AI can go on operational audits and revenue reinvention.",
-      "The analysis deconstructs your model across multiple dimensions: core reality, operations audit, revenue structure, and adjacency opportunities most teams overlook.",
+      "The platform deconstructs your model across multiple dimensions: core reality, operations audit, revenue structure, and adjacency opportunities most teams overlook.",
       "Try running the same business type with different geography or scale inputs. A laundromat strategy in a dense urban market looks completely different from a suburban one.",
-      "After the intelligence report, the Disrupt step generates flipped concepts you can guide with custom goals — tell the AI what constraints or objectives matter most to you.",
+      "After the intelligence report, the Disrupt step generates flipped concepts you can guide with custom goals — tell the platform what constraints or objectives matter most to you.",
     ],
   },
 } as const;

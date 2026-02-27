@@ -378,7 +378,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         if (msg.includes("Rate limit") || msg.includes("429")) {
           toast.error("Rate limit hit — please wait a moment and try again.");
         } else if (msg.includes("credits") || msg.includes("402")) {
-          toast.error("AI credits exhausted — add credits in Settings → Workspace → Usage.");
+          toast.error("Analysis credits exhausted — add credits in Settings → Workspace → Usage.");
         } else {
           toast.error("First principles analysis failed: " + msg);
         }
@@ -687,7 +687,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       </div>
 
       {/* Steer AI (collapsible) */}
-      <DetailPanel title="Steer the AI — add direction, then Re-run" icon={Lightbulb}>
+      <DetailPanel title="Refine your analysis — add direction, then Re-run" icon={Lightbulb}>
         <textarea
           value={rerunSuggestions}
           onChange={(e) => setRerunSuggestions(e.target.value)}

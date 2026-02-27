@@ -99,7 +99,7 @@ export default function DashboardPage() {
             </span>
           </h1>
           <p className="typo-page-meta text-sm sm:text-base md:text-lg mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed px-2 text-center">
-            Deconstruct markets, stress-test strategies, and build what's next with AI-powered competitive intelligence.
+            Deconstruct markets, stress-test strategies, and build what's next with deep competitive intelligence.
           </p>
           <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button

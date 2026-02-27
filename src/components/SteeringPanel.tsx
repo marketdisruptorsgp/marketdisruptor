@@ -7,7 +7,7 @@ interface SteeringPanelProps {
   children: React.ReactNode;
 }
 
-export function SteeringPanel({ title = "Guide the AI", description, children }: SteeringPanelProps) {
+export function SteeringPanel({ title = "Guide Your Analysis", description, children }: SteeringPanelProps) {
   return (
     <div
       className="rounded-lg overflow-hidden"

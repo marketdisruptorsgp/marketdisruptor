@@ -15,8 +15,8 @@ const SLIDES = [
     subtitle: "You've just unlocked a serious product intelligence engine.",
     body: "This isn't just a research tool — it's a competitive advantage. You're about to see markets, products, and opportunities the way analysts at top firms do.",
     tips: [
-      "Proprietary multi-model AI pipelines — not a wrapper",
-      "Deep web crawling, vision AI, and strategic analysis",
+      "Proprietary multi-source data pipelines",
+      "Deep web crawling, visual analysis, and strategic modeling",
       "Everything auto-saves so you never lose a discovery",
     ],
     color: "hsl(var(--primary))",
@@ -24,11 +24,11 @@ const SLIDES = [
   {
     icon: Search,
     title: () => "Analysis Type: Product Deep Dive",
-    subtitle: "Drop in a product and let the AI tear it apart.",
-    body: "Enter a product name, paste URLs, or upload images — the AI runs proprietary crawling pipelines to surface pricing intelligence, supply chain data, and competitive gaps.",
+    subtitle: "Drop in a product and let the platform tear it apart.",
+    body: "Enter a product name, paste URLs, or upload images — the platform runs proprietary crawling pipelines to surface pricing intelligence, supply chain data, and competitive gaps.",
     tips: [
       "Paste up to 3 URLs + upload 5 images",
-      "AI challenges every assumption about the product",
+      "Every assumption about the product gets challenged",
       "Custom mode lets you analyze any product or service",
     ],
     color: "hsl(217 91% 45%)",
@@ -37,7 +37,7 @@ const SLIDES = [
     icon: Brain,
     title: () => "Analysis Type: Service Intelligence",
     subtitle: "Every service is a rabbit hole. Go deep.",
-    body: "Analyze any service business — the AI maps competitive landscapes, identifies operational friction, and builds growth strategies from gaps competitors overlook.",
+    body: "Analyze any service business — the platform maps competitive landscapes, identifies operational friction, and builds growth strategies from gaps competitors overlook.",
     tips: [
       "Flip Ideas = 3 bold commercial pivots",
       "First Principles = strip it down and redesign",
@@ -49,7 +49,7 @@ const SLIDES = [
     icon: Building2,
     title: () => "Analysis Type: Business Model",
     subtitle: "Deconstruct any real-world business.",
-    body: "Use this when you're analyzing a service or B2B model. Laundromats, agencies, distributors — the AI breaks down cost structures and inefficiencies.",
+    body: "Use this when you're analyzing a service or B2B model. Laundromats, agencies, distributors — the platform breaks down cost structures and inefficiencies.",
     tips: [
       "Try 'car wash', 'staffing agency', or 'franchise'",
       "Revenue Reinvention surfaces new opportunities",

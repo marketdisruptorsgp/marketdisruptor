@@ -59,7 +59,7 @@ export default function PricingPage() {
           </h1>
           <p className="text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
             Every plan gives you access to all analysis modes, PDF export, and pitch deck generation.
-            Upgrade for more analyses and advanced AI capabilities.
+            Upgrade for more analyses and advanced analysis capabilities.
           </p>
         </div>
 

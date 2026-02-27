@@ -95,7 +95,7 @@ type AnalysisStep = "idle" | "scraping" | "analyzing" | "done" | "error";
 
 const PIPELINE_STEPS = [
   { id: "scraping",   icon: Globe,     label: "Web Scraping",      detail: "Running deep analysis across a large subset of live market data sources" },
-  { id: "analyzing",  icon: Brain,     label: "AI Analysis",       detail: "Building pricing intel, supply chain, trend analysis & action plans" },
+  { id: "analyzing",  icon: Brain,     label: "Deep Analysis",       detail: "Building pricing intel, supply chain, trend analysis & action plans" },
   { id: "done",       icon: CheckCircle2, label: "Complete",       detail: "Results ready!" },
 ];
 
@@ -409,10 +409,10 @@ export default function Index() {
       }
 
       setStep("analyzing");
-      setStepMessage("Gemini AI building deep intelligence: pricing, supply chain, trends, flip ideas & action plans…");
+      setStepMessage("Building deep intelligence: pricing, supply chain, trends, flip ideas & action plans…");
 
       await new Promise(r => setTimeout(r, 400));
-      pushLog("AI reasoning — parsing product data & community sentiment...");
+      pushLog("Parsing product data & community sentiment...");
       await new Promise(r => setTimeout(r, 800));
       pushLog("Building pricing intelligence from real market data...");
       await new Promise(r => setTimeout(r, 800));
@@ -459,7 +459,7 @@ export default function Index() {
       }
 
       const liveProducts: Product[] = analyzeData.products;
-      if (!liveProducts?.length) throw new Error("No products returned by AI.");
+      if (!liveProducts?.length) throw new Error("No products returned from analysis.");
 
       pushLog(`Analysis complete — ${liveProducts.length} products with full intelligence reports ready.`);
       stopLoadingTimer();
