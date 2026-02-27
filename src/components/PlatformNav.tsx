@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, PieChart, Radar, Camera, BookOpen, HelpCircle, Lightbulb, Code2,
-  Menu, ChevronDown, ArrowRight,
+  Menu, ChevronDown, ArrowRight, Info,
 } from "lucide-react";
 
 interface PlatformNavProps {
@@ -45,7 +45,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
             <Zap size={15} />
           </div>
           <span className="typo-nav-primary tracking-tight hidden sm:inline">Market Disruptor</span>
-          <span className="hidden md:inline typo-status-label text-primary bg-muted rounded-full px-2 py-0.5">OS</span>
+          
         </button>
 
         {/* Center: Core navigation */}
@@ -58,6 +58,9 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
           </a>
           <a href="/instant-analysis" onClick={(e) => { e.preventDefault(); navigate("/instant-analysis"); }} className={navLinkClass("/instant-analysis")}>
             <Camera size={13} /> Photo Analysis
+          </a>
+          <a href="/about" onClick={(e) => { e.preventDefault(); navigate("/about"); }} className={navLinkClass("/about")}>
+            <Info size={13} /> About
           </a>
 
           <Popover>
@@ -135,6 +138,11 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted">
                   <Camera size={14} className="text-primary" />
                   <span className="typo-nav-primary">Photo Analysis</span>
+                </a>
+                <a href="/about" onClick={(e) => { e.preventDefault(); navigate("/about"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted">
+                  <Info size={14} className="text-primary" />
+                  <span className="typo-nav-primary">About</span>
                 </a>
 
                 <div className="h-px bg-border my-2" />
