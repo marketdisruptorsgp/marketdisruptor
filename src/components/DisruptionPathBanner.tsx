@@ -71,7 +71,7 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
             How It Works
           </div>
           <h2 className="typo-page-title text-xl sm:text-2xl tracking-tight">
-            From raw data to investor-ready output
+            How the Analysis Works
           </h2>
           <p className="typo-page-meta mt-1 max-w-xl mx-auto text-sm">
             Six stages of structured analysis, each building on the last
