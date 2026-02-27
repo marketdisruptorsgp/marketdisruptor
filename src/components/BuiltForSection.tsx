@@ -9,8 +9,8 @@ const SCENARIOS = [
   },
   {
     icon: Search,
-    trigger: "I found a competitor",
-    outcome: "Deconstruct their model, map their supply chain, and surface the gaps they're missing — so you can exploit them.",
+    trigger: "There's got to be a better way",
+    outcome: "Deconstruct what exists, map the supply chain, and surface the gaps others are missing — so you can build something better.",
     path: "Teardown → Gap Analysis → Disruption Paths",
   },
   {
