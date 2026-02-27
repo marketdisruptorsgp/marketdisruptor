@@ -1,56 +1,42 @@
 
 
-## Plan: Remove Specific Platform References (Reddit, TikTok, etc.) System-Wide
+## Plan: Complete Platform Reference Cleanup (Round 2)
 
-Replace all hardcoded references to Reddit, TikTok, Trustpilot, eBay, Etsy, etc. with generic terms ("community", "web sources", "online platforms") unless the data itself surfaces those platforms as analytically relevant.
+The previous cleanup pass missed several files. The surfboard project shows Reddit text because it's **old saved data** — but Index.tsx also still reads from the old `redditSentiment` field exclusively, which needs fixing.
 
 ### Files to Change
 
-**1. `supabase/functions/scrape-products/index.ts`** — Scraping queries
-- Remove `site:reddit.com`, `site:trustpilot.com`, `site:g2.com`, `site:capterra.com` from hardcoded queries
-- Replace with generic queries: `"customer reviews complaints"`, `"community discussion forums"`, etc.
-- Remove `TikTok viral nostalgia trend` query, replace with generic trend/viral query
-- Remove `site:reddit.com` from custom product search queries
-- Rename `redditPosts` array/stats → `communityPosts`
-- Rename `redditContent` response field → `communityContent`
+**1. `src/pages/Index.tsx`** — Missed in previous pass
+- Line 1017: Change type from `redditSentiment` → `communitySentiment`
+- Line 1021: Change comment `{/* Reddit Sentiment */}` → `{/* Community Sentiment */}`
+- Lines 1022-1026: Change all `redditSentiment` type casts → `communitySentiment`
+- Line 1026: Update `hasRealSentiment` to use `ci.communitySentiment || (ci as any).redditSentiment` (backward compat) and remove `reddit` from the regex filter
+- Line 1034: Display `sentiment` variable instead of `ci.redditSentiment`
 
-**2. `supabase/functions/analyze-products/index.ts`** — AI prompts & schemas
-- Rename `redditSentiment` → `communitySentiment` in both JSON schema examples (service + product)
-- Remove `"with specific subreddit references"` and `"Reddit community sentiment"` from descriptions
-- Change `socialSignals` examples from `{"platform": "TikTok"...}`, `{"platform": "Reddit"...}` → generic `{"platform": "Social Media"...}`, `{"platform": "Community Forums"...}`
-- Rename `redditContent` variable → `communityContent`
-- Remove `"Real Reddit community sentiment"` from user prompt, replace with `"Real community sentiment"`
-- Remove `"MAIN SCRAPED CONTENT (eBay, Etsy, Google, TikTok)"` → `"MAIN SCRAPED CONTENT"`
-- Remove `"REDDIT COMMUNITY POSTS"` → `"COMMUNITY POSTS"`
-- Change `"Community suggestion or improvement request from Reddit/forums"` → `"Community suggestion or improvement request"`
+**2. `supabase/functions/send-magic-link/index.ts`** — Line 186
+- Change `"Deep-dive any product with live market data from eBay, Etsy, Reddit and more"` → `"Deep-dive any product with live market data and community intelligence"`
 
-**3. `supabase/functions/generate-flip-ideas/index.ts`** — Prompt examples
-- Remove `"r/smartphones discusses weekly"` and `"TikTok Shop"` from the GOOD example
-- Replace with generic: `"sold via social commerce targeting the specific grip frustration that online communities discuss weekly"`
-- Remove hardcoded `"TikTok Shop"` from `channels` example array → `"Social Commerce"`
+**3. `src/pages/ResourcesPage.tsx`** — Lines 37, 39
+- Line 37: Remove `"TikTok (28M views)"` → `"social media (28M views)"`
+- Line 39: Remove `"Reddit and forum threads"` → `"Online community threads"`
 
-**4. `src/contexts/AnalysisContext.tsx`** — Data pipeline
-- Rename `scrapeData.redditPosts` → `scrapeData.communityPosts` in log
-- Rename `scrapeData.redditContent` → `scrapeData.communityContent` in body sent to analyze
+**4. `supabase/functions/analyze-products/index.ts`** — Lines 20, 52, 170-171, 313-314
+- Line 20: Remove `site:ebay.com` from image search query → use generic product image search
+- Line 52: Remove `i.ebayimg` / `etsy.com/il` image domain filters → accept any product image
+- Lines 170-171, 313-314: Rename schema fields `ebayAvgSold` → `resaleAvgSold`, `etsyAvgSold` → `vintageAvgSold` in JSON examples
 
-**5. `src/pages/Index.tsx`** — Data pipeline (duplicate of above)
-- Same renames: `redditPosts` → `communityPosts`, `redditContent` → `communityContent`
+**5. `supabase/functions/generate-flip-ideas/index.ts`** — Line 104
+- Change `eBay avg: ${product.pricingIntel.ebayAvgSold}` → `Resale avg: ${product.pricingIntel.ebayAvgSold || product.pricingIntel.resaleAvgSold}`
 
-**6. `src/pages/ReportPage.tsx`** — UI rendering
-- Rename all `redditSentiment` type references → `communitySentiment`
-- Update `hasRealSentiment` regex filter to remove `reddit` references
-- Label already says "Community Sentiment" — no change needed there
+**6. Update all UI field accessors** for backward compat with both old (`ebayAvgSold`) and new (`resaleAvgSold`) field names:
+- `src/pages/ReportPage.tsx` line 454-455
+- `src/pages/Index.tsx` lines 1191-1192
+- `src/pages/ShareableAnalysisPage.tsx` lines 387-399
 
-**7. `src/pages/ShareableAnalysisPage.tsx`** — Shareable view
-- Rename `redditSentiment` → `communitySentiment`
-- Update regex filter
-
-**8. `src/components/KeyTakeawayBanner.tsx`** — Helper type
-- Rename `redditSentiment` → `communitySentiment` in `getCommunityTakeaway` param type
-
-**9. `src/lib/explainers.ts`** — Explainer text
-- Change `"Community Intel scrapes Reddit, forums, and review platforms"` → `"Community Intel scrapes forums, review platforms, and public discussions"`
+### What stays unchanged
+- `scrape-products` `reddit.com` URL detection (line 165) — this correctly categorizes scraped results by source URL, not hardcoding queries. It's analytically valuable.
+- Internal data field names as fallbacks — old saved analyses need backward compatibility
 
 ### Deployment
-- Redeploy `scrape-products`, `analyze-products`, `generate-flip-ideas` edge functions
+- Redeploy `send-magic-link`, `analyze-products`, `generate-flip-ideas`
 
