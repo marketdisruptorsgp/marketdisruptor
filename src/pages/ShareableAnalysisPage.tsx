@@ -21,6 +21,7 @@ import {
   Store, Truck, Factory, Users, Globe, Wrench, Heart, Rocket,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
+import { externalClasses, brand } from "@/theme/externalTokens";
 
 interface SharedData {
   title: string;
@@ -54,9 +55,14 @@ const SECTION_DESCRIPTIONS: Record<string, string> = {
 };
 
 function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
-  if (trend === "up") return <span className="inline-flex items-center gap-0.5 text-[10px] font-bold" style={{ color: "hsl(142 70% 40%)" }}><TrendingUp size={9} /> Rising</span>;
-  if (trend === "down") return <span className="inline-flex items-center gap-0.5 text-[10px] font-bold" style={{ color: "hsl(var(--destructive))" }}><TrendingDown size={9} /> Falling</span>;
-  return <span className="inline-flex items-center gap-0.5 text-[10px] font-bold" style={{ color: "hsl(38 92% 50%)" }}><Minus size={9} /> Stable</span>;
+  if (trend === "up") return <span className="inline-flex items-center gap-0.5 text-[13px] font-bold" style={{ color: "hsl(142 70% 40%)" }}><TrendingUp size={11} /> Rising</span>;
+  if (trend === "down") return <span className="inline-flex items-center gap-0.5 text-[13px] font-bold" style={{ color: "hsl(var(--destructive))" }}><TrendingDown size={11} /> Falling</span>;
+  return <span className="inline-flex items-center gap-0.5 text-[13px] font-bold" style={{ color: "hsl(38 92% 50%)" }}><Minus size={11} /> Stable</span>;
+}
+
+/* Shared label component — enforces 13px minimum */
+function DataLabel({ children }: { children: React.ReactNode }) {
+  return <p className={externalClasses.label}>{children}</p>;
 }
 
 export default function ShareableAnalysisPage() {
@@ -88,14 +94,14 @@ export default function ShareableAnalysisPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+          <div className="w-10 h-10 rounded flex items-center justify-center bg-primary">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
           </div>
-          <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
+          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -103,10 +109,10 @@ export default function ShareableAnalysisPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-2">
           <AlertTriangle size={32} className="mx-auto text-muted-foreground opacity-40" />
-          <p className="text-sm text-muted-foreground">{error || "Analysis not found"}</p>
+          <p className="typo-card-body text-muted-foreground">{error || "Analysis not found"}</p>
         </div>
       </div>
     );
@@ -116,20 +122,18 @@ export default function ShareableAnalysisPage() {
   const product = data.products?.[0] as Product | undefined;
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
-        <p className="text-sm text-muted-foreground">No product data available</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="typo-card-body text-muted-foreground">No product data available</p>
       </div>
     );
   }
 
-  // Resolve disrupt data - handle both formats (nested under 'disrupt' key or top-level)
   const disruptData = ad?.disrupt || (ad?.coreReality ? ad : null);
   const stressTestData = ad?.stressTest || null;
   const pitchDeckData = ad?.pitchDeck || null;
   const redesignData = ad?.redesign || null;
   const userScores = (ad?.userScores as Record<string, Record<string, number>>) || {};
 
-  // Determine which steps have data
   const hasDisrupt = !!disruptData;
   const hasStressTest = !!stressTestData;
   const hasPitch = !!pitchDeckData;
@@ -158,20 +162,20 @@ export default function ShareableAnalysisPage() {
   const nextTab = currentIdx < DETAIL_TABS.length - 1 ? DETAIL_TABS[currentIdx + 1] : null;
 
   return (
-    <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
+    <div className="min-h-screen bg-background">
       {/* Shared banner */}
-      <div className="py-3 text-center" style={{ background: "hsl(var(--primary))" }}>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-white/70">Market Disruptor · Shared Analysis</p>
-        <h1 className="text-lg font-bold text-white mt-0.5">{data.title}</h1>
+      <div className={externalClasses.banner} style={{ background: "hsl(var(--primary))" }}>
+        <p className="typo-card-eyebrow text-white/70">{brand.name} · Shared Analysis</p>
+        <h1 className="typo-section-title text-white mt-0.5">{data.title}</h1>
         <div className="flex items-center justify-center gap-3 mt-1">
-          <span className="text-xs text-white/60">{data.category}</span>
+          <span className="typo-card-meta text-white/60">{data.category}</span>
           {data.avg_revival_score && (
-            <span className="text-xs font-bold text-white bg-white/20 px-2 py-0.5 rounded">{data.avg_revival_score}/10</span>
+            <span className="typo-card-meta font-bold text-white bg-white/20 px-2 py-0.5 rounded">{data.avg_revival_score}/10</span>
           )}
         </div>
       </div>
 
-      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
+      <main className={`${externalClasses.container} py-4 sm:py-6 space-y-4 sm:space-y-5`}>
         {/* Step Navigator */}
         <StepNavigator
           steps={getSharedStepConfigs()}
@@ -217,27 +221,27 @@ export default function ShareableAnalysisPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-3">
                     {product.keyInsight && (
-                      <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Key Insight</p>
-                        <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.85)" }}>{product.keyInsight}</p>
+                      <div className="p-3 rounded-lg bg-muted border border-border">
+                        <DataLabel>Key Insight</DataLabel>
+                        <p className="typo-card-body mt-1" style={{ color: "hsl(var(--foreground) / 0.85)" }}>{product.keyInsight}</p>
                       </div>
                     )}
                     {product.description && (
-                      <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Description</p>
-                        <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{product.description}</p>
+                      <div className="p-3 rounded-lg bg-muted border border-border">
+                        <DataLabel>Description</DataLabel>
+                        <p className="typo-card-meta mt-1" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{product.description}</p>
                       </div>
                     )}
                   </div>
                   <div className="space-y-3">
                     {product.marketSizeEstimate && (
                       <div className="p-3 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-                        <p className="text-xs font-semibold" style={{ color: "hsl(142 70% 28%)" }}>TAM: {product.marketSizeEstimate}</p>
+                        <p className="typo-card-meta font-semibold" style={{ color: "hsl(142 70% 28%)" }}>TAM: {product.marketSizeEstimate}</p>
                       </div>
                     )}
-                    <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Confidence Scores</p>
-                      <div className="grid grid-cols-1 gap-2">
+                    <div className="p-3 rounded-lg bg-muted border border-border">
+                      <DataLabel>Confidence Scores</DataLabel>
+                      <div className="grid grid-cols-1 gap-2 mt-2">
                         <ScoreBar label="Adoption Likelihood" score={product.confidenceScores?.adoptionLikelihood ?? 7} />
                         <ScoreBar label="Feasibility" score={product.confidenceScores?.feasibility ?? 7} />
                         <ScoreBar label="Emotional Resonance" score={product.confidenceScores?.emotionalResonance ?? 8} />
@@ -247,11 +251,11 @@ export default function ShareableAnalysisPage() {
                 </div>
 
                 <DetailPanel title="Sources & Trend Analysis" icon={TrendingUp} defaultOpen>
-                  {product.trendAnalysis && <p className="text-xs text-foreground/80 leading-relaxed mb-2">{product.trendAnalysis}</p>}
+                  {product.trendAnalysis && <p className="typo-card-meta text-foreground/80 leading-relaxed mb-2">{product.trendAnalysis}</p>}
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {product.sources?.map((src) => (
                       <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium"
                         style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
                         <ExternalLink size={9} /> {src.label?.slice(0, 30)}
                       </a>
@@ -278,31 +282,31 @@ export default function ShareableAnalysisPage() {
                 })()}
                 {(() => {
                   const ci = (product as any).communityInsights;
-                  if (!ci) return <p className="text-sm text-muted-foreground py-8 text-center">No community data available</p>;
+                  if (!ci) return <p className="typo-card-body text-muted-foreground py-8 text-center">No community data available</p>;
                   const hasRealSentiment = ci.redditSentiment && !/no direct.*found|not found/i.test(ci.redditSentiment);
                   return (
                     <>
                       {hasRealSentiment && (
-                        <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                          <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(25 90% 40%)" }}>Community Sentiment</p>
-                          <p className="text-xs leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
+                        <div className="p-4 rounded-lg bg-muted border border-border">
+                          <DataLabel>Community Sentiment</DataLabel>
+                          <p className="typo-card-meta mt-1" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
                         </div>
                       )}
                       <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown} defaultOpen>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
                           {ci.topComplaints?.length > 0 && (
                             <div className="space-y-1.5">
-                              <p className="text-[10px] font-bold text-muted-foreground uppercase">Top Complaints</p>
+                              <DataLabel>Top Complaints</DataLabel>
                               {ci.topComplaints.map((c: string, i: number) => (
-                                <div key={i} className="flex gap-2 items-start text-xs"><ShieldAlert size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{c}</span></div>
+                                <div key={i} className="flex gap-2 items-start typo-card-meta"><ShieldAlert size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{c}</span></div>
                               ))}
                             </div>
                           )}
                           {ci.improvementRequests?.length > 0 && (
                             <div className="space-y-1.5">
-                              <p className="text-[10px] font-bold text-muted-foreground uppercase">Improvement Requests</p>
+                              <DataLabel>Improvement Requests</DataLabel>
                               {ci.improvementRequests.map((r: string, i: number) => (
-                                <div key={i} className="flex gap-2 items-start text-xs"><Lightbulb size={10} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{r}</span></div>
+                                <div key={i} className="flex gap-2 items-start typo-card-meta"><Lightbulb size={10} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{r}</span></div>
                               ))}
                             </div>
                           )}
@@ -321,20 +325,20 @@ export default function ShareableAnalysisPage() {
                 <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="User Journey" description={SECTION_DESCRIPTIONS.workflow} icon={Clock} />
                 {(() => {
                   const wf = (product as any).userWorkflow || (product as any).workflow;
-                  if (!wf) return <p className="text-sm text-muted-foreground py-8 text-center">No workflow data available</p>;
+                  if (!wf) return <p className="typo-card-body text-muted-foreground py-8 text-center">No workflow data available</p>;
                   return (
                     <>
                       {wf.stepByStep && <WorkflowTimeline steps={wf.stepByStep} frictionPoints={wf.frictionPoints || []} />}
                       {wf.contextOfUse && (
-                        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Context of Use</p>
-                          <p className="text-xs text-foreground/80">{wf.contextOfUse}</p>
+                        <div className="p-3 rounded-lg bg-muted border border-border">
+                          <DataLabel>Context of Use</DataLabel>
+                          <p className="typo-card-meta text-foreground/80 mt-1">{wf.contextOfUse}</p>
                         </div>
                       )}
                       {wf.cognitiveLoad && (
-                        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Cognitive Load</p>
-                          <p className="text-xs text-foreground/80">{wf.cognitiveLoad}</p>
+                        <div className="p-3 rounded-lg bg-muted border border-border">
+                          <DataLabel>Cognitive Load</DataLabel>
+                          <p className="typo-card-meta text-foreground/80 mt-1">{wf.cognitiveLoad}</p>
                         </div>
                       )}
                     </>
@@ -350,47 +354,47 @@ export default function ShareableAnalysisPage() {
                 <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Pricing Intel" description={SECTION_DESCRIPTIONS.pricing} icon={DollarSign} />
                 {(() => {
                   const pi = product.pricingIntel as any;
-                  if (!pi) return <p className="text-sm text-muted-foreground py-8 text-center">No pricing data available</p>;
+                  if (!pi) return <p className="typo-card-body text-muted-foreground py-8 text-center">No pricing data available</p>;
                   return (
                     <>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {pi.currentMarketPrice && (
-                          <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                            <p className="text-[10px] text-muted-foreground">Market Price</p>
-                            <p className="text-sm font-bold text-foreground">{pi.currentMarketPrice}</p>
+                          <div className="p-3 rounded-lg text-center bg-muted border border-border">
+                            <DataLabel>Market Price</DataLabel>
+                            <p className="typo-card-body font-bold text-foreground mt-1">{pi.currentMarketPrice}</p>
                           </div>
                         )}
                         {pi.margins && (
-                          <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                            <p className="text-[10px] text-muted-foreground">Margins</p>
-                            <p className="text-sm font-bold text-foreground">{pi.margins}</p>
+                          <div className="p-3 rounded-lg text-center bg-muted border border-border">
+                            <DataLabel>Margins</DataLabel>
+                            <p className="typo-card-body font-bold text-foreground mt-1">{pi.margins}</p>
                           </div>
                         )}
                         {pi.priceRange && (
-                          <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                            <p className="text-[10px] text-muted-foreground">Price Range</p>
-                            <p className="text-sm font-bold text-foreground">{pi.priceRange}</p>
+                          <div className="p-3 rounded-lg text-center bg-muted border border-border">
+                            <DataLabel>Price Range</DataLabel>
+                            <p className="typo-card-body font-bold text-foreground mt-1">{pi.priceRange}</p>
                           </div>
                         )}
                         {pi.collectorPremium && (
-                          <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                            <p className="text-[10px] text-muted-foreground">Collector Premium</p>
-                            <p className="text-sm font-bold text-foreground">{pi.collectorPremium}</p>
+                          <div className="p-3 rounded-lg text-center bg-muted border border-border">
+                            <DataLabel>Collector Premium</DataLabel>
+                            <p className="typo-card-body font-bold text-foreground mt-1">{pi.collectorPremium}</p>
                           </div>
                         )}
                       </div>
                       {(pi.ebayAvgSold || pi.etsyAvgSold) && (
                         <div className="grid grid-cols-2 gap-3">
                           {pi.ebayAvgSold && (
-                            <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                              <p className="text-[10px] text-muted-foreground">eBay Avg Sold</p>
-                              <p className="text-sm font-bold text-foreground">{pi.ebayAvgSold}</p>
+                            <div className="p-3 rounded-lg text-center bg-muted border border-border">
+                              <DataLabel>eBay Avg Sold</DataLabel>
+                              <p className="typo-card-body font-bold text-foreground mt-1">{pi.ebayAvgSold}</p>
                             </div>
                           )}
                           {pi.etsyAvgSold && (
-                            <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                              <p className="text-[10px] text-muted-foreground">Etsy Avg Sold</p>
-                              <p className="text-sm font-bold text-foreground">{pi.etsyAvgSold}</p>
+                            <div className="p-3 rounded-lg text-center bg-muted border border-border">
+                              <DataLabel>Etsy Avg Sold</DataLabel>
+                              <p className="typo-card-body font-bold text-foreground mt-1">{pi.etsyAvgSold}</p>
                             </div>
                           )}
                         </div>
@@ -408,17 +412,17 @@ export default function ShareableAnalysisPage() {
                 <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Supply Chain" description={SECTION_DESCRIPTIONS.supply} icon={Package} />
                 {(() => {
                   const sc = (product as any).supplyChainIntel || (product as any).supplyChain;
-                  if (!sc) return <p className="text-sm text-muted-foreground py-8 text-center">No supply chain data available</p>;
+                  if (!sc) return <p className="typo-card-body text-muted-foreground py-8 text-center">No supply chain data available</p>;
                   return (
                     <>
                       {sc.suppliers?.length > 0 && (
                         <DetailPanel title={`Suppliers (${sc.suppliers.length})`} icon={Factory} defaultOpen>
                           <div className="space-y-2 mb-2">
                             {sc.suppliers.map((s: any, i: number) => (
-                              <div key={i} className="p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                                <p className="text-xs font-bold text-foreground">{s.name || s.supplier}</p>
-                                {s.role && <p className="text-[10px] text-muted-foreground mt-0.5">{s.role}</p>}
-                                {s.region && <p className="text-[10px] text-muted-foreground">{s.region}</p>}
+                              <div key={i} className="p-2.5 rounded-lg bg-muted border border-border">
+                                <p className="typo-card-meta font-bold text-foreground">{s.name || s.supplier}</p>
+                                {s.role && <p className="typo-card-meta text-muted-foreground mt-0.5">{s.role}</p>}
+                                {s.region && <p className="typo-card-meta text-muted-foreground">{s.region}</p>}
                               </div>
                             ))}
                           </div>
@@ -428,18 +432,18 @@ export default function ShareableAnalysisPage() {
                         <DetailPanel title={`Distributors (${sc.distributors.length})`} icon={Truck}>
                           <div className="space-y-2 mb-2">
                             {sc.distributors.map((d: any, i: number) => (
-                              <div key={i} className="p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                                <p className="text-xs font-bold text-foreground">{d.name || d.distributor}</p>
-                                {d.role && <p className="text-[10px] text-muted-foreground mt-0.5">{d.role}</p>}
+                              <div key={i} className="p-2.5 rounded-lg bg-muted border border-border">
+                                <p className="typo-card-meta font-bold text-foreground">{d.name || d.distributor}</p>
+                                {d.role && <p className="typo-card-meta text-muted-foreground mt-0.5">{d.role}</p>}
                               </div>
                             ))}
                           </div>
                         </DetailPanel>
                       )}
                       {sc.manufacturingInsight && (
-                        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Manufacturing Insight</p>
-                          <p className="text-xs text-foreground/80">{sc.manufacturingInsight}</p>
+                        <div className="p-3 rounded-lg bg-muted border border-border">
+                          <DataLabel>Manufacturing Insight</DataLabel>
+                          <p className="typo-card-meta text-foreground/80 mt-1">{sc.manufacturingInsight}</p>
                         </div>
                       )}
                     </>
@@ -452,7 +456,7 @@ export default function ShareableAnalysisPage() {
             {hasDisrupt && (
               <button
                 onClick={() => { setActiveStep(3); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-colors"
+                className={`w-full ${externalClasses.buttonPrimary} py-3`}
                 style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
               >
                 <Brain size={14} /> Continue to Disrupt →
@@ -477,7 +481,7 @@ export default function ShareableAnalysisPage() {
             />
 
             {hasDisrupt ? (
-              <div className="rounded overflow-hidden p-3 sm:p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+              <div className={`rounded-xl overflow-hidden p-3 sm:p-5 ${externalClasses.card}`}>
                 <FirstPrinciplesAnalysis
                   product={product}
                   flippedIdeas={product.flippedIdeas}
@@ -489,14 +493,14 @@ export default function ShareableAnalysisPage() {
             ) : (
               <div className="py-12 text-center">
                 <Brain size={32} className="mx-auto text-muted-foreground opacity-40 mb-2" />
-                <p className="text-sm text-muted-foreground">Disrupt analysis was not completed for this project</p>
+                <p className="typo-card-body text-muted-foreground">Disrupt analysis was not completed for this project</p>
               </div>
             )}
 
             {hasDisrupt && (
               <button
                 onClick={() => { setActiveStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-colors"
+                className={`w-full ${externalClasses.buttonPrimary} py-3`}
                 style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
               >
                 <Sparkles size={14} /> Continue to Redesign →
@@ -516,7 +520,7 @@ export default function ShareableAnalysisPage() {
             />
 
             {hasDisrupt ? (
-              <div className="rounded overflow-hidden p-3 sm:p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+              <div className={`rounded-xl overflow-hidden p-3 sm:p-5 ${externalClasses.card}`}>
                 <FirstPrinciplesAnalysis
                   product={product}
                   flippedIdeas={product.flippedIdeas}
@@ -527,14 +531,14 @@ export default function ShareableAnalysisPage() {
             ) : (
               <div className="py-12 text-center">
                 <Sparkles size={32} className="mx-auto text-muted-foreground opacity-40 mb-2" />
-                <p className="text-sm text-muted-foreground">Redesign was not completed for this project</p>
+                <p className="typo-card-body text-muted-foreground">Redesign was not completed for this project</p>
               </div>
             )}
 
             {hasStressTest && (
               <button
                 onClick={() => { setActiveStep(5); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-colors"
+                className={`w-full ${externalClasses.buttonPrimary} py-3`}
                 style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
               >
                 <Swords size={14} /> Continue to Stress Test →
@@ -559,7 +563,7 @@ export default function ShareableAnalysisPage() {
             />
 
             {hasStressTest ? (
-              <div className="rounded overflow-hidden p-3 sm:p-5 space-y-4" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+              <div className={`rounded-xl overflow-hidden p-3 sm:p-5 space-y-4 ${externalClasses.card}`}>
                 <SectionWorkflowNav
                   tabs={[
                     { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
@@ -581,14 +585,14 @@ export default function ShareableAnalysisPage() {
             ) : (
               <div className="py-12 text-center">
                 <Swords size={32} className="mx-auto text-muted-foreground opacity-40 mb-2" />
-                <p className="text-sm text-muted-foreground">Stress test was not completed for this project</p>
+                <p className="typo-card-body text-muted-foreground">Stress test was not completed for this project</p>
               </div>
             )}
 
             {hasPitch && (
               <button
                 onClick={() => { setActiveStep(6); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold transition-colors"
+                className={`w-full ${externalClasses.buttonPrimary} py-3`}
                 style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
               >
                 <Presentation size={14} /> Continue to Pitch Deck →
@@ -613,7 +617,7 @@ export default function ShareableAnalysisPage() {
             />
 
             {hasPitch ? (
-              <div className="rounded overflow-hidden p-3 sm:p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+              <div className={`rounded-xl overflow-hidden p-3 sm:p-5 ${externalClasses.card}`}>
                 <PitchDeck
                   product={product}
                   externalData={pitchDeckData}
@@ -626,20 +630,20 @@ export default function ShareableAnalysisPage() {
             ) : (
               <div className="py-12 text-center">
                 <Presentation size={32} className="mx-auto text-muted-foreground opacity-40 mb-2" />
-                <p className="text-sm text-muted-foreground">Pitch deck was not completed for this project</p>
+                <p className="typo-card-body text-muted-foreground">Pitch deck was not completed for this project</p>
               </div>
             )}
           </div>
         )}
 
         {/* Footer */}
-        <div className="pt-6 border-t text-center space-y-3" style={{ borderColor: "hsl(var(--border))" }}>
-          <p className="text-[10px] text-muted-foreground">
-            Generated by Market Disruptor · Analysis is for informational purposes only
+        <div className="pt-6 border-t border-border text-center space-y-3">
+          <p className={externalClasses.footer}>
+            Generated by {brand.name} · Analysis is for informational purposes only
           </p>
           <a
             href="/"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+            className={externalClasses.buttonPrimary}
             style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
           >
             <Rocket size={12} /> Run Your Own Analysis
