@@ -508,6 +508,17 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // Also snapshot previous values for version comparison
   const saveStepData = useCallback(async (stepKey: string, data: unknown) => {
     if (!analysisId) return;
+
+    // ── Pipeline Validation ──
+    const { validateStepData, logStepExecution } = await import("@/utils/pipelineValidation");
+    const validation = validateStepData(stepKey, data);
+    logStepExecution(stepKey, "save", { analysisId, valid: validation.valid });
+
+    if (!validation.valid) {
+      console.error("[Pipeline] Validation failed for step:", stepKey, validation.errors);
+      return; // Block invalid data from persisting
+    }
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: existing } = await (supabase.from("saved_analyses") as any)
@@ -530,7 +541,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       if (updateError) {
         console.error("saveStepData update failed:", updateError, "analysisId:", analysisId, "stepKey:", stepKey);
       } else {
-        console.log("saveStepData persisted:", stepKey, "to analysisId:", analysisId);
+        logStepExecution(stepKey, "save", { analysisId, success: true });
       }
     } catch (err) {
       console.error("Failed to persist step data:", err);

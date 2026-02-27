@@ -6,10 +6,10 @@ import {
 import { BarChart3, TrendingUp, Layers, Target, Users, Lightbulb, Compass, Flame } from "lucide-react";
 
 const MODE_COLORS: Record<string, string> = {
-  product: "hsl(var(--primary))",
-  first_principles: "hsl(271 81% 55%)",
-  service: "hsl(340 75% 50%)",
-  business_model: "hsl(217 91% 45%)",
+  product: "hsl(var(--mode-product))",
+  first_principles: "hsl(var(--mode-business))",
+  service: "hsl(var(--mode-service))",
+  business_model: "hsl(var(--primary))",
 };
 
 const MODE_LABELS: Record<string, string> = {
@@ -19,7 +19,7 @@ const MODE_LABELS: Record<string, string> = {
   business_model: "Business Model",
 };
 
-const PIE_COLORS = ["hsl(var(--primary))", "hsl(271 81% 55%)", "hsl(340 75% 50%)", "hsl(217 91% 45%)"];
+const PIE_COLORS = ["hsl(var(--mode-product))", "hsl(var(--mode-business))", "hsl(var(--mode-service))", "hsl(var(--primary))"];
 
 interface Props {
   overview: any;
