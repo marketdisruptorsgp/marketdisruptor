@@ -1,27 +1,41 @@
 
 
-## Make PitchDeckToggle More Visually Prominent
+## Replace BuiltForSection with a Visual Flow Illustration
 
-### `src/components/PitchDeckToggle.tsx`
+The current card-based layout reads like buttons and feels repetitive. Replace it with an **SVG-based visual flow diagram** that illustrates three scenario paths converging into the platform and diverging to outcomes — no cards, no button affordances.
 
-Increase contrast and visual weight of the toggle button:
+### Visual Concept
 
-**When included (active state):**
-- Background: solid `hsl(var(--primary))` instead of 12% opacity
-- Text: white (`hsl(var(--primary-foreground))`)
-- Border: solid primary
-- Icon size: 13px instead of 11px
-- Add subtle shadow for depth
+```text
+  "I have an idea"          "There's got to be       "I need to pitch"
+        💡                    a better way" 🔍              📊
+        |                         |                         |
+        v                         v                         v
+   ┌─────────┐             ┌─────────┐              ┌─────────┐
+   │ Validate │             │Teardown │              │  Intel   │
+   └────┬────┘             └────┬────┘              └────┬────┘
+        │                       │                        │
+        v                       v                        v
+   ┌─────────┐             ┌─────────┐              ┌─────────┐
+   │ Stress  │             │  Gap    │              │  Pitch  │
+   │  Test   │             │Analysis│              │  Deck   │
+   └────┬────┘             └────┬────┘              └────┬────┘
+        │                       │                        │
+        v                       v                        v
+    Go / No-Go          Disruption Paths           Export & Ship
+```
 
-**When excluded (inactive state):**
-- Background: keep muted but add dashed border for "not selected" affordance
-- Slightly larger padding for better hit target
+Three vertical lanes, each with:
+- A **trigger phrase** at the top (italic, quoted)
+- **2–3 small step nodes** connected by thin SVG lines/arrows
+- A **bold outcome** at the bottom
 
-**Both states:**
-- Bump font size from `text-xs` to `text-sm`
-- Increase padding from `px-3 py-1.5` to `px-4 py-2`
-- Icon size from 11 to 14
+No cards, no borders, no button styling. Pure typographic + line-art illustration. The connecting lines and nodes are rendered as inline SVG for crisp rendering at any size. Subtle primary-color accents on the nodes, muted lines.
+
+### Responsive behavior
+- Desktop: 3 columns side by side
+- Mobile: stack vertically, shrink SVG proportionally
 
 ### Files to change
-- `src/components/PitchDeckToggle.tsx` — restyle button for higher contrast
+- `src/components/BuiltForSection.tsx` — full rewrite to SVG flow diagram
 
