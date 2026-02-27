@@ -258,7 +258,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
             ))}
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div className="flex items-center gap-1 typo-card-meta text-muted-foreground">
               <Clock size={10} />
               <span>{idea.actionPlan.timeline}</span>
