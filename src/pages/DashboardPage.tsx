@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { useNavigate } from "react-router-dom";
 import {
   Upload, Briefcase, Building2, ShieldCheck, BookOpen,
-  Rocket, TrendingUp, Users, FileText, ArrowRight } from
+  Rocket, TrendingUp, Users, FileText, ArrowRight, Camera } from
 "lucide-react";
 
 const MODE_WORDS = [
@@ -166,6 +166,27 @@ export default function DashboardPage() {
               The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Instant Photo Analysis CTA */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
+        <div
+          className="rounded-2xl px-5 py-6 sm:py-8 flex flex-col sm:flex-row items-center gap-4 cursor-pointer transition-all hover:shadow-md bg-muted border border-border"
+          onClick={() => navigate("/instant-analysis")}
+        >
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Camera size={22} className="text-primary" />
+          </div>
+          <div className="flex-1 text-center sm:text-left">
+            <p className="typo-card-title mb-1">Instant Photo Analysis</p>
+            <p className="typo-card-body text-muted-foreground">
+              Snap a photo of any product and get an AI-powered competitive teardown in seconds — no signup required.
+            </p>
+          </div>
+          <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full typo-nav-primary bg-primary text-primary-foreground hover:opacity-90 transition-colors flex-shrink-0">
+            Try It <ArrowRight size={14} />
+          </button>
         </div>
       </div>
 
