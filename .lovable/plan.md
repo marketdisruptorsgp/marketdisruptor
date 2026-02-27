@@ -1,90 +1,75 @@
+## Yes and it needs to be high contrast. Noticeable. 
 
+## Plan: Add Help/Info Explainer Icons Across All Analysis Components
 
-# Downplay AI References Across the Platform
+### Problem
 
-## Goal
-Replace prominent "AI" language with outcome-focused, plain-language alternatives throughout the user-facing UI. Keep FAQ and Methodology pages as-is (technical users who go there expect detail). Internal function names and error handlers stay unchanged.
+Users have no way to understand what each step, section, or panel means. There are no contextual help icons anywhere in the analysis pipeline.
 
-## Files & Changes
+### Approach
 
-### 1. `src/pages/DashboardPage.tsx`
-- Line 102: `"...with AI-powered competitive intelligence"` → `"...with deep competitive intelligence"`
+Create a single reusable `InfoExplainer` component (a `?` icon that opens a popover with a detailed explanation), then wire it into the 4 key shared components that render across all modes, steps, and sections. This gives universal coverage without touching every page individually.
 
-### 2. `src/pages/StartPage.tsx`
-- Line 76: `"Each applies rigorous, AI-powered scrutiny"` → `"Each applies rigorous, data-driven scrutiny"`
+### Implementation
 
-### 3. `src/components/DisruptionPathBanner.tsx`
-- Line 26 detail: `"The AI breaks down the product..."` → `"The platform breaks down the product..."` 
-- Line 77: `"Six stages of AI-powered analysis"` → `"Six stages of structured analysis"`
+#### 1. Create explainer content registry (`src/lib/explainers.ts`)
 
-### 4. `src/components/StartPageLayout.tsx`
-- Line 20: `"the AI uses computer vision..."` → `"the platform uses visual analysis..."` 
-- Line 31: `"the AI maps the entire customer journey..."` → `"the platform maps the entire customer journey..."`
-- Line 32: `"gives the AI a sharper starting point"` → `"gives the analysis a sharper starting point"`
+A single record mapping every step, section, and panel ID to a detailed explainer string (2-3 sentences each). Covers:
 
-### 5. `src/components/WelcomeModal.tsx`
-- Line 18: `"Proprietary multi-model AI pipelines — not a wrapper"` → `"Proprietary multi-source data pipelines"`
-- Line 19: `"Deep web crawling, vision AI, and strategic analysis"` → `"Deep web crawling, visual analysis, and strategic modeling"`
-- Line 27: `"let the AI tear it apart"` → `"let the platform tear it apart"`
-- Line 28: `"the AI runs proprietary crawling pipelines"` → `"the platform runs proprietary crawling pipelines"`
-- Line 31: `"AI challenges every assumption"` → `"Every assumption gets challenged"`
-- Line 40: `"the AI maps competitive landscapes"` → `"the platform maps competitive landscapes"`
-- Line 52: `"the AI breaks down cost structures"` → `"the platform breaks down cost structures"`
+- **Steps**: Intelligence Report, Disrupt, Redesign, Stress Test, Pitch Deck
+- **Report sections**: Overview, Community Intel, User Journey, Pricing Intel, Supply Chain, Patent Intel
+- **Stress Test sections**: Debate, Validate
+- **Pitch slides**: Problem, Solution, Why Now, Market, Product, Business Model, Traction, Risks, GTM, Invest
+- **Panels**: Sources & Trend Analysis, Assumptions Map, Complaints & Requests, etc.
+- **Business Model sections**: all relevant keys
 
-### 6. `src/pages/SharePage.tsx`
-- Line 8: `"AI Product Intelligence"` → `"Product Intelligence"`
-- Line 9: `"powered by AI"` → remove
-- Line 19: `"AI-generated product concepts"` → `"Data-driven product concepts"`
-- Line 81: `"AI-Powered Product Intelligence"` → `"Deep Product Intelligence"`
-- Line 93: `"AI platform that scrapes..."` → `"intelligence platform that scrapes..."`
-- Line 127: `"advanced AI reasoning"` → `"advanced analytical reasoning"`
+#### 2. Create `InfoExplainer` component (`src/components/InfoExplainer.tsx`)
 
-### 7. `src/pages/AboutPage.tsx`
-- Line 22: `"Not a surface-level tool or a simple AI wrapper"` → `"Not a surface-level tool or a simple wrapper"`
-- Line 25: `"advanced multi-model AI, real-time data analysis, computer vision"` → `"advanced analytical models, real-time data analysis, computer vision"`
+- A small `HelpCircle` icon (lucide) button, 16-18px
+- On click/tap, opens a `Popover` (Radix) with the explainer text
+- Props: `explainerKey: string` (looks up from registry), or `text: string` (inline override)
+- Styled subtly (muted-foreground, hover to primary) so it doesn't compete with content
+- Works on both mobile (tap) and desktop (click)
 
-### 8. `src/components/LoadingTracker.tsx`
-- Line 16: `{ label: "AI Reasoning", detail: "Parsing all collected data" }` → `{ label: "Deep Analysis", detail: "Parsing all collected data" }`
+#### 3. Wire into shared components
 
-### 9. `src/components/StepLoadingTracker.tsx`
-- Line 17: `"Initializing AI reasoning engine…"` → `"Initializing analysis engine…"`
+`**ModeHeader**` — Add `explainerKey?: string` prop. Render `InfoExplainer` next to step title. Every step page already uses `ModeHeader`, so all steps get help icons automatically.
 
-### 10. `src/pages/Index.tsx`
-- Line 98: `label: "AI Analysis"` → `label: "Deep Analysis"`
-- Line 412: `"Gemini AI building deep intelligence..."` → `"Building deep intelligence..."`
-- Line 415: `"AI reasoning — parsing..."` → `"Parsing product data & community sentiment..."`
-- Line 462: `"No products returned by AI."` → `"No products returned from analysis."`
+`**SectionHeader**` — Add `explainerKey?: string` prop. Render `InfoExplainer` next to section label. Used in ReportPage for every tab section.
 
-### 11. `src/contexts/AnalysisContext.tsx`
-- Same loading log changes as Index.tsx (lines 331, 334): remove "Gemini AI" / "AI reasoning" prefixes
+`**SectionWorkflowNav**` — Add optional `explainerKeys?: Record<string, string>` prop. Render a small `?` icon inside each grid card. Used in Report, Stress Test, and Business Results pages.
 
-### 12. `src/components/BusinessModelAnalysis.tsx`
-- Line 204: `"AI credits exhausted"` → `"Analysis credits exhausted"`
-- Line 367: `"Steer the AI — add direction"` → `"Refine your analysis — add direction"`
-- Line 585: `"AI Opportunities & Platform Potential"` → `"Technology Opportunities & Platform Potential"`
+`**DetailPanel**` — Add `explainerKey?: string` prop. Render `InfoExplainer` next to title text. Every collapsible panel across all steps gets a help icon.
 
-### 13. `src/components/FirstPrinciplesAnalysis.tsx`
-- Line 381: `"AI credits exhausted"` → `"Analysis credits exhausted"`
-- Line 690: `"Steer the AI — add direction"` → `"Refine your analysis — add direction"`
+#### 4. Update page files to pass explainer keys
 
-### 14. `src/components/CriticalValidation.tsx`
-- Line 198: `"Steer the AI — add direction"` → `"Refine your analysis — add direction"`
+- `ReportPage.tsx` — pass keys to `SectionHeader`, `DetailPanel`, `SectionWorkflowNav`
+- `DisruptPage.tsx` — pass key to `ModeHeader`
+- `RedesignPage.tsx` — pass key to `ModeHeader`
+- `StressTestPage.tsx` — pass keys to `ModeHeader`, `SectionWorkflowNav`
+- `PitchPage.tsx` — pass key to `ModeHeader`
+- `BusinessResultsPage.tsx` — pass keys to step-level headers and nav
 
-### 15. `src/components/SteeringPanel.tsx`
-- Line 10: default title `"Guide the AI"` → `"Guide Your Analysis"`
+### Technical Details
 
-### 16. `src/components/portfolio/ActionItemsPanel.tsx`
-- Line 78: `"get AI-powered suggestions"` → `"get smart suggestions"`
-- Line 98: `"AI credits exhausted"` → `"Analysis credits exhausted"`
-- Line 330: `"generate AI suggestions"` → `"generate suggestions"`
+- Popover uses `@radix-ui/react-popover` (already installed)
+- Icon: `HelpCircle` from lucide-react
+- Touch targets: 32px minimum tap area via padding
+- Popover max-width: 280px, with `typo-card-body` text
+- Z-index handled by Radix portal automatically
 
-### 17. `src/pages/PricingPage.tsx`
-- Line 62: `"advanced AI capabilities"` → `"advanced analysis capabilities"`
+### Files to create
 
-## NOT changed (intentionally kept)
-- `src/pages/FaqsPage.tsx` — technical audience expects AI detail
-- `src/pages/MethodologyPage.tsx` — methodology page is for informed users
-- `src/pages/ResourcesPage.tsx` — "AI-Powered Tutoring" is a product name in example data
-- Edge function prompts — backend only, users never see these
-- Internal function/variable names (e.g. `generateAISuggestions`) — no user impact
+- `src/lib/explainers.ts`
+- `src/components/InfoExplainer.tsx`
 
+### Files to modify
+
+- `src/components/ModeHeader.tsx`
+- `src/components/SectionNav.tsx` (SectionHeader, SectionWorkflowNav, DetailPanel)
+- `src/pages/ReportPage.tsx`
+- `src/pages/DisruptPage.tsx`
+- `src/pages/RedesignPage.tsx`
+- `src/pages/StressTestPage.tsx`
+- `src/pages/PitchPage.tsx`
+- `src/pages/BusinessResultsPage.tsx`
