@@ -115,6 +115,17 @@ interface AnalysisContextType {
   // Redesign data (isolated from Disrupt)
   redesignData: unknown;
   setRedesignData: (d: unknown) => void;
+
+  // Insight preferences (liked/dismissed)
+  insightPreferences: Record<string, "liked" | "dismissed" | "neutral">;
+  setInsightPreference: (id: string, status: "liked" | "dismissed" | "neutral") => void;
+  getLikedInsights: () => string[];
+  getDismissedInsights: () => string[];
+
+  // Steering text
+  steeringText: string;
+  setSteeringText: (text: string) => void;
+  saveSteeringText: (text: string) => void;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | null>(null);
@@ -187,6 +198,37 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // ── Redesign Data (isolated from Disrupt) ──
   const [redesignData, setRedesignData] = useState<unknown>(null);
+
+  // ── Insight Preferences (liked/dismissed) ──
+  const [insightPreferences, setInsightPreferences] = useState<Record<string, "liked" | "dismissed" | "neutral">>({});
+  const pendingPrefSaveRef = useRef<Record<string, "liked" | "dismissed" | "neutral"> | null>(null);
+  const setInsightPreference = useCallback((id: string, status: "liked" | "dismissed" | "neutral") => {
+    setInsightPreferences(prev => {
+      const next = { ...prev };
+      if (status === "neutral") {
+        delete next[id];
+      } else {
+        next[id] = status;
+      }
+      pendingPrefSaveRef.current = next;
+      return next;
+    });
+  }, []);
+  const getLikedInsights = useCallback(() => {
+    return Object.entries(insightPreferences).filter(([, s]) => s === "liked").map(([id]) => id);
+  }, [insightPreferences]);
+  const getDismissedInsights = useCallback(() => {
+    return Object.entries(insightPreferences).filter(([, s]) => s === "dismissed").map(([id]) => id);
+  }, [insightPreferences]);
+
+  // ── Steering Text ──
+  const [steeringText, setSteeringText] = useState<string>("");
+  const saveSteeringText = useCallback((text: string) => {
+    setSteeringText(text);
+    if (analysisId) {
+      saveStepData("steeringText", text);
+    }
+  }, [analysisId]);
 
   // Loading
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -282,6 +324,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setRedesignData(null);
     setUserScores({});
     setOutdatedSteps(new Set());
+    setInsightPreferences({});
+    setSteeringText("");
     startLoadingTimer();
 
     const hasCustom = customProducts && customProducts.length > 0;
@@ -474,7 +518,12 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const baseContext = `Focus on ${analysisParams.category} market trends.`;
       const fullContext = userContext ? `${baseContext}\n\nUser's additional guidance: ${userContext}` : baseContext;
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
-        body: { product, additionalContext: fullContext },
+        body: {
+          product,
+          additionalContext: fullContext,
+          insightPreferences: Object.keys(insightPreferences).length > 0 ? insightPreferences : undefined,
+          steeringText: steeringText || undefined,
+        },
       });
 
       if (error || !data?.success) {
@@ -564,6 +613,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [outdatedSteps, analysisId, saveStepData]);
 
+  // Auto-persist insight preferences when changed
+  useEffect(() => {
+    if (pendingPrefSaveRef.current && analysisId) {
+      const prefs = pendingPrefSaveRef.current;
+      pendingPrefSaveRef.current = null;
+      saveStepData("insightPreferences", prefs);
+    }
+  }, [insightPreferences, analysisId, saveStepData]);
+
   const handleLoadSaved = useCallback((analysis: any) => {
     setLoadedFromSaved(true);
     // Restore persisted step data
@@ -575,6 +633,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
     if (ad?.redesign) setRedesignData(ad.redesign);
     if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
+    if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
+    if (ad?.steeringText) setSteeringText(ad.steeringText as string);
     // projectNotes is loaded on-demand in portfolio/report, no context state needed
 
     // Restore outdated steps
@@ -646,6 +706,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       outdatedSteps, markStepOutdated, clearStepOutdated,
       userScores, setUserScore,
       redesignData, setRedesignData,
+      insightPreferences, setInsightPreference, getLikedInsights, getDismissedInsights,
+      steeringText, setSteeringText, saveSteeringText,
     }}>
       {children}
     </AnalysisContext.Provider>
