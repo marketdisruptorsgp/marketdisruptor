@@ -13,7 +13,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, audience, additionalContext, insightPreferences, steeringText, lens } = await req.json();
+    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count } = await req.json();
+    const ideaCount = count || 2;
     const mode = resolveMode(undefined, product.category);
     const filterResult = filterInputData(mode, product);
     const filteredProduct = filterResult.filtered as typeof product;
@@ -88,7 +89,7 @@ Each object must follow this EXACT structure:
   }
 }`;
 
-    const userPrompt = `Generate 3 bold, commercially viable "flipped" product ideas for this product.
+    const userPrompt = `Generate ${ideaCount} bold, commercially viable "flipped" product ideas for this product.
 
 PRODUCT: ${product.name}
 CATEGORY: ${product.category}
@@ -137,7 +138,7 @@ ANTI-GENERIC RULES:
 - Each idea must be DIFFERENT in structural approach (e.g. one could be a material flip, one a business model flip, one an audience flip)
 - NOVEL ideas without precedent are WELCOME — explain why the timing is right and what signals support them
 
-Return ONLY a JSON array with exactly 3 flipped idea objects.${buildLensPrompt(lens)}`;
+Return ONLY a JSON array with exactly ${ideaCount} flipped idea objects.${buildLensPrompt(lens)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

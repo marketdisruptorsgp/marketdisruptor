@@ -5,9 +5,10 @@ import { useState, useEffect } from "react";
 interface PitchDeckToggleProps {
   contentKey: string;
   label?: string;
+  sublabel?: string;
 }
 
-export function PitchDeckToggle({ contentKey, label }: PitchDeckToggleProps) {
+export function PitchDeckToggle({ contentKey, label, sublabel }: PitchDeckToggleProps) {
   const { pitchDeckExclusions, togglePitchDeckExclusion } = useAnalysis();
   const isExcluded = pitchDeckExclusions.has(contentKey);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -48,13 +49,16 @@ export function PitchDeckToggle({ contentKey, label }: PitchDeckToggleProps) {
           </>
         )}
       </button>
+      {sublabel && (
+        <span className="text-[10px] text-muted-foreground font-medium">{sublabel}</span>
+      )}
       {showConfirm && (
         <span
           className="flex items-center gap-1 text-xs font-medium animate-in fade-in slide-in-from-left-2 duration-300"
           style={{ color: isExcluded ? "hsl(var(--muted-foreground))" : "hsl(var(--success))" }}
         >
           <Check size={11} />
-          {isExcluded ? "Removed — won't appear in pitch deck" : "Applied — nothing else to do"}
+          {isExcluded ? "Removed — won't appear in pitch deck" : "Exec summary will be added to pitch deck"}
         </span>
       )}
     </div>

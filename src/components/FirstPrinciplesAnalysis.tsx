@@ -721,11 +721,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {activeStep === "assumptions" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
-          <PitchDeckToggle contentKey="assumptions" label="Include in Pitch Deck" />
-          <p className="text-xs text-muted-foreground">Every design choice rests on assumptions. Here are the ones worth challenging.</p>
+          <PitchDeckToggle contentKey="assumptions" label="Include in Pitch Deck" sublabel="(concise exec summary only — not the full analysis)" />
+          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-xs text-foreground/80 leading-relaxed">
+              <strong>Why this matters:</strong> Every product is built on assumptions — about who uses it, how they use it, and why it's designed the way it is. Most go unchallenged. The best innovations come from questioning what everyone else takes for granted. Below are the hidden assumptions we identified, ranked by how much leverage challenging them could unlock.
+            </p>
+          </div>
 
            <div className="space-y-3">
-            {data.hiddenAssumptions.slice(0, 4).map((a, i) => {
+            {data.hiddenAssumptions.map((a, i) => {
               const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
               return (
                 <div key={i} className="p-3.5 rounded-lg" style={{ background: "hsl(var(--card))", border: `1.5px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}` }}>
@@ -752,25 +756,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             })}
           </div>
 
-          {data.hiddenAssumptions.length > 4 && (
-            <DetailPanel title={`${data.hiddenAssumptions.length - 4} more assumptions`} icon={Brain}>
-              <div className="space-y-2.5 mb-2">
-                {data.hiddenAssumptions.slice(4).map((a, i) => {
-                  const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
-                  return (
-                    <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                      <p className="text-xs font-bold text-foreground mb-0.5">{a.assumption}</p>
-                      <p className="typo-card-body text-muted-foreground">{a.currentAnswer}</p>
-                      {a.challengeIdea && (
-                        <p className="typo-card-body mt-1" style={{ color: "hsl(var(--primary))" }}>→ {a.challengeIdea}</p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </DetailPanel>
-          )}
-
           {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
         </div>
       )}
@@ -779,7 +764,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {activeStep === "flip" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
-          <PitchDeckToggle contentKey="flippedLogic" label="Include in Pitch Deck" />
+          <PitchDeckToggle contentKey="flippedLogic" label="Include in Pitch Deck" sublabel="(concise exec summary only)" />
+          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+            <p className="text-xs text-foreground/80 leading-relaxed">
+              <strong>Methodology:</strong> Each assumption above is deliberately inverted to explore what happens when conventional wisdom is violated. This isn't contrarianism for its own sake — it's a structured technique to surface non-obvious opportunities that competitors overlook because they never question the status quo.
+            </p>
+          </div>
 
           {data.flippedLogic.map((item, i) => (
             <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
@@ -807,6 +797,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                     <p className="text-xs text-foreground/70">{item.physicalMechanism}</p>
                   </div>
                 </div>
+                <InsightRating sectionId={`flip-${i}`} compact />
               </DetailPanel>
             </div>
           ))}
@@ -833,8 +824,19 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
           {flippedIdeas && flippedIdeas.length > 0 ? (
             <>
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{flippedIdeas.length} ideas ranked by viability</p>
+              {/* Explanatory banner */}
+              <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--primary) / 0.06)", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
+                <p className="text-sm font-bold text-foreground">
+                  We generated <span style={{ color: "hsl(var(--primary))" }}>{flippedIdeas.length} bold reinvention ideas</span> based on the assumptions and flipped logic above.
+                </p>
+                <ul className="text-xs text-foreground/70 space-y-1 ml-4 list-disc">
+                  <li><strong>Love an idea?</strong> Save it or add its visual to your pitch deck.</li>
+                  <li><strong>Want to change just one?</strong> Click <strong>Regenerate This Idea</strong> on the specific card — the other stays.</li>
+                  <li><strong>Want all new ideas?</strong> Use the <strong>Regenerate All</strong> button below.</li>
+                </ul>
+              </div>
+
+              <div className="flex items-center justify-end">
                 {onRegenerateIdeas && (
                   <button
                     onClick={() => onRegenerateIdeas(userContext || undefined)}
@@ -842,7 +844,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                     style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.3)" }}
                   >
-                    {generatingIdeas ? <><RefreshCw size={11} className="animate-spin" /> Generating…</> : <><Sparkles size={11} /> Regenerate</>}
+                    {generatingIdeas ? <><RefreshCw size={11} className="animate-spin" /> Generating…</> : <><Sparkles size={11} /> Regenerate All</>}
                   </button>
                 )}
               </div>
@@ -858,6 +860,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                       pitchDeckImages={analysisCtx.pitchDeckImages}
                       onSelectForPitch={analysisCtx.setPitchDeckImage}
                       onRemoveFromPitch={analysisCtx.removePitchDeckImage}
+                      onRegenerateSingle={onRegenerateIdeas ? () => onRegenerateIdeas(`REGENERATE_SINGLE:${i}:${userContext || ""}`) : undefined}
                     />
                 ))}
               </div>
