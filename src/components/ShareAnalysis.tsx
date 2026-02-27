@@ -56,7 +56,7 @@ export function ShareAnalysis({ analysisId, analysisTitle, accentColor = "hsl(va
     <div className="relative" style={{ overflow: "visible" }}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded text-[11px] sm:text-xs font-medium transition-colors"
+        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded typo-card-meta font-medium transition-colors"
         style={{
           background: "hsl(var(--background))",
           color: "hsl(var(--foreground))",

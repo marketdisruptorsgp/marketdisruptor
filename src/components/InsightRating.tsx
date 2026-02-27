@@ -26,10 +26,10 @@ export const InsightRating = ({ sectionId, compact }: InsightRatingProps) => {
   return (
     <div className="mt-3">
       <div className={`flex items-center gap-2 ${compact ? "" : "pt-2 border-t"}`} style={{ borderColor: "hsl(var(--border))" }}>
-        <span className="text-[10px] text-muted-foreground font-medium">Optional — rate to help improve results:</span>
+        <span className="typo-card-meta text-foreground/60 font-medium">Optional — rate to help improve results:</span>
         <button
           onClick={() => handleRate("up")}
-          className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all"
+          className="flex items-center gap-1 px-2 py-1 rounded-lg typo-card-meta font-semibold transition-all"
           style={{
             background: rating === "up" ? "hsl(142 70% 45% / 0.15)" : "hsl(var(--muted))",
             color: rating === "up" ? "hsl(142 70% 30%)" : "hsl(var(--muted-foreground))",
@@ -40,7 +40,7 @@ export const InsightRating = ({ sectionId, compact }: InsightRatingProps) => {
         </button>
         <button
           onClick={() => handleRate("down")}
-          className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all"
+          className="flex items-center gap-1 px-2 py-1 rounded-lg typo-card-meta font-semibold transition-all"
           style={{
             background: rating === "down" ? "hsl(var(--destructive) / 0.12)" : "hsl(var(--muted))",
             color: rating === "down" ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground))",
@@ -50,7 +50,7 @@ export const InsightRating = ({ sectionId, compact }: InsightRatingProps) => {
           <ThumbsDown size={10} /> Challenge
         </button>
         {submitted && (
-          <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary))" }}>
+          <span className="typo-card-meta font-semibold" style={{ color: "hsl(var(--primary))" }}>
             ✓ Feedback noted
           </span>
         )}
@@ -59,7 +59,7 @@ export const InsightRating = ({ sectionId, compact }: InsightRatingProps) => {
       {showChallenge && (
         <div className="mt-2 p-3 rounded-xl space-y-2" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
+            <span className="typo-status-label font-bold uppercase tracking-wider flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
               <MessageSquare size={10} /> What do you disagree with?
             </span>
             <button onClick={() => setShowChallenge(false)} className="text-muted-foreground hover:text-foreground">

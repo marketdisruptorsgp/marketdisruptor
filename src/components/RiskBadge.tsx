@@ -10,7 +10,7 @@ export const RiskBadge = ({ type, level }: { type: "Risk" | "Capital"; level?: s
   const style = RISK_STYLES[clean] || RISK_STYLES["Medium"];
   return (
     <span
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded typo-status-label font-semibold"
       style={{ color: style.color, background: `${style.color}12`, border: `1px solid ${style.color}30` }}
     >
       {type}: {clean}

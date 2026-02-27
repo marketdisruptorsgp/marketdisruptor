@@ -122,7 +122,7 @@ export function MarketChangeAlert() {
             {matches.map((m) => (
               <span
                 key={m.category}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md typo-card-meta font-medium"
                 style={{
                   background: "hsl(var(--primary) / 0.08)",
                   color: "hsl(var(--primary))",

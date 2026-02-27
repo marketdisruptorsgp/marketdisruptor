@@ -79,7 +79,7 @@ export function StepLoadingTracker({
           </div>
           <div className="text-right">
             <p className="text-xs font-medium text-foreground">{progressPct}%</p>
-            <p className="text-[10px] text-muted-foreground">{remainingLabel}</p>
+            <p className="typo-card-meta text-foreground/60">{remainingLabel}</p>
           </div>
         </div>
         <div className="h-1.5 rounded-full overflow-hidden bg-muted">
@@ -89,8 +89,8 @@ export function StepLoadingTracker({
           />
         </div>
         <div className="flex justify-between mt-2">
-          <span className="text-[10px] text-muted-foreground">{elapsed}s elapsed</span>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="typo-card-meta text-foreground/60">{elapsed}s elapsed</span>
+          <span className="typo-card-meta text-foreground/60">
             Est. {Math.round(estimatedSeconds * 0.7)}–{Math.round(estimatedSeconds * 1.5)}s
           </span>
         </div>
@@ -99,14 +99,14 @@ export function StepLoadingTracker({
       {/* Two columns */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border-b border-border">
         <div className="p-4 sm:p-5 space-y-2 sm:space-y-2.5 border-b sm:border-b-0 sm:border-r border-border" style={{ background: "hsl(var(--card))" }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          <p className="typo-status-label font-semibold uppercase tracking-wider text-foreground/60 mb-2">
             Tasks
           </p>
           {tasks.map((item) => (
             <div key={item.label} className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-foreground">{item.label}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{item.detail}</p>
+                <p className="typo-card-meta text-foreground/60 truncate">{item.detail}</p>
               </div>
               <div
                 className="w-2.5 h-2.5 rounded-full border border-t-transparent animate-spin flex-shrink-0"
@@ -117,7 +117,7 @@ export function StepLoadingTracker({
         </div>
 
         <div className="p-4 sm:p-5" style={{ background: "hsl(var(--card))" }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          <p className="typo-status-label font-semibold uppercase tracking-wider text-foreground/60 mb-2">
             Activity
           </p>
           <div className="space-y-1 font-mono max-h-36 sm:max-h-48 overflow-y-auto">
@@ -129,12 +129,12 @@ export function StepLoadingTracker({
                   key={entry.ts}
                   className={`flex items-start gap-1.5 ${i === 0 ? "opacity-100" : "opacity-40"}`}
                 >
-                  <span className="text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">
+                  <span className="typo-card-meta text-foreground/40 flex-shrink-0 mt-0.5">
                     {Math.floor((Date.now() - entry.ts) / 1000) < 2
                       ? "now"
                       : `${Math.floor((Date.now() - entry.ts) / 1000)}s`}
                   </span>
-                  <span className="text-[11px] text-foreground leading-relaxed">{entry.text}</span>
+                  <span className="typo-card-meta text-foreground leading-relaxed">{entry.text}</span>
                 </div>
               ))
             )}
