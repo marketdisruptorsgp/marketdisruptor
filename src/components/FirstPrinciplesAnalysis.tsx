@@ -253,23 +253,26 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
           const StepIcon = getStepIcon(step);
 
           return (
-            <div key={i} className="flex items-start gap-3 relative">
-              {/* Left rail: icon + connector */}
+            <div key={i} className="flex items-start gap-3.5 relative">
+              {/* Left rail: illustrated icon + connector */}
               <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center z-10 transition-all duration-200"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center z-10 transition-all duration-300 shadow-sm"
                   style={{
                     background: isExpanded
                       ? "hsl(var(--foreground))"
-                      : "hsl(var(--muted))",
+                      : "hsl(var(--primary) / 0.08)",
                     color: isExpanded
                       ? "hsl(var(--background))"
-                      : "hsl(var(--foreground))",
-                    border: isExpanded ? "none" : "1.5px solid hsl(var(--border))",
-                    transform: isExpanded ? "scale(1.1)" : "scale(1)",
+                      : "hsl(var(--primary))",
+                    border: isExpanded ? "none" : "1.5px solid hsl(var(--primary) / 0.15)",
+                    transform: isExpanded ? "scale(1.12)" : "scale(1)",
+                    boxShadow: isExpanded
+                      ? "0 4px 12px -2px hsl(var(--foreground) / 0.2)"
+                      : "0 2px 8px -2px hsl(var(--primary) / 0.12)",
                   }}
                 >
-                  <StepIcon size={14} />
+                  <StepIcon size={18} strokeWidth={1.8} />
                 </div>
                 {!isLast && (
                   <div className="w-[1.5px] flex-1 min-h-[16px]" style={{ background: "hsl(var(--border))" }} />
@@ -279,7 +282,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
               {/* Right: step card */}
               <button
                 onClick={() => setExpandedStep(isExpanded ? null : i)}
-                className="flex-1 text-left rounded-xl p-3 mb-2 transition-all duration-200 cursor-pointer"
+                className="flex-1 text-left rounded-xl p-3.5 mb-2 transition-all duration-200 cursor-pointer group"
                 style={{
                   background: isExpanded
                     ? "hsl(var(--foreground) / 0.03)"
@@ -289,7 +292,10 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
                     : "1px solid hsl(var(--border))",
                 }}
               >
-                <p className="text-[13px] font-bold text-foreground leading-snug">{step}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-[13px] font-bold text-foreground leading-snug">{step}</p>
+                  <ChevronRight size={13} className="text-muted-foreground transition-transform duration-200 flex-shrink-0 ml-2" style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }} />
+                </div>
 
                 {isExpanded && friction && (
                   <div className="mt-2.5 space-y-2 pt-2.5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
