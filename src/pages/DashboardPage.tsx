@@ -117,6 +117,11 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* Showcase Gallery */}
+      <div id="showcase-gallery" className="max-w-5xl mx-auto px-4 sm:px-6 mt-3 sm:mt-5 mb-4 sm:mb-6">
+        <ShowcaseGallery />
+      </div>
+
       {/* Workflow Pipeline */}
       <DisruptionPathBanner accentColor={MODE_WORDS[wordIndex].color} activeMode={MODE_WORDS[wordIndex].label as "product" | "service" | "business"} />
 
@@ -174,11 +179,6 @@ export default function DashboardPage() {
             Try It <ArrowRight size={14} />
           </button>
         </div>
-      </div>
-
-      {/* Showcase Gallery */}
-      <div id="showcase-gallery" className="max-w-5xl mx-auto px-4 sm:px-6 mt-3 sm:mt-5 mb-4 sm:mb-6">
-        <ShowcaseGallery />
       </div>
 
       {/* Mode Pills — navigate to start pages */}
