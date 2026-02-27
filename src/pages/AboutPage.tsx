@@ -4,7 +4,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import {
   Rocket, Users, TrendingUp, FileText, ArrowRight,
-  Search, Zap, ShieldAlert, Presentation,
+  Search, Zap, ShieldAlert, Presentation, Layers,
 } from "lucide-react";
 
 const WHAT_IT_DOES = [
@@ -100,6 +100,80 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* First Principles */}
+        <section className="mb-20">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">The Foundation</p>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-6">
+            Built on First Principles Thinking
+          </h2>
+
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{ border: "1.5px solid hsl(var(--primary) / 0.2)", background: "hsl(var(--primary) / 0.03)" }}
+          >
+            <div className="p-6 sm:p-8 space-y-5">
+              <div className="flex items-start gap-4">
+                <div
+                  className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
+                  style={{ background: "hsl(var(--primary) / 0.1)" }}
+                >
+                  <Layers size={24} className="text-primary" />
+                </div>
+                <div>
+                  <p className="text-base font-bold text-foreground mb-2">What are First Principles?</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    First principles thinking is the practice of breaking something down to its most fundamental truths — the
+                    irreducible facts that remain when you strip away every assumption, convention, and "that's just how it's done."
+                    Instead of reasoning by analogy (copying what already exists), you rebuild understanding from the ground up.
+                  </p>
+                </div>
+              </div>
+
+              <div className="h-px" style={{ background: "hsl(var(--primary) / 0.1)" }} />
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  {
+                    num: "01",
+                    title: "Decompose",
+                    desc: "Break the product, service, or model into its raw components — materials, costs, workflows, incentives, constraints.",
+                  },
+                  {
+                    num: "02",
+                    title: "Question Everything",
+                    desc: "Challenge why each component exists in its current form. Is the pricing model inherited? Is the supply chain designed or defaulted?",
+                  },
+                  {
+                    num: "03",
+                    title: "Reconstruct",
+                    desc: "Rebuild from the ground up using only what's proven true — revealing configurations, pricing, and strategies the market hasn't considered.",
+                  },
+                ].map((item) => (
+                  <div key={item.num} className="rounded-lg p-4 bg-card border border-border">
+                    <p className="text-primary text-xs font-bold mb-1">{item.num}</p>
+                    <p className="text-sm font-bold text-foreground mb-1">{item.title}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="h-px" style={{ background: "hsl(var(--primary) / 0.1)" }} />
+
+              <div>
+                <p className="text-base font-bold text-foreground mb-2">Why it's at the core of everything we do</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Most market analysis starts with what competitors are doing and works backward. That approach
+                  inherits their blind spots. Market Disruptor starts from the opposite direction — deconstructing
+                  a market down to its structural foundations, then stress-testing whether the current way of doing
+                  things is actually the <em>best</em> way. Every step of the pipeline — from the Intelligence Report
+                  to the adversarial Stress Test to the Pitch Deck — is designed to surface the assumptions nobody
+                  questioned and the opportunities nobody mapped. That's the difference between incremental improvement
+                  and genuine disruption.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
         {/* Showcase Gallery */}
         <ShowcaseGallery />
 
