@@ -6,7 +6,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Database, TrendingUp, Award, Calendar, ArrowLeft, Crown, Sparkles } from "lucide-react";
+import { Database, TrendingUp, Award, Calendar, ArrowLeft, Crown, Sparkles, Heart } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ProjectInsightCard } from "@/components/portfolio/ProjectInsightCard";
 import { ScoreInsightPanel } from "@/components/portfolio/ScoreInsightPanel";
@@ -26,6 +26,7 @@ interface SavedAnalysis {
   era: string;
   audience: string;
   batch_size: number;
+  is_favorite?: boolean;
 }
 
 const CATEGORY_MAP: Record<string, { label: string; color: string }> = {
@@ -117,13 +118,28 @@ export default function PortfolioPage() {
     return Object.entries(map).map(([month, count]) => ({ month, count })).reverse();
   }, [analyses]);
 
-  // Top performers for spotlight
+  // Favorites
+  const favorites = useMemo(() => {
+    return analyses.filter(a => a.is_favorite).sort((a, b) => (b.avg_revival_score || 0) - (a.avg_revival_score || 0)).slice(0, 5);
+  }, [analyses]);
+
+  const toggleFavorite = async (id: string) => {
+    const target = analyses.find(a => a.id === id);
+    if (!target) return;
+    const newVal = !target.is_favorite;
+    // Optimistic update
+    setAnalyses(prev => prev.map(a => a.id === id ? { ...a, is_favorite: newVal } : a));
+    await supabase.from("saved_analyses").update({ is_favorite: newVal } as any).eq("id", id);
+  };
+
+  // Top performers for spotlight (exclude favorites to avoid duplication)
+  const favoriteIds = new Set(favorites.map(f => f.id));
   const topPerformers = useMemo(() => {
     return [...analyses]
-      .filter(a => (a.avg_revival_score || 0) > 0)
+      .filter(a => (a.avg_revival_score || 0) > 0 && !favoriteIds.has(a.id))
       .sort((a, b) => (b.avg_revival_score || 0) - (a.avg_revival_score || 0))
       .slice(0, 5);
-  }, [analyses]);
+  }, [analyses, favoriteIds]);
 
   const compareList = analyses.filter((a) => compareIds.has(a.id));
   const toggleCompare = (id: string) => {
@@ -193,6 +209,59 @@ export default function PortfolioPage() {
               ))}
             </div>
 
+            {/* My Top Choices (favorites) */}
+            {favorites.length > 0 && (
+              <div className="rounded-xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <Heart size={16} className="text-primary fill-primary" />
+                  <p className="typo-section-title text-foreground">My Top Choices</p>
+                  <InfoExplainer text="Projects you've marked as favorites. These are your personal picks — the ideas you're most excited about pursuing." />
+                </div>
+                <p className="typo-card-body text-foreground/70 mb-4">
+                  Your hand-picked favorites — the ideas you're most excited about.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {favorites.map((a) => {
+                    const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
+                    const score = a.avg_revival_score || 0;
+                    const data = a.analysis_data as any;
+                    const imgList = data?.pitchDeckImages as { url: string; ideaName: string }[] | undefined;
+                    const productImg = (a.products as any[])?.[0]?.image;
+                    const heroImg = imgList?.[0]?.url || productImg;
+                    return (
+                      <button
+                        key={a.id}
+                        onClick={() => analysis.handleLoadSaved(a as any)}
+                        className="rounded-xl border border-primary/20 bg-primary/[0.03] overflow-hidden text-left transition-all hover:shadow-md group relative"
+                      >
+                        {/* Unfavorite button */}
+                        <div
+                          className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border hover:bg-destructive/10 transition-colors"
+                          onClick={(e) => { e.stopPropagation(); toggleFavorite(a.id); }}
+                        >
+                          <Heart size={12} className="text-primary fill-primary" />
+                        </div>
+                        {heroImg && (
+                          <div className="w-full h-28 overflow-hidden">
+                            <img src={heroImg} alt={a.title} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="p-3">
+                          <p className="typo-card-title text-foreground group-hover:text-primary transition-colors truncate text-sm">{a.title}</p>
+                          <div className="flex items-center justify-between mt-1.5">
+                            <span className="typo-status-label px-2 py-0.5 rounded font-bold" style={{ background: `${cat.color}15`, color: cat.color }}>
+                              {cat.label}
+                            </span>
+                            <span className="text-lg font-bold tabular-nums" style={{ color: getScoreColor(score) }}>{score}</span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Action Items Panel */}
             <ActionItemsPanel analyses={analyses} />
 
@@ -251,7 +320,7 @@ export default function PortfolioPage() {
               <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex items-center gap-2 mb-1">
                   <Crown size={16} className="text-foreground" />
-                  <p className="typo-section-title text-foreground">Top Performers</p>
+                  <p className="typo-section-title text-foreground">{favorites.length > 0 ? "Other Top Performers" : "Top Performers"}</p>
                   <InfoExplainer text="Your highest-scoring projects ranked by revival potential. These represent your strongest opportunities for market entry, further investment, or deeper analysis. Focus your energy here." />
                 </div>
                 <p className="typo-card-body text-foreground/70 mb-4">
@@ -295,7 +364,14 @@ export default function PortfolioPage() {
                           </div>
                         </div>
 
-                        {/* Score */}
+                        {/* Favorite + Score */}
+                        <div
+                          className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors flex-shrink-0"
+                          onClick={(e) => { e.stopPropagation(); toggleFavorite(a.id); }}
+                          title="Add to My Top Choices"
+                        >
+                          <Heart size={14} className={a.is_favorite ? "text-primary fill-primary" : "text-muted-foreground"} />
+                        </div>
                         <div className="flex flex-col items-center flex-shrink-0">
                           <span className="text-2xl font-bold tabular-nums" style={{ color: getScoreColor(score) }}>{score}</span>
                           <span className="typo-status-label" style={{ color: getScoreColor(score) }}>
@@ -371,6 +447,7 @@ export default function PortfolioPage() {
                       key={a.id}
                       analysis={a}
                       onOpen={() => analysis.handleLoadSaved(a as any)}
+                      onToggleFavorite={toggleFavorite}
                     />
                   ))}
                 </div>

@@ -333,6 +333,7 @@ export type Database = {
           era: string
           id: string
           is_anonymous: boolean
+          is_favorite: boolean
           product_count: number
           products: Json
           title: string
@@ -351,6 +352,7 @@ export type Database = {
           era: string
           id?: string
           is_anonymous?: boolean
+          is_favorite?: boolean
           product_count?: number
           products?: Json
           title: string
@@ -369,6 +371,7 @@ export type Database = {
           era?: string
           id?: string
           is_anonymous?: boolean
+          is_favorite?: boolean
           product_count?: number
           products?: Json
           title?: string
