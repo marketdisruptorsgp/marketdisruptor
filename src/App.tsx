@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ScrollToTopProvider } from "@/components/ScrollToTopProvider";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
-import DashboardPage from "./pages/DashboardPage";
+import Index from "./pages/Index";
 import ReportPage from "./pages/ReportPage";
 import DisruptPage from "./pages/DisruptPage";
 import RedesignPage from "./pages/RedesignPage";
@@ -63,7 +63,7 @@ function AppRoutes() {
       <Route path="/analysis/share/:id" element={<ShareableAnalysisPage />} />
       {user ? (
         <>
-          <Route path="/" element={<DashboardPage />} />
+          <Route path="/" element={<Index />} />
           <Route path="/start" element={<StartPage />} />
           <Route path="/start/product" element={<StartProductPage />} />
           <Route path="/start/service" element={<StartServicePage />} />
