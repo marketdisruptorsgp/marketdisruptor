@@ -34,10 +34,11 @@ CORE PRINCIPLES:
 
 OUTPUT RULES:
 - Metrics must be ≤12 words
-- Include leverage scores (1-10) on key assumptions
+- Include leverage scores (1-10) on key assumptions — CALIBRATED: 5-6 is default, ≥8 requires evidence, 9-10 almost never justified
 - Flag risk levels: [Risk: Low/Medium/High]
 - Flag capital requirements: [Capital: Low/Medium/High]
 - Use directional indicators: ↑ ↓ → for trends
+- SCORING: Apply friction penalties (behavior change, infrastructure, capital intensity, ecosystem dependency). Before finalizing any score, ask "What would cause this to fail?" — if material, reduce score.
 
 USER JOURNEY RULE:
 - The "userWorkflow" section must describe the CURRENT/EXISTING user journey AS IT IS TODAY

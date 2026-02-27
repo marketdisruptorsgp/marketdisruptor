@@ -60,7 +60,8 @@ Each object must follow this EXACT structure:
   "visualNotes": "Physical design, materials, color, form factor, packaging notes — be specific",
   "reasoning": "Market + emotional + user psychology reasoning with SPECIFIC data points. Include demand signals where available (community size, search trends, cultural shifts). If a real analogous success exists, cite it. If this is genuinely novel, explain what makes the timing right.",
   "feasibilityNotes": "BOM estimate with MATH ($X per unit breakdown), specific manufacturer category (name the platform/region), tech required, MOQ, retail margin CALCULATION (BOM → retail → margin %)",
-  "scores": {"feasibility": 8, "desirability": 9, "profitability": 7, "novelty": 9},
+  "scores": {"feasibility": 5, "desirability": 6, "profitability": 5, "novelty": 7},
+  "feasibilityClass": "Near-term viable | Conditional opportunity | Long-horizon concept",
   "risks": "Specific risks with named mitigation strategies. Include the #1 reason this could fail and what would need to be true for it to succeed.",
   "preservedStrengths": "What elements of the CURRENT product/service this idea intentionally KEEPS and builds on (and why they're worth keeping). If everything is new, explain why a clean break is better.",
   "whyNow": "The specific market shift, tech unlock, or cultural moment that makes this viable RIGHT NOW",
@@ -77,7 +78,16 @@ Each object must follow this EXACT structure:
   },
   "riskLevel": "[Risk: Low/Medium/High]",
   "capitalRequired": "[Capital: Low/Medium/High]"
-}`;
+}
+
+SCORE CALIBRATION RULES:
+- 5-6 is the DEFAULT range for most ideas. Most flipped ideas should land here.
+- 7-8 = strong but cite specific evidence and constraints.
+- ≥8 requires: specific supporting evidence, enabling conditions, and what must be true. If evidence is weak → cap at 7.
+- 9-10 = rare, exceptional, defensible. Almost never assigned.
+- Long-horizon concepts CANNOT score above 6 on any dimension.
+- Every idea MUST include "feasibilityClass": "Near-term viable", "Conditional opportunity", or "Long-horizon concept".
+- Before finalizing scores, ask: "What would cause this to fail?" If failure risk is material → reduce score.`;
 
     const userPrompt = `Generate ${ideaCount} bold, commercially viable "flipped" product ideas for this product.
 

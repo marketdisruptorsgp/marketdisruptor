@@ -83,7 +83,7 @@ The JSON must follow this EXACT structure:
       "category": "pricing | staffing | location | technology | customer | competition | timing",
       "isChallengeable": true,
       "challengeIdea": "How challenging this assumption could unlock value",
-      "leverageScore": 8
+      "leverageScore": 6
     }
   ],
   "technologyLeverage": {
@@ -144,10 +144,11 @@ CRITICAL INSTRUCTIONS:
 6. SCALE: What's stopping this from scaling 10x? 100x? Fix those constraints.
 7. Every recommendation must be specific, actionable, and grounded in real business mechanics.
 8. The reinvented model must represent a STRUCTURAL shift — not a marketing tweak.
-9. VALIDATION: When a real business has proven a similar model works, cite it (name, revenue/growth, structural parallel) — it strengthens the case. For genuinely novel approaches, explain what adjacent successes or market shifts support the idea. Don't force-fit irrelevant comparisons.
-10. SPECIFICITY: Name real software tools, real vendor categories, real cost figures. "Automate operations" is NOT acceptable — "Use ServiceTitan ($150/mo) to automate scheduling, reducing 20hrs/week of manual dispatch" IS.
-11. UNIT ECONOMICS: Include specific margin math for the reinvented model — revenue per customer, cost to serve, LTV, CAC estimate.
+9. VALIDATION: When a real business has proven a similar model works, cite it. For genuinely novel approaches, explain what adjacent successes or market shifts support the idea.
+10. SPECIFICITY: Name real software tools, real vendor categories, real cost figures. "Automate operations" is NOT acceptable.
+11. UNIT ECONOMICS: Include specific margin math for the reinvented model.
 12. COMPETITIVE MOAT: Explain specifically what prevents a competitor from copying the reinvented model within 12 months.
+13. SCORING CALIBRATION: leverageScores default to 4-6. Scores ≥8 require cited evidence. 9-10 almost never justified. Apply friction penalties for behavior change, infrastructure requirements, and capital intensity. Label every opportunity as "Near-term viable", "Conditional opportunity", or "Long-horizon concept".
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
