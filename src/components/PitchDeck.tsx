@@ -129,6 +129,8 @@ interface PitchDeckProps {
   redesignData?: unknown;
   userScores?: Record<string, Record<string, number>>;
   accentColor?: string;
+  insightPreferences?: Record<string, "liked" | "dismissed" | "neutral">;
+  steeringText?: string;
 }
 
 // ── Slide structure ───────────────────────────────────────────
@@ -162,7 +164,7 @@ const SLIDE_CATEGORY_LABELS: Record<string, string> = {
 };
 
 // ── Component ─────────────────────────────────────────────────
-export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptData, stressTestData, redesignData, userScores, accentColor: modeAccent }: PitchDeckProps) => {
+export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptData, stressTestData, redesignData, userScores, accentColor: modeAccent, insightPreferences, steeringText }: PitchDeckProps) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState<PitchDeckData | null>((externalData as PitchDeckData) || null);
@@ -190,7 +192,15 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke("generate-pitch-deck", {
-        body: { product, disruptData: disruptData || undefined, stressTestData: stressTestData || undefined, redesignData: redesignData || undefined, userScores: userScores || undefined },
+        body: {
+          product,
+          disruptData: disruptData || undefined,
+          stressTestData: stressTestData || undefined,
+          redesignData: redesignData || undefined,
+          userScores: userScores || undefined,
+          insightPreferences: insightPreferences && Object.keys(insightPreferences).length > 0 ? insightPreferences : undefined,
+          steeringText: steeringText || undefined,
+        },
       });
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Generation failed";

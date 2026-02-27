@@ -75,6 +75,8 @@ export default function PitchPage() {
           redesignData={analysis.redesignData}
           userScores={analysis.userScores}
           accentColor={theme.primary}
+          insightPreferences={analysis.insightPreferences}
+          steeringText={analysis.steeringText}
           onSave={(d) => {
             analysis.setPitchDeckData(d);
             analysis.saveStepData("pitchDeck", d);

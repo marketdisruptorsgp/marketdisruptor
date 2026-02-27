@@ -49,7 +49,7 @@ export const STEP_CONTRACTS: Record<string, StepContract> = {
 /** Valid step keys for logging */
 const VALID_STEP_KEYS = new Set(Object.keys(STEP_CONTRACTS));
 // Also allow system keys
-const SYSTEM_KEYS = new Set(["userScores", "outdatedSteps", "previousSnapshot", "projectNotes"]);
+const SYSTEM_KEYS = new Set(["userScores", "outdatedSteps", "previousSnapshot", "projectNotes", "insightPreferences", "steeringText"]);
 
 /**
  * Fail-loud guard: Validates that a section's computation owner matches its UI location.

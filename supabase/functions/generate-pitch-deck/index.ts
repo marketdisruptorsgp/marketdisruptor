@@ -11,7 +11,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, disruptData, stressTestData, userScores, redesignData } = await req.json();
+    const { product, disruptData, stressTestData, userScores, redesignData, insightPreferences, steeringText } = await req.json();
     const mode = resolveMode(product.analysisType, product.category);
     const filterResult = filterInputData(mode, product);
     console.log(`[ModeEnforcement] pitch-deck | ${mode} | ${missingDataWarning(mode)}`);
@@ -260,6 +260,10 @@ ${JSON.stringify(stressTestData, null, 2)}
 ${userScores ? `USER-ADJUSTED SCORES:
 ${JSON.stringify(userScores, null, 2)}
 ` : ""}
+${steeringText ? `\nUSER STEERING GUIDANCE: ${steeringText}` : ""}
+${insightPreferences ? `\nUSER INSIGHT PREFERENCES (weight liked insights more heavily, minimize dismissed ones):
+${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "liked").map(([id]) => `✓ PRIORITIZE: ${id}`).join("\n")}
+${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "dismissed").map(([id]) => `✗ DE-PRIORITIZE: ${id}`).join("\n")}` : ""}
 Build the most compelling, investor-ready pitch deck possible. Use all upstream data.
 Base scores on realistic market signals, competitive density, and structural feasibility.
 

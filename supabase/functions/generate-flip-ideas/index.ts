@@ -11,7 +11,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, audience, additionalContext } = await req.json();
+    const { product, audience, additionalContext, insightPreferences, steeringText } = await req.json();
     const mode = resolveMode(undefined, product.category);
     const filterResult = filterInputData(mode, product);
     const filteredProduct = filterResult.filtered as typeof product;
@@ -115,6 +115,10 @@ TREND CONTEXT:
 ${product.trendAnalysis || "Nostalgia-driven market with modern tech expectations"}
 
 ADDITIONAL CONTEXT: ${additionalContext || "Focus on modern market opportunities and emerging consumer trends."}
+${steeringText ? `\nUSER STEERING GUIDANCE: ${steeringText}` : ""}
+${insightPreferences ? `\nUSER INSIGHT PREFERENCES (prioritize liked, exclude dismissed):
+${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "liked").map(([id]) => `✓ LIKED: ${id}`).join("\n")}
+${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "dismissed").map(([id]) => `✗ DISMISSED: ${id}`).join("\n")}` : ""}
 
 GROUNDING RULES — make ideas SPECIFIC, not generic:
 1. If a real analogous product/company exists that validates this model, cite it — it strengthens the case. But don't force-fit irrelevant comparisons.
