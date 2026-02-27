@@ -41,40 +41,6 @@ async function firecrawlSearch(query: string, apiKey: string, limit = 5) {
   return await res.json();
 }
 
-// Searches for real product images from Google/Bing/product sites
-async function searchProductImage(productName: string, apiKey: string): Promise<string | null> {
-  try {
-    const res = await fetch("https://api.firecrawl.dev/v1/search", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: `${productName} product photo original vintage`,
-        limit: 3,
-        scrapeOptions: { formats: ["links"] },
-      }),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    // Look for image URLs in the results
-    for (const item of (data?.data || [])) {
-      const links: string[] = item.links || [];
-      const imgLink = links.find((l: string) =>
-        /\.(jpg|jpeg|png|webp)/i.test(l) &&
-        !l.includes("logo") &&
-        !l.includes("icon") &&
-        (l.includes("ebay") || l.includes("amazon") || l.includes("wikipedia") || l.includes("etsy") || l.includes("google") || l.includes("cdn"))
-      );
-      if (imgLink) return imgLink;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -89,19 +55,33 @@ serve(async (req) => {
       });
     }
 
+    const isService = category === "Service";
     const eraLabel = era !== "All Eras / Current" ? `${era} ` : "";
-    
-    // Deep intelligence queries covering competitor data, community sentiment, complaints, pricing
-    const queries = [
-      `${eraLabel}${category} vintage discontinued products eBay collector value price sold`,
-      `site:reddit.com ${eraLabel}${category} nostalgia review complaints "wish they would bring back"`,
-      `${eraLabel}${category} product reviews complaints improvement requests nostalgia 2023 2024`,
-      `${eraLabel}${category} Etsy vintage products trending handmade revival`,
-      `${eraLabel}${category} competitor analysis market trends "best selling" "discontinued" site:amazon.com OR site:ebay.com`,
-      `site:reddit.com ${eraLabel}${category} "what happened to" OR "bring back" OR "miss this" community discussion`,
-      `${eraLabel}${category} TikTok viral nostalgia trend "going viral" "gen z" "millennial" 2024`,
-      `${eraLabel}${category} wholesale supplier manufacturer alibaba minimum order quantity`,
-    ];
+
+    // Use different queries for service vs product analysis
+    const queries = isService
+      ? [
+          // Service-focused queries: customer journey, friction, competitors, reviews
+          `site:reddit.com ${eraLabel}${category} service review complaints "customer experience" frustration`,
+          `${eraLabel}service industry customer journey friction pain points reviews 2023 2024`,
+          `site:reddit.com "worst experience" OR "terrible service" OR "switched to" OR "better alternative" service industry`,
+          `${eraLabel}service business model innovation trends disruption 2024`,
+          `${eraLabel}service industry automation technology transformation customer satisfaction`,
+          `${eraLabel}service pricing models subscription vs retainer vs per-use comparison`,
+          `site:trustpilot.com OR site:g2.com OR site:capterra.com service reviews complaints`,
+          `${eraLabel}service industry operational bottlenecks scaling challenges workforce`,
+        ]
+      : [
+          // Product-focused queries (original)
+          `${eraLabel}${category} vintage discontinued products eBay collector value price sold`,
+          `site:reddit.com ${eraLabel}${category} nostalgia review complaints "wish they would bring back"`,
+          `${eraLabel}${category} product reviews complaints improvement requests nostalgia 2023 2024`,
+          `${eraLabel}${category} Etsy vintage products trending handmade revival`,
+          `${eraLabel}${category} competitor analysis market trends "best selling" "discontinued" site:amazon.com OR site:ebay.com`,
+          `site:reddit.com ${eraLabel}${category} "what happened to" OR "bring back" OR "miss this" community discussion`,
+          `${eraLabel}${category} TikTok viral nostalgia trend "going viral" "gen z" "millennial" 2024`,
+          `${eraLabel}${category} wholesale supplier manufacturer alibaba minimum order quantity`,
+        ];
 
     // If custom products/URLs supplied, add targeted searches for them
     const customSearches: string[] = [];
@@ -110,8 +90,13 @@ serve(async (req) => {
     if (customProducts && customProducts.length > 0) {
       for (const cp of customProducts) {
         if (cp.productName) {
-          customSearches.push(`"${cp.productName}" product reviews price history suppliers eBay sold`);
-          customSearches.push(`site:reddit.com "${cp.productName}" community sentiment review complaints`);
+          if (isService) {
+            customSearches.push(`"${cp.productName}" service reviews customer experience complaints`);
+            customSearches.push(`site:reddit.com "${cp.productName}" OR similar service alternative competitor`);
+          } else {
+            customSearches.push(`"${cp.productName}" product reviews price history suppliers eBay sold`);
+            customSearches.push(`site:reddit.com "${cp.productName}" community sentiment review complaints`);
+          }
         }
         // Directly scrape custom URLs
         if (cp.productUrl) {
@@ -131,16 +116,15 @@ serve(async (req) => {
               const scrapeJson = await scrapeRes.json();
               const md = scrapeJson?.data?.markdown || scrapeJson?.markdown || "";
               if (md) {
-                customScrapedContent.push(`## Custom Product URL: ${cp.productUrl}\nProduct: ${cp.productName || "Unknown"}\nNotes: ${cp.notes || "None"}\n\n${md.slice(0, 3000)}`);
+                customScrapedContent.push(`## Custom ${isService ? "Service" : "Product"} URL: ${cp.productUrl}\n${isService ? "Service" : "Product"}: ${cp.productName || "Unknown"}\nNotes: ${cp.notes || "None"}\n\n${md.slice(0, 3000)}`);
               }
-              // Extract primary product image from the scraped page
+              // Extract primary image from the scraped page
               const html = scrapeJson?.data?.rawHtml || scrapeJson?.rawHtml || "";
               const ogMatch = html.match(/property="og:image"[^>]*content="([^"]+)"/i) ||
                               html.match(/content="([^"]+)"[^>]*property="og:image"/i);
               if (ogMatch?.[1]) {
                 customScrapedContent.push(`## Product Image Found\nProduct: ${cp.productName || "Unknown"}\nImage URL: ${ogMatch[1]}`);
               } else {
-                // Try finding a prominent product image from markdown
                 const mdImgMatch = md.match(/!\[.*?\]\((https?:\/\/[^\s)]+\.(jpg|jpeg|png|webp)[^\s)]*)\)/i);
                 if (mdImgMatch?.[1]) {
                   customScrapedContent.push(`## Product Image Found\nProduct: ${cp.productName || "Unknown"}\nImage URL: ${mdImgMatch[1]}`);
@@ -151,15 +135,15 @@ serve(async (req) => {
             console.error("Failed to scrape custom URL:", cp.productUrl, e);
           }
         }
-        // Include image data URL context in the analysis context
+        // Include image data URL context
         if (cp.imageDataUrl) {
-          customScrapedContent.push(`## Custom Product Image Provided\nProduct: ${cp.productName || "Unknown"}\nNotes: ${cp.notes || "None"}\n[User uploaded a product image for analysis]`);
+          customScrapedContent.push(`## Custom ${isService ? "Service" : "Product"} Image Provided\n${isService ? "Service" : "Product"}: ${cp.productName || "Unknown"}\nNotes: ${cp.notes || "None"}\n[User uploaded an image for analysis]`);
         }
       }
     }
 
     const allQueries = [...queries, ...customSearches];
-    console.log(`Running ${allQueries.length} Firecrawl searches for: ${eraLabel}${category}`);
+    console.log(`Running ${allQueries.length} Firecrawl searches for: ${isService ? "Service" : eraLabel + category}`);
 
     const searchResults = await Promise.allSettled(
       allQueries.map((q) => firecrawlSearch(q, FIRECRAWL_API_KEY, Math.max(3, Math.ceil(batchSize / allQueries.length))))
@@ -180,19 +164,20 @@ serve(async (req) => {
             const snippet = item.markdown.slice(0, 2500);
             allMarkdown.push(`## Source: ${item.url}\n\n${snippet}`);
             
-            // Tag Reddit-specific content for sentiment extraction
             if (item.url?.includes("reddit.com")) {
               redditPosts.push(`### Reddit: ${item.title}\nURL: ${item.url}\n${snippet}`);
             }
             
-            // Extract complaint/improvement signals
             if (
               snippet.toLowerCase().includes("complaint") ||
               snippet.toLowerCase().includes("wish") ||
               snippet.toLowerCase().includes("improve") ||
               snippet.toLowerCase().includes("problem") ||
               snippet.toLowerCase().includes("broken") ||
-              snippet.toLowerCase().includes("miss")
+              snippet.toLowerCase().includes("miss") ||
+              snippet.toLowerCase().includes("frustrat") ||
+              snippet.toLowerCase().includes("terrible") ||
+              snippet.toLowerCase().includes("switched")
             ) {
               complaintSignals.push(`From ${item.url}: ${snippet.slice(0, 800)}`);
             }

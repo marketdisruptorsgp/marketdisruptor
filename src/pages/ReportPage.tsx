@@ -62,8 +62,10 @@ export default function ReportPage() {
     { id: "community", label: "Community Intel", icon: MessageSquare },
     { id: "workflow", label: "User Journey", icon: Clock },
     { id: "pricing", label: "Pricing Intel", icon: DollarSign },
-    { id: "supply", label: "Supply Chain", icon: Package },
-    ...(!isService ? [{ id: "patents", label: "Patent Intel", icon: ScrollText }] : []),
+    ...(!isService ? [
+      { id: "supply", label: "Supply Chain", icon: Package },
+      { id: "patents", label: "Patent Intel", icon: ScrollText },
+    ] : []),
   ];
 
   const { visited: persistedVisited, markVisited } = usePersistedSections(analysisId, "report", ["overview"]);

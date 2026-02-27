@@ -79,12 +79,13 @@ serve(async (req) => {
   try {
     const { rawContent, redditContent, complaintsContent, sources, category, era, batchSize, customProducts } = await req.json();
 
+    const isService = category === "Service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
 
-    const systemPrompt = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
+    const OS_PREAMBLE = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
@@ -104,7 +105,151 @@ OUTPUT RULES:
 - Flag capital requirements: [Capital: Low/Medium/High]
 - Use directional indicators: ↑ ↓ → for trends
 
-You are also a world-class Product Intelligence AI and venture market analyst. You analyze scraped web content (including Reddit community posts, Google discussions, competitor data, and market signals) to extract deep, actionable product intelligence.
+`;
+
+    const serviceSystemPrompt = OS_PREAMBLE + `You are a world-class Service Intelligence analyst and venture market analyst. You analyze scraped web content (including Reddit community posts, review sites, competitor data, and market signals) to extract deep, actionable service intelligence.
+
+You MUST respond with ONLY a valid JSON array (no markdown, no explanation, just raw JSON).
+
+For each service, return an object with this EXACT structure:
+{
+  "id": "unique-slug",
+  "name": "Service Name",
+  "category": "Service",
+  "description": "2-3 sentence description of the service and its market position",
+  "specs": "Key service parameters: delivery model, pricing tier, target segment",
+  "revivalScore": 8,
+  "era": "All Eras / Current",
+  "keyInsight": "The single most provocative non-obvious commercial insight about this service — 1-2 sentences, be bold and specific",
+  "marketSizeEstimate": "TAM estimate with source/basis",
+  "image": "PLACEHOLDER_IMAGE",
+  "sources": [{"label": "Source Name", "url": "https://actual-url.com"}],
+  "reviews": [
+    {"text": "Specific real review or community quote about the service experience", "sentiment": "positive"},
+    {"text": "Specific real complaint about the service — what customers hate", "sentiment": "negative"},
+    {"text": "Community suggestion or improvement request from forums", "sentiment": "neutral"}
+  ],
+  "communityInsights": {
+    "redditSentiment": "Overall community sentiment: what customers love, hate, and want changed (2-3 sentences with specific references)",
+    "topComplaints": ["Specific customer complaint 1", "Specific complaint 2", "Specific complaint 3"],
+    "improvementRequests": ["Feature/change request 1 from customers", "Request 2", "Request 3"],
+    "nostalgiaTriggers": ["What customers miss about earlier versions of service", "Core emotional hook", "Loyalty driver"],
+    "competitorComplaints": ["What community says is wrong with competing services"]
+  },
+  "socialSignals": [
+    {"platform": "Reddit", "signal": "discussion activity", "volume": "~50K members", "trend": "up", "url": "https://reddit.com/r/example"},
+    {"platform": "Google Trends", "signal": "search interest description", "volume": "Index 78/100", "trend": "up"},
+    {"platform": "Trustpilot", "signal": "review patterns", "volume": "~2K reviews", "trend": "stable"}
+  ],
+  "competitors": ["Competitor 1 (pricing model)", "Competitor 2 (pricing model)"],
+  "competitorAnalysis": {
+    "marketLeader": "Who dominates and why — what makes them hard to beat",
+    "gaps": ["Gap 1 in current service landscape", "Gap 2", "Gap 3"],
+    "differentiationOpportunity": "Specific angle to win market share"
+  },
+  "pricingIntel": {
+    "currentMarketPrice": "$X–$Y typical service cost",
+    "currentMarketPriceDataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]",
+    "collectorPremium": "Premium tier pricing and what justifies it",
+    "priceRange": "$X – $Y (full range across tiers)",
+    "priceDirection": "rising",
+    "ebayAvgSold": "N/A — service",
+    "etsyAvgSold": "N/A — service",
+    "msrpOriginal": "Standard market rate",
+    "margins": "Estimated gross margin at typical price point",
+    "marginsDataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]"
+  },
+  "marketSizeEstimateDataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]",
+  "operationalIntel": {
+    "deliveryModel": "How the service is currently delivered (in-person, remote, hybrid, platform)",
+    "operationalBottlenecks": ["Bottleneck 1 that limits scale", "Bottleneck 2", "Bottleneck 3"],
+    "technologyStack": "Current tech used in service delivery",
+    "automationOpportunities": ["Automation opportunity 1", "Opportunity 2", "Opportunity 3"],
+    "customerJourneyFriction": ["Friction point 1 in the customer journey", "Friction 2", "Friction 3"],
+    "scalingChallenges": "What prevents this service from scaling 10x"
+  },
+  "trendAnalysis": "Detailed 4-5 sentence trend analysis with SPECIFIC data: search volumes, YoY growth rates, community post velocity, key events driving interest, demographic shift data",
+  "actionPlan": {
+    "strategy": "2-3 sentence overall strategic direction — be specific about the angle (platform, subscription, automation, unbundling, vertical integration)",
+    "phases": [
+      {
+        "phase": "Phase 1 Name",
+        "timeline": "Month X–Y",
+        "actions": ["Specific action 1 with concrete steps", "Action 2 naming real platforms/tools"],
+        "budget": "$X–$Y",
+        "milestone": "Measurable outcome to validate"
+      },
+      {
+        "phase": "Phase 2 Name",
+        "timeline": "Month X–Y",
+        "actions": ["Action with specifics"],
+        "budget": "$X–$Y",
+        "milestone": "Measurable milestone"
+      },
+      {
+        "phase": "Phase 3 Name",
+        "timeline": "Month X–Y",
+        "actions": ["Action with specifics"],
+        "budget": "$X–$Y",
+        "milestone": "Measurable milestone"
+      }
+    ],
+    "channels": ["Channel 1", "Channel 2", "Channel 3"],
+    "totalInvestment": "$X–$Y",
+    "expectedROI": "X–Yx in Y months",
+    "quickWins": ["Action someone can take THIS WEEK under $500", "Quick win 2", "Quick win 3"]
+  },
+  "assumptionsMap": [
+    {"assumption": "Core service delivery/pricing assumption", "challenge": "How this could be flipped/inverted for opportunity"}
+  ],
+  "userWorkflow": {
+    "stepByStep": ["Step 1: how customer discovers the service", "Step 2: booking/signup", "Step 3: onboarding/first experience", "Step 4: core service delivery", "Step 5: follow-up/retention"],
+    "frictionPoints": [
+      { "step": "step name", "friction": "specific friction description", "severity": "high|medium|low", "rootCause": "why this friction exists" }
+    ],
+    "cognitiveLoad": "What mental effort does the customer expend? What do they have to research, decide, coordinate, or manage?",
+    "contextOfUse": "When, in what state (urgent, planned, stressed, relaxed) do customers seek this? Does the service design account for that?",
+    "workflowOptimizations": ["Concrete optimization 1", "Concrete optimization 2", "Concrete optimization 3"]
+  },
+  "flippedIdeas": [
+    {
+      "name": "Idea Name",
+      "description": "2-3 sentence concept description — how the service would be completely reinvented",
+      "visualNotes": "Service experience design notes — what the customer sees, feels, does differently",
+      "reasoning": "Market + customer + operational reasoning with specific data from community sentiment",
+      "feasibilityNotes": "Implementation estimate: tech stack, team, timeline, unit economics",
+      "scores": {"feasibility": 8, "desirability": 9, "profitability": 7, "novelty": 9},
+      "risks": "Specific risks with mitigation strategies",
+      "actionPlan": {
+        "phase1": "First 60 days: specific actions",
+        "phase2": "Month 3-6: scale actions",
+        "phase3": "Month 7-18: growth actions",
+        "timeline": "X months to market",
+        "estimatedInvestment": "$X–$Y",
+        "revenueProjection": "$X ARR at Y customers",
+        "channels": ["Channel 1", "Channel 2"]
+      }
+    }
+  ],
+  "confidenceScores": {"adoptionLikelihood": 8, "feasibility": 7, "emotionalResonance": 9}
+}
+
+CRITICAL RULES:
+- revivalScore 1-10 based on: market demand + feasibility + customer pain severity + profitability
+- All score fields MUST be integers 1-10
+- Return 1-3 service analyses maximum — quality over quantity
+- Set "image" to "PLACEHOLDER_IMAGE"
+- communityInsights MUST be based on real community data from the scraped content, not invented
+- topComplaints MUST be specific real complaints found in the scraped data
+- competitorAnalysis.gaps must be specific market gaps visible in the data
+- operationalIntel must focus on HOW the service operates and WHERE it breaks down
+- actionPlan quickWins must be actions someone could take THIS WEEK with less than $500
+- trendAnalysis must include specific numbers (% growth, review counts, search volumes)
+- flippedIdeas should directly address customer journey friction and operational bottlenecks
+- Do NOT include product-specific fields like supplyChain, BOM, materials, or physical dimensions
+- Be BOLD — the flipped ideas should reimagine the entire service model, not just tweak pricing`;
+
+    const productSystemPrompt = OS_PREAMBLE + `You are a world-class Product Intelligence analyst and venture market analyst. You analyze scraped web content (including Reddit community posts, Google discussions, competitor data, and market signals) to extract deep, actionable product intelligence.
 
 You MUST respond with ONLY a valid JSON array (no markdown, no explanation, just raw JSON).
 
@@ -247,6 +392,8 @@ CRITICAL RULES:
 - flippedIdeas should have 2-3 per product and directly address community complaints/requests
 - Be BOLD — the flipped ideas should surprise and inspire, not just iterate`;
 
+    const systemPrompt = isService ? serviceSystemPrompt : productSystemPrompt;
+
     const customProductsContext = customProducts && customProducts.length > 0
       ? `\n\nCUSTOM PRODUCTS UPLOADED BY USER (PRIORITIZE THESE IN ANALYSIS):\n${customProducts.map((cp: { productName?: string; productUrl?: string; notes?: string; hasImage?: boolean }) =>
           `- Name: ${cp.productName || "Unknown"}\n  URL: ${cp.productUrl || "None"}\n  Notes: ${cp.notes || "None"}\n  Has Image: ${cp.hasImage ? "Yes (user uploaded)" : "No"}`
@@ -259,7 +406,32 @@ CRITICAL RULES:
     const trimmedComplaints = (complaintsContent || "").slice(0, 3500);
     const trimmedSources = (sources || []).slice(0, 20);
 
-    const userPrompt = `Analyze this scraped content about ${eraLabel(era)}${category} products.${customProductsContext}
+    const userPrompt = isService
+      ? `Analyze this scraped content about a SERVICE business.${customProductsContext}
+
+Go DEEP — I need:
+1. Real community sentiment (what customers love, hate, want fixed)
+2. Actual competitor gaps from customer complaints  
+3. Pricing intel with real dollar figures for this service category
+4. Operational intelligence: delivery model, bottlenecks, automation opportunities
+5. Flipped ideas that directly address customer journey friction
+6. An action plan I can start executing this week
+${customProducts?.length ? "7. IMPORTANT: Include ALL custom services the user uploaded/provided as top-priority analyses" : ""}
+
+MAIN SCRAPED CONTENT (review sites, forums, competitor pages):
+${trimmedRaw}
+
+COMMUNITY POSTS (sentiment, complaints, discussions):
+${trimmedReddit || "No community content available"}
+
+CUSTOMER COMPLAINTS & IMPROVEMENT REQUESTS:
+${trimmedComplaints || "No complaint signals found"}
+
+DISCOVERED SOURCES:
+${trimmedSources.map((s: { label: string; url: string }) => `- ${s.label}: ${s.url}`).join("\n")}
+
+Return ONLY a JSON array. Be specific, cite real companies, real prices, real platforms. Focus on service delivery, customer journey, and operational efficiency — NOT physical products, supply chains, or manufacturing.`
+      : `Analyze this scraped content about ${eraLabel(era)}${category} products.${customProductsContext}
 
 Go DEEP — I need:
 1. Real Reddit community sentiment (what people love, hate, want fixed)
