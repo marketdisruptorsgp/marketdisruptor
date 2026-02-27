@@ -18,7 +18,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, Database, Upload, Briefcase, Building2,
   FolderOpen, BarChart3, BookOpen, HelpCircle, Lightbulb, TrendingUp, Radar,
-  Menu, PieChart, Code2, Camera, ChevronDown,
+  Menu, PieChart, Code2, Camera, ChevronDown, ArrowRight,
 } from "lucide-react";
 
 interface PlatformNavProps {
@@ -83,16 +83,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
           <div className="hidden md:block">
             <NavigationMenu>
               <NavigationMenuList>
-                <NavigationMenuItem>
-                  <a
-                    href="/start"
-                    onClick={(e) => { e.preventDefault(); navigate("/start"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/start") || location.pathname.startsWith("/start/") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    <Zap size={13} />
-                    Start Disrupting
-                  </a>
-                </NavigationMenuItem>
+                
 
                 <NavigationMenuItem>
                   <a
@@ -167,15 +158,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   </Popover>
                 </NavigationMenuItem>
 
-                <NavigationMenuItem>
-                  <a
-                    href="/pricing"
-                    onClick={(e) => { e.preventDefault(); navigate("/pricing"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 ${isActive("/pricing") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    Pricing
-                  </a>
-                </NavigationMenuItem>
+                
               </NavigationMenuList>
             </NavigationMenu>
           </div>
@@ -183,14 +166,13 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
 
         {/* Right */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {tier !== "disruptor" && (
-            <button
-              onClick={() => navigate("/pricing")}
-              className="px-3 sm:px-4 py-2 rounded-full typo-card-eyebrow transition-colors bg-primary text-primary-foreground hover:bg-primary-dark hidden sm:inline-flex"
-            >
-              Upgrade
-            </button>
-          )}
+          <button
+            onClick={() => navigate("/start")}
+            className="px-3 sm:px-4 py-2 rounded-full typo-card-eyebrow transition-colors bg-primary text-primary-foreground hover:bg-primary-dark hidden sm:inline-flex items-center gap-1.5"
+          >
+            Start Analysis
+            <ArrowRight size={14} />
+          </button>
           <UserHeader />
 
           {/* Mobile hamburger */}
@@ -267,15 +249,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   );
                 })}
 
-                <div className="h-px bg-border my-2" />
-                <a
-                  href="/pricing"
-                  onClick={(e) => { e.preventDefault(); navigate("/pricing"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
-                  <BarChart3 size={14} className="text-muted-foreground" />
-                  <span className="typo-nav-primary">Pricing</span>
-                </a>
+                
               </div>
             </SheetContent>
           </Sheet>
