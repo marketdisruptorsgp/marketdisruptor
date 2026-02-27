@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Users, Copy, CheckCircle2 } from "lucide-react";
 
@@ -10,10 +11,22 @@ interface ReferralCTAProps {
 export function ReferralCTA({ compact }: ReferralCTAProps) {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [referralLink, setReferralLink] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: existing } = await (supabase.from("referral_codes") as any).select("code").eq("user_id", user.id).maybeSingle();
+      let code = existing?.code;
+      if (!code) {
+        code = user.id.slice(0, 8);
+        await (supabase.from("referral_codes") as any).insert({ user_id: user.id, code });
+      }
+      setReferralLink(`${window.location.origin}/share?ref=${code}`);
+    })();
+  }, [user]);
 
   if (!user) return null;
-
-  const referralLink = `http://marketdisruptor.sgpcapital.com?ref=${user.id}`;
 
   const handleCopy = async () => {
     try {
