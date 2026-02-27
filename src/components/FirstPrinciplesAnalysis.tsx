@@ -18,6 +18,11 @@ import {
   Wrench, Lightbulb, Package, DollarSign, Users, Factory, FlipHorizontal,
   Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation, Shield, Route,
   Maximize2, Wifi, ScrollText, FileDown, Swords,
+  Car, ShoppingCart, Search, Phone, CreditCard, MapPin, Clock, Truck,
+  Home, Star, Settings, Send, Download, Upload, Camera, Mic,
+  Globe, Heart, Bookmark, Share2, MessageSquare, Mail, Lock, Key,
+  Waves, Mountain, Sun, TreePine, Umbrella, Compass, Bike, Plane,
+  type LucideIcon,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 import { SectionWorkflowNav } from "@/components/SectionNav";
@@ -158,7 +163,58 @@ const REASON_COLORS: Record<string, { bg: string; text: string; label: string }>
   habit: { bg: "hsl(330 80% 55% / 0.1)", text: "hsl(330 80% 40%)", label: "Habit" },
 };
 
-/* ── Interactive Workflow Timeline — polished, themed, no emojis ──────────────────────── */
+/* ── Map step text to a contextual Lucide icon ──────────────────────── */
+const STEP_ICON_KEYWORDS: [string[], LucideIcon][] = [
+  [["drive", "car", "vehicle", "road", "travel", "commute", "transport"], Car],
+  [["beach", "ocean", "sea", "water", "surf", "swim", "wave"], Waves],
+  [["mountain", "hike", "climb", "trail", "outdoor"], Mountain],
+  [["sun", "weather", "forecast", "morning"], Sun],
+  [["tree", "forest", "nature", "park", "garden"], TreePine],
+  [["rain", "umbrella", "storm", "shelter"], Umbrella],
+  [["navigate", "direction", "compass", "map", "route", "find"], Compass],
+  [["bike", "cycle", "ride", "pedal"], Bike],
+  [["fly", "flight", "airplane", "airport", "plane"], Plane],
+  [["buy", "purchase", "shop", "cart", "checkout", "order"], ShoppingCart],
+  [["pay", "payment", "price", "cost", "charge", "bill", "credit"], CreditCard],
+  [["search", "browse", "look", "find", "discover", "research"], Search],
+  [["call", "phone", "contact", "dial", "ring"], Phone],
+  [["location", "place", "address", "where", "destination", "arrive", "go to"], MapPin],
+  [["wait", "time", "schedule", "book", "appointment", "reserve"], Clock],
+  [["deliver", "ship", "send", "package", "receive", "mail", "truck"], Truck],
+  [["home", "house", "return", "back"], Home],
+  [["review", "rate", "feedback", "star", "evaluate"], Star],
+  [["setup", "configure", "install", "assemble", "adjust", "setting"], Settings],
+  [["share", "post", "social", "recommend"], Share2],
+  [["message", "chat", "communicate", "ask", "support"], MessageSquare],
+  [["email", "inbox", "notification", "alert"], Mail],
+  [["lock", "secure", "login", "password", "auth", "sign in"], Lock],
+  [["key", "unlock", "access", "open"], Key],
+  [["photo", "picture", "image", "snap", "capture"], Camera],
+  [["record", "voice", "audio", "listen", "speak"], Mic],
+  [["online", "web", "internet", "website", "app", "digital"], Globe],
+  [["save", "favorite", "bookmark", "store", "keep"], Bookmark],
+  [["download", "get", "retrieve", "fetch", "grab", "pick up", "collect"], Download],
+  [["upload", "submit", "attach", "add"], Upload],
+  [["use", "operate", "engage", "interact", "experience", "enjoy"], Heart],
+  [["watch", "observe", "view", "see", "inspect", "check", "look at"], Eye],
+  [["build", "create", "make", "construct", "prepare", "cook"], Wrench],
+  [["learn", "understand", "study", "read", "train"], Lightbulb],
+  [["pack", "carry", "load", "bring", "haul", "lift", "storage", "store"], Package],
+  [["people", "user", "customer", "person", "group", "team", "friend"], Users],
+  [["protect", "safe", "guard", "defend"], Shield],
+  [["move", "transfer", "shift", "drag", "pull", "push"], Move],
+  [["send", "dispatch", "forward", "launch"], Send],
+];
+
+function getStepIcon(stepText: string): LucideIcon {
+  const lower = stepText.toLowerCase();
+  for (const [keywords, icon] of STEP_ICON_KEYWORDS) {
+    if (keywords.some(kw => lower.includes(kw))) return icon;
+  }
+  return ArrowRight; // default fallback
+}
+
+/* ── Interactive Workflow Timeline — polished, themed, contextual icons ──────────────────────── */
 export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; frictionPoints: WorkflowFriction[] }) {
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
 
@@ -190,17 +246,18 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
 
       {/* Timeline cards — vertical on all sizes for clarity */}
       <div className="relative">
-        {steps.slice(0, 8).map((step, i) => {
+      {steps.slice(0, 8).map((step, i) => {
           const friction = getFriction(i, step);
           const isExpanded = expandedStep === i;
           const isLast = i === Math.min(steps.length, 8) - 1;
+          const StepIcon = getStepIcon(step);
 
           return (
             <div key={i} className="flex items-start gap-3 relative">
-              {/* Left rail: number + connector */}
+              {/* Left rail: icon + connector */}
               <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-extrabold z-10 transition-all duration-200"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center z-10 transition-all duration-200"
                   style={{
                     background: isExpanded
                       ? "hsl(var(--foreground))"
@@ -212,7 +269,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
                     transform: isExpanded ? "scale(1.1)" : "scale(1)",
                   }}
                 >
-                  {i + 1}
+                  <StepIcon size={14} />
                 </div>
                 {!isLast && (
                   <div className="w-[1.5px] flex-1 min-h-[16px]" style={{ background: "hsl(var(--border))" }} />
