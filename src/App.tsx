@@ -25,6 +25,7 @@ import FaqsPage from "./pages/FaqsPage";
 import PortfolioPage from "./pages/PortfolioPage";
 import ApiPage from "./pages/ApiPage";
 import ShareableAnalysisPage from "./pages/ShareableAnalysisPage";
+import StartPage from "./pages/StartPage";
 import StartProductPage from "./pages/StartProductPage";
 import StartServicePage from "./pages/StartServicePage";
 import StartBusinessPage from "./pages/StartBusinessPage";
@@ -60,6 +61,7 @@ function AppRoutes() {
       {user ? (
         <>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/start" element={<StartPage />} />
           <Route path="/start/product" element={<StartProductPage />} />
           <Route path="/start/service" element={<StartServicePage />} />
           <Route path="/start/business" element={<StartBusinessPage />} />
