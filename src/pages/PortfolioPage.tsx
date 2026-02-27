@@ -287,7 +287,7 @@ export default function PortfolioPage() {
                       border: `1.5px solid ${compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
                       boxShadow: compareIds.has(a.id) ? "0 2px 8px hsl(var(--primary) / 0.25)" : "none",
                     }}>
-                    {a.title.length > 25 ? a.title.slice(0, 25) + "…" : a.title}
+                    {(a.title || "Untitled").length > 25 ? (a.title || "Untitled").slice(0, 25) + "…" : (a.title || "Untitled")}
                   </button>
                 ))}
               </div>

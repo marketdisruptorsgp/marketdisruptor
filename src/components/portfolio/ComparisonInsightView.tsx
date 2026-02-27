@@ -189,7 +189,7 @@ export function ComparisonInsightView({ compareList }: { compareList: SavedAnaly
             <PolarAngleAxis dataKey="dimension" tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} />
             <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 10 }} tickCount={6} />
             {compareList.map((a, i) => (
-              <Radar key={a.id} name={a.title.slice(0, 20)} dataKey={`p${i}`} stroke={RADAR_COLORS[i]} fill={RADAR_COLORS[i]} fillOpacity={0.1} strokeWidth={2.5} />
+              <Radar key={a.id} name={(a.title || "Untitled").slice(0, 20)} dataKey={`p${i}`} stroke={RADAR_COLORS[i]} fill={RADAR_COLORS[i]} fillOpacity={0.1} strokeWidth={2.5} />
             ))}
           </RadarChart>
         </ResponsiveContainer>
@@ -197,7 +197,7 @@ export function ComparisonInsightView({ compareList }: { compareList: SavedAnaly
           {compareList.map((a, i) => (
             <div key={a.id} className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ background: RADAR_COLORS[i] }} />
-              <span className="typo-card-body font-semibold text-foreground">{a.title.length > 28 ? a.title.slice(0, 28) + "…" : a.title}</span>
+              <span className="typo-card-body font-semibold text-foreground">{(a.title || "Untitled").length > 28 ? (a.title || "Untitled").slice(0, 28) + "…" : (a.title || "Untitled")}</span>
             </div>
           ))}
         </div>
