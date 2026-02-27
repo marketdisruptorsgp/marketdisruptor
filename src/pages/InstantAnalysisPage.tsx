@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useAnonymousAuth } from "@/hooks/useAnonymousAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, Lock, Eye, Share2, Copy, Check } from "lucide-react";
+import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, Lock, Eye, Share2, Copy, Check, TrendingUp, Search, Target, Presentation, ShieldCheck, ListChecks } from "lucide-react";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -34,17 +34,28 @@ const MODE_CONFIG: Record<AnalysisMode, { label: string; description: string; cs
 };
 
 function ScoreBadge({ score }: { score: number }) {
-  const bg = score >= 8 ? "bg-green-100 text-green-800" : score >= 5 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800";
-  return <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold", bg)}>{score}/10</span>;
+  const semantic = score >= 8 ? "--success" : score >= 5 ? "--warning" : "--destructive";
+  return (
+    <span
+      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold"
+      style={{ background: `hsl(var(${semantic}) / 0.12)`, color: `hsl(var(${semantic}))` }}
+    >
+      {score}/10
+    </span>
+  );
 }
 
 function ConfidenceBadge({ level }: { level: string }) {
-  const styles: Record<string, string> = {
-    high: "bg-green-50 text-green-700 border-green-200",
-    medium: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    low: "bg-red-50 text-red-700 border-red-200",
-  };
-  return <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border", styles[level] || styles.medium)}>{level}</span>;
+  const semanticMap: Record<string, string> = { high: "--success", medium: "--warning", low: "--destructive" };
+  const token = semanticMap[level] || semanticMap.medium;
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border"
+      style={{ background: `hsl(var(${token}) / 0.08)`, color: `hsl(var(${token}))`, borderColor: `hsl(var(${token}) / 0.2)` }}
+    >
+      {level}
+    </span>
+  );
 }
 
 
@@ -290,7 +301,7 @@ export default function InstantAnalysisPage() {
           </div>
           {isAnonymous && (
             <p className="typo-card-meta text-muted-foreground">
-              <Lock size={9} className="inline mr-0.5 mb-px" /> Deep Dive requires a free account
+              <Lock size={9} className="inline mr-0.5 mb-px" /> Deep Dive: full intelligence layers including pitch decks, patent maps, and disruption scoring — free to try
             </p>
           )}
         </div>
@@ -405,7 +416,7 @@ export default function InstantAnalysisPage() {
                     <p className="typo-card-eyebrow text-muted-foreground">Friction Points</p>
                     {result.userJourney.frictionPoints.map((fp, i) => (
                       <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-destructive/5 border border-destructive/10">
-                        <span className={cn("text-xs font-bold px-1.5 py-0.5 rounded", fp.severity === "high" ? "bg-red-100 text-red-700" : fp.severity === "medium" ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700")}>
+                        <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: `hsl(var(${fp.severity === "high" ? "--destructive" : fp.severity === "medium" ? "--warning" : "--success"}) / 0.12)`, color: `hsl(var(${fp.severity === "high" ? "--destructive" : fp.severity === "medium" ? "--warning" : "--success"}))` }}>
                           {fp.severity}
                         </span>
                         <div className="flex-1 min-w-0">
@@ -489,41 +500,26 @@ export default function InstantAnalysisPage() {
             <ShareAnalysisCTA result={result} modeColor={modeColor} mode={mode} />
 
             {/* Upgrade / Claim CTA */}
-            <div className="rounded-xl border border-border bg-card p-5 text-center space-y-3">
-              {depth === "quick" && (
-                <>
-                  {isAnonymous ? (
-                    <div className="space-y-2">
-                      <p className="typo-card-body text-foreground font-semibold">Want the full picture?</p>
-                      <p className="typo-card-meta text-muted-foreground">Deep Dive unlocks supply chain mapping, patent landscape, disruption scoring, and more. Create a free account to access it.</p>
-                      <Button
-                        onClick={() => setShowClaimForm(true)}
-                        className="w-full sm:w-auto gap-2"
-                        style={{ background: `hsl(var(${modeColor}))` }}
-                      >
-                        <Lock size={14} /> Sign Up to Unlock Deep Dive
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={() => { setDepth("deep"); runAnalysis(selectedFiles); }}
-                      className="w-full sm:w-auto gap-2"
-                      style={{ background: `hsl(var(${modeColor}))` }}
-                    >
-                      <ArrowRight size={16} /> Upgrade to Deep Dive
-                    </Button>
-                  )}
-                </>
-              )}
-              {isAnonymous && depth !== "quick" && (
-                <div>
-                  <p className="typo-card-meta text-muted-foreground mb-2">Save your analysis permanently</p>
-                  <Button variant="outline" size="sm" onClick={() => setShowClaimForm(true)} className="gap-1">
-                    <Mail size={14} /> Create Account
-                  </Button>
-                </div>
-              )}
-            </div>
+            {depth === "quick" && isAnonymous ? (
+              <DeepDiveShowstopper modeColor={modeColor} onSignUp={() => setShowClaimForm(true)} />
+            ) : depth === "quick" && !isAnonymous ? (
+              <div className="rounded-xl border border-border bg-card p-5 text-center">
+                <Button
+                  onClick={() => { setDepth("deep"); runAnalysis(selectedFiles); }}
+                  className="w-full sm:w-auto gap-2"
+                  style={{ background: `hsl(var(${modeColor}))` }}
+                >
+                  <ArrowRight size={16} /> Upgrade to Deep Dive
+                </Button>
+              </div>
+            ) : isAnonymous ? (
+              <div className="rounded-xl border border-border bg-card p-5 text-center space-y-3">
+                <p className="typo-card-meta text-muted-foreground mb-2">Save your analysis permanently</p>
+                <Button variant="outline" size="sm" onClick={() => setShowClaimForm(true)} className="gap-1">
+                  <Mail size={14} /> Create Account
+                </Button>
+              </div>
+            ) : null}
           </div>
         )}
       </main>
@@ -665,7 +661,7 @@ function ShareAnalysisCTA({ result, modeColor, mode }: { result: PhotoAnalysisRe
             onClick={handleCopyLink}
             className="gap-2"
           >
-            {copied ? <Check size={15} className="text-green-600" /> : <Copy size={15} />}
+            {copied ? <Check size={15} style={{ color: "hsl(var(--success))" }} /> : <Copy size={15} />}
             {copied ? "Copied!" : "Copy"}
           </Button>
         </div>
@@ -693,29 +689,92 @@ function ResultSection({ title, modeColor, children, explainerKey }: { title: st
 }
 
 function SentimentList({ title, items, type }: { title: string; items: string[]; type: "positive" | "negative" | "warning" | "neutral" }) {
-  const colors: Record<string, string> = {
-    positive: "text-green-600",
-    negative: "text-red-600",
-    warning: "text-amber-600",
-    neutral: "text-muted-foreground",
+  const tokenMap: Record<string, string> = {
+    positive: "--success",
+    negative: "--destructive",
+    warning: "--warning",
+    neutral: "--muted-foreground",
   };
-  const bullets: Record<string, string> = {
-    positive: "bg-green-500",
-    negative: "bg-red-500",
-    warning: "bg-amber-500",
-    neutral: "bg-muted-foreground",
-  };
+  const token = tokenMap[type] || tokenMap.neutral;
   return (
     <div>
-      <p className={cn("typo-card-eyebrow mb-2", colors[type])}>{title}</p>
+      <p className="typo-card-eyebrow mb-2" style={{ color: type === "neutral" ? undefined : `hsl(var(${token}))` }}>{title}</p>
       <ul className="space-y-1.5">
         {items.map((item, i) => (
           <li key={i} className="flex items-start gap-2">
-            <div className={cn("w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0", bullets[type])} />
+            <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: `hsl(var(${token}))` }} />
             <span className="typo-card-body text-foreground">{item}</span>
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+// --- Deep Dive Showstopper CTA ---
+
+const DEEP_DIVE_CAPABILITIES = [
+  { icon: Search, title: "Full Supply Chain Map", desc: "Trace every component from raw material to shelf" },
+  { icon: ShieldCheck, title: "Patent & IP Landscape", desc: "See who owns the ideas around this space" },
+  { icon: TrendingUp, title: "Disruption Scoring", desc: "Quantified vulnerability and opportunity analysis" },
+  { icon: Presentation, title: "Investor-Ready Pitch Deck", desc: "12-slide deck generated from your analysis" },
+  { icon: Target, title: "Competitive Moat Analysis", desc: "Defensibility breakdown with evidence" },
+  { icon: ListChecks, title: "Actionable Recommendations", desc: "Prioritized next steps, not just observations" },
+];
+
+function DeepDiveShowstopper({ modeColor, onSignUp }: { modeColor: string; onSignUp: () => void }) {
+  return (
+    <div
+      className="rounded-xl border overflow-hidden"
+      style={{ borderColor: `hsl(var(${modeColor}) / 0.3)`, background: `hsl(var(${modeColor}) / 0.03)` }}
+    >
+      <div className="p-6 sm:p-8 space-y-6">
+        {/* Headline */}
+        <div className="text-center space-y-2">
+          <h3 className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+            You just scratched the surface.
+          </h3>
+          <p className="typo-card-body text-muted-foreground max-w-lg mx-auto">
+            Deep Dive gives you the intelligence that takes consulting firms weeks to assemble — in seconds.
+          </p>
+        </div>
+
+        {/* Capability Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {DEEP_DIVE_CAPABILITIES.map((cap) => (
+            <div
+              key={cap.title}
+              className="rounded-lg border border-border bg-card p-4 flex items-start gap-3 hover:shadow-sm transition-shadow"
+            >
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: `hsl(var(${modeColor}) / 0.1)` }}
+              >
+                <cap.icon size={18} style={{ color: `hsl(var(${modeColor}))` }} />
+              </div>
+              <div className="min-w-0">
+                <p className="typo-card-meta font-bold text-foreground">{cap.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{cap.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="text-center space-y-3">
+          <Button
+            onClick={onSignUp}
+            size="lg"
+            className="text-white font-bold px-8 py-3 text-base shadow-lg hover:shadow-xl transition-shadow"
+            style={{ background: `hsl(var(${modeColor}))` }}
+          >
+            <Sparkles size={18} /> Start Free — 10 Analyses, No Credit Card
+          </Button>
+          <p className="typo-card-meta text-muted-foreground">
+            Simple email signup. Your current analysis is preserved.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
