@@ -236,10 +236,10 @@ export function SectionWorkflowNav<T extends string>({
                 background: isActive
                   ? accent
                   : isVisited
-                    ? `${accent}18`
+                    ? `${accent}30`
                     : "transparent",
                 borderRight: i < tabs.length - 1 ? "1px solid hsl(var(--border) / 0.5)" : "none",
-                borderBottom: isVisited ? `2px solid ${accent}` : "none",
+                borderBottom: isVisited || isActive ? `2px solid ${accent}` : "none",
               }}
             >
               {isUnvisited && (
@@ -262,7 +262,7 @@ export function SectionWorkflowNav<T extends string>({
                 )}
               </div>
               <span className="typo-status-label mb-0.5" style={{
-                color: isActive ? "hsla(0 0% 100% / 0.6)" : "hsl(var(--muted-foreground) / 0.6)",
+                color: isActive ? "hsla(0 0% 100% / 0.6)" : isVisited ? accent : "hsl(var(--muted-foreground) / 0.6)",
                 fontSize: "0.6875rem",
               }}>
                 {i + 1}/{tabs.length}
