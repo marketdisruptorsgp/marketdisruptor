@@ -1,46 +1,90 @@
 
 
-# Replace "Start Disrupting" Dropdown with Dedicated Page
+# Downplay AI References Across the Platform
 
-## What Changes
+## Goal
+Replace prominent "AI" language with outcome-focused, plain-language alternatives throughout the user-facing UI. Keep FAQ and Methodology pages as-is (technical users who go there expect detail). Internal function names and error handlers stay unchanged.
 
-Replace the `NavigationMenuTrigger` dropdown for "Start Disrupting" in `PlatformNav` with a simple link to `/start`. Create a new `/start` page that presents all three modes as rich, explainer cards with CTAs linking to `/start/product`, `/start/service`, `/start/business`.
+## Files & Changes
 
-## Implementation Steps
+### 1. `src/pages/DashboardPage.tsx`
+- Line 102: `"...with AI-powered competitive intelligence"` → `"...with deep competitive intelligence"`
 
-### Step 1 — Create `src/pages/StartPage.tsx`
+### 2. `src/pages/StartPage.tsx`
+- Line 76: `"Each applies rigorous, AI-powered scrutiny"` → `"Each applies rigorous, data-driven scrutiny"`
 
-New page with:
-- `HeroSection` / `PlatformNav` header (consistent with other pages)
-- Page title: "Start Disrupting" with `typo-page-title`
-- Subtitle explaining the three modes
-- Three large cards in a `grid-cols-1 md:grid-cols-3` layout, one per mode:
-  - **Product** (Upload icon, blue accent `--mode-product`): title, 2-3 sentence explainer of what product analysis does, list of 3-4 key capabilities, CTA button linking to `/start/product`
-  - **Service** (Briefcase icon, pink accent `--mode-service`): same structure for service analysis
-  - **Business** (Building2 icon, purple accent `--mode-business`): same structure for business model analysis
-- Each card uses mode accent for top border, icon color, and CTA button
-- Footer matching other pages
+### 3. `src/components/DisruptionPathBanner.tsx`
+- Line 26 detail: `"The AI breaks down the product..."` → `"The platform breaks down the product..."` 
+- Line 77: `"Six stages of AI-powered analysis"` → `"Six stages of structured analysis"`
 
-### Step 2 — Update `PlatformNav.tsx`
+### 4. `src/components/StartPageLayout.tsx`
+- Line 20: `"the AI uses computer vision..."` → `"the platform uses visual analysis..."` 
+- Line 31: `"the AI maps the entire customer journey..."` → `"the platform maps the entire customer journey..."`
+- Line 32: `"gives the AI a sharper starting point"` → `"gives the analysis a sharper starting point"`
 
-- Remove the `NavigationMenuTrigger` + `NavigationMenuContent` dropdown for "Start Disrupting" (lines 84-119)
-- Replace with a simple `<a>` link to `/start`, styled like the Portfolio/Intel links with `border-b-2` active state and a Zap icon
-- In the mobile Sheet: replace the 3 mode buttons under "Start Disrupting" with a single link to `/start`
+### 5. `src/components/WelcomeModal.tsx`
+- Line 18: `"Proprietary multi-model AI pipelines — not a wrapper"` → `"Proprietary multi-source data pipelines"`
+- Line 19: `"Deep web crawling, vision AI, and strategic analysis"` → `"Deep web crawling, visual analysis, and strategic modeling"`
+- Line 27: `"let the AI tear it apart"` → `"let the platform tear it apart"`
+- Line 28: `"the AI runs proprietary crawling pipelines"` → `"the platform runs proprietary crawling pipelines"`
+- Line 31: `"AI challenges every assumption"` → `"Every assumption gets challenged"`
+- Line 40: `"the AI maps competitive landscapes"` → `"the platform maps competitive landscapes"`
+- Line 52: `"the AI breaks down cost structures"` → `"the platform breaks down cost structures"`
 
-### Step 3 — Add route in `App.tsx`
+### 6. `src/pages/SharePage.tsx`
+- Line 8: `"AI Product Intelligence"` → `"Product Intelligence"`
+- Line 9: `"powered by AI"` → remove
+- Line 19: `"AI-generated product concepts"` → `"Data-driven product concepts"`
+- Line 81: `"AI-Powered Product Intelligence"` → `"Deep Product Intelligence"`
+- Line 93: `"AI platform that scrapes..."` → `"intelligence platform that scrapes..."`
+- Line 127: `"advanced AI reasoning"` → `"advanced analytical reasoning"`
 
-- Import `StartPage` and add `<Route path="/start" element={<StartPage />} />`
+### 7. `src/pages/AboutPage.tsx`
+- Line 22: `"Not a surface-level tool or a simple AI wrapper"` → `"Not a surface-level tool or a simple wrapper"`
+- Line 25: `"advanced multi-model AI, real-time data analysis, computer vision"` → `"advanced analytical models, real-time data analysis, computer vision"`
 
-### Step 4 — Update `DashboardPage.tsx`
+### 8. `src/components/LoadingTracker.tsx`
+- Line 16: `{ label: "AI Reasoning", detail: "Parsing all collected data" }` → `{ label: "Deep Analysis", detail: "Parsing all collected data" }`
 
-- If the homepage has any "Start Disrupting" CTAs that link to the dropdown, update them to navigate to `/start`
+### 9. `src/components/StepLoadingTracker.tsx`
+- Line 17: `"Initializing AI reasoning engine…"` → `"Initializing analysis engine…"`
 
-## Files
+### 10. `src/pages/Index.tsx`
+- Line 98: `label: "AI Analysis"` → `label: "Deep Analysis"`
+- Line 412: `"Gemini AI building deep intelligence..."` → `"Building deep intelligence..."`
+- Line 415: `"AI reasoning — parsing..."` → `"Parsing product data & community sentiment..."`
+- Line 462: `"No products returned by AI."` → `"No products returned from analysis."`
 
-| File | Change |
-|---|---|
-| `src/pages/StartPage.tsx` | New — mode picker page with explainer cards |
-| `src/components/PlatformNav.tsx` | Replace dropdown with `/start` link |
-| `src/App.tsx` | Add `/start` route |
-| `src/pages/DashboardPage.tsx` | Update any CTA links if needed |
+### 11. `src/contexts/AnalysisContext.tsx`
+- Same loading log changes as Index.tsx (lines 331, 334): remove "Gemini AI" / "AI reasoning" prefixes
+
+### 12. `src/components/BusinessModelAnalysis.tsx`
+- Line 204: `"AI credits exhausted"` → `"Analysis credits exhausted"`
+- Line 367: `"Steer the AI — add direction"` → `"Refine your analysis — add direction"`
+- Line 585: `"AI Opportunities & Platform Potential"` → `"Technology Opportunities & Platform Potential"`
+
+### 13. `src/components/FirstPrinciplesAnalysis.tsx`
+- Line 381: `"AI credits exhausted"` → `"Analysis credits exhausted"`
+- Line 690: `"Steer the AI — add direction"` → `"Refine your analysis — add direction"`
+
+### 14. `src/components/CriticalValidation.tsx`
+- Line 198: `"Steer the AI — add direction"` → `"Refine your analysis — add direction"`
+
+### 15. `src/components/SteeringPanel.tsx`
+- Line 10: default title `"Guide the AI"` → `"Guide Your Analysis"`
+
+### 16. `src/components/portfolio/ActionItemsPanel.tsx`
+- Line 78: `"get AI-powered suggestions"` → `"get smart suggestions"`
+- Line 98: `"AI credits exhausted"` → `"Analysis credits exhausted"`
+- Line 330: `"generate AI suggestions"` → `"generate suggestions"`
+
+### 17. `src/pages/PricingPage.tsx`
+- Line 62: `"advanced AI capabilities"` → `"advanced analysis capabilities"`
+
+## NOT changed (intentionally kept)
+- `src/pages/FaqsPage.tsx` — technical audience expects AI detail
+- `src/pages/MethodologyPage.tsx` — methodology page is for informed users
+- `src/pages/ResourcesPage.tsx` — "AI-Powered Tutoring" is a product name in example data
+- Edge function prompts — backend only, users never see these
+- Internal function/variable names (e.g. `generateAISuggestions`) — no user impact
 
