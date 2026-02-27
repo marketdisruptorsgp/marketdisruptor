@@ -169,10 +169,12 @@ export function PitchSlideFrame({
 }
 
 // ── Cover Slide (1920×1080) ───────────────────────────────────
-export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5", totalSlides }: {
+export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5", totalSlides, coverImages }: {
   productName: string; subtitle?: string; accentColor?: string; totalSlides: number;
+  coverImages?: { url: string; ideaName: string }[];
 }) {
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const hasImages = coverImages && coverImages.length > 0;
 
   return (
     <div style={{
@@ -191,33 +193,61 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
       <div style={{ position: "absolute", left: 72, top: 140, width: 5, height: 200, borderRadius: 3, background: accentColor, opacity: 0.2 }} />
 
       {/* Content — top-aligned */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "100px 120px 60px", position: "relative", zIndex: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 48 }}>
-          <MonogramLogo name={productName} accentColor={accentColor} size={80} />
-          <div>
-            <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.25em", color: accentColor, textTransform: "uppercase" }}>Market Disruptor</p>
-            <p style={{ fontSize: 14, fontWeight: 600, letterSpacing: "0.2em", color: "#a1a1aa", textTransform: "uppercase", marginTop: 4 }}>Investor Pitch Deck</p>
+      <div style={{ flex: 1, display: "flex", padding: "100px 120px 60px", position: "relative", zIndex: 10, gap: 60 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 48 }}>
+            <MonogramLogo name={productName} accentColor={accentColor} size={80} />
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.25em", color: accentColor, textTransform: "uppercase" }}>Market Disruptor</p>
+              <p style={{ fontSize: 14, fontWeight: 600, letterSpacing: "0.2em", color: "#a1a1aa", textTransform: "uppercase", marginTop: 4 }}>Investor Pitch Deck</p>
+            </div>
+          </div>
+
+          <h1 style={{
+            fontSize: 68, fontWeight: 800,
+            color: "#0f0f12",
+            fontFamily: "'Space Grotesk', sans-serif",
+            lineHeight: 1.05, letterSpacing: "-0.02em",
+            maxWidth: hasImages ? "100%" : "75%",
+          }}>{productName}</h1>
+
+          {subtitle && (
+            <p style={{ fontSize: 30, color: "#71717a", maxWidth: hasImages ? "100%" : "70%", lineHeight: 1.35, marginTop: 20, fontWeight: 500 }}>{subtitle}</p>
+          )}
+
+          <div style={{ width: 64, height: 3, background: accentColor, opacity: 0.4, marginTop: 32 }} />
+
+          <div style={{ marginTop: "auto" }}>
+            <p style={{ fontSize: 15, color: "#71717a", fontWeight: 500 }}>{today}</p>
+            <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", color: "#a1a1aa", textTransform: "uppercase", marginTop: 6 }}>Confidential · {totalSlides} Slides</p>
           </div>
         </div>
 
-        <h1 style={{
-          fontSize: 68, fontWeight: 800,
-          color: "#0f0f12",
-          fontFamily: "'Space Grotesk', sans-serif",
-          lineHeight: 1.05, letterSpacing: "-0.02em",
-          maxWidth: "75%",
-        }}>{productName}</h1>
-
-        {subtitle && (
-          <p style={{ fontSize: 30, color: "#71717a", maxWidth: "70%", lineHeight: 1.35, marginTop: 20, fontWeight: 500 }}>{subtitle}</p>
+        {/* Cover images on right */}
+        {hasImages && (
+          <div style={{
+            display: "flex", flexDirection: "column", gap: 16,
+            width: 480, flexShrink: 0, justifyContent: "center",
+          }}>
+            {coverImages!.map((img, i) => (
+              <div key={i} style={{
+                borderRadius: 12, overflow: "hidden",
+                border: "1px solid #e8e8ec",
+                boxShadow: "0 8px 32px -8px rgba(0,0,0,0.12)",
+              }}>
+                <img src={img.url} alt={img.ideaName} style={{
+                  width: "100%",
+                  height: coverImages!.length > 1 ? 260 : 400,
+                  objectFit: "cover",
+                }} />
+                <div style={{ padding: "10px 16px", background: "#fafafa", borderTop: "1px solid #e8e8ec" }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", color: "#a1a1aa", textTransform: "uppercase" }}>Concept Design</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: "#0f0f12", marginTop: 2 }}>{img.ideaName}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
-
-        <div style={{ width: 64, height: 3, background: accentColor, opacity: 0.4, marginTop: 32 }} />
-
-        <div style={{ marginTop: "auto" }}>
-          <p style={{ fontSize: 15, color: "#71717a", fontWeight: 500 }}>{today}</p>
-          <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", color: "#a1a1aa", textTransform: "uppercase", marginTop: 6 }}>Confidential · {totalSlides} Slides</p>
-        </div>
       </div>
 
       {/* Bottom bar */}

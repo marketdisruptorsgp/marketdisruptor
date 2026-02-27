@@ -131,6 +131,10 @@ interface AnalysisContextType {
   pitchDeckImages: { url: string; ideaName: string }[];
   setPitchDeckImage: (url: string, ideaName: string) => void;
   removePitchDeckImage: (url: string) => void;
+
+  // Pitch deck content exclusions
+  pitchDeckExclusions: Set<string>;
+  togglePitchDeckExclusion: (key: string) => void;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | null>(null);
@@ -256,6 +260,19 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  // ── Pitch Deck Content Exclusions ──
+  const [pitchDeckExclusions, setPitchDeckExclusions] = useState<Set<string>>(new Set());
+  const pendingExclusionsSaveRef = useRef<string[] | null>(null);
+  const togglePitchDeckExclusion = useCallback((key: string) => {
+    setPitchDeckExclusions(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      pendingExclusionsSaveRef.current = Array.from(next);
+      return next;
+    });
+  }, []);
+
   // Loading
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [loadingLog, setLoadingLog] = useState<{ text: string; ts: number }[]>([]);
@@ -353,6 +370,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setInsightPreferences({});
     setSteeringText("");
     setPitchDeckImages([]);
+    setPitchDeckExclusions(new Set());
     startLoadingTimer();
 
     const hasCustom = customProducts && customProducts.length > 0;
@@ -658,6 +676,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [pitchDeckImages, analysisId, saveStepData]);
 
+  // Auto-persist pitch deck exclusions when changed
+  useEffect(() => {
+    if (pendingExclusionsSaveRef.current && analysisId) {
+      const excl = pendingExclusionsSaveRef.current;
+      pendingExclusionsSaveRef.current = null;
+      saveStepData("pitchDeckExclusions", excl);
+    }
+  }, [pitchDeckExclusions, analysisId, saveStepData]);
+
   const handleLoadSaved = useCallback((analysis: any) => {
     setLoadedFromSaved(true);
     // Restore persisted step data
@@ -672,6 +699,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
     if (ad?.steeringText) setSteeringText(ad.steeringText as string);
     if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
+    if (ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)) setPitchDeckExclusions(new Set(ad.pitchDeckExclusions as string[]));
     // projectNotes is loaded on-demand in portfolio/report, no context state needed
 
     // Restore outdated steps
@@ -746,6 +774,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       insightPreferences, setInsightPreference, getLikedInsights, getDismissedInsights,
       steeringText, setSteeringText, saveSteeringText,
       pitchDeckImages, setPitchDeckImage, removePitchDeckImage,
+      pitchDeckExclusions, togglePitchDeckExclusion,
     }}>
       {children}
     </AnalysisContext.Provider>
