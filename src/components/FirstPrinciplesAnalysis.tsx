@@ -497,13 +497,13 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   };
 
 
-  // Auto-trigger redesign when arriving with outdated/missing data
+  // Auto-trigger redesign when arriving with outdated or missing data
   useEffect(() => {
-    if (autoTrigger && renderMode === "redesign" && !data && !loading && !autoTriggered.current) {
+    if (autoTrigger && renderMode === "redesign" && !loading && !autoTriggered.current) {
       autoTriggered.current = true;
       runAnalysis();
     }
-  }, [autoTrigger, renderMode, data, loading]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [autoTrigger, renderMode, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const allSteps = [
     { id: "assumptions" as const, label: "Assumptions", icon: Brain },
