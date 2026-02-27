@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -166,6 +166,7 @@ interface FirstPrinciplesAnalysisProps {
   externalData?: unknown;
   onDataLoaded?: (data: unknown) => void;
   renderMode?: "disrupt" | "redesign";
+  autoTrigger?: boolean;
 }
 
 const REASON_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -418,7 +419,7 @@ function NextSectionButton({ label, onClick }: { label: string; onClick: () => v
   );
 }
 
-export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, renderMode, userScores, onScoreChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
+export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, renderMode, autoTrigger, userScores, onScoreChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
   const analysisCtx = useAnalysis();
@@ -429,6 +430,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set(["assumptions"]));
   const [userContext, setUserContext] = useState("");
   const [rerunSuggestions, setRerunSuggestions] = useState("");
+  const autoTriggered = useRef(false);
   
 
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
@@ -457,8 +459,17 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const runAnalysis = async () => {
     setLoading(true);
     try {
+      // Build request body — enrich with user curation context for redesign mode
+      const requestBody: Record<string, unknown> = { product, userSuggestions: rerunSuggestions || undefined };
+      if (renderMode === "redesign") {
+        requestBody.insightPreferences = analysisCtx.insightPreferences;
+        requestBody.userScores = analysisCtx.userScores;
+        requestBody.steeringText = analysisCtx.steeringText;
+        requestBody.disruptContext = analysisCtx.disruptData;
+        requestBody.selectedImages = analysisCtx.pitchDeckImages;
+      }
       const { data: result, error } = await supabase.functions.invoke("first-principles-analysis", {
-        body: { product, userSuggestions: rerunSuggestions || undefined },
+        body: requestBody,
       });
 
       if (error || !result?.success) {
@@ -485,6 +496,14 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     }
   };
 
+
+  // Auto-trigger redesign when arriving with outdated/missing data
+  useEffect(() => {
+    if (autoTrigger && renderMode === "redesign" && !data && !loading && !autoTriggered.current) {
+      autoTriggered.current = true;
+      runAnalysis();
+    }
+  }, [autoTrigger, renderMode, data, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const allSteps = [
     { id: "assumptions" as const, label: "Assumptions", icon: Brain },
@@ -746,6 +765,24 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
           </div>
         </DetailPanel>
+
+        {/* User-selected concept images from Flipped Ideas */}
+        {analysisCtx.pitchDeckImages.length > 0 && (
+          <div>
+            <p className="typo-card-eyebrow text-muted-foreground mb-2">Your Selected Concepts</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {analysisCtx.pitchDeckImages.map((img, i) => (
+                <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+                  <img src={img.url} alt={img.ideaName} className="w-full object-cover" style={{ maxHeight: 220 }} />
+                  <div className="px-3 py-2" style={{ background: "hsl(var(--muted))" }}>
+                    <p className="text-xs font-semibold text-foreground">{img.ideaName}</p>
+                    <p className="typo-status-label text-muted-foreground">Selected from Flipped Ideas</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
