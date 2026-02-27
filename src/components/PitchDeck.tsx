@@ -641,25 +641,51 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {presenting && <PresentationMode slides={allRawSlides} onExit={() => setPresenting(false)} />}
 
+      {/* Hero CTA Banner */}
+      <div
+        className="relative overflow-hidden rounded-xl p-6 sm:p-8"
+        style={{
+          background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
+          boxShadow: `0 8px 32px -8px ${accentColor}66`,
+        }}
+      >
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+          <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <Sparkles size={28} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-1">You might be on to something</p>
+            <h2 className="text-white text-xl sm:text-2xl font-bold leading-tight mb-1">
+              Well done — that's super creative.
+            </h2>
+            <p className="text-white/75 text-sm leading-relaxed">
+              Your investor-ready pitch deck for <strong className="text-white">{product.name}</strong> is ready — {TOTAL} structured slides, presentation-grade.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
+            <button
+              onClick={() => setPresenting(true)}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-all hover:scale-105 active:scale-95"
+              style={{ background: "white", color: accentColor, boxShadow: "0 4px 14px rgba(0,0,0,0.15)" }}
+            >
+              <Presentation size={18} /> Present Full Deck
+            </button>
+            <div className="flex items-center gap-2">
+              <ExportPanel product={product} pitchDeckData={data} analysisId={analysisId} userId={user?.id} accentColor="white" />
+              <button onClick={runAnalysis} disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "1px solid rgba(255,255,255,0.3)" }}>
+                {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />} Regenerate
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Toolbar */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h3 className="font-bold text-foreground text-sm">Pitch Deck: {product.name}</h3>
-          <p className="typo-card-meta text-muted-foreground">{TOTAL} slides · Click any to jump</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setPresenting(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md typo-card-meta font-bold transition-colors"
-            style={{ background: accentColor, color: "white" }}>
-            <Presentation size={12} /> Present
-          </button>
-          <ExportPanel product={product} pitchDeckData={data} analysisId={analysisId} userId={user?.id} accentColor={accentColor} />
-          <button onClick={runAnalysis} disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md typo-card-meta font-semibold transition-colors"
-            style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
-            {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />} Regenerate
-          </button>
-        </div>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <p className="typo-card-meta text-muted-foreground">{TOTAL} slides · Click any to jump</p>
       </div>
 
       <SectionWorkflowNav
