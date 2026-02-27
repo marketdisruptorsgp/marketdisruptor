@@ -11,6 +11,7 @@ import PaywallModal from "@/components/PaywallModal";
 import { MarketChangeAlert } from "@/components/MarketChangeAlert";
 
 import { ShowcaseGallery } from "@/components/ShowcaseGallery";
+import { BuiltForSection } from "@/components/BuiltForSection";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
@@ -110,28 +111,9 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Built For — compact horizontal chips with role + outcome */}
+          {/* Built For */}
           <div className="mt-6 sm:mt-8">
-            <p className="typo-card-eyebrow mb-3 text-center">Who it's for</p>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-w-4xl mx-auto">
-              {[
-              { icon: Rocket, title: "Founders & Entrepreneurs", outcome: "Validate before you build", desc: "Replace gut-feel with data-driven conviction across market, pricing, and positioning." },
-              { icon: TrendingUp, title: "Investors & Analysts", outcome: "Diligence in minutes", desc: "Adversarial stress-testing and market intelligence that surfaces hidden risks." },
-              { icon: Users, title: "Product & Strategy Teams", outcome: "Ship with confidence", desc: "Deconstruct competitors, map supply chains, and pressure-test go-to-market plans." },
-              { icon: FileText, title: "Consultants & Agencies", outcome: "Elevate client work", desc: "Generate investor-grade analysis and pitch decks backed by real market data." }].
-              map(({ icon: Icon, title, outcome, desc }) =>
-              <div key={title} className="rounded-xl border border-border bg-card p-3 sm:p-4 flex flex-col">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Icon size={14} className="text-primary" />
-                    </div>
-                    <p className="typo-card-title text-sm leading-tight">{title}</p>
-                  </div>
-                  <p className="text-xs font-semibold text-primary mb-1">{outcome}</p>
-                  <p className="typo-card-body text-muted-foreground text-xs leading-relaxed">{desc}</p>
-                </div>
-              )}
-            </div>
+            <BuiltForSection />
           </div>
         </div>
       </section>
