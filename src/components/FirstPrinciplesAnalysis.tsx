@@ -52,13 +52,25 @@ interface CoreReality {
   userHacks: string[];
 }
 
-interface PhysicalDimensions {
-  sizeAnalysis: string;
-  weightAnalysis: string;
-  formFactorAnalysis: string;
-  staticVsDynamic: string;
-  ergonomicGaps: string[];
-  dimensionOpportunities: string[];
+interface FrictionDimensions {
+  primaryFriction?: string;
+  physicalForm?: string;
+  skillBarrier?: string;
+  costStructure?: string;
+  ecosystemLockIn?: string;
+  maintenanceBurden?: string;
+  // Legacy fields (backward compat)
+  sizeAnalysis?: string;
+  weightAnalysis?: string;
+  formFactorAnalysis?: string;
+  staticVsDynamic?: string;
+  ergonomicGaps?: string[];
+  dimensionOpportunities?: string[];
+  // New fields
+  gaps?: string[];
+  opportunities?: string[];
+  // Service mode
+  deliveryModel?: string;
 }
 
 interface WorkflowFriction {
@@ -136,7 +148,8 @@ interface CurrentStrengths {
 export interface FirstPrinciplesData {
   currentStrengths?: CurrentStrengths;
   coreReality: CoreReality;
-  physicalDimensions: PhysicalDimensions;
+  physicalDimensions?: FrictionDimensions;
+  frictionDimensions?: FrictionDimensions;
   userWorkflow: UserWorkflow;
   smartTechAnalysis: SmartTechAnalysis;
   hiddenAssumptions: HiddenAssumption[];
