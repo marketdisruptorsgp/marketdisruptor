@@ -233,9 +233,7 @@ export function SectionWorkflowNav<T extends string>({
               onClick={() => onSelect(tab.id)}
               className="relative flex flex-col items-center text-center px-1.5 py-2.5 sm:py-3 transition-all duration-200 group"
               style={{
-                background: isActive || isVisited
-                  ? accent
-                  : "transparent",
+                background: "transparent",
                 borderRight: i < tabs.length - 1 ? "1px solid hsl(var(--border) / 0.5)" : "none",
               }}
             >
@@ -245,42 +243,45 @@ export function SectionWorkflowNav<T extends string>({
               <div
                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1 transition-all duration-200 group-hover:scale-110"
                 style={{
-                    background: isActive || isVisited
-                    ? "hsla(0 0% 100% / 0.2)"
+                  background: isActive
+                    ? accent
                     : "hsl(var(--muted))",
                 }}
               >
                 {isVisited ? (
-                  <CheckCircle2 size={14} style={{ color: "white" }} />
+                  <CheckCircle2 size={14} style={{ color: accent }} />
                 ) : (
-                  <TabIcon size={14} style={{ color: isActive || isVisited ? "white" : "hsl(var(--muted-foreground))" }} />
+                  <TabIcon size={14} style={{ color: isActive ? "white" : "hsl(var(--muted-foreground))" }} />
                 )}
               </div>
               <span className="typo-status-label mb-0.5" style={{
-                color: isActive || isVisited ? "hsla(0 0% 100% / 0.6)" : "hsl(var(--muted-foreground) / 0.6)",
+                color: isActive ? accent : "hsl(var(--muted-foreground) / 0.6)",
                 fontSize: "0.625rem",
+                fontWeight: isActive ? 800 : 600,
               }}>
                 {i + 1}/{tabs.length}
               </span>
               <p className="typo-card-title text-xs" style={{
-                color: isActive || isVisited ? "white" : "hsl(var(--muted-foreground))",
+                color: isActive ? accent : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                fontWeight: isActive ? 800 : 600,
               }}>
                 {tab.label}
               </p>
               {explainerKeys?.[tab.id] && (
                 <span onClick={(e) => { e.stopPropagation(); }} className="mt-1.5">
-                  <InfoExplainer explainerKey={explainerKeys[tab.id]} accentColor={isActive || isVisited ? "white" : "hsl(var(--foreground))"} />
+                  <InfoExplainer explainerKey={explainerKeys[tab.id]} accentColor={isActive ? accent : "hsl(var(--foreground))"} />
                 </span>
               )}
               {desc && !explainerKeys?.[tab.id] && (
                 <p className="hidden lg:block typo-step-subtitle mt-1 max-w-[140px]" style={{
-                  color: isActive || isVisited ? "hsla(0 0% 100% / 0.6)" : "hsl(var(--muted-foreground) / 0.7)",
+                  color: isActive ? accent : "hsl(var(--muted-foreground) / 0.7)",
+                  opacity: isActive ? 0.8 : 0.7,
                 }}>
                   {desc}
                 </p>
               )}
               {isActive && (
-                <div className="absolute bottom-0 left-2 right-2 h-[3px] rounded-t-full" style={{ background: "white" }} />
+                <div className="absolute bottom-0 left-2 right-2 h-[3px] rounded-t-full" style={{ background: accent }} />
               )}
             </button>
           );
