@@ -1,5 +1,5 @@
 import React from "react";
-import { HelpCircle } from "lucide-react";
+import { Info } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { EXPLAINERS } from "@/lib/explainers";
 
@@ -17,23 +17,22 @@ export function InfoExplainer({ explainerKey, text }: InfoExplainerProps) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors flex-shrink-0"
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200 opacity-40 hover:opacity-100 focus:opacity-100 flex-shrink-0"
           style={{
-            background: "hsl(var(--foreground))",
-            color: "hsl(var(--background))",
+            color: "hsl(var(--muted-foreground))",
           }}
           aria-label="More info"
         >
-          <HelpCircle size={15} strokeWidth={2.5} />
+          <Info size={14} strokeWidth={2} />
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[280px] p-4 typo-card-body leading-relaxed"
+        className="w-[280px] p-4 typo-card-body leading-relaxed rounded-xl"
         style={{
           background: "hsl(var(--popover))",
           color: "hsl(var(--popover-foreground))",
           border: "1.5px solid hsl(var(--border))",
-          boxShadow: "0 8px 30px -8px hsl(var(--foreground) / 0.15)",
+          boxShadow: "0 8px 30px -8px hsl(var(--foreground) / 0.12)",
         }}
         side="top"
         sideOffset={6}

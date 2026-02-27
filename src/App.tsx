@@ -31,6 +31,7 @@ import StartServicePage from "./pages/StartServicePage";
 import StartBusinessPage from "./pages/StartBusinessPage";
 import NotFound from "./pages/NotFound";
 import InstantAnalysisPage from "./pages/InstantAnalysisPage";
+import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,7 @@ const App = () => (
             <SubscriptionProvider>
               <AnalysisProvider>
                 <AppRoutes />
+                <HelpAssistantPanel />
               </AnalysisProvider>
             </SubscriptionProvider>
           </AuthProvider>
