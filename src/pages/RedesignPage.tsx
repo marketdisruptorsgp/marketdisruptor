@@ -29,8 +29,8 @@ export default function RedesignPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isOutdated = analysis.outdatedSteps.has("redesign");
 
-  const disruptData = analysis.disruptData as Record<string, unknown> | null;
-  const concept = disruptData?.redesignedConcept as { conceptName?: string; tagline?: string } | undefined;
+  const redesignOrDisrupt = (analysis.redesignData ?? analysis.disruptData) as Record<string, unknown> | null;
+  const concept = redesignOrDisrupt?.redesignedConcept as { conceptName?: string; tagline?: string } | undefined;
   const takeaway = concept?.tagline
     ? `Redesigned concept: "${concept.conceptName}" — ${concept.tagline}`
     : null;
@@ -75,10 +75,10 @@ export default function RedesignPage() {
             onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
             generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
             renderMode="redesign"
-            externalData={analysis.disruptData}
+            externalData={analysis.redesignData ?? analysis.disruptData}
             onDataLoaded={(d) => {
-              analysis.setDisruptData(d);
-              analysis.saveStepData("disrupt", d);
+              analysis.setRedesignData(d);
+              analysis.saveStepData("redesign", d);
               analysis.clearStepOutdated("redesign");
               analysis.markStepOutdated("pitch");
             }}
