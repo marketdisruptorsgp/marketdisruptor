@@ -1,4 +1,5 @@
 import React from "react";
+import { InfoExplainer } from "@/components/InfoExplainer";
 
 interface ModeHeaderProps {
   stepNumber: number;
@@ -6,9 +7,10 @@ interface ModeHeaderProps {
   subtitle?: string;
   accentColor: string;
   actions?: React.ReactNode;
+  explainerKey?: string;
 }
 
-export function ModeHeader({ stepNumber, stepTitle, subtitle, accentColor, actions }: ModeHeaderProps) {
+export function ModeHeader({ stepNumber, stepTitle, subtitle, accentColor, actions, explainerKey }: ModeHeaderProps) {
   return (
     <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
       <div className="px-3 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4" style={{ background: "hsl(var(--card))" }}>
@@ -20,7 +22,10 @@ export function ModeHeader({ stepNumber, stepTitle, subtitle, accentColor, actio
             {stepNumber}
           </span>
           <div className="flex-1 min-w-0">
-            <h2 className="typo-section-title">{stepTitle}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="typo-section-title">{stepTitle}</h2>
+              {explainerKey && <InfoExplainer explainerKey={explainerKey} />}
+            </div>
             {subtitle && (
               <p className="typo-section-description mt-0.5 truncate" dangerouslySetInnerHTML={{ __html: subtitle }} />
             )}

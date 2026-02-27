@@ -64,6 +64,7 @@ export default function RedesignPage() {
           stepTitle="Redesign"
           subtitle={`Interactive concept illustrations for <strong class="text-foreground">${selectedProduct.name}</strong> — visualizing the reinvented model.`}
           accentColor={theme.primary}
+          explainerKey="step-redesign"
         />
 
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>

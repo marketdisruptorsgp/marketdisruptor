@@ -63,6 +63,7 @@ export default function PitchPage() {
           stepTitle="Investor Pitch Deck"
           subtitle={`Professional pitch deck for <strong class="text-foreground">${selectedProduct.name}</strong> — 10 slides`}
           accentColor={theme.primary}
+          explainerKey="step-pitch"
         />
 
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
