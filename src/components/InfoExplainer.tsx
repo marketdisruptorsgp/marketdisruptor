@@ -37,7 +37,11 @@ export function InfoExplainer({ explainerKey, text }: InfoExplainerProps) {
         side="top"
         sideOffset={6}
       >
-        {content}
+        {typeof content === "string" && /<[a-z][\s\S]*>/i.test(content) ? (
+          <span dangerouslySetInnerHTML={{ __html: content }} />
+        ) : (
+          content
+        )}
       </PopoverContent>
     </Popover>
   );
