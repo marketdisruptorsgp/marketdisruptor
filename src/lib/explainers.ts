@@ -98,4 +98,12 @@ export const EXPLAINERS: Record<string, string> = {
     "Positions the product within its competitive landscape — segment, price tier, key competitors, and the core differentiator that determines win/loss dynamics.",
   "instant-disruption":
     "Scores how ripe this market is for disruption. Identifies the biggest opportunities to reinvent the category and the risks that could derail a challenger.",
+
+  // ── Analysis Lens ──────────────────────────────────────
+  "lens-selector":
+    "The Analysis Lens controls HOW results are evaluated — it doesn't change what data is collected, but reframes how it's scored, ranked, and presented.\n\n" +
+    "• Default Lens: Explores disruption potential and innovation opportunities. Best for brainstorming and discovering what's possible.\n\n" +
+    "• ETA Acquisition Lens: Evaluates everything through an ownership perspective — value durability, operational leverage, defensibility, and realistic improvement pathways. Recommendations prioritize process improvements over technology. Ideal for investors and acquirers.\n\n" +
+    "• Custom Lens: You define the priorities, risk tolerance, time horizon, and constraints. The AI weights all scoring and recommendations to match your specific goals.\n\n" +
+    "The lens applies across all pipeline steps (Intel → Disrupt → Stress Test → Pitch) and changes interpretation, not data. Claims that can't be supported are labeled as limitations.",
 };
