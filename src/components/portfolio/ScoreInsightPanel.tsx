@@ -78,8 +78,8 @@ export function ScoreInsightPanel({ analyses }: { analyses: SavedAnalysis[] }) {
   return (
     <div className="rounded-xl border border-border bg-card p-5 space-y-4">
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Score Intelligence</p>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
+        <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Score Intelligence</p>
+        <p className="typo-card-body text-foreground/80 leading-relaxed">
           How your portfolio's revival scores are distributed. Clusters on the right mean you're consistently finding strong opportunities. Spread means wider exploration.
         </p>
       </div>
@@ -96,7 +96,7 @@ export function ScoreInsightPanel({ analyses }: { analyses: SavedAnalysis[] }) {
             <m.icon size={13} className="text-muted-foreground flex-shrink-0" />
             <div>
               <p className="text-sm font-bold text-foreground">{m.value}</p>
-              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">{m.label}</p>
+              <p className="typo-status-label text-foreground/60 uppercase tracking-wider">{m.label}</p>
             </div>
           </div>
         ))}
@@ -125,13 +125,13 @@ export function ScoreInsightPanel({ analyses }: { analyses: SavedAnalysis[] }) {
         {/* Top performers */}
         {topProjects.length > 0 && (
           <div className="rounded-lg p-3" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.15)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "hsl(142 70% 35%)" }}>
+            <p className="typo-status-label font-bold uppercase tracking-wider mb-2" style={{ color: "hsl(142 70% 35%)" }}>
               <CheckCircle2 size={10} className="inline mr-1" /> Top Performers
             </p>
             {topProjects.map((p) => (
               <div key={p.id} className="flex items-center justify-between py-1">
-                <span className="text-[11px] text-foreground truncate flex-1 mr-2">{p.title}</span>
-                <span className="text-[11px] font-bold flex-shrink-0" style={{ color: getScoreColor(p.avg_revival_score) }}>
+                <span className="typo-card-meta text-foreground truncate flex-1 mr-2">{p.title}</span>
+                <span className="typo-card-meta font-bold flex-shrink-0" style={{ color: getScoreColor(p.avg_revival_score) }}>
                   {p.avg_revival_score} · {getScoreLabel(p.avg_revival_score)}
                 </span>
               </div>
@@ -142,24 +142,24 @@ export function ScoreInsightPanel({ analyses }: { analyses: SavedAnalysis[] }) {
         {/* Needs attention / AI vs User deviation */}
         {biggestOverride ? (
           <div className="rounded-lg p-3" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "hsl(38 80% 35%)" }}>
+            <p className="typo-status-label font-bold uppercase tracking-wider mb-2" style={{ color: "hsl(38 80% 35%)" }}>
               <Info size={10} className="inline mr-1" /> Biggest AI vs You Gap
             </p>
-            <p className="text-[11px] text-foreground mb-1 truncate">{biggestOverride.title}</p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="typo-card-meta text-foreground mb-1 truncate">{biggestOverride.title}</p>
+            <p className="typo-card-meta text-foreground/80">
               You scored this <strong className="text-foreground">{biggestOverride.diff > 0 ? `+${biggestOverride.diff}` : biggestOverride.diff}</strong> {biggestOverride.diff > 0 ? "higher" : "lower"} than the AI.
               {Math.abs(biggestOverride.diff) >= 2 && " That's a significant gap — worth revisiting."}
             </p>
           </div>
         ) : bottomProjects.length > 0 && lowCount > 0 ? (
           <div className="rounded-lg p-3" style={{ background: "hsl(0 72% 51% / 0.06)", border: "1px solid hsl(0 72% 51% / 0.15)" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "hsl(0 72% 40%)" }}>
+            <p className="typo-status-label font-bold uppercase tracking-wider mb-2" style={{ color: "hsl(0 72% 40%)" }}>
               <AlertTriangle size={10} className="inline mr-1" /> Needs Attention
             </p>
             {bottomProjects.filter(p => p.avg_revival_score < 5).slice(0, 2).map((p) => (
               <div key={p.id} className="flex items-center justify-between py-1">
-                <span className="text-[11px] text-foreground truncate flex-1 mr-2">{p.title}</span>
-                <span className="text-[11px] font-bold flex-shrink-0" style={{ color: getScoreColor(p.avg_revival_score) }}>
+                <span className="typo-card-meta text-foreground truncate flex-1 mr-2">{p.title}</span>
+                <span className="typo-card-meta font-bold flex-shrink-0" style={{ color: getScoreColor(p.avg_revival_score) }}>
                   {p.avg_revival_score} · {getScoreLabel(p.avg_revival_score)}
                 </span>
               </div>

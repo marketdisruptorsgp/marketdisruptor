@@ -161,8 +161,8 @@ export default function PortfolioPage() {
             <ArrowLeft size={16} className="text-muted-foreground" />
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Portfolio Dashboard</h1>
-            <p className="text-xs text-muted-foreground">Strategic overview of all your analyses</p>
+            <h1 className="typo-page-title text-foreground">Portfolio Dashboard</h1>
+            <p className="typo-card-meta text-foreground/70">Strategic overview of all your analyses</p>
           </div>
         </div>
 
@@ -191,7 +191,7 @@ export default function PortfolioPage() {
                   </div>
                   <div>
                     <p className="text-lg font-bold text-foreground">{stat.value}</p>
-                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                    <p className="typo-status-label text-foreground/60 uppercase tracking-wider">{stat.label}</p>
                   </div>
                 </div>
               ))}
@@ -205,14 +205,14 @@ export default function PortfolioPage() {
 
             {/* Comparison Insight View */}
             <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Insight Comparison</p>
-              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+              <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Insight Comparison</p>
+              <p className="typo-card-body text-foreground/80 mb-3 leading-relaxed">
                 Compare up to 3 projects across revival score, risk, market size, GTM readiness, innovation, and unit economics. Expand any dimension for detailed context.
               </p>
               <div className="flex flex-wrap gap-1.5 mb-4">
                 {analyses.slice(0, 20).map((a) => (
                   <button key={a.id} onClick={() => toggleCompare(a.id)}
-                    className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors"
+                    className="px-2.5 py-1 rounded-md typo-card-meta font-medium transition-colors"
                     style={{
                       background: compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--muted))",
                       color: compareIds.has(a.id) ? "white" : "hsl(var(--foreground))",
@@ -227,8 +227,8 @@ export default function PortfolioPage() {
 
             {/* Category Breakdown */}
             <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Category Breakdown</p>
-              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+              <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Category Breakdown</p>
+              <p className="typo-card-body text-foreground/80 mb-3 leading-relaxed">
                 Shows the distribution of your analyses across different modes — Product, Service, Business, and First Principles.
               </p>
               <div className="flex items-center justify-center">
@@ -247,8 +247,8 @@ export default function PortfolioPage() {
                 {categoryBreakdown.map((entry) => (
                   <div key={entry.name} className="flex items-center gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ background: entry.color }} />
-                    <span className="text-[10px] font-semibold text-foreground">{entry.name}</span>
-                    <span className="text-[10px] text-muted-foreground">({entry.value})</span>
+                    <span className="typo-card-meta font-semibold text-foreground">{entry.name}</span>
+                    <span className="typo-card-meta text-foreground/60">({entry.value})</span>
                   </div>
                 ))}
               </div>
@@ -257,8 +257,8 @@ export default function PortfolioPage() {
             {/* Timeline */}
             {timeline.length > 1 && (
               <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Activity Timeline</p>
-                <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Activity Timeline</p>
+                <p className="typo-card-body text-foreground/80 mb-3 leading-relaxed">
                   Your analysis activity over time. Consistent exploration leads to better strategic pattern recognition.
                 </p>
                 <ResponsiveContainer width="100%" height={140}>
@@ -274,8 +274,8 @@ export default function PortfolioPage() {
 
             {/* Saved Projects Grid */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Saved Projects</p>
-              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+              <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Saved Projects</p>
+              <p className="typo-card-body text-foreground/80 mb-3 leading-relaxed">
                 All your saved analyses. Click any project to reopen the full analysis flow.
               </p>
 
@@ -284,7 +284,7 @@ export default function PortfolioPage() {
                 <select
                   value={filterMode}
                   onChange={(e) => setFilterMode(e.target.value)}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="typo-card-meta px-3 py-1.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="all">All Modes</option>
                   {uniqueModes.map(m => (
@@ -294,7 +294,7 @@ export default function PortfolioPage() {
                 <select
                   value={filterScore}
                   onChange={(e) => setFilterScore(e.target.value)}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="typo-card-meta px-3 py-1.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="all">All Scores</option>
                   <option value="high">High (≥ 7.5)</option>
@@ -304,7 +304,7 @@ export default function PortfolioPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as "date" | "score")}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="typo-card-meta px-3 py-1.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="date">Newest First</option>
                   <option value="score">Highest Score</option>
@@ -312,12 +312,12 @@ export default function PortfolioPage() {
                 {(filterMode !== "all" || filterScore !== "all") && (
                   <button
                     onClick={() => { setFilterMode("all"); setFilterScore("all"); }}
-                    className="text-[10px] text-primary hover:underline font-semibold"
+                    className="typo-card-meta text-primary hover:underline font-semibold"
                   >
                     Clear Filters
                   </button>
                 )}
-                <span className="text-[10px] text-muted-foreground ml-auto">{filteredAnalyses.length} of {analyses.length} projects</span>
+                <span className="typo-card-meta text-foreground/60 ml-auto">{filteredAnalyses.length} of {analyses.length} projects</span>
               </div>
 
               {filteredAnalyses.length === 0 ? (
