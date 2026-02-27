@@ -66,13 +66,19 @@
 
     --mode-product: 229 89% 63%;
     --mode-product-hover: 229 85% 55%;
+    --mode-product-active: 229 85% 48%;
     --mode-product-tint: 229 89% 96%;
+    --mode-product-outline: 229 89% 72%;
     --mode-service: 343 65% 55%;
     --mode-service-hover: 343 60% 47%;
+    --mode-service-active: 343 60% 40%;
     --mode-service-tint: 343 65% 96%;
+    --mode-service-outline: 343 65% 68%;
     --mode-business: 271 82% 55%;
     --mode-business-hover: 271 78% 47%;
+    --mode-business-active: 271 78% 40%;
     --mode-business-tint: 271 82% 96%;
+    --mode-business-outline: 271 82% 70%;
 
     --sidebar-background: 220 20% 97%;
     --sidebar-foreground: 224 20% 10%;

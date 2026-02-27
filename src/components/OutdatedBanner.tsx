@@ -17,7 +17,7 @@ export function OutdatedBanner({ stepName, onRegenerate, accentColor }: Outdated
     >
       <AlertCircle size={16} style={{ color: "hsl(38 92% 50%)", flexShrink: 0 }} />
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-bold text-foreground">
+        <p className="typo-card-meta font-bold text-foreground">
           Upstream data has changed
         </p>
         <p className="typo-card-meta text-muted-foreground">
@@ -27,7 +27,7 @@ export function OutdatedBanner({ stepName, onRegenerate, accentColor }: Outdated
       {onRegenerate && (
         <button
           onClick={onRegenerate}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex-shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg typo-card-meta font-bold transition-colors flex-shrink-0"
           style={{
             background: accentColor || "hsl(38 92% 50%)",
             color: "white",

@@ -156,7 +156,7 @@ function getScoreLabel(score: number) {
   return "Critical";
 }
 
-const RADAR_COLORS = ["hsl(var(--primary))", "hsl(343 65% 55%)", "hsl(var(--score-high))"];
+const RADAR_COLORS = ["hsl(var(--mode-product))", "hsl(var(--mode-service))", "hsl(var(--score-high))"];
 
 export function ComparisonInsightView({ compareList }: { compareList: SavedAnalysis[] }) {
   const [expandedDim, setExpandedDim] = useState<string | null>(null);

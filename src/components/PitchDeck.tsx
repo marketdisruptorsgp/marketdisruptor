@@ -230,7 +230,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           style={{ background: accentColor, color: "white", opacity: loading ? 0.7 : 1 }}>
           <Presentation size={15} /> Generate Full Pitch Deck
         </button>
-        <p className="text-xs text-muted-foreground">Uses Gemini 2.5 Flash · ~20–40 seconds</p>
+        <p className="typo-card-meta text-muted-foreground">Uses Gemini 2.5 Flash · ~20–40 seconds</p>
       </div>
     );
   }
@@ -635,17 +635,17 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="font-bold text-foreground text-sm">Pitch Deck: {product.name}</h3>
-          <p className="text-xs text-muted-foreground">{TOTAL} slides · Click any to jump</p>
+          <p className="typo-card-meta text-muted-foreground">{TOTAL} slides · Click any to jump</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setPresenting(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md typo-card-meta font-bold transition-colors"
             style={{ background: accentColor, color: "white" }}>
             <Presentation size={12} /> Present
           </button>
           <ExportPanel product={product} pitchDeckData={data} analysisId={analysisId} userId={user?.id} accentColor={accentColor} />
           <button onClick={runAnalysis} disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md typo-card-meta font-semibold transition-colors"
             style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
             {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />} Regenerate
           </button>

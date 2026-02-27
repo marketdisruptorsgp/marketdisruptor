@@ -66,6 +66,27 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "mode-product": {
+          DEFAULT: "hsl(var(--mode-product))",
+          hover: "hsl(var(--mode-product-hover))",
+          active: "hsl(var(--mode-product-active))",
+          tint: "hsl(var(--mode-product-tint))",
+          outline: "hsl(var(--mode-product-outline))",
+        },
+        "mode-service": {
+          DEFAULT: "hsl(var(--mode-service))",
+          hover: "hsl(var(--mode-service-hover))",
+          active: "hsl(var(--mode-service-active))",
+          tint: "hsl(var(--mode-service-tint))",
+          outline: "hsl(var(--mode-service-outline))",
+        },
+        "mode-business": {
+          DEFAULT: "hsl(var(--mode-business))",
+          hover: "hsl(var(--mode-business-hover))",
+          active: "hsl(var(--mode-business-active))",
+          tint: "hsl(var(--mode-business-tint))",
+          outline: "hsl(var(--mode-business-outline))",
+        },
       },
       borderRadius: {
         lg: "1rem",

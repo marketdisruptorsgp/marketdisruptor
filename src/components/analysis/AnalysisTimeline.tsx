@@ -130,13 +130,13 @@ export function AnalysisTimeline({ analysisData, createdAt, accentColor = "hsl(v
             {/* Content */}
             <div className="pb-3 min-w-0">
               <p
-                className="text-xs font-bold leading-tight"
+                className="typo-card-meta font-bold leading-tight"
                 style={{ color: event.completed ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }}
               >
                 {event.label}
               </p>
               {event.snippet && (
-                <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{event.snippet}</p>
+                <p className="typo-card-meta text-muted-foreground mt-0.5 truncate">{event.snippet}</p>
               )}
             </div>
           </div>

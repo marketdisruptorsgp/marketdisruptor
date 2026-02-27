@@ -29,10 +29,10 @@ interface SavedAnalysis {
 }
 
 const CATEGORY_MAP: Record<string, { label: string; color: string }> = {
-  custom: { label: "Product", color: "hsl(var(--primary))" },
-  product: { label: "Product", color: "hsl(var(--primary))" },
-  service: { label: "Service", color: "hsl(343 65% 55%)" },
-  business: { label: "Business", color: "hsl(271 82% 55%)" },
+  custom: { label: "Product", color: "hsl(var(--mode-product))" },
+  product: { label: "Product", color: "hsl(var(--mode-product))" },
+  service: { label: "Service", color: "hsl(var(--mode-service))" },
+  business: { label: "Business", color: "hsl(var(--mode-business))" },
   first_principles: { label: "First Principles", color: "hsl(var(--score-high))" },
 };
 

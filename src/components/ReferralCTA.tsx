@@ -33,10 +33,10 @@ export function ReferralCTA({ compact }: ReferralCTAProps) {
         style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
       >
         <Users size={14} style={{ color: "hsl(var(--primary))" }} />
-        <p className="text-xs text-muted-foreground flex-1">Know someone who'd use this?</p>
+        <p className="typo-card-meta text-muted-foreground flex-1">Know someone who'd use this?</p>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 px-3 py-1.5 rounded text-[11px] font-bold transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 rounded typo-card-meta font-bold transition-colors"
           style={{ background: "hsl(var(--primary))", color: "white" }}
         >
           {copied ? <><CheckCircle2 size={10} /> Copied</> : <><Copy size={10} /> Share</>}
@@ -50,14 +50,14 @@ export function ReferralCTA({ compact }: ReferralCTAProps) {
       className="rounded-lg overflow-hidden"
       style={{ border: "1px solid hsl(var(--border))" }}
     >
-      <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(271 81% 55%))" }} />
+      <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, hsl(var(--mode-product)), hsl(var(--mode-business)))" }} />
       <div className="p-5 text-center space-y-3">
         <div className="w-10 h-10 rounded-xl mx-auto flex items-center justify-center" style={{ background: "hsl(var(--muted))" }}>
           <Users size={20} style={{ color: "hsl(var(--primary))" }} />
         </div>
         <div>
           <p className="text-sm font-bold text-foreground">Know someone who'd use this?</p>
-          <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-sm mx-auto">
+          <p className="typo-card-meta text-muted-foreground mt-1 leading-relaxed max-w-sm mx-auto">
             Share your referral link and earn extended access when they sign up.
           </p>
         </div>
