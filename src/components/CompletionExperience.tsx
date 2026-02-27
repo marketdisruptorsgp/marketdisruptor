@@ -7,10 +7,10 @@ import { EvolutionView } from "@/components/analysis/EvolutionView";
 import { buildPublicUrl } from "@/lib/publicUrl";
 
 const SUCCESS_MESSAGES = [
-  { type: "opportunity", prefix: "Opportunity Identified", emoji: "🎯" },
-  { type: "disruption", prefix: "Disruption Potential Unlocked", emoji: "⚡" },
-  { type: "reframe", prefix: "Creative Reframe Complete", emoji: "🔄" },
-  { type: "breakthrough", prefix: "Breakthrough Insight Captured", emoji: "💡" },
+  { type: "opportunity", prefix: "Opportunity Identified" },
+  { type: "disruption", prefix: "Disruption Potential Unlocked" },
+  { type: "reframe", prefix: "Creative Reframe Complete" },
+  { type: "breakthrough", prefix: "Breakthrough Insight Captured" },
 ];
 
 const SUCCESS_GREEN = "142 70% 40%";
@@ -92,10 +92,10 @@ export function CompletionExperience({
             className="typo-card-eyebrow tracking-widest uppercase"
             style={{ color: `hsl(${SUCCESS_GREEN})` }}
           >
-            {chosen.emoji} {chosen.prefix}
+            {chosen.prefix}
           </p>
           <h3 className="text-2xl md:text-3xl font-bold text-foreground">
-            Analysis Complete 🎉
+            Analysis Complete
           </h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
             Congratulations — your full investor-grade analysis for{" "}
