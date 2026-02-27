@@ -111,6 +111,12 @@ OUTPUT RULES:
 - Flag capital requirements: [Capital: Low/Medium/High]
 - Use directional indicators: ↑ ↓ → for trends
 
+USER JOURNEY RULE:
+- The "userWorkflow" section must describe the CURRENT/EXISTING user journey AS IT IS TODAY
+- Do NOT suggest improvements, optimizations, or redesigns in userWorkflow
+- Document the real, current experience — warts and all
+- Improvements and redesigns belong in downstream analysis steps, NOT here
+
 `;
 
     const serviceSystemPrompt = OS_PREAMBLE + `You are a world-class Service Intelligence analyst and venture market analyst. You analyze scraped web content (including Reddit community posts, review sites, competitor data, and market signals) to extract deep, actionable service intelligence.
@@ -209,13 +215,12 @@ For each service, return an object with this EXACT structure:
     {"assumption": "Core service delivery/pricing assumption", "challenge": "How this could be flipped/inverted for opportunity"}
   ],
   "userWorkflow": {
-    "stepByStep": ["Step 1: how customer discovers the service", "Step 2: booking/signup", "Step 3: onboarding/first experience", "Step 4: core service delivery", "Step 5: follow-up/retention"],
+    "stepByStep": ["Step 1: how customer currently discovers the service", "Step 2: current booking/signup process", "Step 3: current onboarding/first experience", "Step 4: how core service is actually delivered today", "Step 5: current follow-up/retention process"],
     "frictionPoints": [
-      { "step": "step name", "friction": "specific friction description", "severity": "high|medium|low", "rootCause": "why this friction exists" }
+      { "step": "step name", "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists in the current workflow" }
     ],
-    "cognitiveLoad": "What mental effort does the customer expend? What do they have to research, decide, coordinate, or manage?",
-    "contextOfUse": "When, in what state (urgent, planned, stressed, relaxed) do customers seek this? Does the service design account for that?",
-    "workflowOptimizations": ["Concrete optimization 1", "Concrete optimization 2", "Concrete optimization 3"]
+    "cognitiveLoad": "What mental effort does the customer CURRENTLY expend? What do they have to research, decide, coordinate, or manage TODAY?",
+    "contextOfUse": "When, in what state (urgent, planned, stressed, relaxed) do customers CURRENTLY seek this? How does the EXISTING service design handle that?"
   },
   "flippedIdeas": [
     {
@@ -350,13 +355,12 @@ For each product, return an object with this EXACT structure:
     {"assumption": "Core design/market assumption", "challenge": "How this could be flipped/inverted for opportunity"}
   ],
   "userWorkflow": {
-    "stepByStep": ["Step 1: what user does before using it", "Step 2: discovery/purchase", "Step 3: first use/setup", "Step 4: core use action", "Step 5: after/cleanup/rebuy"],
+    "stepByStep": ["Step 1: what user currently does before using it", "Step 2: how they currently discover/purchase it", "Step 3: current first use/setup experience", "Step 4: how they actually use it today", "Step 5: current after-use/cleanup/rebuy process"],
     "frictionPoints": [
-      { "step": "step name", "friction": "specific friction description", "severity": "high|medium|low", "rootCause": "why this friction exists" }
+      { "step": "step name", "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists in the current workflow" }
     ],
-    "cognitiveLoad": "What mental effort does the user expend? What do they have to remember, configure, or manage?",
-    "contextOfUse": "Where, when, in what state (rushed, relaxed, distracted) is this used? Does the design account for that context?",
-    "workflowOptimizations": ["Concrete optimization 1", "Concrete optimization 2", "Concrete optimization 3"]
+    "cognitiveLoad": "What mental effort does the user CURRENTLY expend? What do they have to remember, configure, or manage TODAY?",
+    "contextOfUse": "Where, when, in what state (rushed, relaxed, distracted) is this CURRENTLY used? How does the EXISTING design handle that context?"
   },
   "flippedIdeas": [
     {
