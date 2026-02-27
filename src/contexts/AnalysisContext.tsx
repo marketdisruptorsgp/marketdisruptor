@@ -713,7 +713,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeLens, analysisId, saveStepData]);
 
-  const handleLoadSaved = useCallback((analysis: any) => {
+  const handleLoadSaved = useCallback(async (analysis: any) => {
     setLoadedFromSaved(true);
     // Restore persisted step data
     const ad = analysis.analysis_data as Record<string, unknown> | null;
@@ -738,6 +738,18 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setOutdatedSteps(new Set(ad.outdatedSteps as string[]));
     } else {
       setOutdatedSteps(new Set());
+    }
+
+    // Auto-detect legacy schema and flag affected steps for regeneration
+    const { detectLegacySchema } = await import("@/utils/legacyDetection");
+    const legacy = detectLegacySchema(ad);
+    if (legacy.isLegacy) {
+      setOutdatedSteps(prev => {
+        const next = new Set(prev);
+        legacy.legacySteps.forEach(s => next.add(s));
+        return next;
+      });
+      toast.info("This analysis used an older framework — regenerate steps to get improved insights");
     }
 
     if (analysis.analysis_type === "business_model") {
