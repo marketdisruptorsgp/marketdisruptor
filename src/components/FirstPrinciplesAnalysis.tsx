@@ -722,16 +722,28 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
           <PitchDeckToggle contentKey="assumptions" label="Include in Pitch Deck" sublabel="(concise exec summary only — not the full analysis)" />
-          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+          <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-xs text-foreground/80 leading-relaxed">
               <strong>Why this matters:</strong> Every product is built on assumptions — about who uses it, how they use it, and why it's designed the way it is. Most go unchallenged. The best innovations come from questioning what everyone else takes for granted.
             </p>
-            <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-[10px] text-foreground/50">
-              <span><strong>Why it exists</strong> — the root cause (tradition, cost, physics, etc.)</span>
-              <span><strong>Leverage</strong> — how much value you unlock by challenging it (1–10)</span>
-              <span><strong>Challengeable</strong> — our AI believes this can realistically be disrupted</span>
-            </div>
           </div>
+
+          <DetailPanel title="How to read each assumption card" icon={Lightbulb}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+              <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Root Cause Tag</p>
+                <p className="text-xs text-foreground/70 leading-relaxed">Why this assumption exists — tradition, manufacturing limits, cost pressure, physics, or user habit. Helps you understand what's holding the status quo in place.</p>
+              </div>
+              <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Leverage Score (1–10)</p>
+                <p className="text-xs text-foreground/70 leading-relaxed">How much potential value you could unlock by successfully challenging this assumption. Higher scores = bigger opportunity if you can crack it.</p>
+              </div>
+              <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Challengeable</p>
+                <p className="text-xs text-foreground/70 leading-relaxed">Our analysis indicates this assumption can realistically be disrupted with current technology, market conditions, or business model innovation.</p>
+              </div>
+            </div>
+          </DetailPanel>
 
            <div className="space-y-3">
             {data.hiddenAssumptions.map((a, i) => {
@@ -749,12 +761,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                       <span className="text-foreground/80">{a.challengeIdea}</span>
                     </div>
                   )}
-                  {/* Metadata row — subtle, below content */}
-                  <div className="ml-7 mt-2 flex items-center gap-2 flex-wrap">
-                    <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>{reasonStyle.label}</span>
-                    {a.isChallengeable && <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 30%)" }}>Challengeable</span>}
+                  {/* Metadata row — muted, secondary to content */}
+                  <div className="ml-7 mt-2 flex items-center gap-1.5 flex-wrap">
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-medium text-muted-foreground" style={{ background: "hsl(var(--muted))" }}>{reasonStyle.label}</span>
+                    {a.isChallengeable && <span className="px-1.5 py-0.5 rounded text-[9px] font-medium text-muted-foreground" style={{ background: "hsl(var(--muted))" }}>Challengeable</span>}
                     {a.leverageScore != null && (
-                      <span className="text-[10px] font-medium tabular-nums" style={{ color: a.leverageScore >= 8 ? "hsl(var(--destructive))" : a.leverageScore >= 5 ? "hsl(38 92% 42%)" : "hsl(142 70% 35%)" }}>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-medium tabular-nums text-muted-foreground" style={{ background: "hsl(var(--muted))" }}>
                         Leverage {a.leverageScore}/10
                       </span>
                     )}
