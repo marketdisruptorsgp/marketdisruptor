@@ -1,23 +1,35 @@
 export interface ModeThemeColors {
   primary: string;
+  hover: string;
+  active: string;
+  tint: string;
   outline: string;
   background: string;
 }
 
 export const modeTheme: Record<"custom" | "service" | "business", ModeThemeColors> = {
   custom: {
-    primary: "hsl(217 91% 38%)",
-    outline: "hsl(217 91% 60%)",
-    background: "hsl(217 91% 96%)",
+    primary: "hsl(229 89% 63%)",
+    hover: "hsl(229 85% 55%)",
+    active: "hsl(229 85% 48%)",
+    tint: "hsl(229 89% 96%)",
+    outline: "hsl(229 89% 72%)",
+    background: "hsl(229 89% 96%)",
   },
   service: {
-    primary: "hsl(340 75% 50%)",
-    outline: "hsl(340 75% 65%)",
-    background: "hsl(340 75% 96%)",
+    primary: "hsl(343 65% 55%)",
+    hover: "hsl(343 60% 47%)",
+    active: "hsl(343 60% 40%)",
+    tint: "hsl(343 65% 96%)",
+    outline: "hsl(343 65% 68%)",
+    background: "hsl(343 65% 96%)",
   },
   business: {
-    primary: "hsl(271 81% 55%)",
-    outline: "hsl(271 81% 70%)",
-    background: "hsl(271 81% 96%)",
+    primary: "hsl(271 82% 55%)",
+    hover: "hsl(271 78% 47%)",
+    active: "hsl(271 78% 40%)",
+    tint: "hsl(271 82% 96%)",
+    outline: "hsl(271 82% 70%)",
+    background: "hsl(271 82% 96%)",
   },
 };

@@ -46,6 +46,7 @@ export default function PitchPage() {
             else if (s === 5) navigate(`${baseUrl}/stress-test`);
           }}
           outdatedSteps={analysis.outdatedSteps}
+          accentColor={theme.primary}
         />
 
         <StepNavBar backLabel="Stress Test" backPath={`${baseUrl}/stress-test`} accentColor={theme.primary} />
@@ -64,7 +65,7 @@ export default function PitchPage() {
           accentColor={theme.primary}
         />
 
-        <div className="rounded overflow-hidden p-3 sm:p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+        <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <PitchDeck
             product={selectedProduct}
             analysisId={analysisId}

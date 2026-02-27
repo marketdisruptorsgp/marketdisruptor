@@ -27,7 +27,6 @@ export default function RedesignPage() {
   }
 
   const baseUrl = `/analysis/${analysisId}`;
-  const redesignColor = "hsl(38 92% 50%)";
   const isOutdated = analysis.outdatedSteps.has("redesign");
 
   const disruptData = analysis.disruptData as Record<string, unknown> | null;
@@ -52,21 +51,22 @@ export default function RedesignPage() {
             else if (s === 6) navigate(`${baseUrl}/pitch`);
           }}
           outdatedSteps={analysis.outdatedSteps}
+          accentColor={theme.primary}
         />
 
-        <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor={redesignColor} />
+        <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor={theme.primary} />
 
-        {isOutdated && <OutdatedBanner stepName="Redesign" accentColor={redesignColor} />}
-        {takeaway && !isOutdated && <KeyTakeawayBanner takeaway={takeaway} accentColor={redesignColor} />}
+        {isOutdated && <OutdatedBanner stepName="Redesign" accentColor={theme.primary} />}
+        {takeaway && !isOutdated && <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} />}
 
         <ModeHeader
           stepNumber={4}
           stepTitle="Redesign"
           subtitle={`Interactive concept illustrations for <strong class="text-foreground">${selectedProduct.name}</strong> — visualizing the reinvented model.`}
-          accentColor={redesignColor}
+          accentColor={theme.primary}
         />
 
-        <div className="rounded overflow-hidden p-3 sm:p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+        <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <FirstPrinciplesAnalysis
             product={selectedProduct}
             onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
@@ -95,7 +95,7 @@ export default function RedesignPage() {
         <NextStepButton
           stepNumber={5}
           label="Stress Test"
-          color="hsl(350 80% 55%)"
+          color={theme.primary}
           onClick={() => { scrollToTop(); navigate(`${baseUrl}/stress-test`); }}
         />
       </main>

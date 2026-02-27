@@ -4,7 +4,6 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { HeroSection } from "@/components/HeroSection";
-import { usePersistedSections } from "@/hooks/usePersistedSections";
 import { StepNavigator } from "@/components/StepNavigator";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { Swords, CheckCircle2 } from "lucide-react";
@@ -16,6 +15,7 @@ import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ModeHeader } from "@/components/ModeHeader";
 import { scrollToTop } from "@/utils/scrollToTop";
+import { usePersistedSections } from "@/hooks/usePersistedSections";
 
 const STRESS_TEST_DESCRIPTIONS: Record<string, string> = {
   debate: "Red Team attacks vs Green Team defenses",
@@ -36,7 +36,6 @@ export default function StressTestPage() {
   }
 
   const baseUrl = `/analysis/${analysisId}`;
-  const stressColor = "hsl(350 80% 55%)";
   const isOutdated = analysis.outdatedSteps.has("stressTest");
 
   const { visited: persistedVisited, markVisited } = usePersistedSections(analysisId, "stress-test", ["debate"]);
@@ -59,25 +58,26 @@ export default function StressTestPage() {
             else if (s === 6) navigate(`${baseUrl}/pitch`);
           }}
           outdatedSteps={analysis.outdatedSteps}
+          accentColor={theme.primary}
         />
 
-        <StepNavBar backLabel="Redesign" backPath={`${baseUrl}/redesign`} accentColor={stressColor} />
-        <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={stressColor} /></div>
+        <StepNavBar backLabel="Redesign" backPath={`${baseUrl}/redesign`} accentColor={theme.primary} />
+        <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={theme.primary} /></div>
 
-        {isOutdated && <OutdatedBanner stepName="Stress Test" accentColor={stressColor} />}
+        {isOutdated && <OutdatedBanner stepName="Stress Test" accentColor={theme.primary} />}
         {!isOutdated && (() => {
           const takeaway = getStressTestTakeaway(analysis.stressTestData as Record<string, unknown> | null);
-          return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={stressColor} /> : null;
+          return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} /> : null;
         })()}
 
         <ModeHeader
           stepNumber={5}
           stepTitle="Stress Test"
           subtitle={`Red Team vs Green Team critical validation for <strong class="text-foreground">${selectedProduct.name}</strong>`}
-          accentColor={stressColor}
+          accentColor={theme.primary}
         />
 
-        <div className="rounded overflow-hidden p-3 sm:p-5 space-y-4 sm:space-y-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+        <div className="rounded overflow-hidden p-4 sm:p-6 space-y-4 sm:space-y-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <SectionWorkflowNav
             tabs={[
               { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
@@ -92,6 +92,7 @@ export default function StressTestPage() {
             }}
             descriptions={STRESS_TEST_DESCRIPTIONS}
             journeyLabel="Stress Test Journey"
+            accentColor={theme.primary}
           />
           <CriticalValidation
             product={selectedProduct}

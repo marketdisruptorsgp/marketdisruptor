@@ -82,19 +82,28 @@ export const riskColors = {
 // ── Mode Accent Palette ──
 export const modeAccent = {
   product: {
-    primary:    "hsl(217 91% 38%)",
-    outline:    "hsl(217 91% 60%)",
-    background: "hsl(217 91% 96%)",
+    primary:    "hsl(229 89% 63%)",
+    hover:      "hsl(229 85% 55%)",
+    active:     "hsl(229 85% 48%)",
+    tint:       "hsl(229 89% 96%)",
+    outline:    "hsl(229 89% 72%)",
+    background: "hsl(229 89% 96%)",
   },
   service: {
-    primary:    "hsl(340 75% 50%)",
-    outline:    "hsl(340 75% 65%)",
-    background: "hsl(340 75% 96%)",
+    primary:    "hsl(343 65% 55%)",
+    hover:      "hsl(343 60% 47%)",
+    active:     "hsl(343 60% 40%)",
+    tint:       "hsl(343 65% 96%)",
+    outline:    "hsl(343 65% 68%)",
+    background: "hsl(343 65% 96%)",
   },
   business: {
-    primary:    "hsl(271 81% 55%)",
-    outline:    "hsl(271 81% 70%)",
-    background: "hsl(271 81% 96%)",
+    primary:    "hsl(271 82% 55%)",
+    hover:      "hsl(271 78% 47%)",
+    active:     "hsl(271 78% 40%)",
+    tint:       "hsl(271 82% 96%)",
+    outline:    "hsl(271 82% 70%)",
+    background: "hsl(271 82% 96%)",
   },
 } as const;
 
@@ -144,23 +153,23 @@ export const maxWidths = {
   shareable:  "720px",
 } as const;
 
-// ── Typography Scale ──
+// ── Typography Scale (14px base, 13px minimum) ──
 export const typeScale = {
-  navPrimary:       { size: "0.875rem",  weight: 600, lineHeight: 1.4, family: "sans",    class: "typo-nav-primary" },
-  stepTitleActive:  { size: "0.8125rem", weight: 700, lineHeight: 1.3, family: "sans",    class: "typo-step-title-active" },
-  stepTitleInactive:{ size: "0.8125rem", weight: 700, lineHeight: 1.3, family: "sans",    class: "typo-step-title-inactive" },
-  stepSubtitle:     { size: "0.625rem",  weight: 500, lineHeight: 1.3, family: "sans",    class: "typo-step-subtitle" },
-  pageTitle:        { size: "1.875rem",  weight: 700, lineHeight: 1.2, family: "display",  class: "typo-page-title" },
-  pageMeta:         { size: "0.8125rem", weight: 400, lineHeight: 1.5, family: "sans",    class: "typo-page-meta" },
-  cardEyebrow:      { size: "0.6875rem", weight: 600, lineHeight: 1.4, family: "sans",    class: "typo-card-eyebrow" },
-  cardTitle:        { size: "0.875rem",  weight: 600, lineHeight: 1.3, family: "sans",    class: "typo-card-title" },
-  cardBody:         { size: "0.8125rem", weight: 400, lineHeight: 1.5, family: "sans",    class: "typo-card-body" },
-  cardMeta:         { size: "0.625rem",  weight: 500, lineHeight: 1.4, family: "sans",    class: "typo-card-meta" },
-  sectionTitle:     { size: "0.875rem",  weight: 700, lineHeight: 1.3, family: "display",  class: "typo-section-title" },
-  sectionDescription:{ size: "0.8125rem", weight: 400, lineHeight: 1.5, family: "sans",   class: "typo-section-description" },
-  statusLabel:      { size: "0.5625rem", weight: 600, lineHeight: 1.3, family: "sans",    class: "typo-status-label" },
-  buttonPrimary:    { size: "0.875rem",  weight: 600, lineHeight: 1,   family: "sans",    class: "typo-button-primary" },
-  buttonSecondary:  { size: "0.75rem",   weight: 600, lineHeight: 1,   family: "sans",    class: "typo-button-secondary" },
+  navPrimary:        { size: "0.9375rem",  weight: 600, lineHeight: 1.4, family: "sans",    class: "typo-nav-primary" },
+  stepTitleActive:   { size: "0.875rem",   weight: 700, lineHeight: 1.3, family: "sans",    class: "typo-step-title-active" },
+  stepTitleInactive: { size: "0.875rem",   weight: 700, lineHeight: 1.3, family: "sans",    class: "typo-step-title-inactive" },
+  stepSubtitle:      { size: "0.8125rem",  weight: 500, lineHeight: 1.3, family: "sans",    class: "typo-step-subtitle" },
+  pageTitle:         { size: "2rem",       weight: 700, lineHeight: 1.2, family: "display",  class: "typo-page-title" },
+  pageMeta:          { size: "0.875rem",   weight: 400, lineHeight: 1.5, family: "sans",    class: "typo-page-meta" },
+  cardEyebrow:       { size: "0.8125rem",  weight: 600, lineHeight: 1.4, family: "sans",    class: "typo-card-eyebrow" },
+  cardTitle:         { size: "1rem",       weight: 600, lineHeight: 1.3, family: "sans",    class: "typo-card-title" },
+  cardBody:          { size: "0.875rem",   weight: 400, lineHeight: 1.5, family: "sans",    class: "typo-card-body" },
+  cardMeta:          { size: "0.8125rem",  weight: 500, lineHeight: 1.4, family: "sans",    class: "typo-card-meta" },
+  sectionTitle:      { size: "1.125rem",   weight: 700, lineHeight: 1.3, family: "display",  class: "typo-section-title" },
+  sectionDescription:{ size: "0.875rem",   weight: 400, lineHeight: 1.5, family: "sans",    class: "typo-section-description" },
+  statusLabel:       { size: "0.8125rem",  weight: 600, lineHeight: 1.3, family: "sans",    class: "typo-status-label" },
+  buttonPrimary:     { size: "0.875rem",   weight: 600, lineHeight: 1,   family: "sans",    class: "typo-button-primary" },
+  buttonSecondary:   { size: "0.8125rem",  weight: 600, lineHeight: 1,   family: "sans",    class: "typo-button-secondary" },
 } as const;
 
 // ── Transition Presets ──

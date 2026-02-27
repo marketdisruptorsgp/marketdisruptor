@@ -16,6 +16,7 @@ interface StepNavigatorProps {
   visitedSteps: Set<number>;
   onStepChange: (step: number) => void;
   outdatedSteps?: Set<string>;
+  accentColor?: string;
 }
 
 // Map step numbers to step keys for outdated tracking
@@ -26,13 +27,14 @@ const STEP_KEY_MAP: Record<number, string> = {
   6: "pitch",
 };
 
-export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, outdatedSteps }: StepNavigatorProps) {
+export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, outdatedSteps, accentColor }: StepNavigatorProps) {
   const totalSteps = steps.length + 1;
+  const accent = accentColor || "hsl(var(--primary))";
   return (
-    <div className="sticky top-0 z-30 -mx-4 px-3 sm:px-4 py-2.5 sm:py-3 bg-background/95 backdrop-blur-sm border-b border-border">
+    <div className="sticky top-0 z-30 -mx-4 px-3 sm:px-4 py-3 sm:py-3.5 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide">
         {/* Progress bar */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-2.5">
           <p className="typo-status-label text-muted-foreground">
             Step {activeStep} of {totalSteps}
           </p>
@@ -41,7 +43,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
               <div key={i} className="rounded-full transition-all" style={{
                 width: i + 1 === activeStep ? 18 : 6,
                 height: 6,
-                background: i + 1 <= activeStep ? "hsl(var(--primary))" : "hsl(var(--border))",
+                background: i + 1 <= activeStep ? accent : "hsl(var(--border))",
                 borderRadius: 999,
               }} />
             ))}
@@ -49,7 +51,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
         </div>
 
         {/* Step cards */}
-        <div className="flex items-stretch gap-1 sm:gap-1.5 min-w-max">
+        <div className="flex items-stretch gap-1.5 sm:gap-2 min-w-max">
           {steps.map((s, i, arr) => {
             const isCurrent = activeStep === s.step;
             const isPast = visitedSteps.has(s.step) && !isCurrent;
@@ -61,16 +63,16 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
               <React.Fragment key={s.step}>
                 <button
                   onClick={() => { onStepChange(s.step); scrollToTop(); }}
-                  className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 rounded-xl text-left transition-all flex-shrink-0 min-w-[100px] sm:min-w-0 sm:flex-1 relative"
+                  className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-left transition-all flex-shrink-0 min-w-[110px] sm:min-w-0 sm:flex-1 relative"
                   style={{
-                    background: isCurrent ? "hsl(var(--foreground))" : isPast ? "hsl(var(--muted))" : "transparent",
-                    color: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                    background: isCurrent ? accent : isPast ? "hsl(var(--muted))" : "transparent",
+                    color: isCurrent ? "white" : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
                     border: isCurrent
-                      ? "2px solid hsl(var(--foreground))"
+                      ? `2px solid ${accent}`
                       : isPast
                         ? "1.5px solid hsl(var(--border))"
                         : "1.5px solid hsl(var(--border))",
-                    boxShadow: isCurrent ? "0 4px 16px hsl(var(--foreground) / 0.2)" : "none",
+                    boxShadow: isCurrent ? `0 4px 16px ${accent}33` : "none",
                     opacity: isFuture ? 0.5 : 1,
                   }}
                 >
@@ -78,19 +80,19 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
                   {isOutdated && (
                     <div className="absolute -top-1.5 -right-1.5 z-10">
                       <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full typo-status-label"
-                        style={{ background: "hsl(38 92% 50%)", color: "white" }}>
-                        <AlertCircle size={8} />
+                        style={{ background: "hsl(38 92% 50%)", color: "white", fontSize: "0.625rem" }}>
+                        <AlertCircle size={9} />
                         <span className="hidden sm:inline">Outdated</span>
                       </div>
                     </div>
                   )}
-                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center" style={{
-                    background: isCurrent ? "hsl(var(--background))" : isPast ? "hsl(var(--muted))" : "hsl(var(--muted))",
+                  <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center" style={{
+                    background: isCurrent ? "hsla(0 0% 100% / 0.2)" : isPast ? "hsl(var(--muted))" : "hsl(var(--muted))",
                   }}>
                     {isPast ? (
-                      <CheckCircle2 size={14} style={{ color: isOutdated ? "hsl(38 92% 50%)" : "hsl(142 70% 40%)" }} />
+                      <CheckCircle2 size={15} style={{ color: isOutdated ? "hsl(38 92% 50%)" : "hsl(142 70% 40%)" }} />
                     ) : (
-                      <Icon size={14} style={{ color: isCurrent ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }} />
+                      <Icon size={15} style={{ color: isCurrent ? "white" : "hsl(var(--muted-foreground))" }} />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -98,7 +100,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
                       {s.label}
                     </p>
                     <p className="typo-step-subtitle hidden sm:block truncate" style={{
-                      color: isCurrent ? "hsl(var(--background) / 0.7)" : undefined,
+                      color: isCurrent ? "hsla(0 0% 100% / 0.7)" : undefined,
                     }}>
                       {s.description}
                     </p>
