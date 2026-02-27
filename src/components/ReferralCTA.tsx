@@ -20,7 +20,11 @@ export function ReferralCTA({ compact }: ReferralCTAProps) {
       const { data: existing } = await (supabase.from("referral_codes") as any).select("code").eq("user_id", user.id).maybeSingle();
       let code = existing?.code;
       if (!code) {
-        code = user.id.slice(0, 8);
+        // Generate a short, memorable alphanumeric code
+        const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+        code = Array.from(crypto.getRandomValues(new Uint8Array(6)))
+          .map((b) => chars[b % chars.length])
+          .join("");
         await (supabase.from("referral_codes") as any).insert({ user_id: user.id, code });
       }
       setReferralLink(buildPublicUrl(`/share?ref=${code}`));
