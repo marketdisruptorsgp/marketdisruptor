@@ -230,16 +230,34 @@ export default function InstantAnalysisPage() {
             </div>
             <span className="font-bold text-foreground text-sm">Market Disruptor</span>
           </div>
-          {isAnonymous && (
+          <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              onClick={() => setShowClaimForm(true)}
-              className="text-xs gap-1"
+              className="text-xs gap-1.5 font-semibold"
+              onClick={() => {
+                const url = `${window.location.origin}/instant-analysis`;
+                if (navigator.share) {
+                  navigator.share({ title: "Market Disruptor — Instant Photo Analysis", text: "Point your camera at any product and get deep competitive intelligence in seconds. Try it free:", url }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(`Point your camera at any product and get deep competitive intelligence in seconds. Try it free: ${url}`);
+                  toast.success("Link copied!");
+                }
+              }}
             >
-              <Mail size={12} /> Save Account
+              <Share2 size={13} /> Share This Tool
             </Button>
-          )}
+            {isAnonymous && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowClaimForm(true)}
+                className="text-xs gap-1"
+              >
+                <Mail size={12} /> Save Account
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -639,52 +657,57 @@ function ShareAnalysisCTA({ result, modeColor, mode }: { result: PhotoAnalysisRe
 
   return (
     <div
-      className="rounded-xl border border-border overflow-hidden"
-      style={{ borderTop: `3px solid hsl(var(${modeColor}))` }}
+      className="rounded-xl overflow-hidden"
+      style={{ border: `2px solid hsl(var(${modeColor}))`, background: `hsl(var(${modeColor}) / 0.06)` }}
     >
-      <div className="p-5 sm:p-6 text-center space-y-4" style={{ background: `hsl(var(${modeColor}) / 0.04)` }}>
+      <div className="p-6 sm:p-8 text-center space-y-5">
         <div className="flex items-center justify-center gap-2">
-          <Sparkles size={18} style={{ color: `hsl(var(${modeColor}))` }} />
-          <p className="typo-card-title text-foreground">
-            {insightCount.length} intelligence layers from one photo
+          <Share2 size={22} style={{ color: `hsl(var(${modeColor}))` }} />
+          <p className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+            Know someone who needs this?
           </p>
         </div>
         <p className="typo-card-body text-muted-foreground max-w-md mx-auto">
-          User journeys, friction points, market positioning, disruption paths — all extracted from a single image. Share this with your team.
+          {insightCount.length} intelligence layers from one photo — user journeys, disruption paths, market positioning. Share this tool with your team, co-founder, or that friend with a business idea.
         </p>
 
+        {/* Big primary share button */}
+        <Button
+          onClick={handleNativeShare}
+          size="lg"
+          className="text-white font-bold px-10 py-3 text-base shadow-lg hover:shadow-xl transition-all gap-2"
+          style={{ background: `hsl(var(${modeColor}))` }}
+        >
+          <Share2 size={18} /> Share Instant Analysis
+        </Button>
+
+        {/* Secondary social row */}
         <div className="flex items-center justify-center gap-2 flex-wrap">
-          <Button
-            onClick={handleNativeShare}
-            className="gap-2 text-white"
-            style={{ background: `hsl(var(${modeColor}))` }}
-          >
-            <Share2 size={15} /> Share
-          </Button>
           <a href={twitterUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              Post
+              Post on X
             </Button>
           </a>
           <a href={linkedInUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
               LinkedIn
             </Button>
           </a>
           <Button
             variant="outline"
+            size="sm"
             onClick={handleCopyLink}
             className="gap-2"
           >
             {copied ? <Check size={15} style={{ color: "hsl(var(--success))" }} /> : <Copy size={15} />}
-            {copied ? "Copied!" : "Copy"}
+            {copied ? "Copied!" : "Copy Link"}
           </Button>
         </div>
 
         <p className="typo-card-meta text-muted-foreground">
-          Free for everyone · No signup required · Powered by visual AI
+          Free for everyone · No signup required · Works on any product photo
         </p>
       </div>
     </div>
