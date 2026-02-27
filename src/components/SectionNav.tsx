@@ -269,7 +269,7 @@ export function SectionWorkflowNav<T extends string>({
               </p>
               {explainerKeys?.[tab.id] && (
                 <span onClick={(e) => { e.stopPropagation(); }} className="mt-1.5">
-                  <InfoExplainer explainerKey={explainerKeys[tab.id]} />
+                  <InfoExplainer explainerKey={explainerKeys[tab.id]} accentColor={isActive || isVisited ? "white" : "hsl(var(--foreground))"} />
                 </span>
               )}
               {desc && !explainerKeys?.[tab.id] && (

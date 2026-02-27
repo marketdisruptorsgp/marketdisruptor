@@ -18,9 +18,9 @@ export function InfoExplainer({ explainerKey, text, accentColor }: InfoExplainer
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200 opacity-60 hover:opacity-100 focus:opacity-100 flex-shrink-0"
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200 opacity-80 hover:opacity-100 focus:opacity-100 flex-shrink-0"
           style={{
-            color: accentColor || "hsl(var(--muted-foreground))",
+            color: accentColor || "hsl(var(--foreground))",
           }}
           aria-label="More info"
         >
