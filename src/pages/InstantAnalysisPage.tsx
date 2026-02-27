@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useAnonymousAuth } from "@/hooks/useAnonymousAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, Lock, Eye, Share2, Copy, Check, TrendingUp, Search, Target, Presentation, ShieldCheck, ListChecks, Lightbulb, Rocket } from "lucide-react";
+import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, Lock, Eye, Share2, Copy, Check, TrendingUp, Search, Target, Presentation, ShieldCheck, ListChecks, Lightbulb, Rocket, Package, Briefcase, Building2, ChevronRight, Layers } from "lucide-react";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -46,10 +46,10 @@ interface PhotoAnalysisResult {
   [key: string]: unknown;
 }
 
-const MODE_CONFIG: Record<AnalysisMode, {label: string;description: string;cssVar: string;}> = {
-  custom: { label: "Product", description: "Physical or digital products", cssVar: "--mode-product" },
-  service: { label: "Service", description: "Service businesses & SaaS", cssVar: "--mode-service" },
-  business: { label: "Business", description: "Business model analysis", cssVar: "--mode-business" }
+const MODE_CONFIG: Record<AnalysisMode, {label: string; icon: typeof Camera; description: string; examples: string; layers: string[]; cssVar: string;}> = {
+  custom: { label: "Product", icon: Package, description: "Physical or digital products", examples: "Gadgets, apps, packaging, retail items", layers: ["Supply Chain", "User Journey", "Patent Landscape", "Market Position"], cssVar: "--mode-product" },
+  service: { label: "Service", icon: Briefcase, description: "Service businesses & SaaS", examples: "Restaurants, salons, SaaS dashboards, storefronts", layers: ["Operational Intel", "Customer Sentiment", "Competitive Moat", "Pricing Analysis"], cssVar: "--mode-service" },
+  business: { label: "Business", icon: Building2, description: "Business model analysis", examples: "Franchises, marketplaces, subscription models", layers: ["Revenue Model", "Unit Economics", "Scalability", "Defensibility"], cssVar: "--mode-business" }
 };
 
 function ScoreBadge({ score }: {score: number;}) {
@@ -228,57 +228,110 @@ export default function InstantAnalysisPage() {
 
       <main className="max-w-3xl mx-auto px-4 py-6 sm:py-10">
         {/* Hero */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="typo-page-title text-foreground mb-2">
             Point. Shoot. Understand Everything.
           </h1>
-          <p className="typo-card-body text-muted-foreground max-w-lg mx-auto mb-4">
+          <p className="typo-card-body text-muted-foreground max-w-lg mx-auto">
             Take a photo and instantly decode what's really going on.
           </p>
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 typo-card-meta text-muted-foreground mb-2">
-            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Supply chain mapping</span>
-            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> User journey & friction</span>
-            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Customer sentiment</span>
-            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Patent landscape</span>
-            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Market positioning</span>
-            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Disruption potential</span>
-          </div>
-          <p className="typo-card-meta font-semibold" style={{ color: `hsl(var(${modeColor}))` }}>
-            No signup required for Quick Analysis
+        </div>
+
+        {/* Step 1: What are you analyzing? */}
+        <div className="mb-5">
+          <p className="typo-card-eyebrow text-muted-foreground mb-2.5 flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center text-white" style={{ background: `hsl(var(${modeColor}))` }}>1</span>
+            What are you analyzing?
           </p>
+          <div className="grid grid-cols-3 gap-2">
+            {(Object.entries(MODE_CONFIG) as [AnalysisMode, typeof MODE_CONFIG["custom"]][]).map(([key, cfg]) => {
+              const Icon = cfg.icon;
+              const isActive = mode === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => { setMode(key); setResult(null); }}
+                  className={cn(
+                    "rounded-xl border p-3 text-left transition-all relative overflow-hidden",
+                    isActive
+                      ? "border-transparent ring-2 bg-card shadow-sm"
+                      : "border-border bg-card hover:border-foreground/15"
+                  )}
+                  style={isActive ? { boxShadow: `0 0 0 2px hsl(var(${cfg.cssVar}))` } : undefined}
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: isActive ? `hsl(var(${cfg.cssVar}))` : `hsl(var(${cfg.cssVar}) / 0.1)` }}
+                    >
+                      <Icon size={14} style={{ color: isActive ? "white" : `hsl(var(${cfg.cssVar}))` }} />
+                    </div>
+                    <span className={cn("text-sm font-bold", isActive ? "text-foreground" : "text-muted-foreground")}>
+                      {cfg.label}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-snug">{cfg.examples}</p>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Mode Picker */}
-        <div className="flex gap-2 justify-center mb-6">
-          {(Object.entries(MODE_CONFIG) as [AnalysisMode, typeof MODE_CONFIG["custom"]][]).map(([key, cfg]) =>
-          <button
-            key={key}
-            onClick={() => {setMode(key);setResult(null);}}
-            className={cn(
-              "px-4 py-2 rounded-lg text-sm font-semibold transition-all border",
-              mode === key ?
-              "text-white border-transparent" :
-              "bg-card text-muted-foreground border-border hover:border-foreground/20"
-            )}
-            style={mode === key ? { background: `hsl(var(${cfg.cssVar}))` } : undefined}>
-
-              {cfg.label}
-            </button>
-          )}
+        {/* Mode-specific intelligence layers */}
+        <div className="mb-5 rounded-lg border border-border bg-card p-3">
+          <p className="typo-card-meta text-muted-foreground mb-2">
+            <span className="font-semibold text-foreground">{MODE_CONFIG[mode].label}</span> analysis focuses on:
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {MODE_CONFIG[mode].layers.map((layer) => (
+              <span
+                key={layer}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium"
+                style={{ background: `hsl(var(${modeColor}) / 0.08)`, color: `hsl(var(${modeColor}))` }}
+              >
+                <Zap size={9} /> {layer}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* Depth Toggle */}
-        <div className="flex flex-col items-center gap-2 mb-8">
-          <div className="flex gap-2 justify-center">
+        {/* Step 2: How deep? */}
+        <div className="mb-6">
+          <p className="typo-card-eyebrow text-muted-foreground mb-2.5 flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center text-white" style={{ background: `hsl(var(${modeColor}))` }}>2</span>
+            How deep?
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {/* Quick Analysis */}
             <button
               onClick={() => setDepth("quick")}
               className={cn(
-                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
-                depth === "quick" ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-accent"
-              )}>
-
-              Quick Analysis
+                "rounded-xl border p-3.5 text-left transition-all",
+                depth === "quick"
+                  ? "border-foreground/30 bg-card ring-2 ring-foreground/20 shadow-sm"
+                  : "border-border bg-card hover:border-foreground/15"
+              )}
+            >
+              <div className="flex items-center gap-2 mb-1.5">
+                <Zap size={15} className={depth === "quick" ? "text-foreground" : "text-muted-foreground"} />
+                <span className={cn("text-sm font-bold", depth === "quick" ? "text-foreground" : "text-muted-foreground")}>Quick Analysis</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-snug mb-2">
+                Instant snapshot — what it is, who it's for, and the key insight.
+              </p>
+              <ul className="space-y-1">
+                {["Product ID & scoring", "Key insight", "Market position", "Customer sentiment"].map((item) => (
+                  <li key={item} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <Check size={9} className="text-foreground flex-shrink-0" /> {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[10px] font-semibold mt-2" style={{ color: `hsl(var(${modeColor}))` }}>
+                No signup required
+              </p>
             </button>
+
+            {/* Deep Dive */}
             <button
               onClick={() => {
                 if (isAnonymous) {
@@ -291,19 +344,33 @@ export default function InstantAnalysisPage() {
                 setDepth("deep");
               }}
               className={cn(
-                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1",
-                depth === "deep" ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-accent"
-              )}>
-
-              {isAnonymous && <Lock size={10} />}
-              Deep Dive
+                "rounded-xl border p-3.5 text-left transition-all relative",
+                depth === "deep"
+                  ? "bg-card shadow-sm"
+                  : "border-border bg-card hover:border-foreground/15"
+              )}
+              style={depth === "deep" ? { borderColor: `hsl(var(${modeColor}))`, boxShadow: `0 0 0 2px hsl(var(${modeColor}))` } : undefined}
+            >
+              <div className="flex items-center gap-2 mb-1.5">
+                <Layers size={15} style={{ color: `hsl(var(${modeColor}))` }} />
+                <span className={cn("text-sm font-bold", depth === "deep" ? "text-foreground" : "text-muted-foreground")}>Deep Dive</span>
+                {isAnonymous && <Lock size={10} className="text-muted-foreground" />}
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-snug mb-2">
+                Full intelligence — disruption paths, pitch decks, and go-to-market playbooks.
+              </p>
+              <ul className="space-y-1">
+                {["Everything in Quick", "Supply chain / operations", "Patent & IP landscape", "Disruption scoring", "Investor pitch deck", "Flipped ideas & strategies"].map((item, i) => (
+                  <li key={item} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <Check size={9} style={{ color: i === 0 ? undefined : `hsl(var(${modeColor}))` }} className={cn("flex-shrink-0", i === 0 && "text-foreground")} /> {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[10px] font-semibold mt-2" style={{ color: `hsl(var(${modeColor}))` }}>
+                Free · 10 analyses included
+              </p>
             </button>
           </div>
-          {isAnonymous &&
-          <p className="typo-card-meta text-muted-foreground">
-              <Lock size={9} className="inline mr-0.5 mb-px" /> Deep Dive: full intelligence layers including pitch decks, patent maps, and disruption scoring — free to try
-            </p>
-          }
         </div>
 
         {/* Upload Area */}
