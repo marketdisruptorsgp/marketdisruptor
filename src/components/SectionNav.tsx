@@ -233,13 +233,10 @@ export function SectionWorkflowNav<T extends string>({
               onClick={() => onSelect(tab.id)}
               className="relative flex flex-col items-center text-center px-2 py-5 sm:py-6 transition-all duration-200 group"
               style={{
-                background: isActive
+                background: isActive || isVisited
                   ? accent
-                  : isVisited
-                    ? `${accent}30`
-                    : "transparent",
+                  : "transparent",
                 borderRight: i < tabs.length - 1 ? "1px solid hsl(var(--border) / 0.5)" : "none",
-                borderBottom: isVisited || isActive ? `2px solid ${accent}` : "none",
               }}
             >
               {isUnvisited && (
@@ -248,27 +245,25 @@ export function SectionWorkflowNav<T extends string>({
               <div
                 className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center mb-2 transition-all duration-200 group-hover:scale-110"
                 style={{
-                  background: isActive
+                    background: isActive || isVisited
                     ? "hsla(0 0% 100% / 0.2)"
-                    : isVisited
-                      ? accent
-                      : "hsl(var(--muted))",
+                    : "hsl(var(--muted))",
                 }}
               >
                 {isVisited ? (
                   <CheckCircle2 size={17} style={{ color: "white" }} />
                 ) : (
-                  <TabIcon size={17} style={{ color: isActive ? "white" : "hsl(var(--muted-foreground))" }} />
+                  <TabIcon size={17} style={{ color: isActive || isVisited ? "white" : "hsl(var(--muted-foreground))" }} />
                 )}
               </div>
               <span className="typo-status-label mb-0.5" style={{
-                color: isActive ? "hsla(0 0% 100% / 0.6)" : isVisited ? accent : "hsl(var(--muted-foreground) / 0.6)",
+                color: isActive || isVisited ? "hsla(0 0% 100% / 0.6)" : "hsl(var(--muted-foreground) / 0.6)",
                 fontSize: "0.6875rem",
               }}>
                 {i + 1}/{tabs.length}
               </span>
               <p className="typo-card-title" style={{
-                color: isActive ? "white" : isVisited ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                color: isActive || isVisited ? "white" : "hsl(var(--muted-foreground))",
               }}>
                 {tab.label}
               </p>
@@ -279,7 +274,7 @@ export function SectionWorkflowNav<T extends string>({
               )}
               {desc && !explainerKeys?.[tab.id] && (
                 <p className="hidden lg:block typo-step-subtitle mt-1 max-w-[140px]" style={{
-                  color: isActive ? "hsla(0 0% 100% / 0.6)" : "hsl(var(--muted-foreground) / 0.7)",
+                  color: isActive || isVisited ? "hsla(0 0% 100% / 0.6)" : "hsl(var(--muted-foreground) / 0.7)",
                 }}>
                   {desc}
                 </p>
