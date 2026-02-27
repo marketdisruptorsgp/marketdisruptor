@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,6 +81,8 @@ serve(async (req) => {
     const { rawContent, redditContent, complaintsContent, sources, category, era, batchSize, customProducts } = await req.json();
 
     const isService = category === "Service";
+    const mode = resolveMode(undefined, category);
+    console.log(`[ModeEnforcement] analyze-products | ${mode} | ${missingDataWarning(mode)}`);
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 

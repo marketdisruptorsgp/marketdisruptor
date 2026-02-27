@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resolveMode, filterInputData, missingDataWarning } from "../_shared/modeEnforcement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,10 @@ serve(async (req) => {
 
   try {
     const { product, audience, additionalContext } = await req.json();
+    const mode = resolveMode(undefined, product.category);
+    const filterResult = filterInputData(mode, product);
+    const filteredProduct = filterResult.filtered as typeof product;
+    console.log(`[ModeEnforcement] flip-ideas | ${mode} | ${missingDataWarning(mode)}`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");

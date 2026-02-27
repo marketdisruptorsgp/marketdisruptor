@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,10 @@ serve(async (req) => {
 
   try {
     const { product, analysisData, userSuggestions } = await req.json();
+    const mode = resolveMode(product.analysisType, product.category);
+    const filterResult = filterInputData(mode, { ...product, ...analysisData });
+    console.log(`[ModeEnforcement] critical-validation | ${mode} | ${missingDataWarning(mode)}`);
+    const modeGuard = getModeGuardPrompt(mode);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -228,7 +233,12 @@ Return ONLY the JSON object.`;
       throw new Error("AI returned invalid JSON. Please retry.");
     }
 
-    return new Response(JSON.stringify({ success: true, validation }), {
+    // ── Output Validation ──
+    const validationResult = validateOutput(mode, validation);
+    const trace = buildTrace(mode, filterResult, validationResult);
+    console.log(`[ModeEnforcement] Trace:`, JSON.stringify(trace));
+
+    return new Response(JSON.stringify({ success: true, validation, _modeTrace: trace }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
