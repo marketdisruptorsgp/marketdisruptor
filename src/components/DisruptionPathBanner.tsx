@@ -23,7 +23,7 @@ const PIPELINE_STEPS = [
     label: "Disrupt & Reinvent",
     shortLabel: "Disrupt",
     desc: "Challenge assumptions & generate radical flip ideas",
-    detail: "Every assumption gets challenged. The AI breaks down the product to fundamentals and generates novel concepts from community pain points.",
+    detail: "Every assumption gets challenged. The platform breaks down the product to fundamentals and generates novel concepts from community pain points.",
     color: "271 81% 55%",
   },
   {
@@ -74,7 +74,7 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
             From raw data to investor-ready output
           </h2>
           <p className="typo-page-meta mt-2 max-w-xl mx-auto">
-            Six stages of AI-powered analysis, each building on the last
+            Six stages of structured analysis, each building on the last
           </p>
         </div>
 

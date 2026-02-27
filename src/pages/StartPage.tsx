@@ -73,7 +73,7 @@ export default function StartPage() {
           Start Disrupting
         </h1>
         <p className="typo-page-meta text-sm sm:text-base md:text-lg mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed text-center">
-          Choose an analysis mode. Each applies rigorous, AI-powered scrutiny
+          Choose an analysis mode. Each applies rigorous, data-driven scrutiny
           tailored to the type of opportunity you're exploring.
         </p>
       </section>

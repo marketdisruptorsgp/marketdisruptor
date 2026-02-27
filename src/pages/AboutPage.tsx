@@ -19,10 +19,10 @@ export default function AboutPage() {
             Rethink The Possible
           </h1>
           <p className="text-base text-muted-foreground leading-relaxed mb-4">
-            <em>Market Disruptor</em> is a proprietary deep analytics platform built for entrepreneurs, investors, and product teams who want to see opportunities others overlook. Not a surface-level tool or a simple AI wrapper.
+            <em>Market Disruptor</em> is a proprietary deep analytics platform built for entrepreneurs, investors, and product teams who want to see opportunities others overlook. Not a surface-level tool or a simple wrapper.
           </p>
           <p className="text-base text-muted-foreground leading-relaxed mb-4">
-            It combines advanced multi-model AI, real-time data analysis, computer vision, and structured strategic modeling to deconstruct any product, service, or business model and reconstruct it from entirely new angles.
+            It combines advanced analytical models, real-time data analysis, computer vision, and structured strategic modeling to deconstruct any product, service, or business model and reconstruct it from entirely new angles.
           </p>
           <p className="text-base text-muted-foreground leading-relaxed mb-4">
             It doesn't assume the current model is right. It deliberately flips it on its head. It questions pricing logic, supply chain design, patent positioning, competitive assumptions, operational constraints, and the friction incumbents accept as inevitable. It examines what is taken for granted, isolates structural weaknesses, and tests alternative configurations that most teams would never consider.

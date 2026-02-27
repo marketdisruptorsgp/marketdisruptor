@@ -75,7 +75,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
 
   const generateAISuggestions = async () => {
     if (analyses.length === 0) {
-      toast.info("Run some analyses first to get AI-powered suggestions.");
+      toast.info("Run some analyses first to get smart suggestions.");
       return;
     }
     setGenerating(true);
@@ -95,7 +95,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
       console.error("AI suggestions error:", err);
       const msg = err?.message || "Failed to generate suggestions";
       if (msg.includes("Rate limit")) toast.error("Rate limit reached — try again in a moment.");
-      else if (msg.includes("credits")) toast.error("AI credits exhausted. Add credits to continue.");
+      else if (msg.includes("credits")) toast.error("Analysis credits exhausted. Add credits to continue.");
       else toast.error(msg);
     } finally {
       setGenerating(false);
@@ -327,7 +327,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
 
           {/* Active items */}
           {activeItems.length === 0 && completedItems.length === 0 && visibleSuggestions.length === 0 && (
-            <p className="text-[11px] text-muted-foreground text-center py-3">No action items yet. Add one or generate AI suggestions.</p>
+            <p className="text-[11px] text-muted-foreground text-center py-3">No action items yet. Add one or generate suggestions.</p>
           )}
 
           <div className="space-y-1">

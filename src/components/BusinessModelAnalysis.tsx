@@ -201,7 +201,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         if (msg.includes("Rate limit") || msg.includes("429")) {
           toast.error("Rate limit hit — please wait a moment and try again.");
         } else if (msg.includes("credits") || msg.includes("402")) {
-          toast.error("AI credits exhausted — add credits in Settings → Workspace → Usage.");
+          toast.error("Analysis credits exhausted — add credits in Settings → Workspace → Usage.");
         } else {
           toast.error("Business model analysis failed: " + msg);
         }
@@ -364,7 +364,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               </button>
             </div>
           </div>
-          <DetailPanel title="Steer the AI — add direction, then Re-run" icon={Lightbulb}>
+          <DetailPanel title="Refine your analysis — add direction, then Re-run" icon={Lightbulb}>
             <textarea value={userSuggestions} onChange={(e) => setUserSuggestions(e.target.value)}
               placeholder="e.g. Focus on automation, explore franchise model…"
               className="w-full rounded-lg px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
@@ -582,7 +582,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             );
           })}
 
-          <DetailPanel title={`AI Opportunities & Platform Potential (${data.technologyLeverage.aiOpportunities.length + (data.technologyLeverage.automationOpportunities.length > 2 ? data.technologyLeverage.automationOpportunities.length - 2 : 0)})`} icon={Brain}>
+          <DetailPanel title={`Technology Opportunities & Platform Potential (${data.technologyLeverage.aiOpportunities.length + (data.technologyLeverage.automationOpportunities.length > 2 ? data.technologyLeverage.automationOpportunities.length - 2 : 0)})`} icon={Brain}>
             <div className="space-y-2 mb-2">
               {data.technologyLeverage.automationOpportunities.slice(2).map((opp, i) => (
                 <div key={`auto-${i}`} className="p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))" }}>

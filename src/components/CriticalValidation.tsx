@@ -195,7 +195,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
 
         {/* Re-run (collapsed) */}
-        <DetailPanel title="Steer the AI — add direction, then Re-run" icon={Eye} defaultOpen>
+        <DetailPanel title="Refine your analysis — add direction, then Re-run" icon={Eye} defaultOpen>
           <div className="flex items-center justify-between gap-2 mb-2">
             <textarea
               value={userSuggestions}

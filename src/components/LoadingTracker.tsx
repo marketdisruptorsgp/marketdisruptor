@@ -13,7 +13,7 @@ const SCRAPE_SOURCES = [
 ];
 
 const ANALYZE_TASKS = [
-  { label: "AI Reasoning", detail: "Parsing all collected data" },
+  { label: "Deep Analysis", detail: "Parsing all collected data" },
   { label: "Pricing Intel", detail: "Market prices, margins" },
   { label: "Supply Chain", detail: "Suppliers, distributors" },
   { label: "Flip Ideas", detail: "Innovations from pain points" },
