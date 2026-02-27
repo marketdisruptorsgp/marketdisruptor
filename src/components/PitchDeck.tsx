@@ -681,6 +681,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       subtitle={data.tagline || data.elevatorPitch?.split(".")?.[0]}
       accentColor={accentColor}
       totalSlides={TOTAL + 1}
+      coverImages={analysisCtx.pitchDeckImages.length > 0 ? analysisCtx.pitchDeckImages : undefined}
     />
   );
   const allRawSlides = [rawCover, ...SLIDE_TABS.map(tab => rawSlide(tab.id, slideContent[tab.id]))];

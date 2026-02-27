@@ -134,7 +134,7 @@ function addBulletList(
 
 // ── Cover Slide ──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function addCover(pres: pptxgen, product: Product, deck: any, hex: string) {
+function addCover(pres: pptxgen, product: Product, deck: any, hex: string, pitchDeckImages?: { url: string; ideaName: string }[]) {
   const slide = pres.addSlide();
   slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: "100%", h: 0.08, fill: { color: hex } });
 
@@ -145,21 +145,38 @@ function addCover(pres: pptxgen, product: Product, deck: any, hex: string) {
     x: M, y: 1.5, fontSize: MIN_FONT, bold: true, color: "999999", charSpacing: 4, fontFace: "Helvetica",
   });
 
+  const hasDesignImages = pitchDeckImages && pitchDeckImages.length > 0;
+  const textWidth = hasDesignImages ? CW * 0.55 : CW * 0.8;
+
   slide.addText(product.name, {
-    x: M, y: 2.2, w: CW * 0.8, fontSize: 40, bold: true, color: "1a1a2e", fontFace: "Helvetica",
+    x: M, y: 2.2, w: textWidth, fontSize: 40, bold: true, color: "1a1a2e", fontFace: "Helvetica",
   });
 
   const tagline = deck.tagline || deck.elevatorPitch?.split(".")?.[0] || "";
   if (tagline) {
     slide.addText(tagline, {
-      x: M, y: 3.3, w: CW * 0.7, fontSize: 20, color: "666666", fontFace: "Helvetica",
+      x: M, y: 3.3, w: textWidth, fontSize: 20, color: "666666", fontFace: "Helvetica",
     });
   }
 
   slide.addShape(pres.ShapeType.rect, { x: M, y: 4.2, w: 1, h: 0.03, fill: { color: hex } });
 
-  // Product image on cover (right side)
-  if (product.image) {
+  // Design images on cover (right side) — prioritize user-selected images
+  if (hasDesignImages) {
+    const imgX = W - M - 4.5;
+    pitchDeckImages!.slice(0, 2).forEach((img, i) => {
+      try {
+        const imgH = pitchDeckImages!.length > 1 ? 2.0 : 3.5;
+        const imgY = pitchDeckImages!.length > 1 ? 1.2 + i * 2.3 : 1.5;
+        slide.addImage({ path: img.url, x: imgX, y: imgY, w: 4.5, h: imgH, rounding: true });
+        slide.addText(img.ideaName, {
+          x: imgX, y: imgY + imgH + 0.05, w: 4.5, fontSize: 9, bold: true, color: "999999", align: "center", fontFace: "Helvetica",
+        });
+      } catch {
+        // Image fetch may fail — skip gracefully
+      }
+    });
+  } else if (product.image) {
     try {
       slide.addImage({ path: product.image, x: W - M - 4, y: 1.5, w: 4, h: 3, rounding: true });
     } catch {
@@ -180,7 +197,7 @@ function addCover(pres: pptxgen, product: Product, deck: any, hex: string) {
 
 // ── Main Export ──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function generateInvestorPitchPPTX(product: Product, deck: any, accentColor?: string) {
+export function generateInvestorPitchPPTX(product: Product, deck: any, accentColor?: string, pitchDeckImages?: { url: string; ideaName: string }[]) {
   const pres = new pptxgen();
   const hex = resolveHex(accentColor);
 
@@ -194,7 +211,7 @@ export function generateInvestorPitchPPTX(product: Product, deck: any, accentCol
   const TOTAL = 11;
 
   // ── Cover ──
-  addCover(pres, product, deck, hex);
+  addCover(pres, product, deck, hex, pitchDeckImages);
 
   // ── 1. Problem ──
   {

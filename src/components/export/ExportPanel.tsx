@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 import { Download, FileText, Link2, ChevronDown, Check, Loader2, Presentation } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
@@ -28,12 +29,13 @@ export function ExportPanel({
   const [open, setOpen] = useState(false);
   const [generating, setGenerating] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const analysisCtx = useAnalysis();
 
   const handlePPTX = () => {
     if (!pitchDeckData) return;
     setGenerating("pptx");
     try {
-      generateInvestorPitchPPTX(product, pitchDeckData, accentColor);
+      generateInvestorPitchPPTX(product, pitchDeckData, accentColor, analysisCtx.pitchDeckImages.length > 0 ? analysisCtx.pitchDeckImages : undefined);
       toast.success("PowerPoint deck exported!");
     } catch {
       toast.error("Failed to export PowerPoint");

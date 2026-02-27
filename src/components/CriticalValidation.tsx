@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -193,6 +194,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
     return (
       <div className="space-y-4">
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
+        <PitchDeckToggle contentKey="stressTestDebate" label="Include in Pitch Deck" />
 
         {/* Re-run (collapsed) */}
         <DetailPanel title="Refine your analysis — add direction, then Re-run" icon={Eye} defaultOpen>
@@ -430,6 +432,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   return (
     <div className="space-y-4">
       <SectionHeader current={2} total={2} label="Validate & Score" icon={CheckCircle2} />
+      <PitchDeckToggle contentKey="stressTestValidation" label="Include in Pitch Deck" />
 
       {/* Confidence Scores — show top 3, rest in detail */}
       {data.confidenceScores && (() => {

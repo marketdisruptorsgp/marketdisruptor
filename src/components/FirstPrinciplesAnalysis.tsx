@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -720,6 +721,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {activeStep === "assumptions" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
+          <PitchDeckToggle contentKey="assumptions" label="Include in Pitch Deck" />
           <p className="text-xs text-muted-foreground">Every design choice rests on assumptions. Here are the ones worth challenging.</p>
 
            <div className="space-y-3">
@@ -777,6 +779,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {activeStep === "flip" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
+          <PitchDeckToggle contentKey="flippedLogic" label="Include in Pitch Deck" />
 
           {data.flippedLogic.map((item, i) => (
             <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
