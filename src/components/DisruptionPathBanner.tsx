@@ -55,9 +55,10 @@ const PIPELINE_STEPS = [
 interface DisruptionPathBannerProps {
   activeStep?: number;
   onStartAnalysis?: () => void;
+  accentColor?: string;
 }
 
-export function DisruptionPathBanner({ activeStep, onStartAnalysis }: DisruptionPathBannerProps) {
+export function DisruptionPathBanner({ activeStep, onStartAnalysis, accentColor }: DisruptionPathBannerProps) {
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
 
   return (
@@ -86,9 +87,11 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
             <div className="absolute top-5 left-[7%] right-[7%] h-0.5 bg-border z-0" />
             <div className="grid grid-cols-6 gap-0">
               {PIPELINE_STEPS.map(({ icon: Icon, label, shortLabel, desc, color }, i) => {
+                const stepColor = accentColor || `hsl(${color})`;
                 const isActive = activeStep !== undefined && activeStep === i + 1;
                 const isPast = activeStep !== undefined && activeStep > i + 1;
                 const isHovered = hoveredStep === i;
+                const showColor = accentColor || isActive || isHovered || isPast;
 
                 return (
                   <div
@@ -101,13 +104,13 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 mb-2"
                       style={{
-                        background: isActive || isHovered || isPast ? `hsl(${color})` : "hsl(var(--muted))",
-                        border: isActive || isHovered || isPast ? "none" : "2px solid hsl(var(--border))",
-                        boxShadow: isHovered ? `0 4px 16px hsl(${color} / 0.25)` : "none",
+                        background: showColor ? stepColor : "hsl(var(--muted))",
+                        border: showColor ? "none" : "2px solid hsl(var(--border))",
+                        boxShadow: isHovered ? `0 4px 16px hsl(${stepColor} / 0.25)` : "none",
                         transform: isHovered ? "scale(1.15)" : "scale(1)",
                       }}
                     >
-                      <Icon size={18} style={{ color: isActive || isHovered || isPast ? "white" : "hsl(var(--muted-foreground))" }} />
+                      <Icon size={18} style={{ color: showColor ? "white" : "hsl(var(--muted-foreground))" }} />
                     </div>
                     {/* Step number */}
                     <span className="typo-status-label text-muted-foreground mb-0.5" style={{ fontSize: 10 }}>Step {i + 1}</span>
@@ -124,17 +127,18 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
           {/* Mobile/Tablet: compact numbered list */}
           <div className="lg:hidden space-y-1">
             {PIPELINE_STEPS.map(({ icon: Icon, label, desc, color }, i) => {
+              const stepColor = accentColor || `hsl(${color})`;
               const isLast = i === PIPELINE_STEPS.length - 1;
               return (
                 <div key={label} className="flex gap-3">
                   <div className="flex flex-col items-center">
                     <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: `hsl(${color})` }}
+                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300"
+                      style={{ background: stepColor }}
                     >
                       <Icon size={14} style={{ color: "white" }} />
                     </div>
-                    {!isLast && <div className="w-0.5 flex-1 min-h-[12px]" style={{ background: `hsl(${color} / 0.2)` }} />}
+                    {!isLast && <div className="w-0.5 flex-1 min-h-[12px] transition-all duration-300" style={{ background: accentColor ? `${accentColor.replace(')', ' / 0.2)')}` : `hsl(${color} / 0.2)` }} />}
                   </div>
                   <div className="pb-2 min-w-0">
                     <p className="typo-card-title text-sm leading-tight">{label}</p>
