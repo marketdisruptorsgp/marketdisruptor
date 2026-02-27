@@ -12,7 +12,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, userSuggestions, lens, refreshWorkflowOnly } = await req.json();
+    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages } = await req.json();
     const mode = resolveMode(undefined, product.category);
     const isService = mode === "service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -337,6 +337,47 @@ CRITICAL INSTRUCTIONS:
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
+    // ── USER CURATION CONTEXT (for redesign mode) ──
+    let curationPrompt = "";
+    if (insightPreferences || userScores || steeringText || disruptContext) {
+      const parts: string[] = [];
+      parts.push("\n\n--- USER CURATION CONTEXT ---");
+      parts.push("The user has already reviewed the Disrupt analysis and provided explicit preferences. PRIORITIZE their curated inputs:");
+
+      if (steeringText) {
+        parts.push(`\nUSER GUIDANCE: "${steeringText}"`);
+      }
+
+      if (insightPreferences) {
+        const liked = Object.entries(insightPreferences).filter(([, v]) => v === "liked").map(([k]) => k);
+        const dismissed = Object.entries(insightPreferences).filter(([, v]) => v === "dismissed").map(([k]) => k);
+        if (liked.length > 0) parts.push(`\nUSER LIKED (emphasize these): ${liked.join(", ")}`);
+        if (dismissed.length > 0) parts.push(`\nUSER DISMISSED (de-prioritize): ${dismissed.join(", ")}`);
+      }
+
+      if (userScores && Object.keys(userScores).length > 0) {
+        parts.push("\nUSER-ADJUSTED SCORES (respect these over AI defaults):");
+        for (const [ideaId, scores] of Object.entries(userScores)) {
+          const scoreStr = Object.entries(scores as Record<string, number>).map(([k, v]) => `${k}:${v}`).join(", ");
+          parts.push(`  ${ideaId}: ${scoreStr}`);
+        }
+      }
+
+      if (disruptContext) {
+        const dc = disruptContext as Record<string, unknown>;
+        if (dc.hiddenAssumptions) {
+          parts.push(`\nASSUMPTIONS IDENTIFIED: ${JSON.stringify(dc.hiddenAssumptions).slice(0, 1000)}`);
+        }
+        if (dc.flippedLogic) {
+          parts.push(`\nFLIPPED LOGIC: ${JSON.stringify(dc.flippedLogic).slice(0, 1000)}`);
+        }
+      }
+
+      parts.push("\nBuild the redesigned concept around the user's preferred directions. The concept should directly reflect their liked insights and adjusted scores.");
+      curationPrompt = parts.join("\n");
+    }
+
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -347,7 +388,7 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: userPrompt + curationPrompt },
         ],
         temperature: 0.7,
         max_tokens: 12000,

@@ -9,7 +9,6 @@ import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner } from "@/components/KeyTakeawayBanner";
-import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ModeHeader } from "@/components/ModeHeader";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { scrollToTop } from "@/utils/scrollToTop";
@@ -29,6 +28,7 @@ export default function RedesignPage() {
 
   const baseUrl = `/analysis/${analysisId}`;
   const isOutdated = analysis.outdatedSteps.has("redesign");
+  const shouldAutoTrigger = isOutdated || !analysis.redesignData;
 
   const redesignOrDisrupt = (analysis.redesignData ?? analysis.disruptData) as Record<string, unknown> | null;
   const concept = redesignOrDisrupt?.redesignedConcept as { conceptName?: string; tagline?: string } | undefined;
@@ -57,7 +57,6 @@ export default function RedesignPage() {
 
         <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor={theme.primary} />
 
-        {isOutdated && <OutdatedBanner stepName="Redesign" accentColor={theme.primary} />}
         {takeaway && !isOutdated && <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} />}
 
         <ModeHeader
@@ -77,6 +76,7 @@ export default function RedesignPage() {
             onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
             generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
             renderMode="redesign"
+            autoTrigger={shouldAutoTrigger}
             externalData={analysis.redesignData ?? analysis.disruptData}
             onDataLoaded={(d) => {
               analysis.setRedesignData(d);
