@@ -30,6 +30,7 @@ import StartProductPage from "./pages/StartProductPage";
 import StartServicePage from "./pages/StartServicePage";
 import StartBusinessPage from "./pages/StartBusinessPage";
 import NotFound from "./pages/NotFound";
+import InstantAnalysisPage from "./pages/InstantAnalysisPage";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ function AppRoutes() {
 
   return (
     <Routes>
+      <Route path="/instant-analysis" element={<InstantAnalysisPage />} />
       <Route path="/share" element={<SharePage />} />
       <Route path="/analysis/share/:id" element={<ShareableAnalysisPage />} />
       {user ? (

@@ -323,6 +323,7 @@ export type Database = {
       saved_analyses: {
         Row: {
           analysis_data: Json | null
+          analysis_depth: string
           analysis_type: string
           audience: string
           avg_revival_score: number | null
@@ -331,6 +332,7 @@ export type Database = {
           created_at: string
           era: string
           id: string
+          is_anonymous: boolean
           product_count: number
           products: Json
           title: string
@@ -339,6 +341,7 @@ export type Database = {
         }
         Insert: {
           analysis_data?: Json | null
+          analysis_depth?: string
           analysis_type?: string
           audience: string
           avg_revival_score?: number | null
@@ -347,6 +350,7 @@ export type Database = {
           created_at?: string
           era: string
           id?: string
+          is_anonymous?: boolean
           product_count?: number
           products?: Json
           title: string
@@ -355,6 +359,7 @@ export type Database = {
         }
         Update: {
           analysis_data?: Json | null
+          analysis_depth?: string
           analysis_type?: string
           audience?: string
           avg_revival_score?: number | null
@@ -363,6 +368,7 @@ export type Database = {
           created_at?: string
           era?: string
           id?: string
+          is_anonymous?: boolean
           product_count?: number
           products?: Json
           title?: string

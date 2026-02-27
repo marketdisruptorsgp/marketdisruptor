@@ -117,18 +117,18 @@ function getFallback(category: string) {
 
 function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
   if (trend === "up") return (
-    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-green-600">
-      <TrendingUp size={9} /> Rising
+    <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-success">
+      <TrendingUp size={10} /> Rising
     </span>
   );
   if (trend === "down") return (
-    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-500">
-      <TrendingDown size={9} /> Falling
+    <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-destructive">
+      <TrendingDown size={10} /> Falling
     </span>
   );
   return (
-    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-yellow-600">
-      <Minus size={9} /> Stable
+    <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-warning">
+      <Minus size={10} /> Stable
     </span>
   );
 }
