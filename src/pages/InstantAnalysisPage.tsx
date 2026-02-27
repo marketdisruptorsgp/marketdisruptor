@@ -233,7 +233,7 @@ export default function InstantAnalysisPage() {
             Point. Shoot. Understand Everything.
           </h1>
           <p className="typo-card-body text-muted-foreground max-w-lg mx-auto mb-4">
-            Take a photo of <strong className="text-foreground">​</strong> and instantly decode what's really going on — supply chains, user journeys, friction points, customer sentiment, competitive positioning, even the patent landscape.
+            Take a photo and instantly decode what's really going on.
           </p>
           <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 typo-card-meta text-muted-foreground mb-2">
             <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Supply chain mapping</span>
