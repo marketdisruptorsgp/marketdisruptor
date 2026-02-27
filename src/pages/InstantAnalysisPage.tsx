@@ -6,6 +6,8 @@ import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, L
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PlatformNav } from "@/components/PlatformNav";
+import { useSubscription } from "@/hooks/useSubscription";
 
 type AnalysisMode = "custom" | "service" | "business";
 type AnalysisDepth = "quick" | "deep";
@@ -77,6 +79,7 @@ function ConfidenceBadge({ level }: { level: string }) {
 
 
 export default function InstantAnalysisPage() {
+  const { tier } = useSubscription();
   const { user, loading: authLoading, isAnonymous, claimAccount } = useAnonymousAuth();
   const [mode, setMode] = useState<AnalysisMode>("custom");
   const [depth, setDepth] = useState<AnalysisDepth>("quick");
@@ -221,45 +224,7 @@ export default function InstantAnalysisPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-20">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `hsl(var(${modeColor}))` }}>
-              <Zap size={16} className="text-white" />
-            </div>
-            <span className="font-bold text-foreground text-sm">Market Disruptor</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs gap-1.5 font-semibold"
-              onClick={() => {
-                const url = `${window.location.origin}/instant-analysis`;
-                if (navigator.share) {
-                  navigator.share({ title: "Market Disruptor — Instant Photo Analysis", text: "Point your camera at any product and get deep competitive intelligence in seconds. Try it free:", url }).catch(() => {});
-                } else {
-                  navigator.clipboard.writeText(`Point your camera at any product and get deep competitive intelligence in seconds. Try it free: ${url}`);
-                  toast.success("Link copied!");
-                }
-              }}
-            >
-              <Share2 size={13} /> Share This Tool
-            </Button>
-            {isAnonymous && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowClaimForm(true)}
-                className="text-xs gap-1"
-              >
-                <Mail size={12} /> Save Account
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+      <PlatformNav tier={tier} />
 
       <main className="max-w-3xl mx-auto px-4 py-6 sm:py-10">
         {/* Hero */}
