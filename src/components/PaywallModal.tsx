@@ -23,7 +23,7 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
     >
       <div
         className="w-full max-w-3xl rounded border border-border shadow-lg bg-card overflow-hidden"
@@ -31,7 +31,7 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
         {/* Header */}
         <div className="p-6 pb-2 flex items-start justify-between">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1 text-primary">
+            <p className="typo-card-eyebrow mb-1 text-primary">
               Upgrade Your Plan
             </p>
             <h2 className="text-2xl font-bold text-foreground">
@@ -65,14 +65,14 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
               >
                 {isCurrent && (
                   <span
-                    className="absolute -top-2.5 left-4 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary text-primary-foreground"
+                    className="absolute -top-2.5 left-4 px-2 py-0.5 rounded typo-status-label bg-primary text-primary-foreground"
                   >
                     Current
                   </span>
                 )}
                 {isDisruptor && !isCurrent && (
                   <span
-                    className="absolute -top-2.5 left-4 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-accent text-accent-foreground"
+                    className="absolute -top-2.5 left-4 px-2 py-0.5 rounded typo-status-label bg-accent text-accent-foreground"
                   >
                     Most Popular
                   </span>
@@ -129,7 +129,7 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
         </div>
 
         <div className="px-6 pb-5 text-center">
-          <p className="text-[10px] text-muted-foreground">
+          <p className="typo-card-meta text-muted-foreground">
             Cancel anytime · Secure payment via Stripe · Instant activation
           </p>
         </div>

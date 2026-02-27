@@ -31,7 +31,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
   const totalSteps = steps.length + 1;
   const accent = accentColor || "hsl(var(--primary))";
   return (
-    <div className="sticky top-0 z-30 -mx-4 px-3 sm:px-4 py-3 sm:py-3.5 bg-background/95 backdrop-blur-sm border-b border-border">
+    <div className="sticky top-0 z-20 -mx-4 px-3 sm:px-4 py-3 sm:py-3.5 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide">
         {/* Progress bar */}
         <div className="flex items-center justify-between mb-2.5">
