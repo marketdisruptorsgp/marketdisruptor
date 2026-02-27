@@ -108,11 +108,6 @@ export default function DashboardPage() {
               className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-primary text-primary-foreground transition-colors hover:opacity-90">
               Learn More
             </button>
-            <button
-              onClick={() => document.getElementById("showcase-gallery")?.scrollIntoView({ behavior: "smooth" })}
-              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-accent text-accent-foreground border border-border transition-colors hover:opacity-90">
-              Example Output
-            </button>
           </div>
         </div>
       </section>
