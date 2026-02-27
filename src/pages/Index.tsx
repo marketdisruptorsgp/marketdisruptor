@@ -294,8 +294,19 @@ export default function Index() {
 
   const [loadedFromSaved, setLoadedFromSaved] = useState(false);
 
-  const handleLoadSaved = useCallback((analysis: { products: Product[]; category: string; era: string; audience?: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string; analysis_type?: string; analysis_data?: unknown }) => {
+  const handleLoadSaved = useCallback(async (analysis: { products: Product[]; category: string; era: string; audience?: string; batch_size?: number; batchSize?: number; id?: string; title?: string; product_count?: number; avg_revival_score?: number; created_at?: string; analysis_type?: string; analysis_data?: unknown }) => {
     setLoadedFromSaved(true);
+
+    // Auto-detect legacy schema and notify user
+    const ad = analysis.analysis_data as Record<string, unknown> | null;
+    if (ad) {
+      const { detectLegacySchema } = await import("@/utils/legacyDetection");
+      const legacy = detectLegacySchema(ad);
+      if (legacy.isLegacy) {
+        toast.info("This analysis used an older framework — regenerate steps to get improved insights");
+      }
+    }
+
     if (analysis.analysis_type === "business_model") {
       setBusinessAnalysisData(analysis.analysis_data as BusinessModelAnalysisData);
       // Try to extract input from title (format: "Type — Business Model")
