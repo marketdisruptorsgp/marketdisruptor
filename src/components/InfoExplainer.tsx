@@ -6,9 +6,10 @@ import { EXPLAINERS } from "@/lib/explainers";
 interface InfoExplainerProps {
   explainerKey?: string;
   text?: string;
+  accentColor?: string;
 }
 
-export function InfoExplainer({ explainerKey, text }: InfoExplainerProps) {
+export function InfoExplainer({ explainerKey, text, accentColor }: InfoExplainerProps) {
   const content = text || (explainerKey ? EXPLAINERS[explainerKey] : null);
   if (!content) return null;
 
@@ -17,9 +18,9 @@ export function InfoExplainer({ explainerKey, text }: InfoExplainerProps) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200 opacity-40 hover:opacity-100 focus:opacity-100 flex-shrink-0"
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200 opacity-60 hover:opacity-100 focus:opacity-100 flex-shrink-0"
           style={{
-            color: "hsl(var(--muted-foreground))",
+            color: accentColor || "hsl(var(--muted-foreground))",
           }}
           aria-label="More info"
         >

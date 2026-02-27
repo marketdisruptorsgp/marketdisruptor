@@ -100,9 +100,9 @@ export default function StartPageLayout({ mode }: StartPageLayoutProps) {
               {config.label}
             </p>
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider hidden sm:inline">Lens</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider hidden sm:inline" style={{ color: `hsl(var(${modeColor}))` }}>Lens</span>
               <LensToggle />
-              <InfoExplainer explainerKey="lens-selector" />
+              <InfoExplainer explainerKey="lens-selector" accentColor={`hsl(var(${modeColor}))`} />
             </div>
           </div>
           <div className="p-4 sm:p-6">
