@@ -66,22 +66,21 @@ export default function PitchPage() {
           explainerKey="step-pitch"
         />
 
-        <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <PitchDeck
-            product={selectedProduct}
-            analysisId={analysisId}
-            externalData={analysis.pitchDeckData}
-            disruptData={analysis.disruptData}
-            stressTestData={analysis.stressTestData}
-            redesignData={analysis.redesignData}
-            userScores={analysis.userScores}
-            onSave={(d) => {
-              analysis.setPitchDeckData(d);
-              analysis.saveStepData("pitchDeck", d);
-              analysis.clearStepOutdated("pitch");
-            }}
-          />
-        </div>
+        <PitchDeck
+          product={selectedProduct}
+          analysisId={analysisId}
+          externalData={analysis.pitchDeckData}
+          disruptData={analysis.disruptData}
+          stressTestData={analysis.stressTestData}
+          redesignData={analysis.redesignData}
+          userScores={analysis.userScores}
+          accentColor={theme.primary}
+          onSave={(d) => {
+            analysis.setPitchDeckData(d);
+            analysis.saveStepData("pitchDeck", d);
+            analysis.clearStepOutdated("pitch");
+          }}
+        />
       </main>
     </div>
   );

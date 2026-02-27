@@ -37,28 +37,34 @@ OUTPUT RULES:
 
 You are a world-class venture analyst and pitch deck strategist. You produce investor-grade business intelligence.
 
-CRITICAL: Use REALISTIC risk framing. Avoid optimistic bias. Base all projections on structural feasibility and competitive density.
+CRITICAL CONTENT CURATION RULES:
+1. Each slide section must convey ONE clear idea — do not combine multiple themes
+2. Select only investor-relevant insights — exclude operational minutiae
+3. Bullet points must be ≤15 words each. No paragraphs disguised as bullets.
+4. Every section must include at least one quantified metric or specific data point
+5. Maintain narrative flow: Problem → Why it matters now → How big → What we do → Why it works → How we grow → What could go wrong → What we need
+6. Use REALISTIC risk framing. Avoid optimistic bias. Base all projections on structural feasibility and competitive density.
 
-CRITICAL: NEVER append founding years, dates, or parenthetical years like "(1929)" or "(2015)" to the product/company name. Use the product name EXACTLY as the user provided it. Do not modify, embellish, or add historical context to the name itself.
+CRITICAL: NEVER append founding years, dates, or parenthetical years like "(1929)" or "(2015)" to the product/company name. Use the product name EXACTLY as the user provided it.
 
 You MUST respond with ONLY a valid JSON object (no markdown, no explanation, just raw JSON).
 
-Return this EXACT structure with sections in this ORDER:
+Return this EXACT structure:
 {
-  "problemStatement": "Concrete problem description with market evidence. Be specific about who suffers and why.",
-  "solutionStatement": "How this product/opportunity solves the problem in a differentiated way",
-  "whyNow": "Why this is the exact right moment — market timing, trends, regulatory shifts, tech enablers",
+  "problemStatement": "Concrete problem description with market evidence. ≤3 sentences. Be specific about who suffers and why.",
+  "solutionStatement": "How this solves the problem in a differentiated way. ≤3 sentences.",
+  "whyNow": "Why this is the exact right moment — market timing, trends, regulatory shifts, tech enablers. ≤3 sentences.",
   "marketOpportunity": {
     "tam": "Total addressable market with source ($XB by YYYY)",
     "sam": "Serviceable addressable market",
     "som": "Serviceable obtainable market (realistic 3-year capture)",
     "growthRate": "CAGR with source and time period",
-    "keyDrivers": ["Driver 1 with data", "Driver 2", "Driver 3", "Driver 4", "Driver 5"]
+    "keyDrivers": ["Driver 1 with data point", "Driver 2", "Driver 3", "Driver 4", "Driver 5"]
   },
-  "productInnovation": "What makes the product/service genuinely different — technical moat, design advantage, or structural innovation. Be specific.",
+  "productInnovation": "What makes this genuinely different — technical moat, design advantage, or structural innovation. ≤2 sentences.",
   "businessModel": {
     "revenueStreams": ["Primary revenue stream", "Secondary stream", "Tertiary stream"],
-    "pricingModel": "How you charge — subscription, one-time, freemium, marketplace take rate, etc.",
+    "pricingModel": "Pricing structure in ≤15 words",
     "unitEconomics": {
       "cogs": "Cost per unit",
       "retailPrice": "Price per unit",
@@ -69,72 +75,108 @@ Return this EXACT structure with sections in this ORDER:
       "paybackPeriod": "Months to recover CAC"
     }
   },
-  "tractionSignals": ["Signal 1 — specific evidence of demand or traction", "Signal 2", "Signal 3"],
+  "tractionSignals": ["Signal 1 — specific evidence", "Signal 2", "Signal 3"],
   "risks": [
-    {"risk": "Specific risk with context", "mitigation": "Specific mitigation strategy", "severity": "high"},
+    {"risk": "Specific risk ≤12 words", "mitigation": "Specific mitigation ≤20 words", "severity": "high"},
     {"risk": "Risk 2", "mitigation": "Mitigation 2", "severity": "medium"},
     {"risk": "Risk 3", "mitigation": "Mitigation 3", "severity": "low"}
   ],
   "keyMetrics": [
-    {"metric": "Metric name", "target": "Target value", "why": "Why this matters"},
+    {"metric": "Metric name ≤5 words", "target": "Target value", "why": "Why this matters ≤10 words"},
     {"metric": "Metric 2", "target": "Target 2", "why": "Rationale"}
   ],
   "gtmStrategy": {
-    "phase1": "Month 1-3: Specific launch actions",
-    "phase2": "Month 4-9: Scale actions with KPIs",
-    "phase3": "Month 10-18: Growth and expansion",
+    "phase1": "Month 1-3: Specific launch actions. ≤2 sentences.",
+    "phase2": "Month 4-9: Scale actions. ≤2 sentences.",
+    "phase3": "Month 10-18: Growth and expansion. ≤2 sentences.",
     "keyChannels": ["Channel 1", "Channel 2", "Channel 3", "Channel 4"],
     "launchBudget": "$X–$Y"
   },
   "competitiveLandscape": {
-    "directCompetitors": [{"name": "Competitor", "strength": "What they do well", "weakness": "Where they fall short"}],
+    "directCompetitors": [{"name": "Competitor", "strength": "≤10 words", "weakness": "≤10 words"}],
     "indirectCompetitors": ["Category 1", "Category 2"],
-    "moat": "What creates a defensible advantage over time"
+    "moat": "Defensible advantage ≤2 sentences"
   },
   "investmentAsk": {
     "amount": "$X–$Y seed/Series A",
-    "useOfFunds": ["X% Product development - $Y", "X% Marketing - $Y", "X% Operations - $Y"],
+    "useOfFunds": ["X% Product - $Y", "X% Marketing - $Y", "X% Ops - $Y"],
     "scenarios": {
-      "conservative": {"revenue": "Year 1 revenue", "units": "Units", "assumptions": "Key assumptions"},
-      "base": {"revenue": "Revenue", "units": "Units", "assumptions": "Assumptions"},
-      "optimistic": {"revenue": "Revenue", "units": "Units", "assumptions": "Assumptions"}
+      "conservative": {"revenue": "Year 1 revenue", "units": "Units", "assumptions": "Key assumption"},
+      "base": {"revenue": "Revenue", "units": "Units", "assumptions": "Assumption"},
+      "optimistic": {"revenue": "Revenue", "units": "Units", "assumptions": "Assumption"}
     },
-    "exitStrategy": "M&A targets, IPO path, or strategic buyers"
+    "exitStrategy": "M&A targets, IPO path, or strategic buyers. ≤1 sentence."
   },
-  "tagline": "A concise, punchy one-liner (under 10 words) that captures the core value proposition. Think investor headline — bold, memorable, no fluff.",
-  "elevatorPitch": "2-3 sentence pitch a VC would hear in an elevator. Bold, specific, memorable.",
-  "competitiveAdvantages": ["Advantage 1", "Advantage 2", "Advantage 3"],
+  "tagline": "≤10-word investor headline — bold, memorable",
+  "elevatorPitch": "2-3 sentence pitch. Bold, specific, memorable.",
+  "competitiveAdvantages": ["Advantage 1 ≤12 words", "Advantage 2", "Advantage 3"],
   "customerPersona": {
-    "name": "Customer archetype name",
+    "name": "Archetype name",
     "age": "Age range",
-    "painPoints": ["Pain 1", "Pain 2", "Pain 3"],
-    "buyingBehavior": "Where and how they buy",
-    "willingness": "Price they'll pay and why"
+    "painPoints": ["Pain 1 ≤12 words", "Pain 2", "Pain 3"],
+    "buyingBehavior": "Where and how they buy ≤15 words",
+    "willingness": "Price willingness ≤15 words"
   },
   "supplierContacts": [
-    {"name": "Real company name", "role": "OEM/Supplier", "region": "Region", "url": "https://...", "email": "contact@...", "phone": "+1...", "moq": "MOQ", "leadTime": "Lead time", "certifications": ["ISO 9001"], "notes": "Context"}
+    {"name": "Real company name", "role": "OEM/Supplier", "region": "Region", "url": "https://...", "email": "contact@...", "phone": "+1...", "moq": "MOQ", "leadTime": "Lead time", "certifications": ["ISO 9001"], "notes": "Context ≤15 words"}
   ],
   "distributorContacts": [
-    {"name": "Real distributor", "role": "Distributor/3PL", "region": "Region", "url": "https://...", "moq": "Min shipment", "leadTime": "Onboarding", "notes": "Context"}
+    {"name": "Real distributor", "role": "Distributor/3PL", "region": "Region", "url": "https://...", "moq": "Min shipment", "leadTime": "Onboarding", "notes": "Context ≤15 words"}
   ],
-  "investorHighlights": ["Highlight 1", "Highlight 2", "Highlight 3", "Highlight 4", "Highlight 5"],
-  "completionMessage": "A bold, memorable closing statement that frames the core opportunity — not generic congratulations but a strategic insight about what makes this worth pursuing"
+  "investorHighlights": ["Highlight 1 ≤12 words", "Highlight 2", "Highlight 3", "Highlight 4", "Highlight 5"],
+  "completionMessage": "A bold strategic insight about what makes this worth pursuing. ≤2 sentences."
 }
 
 CRITICAL RULES:
-- Structure follows the 12-section investor deck order: Problem → Solution → Why Now → Market → Product → Business Model → Traction → Risks → Metrics → GTM → Competitive → Investment Ask
+- Structure follows the 12-section investor deck order
 - supplierContacts must include REAL company names
 - All financial figures must be specific (not "varies" or "TBD")
 - Risks must have 3-6 items with mix of high/medium/low severity
 - keyMetrics must have 4-6 specific, measurable metrics
+- EVERY bullet point must be ≤15 words. No exceptions.
 - Be BOLD, SPECIFIC, and COMMERCIAL
-- AVOID optimistic bias — use realistic, defensible projections
-- completionMessage should be a unique strategic insight, not a generic statement`;
+- completionMessage should be a unique strategic insight`;
 
     const isService = product.category === "Service";
+    const isBusiness = product.analysisType === "business" || product.category === "Business Model" || product.category === "Business";
 
-    const userPrompt = isService
-      ? `Generate a full investor pitch deck for this SERVICE:
+    let userPrompt: string;
+
+    if (isBusiness) {
+      userPrompt = `Generate a full investor pitch deck for this BUSINESS MODEL:
+
+Business: ${product.name}
+Category: ${product.category}
+Description: ${product.description}
+Revival Score: ${product.revivalScore}/10
+Key Insight: ${product.keyInsight || "Not available"}
+Market Size Estimate: ${product.marketSizeEstimate || "Not available"}
+Trend Analysis: ${product.trendAnalysis || "Not available"}
+
+${disruptData ? `DISRUPT ANALYSIS (upstream):
+- Redesigned Concept: ${JSON.stringify((disruptData as Record<string, unknown>).redesignedConcept || {}, null, 2)}
+- Hidden Assumptions: ${JSON.stringify((disruptData as Record<string, unknown>).hiddenAssumptions || [], null, 2)}
+- Flipped Logic: ${JSON.stringify((disruptData as Record<string, unknown>).flippedLogic || [], null, 2)}
+` : ""}
+${stressTestData ? `STRESS TEST RESULTS (upstream):
+${JSON.stringify(stressTestData, null, 2)}
+` : ""}
+${userScores ? `USER-ADJUSTED SCORES:
+${JSON.stringify(userScores, null, 2)}
+` : ""}
+
+BUSINESS MODEL SPECIFIC INSTRUCTIONS:
+- Focus on BUSINESS MODEL INNOVATION: revenue model, value chain positioning, platform dynamics
+- Product/Innovation slide should describe the structural model innovation, not a physical product
+- Supply chain contacts should focus on technology partners, platform integrators, and service providers
+- Emphasize unit economics, network effects, and scalability of the business model
+- GTM should focus on market entry through partnerships, pilot programs, or platform onboarding
+- Do NOT reference physical manufacturing or product specs
+- Base all projections on realistic competitive density and structural feasibility
+
+Return ONLY the JSON object.`;
+    } else if (isService) {
+      userPrompt = `Generate a full investor pitch deck for this SERVICE:
 
 Service: ${product.name}
 Category: ${product.category}
@@ -167,15 +209,15 @@ ${JSON.stringify(redesignData, null, 2)}
 ${stressTestData ? `STRESS TEST RESULTS (upstream):
 ${JSON.stringify(stressTestData, null, 2)}
 ` : ""}
-${userScores ? `USER-ADJUSTED SCORES (override defaults with these):
+${userScores ? `USER-ADJUSTED SCORES:
 ${JSON.stringify(userScores, null, 2)}
 ` : ""}
 Build the most compelling, investor-ready pitch deck possible. Focus on SERVICE-specific elements: customer journey, operational efficiency, delivery model innovation, and scalability. Do NOT include product-specific fields like supplierContacts or physical manufacturing details. Instead focus on implementation partners, technology stack, and talent needs.
-Base scores on realistic market signals, competitive density, and structural feasibility — avoid optimistic defaults.
-The completionMessage should be a sharp strategic insight about WHY this service opportunity is worth pursuing.
+Base scores on realistic market signals, competitive density, and structural feasibility.
 
-Return ONLY the JSON object.`
-      : `Generate a full investor pitch deck for this product:
+Return ONLY the JSON object.`;
+    } else {
+      userPrompt = `Generate a full investor pitch deck for this product:
 
 Product: ${product.name}
 Category: ${product.category}
@@ -210,14 +252,14 @@ ${JSON.stringify(redesignData, null, 2)}
 ${stressTestData ? `STRESS TEST RESULTS (upstream):
 ${JSON.stringify(stressTestData, null, 2)}
 ` : ""}
-${userScores ? `USER-ADJUSTED SCORES (override AI defaults with these):
+${userScores ? `USER-ADJUSTED SCORES:
 ${JSON.stringify(userScores, null, 2)}
 ` : ""}
 Build the most compelling, investor-ready pitch deck possible. Use all upstream data.
-Base scores on realistic market signals, competitive density, and structural feasibility — avoid optimistic defaults.
-The completionMessage should be a sharp strategic insight about WHY this opportunity is worth pursuing.
+Base scores on realistic market signals, competitive density, and structural feasibility.
 
 Return ONLY the JSON object.`;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -273,7 +315,7 @@ Return ONLY the JSON object.`;
       throw new Error("AI returned invalid JSON. Please retry.");
     }
 
-    // Ensure backward compatibility for fields the frontend expects
+    // Ensure backward compatibility
     if (!deck.financialModel && deck.businessModel?.unitEconomics) {
       deck.financialModel = {
         unitEconomics: deck.businessModel.unitEconomics,

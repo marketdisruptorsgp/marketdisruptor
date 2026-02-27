@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Download, FileText, Link2, ChevronDown, Check, Loader2 } from "lucide-react";
+import { Download, FileText, Link2, ChevronDown, Check, Loader2, Presentation } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { generateInvestorPitchPDF } from "@/services/export/pdfGenerator";
 import { generateOpportunityBriefPDF } from "@/services/export/opportunityBrief";
+import { generateInvestorPitchPPTX } from "@/services/export/pptxGenerator";
 
 interface ExportPanelProps {
   product: Product;
@@ -27,14 +28,27 @@ export function ExportPanel({
   const [generating, setGenerating] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const handlePPTX = () => {
+    if (!pitchDeckData) return;
+    setGenerating("pptx");
+    try {
+      generateInvestorPitchPPTX(product, pitchDeckData, accentColor);
+      toast.success("PowerPoint deck exported!");
+    } catch {
+      toast.error("Failed to export PowerPoint");
+    } finally {
+      setGenerating(null);
+    }
+  };
+
   const handleInvestorPDF = () => {
     if (!pitchDeckData) return;
     setGenerating("pitch");
     try {
       generateInvestorPitchPDF(product, pitchDeckData);
-      toast.success("Investor pitch deck exported!");
+      toast.success("Investor pitch PDF exported!");
     } catch {
-      toast.error("Failed to export pitch deck");
+      toast.error("Failed to export pitch PDF");
     } finally {
       setGenerating(null);
     }
@@ -72,10 +86,25 @@ export function ExportPanel({
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-64 rounded-xl shadow-lg z-50 p-2 space-y-1"
+          className="absolute right-0 top-full mt-2 w-72 rounded-xl shadow-lg z-50 p-2 space-y-1"
           style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
         >
-          {/* Investor Pitch */}
+          {/* PowerPoint — PRIMARY */}
+          <button
+            onClick={handlePPTX}
+            disabled={!!generating}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-colors hover:bg-muted disabled:opacity-50"
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${accentColor}14` }}>
+              {generating === "pptx" ? <Loader2 size={14} className="animate-spin" style={{ color: accentColor }} /> : <Presentation size={14} style={{ color: accentColor }} />}
+            </div>
+            <div>
+              <p className="text-xs font-bold text-foreground">PowerPoint Deck</p>
+              <p className="text-[10px] text-muted-foreground">16:9 presentation-ready .pptx</p>
+            </div>
+          </button>
+
+          {/* Investor Pitch PDF */}
           <button
             onClick={handleInvestorPDF}
             disabled={!!generating}
