@@ -109,9 +109,9 @@ export default function DashboardPage() {
               Learn More
             </button>
             <button
-              onClick={() => navigate("/report")}
+              onClick={() => document.getElementById("showcase-gallery")?.scrollIntoView({ behavior: "smooth" })}
               className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-accent text-accent-foreground border border-border transition-colors hover:opacity-90">
-              View Example Output
+              Example Output
             </button>
           </div>
 
@@ -182,7 +182,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Showcase Gallery */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-3 sm:mt-5 mb-4 sm:mb-6">
+      <div id="showcase-gallery" className="max-w-5xl mx-auto px-4 sm:px-6 mt-3 sm:mt-5 mb-4 sm:mb-6">
         <ShowcaseGallery />
       </div>
 
