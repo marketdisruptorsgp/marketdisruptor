@@ -12,7 +12,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, userSuggestions, lens } = await req.json();
+    const { product, userSuggestions, lens, refreshWorkflowOnly } = await req.json();
     const mode = resolveMode(undefined, product.category);
     const isService = mode === "service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
