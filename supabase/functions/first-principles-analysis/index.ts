@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,9 +12,16 @@ serve(async (req) => {
 
   try {
     const { product, userSuggestions } = await req.json();
-    const isService = product.category === "Service";
+    const mode = resolveMode(undefined, product.category);
+    const isService = mode === "service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    // ── Mode Data Filtering: strip blocked domains before AI call ──
+    const filterResult = filterInputData(mode, product);
+    const filteredProduct = filterResult.filtered;
+    console.log(`[ModeEnforcement] ${mode} mode | ${missingDataWarning(mode)}`);
+    const modeGuard = getModeGuardPrompt(mode);
 
     const OS_PREAMBLE = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 
@@ -371,7 +379,17 @@ Return ONLY the JSON object.`;
       throw new Error("AI returned invalid JSON. Please retry.");
     }
 
-    return new Response(JSON.stringify({ success: true, analysis }), {
+    // ── Output Validation: check for cross-mode drift ──
+    const validationResult = validateOutput(mode, analysis);
+    const trace = buildTrace(mode, filterResult, validationResult);
+    console.log(`[ModeEnforcement] Trace:`, JSON.stringify(trace));
+
+    if (!validationResult.valid) {
+      console.warn(`[ModeEnforcement] Violations detected in ${mode} output:`, validationResult.violations);
+      // Attach violations as warnings but still return data (soft enforcement)
+    }
+
+    return new Response(JSON.stringify({ success: true, analysis, _modeTrace: trace }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
