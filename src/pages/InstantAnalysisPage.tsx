@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useAnonymousAuth } from "@/hooks/useAnonymousAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, Lock, Eye } from "lucide-react";
+import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, Lock, Eye, Share2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -459,6 +459,9 @@ export default function InstantAnalysisPage() {
               </ResultSection>
             )}
 
+            {/* Share CTA */}
+            <ShareAnalysisCTA result={result} modeColor={modeColor} mode={mode} />
+
             {/* Upgrade / Claim CTA */}
             <div className="rounded-xl border border-border bg-card p-5 text-center space-y-3">
               {depth === "quick" && (
@@ -529,6 +532,90 @@ export default function InstantAnalysisPage() {
           <Shield size={11} /> Your data is encrypted & stored securely
         </div>
       </footer>
+    </div>
+  );
+}
+
+// --- Share CTA Component ---
+
+function ShareAnalysisCTA({ result, modeColor, mode }: { result: PhotoAnalysisResult; modeColor: string; mode: AnalysisMode }) {
+  const [copied, setCopied] = useState(false);
+
+  const insightCount = [
+    result.userJourney && "User Journey",
+    result.supplyChain && "Supply Chain",
+    result.operationalIntel && "Operations",
+    result.customerSentiment && "Sentiment",
+    result.defensibility && "Defensibility",
+    result.marketPosition && "Market Position",
+    result.disruptionPotential && "Disruption",
+  ].filter(Boolean);
+
+  const shareText = `🔥 Just analyzed "${result.name}" with Market Disruptor — got ${insightCount.length} deep intelligence layers from a single photo!\n\nRevival Score: ${result.revivalScore}/10\nKey insight: "${result.keyInsight}"\n\nTry it free (no signup): ${window.location.origin}/instant-analysis`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      toast.success("Copied to clipboard!");
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${result.name} — Market Disruptor Analysis`,
+          text: shareText,
+          url: `${window.location.origin}/instant-analysis`,
+        });
+      } catch { /* user cancelled */ }
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  return (
+    <div
+      className="rounded-xl border border-border overflow-hidden"
+      style={{ borderTop: `3px solid hsl(var(${modeColor}))` }}
+    >
+      <div className="p-5 sm:p-6 text-center space-y-4" style={{ background: `hsl(var(${modeColor}) / 0.04)` }}>
+        <div className="flex items-center justify-center gap-2">
+          <Sparkles size={18} style={{ color: `hsl(var(${modeColor}))` }} />
+          <p className="typo-card-title text-foreground">
+            {insightCount.length} intelligence layers from one photo
+          </p>
+        </div>
+        <p className="typo-card-body text-muted-foreground max-w-md mx-auto">
+          User journeys, friction points, market positioning, disruption paths — all extracted from a single image. Share this with your team.
+        </p>
+
+        <div className="flex items-center justify-center gap-3">
+          <Button
+            onClick={handleNativeShare}
+            className="gap-2 text-white"
+            style={{ background: `hsl(var(${modeColor}))` }}
+          >
+            <Share2 size={15} /> Share Analysis
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleCopyLink}
+            className="gap-2"
+          >
+            {copied ? <Check size={15} className="text-green-600" /> : <Copy size={15} />}
+            {copied ? "Copied!" : "Copy Text"}
+          </Button>
+        </div>
+
+        <p className="typo-card-meta text-muted-foreground">
+          Free for everyone · No signup required · Powered by visual AI
+        </p>
+      </div>
     </div>
   );
 }
