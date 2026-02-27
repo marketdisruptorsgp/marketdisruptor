@@ -85,7 +85,7 @@ export default function DashboardPage() {
 
       {/* Hero Section */}
       <section className="bg-background">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-12 pb-5 sm:pb-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4 sm:pt-8 pb-3 sm:pb-6">
           <h1 className="typo-page-title text-3xl sm:text-5xl tracking-tight leading-tight whitespace-nowrap pl-[15%] sm:pl-[20%] md:text-5xl text-center mx-px">
             Rethink any{" "}
             <span
@@ -98,10 +98,10 @@ export default function DashboardPage() {
               {MODE_WORDS[wordIndex].label}
             </span>
           </h1>
-          <p className="typo-page-meta text-sm sm:text-base md:text-lg mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed px-2 text-center">
+          <p className="typo-page-meta text-sm sm:text-base md:text-lg mt-2 sm:mt-3 max-w-2xl mx-auto leading-relaxed px-2 text-center">
             Deconstruct markets, stress-test strategies, and build what's next.
           </p>
-          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-5">
             <button
               onClick={() => navigate("/about")}
               className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-primary text-primary-foreground transition-colors hover:opacity-90">
@@ -110,23 +110,28 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Built For */}
-          <p className="typo-card-eyebrow mt-8 sm:mt-10 mb-3 sm:mb-4 text-center">Built For</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-3xl mx-auto text-left">
-            {[
-            { icon: Rocket, title: "Entrepreneurs", desc: "Data-driven conviction, not guesswork." },
-            { icon: TrendingUp, title: "Investors", desc: "Adversarial rigor before committing capital." },
-            { icon: Users, title: "Product Teams", desc: "Stress-test strategy before launch." },
-            { icon: FileText, title: "Agencies", desc: "Data-backed perspectives beyond surface-level." }].
-            map(({ icon: Icon, title, desc }) =>
-            <div key={title} className="rounded-xl border border-border bg-card p-3 sm:p-5 flex flex-col items-start">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mb-2 sm:mb-2.5">
-                  <Icon size={16} className="text-primary" />
+          {/* Built For — compact horizontal chips with role + outcome */}
+          <div className="mt-6 sm:mt-8">
+            <p className="typo-card-eyebrow mb-3 text-center">Who it's for</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-w-4xl mx-auto">
+              {[
+              { icon: Rocket, title: "Founders & Entrepreneurs", outcome: "Validate before you build", desc: "Replace gut-feel with data-driven conviction across market, pricing, and positioning." },
+              { icon: TrendingUp, title: "Investors & Analysts", outcome: "Diligence in minutes", desc: "Adversarial stress-testing and market intelligence that surfaces hidden risks." },
+              { icon: Users, title: "Product & Strategy Teams", outcome: "Ship with confidence", desc: "Deconstruct competitors, map supply chains, and pressure-test go-to-market plans." },
+              { icon: FileText, title: "Consultants & Agencies", outcome: "Elevate client work", desc: "Generate investor-grade analysis and pitch decks backed by real market data." }].
+              map(({ icon: Icon, title, outcome, desc }) =>
+              <div key={title} className="rounded-xl border border-border bg-card p-3 sm:p-4 flex flex-col">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Icon size={14} className="text-primary" />
+                    </div>
+                    <p className="typo-card-title text-sm leading-tight">{title}</p>
+                  </div>
+                  <p className="text-xs font-semibold text-primary mb-1">{outcome}</p>
+                  <p className="typo-card-body text-muted-foreground text-xs leading-relaxed">{desc}</p>
                 </div>
-                <p className="typo-card-title mb-0.5">{title}</p>
-                <p className="typo-card-body text-muted-foreground leading-relaxed">{desc}</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -135,20 +140,20 @@ export default function DashboardPage() {
       <DisruptionPathBanner />
 
       {/* Scrutiny CTA */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4 sm:mt-6">
         <div
-          className="rounded-2xl px-5 py-6 sm:py-8 text-center cursor-pointer transition-all hover:shadow-md"
+          className="rounded-2xl px-5 py-5 sm:py-6 text-center cursor-pointer transition-all hover:shadow-md"
           style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
           onClick={() => navigate("/start")}>
 
-          <p className="typo-card-title mb-1.5">
+          <p className="typo-card-title mb-1">
             Apply a level of scrutiny that exceeds normal bandwidth.
           </p>
-          <p className="typo-section-description mb-4">
+          <p className="typo-section-description mb-3">
             See what a deep deconstruction reveals about your market.
           </p>
           <button
-            className="inline-flex items-center gap-2 px-5 sm:px-7 py-2.5 sm:py-3 rounded-full typo-nav-primary text-primary-foreground transition-colors"
+            className="inline-flex items-center gap-2 px-5 sm:px-7 py-2.5 rounded-full typo-nav-primary text-primary-foreground transition-colors"
             style={{ background: "hsl(var(--primary))" }}>
 
             Start Analysis <ArrowRight size={15} />
@@ -157,12 +162,12 @@ export default function DashboardPage() {
       </div>
 
       {/* Value Proposition Callout */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 my-6 sm:my-10">
-        <div className="rounded-2xl px-4 sm:px-5 py-4 sm:py-5 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 my-4 sm:my-6">
+        <div className="rounded-2xl px-4 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
           <Target size={18} className="flex-shrink-0 mt-0.5 text-primary" />
           <div className="flex-1 min-w-0">
-            <p className="typo-card-title mb-1">What to expect</p>
-            <p className="typo-card-body text-foreground/70 leading-relaxed">
+            <p className="typo-card-title mb-0.5">What to expect</p>
+            <p className="typo-card-body text-foreground/70 leading-relaxed text-sm">
               The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
             </p>
           </div>
@@ -170,28 +175,28 @@ export default function DashboardPage() {
       </div>
 
       {/* Instant Photo Analysis CTA */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4 sm:mt-5">
         <div
-          className="rounded-2xl px-5 py-6 sm:py-8 flex flex-col sm:flex-row items-center gap-4 cursor-pointer transition-all hover:shadow-md bg-muted border border-border"
+          className="rounded-2xl px-5 py-4 sm:py-5 flex flex-col sm:flex-row items-center gap-3 cursor-pointer transition-all hover:shadow-md bg-muted border border-border"
           onClick={() => navigate("/instant-analysis")}>
 
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Camera size={22} className="text-primary" />
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Camera size={20} className="text-primary" />
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <p className="typo-card-title mb-1">Instant Photo Analysis</p>
-            <p className="typo-card-body text-muted-foreground">
-              Snap a photo of any product and get an AI-powered competitive teardown in seconds — no signup required.
+            <p className="typo-card-title mb-0.5">Instant Photo Analysis</p>
+            <p className="typo-card-body text-muted-foreground text-sm">
+              Snap a photo of any product and get an AI-powered competitive teardown in seconds.
             </p>
           </div>
-          <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full typo-nav-primary bg-primary text-primary-foreground hover:opacity-90 transition-colors flex-shrink-0">
+          <button className="inline-flex items-center gap-2 px-5 py-2 rounded-full typo-nav-primary bg-primary text-primary-foreground hover:opacity-90 transition-colors flex-shrink-0">
             Try It <ArrowRight size={14} />
           </button>
         </div>
       </div>
 
       {/* Showcase Gallery */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-4 sm:mt-6 mb-6 sm:mb-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-3 sm:mt-5 mb-4 sm:mb-6">
         <ShowcaseGallery />
       </div>
 
