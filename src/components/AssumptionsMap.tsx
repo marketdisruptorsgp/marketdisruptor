@@ -21,10 +21,10 @@ export const AssumptionsMap = ({ product }: AssumptionsMapProps) => {
               borderLeft: "3px solid hsl(var(--muted-foreground) / 0.4)",
             }}
           >
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+            <p className="typo-status-label font-bold uppercase tracking-wider text-foreground/60 mb-1">
               Assumption
             </p>
-            <p className="text-foreground/80 text-xs leading-relaxed">{item.assumption}</p>
+            <p className="text-foreground/80 typo-card-body leading-relaxed">{item.assumption}</p>
           </div>
 
           {/* Arrow */}
@@ -45,10 +45,10 @@ export const AssumptionsMap = ({ product }: AssumptionsMapProps) => {
               border: "1px solid hsl(var(--border))",
             }}
           >
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>
+            <p className="typo-status-label font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>
               Challenge
             </p>
-            <p className="text-xs leading-relaxed text-foreground/80">
+            <p className="typo-card-body leading-relaxed text-foreground/80">
               {item.challenge}
             </p>
           </div>

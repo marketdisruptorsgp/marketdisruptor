@@ -5,13 +5,14 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { HeroSection } from "@/components/HeroSection";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Database, TrendingUp, Award, Calendar, ArrowLeft } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Database, TrendingUp, Award, Calendar, ArrowLeft, Crown, Sparkles } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ProjectInsightCard } from "@/components/portfolio/ProjectInsightCard";
 import { ScoreInsightPanel } from "@/components/portfolio/ScoreInsightPanel";
 import { ComparisonInsightView } from "@/components/portfolio/ComparisonInsightView";
 import { ActionItemsPanel } from "@/components/portfolio/ActionItemsPanel";
+import { InfoExplainer } from "@/components/InfoExplainer";
 
 interface SavedAnalysis {
   id: string;
@@ -28,12 +29,18 @@ interface SavedAnalysis {
 }
 
 const CATEGORY_MAP: Record<string, { label: string; color: string }> = {
-  custom: { label: "Product", color: "#1249a3" },
-  product: { label: "Product", color: "#1249a3" },
-  service: { label: "Service", color: "#df2060" },
-  business: { label: "Business", color: "#8b3fd9" },
-  first_principles: { label: "First Principles", color: "#0d9488" },
+  custom: { label: "Product", color: "hsl(var(--primary))" },
+  product: { label: "Product", color: "hsl(var(--primary))" },
+  service: { label: "Service", color: "hsl(343 65% 55%)" },
+  business: { label: "Business", color: "hsl(271 82% 55%)" },
+  first_principles: { label: "First Principles", color: "hsl(var(--score-high))" },
 };
+
+function getScoreColor(score: number) {
+  if (score >= 7) return "hsl(var(--score-high))";
+  if (score >= 4.5) return "hsl(var(--warning))";
+  return "hsl(var(--destructive))";
+}
 
 export default function PortfolioPage() {
   const { user } = useAuth();
@@ -43,8 +50,6 @@ export default function PortfolioPage() {
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
-
-  // Pre-populate first project in comparison once loaded
   const [didPreselect, setDidPreselect] = useState(false);
 
   useEffect(() => {
@@ -52,7 +57,6 @@ export default function PortfolioPage() {
     fetchAll();
   }, [user]);
 
-  // Pre-select top-scoring project for comparison
   useEffect(() => {
     if (didPreselect || analyses.length === 0) return;
     const best = [...analyses].sort((a, b) => (b.avg_revival_score || 0) - (a.avg_revival_score || 0))[0];
@@ -67,7 +71,6 @@ export default function PortfolioPage() {
       .eq("user_id", user!.id)
       .order("created_at", { ascending: false })
       .limit(100);
-    // Hide standalone first_principles entries — they clutter the portfolio
     const all = ((data as unknown as SavedAnalysis[]) || []).filter(
       (a) => a.analysis_type !== "first_principles"
     );
@@ -75,7 +78,6 @@ export default function PortfolioPage() {
     setLoading(false);
   };
 
-  // Filters
   const [filterMode, setFilterMode] = useState<string>("all");
   const [filterScore, setFilterScore] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "score">("date");
@@ -106,20 +108,6 @@ export default function PortfolioPage() {
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
 
-  const categoryBreakdown = useMemo(() => {
-    const map: Record<string, number> = {};
-    analyses.forEach((a) => {
-      const type = a.analysis_type || "custom";
-      const cat = CATEGORY_MAP[type] || CATEGORY_MAP.custom;
-      map[cat.label] = (map[cat.label] || 0) + 1;
-    });
-    return Object.entries(map).map(([name, value]) => ({
-      name,
-      value,
-      color: Object.values(CATEGORY_MAP).find((c) => c.label === name)?.color || "#1249a3",
-    }));
-  }, [analyses]);
-
   const timeline = useMemo(() => {
     const map: Record<string, number> = {};
     analyses.forEach((a) => {
@@ -127,6 +115,14 @@ export default function PortfolioPage() {
       map[month] = (map[month] || 0) + 1;
     });
     return Object.entries(map).map(([month, count]) => ({ month, count })).reverse();
+  }, [analyses]);
+
+  // Top performers for spotlight
+  const topPerformers = useMemo(() => {
+    return [...analyses]
+      .filter(a => (a.avg_revival_score || 0) > 0)
+      .sort((a, b) => (b.avg_revival_score || 0) - (a.avg_revival_score || 0))
+      .slice(0, 5);
   }, [analyses]);
 
   const compareList = analyses.filter((a) => compareIds.has(a.id));
@@ -158,7 +154,7 @@ export default function PortfolioPage() {
         {/* Back + title */}
         <div className="flex items-center gap-3">
           <button onClick={() => navigate("/")} className="p-2 rounded-lg border border-border hover:bg-muted transition-colors">
-            <ArrowLeft size={16} className="text-muted-foreground" />
+            <ArrowLeft size={16} className="text-foreground/60" />
           </button>
           <div>
             <h1 className="typo-page-title text-foreground">Portfolio Dashboard</h1>
@@ -169,7 +165,7 @@ export default function PortfolioPage() {
         {totalProjects === 0 ? (
           <div className="text-center py-20">
             <Database size={40} className="mx-auto mb-4 opacity-20" />
-            <p className="text-sm text-muted-foreground">No analyses yet. Run your first analysis to see portfolio insights.</p>
+            <p className="typo-card-body text-foreground/60">No analyses yet. Run your first analysis to see portfolio insights.</p>
           </div>
         ) : (
           <>
@@ -190,7 +186,7 @@ export default function PortfolioPage() {
                     <stat.icon size={16} style={{ color: stat.accent }} />
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-foreground">{stat.value}</p>
+                    <p className="text-lg font-bold text-foreground tabular-nums">{stat.value}</p>
                     <p className="typo-status-label text-foreground/60 uppercase tracking-wider">{stat.label}</p>
                   </div>
                 </div>
@@ -204,19 +200,23 @@ export default function PortfolioPage() {
             <ScoreInsightPanel analyses={analyses} />
 
             {/* Comparison Insight View */}
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Insight Comparison</p>
-              <p className="typo-card-body text-foreground/80 mb-3 leading-relaxed">
-                Compare up to 3 projects across revival score, risk, market size, GTM readiness, innovation, and unit economics. Expand any dimension for detailed context.
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="typo-section-title text-foreground">Insight Comparison</p>
+                <InfoExplainer text="Compare up to 3 projects side-by-side across 6 strategic dimensions — revival potential, risk exposure, market size, go-to-market readiness, innovation depth, and unit economics. Expand any dimension for detailed context on each project." />
+              </div>
+              <p className="typo-card-body text-foreground/70 mb-4">
+                Select projects to compare across revival score, risk, market size, GTM readiness, innovation, and unit economics.
               </p>
-              <div className="flex flex-wrap gap-1.5 mb-4">
+              <div className="flex flex-wrap gap-1.5 mb-5">
                 {analyses.slice(0, 20).map((a) => (
                   <button key={a.id} onClick={() => toggleCompare(a.id)}
-                    className="px-2.5 py-1 rounded-md typo-card-meta font-medium transition-colors"
+                    className="px-3 py-1.5 rounded-lg typo-card-meta font-medium transition-all"
                     style={{
-                      background: compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                      background: compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--background))",
                       color: compareIds.has(a.id) ? "white" : "hsl(var(--foreground))",
-                      border: `1px solid ${compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+                      border: `1.5px solid ${compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+                      boxShadow: compareIds.has(a.id) ? "0 2px 8px hsl(var(--primary) / 0.25)" : "none",
                     }}>
                     {a.title.length > 25 ? a.title.slice(0, 25) + "…" : a.title}
                   </button>
@@ -225,57 +225,97 @@ export default function PortfolioPage() {
               <ComparisonInsightView compareList={compareList} />
             </div>
 
-            {/* Category Breakdown */}
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Category Breakdown</p>
-              <p className="typo-card-body text-foreground/80 mb-3 leading-relaxed">
-                Shows the distribution of your analyses across different modes — Product, Service, Business, and First Principles.
-              </p>
-              <div className="flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={180}>
-                  <PieChart>
-                    <Pie data={categoryBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} labelLine={false}>
-                      {categoryBreakdown.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex flex-wrap justify-center gap-3 mt-2">
-                {categoryBreakdown.map((entry) => (
-                  <div key={entry.name} className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: entry.color }} />
-                    <span className="typo-card-meta font-semibold text-foreground">{entry.name}</span>
-                    <span className="typo-card-meta text-foreground/60">({entry.value})</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Timeline */}
             {timeline.length > 1 && (
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Activity Timeline</p>
-                <p className="typo-card-body text-foreground/80 mb-3 leading-relaxed">
+              <div className="rounded-xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="typo-section-title text-foreground">Activity Timeline</p>
+                  <InfoExplainer text="Your analysis cadence over time. Consistent exploration compounds strategic intuition — clusters indicate focused research periods, while gaps may mean missed market shifts." />
+                </div>
+                <p className="typo-card-body text-foreground/70 mb-4">
                   Your analysis activity over time. Consistent exploration leads to better strategic pattern recognition.
                 </p>
                 <ResponsiveContainer width="100%" height={140}>
                   <AreaChart data={timeline}>
-                    <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} />
                     <Tooltip />
-                    <Area type="monotone" dataKey="count" fill="hsl(230 90% 63% / 0.15)" stroke="hsl(230 90% 63%)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="count" fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             )}
 
+            {/* Top Performers Spotlight */}
+            {topPerformers.length > 0 && (
+              <div className="rounded-xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <Crown size={16} className="text-foreground" />
+                  <p className="typo-section-title text-foreground">Top Performers</p>
+                  <InfoExplainer text="Your highest-scoring projects ranked by revival potential. These represent your strongest opportunities for market entry, further investment, or deeper analysis. Focus your energy here." />
+                </div>
+                <p className="typo-card-body text-foreground/70 mb-4">
+                  Your strongest opportunities ranked by revival score. Focus your energy here.
+                </p>
+                <div className="space-y-2">
+                  {topPerformers.map((a, rank) => {
+                    const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
+                    const score = a.avg_revival_score || 0;
+                    return (
+                      <button
+                        key={a.id}
+                        onClick={() => analysis.handleLoadSaved(a as any)}
+                        className="w-full flex items-center gap-4 rounded-xl p-4 text-left transition-all hover:shadow-md group"
+                        style={{
+                          background: rank === 0 ? "hsl(var(--primary) / 0.04)" : "hsl(var(--background))",
+                          border: `1.5px solid ${rank === 0 ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))"}`,
+                        }}
+                      >
+                        {/* Rank badge */}
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 typo-card-title font-bold"
+                          style={{
+                            background: rank === 0 ? "hsl(var(--primary))" : rank <= 2 ? "hsl(var(--muted))" : "hsl(var(--muted))",
+                            color: rank === 0 ? "white" : "hsl(var(--foreground))",
+                          }}
+                        >
+                          {rank === 0 ? <Sparkles size={16} /> : `#${rank + 1}`}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <p className="typo-card-title text-foreground group-hover:text-primary transition-colors truncate">{a.title}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="typo-status-label px-2 py-0.5 rounded font-bold" style={{ background: `${cat.color}15`, color: cat.color }}>
+                              {cat.label}
+                            </span>
+                            <span className="typo-card-meta text-foreground/60">
+                              {format(parseISO(a.created_at), "MMM d, yyyy")}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Score */}
+                        <div className="flex flex-col items-center flex-shrink-0">
+                          <span className="text-2xl font-bold tabular-nums" style={{ color: getScoreColor(score) }}>{score}</span>
+                          <span className="typo-status-label" style={{ color: getScoreColor(score) }}>
+                            {score >= 8 ? "Excellent" : score >= 7 ? "Strong" : score >= 5 ? "Moderate" : "Weak"}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Saved Projects Grid */}
             <div>
-              <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Saved Projects</p>
-              <p className="typo-card-body text-foreground/80 mb-3 leading-relaxed">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="typo-section-title text-foreground">All Projects</p>
+                <InfoExplainer text="Every analysis you've saved, filterable by mode and score. Click any project to reopen the full analysis flow with all intelligence layers intact." />
+              </div>
+              <p className="typo-card-body text-foreground/70 mb-4">
                 All your saved analyses. Click any project to reopen the full analysis flow.
               </p>
 
@@ -322,7 +362,7 @@ export default function PortfolioPage() {
 
               {filteredAnalyses.length === 0 ? (
                 <div className="py-10 text-center border border-border rounded-xl bg-card">
-                  <p className="text-sm text-muted-foreground">No projects match the selected filters.</p>
+                  <p className="typo-card-body text-foreground/60">No projects match the selected filters.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
