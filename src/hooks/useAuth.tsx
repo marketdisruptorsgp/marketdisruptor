@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
+const DEVICE_VERIFIED = "md_device_verified";
+
 interface Profile {
   user_id: string;
   first_name: string;
@@ -13,6 +15,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  isReturningUser: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -21,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   profile: null,
   loading: true,
+  isReturningUser: false,
   signOut: async () => {},
 });
 
@@ -29,8 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  // Prevents onAuthStateChange from re-establishing a session we just cleared
   const signingOut = useRef(false);
+
+  const isReturningUser = localStorage.getItem(DEVICE_VERIFIED) === "true";
 
   const fetchOrCreateProfile = async (userId: string) => {
     const { data } = await supabase
@@ -41,8 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (data) {
       setProfile(data as Profile);
+      // Update last seen for returning users
+      supabase.rpc("update_last_seen", { p_user_id: userId }).then(() => {});
     } else {
-      // No profile yet — new user, create from pending first name in localStorage
       const pendingName = localStorage.getItem("pending_first_name");
       if (pendingName) {
         const { data: newProfile } = await supabase
@@ -60,7 +66,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // While signing out, ignore all events so the session can't sneak back in
       if (signingOut.current) return;
 
       setSession(session);
@@ -68,7 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         const isSignIn = event === "SIGNED_IN";
         fetchOrCreateProfile(session.user.id);
-        // Auto-claim referral if code stored from share page
+
+        // Mark device as verified on successful sign-in (non-anonymous)
+        if (isSignIn && !session.user.is_anonymous) {
+          localStorage.setItem(DEVICE_VERIFIED, "true");
+        }
+
         if (isSignIn) {
           const refCode = localStorage.getItem("referral_code");
           if (refCode) {
@@ -79,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   toast.success(`🎉 Referral bonus! You got +${data.bonus} extra analyses!`, { duration: 5000 });
                 }
               })
-              .catch(() => { /* best effort */ });
+              .catch(() => {});
           }
         }
       } else {
@@ -102,52 +112,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     signingOut.current = true;
 
-    // Clear React state first
     setUser(null);
     setSession(null);
     setProfile(null);
 
-    // Sign out via Supabase — try local scope first (more reliable), then global
     try {
       await supabase.auth.signOut({ scope: "local" });
-    } catch (_) {
-      // best effort
-    }
+    } catch (_) {}
     try {
       await supabase.auth.signOut({ scope: "global" });
-    } catch (_) {
-      // best effort
-    }
+    } catch (_) {}
 
-    // Wipe ALL storage keys — be aggressive
+    // Wipe auth storage but preserve device ID for re-recognition
     [localStorage, sessionStorage].forEach((store) => {
       const keysToRemove = Object.keys(store).filter(
-        (k) => k.startsWith("sb-") || k.includes("supabase") || k.includes("auth")
+        (k) => (k.startsWith("sb-") || k.includes("supabase") || k.includes("auth")) &&
+               !k.startsWith("md_") // preserve device keys
       );
       keysToRemove.forEach((k) => store.removeItem(k));
     });
 
-    // Clear any auth cookies (Supabase PKCE flow can set these)
+    // Clear device verified flag — next login requires magic link
+    localStorage.removeItem(DEVICE_VERIFIED);
+
     document.cookie.split(";").forEach((c) => {
       const name = c.trim().split("=")[0];
       if (name.startsWith("sb-") || name.includes("supabase") || name.includes("auth-token")) {
-        // Clear for all possible path/domain combos
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`;
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${window.location.hostname}`;
       }
     });
 
-    // Small delay to ensure storage is flushed before redirect
     await new Promise((r) => setTimeout(r, 100));
-
-    // Use replace to prevent back-button from re-authenticating
-    // Strip any query params that might contain tokens
     window.location.replace(window.location.origin + window.location.pathname);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, isReturningUser, signOut }}>
       {children}
     </AuthContext.Provider>
   );
