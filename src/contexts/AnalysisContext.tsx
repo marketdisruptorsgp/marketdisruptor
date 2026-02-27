@@ -805,18 +805,26 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setProducts(sanitizedProducts);
       setSelectedProduct(sanitizedProducts[0]);
       setAnalysisParams({ category: analysis.category, era: analysis.era || "All Eras / Current", batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
-      setMainTab("custom");
-      setActiveMode("custom");
+      const isService = analysis.analysis_type === "service";
+      setMainTab(isService ? "service" : "custom");
+      setActiveMode(isService ? "service" : "custom");
       setDetailTab("overview");
       setStep("done");
       setAnalysisId(analysis.id);
 
-      // Use centralized resume logic
-      const hasProducts = sanitizedProducts.length > 0;
-      const { route: resumeRoute, label: resumeLabel } = getResumeRoute(ad, hasProducts);
+      // Quick photo analyses: always resume at report so user can proceed through the full pipeline
+      const isQuickPhoto = analysis.analysis_depth === "quick";
+      if (isQuickPhoto) {
+        toast.success("Analysis loaded — continue through the full pipeline");
+        navigate(`/analysis/${analysis.id}/report`);
+      } else {
+        // Use centralized resume logic
+        const hasProducts = sanitizedProducts.length > 0;
+        const { route: resumeRoute, label: resumeLabel } = getResumeRoute(ad, hasProducts);
 
-      toast.success(`Resuming where you left off — ${resumeLabel}`);
-      navigate(`/analysis/${analysis.id}/${resumeRoute}`);
+        toast.success(`Resuming where you left off — ${resumeLabel}`);
+        navigate(`/analysis/${analysis.id}/${resumeRoute}`);
+      }
     }
   }, [navigate]);
 
