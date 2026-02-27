@@ -12,12 +12,13 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, Database, Upload, Briefcase, Building2,
   FolderOpen, BarChart3, BookOpen, HelpCircle, Lightbulb, TrendingUp, Radar,
-  Menu, PieChart, Code2, Camera,
+  Menu, PieChart, Code2, Camera, ChevronDown,
 } from "lucide-react";
 
 interface PlatformNavProps {
@@ -136,32 +137,34 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   </a>
                 </NavigationMenuItem>
 
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="typo-nav-primary text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
-                    Resources
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="w-60 p-2 bg-background shadow-lg rounded-xl border border-border">
+                <NavigationMenuItem className="relative">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="typo-nav-primary text-muted-foreground hover:text-foreground bg-transparent h-auto py-3 px-3 inline-flex items-center gap-1 border-b-2 border-transparent transition-colors">
+                        Resources
+                        <ChevronDown size={12} className="ml-0.5" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" sideOffset={8} className="w-60 p-2 bg-background shadow-lg rounded-xl border border-border">
                       {RESOURCES_ITEMS.map((item) => {
                         const Icon = item.icon;
                         return (
-                          <NavigationMenuLink key={item.label} asChild>
-                            <a
-                              href={item.path}
-                              onClick={(e) => { e.preventDefault(); navigate(item.path); }}
-                              className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                            >
-                              <Icon size={14} className="text-muted-foreground" />
-                              <div>
-                                <p className="typo-nav-primary">{item.label}</p>
-                                <p className="typo-card-meta">{item.desc}</p>
-                              </div>
-                            </a>
-                          </NavigationMenuLink>
+                          <a
+                            key={item.label}
+                            href={item.path}
+                            onClick={(e) => { e.preventDefault(); navigate(item.path); }}
+                            className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                          >
+                            <Icon size={14} className="text-muted-foreground" />
+                            <div>
+                              <p className="typo-nav-primary">{item.label}</p>
+                              <p className="typo-card-meta">{item.desc}</p>
+                            </div>
+                          </a>
                         );
                       })}
-                    </div>
-                  </NavigationMenuContent>
+                    </PopoverContent>
+                  </Popover>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
