@@ -86,7 +86,7 @@ export default function DashboardPage() {
       {/* Hero Section */}
       <section className="bg-background">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4 sm:pt-8 pb-3 sm:pb-6">
-          <h1 className="typo-page-title text-5xl sm:text-5xl tracking-tight leading-tight whitespace-nowrap pl-[15%] sm:pl-[20%] md:text-5xl text-center mx-px">
+          <h1 className="typo-page-title text-4xl sm:text-5xl tracking-tight leading-tight whitespace-nowrap pl-[15%] sm:pl-[20%] md:text-5xl text-center mx-px">
             Rethink any{" "}
             <span
               className="inline-block transition-opacity duration-300 text-left min-w-[180px] sm:min-w-[320px]"
