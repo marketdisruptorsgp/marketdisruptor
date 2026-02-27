@@ -1,75 +1,41 @@
-## Yes and it needs to be high contrast. Noticeable. 
+## The share analysis link must work and take you directly to the entire analysis. maje sure all links are correct 
 
-## Plan: Add Help/Info Explainer Icons Across All Analysis Components
+&nbsp;
 
-### Problem
+## Plan: Fix Hardcoded Colors + Transform Deep Dive CTA into a Showstopper
 
-Users have no way to understand what each step, section, or panel means. There are no contextual help icons anywhere in the analysis pipeline.
+### 1. Replace all hardcoded Tailwind color classes with semantic tokens
 
-### Approach
+**ScoreBadge** (line 37): Replace `bg-green-100 text-green-800`, `bg-yellow-100 text-yellow-800`, `bg-red-100 text-red-800` with inline styles using `scoreColors` from designTokens or `hsl(var(--success))` / `hsl(var(--warning))` / `hsl(var(--destructive))`.
 
-Create a single reusable `InfoExplainer` component (a `?` icon that opens a popover with a detailed explanation), then wire it into the 4 key shared components that render across all modes, steps, and sections. This gives universal coverage without touching every page individually.
+**ConfidenceBadge** (lines 42-47): Replace `bg-green-50 text-green-700 border-green-200` etc. with semantic CSS variable equivalents.
 
-### Implementation
+**Friction severity badges** (line 408): Replace `bg-red-100 text-red-700`, `bg-yellow-100 text-yellow-700`, `bg-green-100 text-green-700` with semantic token styles.
 
-#### 1. Create explainer content registry (`src/lib/explainers.ts`)
+**SentimentList** (lines 696-707): Replace `text-green-600`, `text-red-600`, `bg-green-500`, `bg-red-500`, `bg-amber-500` with `hsl(var(--success))`, `hsl(var(--destructive))`, `hsl(var(--warning))`.
 
-A single record mapping every step, section, and panel ID to a detailed explainer string (2-3 sentences each). Covers:
+**Copy button check icon** (line 668): Replace `text-green-600` with `text-success` or inline `hsl(var(--success))`.
 
-- **Steps**: Intelligence Report, Disrupt, Redesign, Stress Test, Pitch Deck
-- **Report sections**: Overview, Community Intel, User Journey, Pricing Intel, Supply Chain, Patent Intel
-- **Stress Test sections**: Debate, Validate
-- **Pitch slides**: Problem, Solution, Why Now, Market, Product, Business Model, Traction, Risks, GTM, Invest
-- **Panels**: Sources & Trend Analysis, Assumptions Map, Complaints & Requests, etc.
-- **Business Model sections**: all relevant keys
+### 2. Transform the anonymous Deep Dive CTA (lines 492-526) into a compelling conversion block
 
-#### 2. Create `InfoExplainer` component (`src/components/InfoExplainer.tsx`)
+Replace the bland "Want the full picture?" with a high-impact section that:
 
-- A small `HelpCircle` icon (lucide) button, 16-18px
-- On click/tap, opens a `Popover` (Radix) with the explainer text
-- Props: `explainerKey: string` (looks up from registry), or `text: string` (inline override)
-- Styled subtly (muted-foreground, hover to primary) so it doesn't compete with content
-- Works on both mobile (tap) and desktop (click)
+- Bold headline: "You just scratched the surface."
+- Subhead: "Deep Dive gives you the intelligence that takes consulting firms weeks to assemble — in seconds."
+- A grid of 6 capability cards showing what Deep Dive unlocks:
+  - **Full Supply Chain Map** — trace every component from raw material to shelf
+  - **Patent & IP Landscape** — see who owns the ideas around this space
+  - **Disruption Scoring** — quantified vulnerability and opportunity analysis
+  - **Investor-Ready Pitch Deck** — 12-slide deck generated from your analysis
+  - **Competitive Moat Analysis** — defensibility breakdown with evidence
+  - **Actionable Recommendations** — prioritized next steps, not just observations
+- Prominent CTA: "Start Free — 10 Analyses, No Credit Card"
+- Supporting line: "Simple email signup. Your current analysis is preserved."
 
-#### 3. Wire into shared components
+### 3. Also update the depth toggle area (lines 291-295) for anonymous users
 
-`**ModeHeader**` — Add `explainerKey?: string` prop. Render `InfoExplainer` next to step title. Every step page already uses `ModeHeader`, so all steps get help icons automatically.
-
-`**SectionHeader**` — Add `explainerKey?: string` prop. Render `InfoExplainer` next to section label. Used in ReportPage for every tab section.
-
-`**SectionWorkflowNav**` — Add optional `explainerKeys?: Record<string, string>` prop. Render a small `?` icon inside each grid card. Used in Report, Stress Test, and Business Results pages.
-
-`**DetailPanel**` — Add `explainerKey?: string` prop. Render `InfoExplainer` next to title text. Every collapsible panel across all steps gets a help icon.
-
-#### 4. Update page files to pass explainer keys
-
-- `ReportPage.tsx` — pass keys to `SectionHeader`, `DetailPanel`, `SectionWorkflowNav`
-- `DisruptPage.tsx` — pass key to `ModeHeader`
-- `RedesignPage.tsx` — pass key to `ModeHeader`
-- `StressTestPage.tsx` — pass keys to `ModeHeader`, `SectionWorkflowNav`
-- `PitchPage.tsx` — pass key to `ModeHeader`
-- `BusinessResultsPage.tsx` — pass keys to step-level headers and nav
-
-### Technical Details
-
-- Popover uses `@radix-ui/react-popover` (already installed)
-- Icon: `HelpCircle` from lucide-react
-- Touch targets: 32px minimum tap area via padding
-- Popover max-width: 280px, with `typo-card-body` text
-- Z-index handled by Radix portal automatically
-
-### Files to create
-
-- `src/lib/explainers.ts`
-- `src/components/InfoExplainer.tsx`
+Replace the dry "Deep Dive requires a free account" with a more enticing teaser: "Deep Dive: full intelligence layers including pitch decks, patent maps, and disruption scoring — free to try"
 
 ### Files to modify
 
-- `src/components/ModeHeader.tsx`
-- `src/components/SectionNav.tsx` (SectionHeader, SectionWorkflowNav, DetailPanel)
-- `src/pages/ReportPage.tsx`
-- `src/pages/DisruptPage.tsx`
-- `src/pages/RedesignPage.tsx`
-- `src/pages/StressTestPage.tsx`
-- `src/pages/PitchPage.tsx`
-- `src/pages/BusinessResultsPage.tsx`
+- `src/pages/InstantAnalysisPage.tsx` — all changes in one file
