@@ -1014,16 +1014,17 @@ export default function Index() {
                     <div className="space-y-6">
                       {/* Key Takeaway Banner */}
                       {(() => {
-                        const ci = (selectedProduct as unknown as { communityInsights?: { topComplaints?: string[]; improvementRequests?: string[]; redditSentiment?: string } }).communityInsights;
+                        const ci = (selectedProduct as unknown as { communityInsights?: { topComplaints?: string[]; improvementRequests?: string[]; communitySentiment?: string; redditSentiment?: string } }).communityInsights;
                         const takeaway = ci ? getCommunityTakeaway(ci) : null;
                         return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(25 90% 40%)" /> : null;
                       })()}
-                      {/* Reddit Sentiment */}
-                      {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
+                      {/* Community Sentiment */}
+                      {(selectedProduct as unknown as { communityInsights?: { communitySentiment?: string; redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
                         <>
                           {(() => {
-                            const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights;
-                            const hasRealSentiment = ci.redditSentiment && !/no direct.*found|not found|no.*sentiment.*found|no.*reddit.*found/i.test(ci.redditSentiment);
+                            const ci = (selectedProduct as unknown as { communityInsights: { communitySentiment?: string; redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights;
+                            const sentiment = ci.communitySentiment || ci.redditSentiment;
+                            const hasRealSentiment = sentiment && !/no direct.*found|not found|no.*sentiment.*found/i.test(sentiment);
                             return (
                               <div className="space-y-5">
                                 {hasRealSentiment && (
@@ -1031,7 +1032,7 @@ export default function Index() {
                                     <p className="typo-card-eyebrow mb-2 flex items-center gap-1" style={{ color: "hsl(25 90% 40%)" }}>
                                       <MessageSquare size={12} /> Community Sentiment
                                     </p>
-                                    <p className="text-sm leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
+                                    <p className="text-sm leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{sentiment}</p>
                                   </div>
                                 )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1188,8 +1189,8 @@ export default function Index() {
                         {[
                           { label: "Current Market Price", value: selectedProduct.pricingIntel.currentMarketPrice, highlight: false },
                           { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium, highlight: false },
-                          { label: "Resale Avg Sold", value: selectedProduct.pricingIntel.ebayAvgSold, highlight: true },
-                          { label: "Vintage Avg Sold", value: selectedProduct.pricingIntel.etsyAvgSold, highlight: true },
+                          { label: "Resale Avg Sold", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold, highlight: true },
+                          { label: "Vintage Avg Sold", value: (selectedProduct.pricingIntel as any).vintageAvgSold || selectedProduct.pricingIntel.etsyAvgSold, highlight: true },
                           { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal, highlight: false },
                           { label: "Price Trend", value: selectedProduct.pricingIntel.priceDirection.toUpperCase(), highlight: true },
                         ].map((item) => (

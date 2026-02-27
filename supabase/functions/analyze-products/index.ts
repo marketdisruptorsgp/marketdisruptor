@@ -17,7 +17,7 @@ function eraLabel(era: string) {
 async function findProductImage(productName: string, category: string, apiKey: string): Promise<string | null> {
   try {
     const queries = [
-      `"${productName}" product image site:ebay.com OR site:amazon.com OR site:wikipedia.org`,
+      `"${productName}" product image site:amazon.com OR site:wikipedia.org`,
       `${productName} vintage original photo`,
     ];
     
@@ -49,7 +49,7 @@ async function findProductImage(productName: string, category: string, apiKey: s
             !link.includes("icon") &&
             !link.includes("favicon") &&
             !link.includes("banner") &&
-            (link.includes("i.ebayimg") || link.includes("m.media-amazon") || link.includes("upload.wikimedia") || link.includes("etsy.com/il"))
+            (link.includes("m.media-amazon") || link.includes("upload.wikimedia") || link.includes("i.ebayimg") || link.includes("images-na.ssl-images-amazon"))
           ) {
             console.log(`Found real image for ${productName}: ${link}`);
             return link;
@@ -167,8 +167,8 @@ For each service, return an object with this EXACT structure:
     "collectorPremium": "Premium tier pricing and what justifies it",
     "priceRange": "$X – $Y (full range across tiers)",
     "priceDirection": "rising",
-    "ebayAvgSold": "N/A — service",
-    "etsyAvgSold": "N/A — service",
+    "resaleAvgSold": "N/A — service",
+    "vintageAvgSold": "N/A — service",
     "msrpOriginal": "Standard market rate",
     "margins": "Estimated gross margin at typical price point",
     "marginsDataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]"
@@ -310,8 +310,8 @@ For each product, return an object with this EXACT structure:
     "collectorPremium": "Vintage/rare condition pricing with context",
     "priceRange": "$X – $Y (full range)",
     "priceDirection": "rising",
-    "ebayAvgSold": "$X avg (condition)",
-    "etsyAvgSold": "$X (type)",
+    "resaleAvgSold": "$X avg (condition)",
+    "vintageAvgSold": "$X (type)",
     "msrpOriginal": "$X (year)",
     "margins": "Estimated gross margin at X price point",
     "marginsDataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]"

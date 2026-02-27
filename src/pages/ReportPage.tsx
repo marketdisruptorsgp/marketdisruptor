@@ -451,8 +451,8 @@ export default function ReportPage() {
                   {[
                     { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice, highlight: false },
                     { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium, highlight: false },
-                    { label: "Resale Avg", value: selectedProduct.pricingIntel.ebayAvgSold, highlight: true },
-                    { label: "Vintage Avg", value: selectedProduct.pricingIntel.etsyAvgSold, highlight: true },
+                    { label: "Resale Avg", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold, highlight: true },
+                    { label: "Vintage Avg", value: (selectedProduct.pricingIntel as any).vintageAvgSold || selectedProduct.pricingIntel.etsyAvgSold, highlight: true },
                     { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal, highlight: false },
                     { label: "Price Trend", value: selectedProduct.pricingIntel.priceDirection?.toUpperCase(), highlight: true },
                   ].map((item) => (

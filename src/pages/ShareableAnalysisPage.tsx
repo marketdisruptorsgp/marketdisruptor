@@ -384,18 +384,18 @@ export default function ShareableAnalysisPage() {
                           </div>
                         )}
                       </div>
-                      {(pi.ebayAvgSold || pi.etsyAvgSold) && (
+                      {((pi as any).resaleAvgSold || pi.ebayAvgSold || (pi as any).vintageAvgSold || pi.etsyAvgSold) && (
                         <div className="grid grid-cols-2 gap-3">
-                          {pi.ebayAvgSold && (
+                          {((pi as any).resaleAvgSold || pi.ebayAvgSold) && (
                             <div className="p-3 rounded-lg text-center bg-muted border border-border">
-                              <DataLabel>eBay Avg Sold</DataLabel>
-                              <p className="typo-card-body font-bold text-foreground mt-1">{pi.ebayAvgSold}</p>
+                              <DataLabel>Resale Avg Sold</DataLabel>
+                              <p className="typo-card-body font-bold text-foreground mt-1">{(pi as any).resaleAvgSold || pi.ebayAvgSold}</p>
                             </div>
                           )}
-                          {pi.etsyAvgSold && (
+                          {((pi as any).vintageAvgSold || pi.etsyAvgSold) && (
                             <div className="p-3 rounded-lg text-center bg-muted border border-border">
-                              <DataLabel>Etsy Avg Sold</DataLabel>
-                              <p className="typo-card-body font-bold text-foreground mt-1">{pi.etsyAvgSold}</p>
+                              <DataLabel>Vintage Avg Sold</DataLabel>
+                              <p className="typo-card-body font-bold text-foreground mt-1">{(pi as any).vintageAvgSold || pi.etsyAvgSold}</p>
                             </div>
                           )}
                         </div>
