@@ -180,7 +180,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
               <div className="flex sm:hidden items-start gap-3 w-full">
                 <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
                   <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-extrabold z-10 transition-all"
+                    className="w-7 h-7 rounded-full flex items-center justify-center typo-card-meta font-bold z-10 transition-all"
                     style={{
                       background: isExpanded ? "hsl(var(--primary))" : "hsl(var(--foreground))",
                       color: isExpanded ? "white" : "hsl(var(--background))",
@@ -206,9 +206,9 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
                   </div>
                   {isExpanded && friction && (
                     <div className="mt-2 space-y-1.5">
-                      <p className="text-[11px] text-foreground/80 leading-relaxed">{friction.friction}</p>
+                      <p className="typo-card-body text-foreground/80 leading-relaxed">{friction.friction}</p>
                       {friction.rootCause && (
-                        <p className="text-[10px] text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
+                        <p className="typo-card-meta text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
                       )}
                     </div>
                   )}
@@ -220,7 +220,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
                 <div className="flex items-center w-full">
                   {i > 0 ? <div className="h-[2px] flex-1" style={{ background: "hsl(var(--border))" }} /> : <div className="flex-1" />}
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-extrabold z-10 flex-shrink-0 transition-all"
+                    className="w-8 h-8 rounded-full flex items-center justify-center typo-card-meta font-bold z-10 flex-shrink-0 transition-all"
                     style={{
                       background: isExpanded ? "hsl(var(--primary))" : "hsl(var(--foreground))",
                       color: isExpanded ? "white" : "hsl(var(--background))",
@@ -241,14 +241,14 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
                   }}
                 >
                   <div className="flex items-center justify-between gap-1">
-                    <p className="text-[10px] font-bold text-foreground leading-tight">{step}</p>
+                    <p className="typo-card-meta font-bold text-foreground leading-tight">{step}</p>
                     {friction && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "hsl(var(--muted-foreground))" }} />}
                   </div>
                   {isExpanded && friction && (
                     <div className="mt-2 space-y-1">
-                      <p className="text-[11px] text-foreground/80 leading-relaxed">{friction.friction}</p>
+                      <p className="typo-card-body text-foreground/80 leading-relaxed">{friction.friction}</p>
                       {friction.rootCause && (
-                        <p className="text-[10px] text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
+                        <p className="typo-card-meta text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
                       )}
                     </div>
                   )}
@@ -281,7 +281,7 @@ function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { tit
           {title}
         </span>
         <span className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden sm:inline">Details</span>
+          <span className="typo-card-meta font-bold uppercase tracking-widest text-muted-foreground hidden sm:inline">Details</span>
           <ChevronDown size={14} className="transition-transform text-muted-foreground" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
         </span>
       </CollapsibleTrigger>
@@ -302,7 +302,7 @@ function SectionHeader({ current, total, label, icon: Icon }: { current: number;
         </div>
         <div>
           <p className="text-sm font-bold text-foreground leading-tight">{label}</p>
-          <p className="text-[10px] text-muted-foreground font-medium">Section {current} of {total}</p>
+          <p className="typo-card-meta text-muted-foreground font-medium">Section {current} of {total}</p>
         </div>
       </div>
       <div className="flex items-center gap-1">
@@ -448,7 +448,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           >
             <Sparkles size={15} /> Generate Redesign
           </button>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="typo-card-meta text-muted-foreground">
             Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
           </p>
         </div>
@@ -467,7 +467,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             Deep analysis of <strong>{product.name}</strong> — questioning every assumption and generating radical reinvention ideas.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-3 max-w-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-sm">
           {[
             { icon: Brain, label: "Assumptions" },
             { icon: FlipHorizontal, label: "Flip Logic" },
@@ -475,7 +475,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="p-3 rounded text-center" style={{ background: "hsl(var(--muted))" }}>
               <Icon size={18} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
-              <p className="text-[10px] font-semibold text-muted-foreground">{label}</p>
+              <p className="typo-card-meta font-semibold text-muted-foreground">{label}</p>
             </div>
           ))}
         </div>
@@ -487,7 +487,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         >
           <Brain size={15} /> Run Disrupt Analysis
         </button>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="typo-card-meta text-muted-foreground">
           Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
         </p>
       </div>
@@ -528,7 +528,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           >
             <Sparkles size={15} /> Generate Redesign
           </button>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="typo-card-meta text-muted-foreground">
             Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
           </p>
         </div>
@@ -543,7 +543,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </div>
             <div>
               <h3 className="font-bold text-foreground text-sm leading-tight">{concept.conceptName}</h3>
-              <p className="text-[10px] text-muted-foreground">{concept.tagline}</p>
+              <p className="typo-card-meta text-muted-foreground">{concept.tagline}</p>
             </div>
           </div>
           <button
@@ -559,13 +559,13 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
         {/* Core insight */}
         <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider mb-1 text-muted-foreground">Core Insight</p>
+          <p className="typo-card-eyebrow mb-1 text-muted-foreground">Core Insight</p>
           <p className="text-sm leading-relaxed text-foreground/85">{concept.coreInsight}</p>
         </div>
 
         {/* Radical Differences */}
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Radical Differences</p>
+          <p className="typo-card-eyebrow text-muted-foreground mb-2">Radical Differences</p>
           <div className="space-y-1.5">
             {concept.radicalDifferences.map((diff, i) => (
               <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
@@ -579,15 +579,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         {/* Physical Description */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Physical Form</p>
-            <p className="text-xs text-foreground/80">{concept.physicalDescription}</p>
-            {concept.sizeAndWeight && <p className="text-[10px] text-muted-foreground mt-1">Size: {concept.sizeAndWeight}</p>}
+            <p className="typo-card-eyebrow text-muted-foreground mb-1">Physical Form</p>
+            <p className="typo-card-body text-foreground/80">{concept.physicalDescription}</p>
+            {concept.sizeAndWeight && <p className="typo-card-meta text-muted-foreground mt-1">Size: {concept.sizeAndWeight}</p>}
           </div>
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Materials</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-1">Materials</p>
             <div className="flex flex-wrap gap-1">
               {concept.materials.map((m, i) => (
-                <span key={i} className="px-2 py-0.5 rounded-full text-[10px] font-medium" style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>{m}</span>
+                <span key={i} className="px-2 py-0.5 rounded-full typo-card-meta font-medium" style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>{m}</span>
               ))}
             </div>
           </div>
@@ -596,7 +596,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         {/* Smart Features */}
         {concept.smartFeatures?.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Smart Features</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-2">Smart Features</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {concept.smartFeatures.map((f, i) => (
                 <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
@@ -610,12 +610,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
         {/* UX Transformation & Friction Eliminated */}
         <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">User Experience Transformation</p>
+          <p className="typo-card-eyebrow text-muted-foreground mb-1">User Experience Transformation</p>
           <p className="text-xs text-foreground/80 leading-relaxed">{concept.userExperienceTransformation}</p>
         </div>
         {concept.frictionEliminated?.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Friction Eliminated</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-2">Friction Eliminated</p>
             <div className="space-y-1">
               {concept.frictionEliminated.map((f, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs">
@@ -636,7 +636,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             { label: "Risk Level", value: concept.riskLevel || "—" },
           ].map((item) => (
             <div key={item.label} className="p-2 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{item.label}</p>
+              <p className="typo-status-label text-muted-foreground">{item.label}</p>
               <p className="text-xs font-bold text-foreground mt-0.5">{item.value}</p>
             </div>
           ))}
@@ -645,15 +645,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert} defaultOpen>
           <div className="space-y-2 mb-2">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Why Not Already Done</p>
+              <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Why Not Already Done</p>
               <p className="text-xs text-foreground/80">{concept.whyItHasntBeenDone}</p>
             </div>
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Biggest Risk</p>
+              <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Biggest Risk</p>
               <p className="text-xs text-foreground/80">{concept.biggestRisk}</p>
             </div>
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Manufacturing Path</p>
+              <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Manufacturing Path</p>
               <p className="text-xs text-foreground/80">{concept.manufacturingPath}</p>
             </div>
           </div>
@@ -672,7 +672,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </div>
           <div>
             <h3 className="font-bold text-foreground text-sm leading-tight">Disrupt: {product.name}</h3>
-            <p className="text-[10px] text-muted-foreground">{totalSections} sections · Click any to jump</p>
+            <p className="typo-card-meta text-muted-foreground">{totalSections} sections · Click any to jump</p>
           </div>
         </div>
         <button
@@ -727,18 +727,18 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 <div key={i} className="p-3.5 rounded-lg" style={{ background: "hsl(var(--card))", border: `1.5px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}` }}>
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <p className="text-xs font-bold text-foreground flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
+                      <span className="w-5 h-5 rounded-full flex items-center justify-center typo-status-label font-bold flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
                       {a.assumption}
                     </p>
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>{reasonStyle.label}</span>
+                      <span className="px-1.5 py-0.5 rounded-full typo-status-label" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>{reasonStyle.label}</span>
                       {a.isChallengeable && <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 30%)" }}>Challengeable</span>}
                       <LeverageScore score={a.leverageScore} />
                     </div>
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed ml-7">{a.currentAnswer}</p>
+                  <p className="typo-card-body text-muted-foreground leading-relaxed ml-7">{a.currentAnswer}</p>
                   {a.challengeIdea && (
-                    <div className="ml-7 mt-1.5 p-2 rounded text-[11px]" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                    <div className="ml-7 mt-1.5 p-2 rounded typo-card-body" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                       <span className="font-bold text-foreground">Challenge: </span>
                       <span className="text-foreground/80">{a.challengeIdea}</span>
                     </div>
@@ -756,9 +756,9 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                   return (
                     <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                       <p className="text-xs font-bold text-foreground mb-0.5">{a.assumption}</p>
-                      <p className="text-[11px] text-muted-foreground">{a.currentAnswer}</p>
+                      <p className="typo-card-body text-muted-foreground">{a.currentAnswer}</p>
                       {a.challengeIdea && (
-                        <p className="text-[11px] mt-1" style={{ color: "hsl(var(--primary))" }}>→ {a.challengeIdea}</p>
+                        <p className="typo-card-body mt-1" style={{ color: "hsl(var(--primary))" }}>→ {a.challengeIdea}</p>
                       )}
                     </div>
                   );

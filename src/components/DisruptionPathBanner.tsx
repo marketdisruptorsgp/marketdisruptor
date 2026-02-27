@@ -65,15 +65,15 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Section heading */}
         <div className="text-center mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-4"
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full typo-status-label mb-4"
             style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
             <Sparkles size={12} />
             How It Works
           </div>
-          <h2 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight">
+          <h2 className="typo-page-title text-xl sm:text-3xl tracking-tight">
             From raw data to investor-ready output
           </h2>
-          <p className="text-sm sm:text-base text-muted-foreground mt-2 max-w-xl mx-auto">
+          <p className="typo-page-meta mt-2 max-w-xl mx-auto">
             Six stages of AI-powered analysis, each building on the last
           </p>
         </div>
@@ -135,7 +135,7 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                       <Icon size={18} style={{ color: "hsl(var(--background))" }} />
                     </div>
                     <span
-                      className="text-[11px] font-bold uppercase tracking-widest"
+                      className="typo-status-label"
                       style={{ color: isActive ? `hsl(${color})` : "hsl(var(--muted-foreground))" }}
                     >
                       Step {i + 1}
@@ -143,12 +143,12 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                   </div>
 
                   {/* Label */}
-                  <h3 className="text-sm sm:text-base font-bold text-foreground mb-1 leading-tight">
+                  <h3 className="typo-card-title mb-1 leading-tight">
                     {label}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-2 flex-1">
+                  <p className="typo-card-body text-muted-foreground leading-relaxed mb-2 flex-1">
                     {desc}
                   </p>
 
@@ -160,7 +160,7 @@ export function DisruptionPathBanner({ activeStep, onStartAnalysis }: Disruption
                       opacity: isHovered || isActive ? 1 : 0,
                     }}
                   >
-                    <p className="text-[11px] text-muted-foreground/80 leading-relaxed pt-3"
+                    <p className="typo-card-meta text-muted-foreground/80 leading-relaxed pt-3"
                       style={{ borderTop: "1px solid hsl(var(--border))" }}>
                       {detail}
                     </p>

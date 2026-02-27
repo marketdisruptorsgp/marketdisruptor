@@ -251,7 +251,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))", opacity: loading ? 0.7 : 1 }}>
           <Presentation size={15} /> Generate Full Pitch Deck
         </button>
-        <p className="text-[11px] text-muted-foreground">Uses Gemini 2.5 Flash · ~20–40 seconds</p>
+        <p className="typo-card-meta text-muted-foreground">Uses Gemini 2.5 Flash · ~20–40 seconds</p>
       </div>
     );
   }
@@ -324,17 +324,17 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         {data.customerPersona && (
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-3">
             <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Target Customer Profile</p>
-              <p className="text-xs font-bold text-foreground">{data.customerPersona.name}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Age: {data.customerPersona.age}</p>
-              <p className="text-[10px] text-muted-foreground">{data.customerPersona.buyingBehavior}</p>
+              <p className="typo-card-eyebrow text-muted-foreground mb-1.5">Target Customer Profile</p>
+              <p className="typo-card-body font-bold text-foreground">{data.customerPersona.name}</p>
+              <p className="typo-card-meta text-muted-foreground mt-0.5">Age: {data.customerPersona.age}</p>
+              <p className="typo-card-meta text-muted-foreground">{data.customerPersona.buyingBehavior}</p>
               <div className="mt-2 pt-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Willingness to Pay</p>
-                <p className="text-[10px] text-foreground/80">{data.customerPersona.willingness}</p>
+                <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Willingness to Pay</p>
+                <p className="typo-card-meta text-foreground/80">{data.customerPersona.willingness}</p>
               </div>
             </div>
             <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Key Pain Points</p>
+              <p className="typo-card-eyebrow text-muted-foreground mb-1.5">Key Pain Points</p>
               <div className="space-y-1.5">
                 {data.customerPersona.painPoints.slice(0, 4).map((p, i) => (
                   <SlideBullet key={i} index={i} accentColor={accentColor}>{p}</SlideBullet>
@@ -351,12 +351,12 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       <div className="space-y-3 h-full flex flex-col justify-center">
         <SlideQuoteBlock quote={data.elevatorPitch} accentColor={accentColor} label="Elevator Pitch" />
         <div className="p-3 sm:p-4 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Solution Overview</p>
-          <p className="text-[11px] sm:text-xs leading-relaxed text-foreground/85">{data.solutionStatement}</p>
+          <p className="typo-card-eyebrow text-muted-foreground mb-1.5">Solution Overview</p>
+          <p className="typo-card-body leading-relaxed text-foreground/85">{data.solutionStatement}</p>
         </div>
         {data.competitiveAdvantages?.length > 0 && (
           <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Key Differentiators</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-1.5">Key Differentiators</p>
             <div className="space-y-1.5">
               {data.competitiveAdvantages.slice(0, 3).map((a, i) => (
                 <SlideBullet key={i} index={i} accentColor={accentColor}>{a}</SlideBullet>
@@ -371,26 +371,26 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     whynow: (
       <div className="space-y-3 h-full flex flex-col justify-center">
         <SlideQuoteBlock quote={data.whyNow} accentColor={accentColor} label="Market Timing Thesis" />
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {[
             { label: "Market Shift", desc: "Structural industry change creating new entry points" },
             { label: "Tech Enabler", desc: "New capabilities reducing cost and complexity barriers" },
             { label: "Demand Signal", desc: "Consumer behavior evolution favoring this approach" },
           ].map((item) => (
             <div key={item.label} className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderTop: `2px solid ${accentColor}` }}>
-              <p className="text-[9px] font-bold text-foreground mb-0.5">{item.label}</p>
-              <p className="text-[8px] text-muted-foreground leading-snug">{item.desc}</p>
+              <p className="typo-status-label text-foreground mb-0.5">{item.label}</p>
+              <p className="typo-card-meta text-muted-foreground leading-snug">{item.desc}</p>
             </div>
           ))}
         </div>
         {data.marketOpportunity?.growthRate && (
           <div className="flex items-center gap-3 p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
             <div>
-              <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground">Market CAGR</p>
+              <p className="typo-card-eyebrow text-muted-foreground">Market CAGR</p>
               <p className="text-base font-bold text-foreground">{data.marketOpportunity.growthRate}</p>
             </div>
             <div className="h-6 w-px" style={{ background: "hsl(var(--border))" }} />
-            <p className="text-[10px] text-muted-foreground flex-1">Accelerating tailwinds create a narrow window for first-mover advantage</p>
+            <p className="typo-card-meta text-muted-foreground flex-1">Accelerating tailwinds create a narrow window for first-mover advantage</p>
           </div>
         )}
       </div>
@@ -409,11 +409,11 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Growth Rate</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Growth Rate</p>
             <p className="text-base font-bold text-foreground">{data.marketOpportunity.growthRate}</p>
           </div>
           <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Key Drivers</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-1">Key Drivers</p>
             <div className="space-y-1">
               {data.marketOpportunity.keyDrivers.slice(0, 3).map((d, i) => (
                 <SlideBullet key={i}>{d}</SlideBullet>
@@ -432,7 +432,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Competitive Advantages</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-2">Competitive Advantages</p>
             <div className="space-y-1.5">
               {data.competitiveAdvantages.slice(0, 4).map((adv, i) => (
                 <SlideBullet key={i} index={i} accentColor={accentColor}>{adv}</SlideBullet>
@@ -440,7 +440,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             </div>
           </div>
           <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Investor Highlights</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-2">Investor Highlights</p>
             <div className="space-y-1.5">
               {data.investorHighlights.slice(0, 4).map((h, i) => (
                 <SlideBullet key={i} index={i} accentColor="hsl(142 71% 45%)">{h}</SlideBullet>
@@ -456,10 +456,10 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       <div className="space-y-3 h-full flex flex-col justify-center">
         {data.businessModel?.revenueStreams && (
           <div className="space-y-1.5">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">Revenue Streams</p>
+            <p className="typo-card-eyebrow text-muted-foreground">Revenue Streams</p>
             <div className="flex flex-wrap gap-1.5">
               {data.businessModel.revenueStreams.map((s, i) => (
-                <span key={i} className="px-2.5 py-1 rounded-md text-[10px] font-semibold"
+                <span key={i} className="px-2.5 py-1 rounded-md typo-card-meta font-semibold"
                   style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
                   {s}
                 </span>
@@ -488,14 +488,14 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {fm.pricingStrategy && (
                 <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Pricing Strategy</p>
-                  <p className="text-[11px] text-foreground/85 leading-relaxed">{fm.pricingStrategy}</p>
+                  <p className="typo-card-eyebrow text-muted-foreground mb-1">Pricing Strategy</p>
+                  <p className="typo-card-body text-foreground/85 leading-relaxed">{fm.pricingStrategy}</p>
                 </div>
               )}
               {fm.breakEvenAnalysis && (
                 <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Break-Even Analysis</p>
-                  <p className="text-[11px] text-foreground/85 leading-relaxed">{fm.breakEvenAnalysis}</p>
+                  <p className="typo-card-eyebrow text-muted-foreground mb-1">Break-Even Analysis</p>
+                  <p className="typo-card-body text-foreground/85 leading-relaxed">{fm.breakEvenAnalysis}</p>
                 </div>
               )}
             </div>
@@ -509,7 +509,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       <div className="space-y-3 h-full flex flex-col justify-center">
         {data.tractionSignals?.length ? (
           <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Traction Signals</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-2">Traction Signals</p>
             <div className="space-y-1.5">
               {data.tractionSignals.slice(0, 4).map((s, i) => (
                 <SlideBullet key={i} index={i} accentColor="hsl(142 71% 45%)">{s}</SlideBullet>
@@ -518,12 +518,12 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           </div>
         ) : (
           <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] text-muted-foreground text-center">Pre-launch — traction targets defined below</p>
+            <p className="typo-card-meta text-muted-foreground text-center">Pre-launch — traction targets defined below</p>
           </div>
         )}
         {data.keyMetrics?.length > 0 && (
           <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Key Performance Indicators</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-2">Key Performance Indicators</p>
             <div className="space-y-2.5">
               {data.keyMetrics.slice(0, 5).map((m, i) => (
                 <MetricBar key={i} metric={m.metric} target={m.target} why={m.why} accentColor={accentColor} />
@@ -532,15 +532,15 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           </div>
         )}
         <div className="p-3 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
-          <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Revival Potential Score</p>
+          <p className="typo-card-eyebrow text-muted-foreground mb-2">Revival Potential Score</p>
           <div className="flex items-center gap-4">
             <div className="text-center">
-              <p className="text-[8px] text-muted-foreground mb-0.5">AI Score</p>
+              <p className="typo-card-meta text-muted-foreground mb-0.5">AI Score</p>
               <p className="text-xl font-bold text-foreground">{product.revivalScore || "—"}</p>
             </div>
             <div className="flex-1 space-y-1.5">
               <div className="flex items-center justify-between">
-                <p className="text-[9px] text-muted-foreground">Your Rating</p>
+                <p className="typo-card-meta text-muted-foreground">Your Rating</p>
                 <span className="text-xs font-bold text-foreground">{userScore}/10</span>
               </div>
               <Slider value={[userScore]} onValueChange={(v) => setUserScore(v[0])} min={1} max={10} step={1} />
@@ -556,8 +556,8 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         {data.risks.map((r, i) => (
           <div key={i} className="rounded-md overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
             <div className="flex items-center justify-between gap-2 px-3 py-2" style={{ background: "hsl(var(--muted))" }}>
-              <p className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
-                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black flex-shrink-0"
+              <p className="typo-card-body font-bold text-foreground flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-full flex items-center justify-center typo-status-label flex-shrink-0"
                   style={{ background: r.severity === "high" ? "hsl(0 72% 51%)" : r.severity === "medium" ? "hsl(38 92% 50%)" : "hsl(142 71% 45%)", color: "white" }}>
                   {i + 1}
                 </span>
@@ -566,8 +566,8 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
               <RiskSeverityBar severity={r.severity} />
             </div>
             <div className="px-3 py-2" style={{ borderLeft: `3px solid ${r.severity === "high" ? "hsl(0 72% 51%)" : r.severity === "medium" ? "hsl(38 92% 50%)" : "hsl(142 71% 45%)"}` }}>
-              <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Mitigation Strategy</p>
-              <p className="text-[11px] text-foreground/85 leading-relaxed">{r.mitigation}</p>
+              <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Mitigation Strategy</p>
+              <p className="typo-card-body text-foreground/85 leading-relaxed">{r.mitigation}</p>
             </div>
           </div>
         ))}
@@ -598,10 +598,10 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Distribution Channels</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-1.5">Distribution Channels</p>
             <div className="flex flex-wrap gap-1">
               {data.gtmStrategy.keyChannels.map((ch, i) => (
-                <span key={i} className="px-2 py-0.5 rounded-md text-[10px] font-semibold"
+                <span key={i} className="px-2 py-0.5 rounded-md typo-card-meta font-semibold"
                   style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", borderLeft: `2px solid ${accentColor}` }}>{ch}</span>
               ))}
             </div>
@@ -618,7 +618,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     invest: (
       <div className="space-y-3 h-full flex flex-col justify-center">
         <div className="p-4 rounded-md text-center relative overflow-hidden" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))", borderLeft: `4px solid ${accentColor}` }}>
-          <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Total Funding Ask</p>
+          <p className="typo-card-eyebrow text-muted-foreground mb-1">Total Funding Ask</p>
           <p className="text-xl sm:text-2xl font-bold text-foreground">{fm?.fundingAsk || data.investmentAsk?.amount || "TBD"}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
@@ -654,7 +654,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Use of Funds</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-1">Use of Funds</p>
             <div className="space-y-1">
               {(fm?.useOfFunds || data.investmentAsk?.useOfFunds || []).slice(0, 5).map((u, i) => (
                 <SlideBullet key={i} index={i} accentColor={accentColor}>{u}</SlideBullet>
@@ -662,8 +662,8 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             </div>
           </div>
           <div className="p-2.5 rounded-md" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Exit Strategy</p>
-            <p className="text-[11px] text-foreground/85 leading-relaxed">{fm?.exitStrategy || data.investmentAsk?.exitStrategy || "TBD"}</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-1">Exit Strategy</p>
+            <p className="typo-card-body text-foreground/85 leading-relaxed">{fm?.exitStrategy || data.investmentAsk?.exitStrategy || "TBD"}</p>
           </div>
         </div>
       </div>
@@ -695,7 +695,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="font-bold text-foreground text-sm">Pitch Deck: {product.name}</h3>
-          <p className="text-[10px] text-muted-foreground">{TOTAL} slides · Click any to jump</p>
+          <p className="typo-card-meta text-muted-foreground">{TOTAL} slides · Click any to jump</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setPresenting(true)}

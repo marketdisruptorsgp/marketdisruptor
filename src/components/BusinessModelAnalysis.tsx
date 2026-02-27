@@ -380,7 +380,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           const isActive = activeTab === t.id;
           return (
             <button key={t.id} onClick={() => { setActiveTab(t.id); scrollToSteps(); }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg typo-card-meta font-semibold transition-all"
               style={{
                 background: isActive ? "hsl(var(--primary))" : "transparent",
                 color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
@@ -400,19 +400,19 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Business Reality" icon={Eye} />
 
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>True Job To Be Done</p>
+            <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>True Job To Be Done</p>
             <p className="text-sm text-foreground leading-relaxed">{data.businessSummary.trueJobToBeDone}</p>
             <InsightRating sectionId="biz-jtbd" compact />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">How Money Flows</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.businessSummary.currentModel}</p>
+              <p className="typo-card-eyebrow text-muted-foreground mb-1">How Money Flows</p>
+              <p className="typo-card-body text-foreground/80 leading-relaxed">{data.businessSummary.currentModel}</p>
             </div>
             <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Market Position</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{data.businessSummary.marketPosition}</p>
+              <p className="typo-card-eyebrow text-muted-foreground mb-1">Market Position</p>
+              <p className="typo-card-body text-foreground/80 leading-relaxed">{data.businessSummary.marketPosition}</p>
             </div>
           </div>
 
@@ -440,7 +440,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           <div className="flex flex-wrap gap-1.5 items-center">
             {data.operationalAudit.customerJourney.slice(0, 5).map((step, i) => (
               <div key={i} className="flex items-center gap-1">
-                <span className="px-2 py-1 rounded text-[10px] font-semibold" style={{ background: "hsl(var(--muted))" }}>
+                <span className="px-2 py-1 rounded typo-card-meta font-semibold" style={{ background: "hsl(var(--muted))" }}>
                   {i + 1}. {step.length > 35 ? step.slice(0, 35) + "…" : step}
                 </span>
                 {i < Math.min(data.operationalAudit.customerJourney.length, 5) - 1 && <ChevronRight size={10} className="text-muted-foreground" />}
@@ -454,8 +454,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             return (
               <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
                 <div className="flex items-center justify-between mb-0.5">
-                  <p className="text-[10px] font-bold" style={{ color: col.text }}>{fp.stage}</p>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ color: col.text }}>{col.label}</span>
+                  <p className="typo-card-meta font-bold" style={{ color: col.text }}>{fp.stage}</p>
+                  <span className="px-2 py-0.5 rounded-full typo-status-label" style={{ color: col.text }}>{col.label}</span>
                 </div>
                 <p className="text-xs text-foreground/80 leading-relaxed">{fp.friction}</p>
               </div>
@@ -469,7 +469,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                   const col = IMPACT_COLORS[fp.impact] || IMPACT_COLORS.medium;
                   return (
                     <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
-                      <p className="text-[10px] font-bold" style={{ color: col.text }}>{fp.stage}</p>
+                      <p className="typo-card-meta font-bold" style={{ color: col.text }}>{fp.stage}</p>
                       <p className="text-xs text-foreground/80">{fp.friction}</p>
                       <DataLabel label={fp.dataLabel} />
                     </div>
@@ -484,7 +484,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               <p className="text-xs text-foreground/80">{data.operationalAudit.costStructure.fixedVsVariable}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Biggest Cost Drivers</p>
+                  <p className="typo-card-eyebrow text-muted-foreground">Biggest Cost Drivers</p>
                   {data.operationalAudit.costStructure.biggestCostDrivers.map((c, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs">
                       <ChevronRight size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
@@ -493,7 +493,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                   ))}
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Revenue Leaks</p>
+                  <p className="typo-card-eyebrow text-muted-foreground">Revenue Leaks</p>
                   {data.operationalAudit.revenueLeaks.slice(0, 3).map((leak, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs">
                       <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
@@ -520,17 +520,17 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: `1px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))"}` }}>
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="text-xs font-bold text-foreground flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
+                    <span className="w-5 h-5 rounded-full flex items-center justify-center typo-status-label font-bold flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
                     {a.assumption}
                   </p>
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: `${catColor}18`, color: catColor }}>{a.category}</span>
+                    <span className="px-1.5 py-0.5 rounded-full typo-status-label" style={{ background: `${catColor}18`, color: catColor }}>{a.category}</span>
                     <LeverageScore score={a.leverageScore} />
                   </div>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed ml-7">{a.currentAnswer}</p>
+                <p className="typo-card-body text-muted-foreground leading-relaxed ml-7">{a.currentAnswer}</p>
                 {a.challengeIdea && (
-                  <div className="ml-7 mt-1 p-2 rounded text-[11px]" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <div className="ml-7 mt-1 p-2 rounded typo-card-body" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                     <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>Challenge: </span>
                     <span className="text-foreground/80">{a.challengeIdea}</span>
                   </div>
@@ -544,9 +544,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               <div className="space-y-2 mb-2">
                 {data.hiddenAssumptions.slice(3).map((a, i) => (
                   <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="text-xs font-bold text-foreground mb-0.5">{a.assumption}</p>
-                    <p className="text-[11px] text-muted-foreground">{a.currentAnswer}</p>
-                    {a.challengeIdea && <p className="text-[11px] mt-1" style={{ color: "hsl(var(--primary))" }}>→ {a.challengeIdea}</p>}
+                    <p className="typo-card-body font-bold text-foreground mb-0.5">{a.assumption}</p>
+                    <p className="typo-card-body text-muted-foreground">{a.currentAnswer}</p>
+                    {a.challengeIdea && <p className="typo-card-body mt-1" style={{ color: "hsl(var(--primary))" }}>→ {a.challengeIdea}</p>}
                   </div>
                 ))}
               </div>
@@ -563,7 +563,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Tech Leverage" icon={Cpu} />
 
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Current Tech Level</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-1">Current Tech Level</p>
             <p className="text-xs text-foreground/80 leading-relaxed">{data.technologyLeverage.currentTechLevel}</p>
           </div>
 
@@ -574,9 +574,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="text-xs font-bold text-foreground">{opp.process}</p>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold flex-shrink-0" style={{ background: diff.bg, color: diff.text }}>{opp.implementationDifficulty}</span>
+                  <span className="px-2 py-0.5 rounded-full typo-status-label flex-shrink-0" style={{ background: diff.bg, color: diff.text }}>{opp.implementationDifficulty}</span>
                 </div>
-                <p className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary))" }}>→ {opp.technology}</p>
+                <p className="typo-card-meta font-semibold" style={{ color: "hsl(var(--primary))" }}>→ {opp.technology}</p>
                 <p className="text-xs text-muted-foreground">{opp.costSaving}</p>
               </div>
             );
@@ -597,7 +597,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 </div>
               ))}
               <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Platform Opportunity</p>
+                <p className="typo-card-meta font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Platform Opportunity</p>
                 <p className="text-xs text-foreground/80">{data.technologyLeverage.platformOpportunity}</p>
               </div>
             </div>
@@ -613,7 +613,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Revenue Reinvention" icon={DollarSign} />
 
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Current Revenue Mix</p>
+            <p className="typo-card-eyebrow text-muted-foreground mb-1">Current Revenue Mix</p>
             <p className="text-xs text-foreground/80">{data.revenueReinvention.currentRevenueMix}</p>
           </div>
 
@@ -624,10 +624,10 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="text-xs font-bold text-foreground">{stream.stream}</p>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: eff.bg, color: eff.text }}>{stream.effort} effort</span>
+                  <span className="px-2 py-0.5 rounded-full typo-status-label" style={{ background: eff.bg, color: eff.text }}>{stream.effort} effort</span>
                 </div>
                 <p className="text-xs text-foreground/80">{stream.mechanism}</p>
-                <p className="text-[10px] font-semibold" style={{ color: "hsl(142 70% 30%)" }}>Est: {stream.estimatedSize}</p>
+                <p className="typo-card-meta font-semibold" style={{ color: "hsl(142 70% 30%)" }}>Est: {stream.estimatedSize}</p>
               </div>
             );
           })}
@@ -641,7 +641,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 </div>
               ))}
               <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Bold Pricing Redesign</p>
+                <p className="typo-card-meta font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Bold Pricing Redesign</p>
                 <p className="text-xs text-foreground/80">{data.revenueReinvention.pricingRedesign}</p>
               </div>
               {data.revenueReinvention.bundleOpportunities.map((b, i) => (
@@ -661,7 +661,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
 
           {/* Disruptor profile — key insight */}
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--destructive))" }}>The Startup That Could Kill This Business</p>
+            <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--destructive))" }}>The Startup That Could Kill This Business</p>
             <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis.disruptorProfile}</p>
             <InsightRating sectionId="biz-disruptor" compact />
           </div>
@@ -675,7 +675,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 </div>
               ))}
               <div className="pt-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Defense Moves</p>
+                <p className="typo-card-eyebrow text-muted-foreground mb-1">Defense Moves</p>
                 {data.disruptionAnalysis.defenseMoves.map((m, i) => (
                   <div key={i} className="flex items-start gap-2 text-xs mb-1">
                     <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
@@ -687,7 +687,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           </DetailPanel>
 
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>If You Were Disrupting With $1M…</p>
+            <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>If You Were Disrupting With $1M…</p>
             <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis.attackMoves}</p>
             <InsightRating sectionId="biz-attack" compact />
           </div>
@@ -705,7 +705,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           <div className="p-5 rounded-lg relative overflow-hidden"
             style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white" }}>
             <div className="relative">
-              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Reinvented Business Model</p>
+              <p className="typo-card-eyebrow opacity-80 mb-2">Reinvented Business Model</p>
               <h2 className="text-xl font-black mb-1">{data.reinventedModel.modelName}</h2>
               <p className="text-xs leading-relaxed opacity-80">{data.reinventedModel.coreShift}</p>
               <InsightRating sectionId="biz-reinvented" compact />
@@ -726,11 +726,11 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           {/* Value + Economics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 30%)" }}>New Value Proposition</p>
+              <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(142 70% 30%)" }}>New Value Proposition</p>
               <p className="text-xs text-foreground/80">{data.reinventedModel.newValueProposition}</p>
             </div>
             <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(217 91% 40%)" }}>Economic Transformation</p>
+              <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(217 91% 40%)" }}>Economic Transformation</p>
               <p className="text-xs text-foreground/80">{data.reinventedModel.economicTransformation}</p>
             </div>
           </div>
@@ -739,7 +739,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             <div className="space-y-3 mb-2">
               {data.reinventedModel.implementationRoadmap.map((phase, i) => (
                 <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(var(--primary))", color: "white" }}>{phase.phase}</span>
+                  <span className="px-2 py-0.5 rounded-full typo-card-meta font-bold" style={{ background: "hsl(var(--primary))", color: "white" }}>{phase.phase}</span>
                   <div className="space-y-1 mt-2">
                     {phase.actions.map((a, j) => (
                       <div key={j} className="flex items-start gap-2 text-xs">
@@ -748,20 +748,20 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                       </div>
                     ))}
                   </div>
-                  <p className="text-[10px] font-semibold mt-1 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}><CheckCircle2 size={10} /> {phase.milestone}</p>
+                  <p className="typo-card-meta font-semibold mt-1 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}><CheckCircle2 size={10} /> {phase.milestone}</p>
                 </div>
               ))}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase">ROI</p>
+                  <p className="typo-card-eyebrow text-muted-foreground">ROI</p>
                   <p className="text-xs text-foreground/80">{data.reinventedModel.estimatedROI}</p>
                 </div>
                 <div className="p-3 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
-                  <p className="text-[10px] font-bold uppercase" style={{ color: "hsl(var(--destructive))" }}>Biggest Risk</p>
+                  <p className="typo-card-eyebrow" style={{ color: "hsl(var(--destructive))" }}>Biggest Risk</p>
                   <p className="text-xs text-foreground/80">{data.reinventedModel.biggestRisk}</p>
                 </div>
                 <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Capabilities</p>
+                  <p className="typo-card-eyebrow text-muted-foreground">Capabilities</p>
                   {data.reinventedModel.requiredCapabilities.slice(0, 3).map((c, i) => (
                     <p key={i} className="text-xs text-foreground/80">• {c}</p>
                   ))}

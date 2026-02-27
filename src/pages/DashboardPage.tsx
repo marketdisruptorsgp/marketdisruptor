@@ -104,7 +104,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button
               onClick={() => navigate("/about")}
-              className="px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary border border-border text-foreground transition-colors hover:bg-muted">
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary border border-border text-foreground transition-colors hover:bg-muted">
 
               Learn More
             </button>
@@ -112,7 +112,7 @@ export default function DashboardPage() {
 
           {/* Built For */}
           <p className="typo-card-eyebrow mt-8 sm:mt-10 mb-3 sm:mb-4 text-center">Built For</p>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 max-w-3xl mx-auto text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-3xl mx-auto text-left">
             {[
             { icon: Rocket, title: "Entrepreneurs", desc: "Data-driven conviction, not guesswork." },
             { icon: TrendingUp, title: "Investors", desc: "Adversarial rigor before committing capital." },
