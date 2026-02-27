@@ -31,10 +31,10 @@ const WHAT_IT_DOES = [
 ];
 
 const BUILT_FOR = [
-  { icon: Rocket, title: "Entrepreneurs", desc: "Seeing opportunities others overlook with data-driven conviction, not guesswork." },
-  { icon: TrendingUp, title: "Investors", desc: "Applying adversarial rigor to evaluate opportunities before committing capital." },
-  { icon: Users, title: "Product Teams", desc: "Stress-testing strategy, positioning, and assumptions before launch." },
-  { icon: FileText, title: "Agencies", desc: "Delivering data-backed strategic perspectives that go beyond surface-level analysis." },
+  { icon: Rocket, title: "Founders & Entrepreneurs", outcome: "Validate before you build", desc: "Replace gut-feel with data-driven conviction across market, pricing, and positioning." },
+  { icon: TrendingUp, title: "Investors & Analysts", outcome: "Diligence in minutes", desc: "Adversarial stress-testing and market intelligence that surfaces hidden risks." },
+  { icon: Users, title: "Product & Strategy Teams", outcome: "Ship with confidence", desc: "Deconstruct competitors, map supply chains, and pressure-test go-to-market plans." },
+  { icon: FileText, title: "Consultants & Agencies", outcome: "Elevate client work", desc: "Generate investor-grade analysis and pitch decks backed by real market data." },
 ];
 
 export default function AboutPage() {
@@ -179,16 +179,21 @@ export default function AboutPage() {
 
         {/* Built For */}
         <section className="mb-20">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Built For</p>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-8">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 text-center">Who it's for</p>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-8 text-center">
             Decision-makers who need depth, not dashboards
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {BUILT_FOR.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="rounded-xl border border-border p-5 bg-card shadow-sm transition-shadow hover:shadow-md">
-                <Icon size={18} className="text-primary mb-3" />
-                <p className="text-sm font-semibold text-foreground">{title}</p>
-                <p className="text-sm text-muted-foreground leading-relaxed mt-1">{desc}</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {BUILT_FOR.map(({ icon: Icon, title, outcome, desc }) => (
+              <div key={title} className="rounded-xl border border-border bg-card p-4 flex flex-col transition-shadow hover:shadow-md">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.1)" }}>
+                    <Icon size={15} className="text-primary" />
+                  </div>
+                  <p className="text-sm font-bold text-foreground leading-tight">{title}</p>
+                </div>
+                <p className="text-xs font-semibold text-primary mb-1">{outcome}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
