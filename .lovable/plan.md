@@ -1,26 +1,56 @@
 
 
-## Plan: Solid Mode Color for Visited Section Cards
+## Plan: Remove Specific Platform References (Reddit, TikTok, etc.) System-Wide
 
-The user wants visited cards to have the **full solid accent color** as background (same as the active card), with white text/numbers — not the current faint 30% opacity tint.
+Replace all hardcoded references to Reddit, TikTok, Trustpilot, eBay, Etsy, etc. with generic terms ("community", "web sources", "online platforms") unless the data itself surfaces those platforms as analytically relevant.
 
-### Change: `src/components/SectionNav.tsx` (lines 234-290)
+### Files to Change
 
-**Visited card background** — change from `${accent}30` (faint tint) to solid `${accent}` (same as active):
-- Line 239: `${accent}30` → `accent` (solid color)
+**1. `supabase/functions/scrape-products/index.ts`** — Scraping queries
+- Remove `site:reddit.com`, `site:trustpilot.com`, `site:g2.com`, `site:capterra.com` from hardcoded queries
+- Replace with generic queries: `"customer reviews complaints"`, `"community discussion forums"`, etc.
+- Remove `TikTok viral nostalgia trend` query, replace with generic trend/viral query
+- Remove `site:reddit.com` from custom product search queries
+- Rename `redditPosts` array/stats → `communityPosts`
+- Rename `redditContent` response field → `communityContent`
 
-**Visited icon container** — use the same white-on-accent style as active:
-- Line 253: keep `"hsla(0 0% 100% / 0.2)"` for both active and visited
+**2. `supabase/functions/analyze-products/index.ts`** — AI prompts & schemas
+- Rename `redditSentiment` → `communitySentiment` in both JSON schema examples (service + product)
+- Remove `"with specific subreddit references"` and `"Reddit community sentiment"` from descriptions
+- Change `socialSignals` examples from `{"platform": "TikTok"...}`, `{"platform": "Reddit"...}` → generic `{"platform": "Social Media"...}`, `{"platform": "Community Forums"...}`
+- Rename `redditContent` variable → `communityContent`
+- Remove `"Real Reddit community sentiment"` from user prompt, replace with `"Real community sentiment"`
+- Remove `"MAIN SCRAPED CONTENT (eBay, Etsy, Google, TikTok)"` → `"MAIN SCRAPED CONTENT"`
+- Remove `"REDDIT COMMUNITY POSTS"` → `"COMMUNITY POSTS"`
+- Change `"Community suggestion or improvement request from Reddit/forums"` → `"Community suggestion or improvement request"`
 
-**Visited text colors** — all white, matching active:
-- Line 265 (step counter): visited color → `"hsla(0 0% 100% / 0.6)"` (same as active)
-- Line 271 (title): visited color → `"white"` (same as active)
-- Line 282 (description): visited color → `"hsla(0 0% 100% / 0.6)"` (same as active)
+**3. `supabase/functions/generate-flip-ideas/index.ts`** — Prompt examples
+- Remove `"r/smartphones discusses weekly"` and `"TikTok Shop"` from the GOOD example
+- Replace with generic: `"sold via social commerce targeting the specific grip frustration that online communities discuss weekly"`
+- Remove hardcoded `"TikTok Shop"` from `channels` example array → `"Social Commerce"`
 
-**Visited bottom border** — remove since the card is already fully colored:
-- Line 242: only show bottom border for active, not visited
+**4. `src/contexts/AnalysisContext.tsx`** — Data pipeline
+- Rename `scrapeData.redditPosts` → `scrapeData.communityPosts` in log
+- Rename `scrapeData.redditContent` → `scrapeData.communityContent` in body sent to analyze
 
-**Active card distinction** — keep the white bottom bar (line 287-289) as the only differentiator between active and visited
+**5. `src/pages/Index.tsx`** — Data pipeline (duplicate of above)
+- Same renames: `redditPosts` → `communityPosts`, `redditContent` → `communityContent`
 
-Result: all visited + active cards are solid accent color with white text. Only unvisited cards remain neutral. The active card has a small white underline to distinguish it.
+**6. `src/pages/ReportPage.tsx`** — UI rendering
+- Rename all `redditSentiment` type references → `communitySentiment`
+- Update `hasRealSentiment` regex filter to remove `reddit` references
+- Label already says "Community Sentiment" — no change needed there
+
+**7. `src/pages/ShareableAnalysisPage.tsx`** — Shareable view
+- Rename `redditSentiment` → `communitySentiment`
+- Update regex filter
+
+**8. `src/components/KeyTakeawayBanner.tsx`** — Helper type
+- Rename `redditSentiment` → `communitySentiment` in `getCommunityTakeaway` param type
+
+**9. `src/lib/explainers.ts`** — Explainer text
+- Change `"Community Intel scrapes Reddit, forums, and review platforms"` → `"Community Intel scrapes forums, review platforms, and public discussions"`
+
+### Deployment
+- Redeploy `scrape-products`, `analyze-products`, `generate-flip-ideas` edge functions
 
