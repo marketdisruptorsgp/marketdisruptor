@@ -31,11 +31,6 @@ CORE PRINCIPLES:
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
 
-DATA VALIDATION — Tag all claims:
-- [VERIFIED] — From cited public source or user-provided data
-- [MODELED] — Derived logically from verified inputs
-- [ASSUMPTION] — Logical assumption where no verified data exists
-- [DATA GAP] — No reliable source available
 
 OUTPUT RULES:
 - Metrics must be ≤12 words
@@ -116,8 +111,7 @@ The JSON must follow this EXACT structure:
       "reason": "tradition | manufacturing | cost | physics | habit",
       "isChallengeable": true,
       "challengeIdea": "How you'd challenge or invert this assumption",
-      "leverageScore": 8,
-      "dataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]"
+      "leverageScore": 8
     }
   ],
   "flippedLogic": [
@@ -213,8 +207,7 @@ The JSON must follow this EXACT structure:
       "reason": "tradition | manufacturing | cost | physics | habit",
       "isChallengeable": true,
       "challengeIdea": "How you'd challenge or invert this assumption",
-      "leverageScore": 8,
-      "dataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]"
+      "leverageScore": 8
     }
   ],
   "flippedLogic": [

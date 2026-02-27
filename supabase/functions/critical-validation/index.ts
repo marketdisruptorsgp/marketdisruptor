@@ -30,11 +30,6 @@ CORE PRINCIPLES:
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
 
-DATA VALIDATION — Tag all claims:
-- [VERIFIED] — From cited public source or user-provided data
-- [MODELED] — Derived logically from verified inputs
-- [ASSUMPTION] — Logical assumption where no verified data exists
-- [DATA GAP] — No reliable source available
 
 OUTPUT RULES:
 - Metrics must be ≤12 words
@@ -74,14 +69,14 @@ The JSON must follow this EXACT structure:
   "redTeam": {
     "verdict": "One-line specific verdict citing the #1 concrete challenge (market reality, behavioral barrier, or technical constraint)",
     "arguments": [
-      { "title": "Attack title", "argument": "Detailed argument citing SPECIFIC market realities, behavioral barriers, or technical constraints. Reference real data points where available. (2-3 sentences)", "severity": "critical|major|minor", "biasExposed": "Name of cognitive bias this exposes (e.g. Optimism Bias, Survivorship Bias)", "specificEvidence": "The specific data point, market reality, or constraint behind this attack", "dataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]" }
+      { "title": "Attack title", "argument": "Detailed argument citing SPECIFIC market realities, behavioral barriers, or technical constraints. Reference real data points where available. (2-3 sentences)", "severity": "critical|major|minor", "biasExposed": "Name of cognitive bias this exposes (e.g. Optimism Bias, Survivorship Bias)", "specificEvidence": "The specific data point, market reality, or constraint behind this attack" }
     ],
     "killShot": "The single most devastating challenge — must cite a specific market reality or behavioral barrier"
   },
   "blueTeam": {
     "verdict": "One-line compelling case — cite an analogous success if one exists, or explain the first-mover / new-category advantage",
     "arguments": [
-      { "title": "Defense title", "argument": "Detailed argument citing market signals, behavioral trends, or analogous successes where available. For novel concepts, explain structural advantages of being first. (2-3 sentences)", "strength": "strong|moderate|conditional", "enabler": "What makes this possible (technology, market shift, cultural change, behavioral trend)", "proofPoint": "A real proof point — analogous success, demand signal, or structural advantage", "dataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]" }
+      { "title": "Defense title", "argument": "Detailed argument citing market signals, behavioral trends, or analogous successes where available. For novel concepts, explain structural advantages of being first. (2-3 sentences)", "strength": "strong|moderate|conditional", "enabler": "What makes this possible (technology, market shift, cultural change, behavioral trend)", "proofPoint": "A real proof point — analogous success, demand signal, or structural advantage" }
     ],
     "moonshot": "The single strongest argument for transformative potential"
   },
@@ -101,7 +96,6 @@ The JSON must follow this EXACT structure:
       "item": "Specific thing to verify",
       "status": "critical|important|nice-to-have",
       "detail": "What exactly needs to be checked, WHO to ask, and WHERE to look",
-      "dataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]",
       "estimatedCost": "Rough cost or time to verify"
     }
   ],

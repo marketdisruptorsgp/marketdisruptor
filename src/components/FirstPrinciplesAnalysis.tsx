@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import type { Product, FlippedIdea } from "@/data/mockProducts";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
-import { DataLabel } from "@/components/DataLabel";
+
 import { LeverageScore } from "@/components/LeverageScore";
 import { RiskBadge } from "@/components/RiskBadge";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
