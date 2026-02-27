@@ -406,6 +406,29 @@
   }
 }
 
+/* ── Contrast Safety Utilities ───────────────────────────────────── */
+@layer utilities {
+  /* Force readable text on light backgrounds — use on cards, panels, content areas */
+  .contrast-safe-light {
+    color: hsl(var(--foreground)) !important;
+  }
+  .contrast-safe-light .text-muted {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* Force readable text on dark/accent backgrounds */
+  .contrast-safe-dark {
+    color: white !important;
+  }
+
+  /* CTA container — ensures buttons are never obscured */
+  .cta-container {
+    position: relative;
+    z-index: 10;
+    overflow: visible;
+  }
+}
+
 @keyframes progress-indeterminate {
   0%   { transform: translateX(-100%); width: 40%; }
   50%  { transform: translateX(80%);  width: 60%; }
