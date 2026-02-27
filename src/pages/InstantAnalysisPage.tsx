@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { PlatformNav } from "@/components/PlatformNav";
 import { useSubscription } from "@/hooks/useSubscription";
 import { buildPublicUrl } from "@/lib/publicUrl";
+import { useAnalysis } from "@/contexts/AnalysisContext";
+import { useNavigate } from "react-router-dom";
 
 type AnalysisMode = "custom" | "service" | "business";
 type AnalysisDepth = "quick" | "deep";
@@ -82,12 +84,15 @@ function ConfidenceBadge({ level }: {level: string;}) {
 export default function InstantAnalysisPage() {
   const { tier } = useSubscription();
   const { user, loading: authLoading, isAnonymous, claimAccount } = useAnonymousAuth();
+  const analysis = useAnalysis();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<AnalysisMode>("custom");
   const [depth, setDepth] = useState<AnalysisDepth>("quick");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<PhotoAnalysisResult | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(null);
   const [showClaimForm, setShowClaimForm] = useState(false);
   const [claimEmail, setClaimEmail] = useState("");
   const [claimPassword, setClaimPassword] = useState("");
@@ -171,7 +176,7 @@ export default function InstantAnalysisPage() {
 
       // Auto-save to saved_analyses
       try {
-        await (supabase.from("saved_analyses") as any).insert({
+        const { data: savedRow } = await (supabase.from("saved_analyses") as any).insert({
           user_id: user.id,
           title: analysisData.analysis.name || "Photo Analysis",
           category: analysisData.analysis.category || "General",
@@ -185,7 +190,8 @@ export default function InstantAnalysisPage() {
           analysis_depth: depth,
           is_anonymous: isAnonymous,
           analysis_data: analysisData.analysis
-        });
+        }).select("id").single();
+        if (savedRow?.id) setSavedId(savedRow.id);
       } catch (saveErr) {
         console.error("Auto-save failed:", saveErr);
       }
@@ -568,6 +574,62 @@ export default function InstantAnalysisPage() {
             <ShareAnalysisCTA result={result} modeColor={modeColor} mode={mode} />
 
             {/* Upgrade / Claim CTA */}
+            {/* Continue to Full Analysis CTA — always shown for signed-in users */}
+            {!isAnonymous && savedId && (
+              <div
+                className="rounded-xl border overflow-hidden"
+                style={{ borderColor: `hsl(var(${modeColor}))`, background: `hsl(var(${modeColor}) / 0.04)` }}
+              >
+                <div className="p-5 sm:p-6 text-center space-y-3">
+                  <h3 className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                    Ready to go deeper?
+                  </h3>
+                  <p className="typo-card-body text-muted-foreground max-w-md mx-auto">
+                    Continue into the full analysis pipeline — get disruption strategies, stress tests, redesign concepts, and an investor-ready pitch deck.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      // Convert photo result to product and load into pipeline
+                      const product = {
+                        id: `product-${savedId}-0`,
+                        name: result.name,
+                        category: result.category || "",
+                        image: previews[0] || "",
+                        description: result.description || "",
+                        specs: "",
+                        revivalScore: result.revivalScore ?? 0,
+                        era: "All Eras / Current",
+                        sources: [],
+                        reviews: [],
+                        socialSignals: [],
+                        competitors: [],
+                        assumptionsMap: [],
+                        flippedIdeas: [],
+                        confidenceScores: { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
+                        // Carry over photo analysis data as intel
+                        ...result,
+                      };
+                      analysis.setProducts([product as any]);
+                      analysis.setSelectedProduct(product as any);
+                      analysis.setAnalysisParams({ category: result.category || "General", era: "All Eras / Current", batchSize: 1 });
+                      analysis.setMainTab(mode === "service" ? "service" : "custom");
+                      analysis.setActiveMode(mode === "service" ? "service" : "custom");
+                      analysis.setStep("done");
+                      analysis.setAnalysisId(savedId);
+                      analysis.setLoadedFromSaved(true);
+                      navigate(`/analysis/${savedId}/report`);
+                    }}
+                    size="lg"
+                    className="text-white font-bold px-8 py-3 text-base shadow-lg hover:shadow-xl transition-shadow gap-2"
+                    style={{ background: `hsl(var(${modeColor}))` }}
+                  >
+                    <ArrowRight size={18} /> Continue to Full Analysis
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Upgrade / Claim CTA for anonymous users */}
             {depth === "quick" && isAnonymous ?
           <DeepDiveShowstopper modeColor={modeColor} onSignUp={() => setShowClaimForm(true)} /> :
           depth === "quick" && !isAnonymous ?
