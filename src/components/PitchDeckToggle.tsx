@@ -30,21 +30,22 @@ export function PitchDeckToggle({ contentKey, label, sublabel }: PitchDeckToggle
       <button
         type="button"
         onClick={handleToggle}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
         style={{
-          background: isExcluded ? "hsl(var(--muted))" : "hsl(var(--primary) / 0.12)",
-          color: isExcluded ? "hsl(var(--muted-foreground))" : "hsl(var(--primary))",
-          border: `1px solid ${isExcluded ? "hsl(var(--border))" : "hsl(var(--primary) / 0.25)"}`,
+          background: isExcluded ? "hsl(var(--muted))" : "hsl(var(--primary))",
+          color: isExcluded ? "hsl(var(--muted-foreground))" : "hsl(var(--primary-foreground))",
+          border: isExcluded ? "1.5px dashed hsl(var(--border))" : "1.5px solid hsl(var(--primary-dark))",
+          boxShadow: isExcluded ? "none" : "0 2px 8px hsl(var(--primary) / 0.25)",
         }}
       >
         {isExcluded ? (
           <>
-            <X size={11} />
+            <X size={14} />
             Excluded from Pitch Deck
           </>
         ) : (
           <>
-            <Presentation size={11} />
+            <Presentation size={14} />
             {label || "Included in Pitch Deck"}
           </>
         )}
