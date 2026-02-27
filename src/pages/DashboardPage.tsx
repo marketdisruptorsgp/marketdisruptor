@@ -6,31 +6,15 @@ import { SavedAnalyses } from "@/components/SavedAnalyses";
 import MobileTour from "@/components/MobileTour";
 import { HeroSection } from "@/components/HeroSection";
 import { DisruptionPathBanner } from "@/components/DisruptionPathBanner";
-import { Target } from "lucide-react";
 import PaywallModal from "@/components/PaywallModal";
 import { MarketChangeAlert } from "@/components/MarketChangeAlert";
-
 import { ShowcaseGallery } from "@/components/ShowcaseGallery";
-import { BuiltForSection } from "@/components/BuiltForSection";
-
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import {
   Upload, Briefcase, Building2, ShieldCheck, BookOpen,
-  Rocket, TrendingUp, Users, FileText, ArrowRight, Camera } from
-"lucide-react";
-
-const MODE_WORDS = [
-{ label: "product", color: "hsl(var(--mode-product))" },
-{ label: "service", color: "hsl(var(--mode-service))" },
-{ label: "business", color: "hsl(var(--mode-business))" }];
-
-
-const MODE_PILLS = [
-{ id: "custom" as const, label: "Product", icon: Upload, cssVar: "--mode-product", path: "/start/product" },
-{ id: "service" as const, label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/start/service" },
-{ id: "business" as const, label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/start/business" }];
-
+  ArrowRight,
+} from "lucide-react";
 
 export default function DashboardPage() {
   const { user, profile } = useAuth();
@@ -42,25 +26,12 @@ export default function DashboardPage() {
   const [showSavedPanel, setShowSavedPanel] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
 
-  const [wordIndex, setWordIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setWordIndex((prev) => (prev + 1) % MODE_WORDS.length);
-        setVisible(true);
-      }, 300);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="min-h-screen bg-background">
       {user && <MobileTour userId={user.id} />}
       {showPaywall && <PaywallModal onClose={() => setShowPaywall(false)} />}
 
+      {/* Nav */}
       <HeroSection tier={tier} remainingAnalyses={remainingAnalyses()} profileFirstName={profile?.first_name} onOpenSaved={() => setShowSavedPanel(true)} savedCount={savedCount} />
 
       {/* Market Change Notifications */}
@@ -68,6 +39,7 @@ export default function DashboardPage() {
         <MarketChangeAlert />
       </div>
 
+      {/* Saved Projects Sheet */}
       <Sheet open={showSavedPanel} onOpenChange={setShowSavedPanel}>
         <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader>
@@ -76,150 +48,100 @@ export default function DashboardPage() {
           </SheetHeader>
           <div className="mt-4">
             <SavedAnalyses
-              onLoad={(a) => {analysis.handleLoadSaved(a);setShowSavedPanel(false);}}
+              onLoad={(a) => { analysis.handleLoadSaved(a); setShowSavedPanel(false); }}
               refreshTrigger={analysis.savedRefreshTrigger}
-              onCountChange={setSavedCount} />
-
+              onCountChange={setSavedCount}
+            />
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Hero Section */}
+      {/* ── HERO ── */}
       <section className="bg-background">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4 sm:pt-8 pb-3 sm:pb-6">
-          <h1 className="typo-page-title text-4xl sm:text-5xl tracking-tight leading-tight whitespace-nowrap pl-[15%] sm:pl-[20%] md:text-5xl text-center mx-px">
-            Rethink any{" "}
-            <span
-              className="inline-block transition-opacity duration-300 text-left min-w-[180px] sm:min-w-[320px]"
-              style={{
-                opacity: visible ? 1 : 0,
-                color: MODE_WORDS[wordIndex].color
-              }}>
-
-              {MODE_WORDS[wordIndex].label}
-            </span>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-8 sm:pb-12 text-center">
+          <h1 className="typo-page-title text-3xl sm:text-4xl md:text-5xl tracking-tight text-foreground leading-tight">
+            Rethink Any Market —{" "}
+            <span className="text-primary">Product, Service, or Business Model</span>
           </h1>
-          <p className="typo-page-meta text-base sm:text-base md:text-lg mt-2 sm:mt-3 max-w-2xl mx-auto leading-relaxed px-2 text-center">
-            Deconstruct markets, stress-test strategies, and build what's next.
+          <p className="typo-page-meta text-sm sm:text-base md:text-lg mt-4 max-w-2xl mx-auto leading-relaxed text-muted-foreground">
+            Analyze opportunities, stress-test assumptions, and generate investor-ready outputs.
           </p>
-          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-5">
-            <button
-              onClick={() => navigate("/about")}
-              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-primary text-primary-foreground transition-colors hover:opacity-90">
 
-              Learn More
+          {/* CTAs */}
+          <div className="flex items-center justify-center gap-3 mt-8 flex-wrap">
+            <button
+              onClick={() => navigate("/start")}
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full typo-button-primary bg-primary text-primary-foreground hover:bg-primary-dark transition-colors text-base"
+            >
+              Start Analysis <ArrowRight size={16} />
+            </button>
+            <button
+              onClick={() => {
+                const el = document.getElementById("showcase-section");
+                el?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold transition-colors"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+            >
+              View Example Output
             </button>
           </div>
 
-          {/* Built For */}
-          <div className="mt-6 sm:mt-8">
-            <BuiltForSection />
+          {/* ── MODE PREVIEW CARDS ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-3xl mx-auto text-left">
+            {[
+              { label: "Product", desc: "Deconstruct physical & digital products — positioning, pricing, supply chain.", cssVar: "--mode-product", icon: Upload, path: "/start/product" },
+              { label: "Service", desc: "Tear down service businesses — user journeys, friction points, pricing leverage.", cssVar: "--mode-service", icon: Briefcase, path: "/start/service" },
+              { label: "Business Model", desc: "Full model teardown — revenue, cost structure, value chain, hidden assumptions.", cssVar: "--mode-business", icon: Building2, path: "/start/business" },
+            ].map((mode) => {
+              const Icon = mode.icon;
+              return (
+                <button
+                  key={mode.label}
+                  onClick={() => navigate(mode.path)}
+                  className="rounded-xl border border-border bg-card p-5 flex flex-col gap-3 transition-all hover:shadow-lg hover:border-primary/30 text-left group"
+                  style={{ borderTopWidth: "3px", borderTopColor: `hsl(var(${mode.cssVar}))` }}
+                >
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `hsl(var(${mode.cssVar}) / 0.12)` }}>
+                    <Icon size={18} style={{ color: `hsl(var(${mode.cssVar}))` }} />
+                  </div>
+                  <p className="typo-card-title font-bold text-foreground">{mode.label}</p>
+                  <p className="typo-card-meta text-muted-foreground leading-relaxed">{mode.desc}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-8">
+            <button
+              onClick={() => navigate("/start")}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+            >
+              Start Analysis <ArrowRight size={14} />
+            </button>
           </div>
         </div>
       </section>
 
-      {/* Workflow Pipeline */}
+      {/* ── PIPELINE DIAGRAM — below fold ── */}
       <DisruptionPathBanner />
 
-      {/* Scrutiny CTA */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4 sm:mt-6">
-        <div
-          className="rounded-2xl px-5 py-5 sm:py-6 text-center cursor-pointer transition-all hover:shadow-md"
-          style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
-          onClick={() => navigate("/start")}>
-
-          <p className="typo-card-title mb-1">
-            Apply a level of scrutiny that exceeds normal bandwidth.
-          </p>
-          <p className="typo-section-description mb-3">
-            See what a deep deconstruction reveals about your market.
-          </p>
-          <button
-            className="inline-flex items-center gap-2 px-5 sm:px-7 py-2.5 rounded-full typo-nav-primary text-primary-foreground transition-colors"
-            style={{ background: "hsl(var(--primary))" }}>
-
-            Start Analysis <ArrowRight size={15} />
-          </button>
-        </div>
-      </div>
-
-      {/* Value Proposition Callout */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 my-4 sm:my-6">
-        <div className="rounded-2xl px-4 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          <Target size={18} className="flex-shrink-0 mt-0.5 text-primary" />
-          <div className="flex-1 min-w-0">
-            <p className="typo-card-title mb-0.5">What to expect</p>
-            <p className="typo-card-body text-foreground/70 leading-relaxed text-sm">
-              The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Instant Photo Analysis CTA */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4 sm:mt-5">
-        <div
-          className="rounded-2xl px-5 py-4 sm:py-5 flex flex-col sm:flex-row items-center gap-3 cursor-pointer transition-all hover:shadow-md bg-muted border border-border"
-          onClick={() => navigate("/instant-analysis")}>
-
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Camera size={20} className="text-primary" />
-          </div>
-          <div className="flex-1 text-center sm:text-left">
-            <p className="typo-card-title mb-0.5">Instant Photo Analysis</p>
-            <p className="typo-card-body text-muted-foreground text-sm">
-              Snap a photo of any product and get an AI-powered competitive teardown in seconds.
-            </p>
-          </div>
-          <button className="inline-flex items-center gap-2 px-5 py-2 rounded-full typo-nav-primary bg-primary text-primary-foreground hover:opacity-90 transition-colors flex-shrink-0">
-            Try It <ArrowRight size={14} />
-          </button>
-        </div>
-      </div>
-
-      {/* Showcase Gallery */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-3 sm:mt-5 mb-4 sm:mb-6">
+      {/* ── SHOWCASE GALLERY ── */}
+      <div id="showcase-section" className="max-w-5xl mx-auto px-4 sm:px-6 mt-6 sm:mt-10 mb-6 sm:mb-10">
         <ShowcaseGallery />
-      </div>
-
-      {/* Mode Pills — navigate to start pages */}
-      <div className="border-t border-border bg-card">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
-            {MODE_PILLS.map((pill) => {
-              const Icon = pill.icon;
-              return (
-                <button
-                  key={pill.id}
-                  onClick={() => navigate(pill.path)}
-                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full typo-nav-primary text-white transition-colors hover:opacity-90 hover:shadow-sm"
-                  style={{
-                    background: `hsl(var(${pill.cssVar}))`,
-                  }}>
-
-                  <Icon size={14} />
-                  {pill.label}
-                  <ArrowRight size={12} />
-                </button>);
-
-            })}
-          </div>
-        </div>
       </div>
 
       {/* Footer */}
       <footer className="border-t border-border mt-0">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
             <span className="flex items-center gap-1"><ShieldCheck size={11} /> Your data is encrypted & never shared</span>
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:flex items-center gap-1"><BookOpen size={11} /> Analyses scoped to your account via RLS</span>
           </div>
-          <div className="flex items-center gap-3">
-            <a href="/pricing" className="font-semibold text-primary hover:underline py-1">Enterprise & Teams</a>
-          </div>
+          <a href="/pricing" className="font-semibold text-primary hover:underline py-1">Enterprise & Teams</a>
         </div>
-        <div className="border-t border-border py-5 sm:py-6 text-center px-4">
+        <div className="border-t border-border py-5 text-center px-4">
           <p className="text-xs leading-relaxed">
             <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80 text-primary">
               Built by SGP Capital
@@ -228,6 +150,6 @@ export default function DashboardPage() {
           </p>
         </div>
       </footer>
-    </div>);
-
+    </div>
+  );
 }

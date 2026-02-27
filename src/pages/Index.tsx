@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-
+import { useNavigate } from "react-router-dom";
 
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
@@ -148,6 +148,7 @@ function ValuePropCallout() {
 }
 
 export default function Index() {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { canAnalyze, remainingAnalyses, tier, usage, checkSubscription } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
@@ -620,12 +621,73 @@ export default function Index() {
         </SheetContent>
       </Sheet>
 
-      <main className="max-w-5xl mx-auto px-6 py-10 space-y-6">
-        {/* ── DISRUPTION PATH BANNER ── */}
-        <DisruptionPathBanner />
+      {/* ── NEW HERO SECTION ── */}
+      {step === "idle" && !products.length && !businessAnalysisData && (
+        <section className="max-w-5xl mx-auto px-6 pt-12 sm:pt-20 pb-8 sm:pb-12 text-center">
+          <h1 className="typo-page-title text-3xl sm:text-4xl md:text-5xl tracking-tight text-foreground leading-tight">
+            Rethink Any Market —{" "}
+            <span className="text-primary">Product, Service, or Business Model</span>
+          </h1>
+          <p className="typo-page-meta text-sm sm:text-base md:text-lg mt-4 max-w-2xl mx-auto leading-relaxed text-muted-foreground">
+            Analyze opportunities, stress-test assumptions, and generate investor-ready outputs.
+          </p>
+          <div className="flex items-center justify-center gap-3 mt-8 flex-wrap">
+            <button
+              onClick={() => navigate("/start")}
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full typo-button-primary bg-primary text-primary-foreground hover:bg-primary-dark transition-colors text-base"
+            >
+              Start Analysis <ArrowRight size={16} />
+            </button>
+            <button
+              onClick={() => navigate("/about")}
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold transition-colors"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+            >
+              View Example Output
+            </button>
+          </div>
 
-        {/* ── VALUE PROPOSITION CALLOUT ── */}
-        <ValuePropCallout />
+          {/* Mode Preview Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-3xl mx-auto text-left">
+            {[
+              { label: "Product", desc: "Deconstruct physical & digital products — positioning, pricing, supply chain.", cssVar: "--mode-product", icon: Upload, path: "/start/product" },
+              { label: "Service", desc: "Tear down service businesses — user journeys, friction points, pricing leverage.", cssVar: "--mode-service", icon: Briefcase, path: "/start/service" },
+              { label: "Business Model", desc: "Full model teardown — revenue, cost structure, value chain, hidden assumptions.", cssVar: "--mode-business", icon: Building2, path: "/start/business" },
+            ].map((mode) => {
+              const Icon = mode.icon;
+              return (
+                <button
+                  key={mode.label}
+                  onClick={() => navigate(mode.path)}
+                  className="rounded-xl border border-border bg-card p-5 flex flex-col gap-3 transition-all hover:shadow-lg hover:border-primary/30 text-left group"
+                  style={{ borderTopWidth: "3px", borderTopColor: `hsl(var(${mode.cssVar}))` }}
+                >
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `hsl(var(${mode.cssVar}) / 0.12)` }}>
+                    <Icon size={18} style={{ color: `hsl(var(${mode.cssVar}))` }} />
+                  </div>
+                  <p className="typo-card-title font-bold text-foreground">{mode.label}</p>
+                  <p className="typo-card-meta text-muted-foreground leading-relaxed">{mode.desc}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-8">
+            <button
+              onClick={() => navigate("/start")}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+            >
+              Start Analysis <ArrowRight size={14} />
+            </button>
+          </div>
+        </section>
+      )}
+
+      <main className="max-w-5xl mx-auto px-6 py-10 space-y-6">
+        {/* ── PIPELINE DIAGRAM — below fold ── */}
+        {step === "idle" && !products.length && !businessAnalysisData && (
+          <DisruptionPathBanner />
+        )}
 
         {/* ── TOP-LEVEL TAB BAR ── */}
         {(() => {

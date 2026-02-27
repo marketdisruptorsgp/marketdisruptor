@@ -1,24 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { UserHeader } from "@/components/UserHeader";
-import { useAnalysis } from "@/contexts/AnalysisContext";
 import { type AnalysisMode } from "@/components/AnalysisForm";
 import { TIERS, TierKey } from "@/hooks/useSubscription";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
-  Zap, Database, Upload, Briefcase, Building2,
-  FolderOpen, BarChart3, BookOpen, HelpCircle, Lightbulb, TrendingUp, Radar,
-  Menu, PieChart, Code2, Camera, ChevronDown,
+  Zap, PieChart, Radar, Camera, BookOpen, HelpCircle, Lightbulb, Code2,
+  Menu, ChevronDown, ArrowRight,
 } from "lucide-react";
 
 interface PlatformNavProps {
@@ -27,170 +16,86 @@ interface PlatformNavProps {
   savedCount?: number;
 }
 
-const ACCESS_MODES = [
-  { id: "custom" as const, label: "Disrupt This Product", desc: "Upload & analyze any physical product", icon: Upload, cssVar: "--mode-product" },
-  { id: "service" as const, label: "Disrupt This Service", desc: "Deconstruct any service business", icon: Briefcase, cssVar: "--mode-service" },
-  { id: "business" as const, label: "Disrupt This Business Model", desc: "Full business model teardown", icon: Building2, cssVar: "--mode-business" },
-];
-
 const RESOURCES_ITEMS = [
   { label: "FAQs", desc: "Common questions answered", icon: HelpCircle, path: "/faqs" },
   { label: "Methodology", desc: "Our 4-step analysis pipeline", icon: Lightbulb, path: "/methodology" },
   { label: "API & Integrations", desc: "Connect your tools via REST API", icon: Code2, path: "/api" },
 ];
 
-const MODE_LABELS: Record<string, string> = {
-  custom: "Product",
-  service: "Service",
-  business: "Business",
-};
-
 export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const analysis = useAnalysis();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const MODE_PATHS: Record<string, string> = {
-    custom: "/start/product",
-    service: "/start/service",
-    business: "/start/business",
-  };
-
-  const handleModeSelect = (modeId: "custom" | "service" | "business") => {
-    navigate(MODE_PATHS[modeId]);
-    setMobileOpen(false);
-  };
 
   const isActive = (path: string) => location.pathname === path;
 
+  const navLinkClass = (path: string) =>
+    `typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${
+      isActive(path) || (path !== "/" && location.pathname.startsWith(path))
+        ? "text-foreground border-primary"
+        : "text-muted-foreground hover:text-foreground border-transparent"
+    }`;
+
   return (
-    <div className="border-b border-border bg-background shadow-sm">
+    <div className="border-b border-border bg-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-0 flex items-center justify-between">
         {/* Left: Logo */}
-        <div className="flex items-center gap-1">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2 mr-2 sm:mr-4 py-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary text-primary-foreground">
-              <Zap size={15} />
-            </div>
-            <span className="typo-nav-primary tracking-tight hidden sm:inline">Market Disruptor</span>
-            <span className="hidden md:inline typo-status-label text-primary bg-muted rounded-full px-2 py-0.5">
-              OS
-            </span>
-          </button>
-
-          {/* Desktop nav */}
-          <div className="hidden md:block">
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <a
-                    href="/start"
-                    onClick={(e) => { e.preventDefault(); navigate("/start"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/start") || location.pathname.startsWith("/start/") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    <Zap size={13} />
-                    Start Disrupting
-                  </a>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <a
-                    href="/portfolio"
-                    onClick={(e) => { e.preventDefault(); navigate("/portfolio"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/portfolio") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    <PieChart size={13} />
-                    Portfolio
-                  </a>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <a
-                    href="/intel"
-                    onClick={(e) => { e.preventDefault(); navigate("/intel"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/intel") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    <Radar size={13} />
-                    Intel
-                  </a>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <a
-                    href="/instant-analysis"
-                    onClick={(e) => { e.preventDefault(); navigate("/instant-analysis"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/instant-analysis") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    <Camera size={13} />
-                    Photo Analysis
-                  </a>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <a
-                    href="/about"
-                    onClick={(e) => { e.preventDefault(); navigate("/about"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 ${isActive("/about") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    About
-                  </a>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem className="relative">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="typo-nav-primary text-muted-foreground hover:text-foreground bg-transparent h-auto py-3 px-3 inline-flex items-center gap-1 border-b-2 border-transparent transition-colors">
-                        Resources
-                        <ChevronDown size={12} className="ml-0.5" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent align="start" sideOffset={8} className="w-60 p-2 bg-background shadow-lg rounded-xl border border-border">
-                      {RESOURCES_ITEMS.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                          <a
-                            key={item.label}
-                            href={item.path}
-                            onClick={(e) => { e.preventDefault(); navigate(item.path); }}
-                            className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                          >
-                            <Icon size={14} className="text-muted-foreground" />
-                            <div>
-                              <p className="typo-nav-primary">{item.label}</p>
-                              <p className="typo-card-meta">{item.desc}</p>
-                            </div>
-                          </a>
-                        );
-                      })}
-                    </PopoverContent>
-                  </Popover>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <a
-                    href="/pricing"
-                    onClick={(e) => { e.preventDefault(); navigate("/pricing"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 ${isActive("/pricing") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
-                  >
-                    Pricing
-                  </a>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+        <button onClick={() => navigate("/")} className="flex items-center gap-2 py-3 flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary text-primary-foreground">
+            <Zap size={15} />
           </div>
-        </div>
+          <span className="typo-nav-primary tracking-tight hidden sm:inline">Market Disruptor</span>
+          <span className="hidden md:inline typo-status-label text-primary bg-muted rounded-full px-2 py-0.5">OS</span>
+        </button>
 
-        {/* Right */}
+        {/* Center: Core navigation */}
+        <nav className="hidden md:flex items-center gap-0">
+          <a href="/portfolio" onClick={(e) => { e.preventDefault(); navigate("/portfolio"); }} className={navLinkClass("/portfolio")}>
+            <PieChart size={13} /> Portfolio
+          </a>
+          <a href="/intel" onClick={(e) => { e.preventDefault(); navigate("/intel"); }} className={navLinkClass("/intel")}>
+            <Radar size={13} /> Intel
+          </a>
+          <a href="/instant-analysis" onClick={(e) => { e.preventDefault(); navigate("/instant-analysis"); }} className={navLinkClass("/instant-analysis")}>
+            <Camera size={13} /> Photo Analysis
+          </a>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="typo-nav-primary text-muted-foreground hover:text-foreground bg-transparent h-auto py-3 px-3 inline-flex items-center gap-1 border-b-2 border-transparent transition-colors">
+                Resources <ChevronDown size={12} className="ml-0.5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" sideOffset={8} className="w-60 p-2 bg-background shadow-lg rounded-xl border border-border">
+              {RESOURCES_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <a
+                    key={item.label}
+                    href={item.path}
+                    onClick={(e) => { e.preventDefault(); navigate(item.path); }}
+                    className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                  >
+                    <Icon size={14} className="text-muted-foreground" />
+                    <div>
+                      <p className="typo-nav-primary">{item.label}</p>
+                      <p className="typo-card-meta">{item.desc}</p>
+                    </div>
+                  </a>
+                );
+              })}
+            </PopoverContent>
+          </Popover>
+        </nav>
+
+        {/* Right: Start Analysis + Account */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {tier !== "disruptor" && (
-            <button
-              onClick={() => navigate("/pricing")}
-              className="px-3 sm:px-4 py-2 rounded-full typo-card-eyebrow transition-colors bg-primary text-primary-foreground hover:bg-primary-dark hidden sm:inline-flex"
-            >
-              Upgrade
-            </button>
-          )}
+          <button
+            onClick={() => navigate("/start")}
+            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full typo-button-primary bg-primary text-primary-foreground hover:bg-primary-dark transition-colors"
+          >
+            Start Analysis <ArrowRight size={13} />
+          </button>
           <UserHeader />
 
           {/* Mobile hamburger */}
@@ -205,49 +110,31 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 <p className="typo-nav-primary">Menu</p>
               </div>
               <div className="p-3 space-y-1">
-                <p className="typo-card-eyebrow px-3 pt-2 pb-1">Start Disrupting</p>
                 <a
                   href="/start"
                   onClick={(e) => { e.preventDefault(); navigate("/start"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors bg-primary/10 hover:bg-primary/15"
                 >
                   <Zap size={14} className="text-primary" />
-                  <span className="typo-nav-primary">Choose Analysis Mode</span>
+                  <span className="typo-nav-primary text-primary font-bold">Start Analysis</span>
                 </a>
 
                 <div className="h-px bg-border my-2" />
-                <p className="typo-card-eyebrow px-3 pt-2 pb-1">Navigate</p>
-                <a
-                  href="/portfolio"
-                  onClick={(e) => { e.preventDefault(); navigate("/portfolio"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
+
+                <a href="/portfolio" onClick={(e) => { e.preventDefault(); navigate("/portfolio"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted">
                   <PieChart size={14} className="text-primary" />
                   <span className="typo-nav-primary">Portfolio</span>
                 </a>
-                <a
-                  href="/intel"
-                  onClick={(e) => { e.preventDefault(); navigate("/intel"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
+                <a href="/intel" onClick={(e) => { e.preventDefault(); navigate("/intel"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted">
                   <Radar size={14} className="text-primary" />
-                  <span className="typo-nav-primary">Intel Dashboard</span>
+                  <span className="typo-nav-primary">Intel</span>
                 </a>
-                <a
-                  href="/instant-analysis"
-                  onClick={(e) => { e.preventDefault(); navigate("/instant-analysis"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
+                <a href="/instant-analysis" onClick={(e) => { e.preventDefault(); navigate("/instant-analysis"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted">
                   <Camera size={14} className="text-primary" />
                   <span className="typo-nav-primary">Photo Analysis</span>
-                </a>
-                <a
-                  href="/about"
-                  onClick={(e) => { e.preventDefault(); navigate("/about"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
-                  <BookOpen size={14} className="text-muted-foreground" />
-                  <span className="typo-nav-primary">About</span>
                 </a>
 
                 <div className="h-px bg-border my-2" />
@@ -255,27 +142,14 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 {RESOURCES_ITEMS.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <a
-                      key={item.label}
-                      href={item.path}
+                    <a key={item.label} href={item.path}
                       onClick={(e) => { e.preventDefault(); navigate(item.path); setMobileOpen(false); }}
-                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                    >
+                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted">
                       <Icon size={14} className="text-muted-foreground" />
                       <span className="typo-nav-primary">{item.label}</span>
                     </a>
                   );
                 })}
-
-                <div className="h-px bg-border my-2" />
-                <a
-                  href="/pricing"
-                  onClick={(e) => { e.preventDefault(); navigate("/pricing"); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
-                  <BarChart3 size={14} className="text-muted-foreground" />
-                  <span className="typo-nav-primary">Pricing</span>
-                </a>
               </div>
             </SheetContent>
           </Sheet>
