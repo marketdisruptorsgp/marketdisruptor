@@ -99,7 +99,7 @@ export default function DashboardPage() {
             </span>
           </h1>
           <p className="typo-page-meta text-sm sm:text-base md:text-lg mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed px-2 text-center">
-            Deconstruct markets, stress-test strategies, and build what's next with deep competitive intelligence.
+            Deconstruct markets, stress-test strategies, and build what's next.
           </p>
           <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button
@@ -173,8 +173,8 @@ export default function DashboardPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
         <div
           className="rounded-2xl px-5 py-6 sm:py-8 flex flex-col sm:flex-row items-center gap-4 cursor-pointer transition-all hover:shadow-md bg-muted border border-border"
-          onClick={() => navigate("/instant-analysis")}
-        >
+          onClick={() => navigate("/instant-analysis")}>
+
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Camera size={22} className="text-primary" />
           </div>
