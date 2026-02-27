@@ -286,7 +286,7 @@ Return ONLY the JSON object.`;
           { role: "user", content: userPrompt },
         ],
         temperature: 0.5,
-        max_tokens: 16000,
+        max_tokens: 24000,
       }),
     });
 
@@ -319,12 +319,48 @@ Return ONLY the JSON object.`;
       cleaned = cleaned.slice(firstBrace, lastBrace + 1);
     }
 
+    // Fix common JSON issues
+    cleaned = cleaned
+      .replace(/,\s*}/g, "}")
+      .replace(/,\s*]/g, "]")
+      .replace(/[\x00-\x1F\x7F]/g, (ch) => ch === '\n' || ch === '\t' ? ch : "");
+
     let deck;
     try {
       deck = JSON.parse(cleaned);
     } catch {
-      console.error("JSON parse failed:", cleaned.slice(0, 500));
-      throw new Error("AI returned invalid JSON. Please retry.");
+      // Attempt to repair truncated JSON by balancing braces/brackets
+      let repaired = cleaned;
+      let braces = 0, brackets = 0;
+      for (const ch of repaired) {
+        if (ch === '{') braces++;
+        if (ch === '}') braces--;
+        if (ch === '[') brackets++;
+        if (ch === ']') brackets--;
+      }
+
+      // Close any open strings — find if we're inside an unterminated string
+      const lastQuote = repaired.lastIndexOf('"');
+      const afterLastQuote = repaired.slice(lastQuote + 1);
+      // If odd number of unescaped quotes, close the string
+      const quoteCount = (repaired.match(/(?<!\\)"/g) || []).length;
+      if (quoteCount % 2 !== 0) {
+        repaired += '"';
+      }
+
+      // Remove trailing comma before closing
+      repaired = repaired.replace(/,\s*$/, "");
+
+      while (brackets > 0) { repaired += ']'; brackets--; }
+      while (braces > 0) { repaired += '}'; braces--; }
+
+      try {
+        deck = JSON.parse(repaired);
+        console.log("JSON repair succeeded after truncation fix");
+      } catch (e2) {
+        console.error("JSON parse failed even after repair:", cleaned.slice(0, 500));
+        throw new Error("AI returned invalid JSON. Please retry.");
+      }
     }
 
     // Ensure backward compatibility
