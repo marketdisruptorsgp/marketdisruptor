@@ -64,14 +64,14 @@ export function LensEditor({ lens, onClose, onSaved }: LensEditorProps) {
           .select()
           .single();
         if (error) throw error;
-        onSaved(data);
+        onSaved({ ...data, lensType: "custom" });
       } else {
         const { data, error } = await (supabase.from("user_lenses") as any)
           .insert(payload)
           .select()
           .single();
         if (error) throw error;
-        onSaved(data);
+        onSaved({ ...data, lensType: "custom" });
       }
     } catch (err) {
       console.error("Lens save error:", err);

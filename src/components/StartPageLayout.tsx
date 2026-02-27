@@ -9,6 +9,7 @@ import { LoadingTracker } from "@/components/LoadingTracker";
 import { HeroSection } from "@/components/HeroSection";
 import PaywallModal from "@/components/PaywallModal";
 import { AlertCircle, ShieldCheck, BookOpen, Upload, Briefcase, Building2, ArrowLeft } from "lucide-react";
+import { LensToggle } from "@/components/LensToggle";
 import { useNavigate, Link } from "react-router-dom";
 
 const MODE_CONFIG = {
@@ -90,13 +91,14 @@ export default function StartPageLayout({ mode }: StartPageLayoutProps) {
           className="rounded-lg overflow-hidden border border-border bg-card shadow-sm"
           style={{ borderTop: `3px solid hsl(var(${modeColor}))` }}
         >
-          <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-2 border-b border-border">
+          <div className="flex items-center justify-between px-4 sm:px-5 pt-3 sm:pt-4 pb-2 border-b border-border">
             <p
               className="text-xs font-bold uppercase tracking-widest"
               style={{ color: `hsl(var(${modeColor}))` }}
             >
               {config.label}
             </p>
+            <LensToggle />
           </div>
           <div className="p-4 sm:p-6">
             <ContextualTip
