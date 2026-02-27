@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { Lightbulb, Rocket, Target, ChevronRight, Presentation, StickyNote } from "lucide-react";
+import { Lightbulb, Rocket, Target, ChevronRight, Presentation, StickyNote, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectNotesEditor } from "./ProjectNotesEditor";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -14,6 +14,7 @@ interface SavedAnalysis {
   analysis_type?: string;
   products?: any[];
   analysis_data?: any;
+  is_favorite?: boolean;
 }
 
 const CATEGORY_MAP: Record<string, { label: string; color: string }> = {
@@ -36,7 +37,7 @@ function getInsights(a: SavedAnalysis) {
   };
 }
 
-export function ProjectInsightCard({ analysis, onOpen }: { analysis: SavedAnalysis; onOpen: () => void }) {
+export function ProjectInsightCard({ analysis, onOpen, onToggleFavorite }: { analysis: SavedAnalysis; onOpen: () => void; onToggleFavorite?: (id: string) => void }) {
   const insights = getInsights(analysis);
   const score = analysis.avg_revival_score || 0;
   const scoreColor = score >= 7.5 ? "hsl(var(--score-high))" : score >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
@@ -61,7 +62,17 @@ export function ProjectInsightCard({ analysis, onOpen }: { analysis: SavedAnalys
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-md transition-all space-y-0 group">
+    <div className="rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-md transition-all space-y-0 group relative">
+      {/* Favorite toggle */}
+      {onToggleFavorite && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(analysis.id); }}
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+          title={analysis.is_favorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Heart size={14} className={analysis.is_favorite ? "text-primary fill-primary" : "text-muted-foreground"} />
+        </button>
+      )}
       <button
         onClick={onOpen}
         className="text-left w-full p-4 space-y-3"
