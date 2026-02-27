@@ -17,7 +17,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, Database, Upload, Briefcase, Building2,
   FolderOpen, BarChart3, BookOpen, HelpCircle, Lightbulb, TrendingUp, Radar,
-  Menu, PieChart, Code2,
+  Menu, PieChart, Code2, Camera,
 } from "lucide-react";
 
 interface PlatformNavProps {
@@ -112,6 +112,17 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   >
                     <Radar size={13} />
                     Intel
+                  </a>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <a
+                    href="/instant-analysis"
+                    onClick={(e) => { e.preventDefault(); navigate("/instant-analysis"); }}
+                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/instant-analysis") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                  >
+                    <Camera size={13} />
+                    Photo Analysis
                   </a>
                 </NavigationMenuItem>
 
@@ -247,6 +258,14 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 >
                   <Radar size={14} className="text-primary" />
                   <span className="typo-nav-primary">Intel Dashboard</span>
+                </a>
+                <a
+                  href="/instant-analysis"
+                  onClick={(e) => { e.preventDefault(); navigate("/instant-analysis"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                >
+                  <Camera size={14} className="text-primary" />
+                  <span className="typo-nav-primary">Photo Analysis</span>
                 </a>
                 <a
                   href="/about"
