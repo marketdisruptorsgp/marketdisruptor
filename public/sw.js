@@ -1,8 +1,12 @@
-const CACHE_NAME = 'disruptor-v1';
-const PRECACHE = ['/', '/instant-analysis', '/favicon.ico'];
+const CACHE_NAME = 'disruptor-v2';
+const PRECACHE = ['/favicon.ico'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(PRECACHE)));
+  e.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((k) => caches.delete(k)))
+    ).then(() => caches.open(CACHE_NAME).then((c) => c.addAll(PRECACHE)))
+  );
   self.skipWaiting();
 });
 
@@ -17,6 +21,9 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  // Only cache static assets, never HTML pages
+  if (url.pathname === '/' || url.pathname.endsWith('.html') || e.request.mode === 'navigate') return;
   e.respondWith(
     fetch(e.request)
       .then((res) => {
