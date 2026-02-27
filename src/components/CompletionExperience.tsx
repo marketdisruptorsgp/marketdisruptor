@@ -50,9 +50,10 @@ export function CompletionExperience({
     const { product, profile, user, userScore, analysisId } = sgpCapitalContext;
     const name = profile?.first_name || "there";
     const email = user?.email || "";
+    const origin = window.location.origin;
     const projectUrl = analysisId
-      ? `http://marketdisruptor.sgpcapital.com/analysis/${analysisId}/pitch`
-      : "http://marketdisruptor.sgpcapital.com";
+      ? `${origin}/analysis/${analysisId}/pitch`
+      : origin;
     const lines = [
       `Hi SGP Capital team,`, ``,
       `I've been working through a disruption analysis on ${product.name} in the ${product.category || "this"} space and I think there's real potential here.`, ``,
