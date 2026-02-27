@@ -13,6 +13,7 @@ import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ModeHeader } from "@/components/ModeHeader";
 import { LensToggle } from "@/components/LensToggle";
+import { InfoExplainer } from "@/components/InfoExplainer";
 import { scrollToTop } from "@/utils/scrollToTop";
 
 export default function PitchPage() {
@@ -65,7 +66,7 @@ export default function PitchPage() {
           subtitle={`Professional pitch deck for <strong class="text-foreground">${selectedProduct.name}</strong> — 10 slides`}
           accentColor={theme.primary}
           explainerKey="step-pitch"
-          actions={<LensToggle />}
+          actions={<div className="flex items-center gap-1.5"><LensToggle /><InfoExplainer explainerKey="lens-selector" /></div>}
         />
 
         <PitchDeck

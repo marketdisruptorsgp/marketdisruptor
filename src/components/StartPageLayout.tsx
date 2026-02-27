@@ -10,6 +10,7 @@ import { HeroSection } from "@/components/HeroSection";
 import PaywallModal from "@/components/PaywallModal";
 import { AlertCircle, ShieldCheck, BookOpen, Upload, Briefcase, Building2, ArrowLeft } from "lucide-react";
 import { LensToggle } from "@/components/LensToggle";
+import { InfoExplainer } from "@/components/InfoExplainer";
 import { useNavigate, Link } from "react-router-dom";
 
 const MODE_CONFIG = {
@@ -98,7 +99,11 @@ export default function StartPageLayout({ mode }: StartPageLayoutProps) {
             >
               {config.label}
             </p>
-            <LensToggle />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider hidden sm:inline">Lens</span>
+              <LensToggle />
+              <InfoExplainer explainerKey="lens-selector" />
+            </div>
           </div>
           <div className="p-4 sm:p-6">
             <ContextualTip

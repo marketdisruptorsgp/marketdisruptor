@@ -12,6 +12,7 @@ import { KeyTakeawayBanner, getDisruptTakeaway } from "@/components/KeyTakeawayB
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { ModeHeader } from "@/components/ModeHeader";
 import { LensToggle } from "@/components/LensToggle";
+import { InfoExplainer } from "@/components/InfoExplainer";
 import { scrollToTop } from "@/utils/scrollToTop";
 
 export default function DisruptPage() {
@@ -62,7 +63,7 @@ export default function DisruptPage() {
           subtitle={`Deconstructing <strong class="text-foreground">${selectedProduct.name}</strong> — questioning every assumption and generating radical reinvention ideas.`}
           accentColor={theme.primary}
           explainerKey="step-disrupt"
-          actions={<LensToggle />}
+          actions={<div className="flex items-center gap-1.5"><LensToggle /><InfoExplainer explainerKey="lens-selector" /></div>}
         />
 
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
