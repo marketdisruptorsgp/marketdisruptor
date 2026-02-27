@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
 import { useNavigate } from "react-router-dom";
@@ -43,6 +44,38 @@ export default function ReportPage() {
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const sectionTabsRef = useRef<HTMLDivElement>(null);
+  const [refreshingJourney, setRefreshingJourney] = useState(false);
+
+  const handleRefreshJourney = async () => {
+    if (!selectedProduct || refreshingJourney) return;
+    setRefreshingJourney(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke("first-principles-analysis", {
+        body: { product: selectedProduct, refreshWorkflowOnly: true },
+      });
+      if (error || !result?.success) {
+        toast.error("Failed to refresh user journey: " + (result?.error || error?.message || "Unknown error"));
+        return;
+      }
+      const newWorkflow = result.analysis?.userWorkflow;
+      if (!newWorkflow) {
+        toast.error("No user journey data returned.");
+        return;
+      }
+      // Update product in context
+      const updatedProduct = { ...selectedProduct, userWorkflow: newWorkflow } as Product;
+      const updatedProducts = analysis.products.map(p => p.name === selectedProduct.name ? updatedProduct : p);
+      analysis.setProducts(updatedProducts);
+      analysis.setSelectedProduct(updatedProduct);
+      // Persist to DB
+      await analysis.saveStepData("products", JSON.parse(JSON.stringify(updatedProducts)));
+      toast.success("User journey refreshed with current-state data.");
+    } catch (err) {
+      toast.error("Unexpected error: " + String(err));
+    } finally {
+      setRefreshingJourney(false);
+    }
+  };
 
   const { products, selectedProduct, analysisParams, analysisId } = analysis;
 
@@ -342,7 +375,18 @@ export default function ReportPage() {
         {/* Tab: User Journey */}
         {analysis.detailTab === "workflow" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="User Journey" description={SECTION_DESCRIPTIONS.workflow} icon={Clock} explainerKey="section-workflow" />
+            <div className="flex items-center justify-between">
+              <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="User Journey" description={SECTION_DESCRIPTIONS.workflow} icon={Clock} explainerKey="section-workflow" />
+              <button
+                onClick={handleRefreshJourney}
+                disabled={refreshingJourney}
+                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+              >
+                <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
+                {refreshingJourney ? "Refreshing..." : "Refresh Journey"}
+              </button>
+            </div>
             {(() => {
               const productData = selectedProduct as unknown as Record<string, unknown>;
               const takeaway = getWorkflowTakeaway(productData);
