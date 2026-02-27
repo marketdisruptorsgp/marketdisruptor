@@ -265,8 +265,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             <Building2 size={36} style={{ color: "hsl(var(--primary))" }} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Business Model Deconstruction</h3>
-            <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
+            <h3 className="typo-section-title mb-2" style={{ fontSize: "1.25rem" }}>Business Model Deconstruction</h3>
+            <p className="typo-card-body text-muted-foreground max-w-lg leading-relaxed">
               First-principles analysis of any business model — friction, costs, automation, and reinvention.
             </p>
           </div>
@@ -275,7 +275,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Business Type *</label>
+              <label className="typo-card-eyebrow">Business Type *</label>
               <input type="text" value={input.type} onChange={(e) => setInput((p) => ({ ...p, type: e.target.value }))}
                 placeholder="e.g. Laundromat, Freight broker, Law firm…"
                 className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle}
@@ -285,47 +285,47 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               </datalist>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Revenue Model</label>
+              <label className="typo-card-eyebrow">Revenue Model</label>
               <input type="text" value={input.revenueModel} onChange={(e) => setInput((p) => ({ ...p, revenueModel: e.target.value }))}
                 placeholder="e.g. Per-use, monthly contract, hourly…"
                 className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Business Description *</label>
+            <div className="space-y-1.5">
+              <label className="typo-card-eyebrow">Business Description *</label>
             <textarea value={input.description} onChange={(e) => setInput((p) => ({ ...p, description: e.target.value }))}
               placeholder="Describe how the business works today…" rows={3}
               className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none resize-none" style={inputStyle} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Size / Scale</label>
+              <label className="typo-card-eyebrow">Size / Scale</label>
               <input type="text" value={input.size} onChange={(e) => setInput((p) => ({ ...p, size: e.target.value }))}
                 placeholder="e.g. $500k/yr, 10 employees" className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Geography</label>
+              <label className="typo-card-eyebrow">Geography</label>
               <input type="text" value={input.geography} onChange={(e) => setInput((p) => ({ ...p, geography: e.target.value }))}
                 placeholder="e.g. Suburban US, regional…" className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Known Pain Points</label>
+              <label className="typo-card-eyebrow">Known Pain Points</label>
               <input type="text" value={input.painPoints} onChange={(e) => setInput((p) => ({ ...p, painPoints: e.target.value }))}
                 placeholder="e.g. High labor costs, low margins…" className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Website / URL (optional)</label>
+            <label className="typo-card-eyebrow">Website / URL (optional)</label>
             <input type="url" value={input.notes} onChange={(e) => setInput((p) => ({ ...p, notes: e.target.value }))}
               placeholder="Paste a company website or URL for extra context…"
               className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
           </div>
           <button onClick={runAnalysis} disabled={loading || !input.type.trim() || !input.description.trim()}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-colors"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg typo-button-primary transition-colors"
             style={{ background: "hsl(var(--primary))", color: "white", opacity: (loading || !input.type.trim() || !input.description.trim()) ? 0.6 : 1 }}>
             {loading ? <><RefreshCw size={15} className="animate-spin" /> Deconstructing…</> : <><Brain size={15} /> Run Business Model Analysis</>}
           </button>
-          <p className="text-[11px] text-muted-foreground">Uses Gemini 2.5 Pro · ~20–40 seconds</p>
+          <p className="typo-card-meta text-muted-foreground">Uses Gemini 2.5 Pro · ~20–40 seconds</p>
         </div>
       </div>
     );
@@ -347,8 +347,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 <Building2 size={14} style={{ color: "white" }} />
               </div>
               <div>
-                <h3 className="font-bold text-foreground text-sm">{input.type}</h3>
-                <p className="text-[10px] text-muted-foreground">{tabs.length} sections · Click any to jump</p>
+                <h3 className="typo-card-title">{input.type}</h3>
+                <p className="typo-card-meta text-muted-foreground">{tabs.length} sections · Click any to jump</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

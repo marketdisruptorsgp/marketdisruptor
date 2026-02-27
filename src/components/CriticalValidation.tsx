@@ -159,8 +159,8 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           <Swords size={30} style={{ color: "hsl(350 80% 55%)" }} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground mb-1">Critical Validation</h3>
-          <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
+          <h3 className="typo-section-title mb-1">Critical Validation</h3>
+          <p className="typo-card-body text-muted-foreground max-w-sm leading-relaxed">
             Red Team vs Green Team debate, precedents, feasibility checklist, and confidence scoring.
           </p>
         </div>
@@ -169,7 +169,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             value={userSuggestions}
             onChange={(e) => setUserSuggestions(e.target.value)}
             placeholder="e.g. Focus on pricing pressure, test subscription model, consider regulatory risks…"
-            className="w-full rounded-lg px-3 py-2.5 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
+            className="w-full rounded-lg px-3 py-2.5 typo-card-body leading-relaxed resize-none transition-colors focus:outline-none mb-2"
             rows={2}
             style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
           />
@@ -177,12 +177,12 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         <button
           onClick={runValidation}
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-colors"
+          className="flex items-center gap-2 px-6 py-3 rounded-lg typo-button-primary transition-colors"
           style={{ background: "hsl(350 80% 55%)", color: "white", opacity: loading ? 0.7 : 1 }}
         >
           <Swords size={15} /> Run Critical Validation
         </button>
-        <p className="text-[10px] text-muted-foreground">Requires completed Disrupt analysis · ~20-30s</p>
+        <p className="typo-card-meta text-muted-foreground">Requires completed Disrupt analysis · ~20-30s</p>
       </div>
     );
   }
@@ -201,14 +201,14 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               value={userSuggestions}
               onChange={(e) => setUserSuggestions(e.target.value)}
               placeholder="e.g. Focus more on regulatory risks, test pricing at $X…"
-              className="flex-1 rounded-lg px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none"
+              className="flex-1 rounded-lg px-3 py-2 typo-card-body leading-relaxed resize-none transition-colors focus:outline-none"
               rows={2}
               style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
             />
             <button
               onClick={runValidation}
               disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg typo-button-secondary transition-colors flex-shrink-0"
               style={{ background: "hsl(350 80% 55%)", color: "white", opacity: loading ? 0.7 : 1 }}
             >
               {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
@@ -225,10 +225,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             </div>
             <div>
               <p className="typo-card-eyebrow" style={{ color: "hsl(var(--destructive))" }}>Red Team — Against This Idea</p>
-              <p className="text-[10px] text-muted-foreground">Why this concept will fail</p>
+              <p className="typo-card-meta text-muted-foreground">Why this concept will fail</p>
             </div>
           </div>
-          <p className="text-sm font-semibold text-foreground leading-relaxed">{data.redTeam.verdict}</p>
+          <p className="typo-card-body font-semibold text-foreground leading-relaxed">{data.redTeam.verdict}</p>
         </div>
 
         {data.redTeam.arguments.slice(0, 2).map((arg, i) => {
@@ -236,10 +236,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           return (
             <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
               <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-bold text-foreground">{arg.title}</p>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>{s.label}</span>
+                <p className="typo-card-body font-bold text-foreground">{arg.title}</p>
+                <span className="px-2 py-0.5 rounded-full typo-status-label" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>{s.label}</span>
               </div>
-              <p className="text-xs text-foreground/80 leading-relaxed">{arg.argument}</p>
+              <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
               <InsightRating sectionId={`red-${i}`} compact />
             </div>
           );
@@ -252,10 +252,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                 const s = SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor;
                 return (
                   <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                    <p className="text-xs font-bold text-foreground mb-1">{arg.title}</p>
-                    <p className="text-xs text-foreground/80 leading-relaxed">{arg.argument}</p>
+                    <p className="typo-card-body font-bold text-foreground mb-1">{arg.title}</p>
+                    <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <span className="text-[10px] font-semibold" style={{ color: "hsl(271 81% 40%)" }}>Bias: {arg.biasExposed}</span>
+                      <span className="typo-card-meta font-semibold" style={{ color: "hsl(271 81% 40%)" }}>Bias: {arg.biasExposed}</span>
                       <DataLabel label={arg.dataLabel} />
                     </div>
                   </div>
@@ -267,10 +267,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
         {/* Kill Shot */}
         <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
+          <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
             <Flame size={11} /> Kill Shot
           </p>
-          <p className="text-sm font-bold text-foreground leading-relaxed">{data.redTeam.killShot}</p>
+          <p className="typo-card-body font-bold text-foreground leading-relaxed">{data.redTeam.killShot}</p>
         </div>
 
         {/* Divider */}
@@ -290,10 +290,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             </div>
             <div>
               <p className="typo-card-eyebrow" style={{ color: "hsl(142 70% 30%)" }}>Green Team — For This Idea</p>
-              <p className="text-[10px] text-muted-foreground">Why this concept will succeed</p>
+              <p className="typo-card-meta text-muted-foreground">Why this concept will succeed</p>
             </div>
           </div>
-          <p className="text-sm font-semibold text-foreground leading-relaxed">{data.blueTeam.verdict}</p>
+          <p className="typo-card-body font-semibold text-foreground leading-relaxed">{data.blueTeam.verdict}</p>
         </div>
 
         {data.blueTeam.arguments.slice(0, 2).map((arg, i) => {
@@ -301,10 +301,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           return (
             <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
               <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-bold text-foreground">{arg.title}</p>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>{s.label}</span>
+                <p className="typo-card-body font-bold text-foreground">{arg.title}</p>
+                <span className="px-2 py-0.5 rounded-full typo-status-label" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>{s.label}</span>
               </div>
-              <p className="text-xs text-foreground/80 leading-relaxed">{arg.argument}</p>
+              <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
               <InsightRating sectionId={`blue-${i}`} compact />
             </div>
           );
@@ -317,10 +317,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                 const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;
                 return (
                   <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                    <p className="text-xs font-bold text-foreground mb-1">{arg.title}</p>
-                    <p className="text-xs text-foreground/80 leading-relaxed">{arg.argument}</p>
+                    <p className="typo-card-body font-bold text-foreground mb-1">{arg.title}</p>
+                    <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--primary))" }}>Enabler: {arg.enabler}</span>
+                      <span className="typo-card-meta font-semibold" style={{ color: "hsl(var(--primary))" }}>Enabler: {arg.enabler}</span>
                       <DataLabel label={arg.dataLabel} />
                     </div>
                   </div>
@@ -332,10 +332,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
         {/* Moonshot */}
         <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}>
+          <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}>
             <Target size={11} /> Moonshot Potential
           </p>
-          <p className="text-sm font-bold text-foreground leading-relaxed">{data.blueTeam.moonshot}</p>
+          <p className="typo-card-body font-bold text-foreground leading-relaxed">{data.blueTeam.moonshot}</p>
         </div>
 
         {/* Counter Examples — collapsed */}
@@ -348,12 +348,12 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                 return (
                   <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-foreground">{ex.name} ({ex.year})</span>
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: os.bg, color: os.text }}>
+                      <span className="typo-card-body font-bold text-foreground">{ex.name} ({ex.year})</span>
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full typo-status-label" style={{ background: os.bg, color: os.text }}>
                         <OutcomeIcon size={9} /> {ex.outcome}
                       </span>
                     </div>
-                    <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(var(--primary))" }}>Lesson: {ex.lesson}</p>
+                    <p className="typo-card-body font-semibold leading-relaxed" style={{ color: "hsl(var(--primary))" }}>Lesson: {ex.lesson}</p>
                   </div>
                 );
               })}
@@ -366,9 +366,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           <DetailPanel title={`Strategic Recommendations (${data.strategicRecommendations.length})`} icon={ArrowRight}>
             <div className="space-y-1.5 mb-2">
               {data.strategicRecommendations.map((rec, i) => (
-                <div key={i} className="flex gap-2 items-start p-2 rounded-lg text-xs"
+                <div key={i} className="flex gap-2 items-start p-2 rounded-lg typo-card-body"
                   style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center typo-status-label flex-shrink-0"
                     style={{ background: "hsl(142 70% 45% / 0.15)", color: "hsl(142 70% 30%)" }}>{i + 1}</span>
                   <span className="text-foreground/80 leading-relaxed">{rec}</span>
                 </div>
@@ -383,9 +383,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             <div className="space-y-2 mb-2">
               {data.currentApproachAssessment.keepAsIs?.length > 0 && (
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 35%)" }}><CheckCircle2 size={10} /> Keep As-Is</p>
+                  <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 35%)" }}><CheckCircle2 size={10} /> Keep As-Is</p>
                   {data.currentApproachAssessment.keepAsIs.map((item, i) => (
-                    <div key={i} className="flex gap-2 items-start text-xs mb-1">
+                    <div key={i} className="flex gap-2 items-start typo-card-body mb-1">
                       <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{item}</span>
                     </div>
@@ -394,9 +394,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               )}
               {data.currentApproachAssessment.fullyReinvent?.length > 0 && (
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}><RefreshCw size={10} /> Fully Reinvent</p>
+                  <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}><RefreshCw size={10} /> Fully Reinvent</p>
                   {data.currentApproachAssessment.fullyReinvent.map((item, i) => (
-                    <div key={i} className="flex gap-2 items-start text-xs mb-1">
+                    <div key={i} className="flex gap-2 items-start typo-card-body mb-1">
                       <Flame size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{item}</span>
                     </div>
@@ -404,8 +404,8 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                 </div>
               )}
               <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Verdict</p>
-                <p className="text-xs text-foreground/80 leading-relaxed">{data.currentApproachAssessment.verdict}</p>
+                <p className="typo-card-meta font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Verdict</p>
+                <p className="typo-card-body text-foreground/80 leading-relaxed">{data.currentApproachAssessment.verdict}</p>
               </div>
             </div>
           </DetailPanel>
@@ -416,7 +416,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           <DetailPanel title={`Blind Spots (${data.blindSpots.length})`} icon={Eye}>
             <div className="space-y-1.5 mb-2">
               {data.blindSpots.map((bs, i) => (
-                <div key={i} className="flex gap-2 items-start text-xs">
+                <div key={i} className="flex gap-2 items-start typo-card-body">
                   <AlertTriangle size={10} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 2 }} />
                   <span className="text-foreground/80 leading-relaxed">{bs}</span>
                 </div>
@@ -447,10 +447,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                 return (
                   <div key={key} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <span className="typo-card-eyebrow flex items-center gap-1">
                         <Icon size={10} /> {meta.label}
                       </span>
-                      <span className="text-sm font-black" style={{ color: barColor }}>{score}/10</span>
+                      <span className="typo-card-body font-black" style={{ color: barColor }}>{score}/10</span>
                     </div>
                     <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
                       <div className="h-full rounded-full transition-all duration-700"
@@ -471,16 +471,16 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     return (
                       <div key={key} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <span className="typo-card-eyebrow flex items-center gap-1">
                             <Icon size={10} /> {meta.label}
                           </span>
-                          <span className="text-sm font-black" style={{ color: barColor }}>{score}/10</span>
+                          <span className="typo-card-body font-black" style={{ color: barColor }}>{score}/10</span>
                         </div>
                         <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
                           <div className="h-full rounded-full transition-all duration-700"
                             style={{ width: `${score * 10}%`, background: barColor }} />
                         </div>
-                        <p className="text-[10px] text-foreground/70 leading-relaxed mt-1.5">{val.reasoning}</p>
+                        <p className="typo-card-meta text-foreground/70 leading-relaxed mt-1.5">{val.reasoning}</p>
                       </div>
                     );
                   })}
@@ -496,7 +496,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         const items = data.feasibilityChecklist;
         return (
           <>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <p className="typo-card-eyebrow flex items-center gap-1">
               <ClipboardCheck size={11} style={{ color: "hsl(142 70% 40%)" }} /> Feasibility Checklist
             </p>
             <div className="space-y-2">
@@ -506,12 +506,12 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                   <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
                     <div className="flex items-center justify-between mb-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>{item.category}</span>
-                        <p className="text-xs font-bold text-foreground">{item.item}</p>
+                        <span className="px-1.5 py-0.5 rounded-full typo-status-label" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>{item.category}</span>
+                        <p className="typo-card-body font-bold text-foreground">{item.item}</p>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase" style={{ color: s.text }}>{item.status}</span>
+                      <span className="px-2 py-0.5 rounded-full typo-status-label uppercase" style={{ color: s.text }}>{item.status}</span>
                     </div>
-                    <p className="text-xs text-foreground/70 leading-relaxed">{item.detail}</p>
+                    <p className="typo-card-body text-foreground/70 leading-relaxed">{item.detail}</p>
                   </div>
                 );
               })}
@@ -524,11 +524,11 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     return (
                       <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
                         <div className="flex items-center justify-between mb-0.5">
-                          <p className="text-xs font-bold text-foreground">{item.item}</p>
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase" style={{ color: s.text }}>{item.status}</span>
+                          <p className="typo-card-body font-bold text-foreground">{item.item}</p>
+                          <span className="px-2 py-0.5 rounded-full typo-status-label uppercase" style={{ color: s.text }}>{item.status}</span>
                         </div>
-                        <p className="text-xs text-foreground/70 leading-relaxed">{item.detail}</p>
-                        <p className="text-[10px] font-semibold mt-1" style={{ color: "hsl(var(--primary))" }}>Est. cost: {item.estimatedCost}</p>
+                        <p className="typo-card-body text-foreground/70 leading-relaxed">{item.detail}</p>
+                        <p className="typo-card-meta font-semibold mt-1" style={{ color: "hsl(var(--primary))" }}>Est. cost: {item.estimatedCost}</p>
                       </div>
                     );
                   })}

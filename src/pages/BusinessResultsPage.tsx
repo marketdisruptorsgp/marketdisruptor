@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useModeTheme } from "@/hooks/useModeTheme";
 import { HeroSection } from "@/components/HeroSection";
 import { StepNavigator } from "@/components/StepNavigator";
 import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
@@ -24,6 +25,7 @@ export default function BusinessResultsPage() {
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const { tier } = useSubscription();
+  const theme = useModeTheme("business");
 
   const [activeStep, setActiveStep] = React.useState(2);
   const [visitedSteps, setVisitedSteps] = React.useState<Set<number>>(new Set([2]));
@@ -36,7 +38,7 @@ export default function BusinessResultsPage() {
   }
 
   const bizName = businessModelInput?.type || "Business Model";
-  const bizAccent = "hsl(271 81% 55%)";
+  const modeAccent = theme.primary;
 
   const bizSyntheticProduct: Product = {
     id: "biz-model",
@@ -64,10 +66,10 @@ export default function BusinessResultsPage() {
       <main className="max-w-5xl mx-auto px-6 py-6 space-y-5">
         <StepNavigator
           steps={[
-            { step: 2, label: "Intelligence Report", description: "Business model deep analysis", icon: Target, color: bizAccent },
+            { step: 2, label: "Intelligence Report", description: "Business model deep analysis", icon: Target, color: modeAccent },
             { step: 3, label: "Disrupt", description: "Challenge assumptions & reinvent", icon: Brain, color: "hsl(350 80% 55%)" },
             { step: 4, label: "Stress Test", description: "Red vs Green team debate", icon: Swords, color: "hsl(38 92% 50%)" },
-            { step: 5, label: "Pitch Deck", description: "Investor-ready pitch builder", icon: Presentation, color: "hsl(var(--primary))" },
+            { step: 5, label: "Pitch Deck", description: "Investor-ready pitch builder", icon: Presentation, color: modeAccent },
           ]}
           activeStep={activeStep}
           visitedSteps={visitedSteps}
@@ -79,8 +81,8 @@ export default function BusinessResultsPage() {
 
         {analysis.loadedFromSaved && (
           <button onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
-            style={{ color: bizAccent }}>
+            className="flex items-center gap-2 typo-card-body font-semibold transition-colors hover:opacity-80"
+            style={{ color: modeAccent }}>
             <ArrowLeft size={16} /> Back to Dashboard
           </button>
         )}
@@ -88,15 +90,15 @@ export default function BusinessResultsPage() {
         {/* Step 2: Report */}
         {activeStep === 2 && (
           <div className="space-y-4">
-            <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${bizAccent}` }}>
+            <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${modeAccent}` }}>
               <div className="px-5 py-4 flex items-center gap-4" style={{ background: "hsl(var(--card))" }}>
-                <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: bizAccent }}>2</div>
+                <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white typo-card-body font-semibold" style={{ background: modeAccent }}>2</div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-lg font-bold text-foreground">Intelligence Report</h2>
-                  <p className="text-sm text-muted-foreground">Deep business model deconstruction for <strong className="text-foreground">{bizName}</strong></p>
+                  <h2 className="typo-section-title">Intelligence Report</h2>
+                  <p className="typo-card-body text-muted-foreground">Deep business model deconstruction for <strong className="text-foreground">{bizName}</strong></p>
                 </div>
                 <button onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-semibold transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded typo-button-secondary transition-colors"
                   style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
                   <FileDown size={12} /> PDF
                 </button>
@@ -105,21 +107,22 @@ export default function BusinessResultsPage() {
                 <BusinessModelAnalysis initialData={businessAnalysisData} renderMode="report" onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)} />
               </div>
             </div>
-
           </div>
         )}
 
         {/* Step 3: Disrupt */}
         {activeStep === 3 && (
           <div className="space-y-4">
-            <button onClick={() => setActiveStep(2)} className="flex items-center gap-2 text-sm font-semibold hover:opacity-80" style={{ color: "hsl(350 80% 55%)" }}>
+            <button onClick={() => setActiveStep(2)} className="flex items-center gap-2 typo-card-body font-semibold hover:opacity-80" style={{ color: "hsl(350 80% 55%)" }}>
               <ArrowLeft size={16} /> Back to Intelligence Report
             </button>
             <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(350 80% 55%)" }}>
               <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
-                <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(350 80% 55%)" }}>3</div>
-                <div className="flex-1"><h2 className="text-lg font-bold text-foreground">Disrupt</h2>
-                  <p className="text-sm text-muted-foreground">Disruption vulnerabilities and reinvented model for <strong className="text-foreground">{bizName}</strong></p></div>
+                <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white typo-card-body font-semibold" style={{ background: "hsl(350 80% 55%)" }}>3</div>
+                <div className="flex-1">
+                  <h2 className="typo-section-title">Disrupt</h2>
+                  <p className="typo-card-body text-muted-foreground">Disruption vulnerabilities and reinvented model for <strong className="text-foreground">{bizName}</strong></p>
+                </div>
               </div>
               <div className="p-5" style={{ background: "hsl(var(--card))" }}>
                 <BusinessModelAnalysis initialData={businessAnalysisData} renderMode="disrupt" onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)} />
@@ -131,14 +134,16 @@ export default function BusinessResultsPage() {
         {/* Step 4: Stress Test */}
         {activeStep === 4 && (
           <div className="space-y-4">
-            <button onClick={() => setActiveStep(2)} className="flex items-center gap-2 text-sm font-semibold hover:opacity-80" style={{ color: "hsl(38 92% 50%)" }}>
+            <button onClick={() => setActiveStep(2)} className="flex items-center gap-2 typo-card-body font-semibold hover:opacity-80" style={{ color: "hsl(38 92% 50%)" }}>
               <ArrowLeft size={16} /> Back to Intelligence Report
             </button>
             <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(38 92% 50%)" }}>
               <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
-                <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(38 92% 50%)" }}>4</div>
-                <div className="flex-1"><h2 className="text-lg font-bold text-foreground">Stress Test</h2>
-                  <p className="text-sm text-muted-foreground">Red Team vs Green Team for <strong className="text-foreground">{bizName}</strong></p></div>
+                <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white typo-card-body font-semibold" style={{ background: "hsl(38 92% 50%)" }}>4</div>
+                <div className="flex-1">
+                  <h2 className="typo-section-title">Stress Test</h2>
+                  <p className="typo-card-body text-muted-foreground">Red Team vs Green Team for <strong className="text-foreground">{bizName}</strong></p>
+                </div>
               </div>
               <div className="p-5 space-y-6" style={{ background: "hsl(var(--card))" }}>
                 <SectionWorkflowNav
@@ -173,14 +178,16 @@ export default function BusinessResultsPage() {
         {/* Step 5: Pitch Deck */}
         {activeStep === 5 && (
           <div className="space-y-4">
-            <button onClick={() => setActiveStep(2)} className="flex items-center gap-2 text-sm font-semibold hover:opacity-80" style={{ color: "hsl(var(--primary))" }}>
+            <button onClick={() => setActiveStep(2)} className="flex items-center gap-2 typo-card-body font-semibold hover:opacity-80" style={{ color: modeAccent }}>
               <ArrowLeft size={16} /> Back to Intelligence Report
             </button>
-            <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: "3px solid hsl(var(--primary))" }}>
+            <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${modeAccent}` }}>
               <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
-                <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white font-semibold text-sm" style={{ background: "hsl(var(--primary))" }}>5</div>
-                <div className="flex-1"><h2 className="text-lg font-bold text-foreground">Pitch Deck</h2>
-                  <p className="text-sm text-muted-foreground">Investor-ready pitch for <strong className="text-foreground">{bizName}</strong></p></div>
+                <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white typo-card-body font-semibold" style={{ background: modeAccent }}>5</div>
+                <div className="flex-1">
+                  <h2 className="typo-section-title">Pitch Deck</h2>
+                  <p className="typo-card-body text-muted-foreground">Investor-ready pitch for <strong className="text-foreground">{bizName}</strong></p>
+                </div>
               </div>
               <div className="p-5" style={{ background: "hsl(var(--card))" }}>
                 <PitchDeck

@@ -183,7 +183,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
         <button
           type="button"
           onClick={handleBack}
-          className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-foreground text-muted-foreground"
+          className="flex items-center gap-2 typo-card-body font-medium transition-colors hover:text-foreground text-muted-foreground"
         >
           <ArrowLeft size={14} /> Back
         </button>
@@ -194,16 +194,16 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               <div className="p-2 rounded bg-background border border-border">
                 <Icon size={20} style={{ color: modeOption.accent }} />
               </div>
-              <h2 className="text-xl font-bold text-foreground">{modeOption.label}</h2>
+              <h2 className="typo-section-title" style={{ fontSize: "1.25rem" }}>{modeOption.label}</h2>
             </div>
-            <p className="text-sm text-muted-foreground">{modeOption.description}</p>
+            <p className="typo-card-body text-muted-foreground">{modeOption.description}</p>
           </div>
           <div className="p-6 space-y-6">
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-foreground">What you'll get:</h3>
+              <h3 className="typo-card-title">What you'll get:</h3>
               <ul className="space-y-2">
                 {modeOption.bullets.map((bullet, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <li key={i} className="flex items-start gap-2 typo-card-body text-muted-foreground">
                     <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: modeOption.accent }} />
                     {bullet}
                   </li>
@@ -212,7 +212,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
             </div>
             <button
               onClick={handleConfirm}
-              className={`w-full py-3 rounded-lg font-bold text-sm text-white transition-colors ${
+              className={`w-full py-3 rounded-lg typo-button-primary text-white transition-colors ${
                 pendingMode === "service" ? "btn-mode-service" : pendingMode === "business" ? "btn-mode-business" : "btn-mode-product"
               }`}
             >
@@ -230,7 +230,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
         {(mode === "custom" || mode === "service") && (
           <form onSubmit={handleSubmit} className="space-y-5">
              <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <label className="typo-card-eyebrow">
                 {mode === "service" ? "Service Name" : "Product Name"}
               </label>
                <input
@@ -243,7 +243,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
 
             {/* URLs — up to 3 */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <label className="typo-card-eyebrow">
                 URLs (up to 3)
               </label>
               {customUrls.map((url, i) => (
@@ -262,7 +262,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                     <button
                       type="button"
                       onClick={() => setCustomUrls(customUrls.filter((_, j) => j !== i))}
-                      className="px-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      className="px-2 typo-card-meta text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Remove
                     </button>
@@ -273,7 +273,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 <button
                   type="button"
                   onClick={() => setCustomUrls([...customUrls, ""])}
-                  className="text-xs font-medium transition-colors text-primary-light"
+                  className="typo-card-meta font-medium transition-colors text-primary-light"
                 >
                   + Add URL
                 </button>
@@ -282,7 +282,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
 
             {/* Image uploads — up to 5 */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <label className="typo-card-eyebrow">
                 {mode === "service" ? "Screenshots (up to 5)" : "Product Images (up to 5)"}
               </label>
               <div className="flex flex-wrap gap-2">
@@ -292,7 +292,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                     <button
                       type="button"
                       onClick={() => setCustomImages(customImages.filter((_, j) => j !== i))}
-                      className="absolute top-0 right-0 w-5 h-5 flex items-center justify-center text-[10px] font-bold text-white rounded-bl"
+                      className="absolute top-0 right-0 w-5 h-5 flex items-center justify-center typo-status-label text-white rounded-bl"
                       style={{ background: "hsl(var(--destructive))" }}
                     >
                       X
@@ -323,12 +323,12 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                   </label>
                 )}
               </div>
-              <p className="text-[10px] text-muted-foreground">{customImages.length}/5 images uploaded</p>
+              <p className="typo-card-meta text-muted-foreground">{customImages.length}/5 images uploaded</p>
             </div>
 
             {/* Context / notes */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <label className="typo-card-eyebrow">
                 Context & Notes
               </label>
               <textarea
@@ -343,7 +343,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
             <button
               type="submit"
               disabled={isLoading || !customName}
-              className={`w-full py-3 rounded-lg font-bold text-sm text-white transition-colors disabled:opacity-50 ${mode === "service" ? "btn-mode-service" : "btn-mode-product"}`}
+              className={`w-full py-3 rounded-lg typo-button-primary text-white transition-colors disabled:opacity-50 ${mode === "service" ? "btn-mode-service" : "btn-mode-product"}`}
             >
               {isLoading ? "Analyzing..." : "Start Analysis"}
             </button>
@@ -353,7 +353,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
         {mode === "business" && (
           <div className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Business Type</label>
+              <label className="typo-card-eyebrow">Business Type</label>
               <input
                 value={businessInput.type}
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, type: e.target.value }))}
@@ -362,7 +362,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Description</label>
+              <label className="typo-card-eyebrow">Description</label>
               <textarea
                 value={businessInput.description}
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, description: e.target.value }))}
@@ -373,7 +373,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Revenue Model</label>
+                <label className="typo-card-eyebrow">Revenue Model</label>
                 <input
                   value={businessInput.revenueModel}
                   onChange={(e) => setBusinessInput(prev => ({ ...prev, revenueModel: e.target.value }))}
@@ -382,7 +382,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Business Size</label>
+                <label className="typo-card-eyebrow">Business Size</label>
                 <input
                   value={businessInput.size}
                   onChange={(e) => setBusinessInput(prev => ({ ...prev, size: e.target.value }))}
@@ -392,7 +392,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Geography</label>
+              <label className="typo-card-eyebrow">Geography</label>
               <input
                 value={businessInput.geography}
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, geography: e.target.value }))}
@@ -401,7 +401,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pain Points</label>
+              <label className="typo-card-eyebrow">Pain Points</label>
               <textarea
                 value={businessInput.painPoints}
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, painPoints: e.target.value }))}
@@ -411,7 +411,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Additional Notes</label>
+              <label className="typo-card-eyebrow">Additional Notes</label>
               <textarea
                 value={businessInput.notes}
                 onChange={(e) => setBusinessInput(prev => ({ ...prev, notes: e.target.value }))}
@@ -423,7 +423,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
             <button
               onClick={runBusinessAnalysis}
               disabled={businessLoading || !businessInput.type || !businessInput.description}
-              className="w-full py-3 rounded-lg font-bold text-sm text-white transition-colors btn-mode-business disabled:opacity-50"
+              className="w-full py-3 rounded-lg typo-button-primary text-white transition-colors btn-mode-business disabled:opacity-50"
             >
               {businessLoading ? "Deconstructing..." : "Deconstruct Business Model"}
             </button>
@@ -447,8 +447,8 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
             </div>
             <ChevronRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
-          <h3 className="font-bold text-foreground mb-1">{option.label}</h3>
-          <p className="text-sm text-muted-foreground">{option.tagline}</p>
+          <h3 className="typo-card-title mb-1">{option.label}</h3>
+          <p className="typo-card-body text-muted-foreground">{option.tagline}</p>
         </button>
       ))}
     </div>

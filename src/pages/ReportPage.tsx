@@ -31,9 +31,9 @@ import {
 import type { Product } from "@/data/mockProducts";
 
 function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
-  if (trend === "up") return <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-green-600"><TrendingUp size={9} /> Rising</span>;
-  if (trend === "down") return <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-500"><TrendingDown size={9} /> Falling</span>;
-  return <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-yellow-600"><Minus size={9} /> Stable</span>;
+  if (trend === "up") return <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-green-600"><TrendingUp size={9} /> Rising</span>;
+  if (trend === "down") return <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-red-500"><TrendingDown size={9} /> Falling</span>;
+  return <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-yellow-600"><Minus size={9} /> Stable</span>;
 }
 
 export default function ReportPage() {
@@ -116,8 +116,8 @@ export default function ReportPage() {
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center text-xs sm:text-sm font-semibold" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>2</span>
               <div className="flex-1 min-w-0">
-                <h2 className="text-sm sm:text-base font-bold text-foreground">Intelligence Report</h2>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">
+                <h2 className="typo-section-title">Intelligence Report</h2>
+                <p className="typo-card-meta text-muted-foreground mt-0.5 truncate">
                   {products.length} product{products.length > 1 ? "s" : ""} · {totalSources} sources · {totalIdeas} ideas · {avgScore}/10
                 </p>
               </div>
@@ -125,7 +125,7 @@ export default function ReportPage() {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct)}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded text-[11px] sm:text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded typo-button-secondary transition-colors"
                 style={{ background: "hsl(var(--background))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
               >
                 <FileDown size={12} /> PDF
@@ -133,7 +133,7 @@ export default function ReportPage() {
               <button
                 onClick={handleManualSave}
                 disabled={isSaving}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded text-[11px] sm:text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded typo-button-secondary transition-colors"
                 style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))", opacity: isSaving ? 0.7 : 1 }}
               >
                 {isSaving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
@@ -154,7 +154,7 @@ export default function ReportPage() {
                   analysis.setSelectedProduct(product);
                   analysis.setDetailTab("overview");
                 }}
-                className="flex items-center gap-2 px-3 py-2 rounded text-xs font-medium transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded typo-button-secondary transition-colors"
                 style={{
                   background: selectedProduct?.id === product.id ? "hsl(var(--primary))" : "hsl(var(--muted))",
                   color: selectedProduct?.id === product.id ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
@@ -202,20 +202,20 @@ export default function ReportPage() {
                 {selectedProduct.keyInsight && (
                   <div className="insight-callout">
                     <p className="typo-card-eyebrow mb-1">Key Insight</p>
-                    <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.85)" }}>{selectedProduct.keyInsight}</p>
+                    <p className="typo-card-body leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.85)" }}>{selectedProduct.keyInsight}</p>
                   </div>
                 )}
                 {selectedProduct.description && (
                   <div className="section-panel">
                     <p className="typo-card-eyebrow mb-1">Description</p>
-                    <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{selectedProduct.description}</p>
+                    <p className="typo-card-body leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{selectedProduct.description}</p>
                   </div>
                 )}
               </div>
               <div className="space-y-3">
                 {selectedProduct.marketSizeEstimate && (
                   <div className="insight-callout--success insight-callout">
-                    <p className="text-xs font-semibold" style={{ color: "hsl(142 70% 28%)" }}>TAM: {selectedProduct.marketSizeEstimate}</p>
+                    <p className="typo-card-body font-semibold" style={{ color: "hsl(142 70% 28%)" }}>TAM: {selectedProduct.marketSizeEstimate}</p>
                   </div>
                 )}
                 <div className="section-panel">
@@ -231,12 +231,12 @@ export default function ReportPage() {
 
             <DetailPanel title={`Sources & Trend Analysis`} icon={TrendingUp} defaultOpen>
               {selectedProduct.trendAnalysis && (
-                <p className="text-xs text-foreground/80 leading-relaxed mb-2">{selectedProduct.trendAnalysis}</p>
+                <p className="typo-card-body text-foreground/80 leading-relaxed mb-2">{selectedProduct.trendAnalysis}</p>
               )}
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {selectedProduct.sources?.map((src) => (
                   <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium"
                     style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
                     <ExternalLink size={9} /> {src.label?.slice(0, 30)}
                   </a>
@@ -271,25 +271,25 @@ export default function ReportPage() {
                   <>
                      {hasRealSentiment && (
                       <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(25 90% 40%)" }}>Community Sentiment</p>
-                        <p className="text-xs leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
+                         <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(25 90% 40%)" }}>Community Sentiment</p>
+                         <p className="typo-card-body leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
                       </div>
                     )}
                     <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown} defaultOpen>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
                         {ci.topComplaints?.length ? (
                           <div className="space-y-1.5">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase">Top Complaints</p>
+                            <p className="typo-card-eyebrow">Top Complaints</p>
                             {ci.topComplaints.map((c, i) => (
-                              <div key={i} className="flex gap-2 items-start text-xs"><ShieldAlert size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{c}</span></div>
+                              <div key={i} className="flex gap-2 items-start typo-card-body"><ShieldAlert size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{c}</span></div>
                             ))}
                           </div>
                         ) : null}
                         {ci.improvementRequests?.length ? (
                           <div className="space-y-1.5">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase">Improvement Requests</p>
+                            <p className="typo-card-eyebrow">Improvement Requests</p>
                             {ci.improvementRequests.map((r, i) => (
-                              <div key={i} className="flex gap-2 items-start text-xs"><Lightbulb size={10} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{r}</span></div>
+                              <div key={i} className="flex gap-2 items-start typo-card-body"><Lightbulb size={10} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{r}</span></div>
                             ))}
                           </div>
                         ) : null}
@@ -322,7 +322,7 @@ export default function ReportPage() {
               })()
             ) : (
               <div className="py-8 text-center">
-                <p className="text-sm text-muted-foreground">Community insights appear after running a live analysis.</p>
+                <p className="typo-card-body text-muted-foreground">Community insights appear after running a live analysis.</p>
               </div>
             )}
             {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
@@ -354,14 +354,14 @@ export default function ReportPage() {
                   <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
                   {uw.cognitiveLoad && (
                     <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Cognitive Load</p>
-                      <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
+                       <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
+                       <p className="typo-card-body text-foreground/80">{uw.cognitiveLoad}</p>
                     </div>
                   )}
                   {uw.contextOfUse && (
                     <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Context of Use</p>
-                      <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
+                       <p className="typo-card-eyebrow mb-1">Context of Use</p>
+                       <p className="typo-card-body text-foreground/80">{uw.contextOfUse}</p>
                     </div>
                   )}
                 </div>
@@ -395,23 +395,23 @@ export default function ReportPage() {
                       background: item.highlight ? "hsl(var(--primary-muted))" : "hsl(var(--muted))",
                       border: item.highlight ? "1px solid hsl(var(--primary) / 0.2)" : "1px solid hsl(var(--border))",
                     }}>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{item.label}</p>
-                      <p className="text-sm font-bold" style={{ color: item.highlight ? "hsl(var(--primary-dark))" : "hsl(var(--foreground))" }}>{item.value}</p>
+                      <p className="typo-card-eyebrow mb-0.5">{item.label}</p>
+                       <p className="typo-card-body font-bold" style={{ color: item.highlight ? "hsl(var(--primary-dark))" : "hsl(var(--foreground))" }}>{item.value}</p>
                     </div>
                   ))}
                 </div>
                 <DetailPanel title="Margins & Price Range" icon={DollarSign} defaultOpen>
                   <div className="space-y-2 mb-2">
-                    <p className="text-xs text-foreground/80">{selectedProduct.pricingIntel.margins}</p>
+                    <p className="typo-card-body text-foreground/80">{selectedProduct.pricingIntel.margins}</p>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-foreground">{selectedProduct.pricingIntel.priceRange}</span>
+                      <span className="typo-card-body font-bold text-foreground">{selectedProduct.pricingIntel.priceRange}</span>
                       <TrendBadge trend={selectedProduct.pricingIntel.priceDirection as "up" | "down" | "stable"} />
                     </div>
                   </div>
                 </DetailPanel>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No pricing intelligence available.</p>
+              <p className="typo-card-body text-muted-foreground text-center py-8">No pricing intelligence available.</p>
             )}
             {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
           </div>
@@ -454,7 +454,7 @@ export default function ReportPage() {
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No supply chain data available.</p>
+              <p className="typo-card-body text-muted-foreground text-center py-8">No supply chain data available.</p>
             )}
             {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
           </div>
@@ -470,8 +470,8 @@ export default function ReportPage() {
               <div className="flex justify-end">
                 <button
                   onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                  style={{ background: "hsl(271 81% 55%)", color: "white" }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg typo-button-primary transition-colors"
+                  style={{ background: modeAccent, color: "white" }}
                 >
                   <FileDown size={14} /> Download PDF
                 </button>
@@ -509,7 +509,7 @@ export default function ReportPage() {
         <NextStepButton
           stepNumber={3}
           label="Disrupt"
-          color="hsl(271 81% 55%)"
+          color={modeAccent}
           onClick={() => navigate(`${baseUrl}/disrupt`)}
           allSectionsVisited={allSectionsVisited}
         />
@@ -542,7 +542,7 @@ function ProjectNotesSection({ analysisId, saveStepData }: { analysisId: string 
 
   return (
     <div className="rounded-lg p-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+      <p className="typo-card-eyebrow mb-2 flex items-center gap-1.5">
         <StickyNote size={11} /> Project Notes
       </p>
       <ProjectNotesEditor value={notes} onSave={handleSave} compact />

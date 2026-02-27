@@ -66,18 +66,16 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
   return (
     <div className="card-intelligence p-5 space-y-4 relative overflow-hidden">
       {/* Rank accent */}
-      <div
-        className="absolute -top-3 -right-3 w-16 h-16 rounded-full opacity-5 bg-primary"
-      />
+      <div className="absolute -top-3 -right-3 w-16 h-16 rounded-full opacity-5 bg-primary" />
 
       {/* Header */}
       <div className="flex items-start gap-3">
         <div className="step-badge flex-shrink-0">#{rank}</div>
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="font-bold text-foreground text-base">{idea.name}</h4>
+            <h4 className="typo-card-title">{idea.name}</h4>
             <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded typo-status-label"
               style={{
                 background: avgScore >= 8 ? "hsl(var(--score-high) / 0.15)" : "hsl(var(--primary) / 0.12)",
                 color: avgScore >= 8 ? "hsl(var(--score-high))" : "hsl(var(--primary))",
@@ -87,7 +85,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
               Avg {avgScore.toFixed(1)}/10
             </span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{idea.description}</p>
+          <p className="typo-card-body text-muted-foreground mt-1 leading-relaxed">{idea.description}</p>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
             <RiskBadge type="Risk" level={(idea as unknown as Record<string, unknown>).riskLevel as string} />
             <RiskBadge type="Capital" level={(idea as unknown as Record<string, unknown>).capitalRequired as string} />
@@ -105,7 +103,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
             type="button"
             onClick={handleGenerateVisual}
             disabled={isGenerating}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary transition-all"
             style={{
               background: isGenerating ? "hsl(var(--muted))" : "hsl(var(--primary))",
               color: isGenerating ? "hsl(var(--muted-foreground))" : "white",
@@ -134,9 +132,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
               className="w-full object-cover rounded"
               style={{ maxHeight: "320px", objectPosition: "center" }}
             />
-            <div
-              className="absolute bottom-0 left-0 right-0 px-3 py-2 text-[10px] font-semibold bg-black/60 text-white"
-            >
+            <div className="absolute bottom-0 left-0 right-0 px-3 py-2 typo-status-label bg-black/60 text-white">
               ✦ AI-generated concept mockup · {idea.name}
             </div>
           </div>
@@ -145,15 +141,13 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
             className="flex flex-col items-center justify-center gap-2 rounded py-8 text-center cursor-pointer border border-dashed transition-all hover:border-primary/50 bg-muted/30 border-border"
             onClick={handleGenerateVisual}
           >
-            <div
-              className="w-10 h-10 rounded flex items-center justify-center bg-primary/10"
-            >
+            <div className="w-10 h-10 rounded flex items-center justify-center bg-primary/10">
               <Sparkles size={18} className="text-primary" />
             </div>
-            <p className="text-sm font-semibold text-primary">
+            <p className="typo-card-body font-semibold text-primary">
               Generate AI Product Visual
             </p>
-            <p className="text-xs text-muted-foreground max-w-xs">
+            <p className="typo-card-meta max-w-xs">
               Click to generate a concept mockup image
             </p>
           </div>
@@ -161,14 +155,14 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
       </div>
 
       {/* Details grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-1">
           <p className="typo-card-eyebrow">Visual / Mockup Notes</p>
-          <p className="text-foreground/80 text-xs leading-relaxed">{idea.visualNotes}</p>
+          <p className="typo-card-body text-foreground/80 leading-relaxed">{idea.visualNotes}</p>
         </div>
         <div className="space-y-1">
           <p className="typo-card-eyebrow">Feasibility & Unit Economics</p>
-          <p className="text-foreground/80 text-xs leading-relaxed">{idea.feasibilityNotes}</p>
+          <p className="typo-card-body text-foreground/80 leading-relaxed">{idea.feasibilityNotes}</p>
         </div>
       </div>
 
@@ -181,10 +175,10 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
           return (
             <div key={key} className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground capitalize">{key}</span>
+                <span className="typo-card-meta capitalize">{key}</span>
                 <div className="flex items-center gap-1.5">
                   {overridden && (
-                    <span className="text-[9px] text-muted-foreground">
+                    <span className="typo-status-label text-muted-foreground">
                       AI: {ai}
                     </span>
                   )}
@@ -197,7 +191,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
                       >
                         <Minus size={8} />
                       </button>
-                      <span className="text-sm font-bold w-8 text-center" style={{
+                      <span className="typo-card-body font-bold w-8 text-center" style={{
                         color: overridden ? "hsl(38 92% 50%)" : display >= 8 ? "hsl(var(--success))" : display >= 6 ? "hsl(var(--primary))" : "hsl(var(--warning))",
                       }}>
                         {display}/10
@@ -212,7 +206,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
                     </div>
                   )}
                   {!onScoreChange && (
-                    <span className="text-sm font-bold" style={{
+                    <span className="typo-card-body font-bold" style={{
                       color: display >= 8 ? "hsl(var(--success))" : display >= 6 ? "hsl(var(--primary))" : "hsl(var(--warning))",
                     }}>
                       {display}/10
@@ -254,26 +248,26 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
             ].map((phase, i) => (
               <div
                 key={i}
-                className="p-2.5 rounded text-xs bg-muted border border-border"
+                className="p-2.5 rounded bg-muted border border-border"
               >
-                <p className="font-semibold mb-0.5 text-primary">
+                <p className="typo-card-body font-semibold mb-0.5 text-primary">
                   {phase.label}
                 </p>
-                <p className="text-foreground/75 leading-relaxed">{phase.text}</p>
+                <p className="typo-card-body text-foreground/75 leading-relaxed">{phase.text}</p>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-[10px]">
-            <div className="flex items-center gap-1 text-muted-foreground">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex items-center gap-1 typo-card-meta text-muted-foreground">
               <Clock size={10} />
               <span>{idea.actionPlan.timeline}</span>
             </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
+            <div className="flex items-center gap-1 typo-card-meta text-muted-foreground">
               <DollarSign size={10} />
               <span>{idea.actionPlan.estimatedInvestment}</span>
             </div>
-            <div className="flex items-center gap-1 text-success">
+            <div className="flex items-center gap-1 typo-card-meta text-success">
               <TrendingUp size={10} />
               <span className="font-semibold">{idea.actionPlan.revenueProjection}</span>
             </div>
