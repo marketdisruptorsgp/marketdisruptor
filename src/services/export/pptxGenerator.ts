@@ -315,6 +315,16 @@ export function generateInvestorPitchPPTX(product: Product, deck: any, accentCol
     const s = pres.addSlide({ masterName: "DECK_MASTER" });
     const cursor = addSlideHeader(s, "Product Analysis", "Product / Innovation", hex, 6, TOTAL);
 
+    // Product image
+    if (product.image && cursor.hasRoom(2.5)) {
+      const y = cursor.place(2.2);
+      try {
+        s.addImage({ path: product.image, x: M, y, w: 3.5, h: 2.0, rounding: true });
+      } catch {
+        // Image fetch may fail in PPTX — skip gracefully
+      }
+    }
+
     if (deck.productInnovation) {
       const y = cursor.place(1.2);
       s.addShape(pres.ShapeType.rect, { x: M, y, w: 0.04, h: 0.8, fill: { color: hex } });

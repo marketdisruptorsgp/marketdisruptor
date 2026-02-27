@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Sparkles, Download, Award, CheckCircle2, ArrowRight, Clock, Rocket, Mail } from "lucide-react";
 import { ReferralCTA } from "@/components/ReferralCTA";
 import { AnalysisTimeline } from "@/components/analysis/AnalysisTimeline";
@@ -72,7 +73,10 @@ export function CompletionExperience({
 
   return (
     <div className="space-y-6">
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="p-8 rounded-xl text-center space-y-6"
         style={{
           background: `linear-gradient(135deg, hsl(${SUCCESS_GREEN} / 0.06), hsl(${SUCCESS_GREEN} / 0.02))`,
@@ -80,14 +84,22 @@ export function CompletionExperience({
         }}
       >
         {/* Celebratory icon */}
-        <div
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 15 }}
           className="w-20 h-20 rounded-full mx-auto flex items-center justify-center"
           style={{ background: `hsl(${SUCCESS_GREEN})`, boxShadow: `0 8px 32px -8px hsl(${SUCCESS_GREEN} / 0.45)` }}
         >
           <Sparkles size={34} style={{ color: "white" }} />
-        </div>
+        </motion.div>
 
-        <div className="space-y-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.4 }}
+          className="space-y-2"
+        >
           <p
             className="typo-card-eyebrow tracking-widest uppercase"
             style={{ color: `hsl(${SUCCESS_GREEN})` }}
@@ -102,7 +114,7 @@ export function CompletionExperience({
             <strong className="text-foreground">{productName}</strong> is ready.
             Time to disrupt.
           </p>
-        </div>
+        </motion.div>
 
         <div
           className="p-4 rounded-xl max-w-lg mx-auto"
@@ -150,7 +162,7 @@ export function CompletionExperience({
           />
           Project saved to your portfolio
         </p>
-      </div>
+      </motion.div>
 
       {/* SGP Capital Partnership CTA */}
       {sgpCapitalContext && (
