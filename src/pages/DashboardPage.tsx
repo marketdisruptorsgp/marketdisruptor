@@ -102,7 +102,13 @@ export default function DashboardPage() {
           <p className="typo-page-meta text-base sm:text-base md:text-lg mt-2 sm:mt-3 max-w-2xl mx-auto leading-relaxed px-2 text-center">
             Deconstruct markets, stress-test strategies, and build what's next.
           </p>
-          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-5">
+
+          {/* Built For */}
+          <div className="mt-6 sm:mt-8">
+            <BuiltForSection />
+          </div>
+
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button
               onClick={() => navigate("/about")}
               className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-primary text-primary-foreground transition-colors hover:opacity-90">
@@ -113,11 +119,6 @@ export default function DashboardPage() {
               className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-accent text-accent-foreground border border-border transition-colors hover:opacity-90">
               Example Output
             </button>
-          </div>
-
-          {/* Built For */}
-          <div className="mt-6 sm:mt-8">
-            <BuiltForSection />
           </div>
         </div>
       </section>
