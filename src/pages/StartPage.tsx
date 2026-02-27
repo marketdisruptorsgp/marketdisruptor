@@ -4,7 +4,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Upload, Briefcase, Building2, ArrowRight, CheckCircle2,
-  ShieldCheck, BookOpen,
+  ShieldCheck, BookOpen, Camera,
 } from "lucide-react";
 
 const MODES = [
@@ -125,6 +125,23 @@ export default function StartPage() {
               </div>
             );
           })}
+        </div>
+
+        {/* Photo Analysis — quick-access tool */}
+        <div
+          onClick={() => navigate("/instant-analysis")}
+          className="mt-5 sm:mt-6 rounded-2xl border-2 border-dashed border-border bg-muted/30 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 cursor-pointer transition-all hover:border-primary/40 hover:shadow-md group"
+        >
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 group-hover:bg-primary/15 transition-colors">
+            <Camera size={22} className="text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="typo-section-title text-base mb-1">Photo Analysis</h3>
+            <p className="typo-card-body text-muted-foreground text-sm leading-relaxed">
+              Point. Shoot. Understand Everything. — Snap a photo or upload an image and instantly map its supply chain, user journey, patent landscape, and market position.
+            </p>
+          </div>
+          <ArrowRight size={18} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 hidden sm:block" />
         </div>
       </section>
 
