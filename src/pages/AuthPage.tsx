@@ -13,6 +13,7 @@ const QUOTES = [
 ];
 
 type AuthMode = "magic" | "password";
+type PasswordMode = "login" | "signup";
 
 export default function AuthPage() {
   const [firstName, setFirstName] = useState("");
@@ -21,6 +22,7 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [mode, setMode] = useState<AuthMode>("magic");
+  const [passwordMode, setPasswordMode] = useState<PasswordMode>("login");
   const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("saved_login_email"));
   const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -58,23 +60,40 @@ export default function AuthPage() {
     e.preventDefault();
     if (!email.trim()) { toast.error("Please enter your email address!"); return; }
     if (!password.trim()) { toast.error("Please enter your password!"); return; }
+    if (passwordMode === "signup" && !firstName.trim()) { toast.error("Please enter your first name!"); return; }
+    if (passwordMode === "signup" && password.trim().length < 6) { toast.error("Password must be at least 6 characters."); return; }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim(),
-      });
-      if (error) {
-        if (error.message.includes("Invalid login")) {
-          toast.error("Invalid email or password. If you haven't set a password yet, use the magic link to sign in first, then set one from your profile.");
-        } else {
-          toast.error(error.message);
-        }
+      if (passwordMode === "signup") {
+        localStorage.setItem("pending_first_name", firstName.trim());
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password: password.trim(),
+          options: {
+            data: { first_name: firstName.trim() },
+            emailRedirectTo: window.location.origin,
+          },
+        });
+        if (error) throw error;
+        toast.success("Check your email to confirm your account, then sign in.");
+        setPasswordMode("login");
       } else {
-        if (rememberMe) {
-          localStorage.setItem("saved_login_email", email.trim());
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password.trim(),
+        });
+        if (error) {
+          if (error.message.includes("Invalid login")) {
+            toast.error("Invalid email or password. If you signed up with a magic link, set a password from your profile first.");
+          } else {
+            toast.error(error.message);
+          }
         } else {
-          localStorage.removeItem("saved_login_email");
+          if (rememberMe) {
+            localStorage.setItem("saved_login_email", email.trim());
+          } else {
+            localStorage.removeItem("saved_login_email");
+          }
         }
       }
     } catch (err: unknown) {
@@ -189,24 +208,26 @@ export default function AuthPage() {
 
           {/* Desktop-only heading */}
           <div className="hidden lg:block">
-            <h2 className="text-3xl font-bold mb-2 text-foreground">
-              {mode === "magic" ? "Your next big idea starts here." : "Welcome back."}
-            </h2>
-            <p className="text-base text-muted-foreground">
-              {mode === "magic"
-                ? "Enter your name and email. We'll send you a magic link — your workspace auto-saves and persists every time you return."
-                : "Sign in with your email and password to jump straight into your workspace."}
+             <h2 className="text-3xl font-bold mb-2 text-foreground">
+               {mode === "magic" ? "Your next big idea starts here." : passwordMode === "signup" ? "Create your account." : "Welcome back."}
+             </h2>
+             <p className="text-base text-muted-foreground">
+               {mode === "magic"
+                 ? "Enter your name and email. We'll send you a magic link — your workspace auto-saves and persists every time you return."
+                 : passwordMode === "signup"
+                 ? "Set up your account with a password for instant access every time."
+                 : "Sign in with your email and password to jump straight into your workspace."}
             </p>
           </div>
 
           {/* Mobile heading */}
           <div className="lg:hidden">
-            <h2 className="text-xl font-bold text-foreground mb-1">
-              {mode === "magic" ? "Sign in to your workspace" : "Welcome back"}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {mode === "magic" ? "Magic link — no password needed." : "Sign in with your password."}
-            </p>
+             <h2 className="text-xl font-bold text-foreground mb-1">
+               {mode === "magic" ? "Sign in to your workspace" : passwordMode === "signup" ? "Create an account" : "Welcome back"}
+             </h2>
+             <p className="text-sm text-muted-foreground">
+               {mode === "magic" ? "Magic link — no password needed." : passwordMode === "signup" ? "Sign up with email and password." : "Sign in with your password."}
+             </p>
           </div>
 
           {/* Mode toggle */}
@@ -259,6 +280,18 @@ export default function AuthPage() {
             </form>
           ) : (
             <form onSubmit={handlePasswordLogin} className="space-y-4">
+              {passwordMode === "signup" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">First Name</label>
+                  <input
+                    className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="e.g. Alex, Jordan, Sam…"
+                    autoFocus
+                  />
+                </div>
+              )}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
                 <input
@@ -267,37 +300,50 @@ export default function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  autoFocus
+                  autoFocus={passwordMode === "login"}
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Password</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  {passwordMode === "signup" ? "Create Password" : "Password"}
+                </label>
                 <input
                    ref={passwordRef}
                    className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                    type="password"
                    value={password}
                    onChange={(e) => setPassword(e.target.value)}
-                   placeholder="Your password"
+                   placeholder={passwordMode === "signup" ? "Min. 6 characters" : "Your password"}
                  />
               </div>
-              <div className="flex items-center gap-2.5">
-                <Checkbox
-                  id="remember-me"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(!!checked)}
-                />
-                <label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer select-none">
-                  Remember my email
-                </label>
-              </div>
+              {passwordMode === "login" && (
+                <div className="flex items-center gap-2.5">
+                  <Checkbox
+                    id="remember-me"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(!!checked)}
+                  />
+                  <label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer select-none">
+                    Remember my email
+                  </label>
+                </div>
+              )}
               <button
                 type="submit"
-                disabled={loading || !email.trim() || !password.trim()}
+                disabled={loading || !email.trim() || !password.trim() || (passwordMode === "signup" && !firstName.trim())}
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-bold text-sm transition-colors shadow-md bg-primary text-primary-foreground hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? <><Loader2 size={16} className="animate-spin" /> Signing in…</> : <>Sign In <ArrowRight size={16} /></>}
+                {loading
+                  ? <><Loader2 size={16} className="animate-spin" /> {passwordMode === "signup" ? "Creating account…" : "Signing in…"}</>
+                  : <>{passwordMode === "signup" ? "Create Account" : "Sign In"} <ArrowRight size={16} /></>}
               </button>
+              <p className="text-sm text-center text-muted-foreground">
+                {passwordMode === "login" ? (
+                  <>Don't have an account? <button type="button" onClick={() => setPasswordMode("signup")} className="text-primary font-semibold hover:underline">Sign up</button></>
+                ) : (
+                  <>Already have an account? <button type="button" onClick={() => setPasswordMode("login")} className="text-primary font-semibold hover:underline">Sign in</button></>
+                )}
+              </p>
             </form>
           )}
 
