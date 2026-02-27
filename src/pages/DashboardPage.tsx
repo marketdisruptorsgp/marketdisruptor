@@ -11,7 +11,6 @@ import PaywallModal from "@/components/PaywallModal";
 import { MarketChangeAlert } from "@/components/MarketChangeAlert";
 
 import { ShowcaseGallery } from "@/components/ShowcaseGallery";
-import { BuiltForSection } from "@/components/BuiltForSection";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
@@ -103,10 +102,6 @@ export default function DashboardPage() {
             Deconstruct markets, stress-test strategies, and build what's next.
           </p>
 
-          {/* Built For */}
-          <div className="mt-6 sm:mt-8">
-            <BuiltForSection />
-          </div>
 
           <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button

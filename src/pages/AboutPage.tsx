@@ -1,6 +1,6 @@
 import { PlatformNav } from "@/components/PlatformNav";
 import { ShowcaseGallery } from "@/components/ShowcaseGallery";
-import { BuiltForSection } from "@/components/BuiltForSection";
+
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -251,10 +251,6 @@ export default function AboutPage() {
         {/* Showcase */}
         <ShowcaseGallery />
 
-        {/* Built For */}
-        <section className="mb-20">
-          <BuiltForSection />
-        </section>
 
         {/* ── CTA ── */}
         <motion.section
