@@ -231,7 +231,7 @@ export function SectionWorkflowNav<T extends string>({
             <button
               key={tab.id}
               onClick={() => onSelect(tab.id)}
-              className="relative flex flex-col items-center text-center px-2 py-3.5 sm:py-4 transition-all duration-200 group"
+              className="relative flex flex-col items-center text-center px-1.5 py-2.5 sm:py-3 transition-all duration-200 group"
               style={{
                 background: isActive || isVisited
                   ? accent
@@ -243,7 +243,7 @@ export function SectionWorkflowNav<T extends string>({
                 <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ background: accent }} />
               )}
               <div
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center mb-1.5 transition-all duration-200 group-hover:scale-110"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1 transition-all duration-200 group-hover:scale-110"
                 style={{
                     background: isActive || isVisited
                     ? "hsla(0 0% 100% / 0.2)"
@@ -251,18 +251,18 @@ export function SectionWorkflowNav<T extends string>({
                 }}
               >
                 {isVisited ? (
-                  <CheckCircle2 size={17} style={{ color: "white" }} />
+                  <CheckCircle2 size={14} style={{ color: "white" }} />
                 ) : (
-                  <TabIcon size={17} style={{ color: isActive || isVisited ? "white" : "hsl(var(--muted-foreground))" }} />
+                  <TabIcon size={14} style={{ color: isActive || isVisited ? "white" : "hsl(var(--muted-foreground))" }} />
                 )}
               </div>
               <span className="typo-status-label mb-0.5" style={{
                 color: isActive || isVisited ? "hsla(0 0% 100% / 0.6)" : "hsl(var(--muted-foreground) / 0.6)",
-                fontSize: "0.6875rem",
+                fontSize: "0.625rem",
               }}>
                 {i + 1}/{tabs.length}
               </span>
-              <p className="typo-card-title" style={{
+              <p className="typo-card-title text-xs" style={{
                 color: isActive || isVisited ? "white" : "hsl(var(--muted-foreground))",
               }}>
                 {tab.label}
