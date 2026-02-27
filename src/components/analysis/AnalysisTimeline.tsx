@@ -27,12 +27,8 @@ function extractSnippet(data: Record<string, unknown> | null, key: string): stri
     if (Array.isArray(assumptions) && assumptions.length > 0) return assumptions[0]?.assumption;
   }
   if (key === "redesign") {
-    const concept = (step as any)?.concept || (step as any)?.name;
+    const concept = (step as any)?.concept || (step as any)?.name || (step as any)?.redesignedConcept?.conceptName;
     if (typeof concept === "string") return concept;
-    // Also check inside disrupt.redesignedConcept
-    const disrupt = data?.disrupt as any;
-    const rc = disrupt?.redesignedConcept;
-    if (rc?.conceptName) return rc.conceptName;
   }
   if (key === "stressTest") {
     const risks = (step as any)?.risks;
@@ -72,7 +68,7 @@ export function AnalysisTimeline({ analysisData, createdAt, accentColor = "hsl(v
       label: "Redesign Generated",
       icon: Sparkles,
       color: "hsl(38 92% 50%)",
-      completed: !!(analysisData?.redesign || (analysisData?.disrupt as any)?.redesignedConcept || analysisData?.productVisuals),
+      completed: !!(analysisData?.redesign),
       snippet: extractSnippet(analysisData, "redesign"),
     },
     {

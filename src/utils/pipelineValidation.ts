@@ -52,6 +52,34 @@ const VALID_STEP_KEYS = new Set(Object.keys(STEP_CONTRACTS));
 const SYSTEM_KEYS = new Set(["userScores", "outdatedSteps", "previousSnapshot", "projectNotes"]);
 
 /**
+ * Fail-loud guard: Validates that a section's computation owner matches its UI location.
+ * Call this at save time to catch misrouted data.
+ */
+const STEP_UI_LOCATION: Record<string, number> = {
+  intelData: 2,
+  disrupt: 3,
+  redesign: 4,
+  stressTest: 5,
+  pitchDeck: 6,
+  businessAnalysis: 2,
+  businessStressTest: 3,
+  businessPitchDeck: 4,
+};
+
+export function assertStepOwnership(
+  stepKey: string,
+  callerStep: number | undefined
+): void {
+  if (!callerStep) return; // Skip if caller doesn't declare step
+  const expectedStep = STEP_UI_LOCATION[stepKey];
+  if (expectedStep && expectedStep !== callerStep) {
+    const msg = `[Pipeline] OWNERSHIP VIOLATION: Step key "${stepKey}" belongs to UI step ${expectedStep} but was saved from step ${callerStep}. Data must be saved by the owning step.`;
+    console.error(msg);
+    throw new Error(msg);
+  }
+}
+
+/**
  * Validate step data before persistence.
  * Returns errors if data is invalid.
  */
