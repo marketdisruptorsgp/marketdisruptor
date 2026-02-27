@@ -806,7 +806,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {activeStep === "assumptions" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
-          <PitchDeckToggle contentKey="assumptions" label="Include in Pitch Deck" sublabel="(concise exec summary only — not the full analysis)" />
+          {/* Individual pitch deck toggles on each card below */}
           <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-xs text-foreground/80 leading-relaxed">
               <strong>Why this matters:</strong> Every product is built on assumptions — about who uses it, how they use it, and why it's designed the way it is. Most go unchallenged. The best innovations come from questioning what everyone else takes for granted.
@@ -855,6 +855,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                         Leverage {a.leverageScore}/10
                       </span>
                     )}
+                    <span className="ml-auto" />
+                    <PitchDeckToggle contentKey={`assumptions-${i}`} label="Include in Pitch" />
                   </div>
                 </div>
               );
@@ -869,7 +871,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {activeStep === "flip" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
-          <PitchDeckToggle contentKey="flippedLogic" label="Include in Pitch Deck" sublabel="(concise exec summary only)" />
+          {/* Individual pitch deck toggles on each card below */}
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-xs text-foreground/80 leading-relaxed">
               <strong>Methodology:</strong> Each assumption above is deliberately inverted to explore what happens when conventional wisdom is violated. This isn't contrarianism for its own sake — it's a structured technique to surface non-obvious opportunities that competitors overlook because they never question the status quo.
@@ -902,7 +904,10 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                     <p className="text-xs text-foreground/70">{item.physicalMechanism}</p>
                   </div>
                 </div>
-                <InsightRating sectionId={`flip-${i}`} compact />
+                <div className="flex items-center justify-between mt-2">
+                  <InsightRating sectionId={`flip-${i}`} compact />
+                  <PitchDeckToggle contentKey={`flippedLogic-${i}`} label="Include in Pitch" />
+                </div>
               </DetailPanel>
             </div>
           ))}
