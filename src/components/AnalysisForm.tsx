@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Upload, Link, Briefcase, Building2, Telescope, ArrowLeft, ChevronRight, FileText, Image, X } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Upload, Link, Briefcase, Building2, Telescope, ArrowLeft, ChevronRight, FileText, Image, X, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -121,6 +121,60 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
   const [bizUrls, setBizUrls] = useState<string[]>([""]);
   const [bizImages, setBizImages] = useState<{ file: File; dataUrl: string }[]>([]);
   const [bizDocs, setBizDocs] = useState<{ file: File; name: string }[]>([]);
+  const [autofilling, setAutofilling] = useState(false);
+  const autofillTriggered = useRef<Set<string>>(new Set());
+
+  const runAutofill = useCallback(async (url: string, currentMode: Mode) => {
+    const trimmed = url.trim();
+    if (!trimmed || autofillTriggered.current.has(trimmed)) return;
+    // Basic URL validation
+    if (!trimmed.match(/^https?:\/\/.+\..+/) && !trimmed.match(/^[a-zA-Z0-9].*\..+/)) return;
+    
+    autofillTriggered.current.add(trimmed);
+    setAutofilling(true);
+    toast.info("Scanning URL to pre-fill fields...");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-url-autofill", {
+        body: { url: trimmed, mode: currentMode },
+      });
+
+      if (error || !data?.success) {
+        console.warn("Autofill failed:", error || data?.error);
+        toast.error("Couldn't extract info from that URL. Fill manually.");
+        return;
+      }
+
+      const d = data.data;
+
+      if (currentMode === "business") {
+        setBusinessInput(prev => ({
+          type: prev.type || d.type || "",
+          description: prev.description || d.description || "",
+          revenueModel: prev.revenueModel || d.revenueModel || "",
+          size: prev.size || d.size || "",
+          geography: prev.geography || d.geography || "",
+          painPoints: prev.painPoints || d.painPoints || "",
+          notes: prev.notes || d.notes || "",
+        }));
+      } else {
+        if (!customName && d.name) setCustomName(d.name);
+        if (!customNotes && (d.notes || d.description)) {
+          setCustomNotes(d.notes || d.description || "");
+        }
+      }
+
+      toast.success("Fields pre-filled from URL!");
+    } catch (err) {
+      console.error("Autofill error:", err);
+    } finally {
+      setAutofilling(false);
+    }
+  }, [customName, customNotes]);
+
+  const handleUrlBlur = (url: string) => {
+    if (url.trim()) runAutofill(url, mode);
+  };
 
   const handleBack = () => {
     setPhase("select");
@@ -232,23 +286,13 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
       <div className="space-y-6">
         {(mode === "custom" || mode === "service") && (
           <form onSubmit={handleSubmit} className="space-y-5">
-             <div className="space-y-1.5">
-              <label className="typo-card-eyebrow">
-                {mode === "service" ? "Service Name" : "Product Name"}
-              </label>
-               <input
-                value={customName}
-                onChange={(e) => setCustomName(e.target.value)}
-                placeholder={mode === "service" ? "e.g. Acme Consulting" : "e.g. Vintage Camera"}
-                className={inputClassName}
-              />
-            </div>
-
-            {/* URLs — up to 3 */}
+            {/* URLs — FIRST */}
             <div className="space-y-1.5">
-              <label className="typo-card-eyebrow">
-                URLs (up to 3)
+              <label className="typo-card-eyebrow flex items-center gap-2">
+                URL {autofilling && <Loader2 size={13} className="animate-spin text-primary" />}
+                {autofilling && <span className="typo-card-meta text-primary">Scanning...</span>}
               </label>
+              <p className="typo-card-meta text-muted-foreground">Paste a URL and we'll extract details automatically</p>
               {customUrls.map((url, i) => (
                 <div key={i} className="flex gap-2">
                   <input
@@ -258,7 +302,8 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                       next[i] = e.target.value;
                       setCustomUrls(next);
                     }}
-                    placeholder={`URL ${i + 1} — paste a product or service page`}
+                    onBlur={(e) => handleUrlBlur(e.target.value)}
+                    placeholder={i === 0 ? "https://example.com — we'll fill in the rest" : `URL ${i + 1}`}
                     className={inputClassName}
                   />
                   {customUrls.length > 1 && (
@@ -281,6 +326,19 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                   + Add URL
                 </button>
               )}
+            </div>
+
+            {/* Name */}
+            <div className="space-y-1.5">
+              <label className="typo-card-eyebrow">
+                {mode === "service" ? "Service Name" : "Product Name"}
+              </label>
+               <input
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder={mode === "service" ? "e.g. Acme Consulting" : "e.g. Vintage Camera"}
+                className={inputClassName}
+              />
             </div>
 
             {/* Image uploads — up to 5 */}
@@ -355,6 +413,48 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
 
         {mode === "business" && (
           <div className="space-y-5">
+            {/* URLs — FIRST for business too */}
+            <div className="space-y-1.5">
+              <label className="typo-card-eyebrow flex items-center gap-2">
+                URL {autofilling && <Loader2 size={13} className="animate-spin text-primary" />}
+                {autofilling && <span className="typo-card-meta text-primary">Scanning...</span>}
+              </label>
+              <p className="typo-card-meta text-muted-foreground">Paste a business URL and we'll extract details automatically</p>
+              {bizUrls.map((url, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    value={url}
+                    onChange={(e) => {
+                      const next = [...bizUrls];
+                      next[i] = e.target.value;
+                      setBizUrls(next);
+                    }}
+                    onBlur={(e) => handleUrlBlur(e.target.value)}
+                    placeholder={i === 0 ? "https://example.com — we'll fill in the rest" : `URL ${i + 1}`}
+                    className={inputClassName}
+                  />
+                  {bizUrls.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setBizUrls(bizUrls.filter((_, j) => j !== i))}
+                      className="px-2 typo-card-meta text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+              {bizUrls.length < 3 && (
+                <button
+                  type="button"
+                  onClick={() => setBizUrls([...bizUrls, ""])}
+                  className="typo-card-meta font-medium transition-colors text-primary-light"
+                >
+                  + Add URL
+                </button>
+              )}
+            </div>
+
             <div className="space-y-1.5">
               <label className="typo-card-eyebrow">Business Type</label>
               <input
@@ -422,43 +522,6 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 rows={3}
                 className={`${inputClassName} resize-none`}
               />
-            </div>
-
-            {/* URLs — up to 3 */}
-            <div className="space-y-1.5">
-              <label className="typo-card-eyebrow">URLs (up to 3)</label>
-              {bizUrls.map((url, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    value={url}
-                    onChange={(e) => {
-                      const next = [...bizUrls];
-                      next[i] = e.target.value;
-                      setBizUrls(next);
-                    }}
-                    placeholder={`URL ${i + 1} — website, pitch deck link, competitor page...`}
-                    className={inputClassName}
-                  />
-                  {bizUrls.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => setBizUrls(bizUrls.filter((_, j) => j !== i))}
-                      className="px-2 typo-card-meta text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-              {bizUrls.length < 3 && (
-                <button
-                  type="button"
-                  onClick={() => setBizUrls([...bizUrls, ""])}
-                  className="typo-card-meta font-medium transition-colors text-primary-light"
-                >
-                  + Add URL
-                </button>
-              )}
             </div>
 
             {/* Document uploads — up to 5 */}
