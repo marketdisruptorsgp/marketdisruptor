@@ -1,25 +1,28 @@
+## Header & Homepage Fixes
 
+### 1. Remove "OS" bubble from header (PlatformNav.tsx)
 
-## Header Nav Adjustment
+Remove lines 78-80 — the `<span>` with the "OS" badge next to "Market Disruptor".
 
-Match the layout shown in the screenshots by restructuring the desktop nav tabs and right-side actions.
+### 2. Make nav tab text black instead of gray (PlatformNav.tsx)
 
-### Changes (PlatformNav.tsx only)
+Change all inactive nav tab classes from `text-muted-foreground` to `text-foreground` so they render black by default. Affects Portfolio, Intel, Photo Analysis, About, and Resources tabs.
 
-1. **Remove "Start Disrupting" from nav tabs** — it currently sits as the first tab link with a Zap icon. Remove it from the NavigationMenuList.
+### 3. Sync DisruptionPathBanner step icon colors with rotating hero text (DashboardPage.tsx + DisruptionPathBanner.tsx)
 
-2. **Remove "Pricing" from nav tabs** — it's the last tab in the nav list. Remove it.
+Currently each step has its own hardcoded color. Instead, make all 6 step icons use the same color as the currently active rotating word (product → blue, service → pink, business → purple). and they should all change colors on own, not have to hover over them to see the color.
 
-3. **Keep these nav tabs** (in order): Portfolio, Intel, Photo Analysis, About, Resources dropdown — matching the screenshot exactly.
+**DisruptionPathBanner.tsx changes:**
 
-4. **Replace the right-side "Upgrade" button** with a "Start Analysis →" primary button that navigates to `/start`. This button should:
-   - Use `rounded-full`, `bg-primary`, `text-primary-foreground`
-   - Include an ArrowRight icon
-   - Show on both desktop and mobile (hidden only on very small screens)
-   - Display regardless of tier (remove the `tier !== "disruptor"` conditional)
+- Add a new prop `accentColor?: string` to `DisruptionPathBannerProps`
+- When `accentColor` is provided, use it for ALL step circle backgrounds (desktop hover/active state and mobile) instead of individual per-step colors
 
-5. **Mobile menu adjustments**: Remove "Pricing" from the mobile sheet. Keep "Start Disrupting" section in mobile as-is since it serves as the entry point there.
+**DashboardPage.tsx changes:**
+
+- Pass the current `MODE_WORDS[wordIndex].color` as `accentColor` to `<DisruptionPathBanner />`
 
 ### Files to edit
-- `src/components/PlatformNav.tsx`
 
+- `src/components/PlatformNav.tsx` — remove OS bubble, make tabs black
+- `src/components/DisruptionPathBanner.tsx` — accept and apply `accentColor` prop
+- `src/pages/DashboardPage.tsx` — pass accent color to DisruptionPathBanner
