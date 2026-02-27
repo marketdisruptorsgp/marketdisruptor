@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Upload, Link, Briefcase, Building2, Telescope, ArrowLeft, ChevronRight } from "lucide-react";
+import { Upload, Link, Briefcase, Building2, Telescope, ArrowLeft, ChevronRight, FileText, Image, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -118,6 +118,9 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "",
   });
   const [businessLoading, setBusinessLoading] = useState(false);
+  const [bizUrls, setBizUrls] = useState<string[]>([""]);
+  const [bizImages, setBizImages] = useState<{ file: File; dataUrl: string }[]>([]);
+  const [bizDocs, setBizDocs] = useState<{ file: File; name: string }[]>([]);
 
   const handleBack = () => {
     setPhase("select");
@@ -420,6 +423,137 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 className={`${inputClassName} resize-none`}
               />
             </div>
+
+            {/* URLs — up to 3 */}
+            <div className="space-y-1.5">
+              <label className="typo-card-eyebrow">URLs (up to 3)</label>
+              {bizUrls.map((url, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    value={url}
+                    onChange={(e) => {
+                      const next = [...bizUrls];
+                      next[i] = e.target.value;
+                      setBizUrls(next);
+                    }}
+                    placeholder={`URL ${i + 1} — website, pitch deck link, competitor page...`}
+                    className={inputClassName}
+                  />
+                  {bizUrls.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setBizUrls(bizUrls.filter((_, j) => j !== i))}
+                      className="px-2 typo-card-meta text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+              {bizUrls.length < 3 && (
+                <button
+                  type="button"
+                  onClick={() => setBizUrls([...bizUrls, ""])}
+                  className="typo-card-meta font-medium transition-colors text-primary-light"
+                >
+                  + Add URL
+                </button>
+              )}
+            </div>
+
+            {/* Document uploads — up to 5 */}
+            <div className="space-y-1.5">
+              <label className="typo-card-eyebrow">Documents (up to 5)</label>
+              <p className="typo-card-meta text-muted-foreground mb-1">PDF, Excel, CSV, PowerPoint, Word</p>
+              <div className="space-y-2">
+                {bizDocs.map((doc, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-lg px-3 py-2 bg-muted border border-border">
+                    <FileText size={14} className="text-muted-foreground flex-shrink-0" />
+                    <span className="typo-card-body text-foreground truncate flex-1">{doc.name}</span>
+                    <span className="typo-card-meta text-muted-foreground flex-shrink-0">
+                      {(doc.file.size / 1024).toFixed(0)} KB
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setBizDocs(bizDocs.filter((_, j) => j !== i))}
+                      className="p-0.5 rounded hover:bg-destructive/10 transition-colors"
+                    >
+                      <X size={14} className="text-muted-foreground hover:text-destructive" />
+                    </button>
+                  </div>
+                ))}
+                {bizDocs.length < 5 && (
+                  <label
+                    className="flex items-center justify-center gap-2 rounded-lg px-4 py-3 cursor-pointer transition-colors hover:bg-muted/80"
+                    style={{ border: "1.5px dashed hsl(var(--border))", background: "hsl(var(--muted) / 0.3)" }}
+                  >
+                    <Upload size={14} className="text-muted-foreground" />
+                    <span className="typo-card-body text-muted-foreground">Upload document</span>
+                    <input
+                      type="file"
+                      accept=".pdf,.xlsx,.xls,.csv,.pptx,.ppt,.docx,.doc"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 20 * 1024 * 1024) {
+                          toast.error("File too large. Maximum 20MB per file.");
+                          return;
+                        }
+                        setBizDocs([...bizDocs, { file, name: file.name }]);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+              <p className="typo-card-meta text-muted-foreground">{bizDocs.length}/5 documents uploaded</p>
+            </div>
+
+            {/* Image uploads — up to 5 */}
+            <div className="space-y-1.5">
+              <label className="typo-card-eyebrow">Images (up to 5)</label>
+              <div className="flex flex-wrap gap-2">
+                {bizImages.map((img, i) => (
+                  <div key={i} className="relative w-16 h-16 rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+                    <img src={img.dataUrl} alt="" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setBizImages(bizImages.filter((_, j) => j !== i))}
+                      className="absolute top-0 right-0 w-5 h-5 flex items-center justify-center typo-status-label text-white rounded-bl"
+                      style={{ background: "hsl(var(--destructive))" }}
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+                {bizImages.length < 5 && (
+                  <label
+                    className="w-16 h-16 rounded flex items-center justify-center cursor-pointer transition-colors"
+                    style={{ border: "1.5px dashed hsl(var(--border))", background: "hsl(var(--muted))" }}
+                  >
+                    <Image size={16} className="text-muted-foreground" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setBizImages([...bizImages, { file, dataUrl: reader.result as string }]);
+                        };
+                        reader.readAsDataURL(file);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+              <p className="typo-card-meta text-muted-foreground">{bizImages.length}/5 images uploaded</p>
+            </div>
+
             <button
               onClick={runBusinessAnalysis}
               disabled={businessLoading || !businessInput.type || !businessInput.description}
