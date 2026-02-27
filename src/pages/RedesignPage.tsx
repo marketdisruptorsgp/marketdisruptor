@@ -11,7 +11,6 @@ import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner } from "@/components/KeyTakeawayBanner";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ModeHeader } from "@/components/ModeHeader";
-import { LensToggle } from "@/components/LensToggle";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { scrollToTop } from "@/utils/scrollToTop";
 
@@ -67,7 +66,7 @@ export default function RedesignPage() {
           subtitle={`Interactive concept illustrations for <strong class="text-foreground">${selectedProduct.name}</strong> — visualizing the reinvented model.`}
           accentColor={theme.primary}
           explainerKey="step-redesign"
-          actions={<div className="flex items-center gap-1.5"><LensToggle /><InfoExplainer explainerKey="lens-selector" /></div>}
+          actions={<InfoExplainer explainerKey="lens-selector" />}
         />
 
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>

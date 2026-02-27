@@ -14,7 +14,6 @@ import { KeyTakeawayBanner, getStressTestTakeaway } from "@/components/KeyTakeaw
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ModeHeader } from "@/components/ModeHeader";
-import { LensToggle } from "@/components/LensToggle";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { usePersistedSections } from "@/hooks/usePersistedSections";
@@ -78,7 +77,7 @@ export default function StressTestPage() {
           subtitle={`Red Team vs Green Team critical validation for <strong class="text-foreground">${selectedProduct.name}</strong>`}
           accentColor={theme.primary}
           explainerKey="step-stress-test"
-          actions={<div className="flex items-center gap-1.5"><LensToggle /><InfoExplainer explainerKey="lens-selector" /></div>}
+          actions={<InfoExplainer explainerKey="lens-selector" />}
         />
 
         <div className="rounded overflow-hidden p-4 sm:p-6 space-y-4 sm:space-y-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
