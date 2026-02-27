@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { downloadPitchDeckPDF } from "@/lib/pdfExport";
 import { useAuth } from "@/hooks/useAuth";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 import { ReferralCTA } from "@/components/ReferralCTA";
 import { ExportPanel } from "@/components/export/ExportPanel";
 import { PITCH_SLIDE_DESCRIPTIONS } from "@/lib/stepConfigs";
@@ -167,6 +168,7 @@ const SLIDE_CATEGORY_LABELS: Record<string, string> = {
 export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptData, stressTestData, redesignData, userScores, accentColor: modeAccent, insightPreferences, steeringText }: PitchDeckProps) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const analysisCtx = useAnalysis();
   const [data, setData] = useState<PitchDeckData | null>((externalData as PitchDeckData) || null);
   const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState<SlideTab>("problem");
@@ -405,10 +407,25 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     /* ═══ 5. PRODUCT ═══ */
     product: (() => {
       const concept = (redesignData as any)?.redesignedConcept;
+      const selectedImages = analysisCtx.pitchDeckImages;
       return (
         <div style={gap28}>
-          {/* Product image + concept name */}
-          {(product.image || concept?.conceptName) && (
+          {/* User-selected pitch deck images */}
+          {selectedImages.length > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: selectedImages.length > 1 ? "1fr 1fr" : "1fr", gap: 16 }}>
+              {selectedImages.map((img, i) => (
+                <div key={i} style={{ ...panel, padding: 0, overflow: "hidden" }}>
+                  <img src={img.url} alt={img.ideaName} style={{ width: "100%", height: 240, objectFit: "cover", borderRadius: "10px 10px 0 0" }} />
+                  <div style={{ padding: "10px 14px" }}>
+                    <p style={{ ...lbl, marginBottom: 4, fontSize: 11 }}>Selected Concept</p>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: "#0f0f12" }}>{img.ideaName}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Product image + concept name (fallback if no selected images) */}
+          {selectedImages.length === 0 && (product.image || concept?.conceptName) && (
             <SplitLayout
               left={
                 product.image ? (

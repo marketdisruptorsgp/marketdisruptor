@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -334,6 +335,7 @@ function NextSectionButton({ label, onClick }: { label: string; onClick: () => v
 export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, renderMode, userScores, onScoreChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
+  const analysisCtx = useAnalysis();
   const [data, setData] = useState<FirstPrinciplesData | null>((externalData as FirstPrinciplesData) || null);
   const [loading, setLoading] = useState(false);
   const isService = product.category === "Service";
@@ -843,14 +845,17 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               </div>
               <div className="space-y-4">
                 {flippedIdeas.map((idea, i) => (
-                  <FlippedIdeaCard
-                    key={`${idea.name}-${i}`}
-                    idea={idea}
-                    rank={i + 1}
-                    productName={product.name}
-                    userScores={userScores?.[idea.name || `idea-${i}`]}
-                    onScoreChange={onScoreChange ? (scoreKey, value) => onScoreChange(idea.name || `idea-${i}`, scoreKey, value) : undefined}
-                  />
+                    <FlippedIdeaCard
+                      key={`${idea.name}-${i}`}
+                      idea={idea}
+                      rank={i + 1}
+                      productName={product.name}
+                      userScores={userScores?.[idea.name || `idea-${i}`]}
+                      onScoreChange={onScoreChange ? (scoreKey, value) => onScoreChange(idea.name || `idea-${i}`, scoreKey, value) : undefined}
+                      pitchDeckImages={analysisCtx.pitchDeckImages}
+                      onSelectForPitch={analysisCtx.setPitchDeckImage}
+                      onRemoveFromPitch={analysisCtx.removePitchDeckImage}
+                    />
                 ))}
               </div>
             </>
