@@ -692,27 +692,27 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
       {/* Hero CTA Banner */}
       <div
-        className="relative overflow-hidden rounded-xl p-6 sm:p-8"
+        className="relative overflow-visible rounded-xl p-6 sm:p-8"
         style={{
           background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
           boxShadow: `0 8px 32px -8px ${accentColor}66`,
         }}
       >
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+        <div className="absolute inset-0 rounded-xl overflow-hidden opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
         <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
           <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <Sparkles size={28} className="text-white" />
+            <Sparkles size={28} style={{ color: "white" }} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-1">You might be on to something</p>
-            <h2 className="text-white text-xl sm:text-2xl font-bold leading-tight mb-1">
+            <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.8)" }}>You might be on to something</p>
+            <h2 className="text-xl sm:text-2xl font-bold leading-tight mb-1" style={{ color: "white" }}>
               Well done — that's super creative.
             </h2>
-            <p className="text-white/75 text-sm leading-relaxed">
-              Your investor-ready pitch deck for <strong className="text-white">{product.name}</strong> is ready — {TOTAL} structured slides, presentation-grade.
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
+              Your investor-ready pitch deck for <strong style={{ color: "white" }}>{product.name}</strong> is ready — {TOTAL} structured slides, presentation-grade.
             </p>
           </div>
-          <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
+          <div className="cta-container flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
             <button
               onClick={() => setPresenting(true)}
               className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-all hover:scale-105 active:scale-95"
