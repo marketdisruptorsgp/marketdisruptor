@@ -1,117 +1,167 @@
 
 
-# Global Typography System
+# Global Responsive Behavior Implementation
 
-## Overview
+## Scope
 
-Create a centralized typography system with 15 named roles, applied via Tailwind utility classes. All inline `text-*`, `font-*`, and color overrides for text will be replaced with role-based classes. Typography does NOT vary by mode — only accent colors differ.
+Standardize responsive layout across all pages and components using three breakpoints: Mobile (≤640px), Tablet (641–1024px), Desktop (≥1025px). No custom breakpoints — only Tailwind's `sm:`, `md:`, `lg:`.
 
-## Typography Role Definitions
+---
 
-All roles use `Inter` unless marked `display` (Space Grotesk).
+## Step 1 — Update CSS typography roles for responsive scaling
 
-```text
-Role                 | Size   | Weight | Line-H | Color              | Font
-─────────────────────|────────|────────|────────|────────────────────|─────────
-nav-primary          | 14px   | 600    | 1.4    | foreground         | sans
-step-title-active    | 13px   | 700    | 1.3    | inherit (context)  | sans
-step-title-inactive  | 13px   | 700    | 1.3    | muted-foreground   | sans
-step-subtitle        | 10px   | 500    | 1.3    | muted-foreground   | sans
-page-title           | 30px+  | 700    | 1.2    | foreground         | display
-page-meta            | 13px   | 400    | 1.5    | muted-foreground   | sans
-card-eyebrow         | 11px   | 600    | 1.4    | muted-foreground   | sans (uppercase, tracking-wider)
-card-title           | 14px   | 600    | 1.3    | foreground         | sans
-card-body            | 13px   | 400    | 1.5    | foreground         | sans
-card-meta            | 10px   | 500    | 1.4    | muted-foreground   | sans
-section-title        | 14px   | 700    | 1.3    | foreground         | display
-section-description  | 13px   | 400    | 1.5    | muted-foreground   | sans
-status-label         | 9px    | 600    | 1.3    | inherit            | sans (uppercase, tracking-widest)
-button-primary       | 14px   | 600    | 1      | primary-foreground | sans
-button-secondary     | 12px   | 600    | 1      | foreground         | sans
-```
+**File: `src/index.css`**
 
-## Base Body Style
-`body` selector: Inter, 13px (`0.8125rem`), `#000000` (foreground), weight 400, line-height 1.5.
+Add responsive size overrides to `typo-page-title` so titles scale down on mobile while body text stays fixed:
 
-## Implementation Steps
+- `.typo-page-title`: keep `2rem` base but reduce on small screens via media query or keep current `text-3xl sm:text-5xl` pattern
+- `.typo-section-title`: stays at `1.125rem` (18px) — already works
+- Ensure no `typo-*` class produces text smaller than 13px (already enforced)
 
-### Step 1 — Define Tailwind plugin classes in `src/index.css`
+No changes needed to body/card roles — they're already consistent.
 
-Add a new `@layer components` block defining each typography role as a CSS class (e.g., `.typo-nav-primary`, `.typo-page-title`, etc.). Each class sets `font-size`, `font-weight`, `line-height`, `font-family`, `letter-spacing`, `text-transform`, and `color` as appropriate. This keeps all definitions in one place and avoids scattering values.
+---
 
-Example:
-```css
-.typo-nav-primary {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: hsl(var(--foreground));
-}
-.typo-card-eyebrow {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-/* ... 13 more roles */
-```
+## Step 2 — DisruptionPathBanner: fix inline font sizes + mobile layout
 
-### Step 2 — Update base body style in `src/index.css`
+**File: `src/components/DisruptionPathBanner.tsx`**
 
-Change body font-size from browser default to `0.8125rem` (13px), ensure `color: hsl(var(--foreground))`, weight 400, line-height 1.5.
+- Replace `text-[11px] font-bold uppercase tracking-widest` → `typo-status-label` (lines 68, 138)
+- Replace `text-sm sm:text-base font-bold` → `typo-card-title` (line 146)
+- Replace `text-xs text-muted-foreground` → `typo-card-body text-muted-foreground` (line 151)
+- Replace `text-[11px] text-muted-foreground/80` → `typo-card-meta text-muted-foreground/80` (line 163)
+- Replace `text-xl sm:text-3xl font-bold` → `typo-page-title text-xl sm:text-3xl` (line 73)
+- Replace `text-sm sm:text-base text-muted-foreground` → `typo-page-meta` (line 76)
+- Grid: already `grid-cols-1 sm:grid-cols-2 lg:grid-cols-6` — correct
 
-### Step 3 — Update `src/theme/designTokens.ts`
+---
 
-Replace the existing `typeScale` object with the new 15-role system so the token file stays in sync as documentation.
+## Step 3 — BusinessModelAnalysis: replace remaining inline font sizes
 
-### Step 4 — Update components to use `typo-*` classes
+**File: `src/components/BusinessModelAnalysis.tsx`**
 
-Replace inline `text-sm font-bold`, `text-xs font-extrabold`, `text-[10px] font-semibold`, etc. with the corresponding `typo-*` class. **~45 component files** need updates. Key files and their mappings:
+Many `text-[10px]`, `text-[9px]`, `text-[11px]`, `text-xs` remain (lines 383, 403, 410, 414, 443, 457–458, 460, 472–473, 487, 496, 523, 527, 531, etc.):
 
-| Component | Current Pattern | New Class |
-|---|---|---|
-| `PlatformNav` — nav links | `text-sm font-semibold` | `typo-nav-primary` |
-| `StepNavigator` — step labels | `text-xs sm:text-sm font-extrabold` | `typo-step-title-active` / `typo-step-title-inactive` |
-| `StepNavigator` — step desc | `text-[9px] sm:text-[10px]` | `typo-step-subtitle` |
-| `DashboardPage` — hero h1 | `text-3xl sm:text-5xl font-bold` | `typo-page-title` (responsive sizes kept) |
-| `DashboardPage` — subtitle | `text-sm sm:text-base text-muted-foreground` | `typo-page-meta` |
-| `ProductCard` — category | `section-label text-[10px]` | `typo-card-eyebrow` |
-| `ProductCard` — name | `font-semibold text-xs sm:text-sm` | `typo-card-title` |
-| `ProductCard` — insight | `text-[11px] text-muted-foreground` | `typo-card-body` |
-| `ProductCard` — market size | `text-[10px] text-muted-foreground` | `typo-card-meta` |
-| `ModeHeader` — title | `text-base sm:text-lg font-bold` | `typo-section-title` |
-| `JourneySection` — label | `text-[0.6875rem] font-semibold uppercase` | `typo-card-eyebrow` |
-| `JourneySection` — summary | `text-sm font-medium` | `typo-section-description` |
-| `SectionHeader` — label | `text-sm font-extrabold` | `typo-section-title` |
-| `SectionWorkflowNav` — tab label | `text-[11px] sm:text-xs font-bold` | `typo-card-title` (smaller variant) |
-| `SectionWorkflowNav` — counter | `text-[9px] font-bold uppercase` | `typo-status-label` |
-| `DataLabel` / `LeverageScore` | `text-[9px] font-semibold` | `typo-status-label` |
-| `SectionNav` buttons | `text-sm font-bold` | `typo-button-primary` |
-| `SectionNav` — detail toggle | `text-[10px] font-bold uppercase` | `typo-status-label` |
-| All `section-label` usages | `.section-label` class | `typo-card-eyebrow` (merge into it) |
+- `text-[10px] font-bold uppercase tracking-wider` → `typo-card-eyebrow`
+- `text-[9px] font-bold` / `text-[9px] font-black` → `typo-status-label`
+- `text-xs text-foreground/80` → `typo-card-body text-foreground/80`
+- `text-[11px] text-muted-foreground` → `typo-card-body text-muted-foreground`
+- `text-xs font-bold text-foreground` → `typo-card-body font-bold text-foreground`
+- `text-[11px] font-semibold` → `typo-card-meta`
+- Multi-column grids: ensure `grid-cols-1 md:grid-cols-2` pattern (already present)
 
-### Step 5 — Normalize `font-extrabold` → `font-bold`
+---
 
-The design system specifies weight 700 max. All `font-extrabold` (800) occurrences across components will be changed to use the role's defined weight (700 or 600).
+## Step 4 — DashboardPage responsive fixes
 
-### Step 6 — Remove the old `.section-label` CSS class
+**File: `src/pages/DashboardPage.tsx`**
 
-It's replaced by `typo-card-eyebrow`. Remove from `index.css` and update all references.
+- Hero section `text-3xl sm:text-5xl` — keep, this is correct responsive scaling
+- "Built For" grid: change `grid-cols-2` to `grid-cols-1 sm:grid-cols-2` for true single-column on mobile
+- Mode pills: already `flex-wrap` — good
+- Primary CTA button: add `w-full sm:w-auto` for full-width on mobile
 
-## Files Modified
+---
 
-- `src/index.css` — add 15 `typo-*` classes, update body, remove `.section-label`
-- `src/theme/designTokens.ts` — update `typeScale` to match new roles
-- ~45 component files — replace inline typography with `typo-*` classes
+## Step 5 — StepNavigator: ensure mobile scroll works
 
-## What Does NOT Change
+**File: `src/components/StepNavigator.tsx`**
 
-- Color accents for modes (only accent colors differ by mode, not typography)
-- Layout, spacing, container widths
-- Component structure and props
-- Responsive breakpoints (hero title keeps responsive sizing via `typo-page-title` + responsive overrides)
+Already has `overflow-x-auto scrollbar-hide` and `min-w-max` on the card row. This is correct — horizontal scroll is the exception. No changes needed.
+
+---
+
+## Step 6 — SectionWorkflowNav: mobile grid fix
+
+**File: `src/components/SectionNav.tsx`**
+
+- Grid logic already uses `grid-cols-2` base — correct for mobile
+- `NextSectionButton` and `NextStepButton`: already `w-full` — correct
+- Buttons already have comfortable height (`py-3.5`) — good
+
+---
+
+## Step 7 — Index.tsx (main analysis page): fix multi-column grids
+
+**File: `src/pages/Index.tsx`**
+
+This is a ~2000-line file with many inline grids. Key patterns to fix:
+- `grid-cols-3` without mobile fallback → `grid-cols-1 sm:grid-cols-3`
+- `grid-cols-2 sm:grid-cols-3` → keep (already collapses)
+- `grid grid-cols-1 md:grid-cols-3` → already correct
+
+Will search for bare `grid-cols-3` or `grid-cols-4` usages without a mobile `grid-cols-1` prefix.
+
+---
+
+## Step 8 — ReportPage: fix remaining inline font sizes and grids
+
+**File: `src/pages/ReportPage.tsx`**
+
+- `grid-cols-2 sm:grid-cols-3` → keep
+- `grid-cols-2 sm:grid-cols-4` → keep
+- Any bare multi-column grids → add `grid-cols-1` mobile fallback
+
+---
+
+## Step 9 — PitchDeck: fix grids and inline sizes
+
+**File: `src/components/PitchDeck.tsx`**
+
+- `grid grid-cols-3` → `grid grid-cols-1 sm:grid-cols-3`
+- `grid-cols-2 sm:grid-cols-4` → keep
+- Remaining `text-[8px]`, `text-[10px]`, `text-[11px]` → map to `typo-status-label`, `typo-card-meta`, `typo-card-body`
+
+---
+
+## Step 10 — FirstPrinciplesAnalysis: fix grids
+
+**File: `src/components/FirstPrinciplesAnalysis.tsx`**
+
+- `grid grid-cols-3 gap-3` → `grid grid-cols-1 sm:grid-cols-3 gap-3`
+- `grid-cols-2 sm:grid-cols-4` → keep
+
+---
+
+## Step 11 — FlippedIdeaCard: fix score grid
+
+**File: `src/components/FlippedIdeaCard.tsx`**
+
+- `grid grid-cols-3 gap-2` (action plan stats) → `grid grid-cols-1 sm:grid-cols-3 gap-2`
+- Score grid `grid-cols-2` → keep (already 2-col, works on mobile)
+
+---
+
+## Step 12 — Global button responsiveness
+
+Across all pages, ensure primary CTA buttons use `w-full sm:w-auto` pattern:
+- DashboardPage CTA → add `w-full sm:w-auto`
+- AnalysisForm submit buttons → already `w-full`
+- NextStepButton/NextSectionButton → already `w-full`
+
+---
+
+## Step 13 — Verify via browser screenshots
+
+After implementation, navigate to the DashboardPage at three viewports:
+1. Desktop (1920×1080)
+2. Tablet (768×1024)
+3. Mobile (390×844)
+
+Confirm no overflow, no text clipping, no hierarchy collapse.
+
+---
+
+## Summary of changes
+
+| File | Changes |
+|---|---|
+| `src/components/DisruptionPathBanner.tsx` | Replace 6 inline font sizes with `typo-*` classes |
+| `src/components/BusinessModelAnalysis.tsx` | Replace ~20 inline font sizes with `typo-*` classes |
+| `src/pages/DashboardPage.tsx` | "Built For" grid → single-col mobile; CTA → full-width mobile |
+| `src/pages/Index.tsx` | Fix bare multi-column grids to include mobile fallback |
+| `src/components/PitchDeck.tsx` | Fix `grid-cols-3` → add mobile fallback; replace inline sizes |
+| `src/components/FirstPrinciplesAnalysis.tsx` | Fix bare `grid-cols-3` and `grid-cols-4` |
+| `src/components/FlippedIdeaCard.tsx` | Fix action plan stats grid |
+| `src/pages/ReportPage.tsx` | Fix any remaining bare multi-column grids |
 
