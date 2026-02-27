@@ -139,7 +139,7 @@ export default function DashboardPage() {
         <div
           className="rounded-2xl px-5 py-6 sm:py-8 text-center cursor-pointer transition-all hover:shadow-md"
           style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
-          onClick={() => navigate("/start/product")}>
+          onClick={() => navigate("/start")}>
 
           <p className="typo-card-title mb-1.5">
             Apply a level of scrutiny that exceeds normal bandwidth.

@@ -12,6 +12,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, Database, Upload, Briefcase, Building2,
@@ -82,40 +83,14 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="typo-nav-primary text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent h-auto py-3 px-3">
-                    <span className="flex items-center gap-2">
-                      Start Disrupting
-                    </span>
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="w-72 p-2 bg-background shadow-lg rounded-xl border border-border">
-                      {ACCESS_MODES.map((mode) => {
-                        const Icon = mode.icon;
-                        const active = analysis.mainTab === mode.id;
-                        return (
-                          <button
-                            key={mode.id}
-                            onClick={() => handleModeSelect(mode.id)}
-                            className={`w-full flex items-start gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted ${active ? "bg-muted" : ""}`}
-                          >
-                            <div
-                              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 border bg-card"
-                              style={{
-                                borderColor: active ? `hsl(var(${mode.cssVar}))` : "hsl(var(--border))",
-                                borderLeftWidth: active ? "3px" : "1px",
-                              }}
-                            >
-                              <Icon size={14} style={{ color: `hsl(var(${mode.cssVar}))` }} />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="typo-nav-primary leading-tight">{mode.label}</p>
-                              <p className="typo-card-meta mt-0.5">{mode.desc}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </NavigationMenuContent>
+                  <a
+                    href="/start"
+                    onClick={(e) => { e.preventDefault(); navigate("/start"); }}
+                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/start") || location.pathname.startsWith("/start/") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                  >
+                    <Zap size={13} />
+                    Start Disrupting
+                  </a>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
@@ -231,23 +206,14 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
               </div>
               <div className="p-3 space-y-1">
                 <p className="typo-card-eyebrow px-3 pt-2 pb-1">Start Disrupting</p>
-                {ACCESS_MODES.map((mode) => {
-                  const Icon = mode.icon;
-                  const active = analysis.mainTab === mode.id;
-                  return (
-                    <button
-                      key={mode.id}
-                      onClick={() => handleModeSelect(mode.id)}
-                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                      style={{
-                        background: active ? "hsl(var(--muted))" : undefined,
-                      }}
-                    >
-                      <Icon size={14} style={{ color: `hsl(var(${mode.cssVar}))` }} />
-                      <span className="typo-nav-primary">{mode.label}</span>
-                    </button>
-                  );
-                })}
+                <a
+                  href="/start"
+                  onClick={(e) => { e.preventDefault(); navigate("/start"); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                >
+                  <Zap size={14} className="text-primary" />
+                  <span className="typo-nav-primary">Choose Analysis Mode</span>
+                </a>
 
                 <div className="h-px bg-border my-2" />
                 <p className="typo-card-eyebrow px-3 pt-2 pb-1">Workspace</p>
