@@ -12,7 +12,7 @@ interface ModeHeaderProps {
 
 export function ModeHeader({ stepNumber, stepTitle, subtitle, accentColor, actions, explainerKey }: ModeHeaderProps) {
   return (
-    <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
+    <div className="rounded" style={{ border: "1px solid hsl(var(--border))", borderLeft: `3px solid ${accentColor}` }}>
       <div className="px-3 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4" style={{ background: "hsl(var(--card))" }}>
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <span
