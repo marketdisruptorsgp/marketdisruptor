@@ -75,9 +75,6 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
               <Zap size={15} />
             </div>
             <span className="typo-nav-primary tracking-tight hidden sm:inline">Market Disruptor</span>
-            <span className="hidden md:inline typo-status-label text-primary bg-muted rounded-full px-2 py-0.5">
-              OS
-            </span>
           </button>
 
           {/* Desktop nav */}
@@ -90,7 +87,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   <a
                     href="/portfolio"
                     onClick={(e) => { e.preventDefault(); navigate("/portfolio"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/portfolio") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/portfolio") ? "text-foreground border-primary" : "text-foreground hover:text-foreground border-transparent"}`}
                   >
                     <PieChart size={13} />
                     Portfolio
@@ -101,7 +98,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   <a
                     href="/intel"
                     onClick={(e) => { e.preventDefault(); navigate("/intel"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/intel") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/intel") ? "text-foreground border-primary" : "text-foreground hover:text-foreground border-transparent"}`}
                   >
                     <Radar size={13} />
                     Intel
@@ -112,7 +109,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   <a
                     href="/instant-analysis"
                     onClick={(e) => { e.preventDefault(); navigate("/instant-analysis"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/instant-analysis") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 flex items-center gap-1.5 ${isActive("/instant-analysis") ? "text-foreground border-primary" : "text-foreground hover:text-foreground border-transparent"}`}
                   >
                     <Camera size={13} />
                     Photo Analysis
@@ -123,7 +120,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   <a
                     href="/about"
                     onClick={(e) => { e.preventDefault(); navigate("/about"); }}
-                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 ${isActive("/about") ? "text-foreground border-primary" : "text-muted-foreground hover:text-foreground border-transparent"}`}
+                    className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 ${isActive("/about") ? "text-foreground border-primary" : "text-foreground hover:text-foreground border-transparent"}`}
                   >
                     About
                   </a>
@@ -132,7 +129,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 <NavigationMenuItem className="relative">
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="typo-nav-primary text-muted-foreground hover:text-foreground bg-transparent h-auto py-3 px-3 inline-flex items-center gap-1 border-b-2 border-transparent transition-colors">
+                      <button className="typo-nav-primary text-foreground hover:text-foreground bg-transparent h-auto py-3 px-3 inline-flex items-center gap-1 border-b-2 border-transparent transition-colors">
                         Resources
                         <ChevronDown size={12} className="ml-0.5" />
                       </button>

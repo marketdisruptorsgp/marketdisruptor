@@ -119,7 +119,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Workflow Pipeline */}
-      <DisruptionPathBanner />
+      <DisruptionPathBanner accentColor={MODE_WORDS[wordIndex].color} />
 
       {/* Scrutiny CTA */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-4 sm:mt-6">
