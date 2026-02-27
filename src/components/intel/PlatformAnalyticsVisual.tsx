@@ -57,7 +57,6 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
     fill: PIE_COLORS[i % PIE_COLORS.length],
   }));
 
-  // Derive community insights from real data
   const topMode = Object.entries(typeBreakdown).sort((a, b) => (b[1] as number) - (a[1] as number))[0];
   const topCat = topCategories[0];
   const highScorers = notableScores.filter(s => s.score >= 8).length;
@@ -67,9 +66,9 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
     <section className="space-y-6">
       <div className="flex items-center gap-2 mb-1">
         <BarChart3 size={16} className="text-primary" />
-        <h2 className="text-lg font-bold text-foreground">Platform Analytics</h2>
+        <h2 className="typo-section-title">Platform Analytics</h2>
       </div>
-      <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
+      <p className="typo-section-description max-w-2xl leading-relaxed">
         Anonymized, aggregated intelligence from all analyses run across the platform. See what the community is exploring, which categories attract the most attention, and how scores distribute.
       </p>
 
@@ -86,10 +85,10 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
               <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${s.accent}14` }}>
                 <s.icon size={14} style={{ color: s.accent }} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{s.label}</span>
+              <span className="typo-status-label text-muted-foreground">{s.label}</span>
             </div>
             <p className="text-xl font-bold text-foreground">{s.value}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{s.sub}</p>
+            <p className="typo-card-meta text-muted-foreground mt-0.5 leading-relaxed">{s.sub}</p>
           </div>
         ))}
       </div>
@@ -97,8 +96,8 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
       {/* Row: Mode Distribution + Platform Health Radar */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs font-bold text-foreground mb-1">How Users Analyze</p>
-          <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
+          <p className="typo-card-title mb-1">How Users Analyze</p>
+          <p className="typo-card-meta text-muted-foreground mb-3 leading-relaxed">
             Breakdown of which analysis modes the community uses most. Product mode deconstructs physical/digital products. Service mode targets service businesses. Business Model mode examines revenue structures. First Principles strips assumptions entirely.
           </p>
           <div className="h-[200px]">
@@ -109,7 +108,7 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
-                <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+                <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 13 }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -117,23 +116,23 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
             {pieData.map(e => (
               <div key={e.name} className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: e.color }} />
-                <span className="text-[10px] font-semibold text-foreground">{e.name}</span>
-                <span className="text-[10px] text-muted-foreground">({e.value})</span>
+                <span className="typo-card-meta font-semibold text-foreground">{e.name}</span>
+                <span className="typo-card-meta text-muted-foreground">({e.value})</span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs font-bold text-foreground mb-1">Platform Engagement Snapshot</p>
-          <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
+          <p className="typo-card-title mb-1">Platform Engagement Snapshot</p>
+          <p className="typo-card-meta text-muted-foreground mb-3 leading-relaxed">
             A radar view of platform health across 5 dimensions: Volume (total analyses), Diversity (category spread), Quality (average score), Depth (mode variety), and Consistency (usage regularity). Higher values indicate stronger engagement.
           </p>
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData} cx="50%" cy="50%" outerRadius={70}>
                 <PolarGrid stroke="hsl(var(--border))" />
-                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                 <PolarRadiusAxis tick={false} domain={[0, 100]} axisLine={false} />
                 <Radar dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.2} strokeWidth={2} />
               </RadarChart>
@@ -145,16 +144,16 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
       {/* Top Categories — full width */}
       {catBarData.length > 0 && (
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs font-bold text-foreground mb-1">Most Explored Categories</p>
-          <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
+          <p className="typo-card-title mb-1">Most Explored Categories</p>
+          <p className="typo-card-meta text-muted-foreground mb-3 leading-relaxed">
             The product and service categories that users have analyzed most frequently. This shows where the community sees the most disruption opportunity — or where they're applying the most scrutiny.
           </p>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={catBarData} layout="vertical">
-                <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" width={100} />
-                <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`${v} analyses`, "Count"]} />
+                <XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" width={100} />
+                <RechartsTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 13 }} formatter={(v: number) => [`${v} analyses`, "Count"]} />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                   {catBarData.map((e, i) => (
                     <Cell key={i} fill={e.fill} />
@@ -166,17 +165,17 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
         </div>
       )}
 
-      {/* Community Insight Cards — actionable for users */}
+      {/* Community Insight Cards */}
       <div className="grid sm:grid-cols-3 gap-3">
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Flame size={12} className="text-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">What's Hot</span>
+            <span className="typo-status-label text-primary">What's Hot</span>
           </div>
-          <p className="text-xs font-semibold text-foreground mb-1">
+          <p className="typo-card-body font-semibold text-foreground mb-1">
             {topCat ? `"${topCat.name}" leads with ${topCat.count} analyses` : "Community is warming up"}
           </p>
-          <p className="text-[10px] text-muted-foreground leading-relaxed">
+          <p className="typo-card-meta text-muted-foreground leading-relaxed">
             {topCat
               ? `This is the most scrutinized category on the platform. If you're working in this space, the community's attention suggests both opportunity and competition. Consider a First Principles analysis to find angles others may have missed.`
               : `Run your first analysis to start contributing to community intelligence.`}
@@ -185,12 +184,12 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Compass size={12} style={{ color: "hsl(271 81% 55%)" }} />
-            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(271 81% 55%)" }}>Underexplored</span>
+            <span className="typo-status-label" style={{ color: "hsl(271 81% 55%)" }}>Underexplored</span>
           </div>
-          <p className="text-xs font-semibold text-foreground mb-1">
+          <p className="typo-card-body font-semibold text-foreground mb-1">
             {totalCategories < 20 ? `${50 - totalCategories}+ categories untouched` : "Deep coverage building"}
           </p>
-          <p className="text-[10px] text-muted-foreground leading-relaxed">
+          <p className="typo-card-meta text-muted-foreground leading-relaxed">
             {totalCategories < 20
               ? `The community has only explored ${totalCategories} categories so far. Industries like construction tech, elder care, logistics, and agriculture remain largely unanalyzed — potential whitespace for early movers.`
               : `With ${totalCategories} categories covered, the platform is building a broad disruption map. Look for cross-category patterns in your Portfolio.`}
@@ -199,12 +198,12 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Lightbulb size={12} style={{ color: "hsl(var(--warning))" }} />
-            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "hsl(var(--warning))" }}>Try This</span>
+            <span className="typo-status-label" style={{ color: "hsl(var(--warning))" }}>Try This</span>
           </div>
-          <p className="text-xs font-semibold text-foreground mb-1">
+          <p className="typo-card-body font-semibold text-foreground mb-1">
             {topMode ? `${(topMode[1] as number)} of ${totalAnalyses} analyses use ${MODE_LABELS[topMode[0]] || topMode[0]}` : "Pick a mode"}
           </p>
-          <p className="text-[10px] text-muted-foreground leading-relaxed">
+          <p className="typo-card-meta text-muted-foreground leading-relaxed">
             {modeCount < 4
               ? `The community hasn't fully adopted all analysis modes yet. Try ${modeCount === 1 ? "Service or Business Model" : "a mode you haven't used"} mode on a product you've already analyzed — different lenses often reveal different opportunities.`
               : `All 4 modes are active. For your next analysis, try running the same product through multiple modes to compare what each lens reveals.`}
