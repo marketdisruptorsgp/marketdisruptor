@@ -9,38 +9,15 @@ function trimTrailingSlash(url: string): string {
   return url.replace(/\/$/, "");
 }
 
-function parseHostname(url: string): string | null {
-  try {
-    return new URL(url).hostname.toLowerCase();
-  } catch {
-    return null;
-  }
-}
-
-export function isLegacyHost(hostname: string): boolean {
-  return LEGACY_HOSTS.has(hostname.toLowerCase());
-}
-
-export function getCanonicalPublishedUrl(): string {
-  return CANONICAL_PUBLISHED_URL;
-}
-
 export function getPublicBaseUrl(): string {
   const envUrl = import.meta.env.VITE_PUBLIC_APP_URL as string | undefined;
-  if (envUrl?.trim()) {
-    const normalizedEnvUrl = trimTrailingSlash(envUrl.trim());
-    const envHostname = parseHostname(normalizedEnvUrl);
-
-    if (!envHostname || !isLegacyHost(envHostname)) {
-      return normalizedEnvUrl;
-    }
-  }
+  if (envUrl?.trim()) return trimTrailingSlash(envUrl.trim());
 
   if (typeof window === "undefined") return CANONICAL_PUBLISHED_URL;
 
   const { origin, hostname } = window.location;
 
-  if (isLegacyHost(hostname)) return CANONICAL_PUBLISHED_URL;
+  if (LEGACY_HOSTS.has(hostname)) return CANONICAL_PUBLISHED_URL;
 
   return trimTrailingSlash(origin);
 }
@@ -49,4 +26,3 @@ export function buildPublicUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${getPublicBaseUrl()}${normalizedPath}`;
 }
-
