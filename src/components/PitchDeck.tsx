@@ -403,19 +403,50 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     ) : null,
 
     /* ═══ 5. PRODUCT ═══ */
-    product: (
-      <div style={gap28}>
-        {data.productInnovation && <InsightCard title="Innovation Thesis" body={data.productInnovation} accentColor={accentColor} />}
-        <ComparisonLayout
-          leftTitle="Competitive Advantages"
-          leftItems={data.competitiveAdvantages.slice(0, 4)}
-          rightTitle="Investor Highlights"
-          rightItems={data.investorHighlights.slice(0, 4)}
-          accentColor={accentColor}
-        />
-        <TakeawayCallout text="Structurally differentiated — not just better features, but a fundamentally different approach." accentColor={accentColor} />
-      </div>
-    ),
+    product: (() => {
+      const concept = (redesignData as any)?.redesignedConcept;
+      return (
+        <div style={gap28}>
+          {/* Product image + concept name */}
+          {(product.image || concept?.conceptName) && (
+            <SplitLayout
+              left={
+                product.image ? (
+                  <div style={{ ...panel, padding: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 220 }}>
+                    <img src={product.image} alt={product.name} style={{ width: "100%", height: 220, objectFit: "contain", borderRadius: 10 }} />
+                  </div>
+                ) : null
+              }
+              right={
+                concept ? (
+                  <div style={panel}>
+                    <p style={lbl}>Redesigned Concept</p>
+                    <p style={heading}>{concept.conceptName}</p>
+                    {concept.tagline && <p style={{ fontSize: 18, color: "#71717a", marginTop: 8, lineHeight: 1.5 }}>{concept.tagline}</p>}
+                    {concept.coreInsight && <p style={{ ...txt, fontSize: 17, marginTop: 12 }}>{concept.coreInsight}</p>}
+                  </div>
+                ) : (
+                  <div style={panel}>
+                    <p style={lbl}>Product</p>
+                    <p style={heading}>{product.name}</p>
+                    {product.description && <p style={{ ...txt, fontSize: 17, marginTop: 8 }}>{product.description}</p>}
+                  </div>
+                )
+              }
+            />
+          )}
+          {data.productInnovation && <InsightCard title="Innovation Thesis" body={data.productInnovation} accentColor={accentColor} />}
+          <ComparisonLayout
+            leftTitle="Competitive Advantages"
+            leftItems={data.competitiveAdvantages.slice(0, 4)}
+            rightTitle="Investor Highlights"
+            rightItems={data.investorHighlights.slice(0, 4)}
+            accentColor={accentColor}
+          />
+          <TakeawayCallout text="Structurally differentiated — not just better features, but a fundamentally different approach." accentColor={accentColor} />
+        </div>
+      );
+    })(),
 
     /* ═══ 6. BUSINESS MODEL ═══ */
     businessmodel: (
