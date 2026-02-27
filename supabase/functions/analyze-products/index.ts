@@ -118,6 +118,7 @@ USER JOURNEY RULE:
 - Document the real, current experience — warts and all
 - Improvements and redesigns belong in downstream analysis steps, NOT here
 - FRICTION POINTS: Identify friction for EVERY step in the journey. Every step has friction — find it. Use "stepIndex" (0-based) to map each friction point to its corresponding step in the stepByStep array. Generate at least one friction point per step.
+- ANTI-ANCHORING: Do NOT let one friction type dominate all steps. A surfboard's friction might be skill-based (learning to paddle/pop-up), not size-based (transport). A camera's friction might be software/workflow, not weight. Let scraped evidence and product reality determine which friction types appear — do not default to physical.
 
 `;
 

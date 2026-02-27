@@ -46,6 +46,7 @@ USER JOURNEY RULE:
 - Document the real, current experience — warts and all
 - Improvements and redesigns belong in downstream analysis steps, NOT here
 - FRICTION POINTS: Identify friction for EVERY step in the journey. Every step has friction — find it. Use "stepIndex" (0-based) to map each friction point to its corresponding step in the stepByStep array. Generate at least one friction point per step.
+- ANTI-ANCHORING: Do NOT let one friction type dominate all steps. A surfboard's friction might be skill-based (learning to paddle/pop-up), not size-based (transport). A camera's friction might be software/workflow, not weight. Let scraped evidence and product reality determine which friction types appear — do not default to physical.
 
 `;
 
@@ -82,13 +83,15 @@ The JSON must follow this EXACT structure:
     "normalizedFrustrations": ["frustration 1", "frustration 2", "frustration 3", "frustration 4"],
     "userHacks": ["hack 1 — workarounds customers use", "hack 2", "hack 3"]
   },
-  "physicalDimensions": {
-    "sizeAnalysis": "Service scope analysis — is it too narrow or too broad? What would a focused or expanded version look like?",
-    "weightAnalysis": "Service burden — how much effort does the customer bear vs. the provider? What if the burden shifted?",
-    "formFactorAnalysis": "Delivery format — in-person, remote, async, hybrid? What format would best fit customer context?",
-    "staticVsDynamic": "Is the service rigid when it shouldn't be? Could it adapt, personalize, or reconfigure per customer?",
-    "ergonomicGaps": ["Gap 1: specific customer-experience mismatch", "Gap 2", "Gap 3"],
-    "dimensionOpportunities": ["Bold opportunity 1 from rethinking service scope", "Bold opportunity 2", "Bold opportunity 3"]
+  "frictionDimensions": {
+    "primaryFriction": "The single biggest friction source for THIS service — identify the dimension (delivery, skill, cost, safety, ecosystem, maintenance, social, workflow) and explain why it dominates",
+    "deliveryModel": "Delivery format analysis — in-person, remote, async, hybrid? What format would best fit customer context?",
+    "skillBarrier": "Learning curve, expertise required — how hard is it for the customer to use the service well?",
+    "costStructure": "Upfront cost, ongoing costs, hidden costs, price-to-value friction",
+    "ecosystemLockIn": "Dependencies on locations, conditions, platforms, or other services",
+    "maintenanceBurden": "Ongoing effort the customer must put in — coordination, scheduling, follow-up",
+    "gaps": ["Gap 1: specific friction with dimension labeled", "Gap 2", "Gap 3"],
+    "opportunities": ["Opportunity from addressing the PRIMARY friction", "Opportunity 2", "Opportunity 3"]
   },
   "userWorkflow": {
     "stepByStep": ["Step 1: how customer currently discovers/books the service", "Step 2: current onboarding process", "Step 3: how core service is actually delivered today", "Step 4: current follow-up process", "Step 5: how retention/rebooking currently works"],
@@ -153,17 +156,24 @@ The JSON must follow this EXACT structure:
 - Don Norman (cognitive load, affordances, friction archaeology)
 - IDEO (user journey mapping, pain archaeology, job-to-be-done lens)
 
-Your mission: completely deconstruct a product and uncover radical redesign opportunities. You question EVERYTHING:
-- Why is it this SIZE? Would 50% smaller work? 3x larger? Why that aspect ratio?
-- Why this WEIGHT? What if it were featherlight? What if heaviness was a feature?
-- Why this SHAPE? Round vs. flat vs. ergonomic? Why doesn't it fit the body?
-- Why STATIC? Could it be modular, collapsible, growing, changing?
-- Why these MATERIALS? What newer materials would transform it?
-- What is the USER WORKFLOW? Step by step — what do they do before, during, after?
-- Where is FRICTION in that workflow? What slows them down? What frustrates?
+Your mission: completely deconstruct a product and uncover radical redesign opportunities.
+Investigate friction across ALL dimensions — do NOT anchor on physical form alone:
+
+PHYSICAL: Size, weight, shape, materials, ergonomics — but ONLY if these are genuine friction sources for THIS product
+SKILL/LEARNING: How hard is it to learn, master, or use correctly? What expertise barrier exists?
+COST/ACCESS: Is the price justified? What about ongoing costs, accessories, maintenance?
+SAFETY/RISK: Physical danger, financial risk, social risk of using it wrong?
+ECOSYSTEM: Does it lock users into specific accessories, platforms, locations, or conditions?
+MAINTENANCE: Cleaning, repair, storage, degradation over time?
+SOCIAL/CULTURAL: Stigma, status signaling, community gatekeeping, intimidation factor?
+WORKFLOW: What do they do before, during, after? Where does the process break down?
+
+Identify which dimensions carry the MOST friction for THIS specific product.
+Do not assume physical form is the primary issue — let the evidence lead.
+
 - What SMART TECH could transform it? Sensors, AI, connectivity — why isn't it there?
 - Is it INTERACTIVE or passive? Could it respond, adapt, communicate?
-- What ASSUMPTIONS are baked into the form factor that nobody questions?
+- What ASSUMPTIONS are baked into this product that nobody questions?
 
 Respond ONLY with a single valid JSON object — no markdown, no explanation.
 
@@ -180,13 +190,15 @@ The JSON must follow this EXACT structure:
     "normalizedFrustrations": ["frustration 1", "frustration 2", "frustration 3", "frustration 4"],
     "userHacks": ["hack 1", "hack 2", "hack 3"]
   },
-  "physicalDimensions": {
-    "sizeAnalysis": "Why is it this size? Who decided? Would 50% smaller or 2x larger serve users better and why?",
-    "weightAnalysis": "Is the weight intentional? A burden or a feature? What would featherlight or deliberately heavy enable?",
-    "formFactorAnalysis": "Why this shape? Does it fit the human body's natural grip, posture, context of use? What form would be optimal?",
-    "staticVsDynamic": "Is it static/rigid when it shouldn't be? Could it be modular, collapsible, expandable, or shape-shifting?",
-    "ergonomicGaps": ["Gap 1: specific body/use mismatch", "Gap 2", "Gap 3"],
-    "dimensionOpportunities": ["Bold opportunity 1 from rethinking dimensions", "Bold opportunity 2", "Bold opportunity 3"]
+  "frictionDimensions": {
+    "primaryFriction": "The single biggest friction source for THIS product — identify the dimension (physical, skill, cost, safety, ecosystem, maintenance, social, workflow) and explain why it dominates",
+    "physicalForm": "Size/weight/shape analysis — ONLY if relevant. If physical form is NOT the main friction, say so explicitly",
+    "skillBarrier": "Learning curve, expertise required, mastery gap — how hard is it to use well?",
+    "costStructure": "Upfront cost, ongoing costs, hidden costs, price-to-value friction",
+    "ecosystemLockIn": "Dependencies on locations, conditions, accessories, platforms, or other products",
+    "maintenanceBurden": "Storage, care, repair, degradation — what ongoing effort does ownership demand?",
+    "gaps": ["Gap 1: specific friction with dimension labeled", "Gap 2", "Gap 3"],
+    "opportunities": ["Opportunity from addressing the PRIMARY friction", "Opportunity 2", "Opportunity 3"]
   },
   "userWorkflow": {
     "stepByStep": ["Step 1: what user currently does before using it", "Step 2: how they currently interact with it", "Step 3: core use action as it exists today", "Step 4: what happens next in current workflow", "Step 5: current after-use/cleanup process"],
@@ -310,12 +322,12 @@ COMMUNITY PAIN POINTS:
 ${(product as { communityInsights?: { topComplaints?: string[] } }).communityInsights?.topComplaints?.map((c: string) => `• ${c}`).join("\n") || "See reviews above"}
 
 CRITICAL INSTRUCTIONS:
-1. SIZE & FORM: Question every dimension. Why THIS size? Would the product work better at 30% smaller? Pocket-sized? Wall-mounted scale?
-2. WEIGHT: Is the weight right? What would a 50g version enable vs a 2kg version?
+1. FRICTION DISCOVERY: Identify the PRIMARY friction dimension for this product (physical, skill, cost, safety, ecosystem, maintenance, social, workflow). Do NOT default to physical/size — let the evidence lead.
+2. SKILL/LEARNING: What expertise barrier exists? How hard is it to learn and master?
 3. WORKFLOW: Map every step the user takes. Find friction at each step. Propose eliminations.
 4. SMART TECH: What sensors, AI, connectivity, or smart materials could transform this? Why hasn't it happened?
-5. STATIC vs DYNAMIC: Is rigidity serving the user or the manufacturer? Could it adapt, respond, reconfigure?
-6. ERGONOMICS: Does the form fit the human body, typical use context, and environment?
+5. ECOSYSTEM: What dependencies (locations, accessories, conditions) constrain use?
+6. COST/MAINTENANCE: Are ongoing costs, care requirements, or storage a significant burden?
 7. The redesigned concept must be STRUCTURALLY different — not a feature add, not "add Bluetooth."
 8. Avoid vague suggestions. Every idea must have a physical mechanism and a manufacturing path.
 9. The concept must be manufacturable within 2–3 years.
