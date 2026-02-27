@@ -231,7 +231,7 @@ export function SectionWorkflowNav<T extends string>({
             <button
               key={tab.id}
               onClick={() => onSelect(tab.id)}
-              className="relative flex flex-col items-center text-center px-2 py-5 sm:py-6 transition-all duration-200 group"
+              className="relative flex flex-col items-center text-center px-2 py-3.5 sm:py-4 transition-all duration-200 group"
               style={{
                 background: isActive || isVisited
                   ? accent
@@ -243,7 +243,7 @@ export function SectionWorkflowNav<T extends string>({
                 <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ background: accent }} />
               )}
               <div
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center mb-2 transition-all duration-200 group-hover:scale-110"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center mb-1.5 transition-all duration-200 group-hover:scale-110"
                 style={{
                     background: isActive || isVisited
                     ? "hsla(0 0% 100% / 0.2)"
