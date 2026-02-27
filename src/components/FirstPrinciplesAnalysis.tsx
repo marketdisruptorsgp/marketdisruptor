@@ -724,8 +724,13 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           <PitchDeckToggle contentKey="assumptions" label="Include in Pitch Deck" sublabel="(concise exec summary only — not the full analysis)" />
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-xs text-foreground/80 leading-relaxed">
-              <strong>Why this matters:</strong> Every product is built on assumptions — about who uses it, how they use it, and why it's designed the way it is. Most go unchallenged. The best innovations come from questioning what everyone else takes for granted. Below are the hidden assumptions we identified, ranked by how much leverage challenging them could unlock.
+              <strong>Why this matters:</strong> Every product is built on assumptions — about who uses it, how they use it, and why it's designed the way it is. Most go unchallenged. The best innovations come from questioning what everyone else takes for granted.
             </p>
+            <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-[10px] text-foreground/50">
+              <span><strong>Why it exists</strong> — the root cause (tradition, cost, physics, etc.)</span>
+              <span><strong>Leverage</strong> — how much value you unlock by challenging it (1–10)</span>
+              <span><strong>Challengeable</strong> — our AI believes this can realistically be disrupted</span>
+            </div>
           </div>
 
            <div className="space-y-3">
@@ -733,17 +738,10 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
               return (
                 <div key={i} className="p-3.5 rounded-lg" style={{ background: "hsl(var(--card))", border: `1.5px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}` }}>
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="text-xs font-bold text-foreground flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full flex items-center justify-center typo-status-label font-bold flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
-                      {a.assumption}
-                    </p>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <span className="px-1.5 py-0.5 rounded-full typo-status-label" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>{reasonStyle.label}</span>
-                      {a.isChallengeable && <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 30%)" }}>Challengeable</span>}
-                      <LeverageScore score={a.leverageScore} />
-                    </div>
-                  </div>
+                  <p className="text-xs font-bold text-foreground flex items-center gap-2 mb-1">
+                    <span className="w-5 h-5 rounded-full flex items-center justify-center typo-status-label font-bold flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
+                    {a.assumption}
+                  </p>
                   <p className="typo-card-body text-muted-foreground leading-relaxed ml-7">{a.currentAnswer}</p>
                   {a.challengeIdea && (
                     <div className="ml-7 mt-1.5 p-2 rounded typo-card-body" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
@@ -751,6 +749,16 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                       <span className="text-foreground/80">{a.challengeIdea}</span>
                     </div>
                   )}
+                  {/* Metadata row — subtle, below content */}
+                  <div className="ml-7 mt-2 flex items-center gap-2 flex-wrap">
+                    <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>{reasonStyle.label}</span>
+                    {a.isChallengeable && <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold" style={{ background: "hsl(142 70% 45% / 0.12)", color: "hsl(142 70% 30%)" }}>Challengeable</span>}
+                    {a.leverageScore != null && (
+                      <span className="text-[10px] font-medium tabular-nums" style={{ color: a.leverageScore >= 8 ? "hsl(var(--destructive))" : a.leverageScore >= 5 ? "hsl(38 92% 42%)" : "hsl(142 70% 35%)" }}>
+                        Leverage {a.leverageScore}/10
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
