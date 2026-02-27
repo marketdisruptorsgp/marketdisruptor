@@ -96,7 +96,6 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         {product.marketSizeEstimate && (
           <div className="flex items-center gap-1.5 typo-card-meta border-t pt-2" style={{ borderColor: "hsl(var(--border))" }}>
             <span>{product.marketSizeEstimate}</span>
-            <DataLabel label={(product as unknown as Record<string, unknown>).marketSizeEstimateDataLabel as string} />
           </div>
         )}
       </div>

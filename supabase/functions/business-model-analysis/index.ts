@@ -25,11 +25,6 @@ CORE PRINCIPLES:
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
 
-DATA VALIDATION — Tag all claims:
-- [VERIFIED] — From cited public source or user-provided data
-- [MODELED] — Derived logically from verified inputs
-- [ASSUMPTION] — Logical assumption where no verified data exists
-- [DATA GAP] — No reliable source available
 
 OUTPUT RULES:
 - Metrics must be ≤12 words
@@ -72,7 +67,7 @@ The JSON must follow this EXACT structure:
   "operationalAudit": {
     "customerJourney": ["Step 1: how customer discovers/decides", "Step 2", "Step 3: transaction", "Step 4: fulfillment", "Step 5: retention or churn"],
     "frictionPoints": [
-      { "stage": "stage name", "friction": "specific friction description", "impact": "high|medium|low", "rootCause": "structural reason this exists", "dataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]" }
+      { "stage": "stage name", "friction": "specific friction description", "impact": "high|medium|low", "rootCause": "structural reason this exists" }
     ],
     "costStructure": {
       "biggestCostDrivers": ["Cost driver 1 and why it exists", "Cost driver 2", "Cost driver 3"],
@@ -88,8 +83,7 @@ The JSON must follow this EXACT structure:
       "category": "pricing | staffing | location | technology | customer | competition | timing",
       "isChallengeable": true,
       "challengeIdea": "How challenging this assumption could unlock value",
-      "leverageScore": 8,
-      "dataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]"
+      "leverageScore": 8
     }
   ],
   "technologyLeverage": {

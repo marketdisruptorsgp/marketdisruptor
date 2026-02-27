@@ -98,11 +98,12 @@ CORE PRINCIPLES:
 - Decompose every system into at least 3 layers of depth
 - Never present modeled or inferred data as verified fact
 
-DATA VALIDATION — Tag all claims:
+DATA VALIDATION — Apply ONLY to financial/pricing fields (currentMarketPrice, margins):
 - [VERIFIED] — From cited public source or user-provided data
 - [MODELED] — Derived logically from verified inputs
 - [ASSUMPTION] — Logical assumption where no verified data exists
 - [DATA GAP] — No reliable source available
+Do NOT add data labels to non-financial fields.
 
 OUTPUT RULES:
 - Metrics must be ≤12 words
@@ -171,7 +172,6 @@ For each service, return an object with this EXACT structure:
     "margins": "Estimated gross margin at typical price point",
     "marginsDataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]"
   },
-  "marketSizeEstimateDataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]",
   "operationalIntel": {
     "deliveryModel": "How the service is currently delivered (in-person, remote, hybrid, platform)",
     "operationalBottlenecks": ["Bottleneck 1 that limits scale", "Bottleneck 2", "Bottleneck 3"],
@@ -312,7 +312,7 @@ For each product, return an object with this EXACT structure:
     "margins": "Estimated gross margin at X price point",
     "marginsDataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]"
   },
-  "marketSizeEstimateDataLabel": "[VERIFIED] or [MODELED] or [ASSUMPTION] or [DATA GAP]",
+  
   "supplyChain": {
     "suppliers": [{"name": "Supplier Name", "region": "Country/Region", "url": "https://url.com", "role": "What they supply"}],
     "manufacturers": [{"name": "Manufacturer", "region": "Country", "url": "https://url.com", "moq": "Min order qty"}],
