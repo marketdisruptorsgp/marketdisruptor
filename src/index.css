@@ -15,12 +15,12 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 20% 10%;
 
-    --primary: 230 90% 63%;
+    --primary: 229 89% 63%;
     --primary-foreground: 0 0% 100%;
 
-    --primary-dark: 230 85% 55%;
-    --primary-light: 230 70% 72%;
-    --primary-muted: 230 60% 96%;
+    --primary-dark: 229 85% 55%;
+    --primary-light: 229 70% 72%;
+    --primary-muted: 229 60% 96%;
 
     --secondary: 220 14% 94%;
     --secondary-foreground: 224 20% 10%;
@@ -39,7 +39,7 @@
 
     --border: 220 13% 86%;
     --input: 220 13% 86%;
-    --ring: 230 70% 60%;
+    --ring: 229 70% 60%;
 
     --radius: 0.625rem;
 
@@ -47,18 +47,24 @@
     --score-mid: 36 77% 52%;
     --score-low: 0 72% 52%;
 
-    --mode-product: 230 90% 63%;
-    --mode-service: 340 65% 55%;
-    --mode-business: 270 60% 58%;
+    --mode-product: 229 89% 63%;
+    --mode-product-hover: 229 85% 55%;
+    --mode-product-tint: 229 89% 96%;
+    --mode-service: 343 65% 55%;
+    --mode-service-hover: 343 60% 47%;
+    --mode-service-tint: 343 65% 96%;
+    --mode-business: 271 82% 55%;
+    --mode-business-hover: 271 78% 47%;
+    --mode-business-tint: 271 82% 96%;
 
     --sidebar-background: 220 20% 97%;
     --sidebar-foreground: 224 20% 10%;
-    --sidebar-primary: 230 90% 63%;
+    --sidebar-primary: 229 89% 63%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 93%;
     --sidebar-accent-foreground: 224 20% 10%;
     --sidebar-border: 220 13% 86%;
-    --sidebar-ring: 230 70% 60%;
+    --sidebar-ring: 229 70% 60%;
 
     --shadow-card: 0 1px 3px 0 hsl(220 20% 80% / 0.12), 0 1px 2px -1px hsl(220 20% 80% / 0.08);
     --shadow-card-hover: 0 8px 24px -4px hsl(220 20% 80% / 0.18), 0 2px 6px -1px hsl(220 20% 80% / 0.08);
@@ -73,7 +79,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 400;
     line-height: 1.5;
     font-feature-settings: 'cv11', 'ss01';
@@ -89,65 +95,65 @@
 /* ── Global Typography Roles ─────────────────────────────────────── */
 @layer components {
 
-  /* Navigation link text */
+  /* Navigation link text — 15px */
   .typo-nav-primary {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     font-weight: 600;
     line-height: 1.4;
     color: hsl(var(--foreground));
   }
 
-  /* Active step label in StepNavigator */
+  /* Active step label in StepNavigator — 14px */
   .typo-step-title-active {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 700;
     line-height: 1.3;
     /* color inherited from context (inverted on active) */
   }
 
-  /* Inactive/past step label */
+  /* Inactive/past step label — 14px */
   .typo-step-title-inactive {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 700;
     line-height: 1.3;
     color: hsl(var(--muted-foreground));
   }
 
-  /* Step description / subtitle */
+  /* Step description / subtitle — 13px */
   .typo-step-subtitle {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.625rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     line-height: 1.3;
     color: hsl(var(--muted-foreground));
   }
 
-  /* Hero / page titles — base size, override responsively */
+  /* Hero / page titles — 32px base, override responsively */
   .typo-page-title {
     font-family: 'Space Grotesk', system-ui, sans-serif;
-    font-size: 1.875rem;
+    font-size: 2rem;
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.02em;
     color: hsl(var(--foreground));
   }
 
-  /* Page-level metadata (subtitles, timestamps) */
+  /* Page-level metadata (subtitles, timestamps) — 14px */
   .typo-page-meta {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 400;
     line-height: 1.5;
     color: hsl(var(--muted-foreground));
   }
 
-  /* Eyebrow / category labels — uppercase micro */
+  /* Eyebrow / category labels — 13px uppercase */
   .typo-card-eyebrow {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1.4;
     color: hsl(var(--muted-foreground));
@@ -155,64 +161,64 @@
     letter-spacing: 0.05em;
   }
 
-  /* Card heading / name */
+  /* Card heading / name — 16px */
   .typo-card-title {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 600;
     line-height: 1.3;
     color: hsl(var(--foreground));
   }
 
-  /* Card body text */
+  /* Card body text — 14px */
   .typo-card-body {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 400;
     line-height: 1.5;
     color: hsl(var(--foreground));
   }
 
-  /* Card metadata (market size, dates, etc.) */
+  /* Card metadata (market size, dates, etc.) — 13px */
   .typo-card-meta {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.625rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     line-height: 1.4;
     color: hsl(var(--muted-foreground));
   }
 
-  /* Section headers inside analysis panels */
+  /* Section headers inside analysis panels — 18px */
   .typo-section-title {
     font-family: 'Space Grotesk', system-ui, sans-serif;
-    font-size: 0.875rem;
+    font-size: 1.125rem;
     font-weight: 700;
     line-height: 1.3;
     letter-spacing: -0.02em;
     color: hsl(var(--foreground));
   }
 
-  /* Section description / summary text */
+  /* Section description / summary text — 14px */
   .typo-section-description {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 400;
     line-height: 1.5;
     color: hsl(var(--muted-foreground));
   }
 
-  /* Status badges, counters, micro labels — 9px uppercase */
+  /* Status badges, counters, micro labels — 13px uppercase */
   .typo-status-label {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.5625rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1.3;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     /* color inherited — varies by context */
   }
 
-  /* Primary button text */
+  /* Primary button text — 14px */
   .typo-button-primary {
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 0.875rem;
@@ -221,10 +227,10 @@
     color: hsl(var(--primary-foreground));
   }
 
-  /* Secondary / ghost button text */
+  /* Secondary / ghost button text — 13px */
   .typo-button-secondary {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1;
     color: hsl(var(--foreground));
@@ -340,19 +346,19 @@
     background: hsl(var(--mode-product));
     color: hsl(var(--primary-foreground));
   }
-  .btn-mode-product:hover { opacity: 0.9; }
+  .btn-mode-product:hover { background: hsl(var(--mode-product-hover)); }
 
   .btn-mode-service {
     background: hsl(var(--mode-service));
     color: hsl(var(--primary-foreground));
   }
-  .btn-mode-service:hover { opacity: 0.9; }
+  .btn-mode-service:hover { background: hsl(var(--mode-service-hover)); }
 
   .btn-mode-business {
     background: hsl(var(--mode-business));
     color: hsl(var(--primary-foreground));
   }
-  .btn-mode-business:hover { opacity: 0.9; }
+  .btn-mode-business:hover { background: hsl(var(--mode-business-hover)); }
 
   .modal-overlay {
     @apply fixed inset-0 flex items-center justify-center p-4;

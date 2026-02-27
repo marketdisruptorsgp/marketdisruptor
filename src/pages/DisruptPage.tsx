@@ -44,6 +44,7 @@ export default function DisruptPage() {
             else if (s === 6) navigate(`${baseUrl}/pitch`);
           }}
           outdatedSteps={analysis.outdatedSteps}
+          accentColor={theme.primary}
         />
 
         <StepNavBar backLabel="Intelligence Report" backPath={`${baseUrl}/report`} accentColor={theme.primary} />
@@ -61,7 +62,7 @@ export default function DisruptPage() {
           accentColor={theme.primary}
         />
 
-        <div className="rounded overflow-hidden p-3 sm:p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+        <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <FirstPrinciplesAnalysis
             product={selectedProduct}
             onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
