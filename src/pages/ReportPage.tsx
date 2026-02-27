@@ -302,20 +302,21 @@ export default function ReportPage() {
             
             {/* Key Takeaway Banner */}
             {(() => {
-              const ci = (selectedProduct as unknown as { communityInsights?: { topComplaints?: string[]; improvementRequests?: string[]; redditSentiment?: string } }).communityInsights;
+              const ci = (selectedProduct as unknown as { communityInsights?: { topComplaints?: string[]; improvementRequests?: string[]; communitySentiment?: string } }).communityInsights;
               const takeaway = ci ? getCommunityTakeaway(ci) : null;
               return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(25 90% 40%)" /> : null;
             })()}
-            {(selectedProduct as unknown as { communityInsights?: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
+            {(selectedProduct as unknown as { communityInsights?: { communitySentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
               (() => {
-                const ci = (selectedProduct as unknown as { communityInsights: { redditSentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights;
-                const hasRealSentiment = ci.redditSentiment && !/no direct.*found|not found|no.*sentiment.*found|no.*reddit.*found/i.test(ci.redditSentiment);
+                const ci = (selectedProduct as unknown as { communityInsights: { communitySentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights;
+                const sentiment = ci.communitySentiment || (ci as any).redditSentiment;
+                const hasRealSentiment = sentiment && !/no direct.*found|not found|no.*sentiment.*found/i.test(sentiment);
                 return (
                   <>
                      {hasRealSentiment && (
                       <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                          <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(25 90% 40%)" }}>Community Sentiment</p>
-                         <p className="typo-card-body leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
+                         <p className="typo-card-body leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{sentiment}</p>
                       </div>
                     )}
                     <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown} defaultOpen explainerKey="panel-complaints">

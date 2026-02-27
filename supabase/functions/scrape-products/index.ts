@@ -61,26 +61,24 @@ serve(async (req) => {
     // Use different queries for service vs product analysis
     const queries = isService
       ? [
-          // Service-focused queries: customer journey, friction, competitors, reviews
-          `site:reddit.com ${eraLabel}${category} service review complaints "customer experience" frustration`,
+          `${eraLabel}${category} service review complaints "customer experience" frustration`,
           `${eraLabel}service industry customer journey friction pain points reviews 2023 2024`,
-          `site:reddit.com "worst experience" OR "terrible service" OR "switched to" OR "better alternative" service industry`,
+          `"worst experience" OR "terrible service" OR "switched to" OR "better alternative" ${eraLabel}service industry`,
           `${eraLabel}service business model innovation trends disruption 2024`,
           `${eraLabel}service industry automation technology transformation customer satisfaction`,
           `${eraLabel}service pricing models subscription vs retainer vs per-use comparison`,
-          `site:trustpilot.com OR site:g2.com OR site:capterra.com service reviews complaints`,
+          `${eraLabel}service reviews complaints customer feedback ratings`,
           `${eraLabel}service industry operational bottlenecks scaling challenges workforce`,
         ]
       : [
-          // Product-focused queries (original)
-          `${eraLabel}${category} vintage discontinued products eBay collector value price sold`,
-          `site:reddit.com ${eraLabel}${category} nostalgia review complaints "wish they would bring back"`,
+          `${eraLabel}${category} vintage discontinued products collector value price sold`,
+          `${eraLabel}${category} nostalgia review complaints "wish they would bring back" community discussion`,
           `${eraLabel}${category} product reviews complaints improvement requests nostalgia 2023 2024`,
-          `${eraLabel}${category} Etsy vintage products trending handmade revival`,
-          `${eraLabel}${category} competitor analysis market trends "best selling" "discontinued" site:amazon.com OR site:ebay.com`,
-          `site:reddit.com ${eraLabel}${category} "what happened to" OR "bring back" OR "miss this" community discussion`,
-          `${eraLabel}${category} TikTok viral nostalgia trend "going viral" "gen z" "millennial" 2024`,
-          `${eraLabel}${category} wholesale supplier manufacturer alibaba minimum order quantity`,
+          `${eraLabel}${category} vintage products trending handmade revival marketplace`,
+          `${eraLabel}${category} competitor analysis market trends "best selling" "discontinued"`,
+          `${eraLabel}${category} "what happened to" OR "bring back" OR "miss this" community discussion`,
+          `${eraLabel}${category} viral nostalgia trend "going viral" "gen z" "millennial" 2024`,
+          `${eraLabel}${category} wholesale supplier manufacturer minimum order quantity`,
         ];
 
     // If custom products/URLs supplied, add targeted searches for them
@@ -92,10 +90,10 @@ serve(async (req) => {
         if (cp.productName) {
           if (isService) {
             customSearches.push(`"${cp.productName}" service reviews customer experience complaints`);
-            customSearches.push(`site:reddit.com "${cp.productName}" OR similar service alternative competitor`);
+            customSearches.push(`"${cp.productName}" OR similar service alternative competitor`);
           } else {
-            customSearches.push(`"${cp.productName}" product reviews price history suppliers eBay sold`);
-            customSearches.push(`site:reddit.com "${cp.productName}" community sentiment review complaints`);
+            customSearches.push(`"${cp.productName}" product reviews price history suppliers sold`);
+            customSearches.push(`"${cp.productName}" community sentiment review complaints`);
           }
         }
         // Directly scrape custom URLs
@@ -151,7 +149,7 @@ serve(async (req) => {
 
     const allMarkdown: string[] = [...customScrapedContent];
     const sources: { label: string; url: string }[] = [];
-    const redditPosts: string[] = [];
+    const communityPosts: string[] = [];
     const complaintSignals: string[] = [];
 
     for (let i = 0; i < searchResults.length; i++) {
@@ -164,8 +162,8 @@ serve(async (req) => {
             const snippet = item.markdown.slice(0, 2500);
             allMarkdown.push(`## Source: ${item.url}\n\n${snippet}`);
             
-            if (item.url?.includes("reddit.com")) {
-              redditPosts.push(`### Reddit: ${item.title}\nURL: ${item.url}\n${snippet}`);
+            if (item.url?.includes("reddit.com") || item.url?.includes("forum") || item.url?.includes("community")) {
+              communityPosts.push(`### Community: ${item.title}\nURL: ${item.url}\n${snippet}`);
             }
             
             if (
@@ -187,22 +185,22 @@ serve(async (req) => {
     }
 
     const combinedContent = allMarkdown.join("\n\n---\n\n").slice(0, 20000);
-    const redditContent = redditPosts.join("\n\n---\n\n").slice(0, 5000);
+    const communityContent = communityPosts.join("\n\n---\n\n").slice(0, 5000);
     const complaintsContent = complaintSignals.join("\n\n---\n\n").slice(0, 4000);
 
-    console.log(`Scraped ${allMarkdown.length} pages, ${redditPosts.length} Reddit posts, ${complaintSignals.length} complaint signals`);
+    console.log(`Scraped ${allMarkdown.length} pages, ${communityPosts.length} community posts, ${complaintSignals.length} complaint signals`);
 
     return new Response(
       JSON.stringify({
         success: true,
         rawContent: combinedContent,
-        redditContent,
+        communityContent,
         complaintsContent,
         sources: sources.slice(0, 30),
         queryCount: queries.length,
         stats: {
           totalPages: allMarkdown.length,
-          redditPosts: redditPosts.length,
+          communityPosts: communityPosts.length,
           complaintSignals: complaintSignals.length,
         },
       }),

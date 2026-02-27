@@ -283,13 +283,14 @@ export default function ShareableAnalysisPage() {
                 {(() => {
                   const ci = (product as any).communityInsights;
                   if (!ci) return <p className="typo-card-body text-muted-foreground py-8 text-center">No community data available</p>;
-                  const hasRealSentiment = ci.redditSentiment && !/no direct.*found|not found/i.test(ci.redditSentiment);
+                  const sentiment = ci.communitySentiment || ci.redditSentiment;
+                  const hasRealSentiment = sentiment && !/no direct.*found|not found/i.test(sentiment);
                   return (
                     <>
                       {hasRealSentiment && (
                         <div className="p-4 rounded-lg bg-muted border border-border">
                           <DataLabel>Community Sentiment</DataLabel>
-                          <p className="typo-card-meta mt-1" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
+                          <p className="typo-card-meta mt-1" style={{ color: "hsl(25 90% 30%)" }}>{sentiment}</p>
                         </div>
                       )}
                       <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown} defaultOpen>
