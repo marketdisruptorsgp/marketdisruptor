@@ -236,9 +236,10 @@ export function SectionWorkflowNav<T extends string>({
                 background: isActive
                   ? accent
                   : isVisited
-                    ? `${accent}0A`
+                    ? `${accent}18`
                     : "transparent",
                 borderRight: i < tabs.length - 1 ? "1px solid hsl(var(--border) / 0.5)" : "none",
+                borderBottom: isVisited ? `2px solid ${accent}` : "none",
               }}
             >
               {isUnvisited && (
@@ -250,12 +251,12 @@ export function SectionWorkflowNav<T extends string>({
                   background: isActive
                     ? "hsla(0 0% 100% / 0.2)"
                     : isVisited
-                      ? `${accent}1A`
+                      ? accent
                       : "hsl(var(--muted))",
                 }}
               >
                 {isVisited ? (
-                  <CheckCircle2 size={17} style={{ color: "hsl(142 70% 45%)" }} />
+                  <CheckCircle2 size={17} style={{ color: "white" }} />
                 ) : (
                   <TabIcon size={17} style={{ color: isActive ? "white" : "hsl(var(--muted-foreground))" }} />
                 )}

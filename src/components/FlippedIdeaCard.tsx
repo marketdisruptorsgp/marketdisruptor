@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TrendingUp, RefreshCw, Sparkles, ImageIcon, Rocket, DollarSign, Clock, Minus, Plus, Presentation, Check } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { FlippedIdea } from "@/data/mockProducts";
 import { ScoreBar } from "./ScoreBar";
 import { RiskBadge } from "./RiskBadge";
@@ -15,11 +16,13 @@ interface FlippedIdeaCardProps {
   pitchDeckImages?: { url: string; ideaName: string }[];
   onSelectForPitch?: (url: string, ideaName: string) => void;
   onRemoveFromPitch?: (url: string) => void;
+  onRegenerateSingle?: () => void;
 }
 
-export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange, pitchDeckImages, onSelectForPitch, onRemoveFromPitch }: FlippedIdeaCardProps) => {
+export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange, pitchDeckImages, onSelectForPitch, onRemoveFromPitch, onRegenerateSingle }: FlippedIdeaCardProps) => {
   const [mockupImage, setMockupImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const autoGenTriggered = useRef(false);
 
   const scoreKeys = ["feasibility", "desirability", "profitability", "novelty"] as const;
 
@@ -59,6 +62,14 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
       setIsGenerating(false);
     }
   };
+
+  // Auto-generate visual on mount
+  useEffect(() => {
+    if (!mockupImage && !isGenerating && !autoGenTriggered.current) {
+      autoGenTriggered.current = true;
+      handleGenerateVisual();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleScoreAdjust = (key: string, delta: number) => {
     const current = getDisplayScore(key);
@@ -170,19 +181,9 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
             })()}
           </div>
         ) : (
-          <div
-            className="flex flex-col items-center justify-center gap-2 rounded py-8 text-center cursor-pointer border border-dashed transition-all hover:border-primary/50 bg-muted/30 border-border"
-            onClick={handleGenerateVisual}
-          >
-            <div className="w-10 h-10 rounded flex items-center justify-center bg-primary/10">
-              <Sparkles size={18} className="text-primary" />
-            </div>
-            <p className="typo-card-body font-semibold text-primary">
-              Generate AI Product Visual
-            </p>
-            <p className="typo-card-meta max-w-xs">
-              Click to generate a concept mockup image
-            </p>
+          <div className="space-y-2">
+            <Skeleton className="w-full h-48 rounded" />
+            <p className="text-center typo-card-meta text-muted-foreground animate-pulse">Generating AI product visual…</p>
           </div>
         )}
       </div>
@@ -266,6 +267,20 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
           );
         })}
       </div>
+
+      {/* Per-idea regenerate */}
+      {onRegenerateSingle && (
+        <div className="pt-2 border-t border-border">
+          <button
+            type="button"
+            onClick={onRegenerateSingle}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all w-full justify-center"
+            style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+          >
+            <RefreshCw size={11} /> Regenerate This Idea
+          </button>
+        </div>
+      )}
 
       {/* Action Plan */}
       {idea.actionPlan && (
