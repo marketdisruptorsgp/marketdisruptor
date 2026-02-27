@@ -16,7 +16,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import {
   Brain, Flame, Zap, ChevronRight, ChevronDown, RefreshCw, AlertTriangle, CheckCircle2,
   Wrench, Lightbulb, Package, DollarSign, Users, Factory, FlipHorizontal,
-  Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation, Shield,
+  Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation, Shield, Route,
   Maximize2, Wifi, ScrollText, FileDown, Swords,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
@@ -157,7 +157,7 @@ const REASON_COLORS: Record<string, { bg: string; text: string; label: string }>
   habit: { bg: "hsl(330 80% 55% / 0.1)", text: "hsl(330 80% 40%)", label: "Habit" },
 };
 
-/* ── Interactive Workflow Timeline — neutral, no severity colors ──────────────────────── */
+/* ── Interactive Workflow Timeline — polished, themed, no emojis ──────────────────────── */
 export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; frictionPoints: WorkflowFriction[] }) {
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
 
@@ -169,97 +169,109 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
   };
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:overflow-x-auto sm:pb-2 gap-0">
+    <div className="space-y-1">
+      {/* Section label */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--foreground))" }}>
+          <Route size={13} style={{ color: "hsl(var(--background))" }} />
+        </div>
+        <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Current Journey</p>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+          {steps.length} steps
+        </span>
+      </div>
+
+      {/* Timeline cards — vertical on all sizes for clarity */}
+      <div className="relative">
         {steps.slice(0, 8).map((step, i) => {
           const friction = getFriction(step);
           const isExpanded = expandedStep === i;
           const isLast = i === Math.min(steps.length, 8) - 1;
 
           return (
-            <div key={i} className="flex sm:flex-col sm:items-center relative sm:min-w-[140px]">
-              {/* Mobile: vertical timeline */}
-              <div className="flex sm:hidden items-start gap-3 w-full">
-                <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center typo-card-meta font-bold z-10 transition-all"
-                    style={{
-                      background: isExpanded ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-                      color: isExpanded ? "white" : "hsl(var(--background))",
-                    }}
-                  >
-                    {i + 1}
-                  </div>
-                  {!isLast && (
-                    <div className="w-[2px] flex-1 min-h-[24px]" style={{ background: "hsl(var(--border))" }} />
-                  )}
-                </div>
-                <button
-                  onClick={() => setExpandedStep(isExpanded ? null : i)}
-                  className="flex-1 text-left rounded-lg p-2.5 mb-2 transition-all"
+            <div key={i} className="flex items-start gap-3 relative">
+              {/* Left rail: number + connector */}
+              <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-extrabold z-10 transition-all duration-200"
                   style={{
-                    background: isExpanded ? "hsl(var(--primary) / 0.04)" : "hsl(var(--muted))",
-                    border: isExpanded ? "1.5px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
+                    background: isExpanded
+                      ? "hsl(var(--foreground))"
+                      : friction
+                        ? "hsl(var(--foreground) / 0.08)"
+                        : "hsl(var(--muted))",
+                    color: isExpanded
+                      ? "hsl(var(--background))"
+                      : "hsl(var(--foreground))",
+                    border: isExpanded ? "none" : "1.5px solid hsl(var(--border))",
+                    transform: isExpanded ? "scale(1.1)" : "scale(1)",
                   }}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-bold text-foreground leading-tight">{step}</p>
-                    {friction && <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--muted-foreground))" }} />}
-                  </div>
-                  {isExpanded && friction && (
-                    <div className="mt-2 space-y-1.5">
-                      <p className="typo-card-body text-foreground/80 leading-relaxed">{friction.friction}</p>
-                      {friction.rootCause && (
-                        <p className="typo-card-meta text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
-                      )}
-                    </div>
-                  )}
-                </button>
+                  {i + 1}
+                </div>
+                {!isLast && (
+                  <div className="w-[1.5px] flex-1 min-h-[16px]" style={{ background: "hsl(var(--border))" }} />
+                )}
               </div>
 
-              {/* Desktop: horizontal pipeline */}
-              <div className="hidden sm:flex sm:flex-col sm:items-center sm:w-full">
-                <div className="flex items-center w-full">
-                  {i > 0 ? <div className="h-[2px] flex-1" style={{ background: "hsl(var(--border))" }} /> : <div className="flex-1" />}
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center typo-card-meta font-bold z-10 flex-shrink-0 transition-all"
-                    style={{
-                      background: isExpanded ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-                      color: isExpanded ? "white" : "hsl(var(--background))",
-                      transform: isExpanded ? "scale(1.15)" : "scale(1)",
-                    }}
-                  >
-                    {i + 1}
-                  </div>
-                  {!isLast ? <div className="h-[2px] flex-1" style={{ background: "hsl(var(--border))" }} /> : <div className="flex-1" />}
-                </div>
-                <button
-                  onClick={() => setExpandedStep(isExpanded ? null : i)}
-                  className="mt-2 w-full text-left rounded-lg p-2.5 transition-all cursor-pointer"
-                  style={{
-                    background: isExpanded ? "hsl(var(--primary) / 0.04)" : "hsl(var(--muted))",
-                    border: isExpanded ? "1.5px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
-                    transform: isExpanded ? "scale(1.03)" : "scale(1)",
-                  }}
-                >
-                  <div className="flex items-center justify-between gap-1">
-                    <p className="typo-card-meta font-bold text-foreground leading-tight">{step}</p>
-                    {friction && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "hsl(var(--muted-foreground))" }} />}
-                  </div>
-                  {isExpanded && friction && (
-                    <div className="mt-2 space-y-1">
-                      <p className="typo-card-body text-foreground/80 leading-relaxed">{friction.friction}</p>
-                      {friction.rootCause && (
-                        <p className="typo-card-meta text-muted-foreground"><span className="font-bold">Root cause:</span> {friction.rootCause}</p>
-                      )}
+              {/* Right: step card */}
+              <button
+                onClick={() => setExpandedStep(isExpanded ? null : i)}
+                className="flex-1 text-left rounded-xl p-3 mb-2 transition-all duration-200 cursor-pointer"
+                style={{
+                  background: isExpanded
+                    ? "hsl(var(--foreground) / 0.03)"
+                    : "hsl(var(--card))",
+                  border: isExpanded
+                    ? "1.5px solid hsl(var(--foreground) / 0.15)"
+                    : "1px solid hsl(var(--border))",
+                }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[13px] font-bold text-foreground leading-snug flex-1">{step}</p>
+                  {friction && (
+                    <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                      <AlertTriangle size={11} style={{ color: "hsl(var(--muted-foreground))" }} />
+                      <span className="text-[10px] font-semibold text-muted-foreground">Friction</span>
                     </div>
                   )}
-                </button>
-              </div>
+                </div>
+
+                {isExpanded && friction && (
+                  <div className="mt-2.5 space-y-2 pt-2.5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">What happens</p>
+                      <p className="text-[13px] text-foreground/80 leading-relaxed">{friction.friction}</p>
+                    </div>
+                    {friction.rootCause && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Root cause</p>
+                        <p className="text-[13px] text-foreground/80 leading-relaxed">{friction.rootCause}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isExpanded && !friction && (
+                  <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                    <p className="text-[11px] text-muted-foreground italic">No friction points identified at this step.</p>
+                  </div>
+                )}
+              </button>
             </div>
           );
         })}
       </div>
+
+      {/* Friction summary bar */}
+      {frictionPoints?.length > 0 && (
+        <div className="flex items-center gap-2 pt-2 mt-1" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+          <AlertTriangle size={12} style={{ color: "hsl(var(--muted-foreground))" }} />
+          <span className="text-[11px] font-semibold text-muted-foreground">
+            {frictionPoints.length} friction point{frictionPoints.length !== 1 ? "s" : ""} identified in current journey
+          </span>
+        </div>
+      )}
     </div>
   );
 }

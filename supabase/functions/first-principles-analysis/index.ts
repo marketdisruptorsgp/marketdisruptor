@@ -44,6 +44,12 @@ OUTPUT RULES:
 - Flag capital requirements: [Capital: Low/Medium/High]
 - Use directional indicators: ↑ ↓ → for trends
 
+USER JOURNEY RULE:
+- The "userWorkflow" section must describe the CURRENT/EXISTING user journey AS IT IS TODAY
+- Do NOT suggest improvements, optimizations, or redesigns in userWorkflow
+- Document the real, current experience — warts and all
+- Improvements and redesigns belong in downstream analysis steps, NOT here
+
 `;
 
     const systemPrompt = isService
@@ -88,13 +94,12 @@ The JSON must follow this EXACT structure:
     "dimensionOpportunities": ["Bold opportunity 1 from rethinking service scope", "Bold opportunity 2", "Bold opportunity 3"]
   },
   "userWorkflow": {
-    "stepByStep": ["Step 1: how customer discovers/books the service", "Step 2: onboarding", "Step 3: core service delivery", "Step 4: follow-up", "Step 5: retention/rebooking"],
+    "stepByStep": ["Step 1: how customer currently discovers/books the service", "Step 2: current onboarding process", "Step 3: how core service is actually delivered today", "Step 4: current follow-up process", "Step 5: how retention/rebooking currently works"],
     "frictionPoints": [
-      { "step": "step name", "friction": "specific friction description", "severity": "high|medium|low", "rootCause": "why this friction exists" }
+      { "step": "step name", "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists in the current workflow" }
     ],
-    "cognitiveLoad": "What mental effort does the customer expend? What do they have to research, decide, coordinate, or manage?",
-    "contextOfUse": "When, in what state (urgent, planned, stressed, relaxed) do customers seek this? Does the service design account for that?",
-    "workflowOptimizations": ["Concrete optimization 1", "Concrete optimization 2", "Concrete optimization 3"]
+    "cognitiveLoad": "What mental effort does the customer CURRENTLY expend? What do they have to research, decide, coordinate, or manage TODAY?",
+    "contextOfUse": "When, in what state (urgent, planned, stressed, relaxed) do customers CURRENTLY seek this? How does the EXISTING service design handle that?"
   },
   "smartTechAnalysis": {
     "currentTechLevel": "Describe current technology integration (or lack thereof) in service delivery",
@@ -186,13 +191,12 @@ The JSON must follow this EXACT structure:
     "dimensionOpportunities": ["Bold opportunity 1 from rethinking dimensions", "Bold opportunity 2", "Bold opportunity 3"]
   },
   "userWorkflow": {
-    "stepByStep": ["Step 1: what user does before using it", "Step 2", "Step 3: core use action", "Step 4", "Step 5: after/cleanup"],
+    "stepByStep": ["Step 1: what user currently does before using it", "Step 2: how they currently interact with it", "Step 3: core use action as it exists today", "Step 4: what happens next in current workflow", "Step 5: current after-use/cleanup process"],
     "frictionPoints": [
-      { "step": "step name", "friction": "specific friction description", "severity": "high|medium|low", "rootCause": "why this friction exists" }
+      { "step": "step name", "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists in the current workflow" }
     ],
-    "cognitiveLoad": "What mental effort does the user expend? What do they have to remember, configure, or manage?",
-    "contextOfUse": "Where, when, in what state (rushed, relaxed, distracted) is this used? Does the design account for that context?",
-    "workflowOptimizations": ["Concrete optimization 1", "Concrete optimization 2", "Concrete optimization 3"]
+    "cognitiveLoad": "What mental effort does the user CURRENTLY expend? What do they have to remember, configure, or manage TODAY?",
+    "contextOfUse": "Where, when, in what state (rushed, relaxed, distracted) is this CURRENTLY used? How does the EXISTING design handle that context?"
   },
   "smartTechAnalysis": {
     "currentTechLevel": "Describe current technology integration (or lack thereof)",

@@ -362,16 +362,26 @@ export default function ReportPage() {
               return (
                 <div className="space-y-4">
                   <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
-                  {uw.cognitiveLoad && (
-                    <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                       <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
-                       <p className="typo-card-body text-foreground/80">{uw.cognitiveLoad}</p>
-                    </div>
-                  )}
-                  {uw.contextOfUse && (
-                    <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                       <p className="typo-card-eyebrow mb-1">Context of Use</p>
-                       <p className="typo-card-body text-foreground/80">{uw.contextOfUse}</p>
+                  {(uw.cognitiveLoad || uw.contextOfUse) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {uw.cognitiveLoad && (
+                        <div className="p-4 rounded-xl space-y-1.5" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Brain size={13} style={{ color: "hsl(var(--foreground))" }} />
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cognitive Load</p>
+                          </div>
+                          <p className="text-[13px] text-foreground/80 leading-relaxed">{uw.cognitiveLoad}</p>
+                        </div>
+                      )}
+                      {uw.contextOfUse && (
+                        <div className="p-4 rounded-xl space-y-1.5" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Globe size={13} style={{ color: "hsl(var(--foreground))" }} />
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Context of Use</p>
+                          </div>
+                          <p className="text-[13px] text-foreground/80 leading-relaxed">{uw.contextOfUse}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
