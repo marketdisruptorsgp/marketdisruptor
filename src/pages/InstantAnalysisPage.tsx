@@ -2,13 +2,30 @@ import React, { useState, useRef, useCallback } from "react";
 import { useAnonymousAuth } from "@/hooks/useAnonymousAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, Lock, Eye, Share2, Copy, Check, TrendingUp, Search, Target, Presentation, ShieldCheck, ListChecks } from "lucide-react";
+import { Camera, Upload, ArrowRight, Zap, ChevronDown, Shield, Sparkles, Mail, Lock, Eye, Share2, Copy, Check, TrendingUp, Search, Target, Presentation, ShieldCheck, ListChecks, Lightbulb, Rocket } from "lucide-react";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type AnalysisMode = "custom" | "service" | "business";
 type AnalysisDepth = "quick" | "deep";
+
+/** Strip [VISUAL], [CONTEXTUAL], [ASSUMPTION] etc. tags from AI output strings */
+function stripSourceTags(text: string): string {
+  return text.replace(/\s*\[(VISUAL|CONTEXTUAL|ASSUMPTION|DATA GAP|MODELED|USER PROVIDED|VISUAL INFERENCE)\]\s*/gi, " ").trim();
+}
+
+/** Recursively strip source tags from all string values in an object/array */
+function deepStripTags<T>(val: T): T {
+  if (typeof val === "string") return stripSourceTags(val) as unknown as T;
+  if (Array.isArray(val)) return val.map(deepStripTags) as unknown as T;
+  if (val && typeof val === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(val)) out[k] = deepStripTags(v);
+    return out as T;
+  }
+  return val;
+}
 
 interface PhotoAnalysisResult {
   name: string;
@@ -142,7 +159,7 @@ export default function InstantAnalysisPage() {
         throw new Error(analysisData.error);
       }
 
-      setResult(analysisData.analysis);
+      setResult(deepStripTags(analysisData.analysis));
       toast.success("Analysis complete!");
 
       // Scroll to results
@@ -714,12 +731,12 @@ function SentimentList({ title, items, type }: { title: string; items: string[];
 // --- Deep Dive Showstopper CTA ---
 
 const DEEP_DIVE_CAPABILITIES = [
-  { icon: Search, title: "Full Supply Chain Map", desc: "Trace every component from raw material to shelf" },
-  { icon: ShieldCheck, title: "Patent & IP Landscape", desc: "See who owns the ideas around this space" },
-  { icon: TrendingUp, title: "Disruption Scoring", desc: "Quantified vulnerability and opportunity analysis" },
-  { icon: Presentation, title: "Investor-Ready Pitch Deck", desc: "12-slide deck generated from your analysis" },
-  { icon: Target, title: "Competitive Moat Analysis", desc: "Defensibility breakdown with evidence" },
-  { icon: ListChecks, title: "Actionable Recommendations", desc: "Prioritized next steps, not just observations" },
+  { icon: Lightbulb, title: "Flipped Ideas", desc: "Radical creative concepts you'd never think of — assumptions turned inside-out into breakthrough opportunities" },
+  { icon: TrendingUp, title: "Disruption Scoring", desc: "Quantified vulnerability and opportunity analysis with go-to-market strategy" },
+  { icon: Presentation, title: "Investor-Ready Pitch Deck", desc: "12-slide deck with market sizing, unit economics, and a compelling narrative — ready to present" },
+  { icon: Rocket, title: "Go-To-Market Playbook", desc: "Phased launch plan with budgets, milestones, and quick wins to capitalize immediately" },
+  { icon: ShieldCheck, title: "Patent & IP Landscape", desc: "See who owns the ideas around this space and where white space exists" },
+  { icon: Target, title: "Competitive Moat Analysis", desc: "Defensibility breakdown showing exactly how to build an unfair advantage" },
 ];
 
 function DeepDiveShowstopper({ modeColor, onSignUp }: { modeColor: string; onSignUp: () => void }) {
@@ -730,12 +747,15 @@ function DeepDiveShowstopper({ modeColor, onSignUp }: { modeColor: string; onSig
     >
       <div className="p-6 sm:p-8 space-y-6">
         {/* Headline */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-3">
           <h3 className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
             You just scratched the surface.
           </h3>
-          <p className="typo-card-body text-muted-foreground max-w-lg mx-auto">
-            Deep Dive gives you the intelligence that takes consulting firms weeks to assemble — in seconds.
+          <p className="typo-card-body text-muted-foreground max-w-lg mx-auto leading-relaxed">
+            Deep Dive doesn't just analyze — it <strong className="text-foreground">invents</strong>. Get flipped ideas and creative approaches you've never considered, then a complete playbook to bring them to market and capitalize on the opportunity.
+          </p>
+          <p className="typo-card-meta font-semibold" style={{ color: `hsl(var(${modeColor}))` }}>
+            The intelligence that takes consulting firms weeks — in seconds.
           </p>
         </div>
 
