@@ -75,6 +75,7 @@ export default function StressTestPage() {
           stepTitle="Stress Test"
           subtitle={`Red Team vs Green Team critical validation for <strong class="text-foreground">${selectedProduct.name}</strong>`}
           accentColor={theme.primary}
+          explainerKey="step-stress-test"
         />
 
         <div className="rounded overflow-hidden p-4 sm:p-6 space-y-4 sm:space-y-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
@@ -93,6 +94,7 @@ export default function StressTestPage() {
             descriptions={STRESS_TEST_DESCRIPTIONS}
             journeyLabel="Stress Test Journey"
             accentColor={theme.primary}
+            explainerKeys={{ debate: "stress-debate", validate: "stress-validate" }}
           />
           <CriticalValidation
             product={selectedProduct}

@@ -60,6 +60,7 @@ export default function DisruptPage() {
           stepTitle="Disrupt"
           subtitle={`Deconstructing <strong class="text-foreground">${selectedProduct.name}</strong> — questioning every assumption and generating radical reinvention ideas.`}
           accentColor={theme.primary}
+          explainerKey="step-disrupt"
         />
 
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>

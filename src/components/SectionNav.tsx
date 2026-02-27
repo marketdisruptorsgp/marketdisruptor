@@ -3,6 +3,7 @@ import { ArrowRight, ChevronDown, Home, CheckCircle2 } from "lucide-react";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
+import { InfoExplainer } from "@/components/InfoExplainer";
 
 /* ── Consistent Back + Home bar ──────────────────── */
 export function StepNavBar({ backLabel, backPath, accentColor }: { backLabel: string; backPath: string; accentColor?: string }) {
@@ -29,7 +30,7 @@ export function StepNavBar({ backLabel, backPath, accentColor }: { backLabel: st
 }
 
 /* ── Section progress header with description ──────────────────────── */
-export function SectionHeader({ current, total, label, description, icon: Icon }: { current: number; total: number; label: string; description?: string; icon: React.ElementType }) {
+export function SectionHeader({ current, total, label, description, icon: Icon, explainerKey }: { current: number; total: number; label: string; description?: string; icon: React.ElementType; explainerKey?: string }) {
   return (
     <div className="flex items-center justify-between pb-3 mb-3" style={{ borderBottom: "2px solid hsl(var(--border))" }}>
       <div className="flex items-center gap-3">
@@ -37,7 +38,10 @@ export function SectionHeader({ current, total, label, description, icon: Icon }
           <Icon size={16} style={{ color: "hsl(var(--background))" }} />
         </div>
         <div>
-          <p className="typo-section-title">{label}</p>
+          <div className="flex items-center gap-2">
+            <p className="typo-section-title">{label}</p>
+            {explainerKey && <InfoExplainer explainerKey={explainerKey} />}
+          </div>
           {description && (
             <p className="typo-step-subtitle mt-0.5">{description}</p>
           )}
@@ -114,7 +118,7 @@ export function NextStepButton({ stepNumber, label, onClick, color, allSectionsV
 }
 
 /* ── Collapsible detail panel — Presentation style ──────────────────────── */
-export function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
+export function DetailPanel({ title, icon: Icon, children, defaultOpen = false, explainerKey }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean; explainerKey?: string }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -130,6 +134,11 @@ export function DetailPanel({ title, icon: Icon, children, defaultOpen = false }
             <Icon size={15} style={{ color: "hsl(var(--primary))" }} />
           </div>
           {title}
+          {explainerKey && (
+            <span onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+              <InfoExplainer explainerKey={explainerKey} />
+            </span>
+          )}
         </span>
         <span className="flex items-center gap-1.5 flex-shrink-0">
           <span className="typo-status-label text-muted-foreground hidden sm:inline">Details</span>
@@ -164,6 +173,7 @@ export function SectionWorkflowNav<T extends string>({
   descriptions,
   journeyLabel = "Your Analysis Journey",
   accentColor,
+  explainerKeys,
 }: {
   tabs: { id: T; label: string; icon: React.ElementType }[];
   activeId: T;
@@ -172,6 +182,7 @@ export function SectionWorkflowNav<T extends string>({
   descriptions?: Record<string, string>;
   journeyLabel?: string;
   accentColor?: string;
+  explainerKeys?: Record<string, string>;
 }) {
   const accent = accentColor || "hsl(var(--primary))";
   const allVisited = tabs.every(t => visitedIds.has(t.id) || t.id === activeId);
@@ -260,7 +271,12 @@ export function SectionWorkflowNav<T extends string>({
               }}>
                 {tab.label}
               </p>
-              {desc && (
+              {explainerKeys?.[tab.id] && (
+                <span onClick={(e) => { e.stopPropagation(); }} className="mt-1.5">
+                  <InfoExplainer explainerKey={explainerKeys[tab.id]} />
+                </span>
+              )}
+              {desc && !explainerKeys?.[tab.id] && (
                 <p className="hidden lg:block typo-step-subtitle mt-1 max-w-[140px]" style={{
                   color: isActive ? "hsla(0 0% 100% / 0.6)" : "hsl(var(--muted-foreground) / 0.7)",
                 }}>

@@ -182,13 +182,21 @@ export default function ReportPage() {
             onSelect={goToTab}
             descriptions={SECTION_DESCRIPTIONS}
             journeyLabel="Your Analysis Journey"
+            explainerKeys={{
+              overview: "section-overview",
+              community: "section-community",
+              workflow: "section-workflow",
+              pricing: "section-pricing",
+              supply: "section-supply",
+              patents: "section-patents",
+            }}
           />
         </div>
 
         {/* Tab Content - Overview */}
         {analysis.detailTab === "overview" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Overview" description={SECTION_DESCRIPTIONS.overview} icon={Target} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Overview" description={SECTION_DESCRIPTIONS.overview} icon={Target} explainerKey="section-overview" />
             
             {/* Key Takeaway Banner */}
             {selectedProduct.keyInsight && (
@@ -231,7 +239,7 @@ export default function ReportPage() {
               </div>
             </div>
 
-            <DetailPanel title={`Sources & Trend Analysis`} icon={TrendingUp} defaultOpen>
+            <DetailPanel title={`Sources & Trend Analysis`} icon={TrendingUp} defaultOpen explainerKey="panel-sources">
               {selectedProduct.trendAnalysis && (
                 <p className="typo-card-body text-foreground/80 leading-relaxed mb-2">{selectedProduct.trendAnalysis}</p>
               )}
@@ -246,7 +254,7 @@ export default function ReportPage() {
               </div>
             </DetailPanel>
 
-            <DetailPanel title="Assumptions Map" icon={Brain}>
+            <DetailPanel title="Assumptions Map" icon={Brain} explainerKey="panel-assumptions">
               <div className="mb-2"><AssumptionsMap product={selectedProduct} /></div>
             </DetailPanel>
 
@@ -257,7 +265,7 @@ export default function ReportPage() {
         {/* Tab: Community Intel */}
         {analysis.detailTab === "community" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Community Intel" description={SECTION_DESCRIPTIONS.community} icon={MessageSquare} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Community Intel" description={SECTION_DESCRIPTIONS.community} icon={MessageSquare} explainerKey="section-community" />
             
             {/* Key Takeaway Banner */}
             {(() => {
@@ -277,7 +285,7 @@ export default function ReportPage() {
                          <p className="typo-card-body leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{ci.redditSentiment}</p>
                       </div>
                     )}
-                    <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown} defaultOpen>
+                    <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown} defaultOpen explainerKey="panel-complaints">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
                         {ci.topComplaints?.length ? (
                           <div className="space-y-1.5">
@@ -297,7 +305,7 @@ export default function ReportPage() {
                         ) : null}
                       </div>
                     </DetailPanel>
-                    <DetailPanel title="Reviews, Signals & Triggers" icon={TrendingUp}>
+                    <DetailPanel title="Reviews, Signals & Triggers" icon={TrendingUp} explainerKey="panel-reviews">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
                         <div className="space-y-1.5">
                           {selectedProduct.reviews?.map((review, i) => (
@@ -334,7 +342,7 @@ export default function ReportPage() {
         {/* Tab: User Journey */}
         {analysis.detailTab === "workflow" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="User Journey" description={SECTION_DESCRIPTIONS.workflow} icon={Clock} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="User Journey" description={SECTION_DESCRIPTIONS.workflow} icon={Clock} explainerKey="section-workflow" />
             {(() => {
               const productData = selectedProduct as unknown as Record<string, unknown>;
               const takeaway = getWorkflowTakeaway(productData);
@@ -376,7 +384,7 @@ export default function ReportPage() {
         {/* Tab: Pricing Intel */}
         {analysis.detailTab === "pricing" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Pricing Intel" description={SECTION_DESCRIPTIONS.pricing} icon={DollarSign} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Pricing Intel" description={SECTION_DESCRIPTIONS.pricing} icon={DollarSign} explainerKey="section-pricing" />
             {/* Key Takeaway Banner */}
             {(() => {
               const takeaway = selectedProduct.pricingIntel ? getPricingTakeaway(selectedProduct.pricingIntel as any) : null;
@@ -402,7 +410,7 @@ export default function ReportPage() {
                     </div>
                   ))}
                 </div>
-                <DetailPanel title="Margins & Price Range" icon={DollarSign} defaultOpen>
+                <DetailPanel title="Margins & Price Range" icon={DollarSign} defaultOpen explainerKey="panel-pricing-breakdown">
                   <div className="space-y-2 mb-2">
                     <p className="typo-card-body text-foreground/80">{selectedProduct.pricingIntel.margins}</p>
                     <div className="flex items-center gap-3">
@@ -422,7 +430,7 @@ export default function ReportPage() {
         {/* Tab: Supply Chain */}
         {analysis.detailTab === "supply" && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Supply Chain" description={SECTION_DESCRIPTIONS.supply} icon={Package} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Supply Chain" description={SECTION_DESCRIPTIONS.supply} icon={Package} explainerKey="section-supply" />
             {/* Key Takeaway Banner */}
             {(() => {
               const takeaway = selectedProduct.supplyChain ? getSupplyChainTakeaway(selectedProduct.supplyChain as any) : null;
@@ -433,7 +441,7 @@ export default function ReportPage() {
                 <SupplySection title="Suppliers & IP Owners" icon={<Factory size={14} style={{ color: "hsl(var(--primary))" }} />}
                   items={selectedProduct.supplyChain.suppliers.map((s) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
                   color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
-                <DetailPanel title={`Manufacturers, Vendors & More (${selectedProduct.supplyChain.manufacturers.length + selectedProduct.supplyChain.vendors.length + selectedProduct.supplyChain.distributors.length})`} icon={Package} defaultOpen>
+                <DetailPanel title={`Manufacturers, Vendors & More (${selectedProduct.supplyChain.manufacturers.length + selectedProduct.supplyChain.vendors.length + selectedProduct.supplyChain.distributors.length})`} icon={Package} defaultOpen explainerKey="panel-supply-details">
                   <div className="space-y-3 mb-2">
                     <SupplySection title="Manufacturers / OEM" icon={<Package size={12} style={{ color: "hsl(217 91% 60%)" }} />}
                       items={selectedProduct.supplyChain.manufacturers.map((m) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
@@ -467,7 +475,7 @@ export default function ReportPage() {
         {/* Tab: Patent Intel */}
         {analysis.detailTab === "patents" && !isService && (
           <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Patent Intel" description={SECTION_DESCRIPTIONS.patents} icon={ScrollText} />
+            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Patent Intel" description={SECTION_DESCRIPTIONS.patents} icon={ScrollText} explainerKey="section-patents" />
             {selectedProduct.patentData && (
               <div className="flex justify-end">
                 <button

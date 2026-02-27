@@ -9,6 +9,7 @@ import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
+import { InfoExplainer } from "@/components/InfoExplainer";
 import type { Product } from "@/data/mockProducts";
 import {
   Target, Brain, Swords, Presentation, ArrowLeft, FileDown,
@@ -94,7 +95,10 @@ export default function BusinessResultsPage() {
               <div className="px-5 py-4 flex items-center gap-4" style={{ background: "hsl(var(--card))" }}>
                 <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white typo-card-body font-semibold" style={{ background: modeAccent }}>2</div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="typo-section-title">Intelligence Report</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="typo-section-title">Intelligence Report</h2>
+                    <InfoExplainer explainerKey="biz-report" />
+                  </div>
                   <p className="typo-card-body text-muted-foreground">Deep business model deconstruction for <strong className="text-foreground">{bizName}</strong></p>
                 </div>
                 <button onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct)}
@@ -120,7 +124,10 @@ export default function BusinessResultsPage() {
               <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                 <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white typo-card-body font-semibold" style={{ background: "hsl(350 80% 55%)" }}>3</div>
                 <div className="flex-1">
-                  <h2 className="typo-section-title">Disrupt</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="typo-section-title">Disrupt</h2>
+                    <InfoExplainer explainerKey="biz-disrupt" />
+                  </div>
                   <p className="typo-card-body text-muted-foreground">Disruption vulnerabilities and reinvented model for <strong className="text-foreground">{bizName}</strong></p>
                 </div>
               </div>
@@ -141,7 +148,10 @@ export default function BusinessResultsPage() {
               <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                 <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white typo-card-body font-semibold" style={{ background: "hsl(38 92% 50%)" }}>4</div>
                 <div className="flex-1">
-                  <h2 className="typo-section-title">Stress Test</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="typo-section-title">Stress Test</h2>
+                    <InfoExplainer explainerKey="biz-stress-test" />
+                  </div>
                   <p className="typo-card-body text-muted-foreground">Red Team vs Green Team for <strong className="text-foreground">{bizName}</strong></p>
                 </div>
               </div>
@@ -185,7 +195,10 @@ export default function BusinessResultsPage() {
               <div className="px-5 py-4 flex items-start gap-4" style={{ background: "hsl(var(--card))" }}>
                 <div className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center text-white typo-card-body font-semibold" style={{ background: modeAccent }}>5</div>
                 <div className="flex-1">
-                  <h2 className="typo-section-title">Pitch Deck</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="typo-section-title">Pitch Deck</h2>
+                    <InfoExplainer explainerKey="biz-pitch" />
+                  </div>
                   <p className="typo-card-body text-muted-foreground">Investor-ready pitch for <strong className="text-foreground">{bizName}</strong></p>
                 </div>
               </div>

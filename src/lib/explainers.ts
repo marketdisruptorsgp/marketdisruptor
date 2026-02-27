@@ -1,0 +1,85 @@
+/**
+ * Explainer registry — maps every step, section, panel, and slide key
+ * to a 2-3 sentence contextual description shown via InfoExplainer popovers.
+ */
+export const EXPLAINERS: Record<string, string> = {
+  // ── Steps ─────────────────────────────────────────────
+  "step-report":
+    "The Intelligence Report aggregates data from dozens of sources — reviews, patents, supply chains, pricing, and community sentiment — into a single briefing. It's your strategic foundation before any creative or disruptive thinking begins.",
+  "step-disrupt":
+    "Disrupt deconstructs every assumption behind the product or service. It generates radical 'what-if' scenarios and flipped ideas to surface hidden opportunities competitors have missed.",
+  "step-redesign":
+    "Redesign takes the strongest disruption ideas and visualizes them as concrete, reinvented concepts. You'll see mockups, feature sets, and positioning for a reimagined version of the product.",
+  "step-stress-test":
+    "Stress Test pits a Red Team (attackers) against a Green Team (defenders) to battle-test every claim. It surfaces fatal flaws before you commit real resources.",
+  "step-pitch":
+    "The Pitch Deck compiles your entire analysis into a 10-slide, investor-ready presentation. Each slide is backed by data from earlier steps so nothing is hand-waved.",
+
+  // ── Report Sections ───────────────────────────────────
+  "section-overview":
+    "Overview synthesizes the product's core value proposition, market size, confidence scores, and key insight into a single view. Start here to ground your analysis.",
+  "section-community":
+    "Community Intel scrapes Reddit, forums, and review platforms to surface real user complaints, requests, and sentiment — the unfiltered voice of the market.",
+  "section-workflow":
+    "User Journey maps every step a customer takes — from discovery to purchase to advocacy — and identifies friction points, drop-off risks, and delight moments.",
+  "section-pricing":
+    "Pricing Intel benchmarks the product against competitors on price, value perception, and willingness-to-pay. It reveals whether the current pricing leaves money on the table.",
+  "section-supply":
+    "Supply Chain breaks down manufacturing, logistics, and sourcing — highlighting concentration risks, cost drivers, and opportunities to vertically integrate.",
+  "section-patents":
+    "Patent Intel maps the competitive IP landscape: who holds key patents, where white space exists, and what freedom-to-operate risks you face.",
+
+  // ── Stress Test Tabs ──────────────────────────────────
+  "stress-debate":
+    "The Red vs Green Debate simulates a structured argument: the Red Team attacks assumptions, feasibility, and market claims while the Green Team defends with evidence and counter-arguments.",
+  "stress-validate":
+    "Validate & Score runs a feasibility checklist across technical, market, financial, and regulatory dimensions, producing confidence scores that quantify risk.",
+
+  // ── Pitch Slides ──────────────────────────────────────
+  "pitch-problem":
+    "The Problem slide frames the core pain point your product addresses — grounded in real user data, not assumptions. A strong problem statement is the foundation of every compelling pitch.",
+  "pitch-solution":
+    "The Solution slide presents your reinvented approach and why it's fundamentally different. It connects directly to the problem with a clear 'before vs after' narrative.",
+  "pitch-why-now":
+    "Why Now explains the market timing — regulatory shifts, technology inflections, cultural trends — that make this the right moment to launch.",
+  "pitch-market":
+    "The Market slide sizes TAM, SAM, and SOM with bottom-up logic. Investors want to see a large addressable market with a credible path to capture.",
+  "pitch-product":
+    "The Product slide showcases your redesigned concept with visuals, key features, and the core user experience. Show, don't just tell.",
+  "pitch-business-model":
+    "Business Model details how you make money — pricing tiers, unit economics, LTV/CAC ratios, and revenue projections backed by comparable benchmarks.",
+  "pitch-traction":
+    "Traction proves momentum: early users, waitlist size, LOIs, partnerships, or pilot results. Even pre-launch signals count if they're credible.",
+  "pitch-risks":
+    "Risks shows you've thought critically about what could go wrong — and already have mitigations in place. Investors respect founders who see around corners.",
+  "pitch-gtm":
+    "Go-To-Market maps your launch strategy: target segments, acquisition channels, pricing strategy, and the first 90-day plan to hit initial milestones.",
+  "pitch-invest":
+    "The Investment Ask specifies the raise amount, use of funds, key milestones the capital will unlock, and the strategic rationale for this round size.",
+
+  // ── Detail Panels ─────────────────────────────────────
+  "panel-sources":
+    "Sources & Trend Analysis lists every data source used and summarizes macro trends affecting this product category — rising demand, declining interest, or emerging niches.",
+  "panel-assumptions":
+    "The Assumptions Map surfaces hidden beliefs baked into the current product model and challenges each one. Unquestioned assumptions are the #1 source of strategic blind spots.",
+  "panel-complaints":
+    "Complaints & Requests aggregates the most common user pain points and feature requests from community forums, reviews, and social media.",
+  "panel-reviews":
+    "Reviews, Signals & Triggers compiles review sentiment, social volume metrics, and behavioral triggers that indicate shifting user preferences.",
+  "panel-competitors":
+    "Competitor landscape maps direct and indirect competitors, their positioning, pricing, and where gaps exist for differentiation.",
+  "panel-pricing-breakdown":
+    "Pricing Breakdown analyzes the product's price architecture — per-unit economics, margin structure, and how each tier compares to alternatives.",
+  "panel-supply-details":
+    "Supply Chain Details maps upstream suppliers, manufacturing locations, logistics partners, and identifies single-point-of-failure risks in the chain.",
+
+  // ── Business Model Mode ───────────────────────────────
+  "biz-report":
+    "The Business Intelligence Report deconstructs your business model — revenue streams, cost structure, customer segments, and value proposition — into a data-driven briefing.",
+  "biz-disrupt":
+    "Business Disrupt identifies where your model is vulnerable to disruption: commoditization risks, shifting customer expectations, and emerging competitor strategies.",
+  "biz-stress-test":
+    "Business Stress Test challenges every revenue assumption and growth projection with Red Team scrutiny to find weaknesses before the market does.",
+  "biz-pitch":
+    "The Business Pitch Deck turns your model analysis into an investor-ready narrative with revenue projections, market sizing, and a defensible competitive moat.",
+};
