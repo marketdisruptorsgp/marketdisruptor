@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 import { BundleDeepDive } from "./BundleDeepDive";
-import { DataLabel } from "./DataLabel";
+
 import { LeverageScore } from "./LeverageScore";
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 
@@ -471,7 +471,6 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                     <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
                       <p className="typo-card-meta font-bold" style={{ color: col.text }}>{fp.stage}</p>
                       <p className="text-xs text-foreground/80">{fp.friction}</p>
-                      <DataLabel label={fp.dataLabel} />
                     </div>
                   );
                 })}

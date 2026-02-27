@@ -7,7 +7,7 @@ import {
   BookOpen, ClipboardCheck, Eye, Zap, Flame, BarChart3,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
-import { DataLabel } from "./DataLabel";
+
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 import { StepLoadingTracker, STRESS_TEST_TASKS } from "@/components/StepLoadingTracker";
 
@@ -256,7 +256,6 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
                       <span className="typo-card-meta font-semibold" style={{ color: "hsl(271 81% 40%)" }}>Bias: {arg.biasExposed}</span>
-                      <DataLabel label={arg.dataLabel} />
                     </div>
                   </div>
                 );
@@ -321,7 +320,6 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
                       <span className="typo-card-meta font-semibold" style={{ color: "hsl(var(--primary))" }}>Enabler: {arg.enabler}</span>
-                      <DataLabel label={arg.dataLabel} />
                     </div>
                   </div>
                 );
