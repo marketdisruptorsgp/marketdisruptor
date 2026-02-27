@@ -1,38 +1,44 @@
 
 
-## Plan: Auto-Detect Legacy Analysis Data and Prompt Re-Run
+## Problem
 
-The old surfboard data will **always** show the old biased output because the AI results are saved as JSON blobs. We can't retroactively rewrite AI-generated text. The fix is to **detect legacy schema** when loading saved data and automatically flag those steps for regeneration.
+The Redesign step currently:
+1. Shows an "Upstream data has changed" outdated banner that just nags — no auto-incorporation of user inputs
+2. When regenerated, calls `first-principles-analysis` with only the raw product data — ignoring user scores, liked/dismissed insights, steering text, and pitch-deck-selected images from the Disrupt step
+3. Doesn't auto-run — forces the user to manually click "Generate Redesign" even though all the input data is already available
+4. Doesn't carry forward the images users liked in Flipped Ideas
 
-### Approach
+## Plan
 
-**1. Add legacy detection utility** (`src/utils/legacyDetection.ts`)
-- Function `detectLegacySchema(analysisData)` that checks for:
-  - `physicalDimensions` present but no `frictionDimensions` → legacy first-principles
-  - `redditSentiment` present but no `communitySentiment` → legacy intel
-  - `ebayAvgSold` present but no `resaleAvgSold` → legacy pricing
-- Returns `{ isLegacy: boolean, legacySteps: string[] }`
+### 1. `src/components/FirstPrinciplesAnalysis.tsx` — Pass user context into redesign generation
 
-**2. Auto-flag legacy steps as outdated on load** (`src/contexts/AnalysisContext.tsx`)
-- In `handleLoadSaved`, after restoring data, call `detectLegacySchema(ad)`
-- If legacy detected, automatically add affected steps to `outdatedSteps` set
-- This triggers the existing `OutdatedBanner` component to show on those steps with "Regenerate" button
+In `runAnalysis()` (line 460), when `renderMode === "redesign"`, enrich the request body with:
+- `analysisCtx.insightPreferences` (liked/dismissed assumptions & flips)
+- `analysisCtx.userScores` (user-adjusted feasibility/desirability/etc scores on flipped ideas)
+- `analysisCtx.steeringText` (free-text user guidance)
+- `analysisCtx.disruptData` (the full disrupt output to ground the redesign)
+- `analysisCtx.pitchDeckImages` (images user already selected)
 
-**3. Show a one-time toast on load** (`src/contexts/AnalysisContext.tsx`)
-- When legacy data detected: `toast.info("This analysis used an older framework — regenerate steps to get improved insights")`
+### 2. `supabase/functions/first-principles-analysis/index.ts` — Accept and use enrichment data
 
-**4. Same logic in `Index.tsx` handleLoadSaved** — mirror the detection
+- Accept new fields: `insightPreferences`, `userScores`, `steeringText`, `disruptContext`, `selectedImages`
+- When these are present, add a new prompt section: "USER CURATION CONTEXT" that tells the AI which assumptions/flips the user liked, which they dismissed, what scores they adjusted, and their steering notes
+- This ensures the redesigned concept reflects what the user actually agreed with
 
-### What this achieves
-- Old projects auto-show the "Upstream data has changed" banner on legacy steps
-- One click to regenerate with the new friction framework
-- No data loss — old results remain visible until explicitly regenerated
-- New analyses use the updated framework automatically
+### 3. `src/pages/RedesignPage.tsx` — Auto-trigger redesign on arrival
 
-### Files to create
-- `src/utils/legacyDetection.ts`
+- Remove the `OutdatedBanner` for redesign (it's not useful — redesign should just auto-run with latest context)
+- When `isOutdated` is true OR `redesignData` is null, auto-trigger the analysis on mount
+- Pass all user context props through to `FirstPrinciplesAnalysis`
 
-### Files to modify
-- `src/contexts/AnalysisContext.tsx` — add legacy detection in `handleLoadSaved`
-- `src/pages/Index.tsx` — same detection in its `handleLoadSaved`
+### 4. `src/components/FirstPrinciplesAnalysis.tsx` — Show user-selected flipped idea images in redesign view
+
+- In the redesign render section (line 625+), after the concept details, display any `pitchDeckImages` the user selected from flipped ideas as "Your Selected Concepts" — these carry forward visually
+
+### 5. Redeploy `first-principles-analysis`
+
+### Files to change
+- `src/components/FirstPrinciplesAnalysis.tsx` — enrich runAnalysis body for redesign mode + show selected images
+- `supabase/functions/first-principles-analysis/index.ts` — accept user curation context in prompt
+- `src/pages/RedesignPage.tsx` — auto-trigger on arrival when outdated/empty, remove outdated banner
 
