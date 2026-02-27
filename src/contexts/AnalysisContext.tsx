@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
 import { type Product, type FlippedIdea } from "@/data/mockProducts";
 import { type AnalysisMode } from "@/components/AnalysisForm";
+import type { UserLens } from "@/components/LensToggle";
 import { type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -135,6 +136,10 @@ interface AnalysisContextType {
   // Pitch deck content exclusions
   pitchDeckExclusions: Set<string>;
   togglePitchDeckExclusion: (key: string) => void;
+
+  // Analysis Lens
+  activeLens: UserLens | null;
+  setActiveLens: (lens: UserLens | null) => void;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | null>(null);
@@ -263,6 +268,19 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // ── Pitch Deck Content Exclusions ──
   const [pitchDeckExclusions, setPitchDeckExclusions] = useState<Set<string>>(new Set());
   const pendingExclusionsSaveRef = useRef<string[] | null>(null);
+
+  // ── Analysis Lens ──
+  const [activeLens, setActiveLensState] = useState<UserLens | null>(null);
+  const pendingLensSaveRef = useRef<string | null | undefined>(undefined);
+  const setActiveLens = useCallback((lens: UserLens | null) => {
+    setActiveLensState(lens);
+    pendingLensSaveRef.current = lens?.id ?? null;
+    // Mark downstream steps as outdated
+    markStepOutdated("redesign");
+    markStepOutdated("pitch");
+    markStepOutdated("stressTest");
+  }, [markStepOutdated]);
+
   const togglePitchDeckExclusion = useCallback((key: string) => {
     setPitchDeckExclusions(prev => {
       const next = new Set(prev);
@@ -371,6 +389,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setSteeringText("");
     setPitchDeckImages([]);
     setPitchDeckExclusions(new Set());
+    // Keep activeLens — user may want to run analysis with their lens
     startLoadingTimer();
 
     const hasCustom = customProducts && customProducts.length > 0;
@@ -685,6 +704,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [pitchDeckExclusions, analysisId, saveStepData]);
 
+  // Auto-persist active lens ID when changed
+  useEffect(() => {
+    if (pendingLensSaveRef.current !== undefined && analysisId) {
+      const lensId = pendingLensSaveRef.current;
+      pendingLensSaveRef.current = undefined;
+      saveStepData("activeLensId", lensId);
+    }
+  }, [activeLens, analysisId, saveStepData]);
+
   const handleLoadSaved = useCallback((analysis: any) => {
     setLoadedFromSaved(true);
     // Restore persisted step data
@@ -701,6 +729,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
     if (ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)) setPitchDeckExclusions(new Set(ad.pitchDeckExclusions as string[]));
     // projectNotes is loaded on-demand in portfolio/report, no context state needed
+    // Restore active lens (lens object is fetched on-demand by LensToggle; we just clear state here)
+    // The activeLensId is stored but lens restoration requires a DB fetch — handled by LensToggle
+    if (!ad?.activeLensId) setActiveLensState(null);
 
     // Restore outdated steps
     if (ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)) {
@@ -775,6 +806,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       steeringText, setSteeringText, saveSteeringText,
       pitchDeckImages, setPitchDeckImage, removePitchDeckImage,
       pitchDeckExclusions, togglePitchDeckExclusion,
+      activeLens, setActiveLens,
     }}>
       {children}
     </AnalysisContext.Provider>

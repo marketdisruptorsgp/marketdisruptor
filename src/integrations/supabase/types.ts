@@ -425,6 +425,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_lenses: {
+        Row: {
+          available_resources: string | null
+          constraints: string | null
+          created_at: string
+          evaluation_priorities: Json | null
+          id: string
+          is_default: boolean
+          name: string
+          primary_objective: string | null
+          risk_tolerance: string | null
+          target_outcome: string | null
+          time_horizon: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_resources?: string | null
+          constraints?: string | null
+          created_at?: string
+          evaluation_priorities?: Json | null
+          id?: string
+          is_default?: boolean
+          name: string
+          primary_objective?: string | null
+          risk_tolerance?: string | null
+          target_outcome?: string | null
+          time_horizon?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_resources?: string | null
+          constraints?: string | null
+          created_at?: string
+          evaluation_priorities?: Json | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          primary_objective?: string | null
+          risk_tolerance?: string | null
+          target_outcome?: string | null
+          time_horizon?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_streaks: {
         Row: {
           analysis_count: number

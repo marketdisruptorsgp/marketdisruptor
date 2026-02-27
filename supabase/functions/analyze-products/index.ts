@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
+import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,7 +80,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { rawContent, redditContent, complaintsContent, sources, category, era, batchSize, customProducts } = await req.json();
+    const { rawContent, redditContent, complaintsContent, sources, category, era, batchSize, customProducts, lens } = await req.json();
 
     const isService = category === "Service";
     const mode = resolveMode(undefined, category);
@@ -459,7 +460,7 @@ ${trimmedComplaints || "No complaint signals found"}
 DISCOVERED SOURCES:
 ${trimmedSources.map((s: { label: string; url: string }) => `- ${s.label}: ${s.url}`).join("\n")}
 
-Return ONLY a JSON array. Be specific, cite real companies, real prices, real platforms. Make flippedIdeas address real community pain points.`;
+Return ONLY a JSON array. Be specific, cite real companies, real prices, real platforms. Make flippedIdeas address real community pain points.${buildLensPrompt(lens)}`;
 
     console.log("Calling AI gateway for deep product analysis...");
 

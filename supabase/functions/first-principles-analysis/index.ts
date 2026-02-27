@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
+import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, userSuggestions } = await req.json();
+    const { product, userSuggestions, lens } = await req.json();
     const mode = resolveMode(undefined, product.category);
     const isService = mode === "service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -319,7 +320,7 @@ CRITICAL INSTRUCTIONS:
 11. DEMAND SIGNAL: Reference community complaints, behavioral trends, or adjacent market data as evidence of demand for this redesign direction.
 12. UNIT ECONOMICS: Include BOM estimate, target retail price, margin calculation, and breakeven volume.
 
-Return ONLY the JSON object.`;
+Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
