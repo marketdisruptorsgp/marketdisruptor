@@ -183,20 +183,6 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
 
         {/* Right */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {onOpenSaved && (
-            <button
-              onClick={onOpenSaved}
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl typo-button-secondary transition-colors border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted"
-            >
-              <Database size={13} />
-              <span className="hidden sm:inline">Projects</span>
-              {typeof savedCount === "number" && savedCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full typo-card-meta bg-primary text-primary-foreground leading-none">
-                  {savedCount}
-                </span>
-              )}
-            </button>
-          )}
           {tier !== "disruptor" && (
             <button
               onClick={() => navigate("/pricing")}
@@ -228,21 +214,6 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                   <Zap size={14} className="text-primary" />
                   <span className="typo-nav-primary">Choose Analysis Mode</span>
                 </a>
-
-                <div className="h-px bg-border my-2" />
-                <p className="typo-card-eyebrow px-3 pt-2 pb-1">Workspace</p>
-                <button
-                  onClick={() => { onOpenSaved?.(); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                >
-                  <FolderOpen size={14} className="text-muted-foreground" />
-                  <span className="typo-nav-primary">Saved Projects</span>
-                  {typeof savedCount === "number" && savedCount > 0 && (
-                    <span className="ml-auto px-1.5 py-0.5 rounded-full typo-card-meta bg-primary text-primary-foreground leading-none">
-                      {savedCount}
-                    </span>
-                  )}
-                </button>
 
                 <div className="h-px bg-border my-2" />
                 <p className="typo-card-eyebrow px-3 pt-2 pb-1">Navigate</p>
