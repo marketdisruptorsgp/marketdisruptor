@@ -13,6 +13,8 @@ const SUCCESS_MESSAGES = [
   { type: "breakthrough", prefix: "Breakthrough Insight Captured", emoji: "💡" },
 ];
 
+const SUCCESS_GREEN = "142 70% 40%";
+
 interface SGPCapitalContext {
   product: { name: string; category?: string; revivalScore?: number; supplyChain?: { manufacturers?: { region?: string }[] } };
   profile?: { first_name?: string } | null;
@@ -71,32 +73,43 @@ export function CompletionExperience({
   return (
     <div className="space-y-6">
       <div
-        className="p-8 rounded-md text-center space-y-5"
+        className="p-8 rounded-xl text-center space-y-6"
         style={{
-          background: "hsl(var(--muted))",
-          border: "1px solid hsl(var(--border))",
+          background: `linear-gradient(135deg, hsl(${SUCCESS_GREEN} / 0.06), hsl(${SUCCESS_GREEN} / 0.02))`,
+          border: `1.5px solid hsl(${SUCCESS_GREEN} / 0.25)`,
         }}
       >
+        {/* Celebratory icon */}
         <div
-          className="w-16 h-16 rounded-md mx-auto flex items-center justify-center"
-          style={{ background: "hsl(var(--foreground))" }}
+          className="w-20 h-20 rounded-full mx-auto flex items-center justify-center"
+          style={{ background: `hsl(${SUCCESS_GREEN})`, boxShadow: `0 8px 32px -8px hsl(${SUCCESS_GREEN} / 0.45)` }}
         >
-          <Sparkles size={28} style={{ color: "hsl(var(--background))" }} />
+          <Sparkles size={34} style={{ color: "white" }} />
         </div>
 
-        <div>
-          <p className="typo-card-eyebrow text-muted-foreground mb-1">
+        <div className="space-y-2">
+          <p
+            className="typo-card-eyebrow tracking-widest uppercase"
+            style={{ color: `hsl(${SUCCESS_GREEN})` }}
+          >
             {chosen.emoji} {chosen.prefix}
           </p>
-          <h3 className="text-xl font-bold text-foreground mb-2">Analysis Complete</h3>
-          <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            Your full investor-grade analysis for <strong className="text-foreground">{productName}</strong> is ready for review.
+          <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+            Analysis Complete 🎉
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+            Congratulations — your full investor-grade analysis for{" "}
+            <strong className="text-foreground">{productName}</strong> is ready.
+            Time to disrupt.
           </p>
         </div>
 
         <div
-          className="p-4 rounded-md max-w-lg mx-auto"
-          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+          className="p-4 rounded-xl max-w-lg mx-auto"
+          style={{
+            background: "hsl(var(--card))",
+            border: `1px solid hsl(${SUCCESS_GREEN} / 0.2)`,
+          }}
         >
           <p className="typo-card-eyebrow text-muted-foreground mb-2">
             Strategic Insight
@@ -104,17 +117,21 @@ export function CompletionExperience({
           <p className="text-sm text-foreground/85 leading-relaxed italic">"{completionMessage}"</p>
         </div>
 
-        <div className="flex items-center justify-center gap-3 flex-wrap">
+        <div className="flex items-center justify-center gap-3 flex-wrap pt-2">
           <button
             onClick={onExportPDF}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-md text-sm font-bold transition-colors"
-            style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
+            className="flex items-center gap-1.5 px-6 py-3 rounded-xl text-sm font-bold transition-all hover:scale-[1.02]"
+            style={{
+              background: `hsl(${SUCCESS_GREEN})`,
+              color: "white",
+              boxShadow: `0 4px 16px -4px hsl(${SUCCESS_GREEN} / 0.4)`,
+            }}
           >
             <Download size={14} /> Export PDF
           </button>
           <button
             onClick={() => navigate("/portfolio")}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-md text-sm font-bold transition-colors"
+            className="flex items-center gap-1.5 px-6 py-3 rounded-xl text-sm font-bold transition-colors"
             style={{
               background: "hsl(var(--muted))",
               color: "hsl(var(--foreground))",
@@ -127,9 +144,9 @@ export function CompletionExperience({
 
         <p className="typo-card-meta text-muted-foreground">
           <CheckCircle2
-            size={10}
+            size={12}
             className="inline mr-1"
-            style={{ color: "hsl(142 70% 40%)" }}
+            style={{ color: `hsl(${SUCCESS_GREEN})` }}
           />
           Project saved to your portfolio
         </p>
