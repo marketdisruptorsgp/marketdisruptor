@@ -93,6 +93,15 @@ export default function InstantAnalysisPage() {
       return;
     }
 
+    // Gate deep dive behind authentication
+    if (depth === "deep" && isAnonymous) {
+      toast("Sign in required for Deep Dive", {
+        description: "Create a free account to unlock full intelligence layers.",
+        action: { label: "Sign In", onClick: () => setShowClaimForm(true) },
+      });
+      return;
+    }
+
     setAnalyzing(true);
 
     try {
@@ -218,10 +227,21 @@ export default function InstantAnalysisPage() {
         {/* Hero */}
         <div className="text-center mb-8">
           <h1 className="typo-page-title text-foreground mb-2">
-            Analyze From Photos
+            Point. Shoot. Understand Everything.
           </h1>
-          <p className="typo-card-body text-muted-foreground max-w-md mx-auto">
-            Snap or upload a photo. Get instant competitive intelligence — no signup required.
+          <p className="typo-card-body text-muted-foreground max-w-lg mx-auto mb-4">
+            Take a photo of <strong className="text-foreground">any product, storefront, service, or business</strong> and instantly decode what's really going on — supply chains, user journeys, friction points, customer sentiment, competitive positioning, even the patent landscape.
+          </p>
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 typo-card-meta text-muted-foreground mb-2">
+            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Supply chain mapping</span>
+            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> User journey & friction</span>
+            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Customer sentiment</span>
+            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Patent landscape</span>
+            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Market positioning</span>
+            <span className="flex items-center gap-1"><Zap size={11} style={{ color: `hsl(var(${modeColor}))` }} /> Disruption potential</span>
+          </div>
+          <p className="typo-card-meta font-semibold" style={{ color: `hsl(var(${modeColor}))` }}>
+            No signup required for Quick Analysis
           </p>
         </div>
 
@@ -245,25 +265,42 @@ export default function InstantAnalysisPage() {
         </div>
 
         {/* Depth Toggle */}
-        <div className="flex gap-2 justify-center mb-8">
-          <button
-            onClick={() => setDepth("quick")}
-            className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
-              depth === "quick" ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-accent"
-            )}
-          >
-            Quick Analysis
-          </button>
-          <button
-            onClick={() => setDepth("deep")}
-            className={cn(
-              "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
-              depth === "deep" ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-accent"
-            )}
-          >
-            Deep Dive
-          </button>
+        <div className="flex flex-col items-center gap-2 mb-8">
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => setDepth("quick")}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+                depth === "quick" ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-accent"
+              )}
+            >
+              Quick Analysis
+            </button>
+            <button
+              onClick={() => {
+                if (isAnonymous) {
+                  toast("Sign in required for Deep Dive", {
+                    description: "Create a free account to unlock full intelligence layers.",
+                    action: { label: "Sign In", onClick: () => setShowClaimForm(true) },
+                  });
+                  return;
+                }
+                setDepth("deep");
+              }}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1",
+                depth === "deep" ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:bg-accent"
+              )}
+            >
+              {isAnonymous && <Lock size={10} />}
+              Deep Dive
+            </button>
+          </div>
+          {isAnonymous && (
+            <p className="typo-card-meta text-muted-foreground">
+              <Lock size={9} className="inline mr-0.5 mb-px" /> Deep Dive requires a free account
+            </p>
+          )}
         </div>
 
         {/* Upload Area */}
@@ -465,15 +502,31 @@ export default function InstantAnalysisPage() {
             {/* Upgrade / Claim CTA */}
             <div className="rounded-xl border border-border bg-card p-5 text-center space-y-3">
               {depth === "quick" && (
-                <Button
-                  onClick={() => { setDepth("deep"); runAnalysis(selectedFiles); }}
-                  className="w-full sm:w-auto gap-2"
-                  style={{ background: `hsl(var(${modeColor}))` }}
-                >
-                  <ArrowRight size={16} /> Upgrade to Deep Dive
-                </Button>
+                <>
+                  {isAnonymous ? (
+                    <div className="space-y-2">
+                      <p className="typo-card-body text-foreground font-semibold">Want the full picture?</p>
+                      <p className="typo-card-meta text-muted-foreground">Deep Dive unlocks supply chain mapping, patent landscape, disruption scoring, and more. Create a free account to access it.</p>
+                      <Button
+                        onClick={() => setShowClaimForm(true)}
+                        className="w-full sm:w-auto gap-2"
+                        style={{ background: `hsl(var(${modeColor}))` }}
+                      >
+                        <Lock size={14} /> Sign Up to Unlock Deep Dive
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => { setDepth("deep"); runAnalysis(selectedFiles); }}
+                      className="w-full sm:w-auto gap-2"
+                      style={{ background: `hsl(var(${modeColor}))` }}
+                    >
+                      <ArrowRight size={16} /> Upgrade to Deep Dive
+                    </Button>
+                  )}
+                </>
               )}
-              {isAnonymous && (
+              {isAnonymous && depth !== "quick" && (
                 <div>
                   <p className="typo-card-meta text-muted-foreground mb-2">Save your analysis permanently</p>
                   <Button variant="outline" size="sm" onClick={() => setShowClaimForm(true)} className="gap-1">
