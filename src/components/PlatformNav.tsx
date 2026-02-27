@@ -37,6 +37,7 @@ const RESOURCES_ITEMS = [
   { label: "FAQs", desc: "Common questions answered", icon: HelpCircle, path: "/faqs" },
   { label: "Methodology", desc: "Our 4-step analysis pipeline", icon: Lightbulb, path: "/methodology" },
   { label: "API & Integrations", desc: "Connect your tools via REST API", icon: Code2, path: "/api" },
+  { label: "Pricing", desc: "Plans and billing", icon: BarChart3, path: "/pricing" },
 ];
 
 const MODE_LABELS: Record<string, string> = {
