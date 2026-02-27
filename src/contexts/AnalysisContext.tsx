@@ -126,6 +126,11 @@ interface AnalysisContextType {
   steeringText: string;
   setSteeringText: (text: string) => void;
   saveSteeringText: (text: string) => void;
+
+  // Pitch deck selected images (up to 2)
+  pitchDeckImages: { url: string; ideaName: string }[];
+  setPitchDeckImage: (url: string, ideaName: string) => void;
+  removePitchDeckImage: (url: string) => void;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | null>(null);
@@ -230,6 +235,27 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [analysisId]);
 
+  // ── Pitch Deck Images (up to 2 selected from flipped ideas) ──
+  const [pitchDeckImages, setPitchDeckImages] = useState<{ url: string; ideaName: string }[]>([]);
+  const pendingPitchImagesSaveRef = useRef<{ url: string; ideaName: string }[] | null>(null);
+  const setPitchDeckImage = useCallback((url: string, ideaName: string) => {
+    setPitchDeckImages(prev => {
+      // Already selected? Skip
+      if (prev.some(img => img.url === url)) return prev;
+      // Max 2 — replace oldest if full
+      const next = prev.length >= 2 ? [...prev.slice(1), { url, ideaName }] : [...prev, { url, ideaName }];
+      pendingPitchImagesSaveRef.current = next;
+      return next;
+    });
+  }, []);
+  const removePitchDeckImage = useCallback((url: string) => {
+    setPitchDeckImages(prev => {
+      const next = prev.filter(img => img.url !== url);
+      pendingPitchImagesSaveRef.current = next;
+      return next;
+    });
+  }, []);
+
   // Loading
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [loadingLog, setLoadingLog] = useState<{ text: string; ts: number }[]>([]);
@@ -326,6 +352,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setOutdatedSteps(new Set());
     setInsightPreferences({});
     setSteeringText("");
+    setPitchDeckImages([]);
     startLoadingTimer();
 
     const hasCustom = customProducts && customProducts.length > 0;
@@ -622,6 +649,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [insightPreferences, analysisId, saveStepData]);
 
+  // Auto-persist pitch deck images when changed
+  useEffect(() => {
+    if (pendingPitchImagesSaveRef.current && analysisId) {
+      const imgs = pendingPitchImagesSaveRef.current;
+      pendingPitchImagesSaveRef.current = null;
+      saveStepData("pitchDeckImages", imgs);
+    }
+  }, [pitchDeckImages, analysisId, saveStepData]);
+
   const handleLoadSaved = useCallback((analysis: any) => {
     setLoadedFromSaved(true);
     // Restore persisted step data
@@ -635,6 +671,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
     if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
     if (ad?.steeringText) setSteeringText(ad.steeringText as string);
+    if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
     // projectNotes is loaded on-demand in portfolio/report, no context state needed
 
     // Restore outdated steps
@@ -708,6 +745,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       redesignData, setRedesignData,
       insightPreferences, setInsightPreference, getLikedInsights, getDismissedInsights,
       steeringText, setSteeringText, saveSteeringText,
+      pitchDeckImages, setPitchDeckImage, removePitchDeckImage,
     }}>
       {children}
     </AnalysisContext.Provider>

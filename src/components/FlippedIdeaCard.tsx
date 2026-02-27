@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, RefreshCw, Sparkles, ImageIcon, Rocket, DollarSign, Clock, Minus, Plus } from "lucide-react";
+import { TrendingUp, RefreshCw, Sparkles, ImageIcon, Rocket, DollarSign, Clock, Minus, Plus, Presentation, Check } from "lucide-react";
 import type { FlippedIdea } from "@/data/mockProducts";
 import { ScoreBar } from "./ScoreBar";
 import { RiskBadge } from "./RiskBadge";
@@ -12,9 +12,12 @@ interface FlippedIdeaCardProps {
   productName?: string;
   userScores?: Record<string, number>;
   onScoreChange?: (scoreKey: string, value: number) => void;
+  pitchDeckImages?: { url: string; ideaName: string }[];
+  onSelectForPitch?: (url: string, ideaName: string) => void;
+  onRemoveFromPitch?: (url: string) => void;
 }
 
-export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange }: FlippedIdeaCardProps) => {
+export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange, pitchDeckImages, onSelectForPitch, onRemoveFromPitch }: FlippedIdeaCardProps) => {
   const [mockupImage, setMockupImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -125,16 +128,46 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
         </div>
 
         {mockupImage ? (
-          <div className="relative rounded overflow-hidden bg-muted">
-            <img
-              src={mockupImage}
-              alt={`AI mockup of ${idea.name}`}
-              className="w-full object-cover rounded"
-              style={{ maxHeight: "320px", objectPosition: "center" }}
-            />
-            <div className="absolute bottom-0 left-0 right-0 px-3 py-2 typo-status-label bg-black/60 text-white">
-              ✦ AI-generated concept mockup · {idea.name}
+          <div className="space-y-2">
+            <div className="relative rounded overflow-hidden bg-muted">
+              <img
+                src={mockupImage}
+                alt={`AI mockup of ${idea.name}`}
+                className="w-full object-cover rounded"
+                style={{ maxHeight: "320px", objectPosition: "center" }}
+              />
+              <div className="absolute bottom-0 left-0 right-0 px-3 py-2 typo-status-label bg-black/60 text-white">
+                AI-generated concept mockup
+              </div>
             </div>
+            {/* Use in Pitch Deck button */}
+            {onSelectForPitch && (() => {
+              const isSelected = pitchDeckImages?.some(img => img.url === mockupImage);
+              const isFull = (pitchDeckImages?.length || 0) >= 2 && !isSelected;
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isSelected) {
+                      onRemoveFromPitch?.(mockupImage!);
+                      toast.success("Removed from pitch deck");
+                    } else {
+                      onSelectForPitch(mockupImage!, idea.name);
+                      toast.success(`Added to pitch deck${isFull ? " (replaced oldest)" : ""}`);
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl typo-button-secondary transition-all w-full justify-center"
+                  style={{
+                    background: isSelected ? "hsl(142 70% 40%)" : "hsl(var(--muted))",
+                    color: isSelected ? "white" : "hsl(var(--foreground))",
+                    border: isSelected ? "none" : "1px solid hsl(var(--border))",
+                  }}
+                >
+                  {isSelected ? <Check size={12} /> : <Presentation size={12} />}
+                  {isSelected ? "Selected for Pitch Deck" : "Use in Pitch Deck"}
+                </button>
+              );
+            })()}
           </div>
         ) : (
           <div

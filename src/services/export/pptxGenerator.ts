@@ -158,6 +158,15 @@ function addCover(pres: pptxgen, product: Product, deck: any, hex: string) {
 
   slide.addShape(pres.ShapeType.rect, { x: M, y: 4.2, w: 1, h: 0.03, fill: { color: hex } });
 
+  // Product image on cover (right side)
+  if (product.image) {
+    try {
+      slide.addImage({ path: product.image, x: W - M - 4, y: 1.5, w: 4, h: 3, rounding: true });
+    } catch {
+      // Image fetch may fail — skip gracefully
+    }
+  }
+
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   slide.addText(today, { x: M, y: 6.2, fontSize: MIN_FONT, color: "999999", fontFace: "Helvetica" });
   slide.addText("Confidential", {
