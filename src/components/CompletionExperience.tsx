@@ -4,6 +4,7 @@ import { Sparkles, Download, Award, CheckCircle2, ArrowRight, Clock, Rocket, Mai
 import { ReferralCTA } from "@/components/ReferralCTA";
 import { AnalysisTimeline } from "@/components/analysis/AnalysisTimeline";
 import { EvolutionView } from "@/components/analysis/EvolutionView";
+import { buildPublicUrl } from "@/lib/publicUrl";
 
 const SUCCESS_MESSAGES = [
   { type: "opportunity", prefix: "Opportunity Identified", emoji: "🎯" },
@@ -50,10 +51,9 @@ export function CompletionExperience({
     const { product, profile, user, userScore, analysisId } = sgpCapitalContext;
     const name = profile?.first_name || "there";
     const email = user?.email || "";
-    const origin = window.location.origin;
     const projectUrl = analysisId
-      ? `${origin}/analysis/${analysisId}/pitch`
-      : origin;
+      ? buildPublicUrl(`/analysis/${analysisId}/pitch`)
+      : buildPublicUrl("/");
     const lines = [
       `Hi SGP Capital team,`, ``,
       `I've been working through a disruption analysis on ${product.name} in the ${product.category || "this"} space and I think there's real potential here.`, ``,

@@ -5,6 +5,7 @@ import type { Product } from "@/data/mockProducts";
 import { generateInvestorPitchPDF } from "@/services/export/pdfGenerator";
 import { generateOpportunityBriefPDF } from "@/services/export/opportunityBrief";
 import { generateInvestorPitchPPTX } from "@/services/export/pptxGenerator";
+import { buildPublicUrl } from "@/lib/publicUrl";
 
 interface ExportPanelProps {
   product: Product;
@@ -67,7 +68,7 @@ export function ExportPanel({
   };
 
   const handleCopyLink = async () => {
-    const shareUrl = `${window.location.origin}/analysis/share/${analysisId || ""}`;
+    const shareUrl = buildPublicUrl(`/analysis/share/${analysisId || ""}`);
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     toast.success("Link copied!");

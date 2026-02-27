@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, TIERS } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { buildPublicUrl } from "@/lib/publicUrl";
 
 export function UserHeader() {
   const { user, profile, signOut } = useAuth();
@@ -46,7 +47,7 @@ export function UserHeader() {
     if (!code) { code = user.id.slice(0, 8); await (supabase.from("referral_codes") as any).insert({ user_id: user.id, code }); }
     const { data: refs } = await (supabase.from("referrals") as any).select("id").eq("referrer_id", user.id);
     setReferralStats({ count: refs?.length || 0 });
-    setShareUrl(`${window.location.origin}/share?ref=${code}`);
+    setShareUrl(buildPublicUrl(`/share?ref=${code}`));
     setShowShareModal(true);
   };
 

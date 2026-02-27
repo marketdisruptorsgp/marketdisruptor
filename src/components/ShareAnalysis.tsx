@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Share2, Link2, Mail, X, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { buildPublicUrl } from "@/lib/publicUrl";
 
 interface ShareAnalysisProps {
   analysisId: string;
@@ -19,7 +20,7 @@ export function ShareAnalysis({ analysisId, analysisTitle, accentColor = "hsl(va
   const [recipientName, setRecipientName] = useState("");
   const [sending, setSending] = useState(false);
 
-  const shareUrl = `${window.location.origin}/analysis/share/${analysisId}`;
+  const shareUrl = buildPublicUrl(`/analysis/share/${analysisId}`);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(shareUrl);
