@@ -70,15 +70,15 @@ export function ProjectInsightCard({ analysis, onOpen }: { analysis: SavedAnalys
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{analysis.title}</p>
             <div className="flex items-center gap-1.5 mt-1">
-              <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ background: `${cat.color}15`, color: cat.color }}>
+              <span className="typo-status-label px-1.5 py-0.5 rounded font-bold" style={{ background: `${cat.color}15`, color: cat.color }}>
                 {cat.label}
               </span>
               {hasPitch && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
+                <span className="typo-status-label px-1.5 py-0.5 rounded font-bold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
                   <Presentation size={8} className="inline mr-0.5" />Pitch Deck
                 </span>
               )}
-              <span className="text-[10px] text-muted-foreground">{format(parseISO(analysis.created_at), "MMM d")}</span>
+              <span className="typo-card-meta text-foreground/60">{format(parseISO(analysis.created_at), "MMM d")}</span>
             </div>
           </div>
           <div
@@ -92,18 +92,18 @@ export function ProjectInsightCard({ analysis, onOpen }: { analysis: SavedAnalys
         {insights?.keyInsight && (
           <div className="flex gap-2 items-start">
             <Lightbulb size={11} className="text-primary flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] text-foreground/70 leading-relaxed line-clamp-2">{insights.keyInsight}</p>
+            <p className="typo-card-meta text-foreground/70 leading-relaxed line-clamp-2">{insights.keyInsight}</p>
           </div>
         )}
 
         <div className="flex flex-wrap gap-1.5">
           {insights?.strongestProjection && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
+            <span className="typo-card-meta px-2 py-0.5 rounded-full font-semibold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
               <Rocket size={8} className="inline mr-0.5" /> {insights.strongestProjection}
             </span>
           )}
           {insights?.easiestGtm && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold" style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 35%)" }}>
+            <span className="typo-card-meta px-2 py-0.5 rounded-full font-semibold" style={{ background: "hsl(142 70% 45% / 0.1)", color: "hsl(142 70% 35%)" }}>
               <Target size={8} className="inline mr-0.5" /> {insights.easiestGtm}
             </span>
           )}
@@ -113,7 +113,7 @@ export function ProjectInsightCard({ analysis, onOpen }: { analysis: SavedAnalys
         {projectNotes && !notesOpen && (
           <div className="flex gap-1.5 items-start">
             <StickyNote size={10} className="text-muted-foreground flex-shrink-0 mt-0.5" />
-            <p className="text-[10px] text-muted-foreground line-clamp-1 italic">{projectNotes}</p>
+            <p className="typo-card-meta text-foreground/60 line-clamp-1 italic">{projectNotes}</p>
           </div>
         )}
 
@@ -128,7 +128,7 @@ export function ProjectInsightCard({ analysis, onOpen }: { analysis: SavedAnalys
           <CollapsibleTrigger asChild>
             <button
               onClick={e => { e.stopPropagation(); setNotesOpen(!notesOpen); }}
-              className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-primary transition-colors py-1"
+              className="flex items-center gap-1 typo-card-meta font-medium text-foreground/60 hover:text-primary transition-colors py-1"
             >
               <StickyNote size={10} />
               {notesOpen ? "Hide Notes" : "Notes"}
