@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { buildPublicUrl } from "@/lib/publicUrl";
 import { toast } from "sonner";
 import { Users, Copy, CheckCircle2 } from "lucide-react";
 
@@ -22,7 +23,7 @@ export function ReferralCTA({ compact }: ReferralCTAProps) {
         code = user.id.slice(0, 8);
         await (supabase.from("referral_codes") as any).insert({ user_id: user.id, code });
       }
-      setReferralLink(`${window.location.origin}/share?ref=${code}`);
+      setReferralLink(buildPublicUrl(`/share?ref=${code}`));
     })();
   }, [user]);
 

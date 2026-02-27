@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PlatformNav } from "@/components/PlatformNav";
 import { useSubscription } from "@/hooks/useSubscription";
+import { buildPublicUrl } from "@/lib/publicUrl";
 
 type AnalysisMode = "custom" | "service" | "business";
 type AnalysisDepth = "quick" | "deep";
@@ -656,7 +657,7 @@ function ShareAnalysisCTA({ result, modeColor, mode }: {result: PhotoAnalysisRes
   result.disruptionPotential && "Disruption"].
   filter(Boolean);
 
-  const shareUrl = `${window.location.origin}/instant-analysis`;
+  const shareUrl = buildPublicUrl("/instant-analysis");
   const shareText = `🔥 Just analyzed "${result.name}" with Market Disruptor — got ${insightCount.length} deep intelligence layers from a single photo!\n\nRevival Score: ${result.revivalScore}/10\n\nKey insight: "${result.keyInsight}"\n\nTry it free (no signup):\n${shareUrl}`;
 
   const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;

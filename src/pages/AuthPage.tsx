@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Zap, ArrowRight, Loader2, Mail, CheckCircle2, Lock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { buildPublicUrl } from "@/lib/publicUrl";
 
 const QUOTES = [
   "The best opportunities are in the gap between what was and what could be.",
@@ -44,7 +45,7 @@ export default function AuthPage() {
     try {
       localStorage.setItem("pending_first_name", firstName.trim());
       const { data, error } = await supabase.functions.invoke("send-magic-link", {
-        body: { email: email.trim(), firstName: firstName.trim(), redirectTo: window.location.origin },
+        body: { email: email.trim(), firstName: firstName.trim(), redirectTo: buildPublicUrl("/") },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -71,7 +72,7 @@ export default function AuthPage() {
           password: password.trim(),
           options: {
             data: { first_name: firstName.trim() },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: buildPublicUrl("/"),
           },
         });
         if (error) throw error;
