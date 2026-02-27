@@ -44,6 +44,7 @@ USER JOURNEY RULE:
 - Do NOT suggest improvements, optimizations, or redesigns in userWorkflow
 - Document the real, current experience — warts and all
 - Improvements and redesigns belong in downstream analysis steps, NOT here
+- FRICTION POINTS: Identify friction for EVERY step in the journey. Every step has friction — find it. Use "stepIndex" (0-based) to map each friction point to its corresponding step in the stepByStep array. Generate at least one friction point per step.
 
 `;
 
@@ -91,7 +92,9 @@ The JSON must follow this EXACT structure:
   "userWorkflow": {
     "stepByStep": ["Step 1: how customer currently discovers/books the service", "Step 2: current onboarding process", "Step 3: how core service is actually delivered today", "Step 4: current follow-up process", "Step 5: how retention/rebooking currently works"],
     "frictionPoints": [
-      { "step": "step name", "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists in the current workflow" }
+      { "stepIndex": 0, "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists in the current workflow" },
+      { "stepIndex": 1, "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists" },
+      { "stepIndex": 2, "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists" }
     ],
     "cognitiveLoad": "What mental effort does the customer CURRENTLY expend? What do they have to research, decide, coordinate, or manage TODAY?",
     "contextOfUse": "When, in what state (urgent, planned, stressed, relaxed) do customers CURRENTLY seek this? How does the EXISTING service design handle that?"
@@ -187,7 +190,9 @@ The JSON must follow this EXACT structure:
   "userWorkflow": {
     "stepByStep": ["Step 1: what user currently does before using it", "Step 2: how they currently interact with it", "Step 3: core use action as it exists today", "Step 4: what happens next in current workflow", "Step 5: current after-use/cleanup process"],
     "frictionPoints": [
-      { "step": "step name", "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists in the current workflow" }
+      { "stepIndex": 0, "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists in the current workflow" },
+      { "stepIndex": 1, "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists" },
+      { "stepIndex": 2, "friction": "specific friction that EXISTS TODAY in this step", "severity": "high|medium|low", "rootCause": "why this friction exists" }
     ],
     "cognitiveLoad": "What mental effort does the user CURRENTLY expend? What do they have to remember, configure, or manage TODAY?",
     "contextOfUse": "Where, when, in what state (rushed, relaxed, distracted) is this CURRENTLY used? How does the EXISTING design handle that context?"
