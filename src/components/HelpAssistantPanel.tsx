@@ -19,6 +19,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/help-assista
 
 export function HelpAssistantPanel({ context }: HelpAssistantPanelProps) {
   const [open, setOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -128,20 +129,54 @@ export function HelpAssistantPanel({ context }: HelpAssistantPanelProps) {
     "What do I do next?",
   ];
 
+  if (dismissed) {
+    return (
+      <button
+        onClick={() => setDismissed(false)}
+        className="fixed bottom-6 right-6 z-50 px-3 py-1.5 rounded-full text-[10px] font-medium transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 opacity-60 hover:opacity-100"
+        style={{
+          background: "hsl(var(--muted))",
+          color: "hsl(var(--muted-foreground))",
+          border: "1px solid hsl(var(--border))",
+        }}
+        aria-label="Restore assistant"
+      >
+        <MessageCircleQuestion size={14} className="inline mr-1" />
+        Help
+      </button>
+    );
+  }
+
   return (
     <>
       {/* Toggle button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-        style={{
-          background: "hsl(var(--primary))",
-          color: "hsl(var(--primary-foreground))",
-        }}
-        aria-label="Help assistant"
-      >
-        {open ? <X size={20} /> : <MessageCircleQuestion size={20} />}
-      </button>
+      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-1.5 group/assist">
+        {!open && (
+          <button
+            onClick={() => setDismissed(true)}
+            className="w-6 h-6 rounded-full flex items-center justify-center transition-all opacity-0 group-hover/assist:opacity-70 hover:!opacity-100"
+            style={{
+              background: "hsl(var(--muted))",
+              color: "hsl(var(--muted-foreground))",
+              border: "1px solid hsl(var(--border))",
+            }}
+            aria-label="Dismiss assistant"
+          >
+            <X size={10} />
+          </button>
+        )}
+        <button
+          onClick={() => setOpen(!open)}
+          className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 group"
+          style={{
+            background: "hsl(var(--primary))",
+            color: "hsl(var(--primary-foreground))",
+          }}
+          aria-label="Help assistant"
+        >
+          {open ? <X size={20} /> : <MessageCircleQuestion size={20} />}
+        </button>
+      </div>
 
       {/* Panel */}
       {open && (
