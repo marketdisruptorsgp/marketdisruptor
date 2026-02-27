@@ -1,18 +1,27 @@
 import React, { useState } from "react";
-import { Focus, X } from "lucide-react";
+import { Focus, X, Building2 } from "lucide-react";
 import { LensEditor } from "@/components/LensEditor";
+import { ETA_LENS } from "@/lib/etaLens";
+import { useAnalysis } from "@/contexts/AnalysisContext";
+import type { UserLens } from "@/components/LensToggle";
 
 const STORAGE_KEY = "lens-onboarding-dismissed";
 
 export function LensOnboarding() {
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(STORAGE_KEY) === "true");
   const [showEditor, setShowEditor] = useState(false);
+  const analysis = useAnalysis();
 
   if (dismissed) return null;
 
   const handleDismiss = () => {
     localStorage.setItem(STORAGE_KEY, "true");
     setDismissed(true);
+  };
+
+  const handleActivateEta = () => {
+    analysis.setActiveLens(ETA_LENS as UserLens);
+    handleDismiss();
   };
 
   return (
@@ -26,16 +35,24 @@ export function LensOnboarding() {
             <Focus size={16} className="text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="typo-card-title text-sm">Want results ranked for YOU?</p>
+            <p className="typo-card-title text-sm">Control how results are evaluated</p>
             <p className="typo-section-description text-xs mt-0.5">
-              Add a custom lens to prioritize based on your goals, risk tolerance, and available resources.
+              Choose a lens to reframe analysis. <strong>ETA Acquisition</strong> evaluates from an ownership perspective. Or create a <strong>Custom Lens</strong> to prioritize your own goals.
             </p>
-            <button
-              onClick={() => setShowEditor(true)}
-              className="mt-2 px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-colors"
-            >
-              Create Lens
-            </button>
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                onClick={handleActivateEta}
+                className="px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Building2 size={11} /> Try ETA Lens
+              </button>
+              <button
+                onClick={() => setShowEditor(true)}
+                className="px-3 py-1.5 rounded-md text-xs font-semibold bg-muted text-muted-foreground border border-border hover:bg-accent transition-colors"
+              >
+                Create Custom
+              </button>
+            </div>
           </div>
         </div>
       </div>
