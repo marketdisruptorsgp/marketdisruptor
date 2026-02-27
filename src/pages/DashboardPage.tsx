@@ -102,16 +102,7 @@ export default function DashboardPage() {
             Deconstruct markets, stress-test strategies, and build what's next.
           </p>
 
-          {/* Value prop strip */}
-          <div className="flex items-center justify-center gap-4 sm:gap-6 mt-4 sm:mt-5 animate-fade-in">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />Validate ideas</span>
-            <span className="text-border hidden sm:inline">·</span>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />Find gaps</span>
-            <span className="text-border hidden sm:inline">·</span>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />Build your pitch</span>
-          </div>
-
-          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 sm:mt-5">
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button
               onClick={() => navigate("/about")}
               className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-primary text-primary-foreground transition-colors hover:opacity-90">
