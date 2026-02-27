@@ -34,9 +34,9 @@ const TREND_SPOTLIGHTS = [
 const DISRUPTION_SIGNALS = [
   { icon: ShieldCheck, label: "Patent Filing Surge", desc: "47 new patents filed in solid-state battery tech in Q4 2025 — up 3x from previous quarter. Major implications for portable electronics and EV accessories.", time: "2 days ago" },
   { icon: AlertTriangle, label: "Supply Chain Shift", desc: "Three major Vietnamese textile manufacturers now offering DTC fulfillment. Average lead times dropped from 45 to 18 days. Opens new possibilities for fashion and home goods startups.", time: "5 days ago" },
-  { icon: Flame, label: "Viral Market Signal", desc: "\"Anti-productivity\" planners trending across TikTok (28M views). Community demanding intentional slowdown tools. No dominant brand has emerged yet — white space for a positioned entrant.", time: "1 week ago" },
+  { icon: Flame, label: "Viral Market Signal", desc: "\"Anti-productivity\" planners trending across social media (28M views). Community demanding intentional slowdown tools. No dominant brand has emerged yet — white space for a positioned entrant.", time: "1 week ago" },
   { icon: TrendingDown, label: "Price Collapse Detected", desc: "Smart home sensor kits dropped 62% in average retail price over 6 months. Margin compression forcing incumbents to bundle. Opportunity for value-added service layer on top of commoditized hardware.", time: "1 week ago" },
-  { icon: Eye, label: "Community Demand Spike", desc: "Reddit and forum threads requesting 'repairable' versions of popular kitchen appliances up 400% YoY. Right-to-repair sentiment creating product differentiation opportunity.", time: "2 weeks ago" },
+  { icon: Eye, label: "Community Demand Spike", desc: "Online community threads requesting 'repairable' versions of popular kitchen appliances up 400% YoY. Right-to-repair sentiment creating product differentiation opportunity.", time: "2 weeks ago" },
 ];
 
 const CATEGORY_PLAYBOOKS = [

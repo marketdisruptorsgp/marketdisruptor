@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
       </p>
 
       <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:16px;">
-        ${buildFeatureRow("AI Product Intelligence", "Deep-dive any product with live market data from eBay, Etsy, Reddit and more")}
+        ${buildFeatureRow("AI Product Intelligence", "Deep-dive any product with live market data and community intelligence")}
         ${buildFeatureRow("First Principles Analysis", "Challenge every assumption, flip conventional thinking, uncover hidden opportunities")}
         ${buildFeatureRow("Innovation Engine", "AI-generated product concepts with feasibility scores, action plans and revenue projections")}
         ${buildFeatureRow("Pricing and Supply Chain Intel", "Suppliers, vendors, margins, and go-to-market strategies ready to execute")}

@@ -101,7 +101,7 @@ MARKET SIZE: ${product.marketSizeEstimate || "Unknown"}
 KEY INSIGHT: ${product.keyInsight || ""}
 
 CURRENT PRICING:
-${product.pricingIntel ? `- Market: ${product.pricingIntel.currentMarketPrice}\n- eBay avg: ${product.pricingIntel.ebayAvgSold}\n- Trend: ${product.pricingIntel.priceDirection}` : "See description"}
+${product.pricingIntel ? `- Market: ${product.pricingIntel.currentMarketPrice}\n- Resale avg: ${product.pricingIntel.resaleAvgSold || product.pricingIntel.ebayAvgSold}\n- Trend: ${product.pricingIntel.priceDirection}` : "See description"}
 
 CURRENT ASSUMPTIONS TO CHALLENGE:
 ${product.assumptionsMap?.map((a: { assumption: string; challenge: string }) => `• ${a.assumption} → ${a.challenge}`).join("\n") || "All design, pricing, audience, and usage assumptions"}
