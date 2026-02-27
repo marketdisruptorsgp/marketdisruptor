@@ -439,7 +439,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (scrapeData.stats) {
-        pushLog(`Collected data from ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.redditPosts} community posts, ${scrapeData.stats.complaintSignals} complaint signals`);
+        pushLog(`Collected data from ${scrapeData.stats.totalPages} pages, ${scrapeData.stats.communityPosts} community posts, ${scrapeData.stats.complaintSignals} complaint signals`);
       } else {
         pushLog(`Web scraping complete — data collected from ${(scrapeData.sources || []).length} sources`);
       }
@@ -477,7 +477,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         {
           body: {
             rawContent: scrapeData.rawContent,
-            redditContent: scrapeData.redditContent,
+            communityContent: scrapeData.communityContent,
             complaintsContent: scrapeData.complaintsContent,
             sources: scrapeData.sources,
             category: params.category,

@@ -80,7 +80,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { rawContent, redditContent, complaintsContent, sources, category, era, batchSize, customProducts, lens } = await req.json();
+    const { rawContent, communityContent, complaintsContent, sources, category, era, batchSize, customProducts, lens } = await req.json();
 
     const isService = category === "Service";
     const mode = resolveMode(undefined, category);
@@ -121,7 +121,7 @@ USER JOURNEY RULE:
 
 `;
 
-    const serviceSystemPrompt = OS_PREAMBLE + `You are a world-class Service Intelligence analyst and venture market analyst. You analyze scraped web content (including Reddit community posts, review sites, competitor data, and market signals) to extract deep, actionable service intelligence.
+    const serviceSystemPrompt = OS_PREAMBLE + `You are a world-class Service Intelligence analyst and venture market analyst. You analyze scraped web content (including community posts, review sites, competitor data, and market signals) to extract deep, actionable service intelligence.
 
 You MUST respond with ONLY a valid JSON array (no markdown, no explanation, just raw JSON).
 
@@ -141,19 +141,19 @@ For each service, return an object with this EXACT structure:
   "reviews": [
     {"text": "Specific real review or community quote about the service experience", "sentiment": "positive"},
     {"text": "Specific real complaint about the service — what customers hate", "sentiment": "negative"},
-    {"text": "Community suggestion or improvement request from forums", "sentiment": "neutral"}
+     {"text": "Community suggestion or improvement request", "sentiment": "neutral"}
   ],
   "communityInsights": {
-    "redditSentiment": "Overall community sentiment: what customers love, hate, and want changed (2-3 sentences with specific references)",
+    "communitySentiment": "Overall community sentiment: what customers love, hate, and want changed (2-3 sentences with specific references)",
     "topComplaints": ["Specific customer complaint 1", "Specific complaint 2", "Specific complaint 3"],
     "improvementRequests": ["Feature/change request 1 from customers", "Request 2", "Request 3"],
     "nostalgiaTriggers": ["What customers miss about earlier versions of service", "Core emotional hook", "Loyalty driver"],
     "competitorComplaints": ["What community says is wrong with competing services"]
   },
   "socialSignals": [
-    {"platform": "Reddit", "signal": "discussion activity", "volume": "~50K members", "trend": "up", "url": "https://reddit.com/r/example"},
-    {"platform": "Google Trends", "signal": "search interest description", "volume": "Index 78/100", "trend": "up"},
-    {"platform": "Trustpilot", "signal": "review patterns", "volume": "~2K reviews", "trend": "stable"}
+    {"platform": "Community Forums", "signal": "discussion activity", "volume": "~50K members", "trend": "up"},
+    {"platform": "Search Trends", "signal": "search interest description", "volume": "Index 78/100", "trend": "up"},
+    {"platform": "Review Sites", "signal": "review patterns", "volume": "~2K reviews", "trend": "stable"}
   ],
   "competitors": ["Competitor 1 (pricing model)", "Competitor 2 (pricing model)"],
   "competitorAnalysis": {
@@ -264,7 +264,7 @@ CRITICAL RULES:
 - Do NOT include product-specific fields like supplyChain, BOM, materials, or physical dimensions
 - Be BOLD — the flipped ideas should reimagine the entire service model, not just tweak pricing`;
 
-    const productSystemPrompt = OS_PREAMBLE + `You are a world-class Product Intelligence analyst and venture market analyst. You analyze scraped web content (including Reddit community posts, Google discussions, competitor data, and market signals) to extract deep, actionable product intelligence.
+    const productSystemPrompt = OS_PREAMBLE + `You are a world-class Product Intelligence analyst and venture market analyst. You analyze scraped web content (including community posts, discussions, competitor data, and market signals) to extract deep, actionable product intelligence.
 
 You MUST respond with ONLY a valid JSON array (no markdown, no explanation, just raw JSON).
 
@@ -284,19 +284,19 @@ For each product, return an object with this EXACT structure:
   "reviews": [
     {"text": "Specific real review or community quote from scraped content", "sentiment": "positive"},
     {"text": "Specific real complaint with context — what people hate about it", "sentiment": "negative"},
-    {"text": "Community suggestion or improvement request from Reddit/forums", "sentiment": "neutral"}
+     {"text": "Community suggestion or improvement request", "sentiment": "neutral"}
   ],
   "communityInsights": {
-    "redditSentiment": "Overall Reddit community sentiment: what they love, hate, and want changed (2-3 sentences with specific subreddit references)",
+    "communitySentiment": "Overall community sentiment: what they love, hate, and want changed (2-3 sentences with specific references)",
     "topComplaints": ["Specific complaint 1 from community", "Specific complaint 2", "Specific complaint 3"],
     "improvementRequests": ["Feature/change request 1 from community", "Request 2", "Request 3"],
     "nostalgiaTriggers": ["What specifically triggers nostalgia", "Core emotional hook", "Community shared memory"],
     "competitorComplaints": ["What community says is wrong with current alternatives"]
   },
   "socialSignals": [
-    {"platform": "TikTok", "signal": "specific content type", "volume": "~50M views", "trend": "up", "url": "https://tiktok.com/tag/example"},
-    {"platform": "Reddit", "signal": "subreddit activity", "volume": "~50K members", "trend": "stable", "url": "https://reddit.com/r/example"},
-    {"platform": "Google Trends", "signal": "search interest description", "volume": "Index 78/100", "trend": "up"}
+    {"platform": "Social Media", "signal": "content engagement", "volume": "high activity", "trend": "up"},
+    {"platform": "Community Forums", "signal": "discussion activity", "volume": "~50K members", "trend": "stable"},
+    {"platform": "Search Trends", "signal": "search interest description", "volume": "Index 78/100", "trend": "up"}
   ],
   "competitors": ["Competitor 1 (price)", "Competitor 2 (price)"],
   "competitorAnalysis": {
@@ -324,7 +324,7 @@ For each product, return an object with this EXACT structure:
     "retailers": [{"name": "Retailer", "type": "E-commerce/Mass/Specialty", "url": "https://url.com", "marketShare": "X%"}],
     "distributors": [{"name": "Distributor", "region": "Region", "url": "https://url.com", "notes": "Context"}]
   },
-  "trendAnalysis": "Detailed 4-5 sentence trend analysis with SPECIFIC data: search volumes, YoY growth rates, Reddit post velocity, key events driving interest, Google Trends index, TikTok view counts, demographic shift data",
+  "trendAnalysis": "Detailed 4-5 sentence trend analysis with SPECIFIC data: search volumes, YoY growth rates, community post velocity, key events driving interest, search index trends, social engagement metrics, demographic shift data",
   "actionPlan": {
     "strategy": "2-3 sentence overall strategic direction — be specific about the angle (flip, revive, license, arbitrage, innovate, subscription)",
     "phases": [
@@ -398,7 +398,7 @@ CRITICAL RULES:
 - Each flipped idea MUST include "feasibilityClass": one of "Near-term viable", "Conditional opportunity", or "Long-horizon concept". Long-horizon concepts CANNOT score above 6 on any dimension.
 - Return 3-5 products maximum — quality over quantity
 - Set "image" to "PLACEHOLDER_IMAGE" — images will be replaced with real ones after
-- communityInsights MUST be based on real Reddit/Google data from the scraped content, not invented
+- communityInsights MUST be based on real community data from the scraped content, not invented
 - topComplaints MUST be specific real complaints found in the scraped data
 - improvementRequests MUST be real things the community has asked for
 - competitorAnalysis.gaps must be specific market gaps visible in the data
@@ -420,7 +420,7 @@ CRITICAL RULES:
 
     // Generous content limits for high-quality analysis
     const trimmedRaw = (rawContent || "").slice(0, 18000);
-    const trimmedReddit = (redditContent || "").slice(0, 5000);
+    const trimmedCommunity = (communityContent || "").slice(0, 5000);
     const trimmedComplaints = (complaintsContent || "").slice(0, 3500);
     const trimmedSources = (sources || []).slice(0, 20);
 
@@ -436,11 +436,11 @@ Go DEEP — I need:
 6. An action plan I can start executing this week
 ${customProducts?.length ? "7. IMPORTANT: Include ALL custom services the user uploaded/provided as top-priority analyses" : ""}
 
-MAIN SCRAPED CONTENT (review sites, forums, competitor pages):
+MAIN SCRAPED CONTENT:
 ${trimmedRaw}
 
 COMMUNITY POSTS (sentiment, complaints, discussions):
-${trimmedReddit || "No community content available"}
+${trimmedCommunity || "No community content available"}
 
 CUSTOMER COMPLAINTS & IMPROVEMENT REQUESTS:
 ${trimmedComplaints || "No complaint signals found"}
@@ -452,7 +452,7 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
       : `Analyze this scraped content about ${eraLabel(era)}${category} products.${customProductsContext}
 
 Go DEEP — I need:
-1. Real Reddit community sentiment (what people love, hate, want fixed)
+1. Real community sentiment (what people love, hate, want fixed)
 2. Actual competitor gaps from community complaints  
 3. Pricing intel with real dollar figures
 4. Supply chain with real company names
@@ -460,11 +460,11 @@ Go DEEP — I need:
 6. An action plan I can start executing this week
 ${customProducts?.length ? "7. IMPORTANT: Include ALL custom products the user uploaded/provided as top-priority analyses" : ""}
 
-MAIN SCRAPED CONTENT (eBay, Etsy, Google, TikTok):
+MAIN SCRAPED CONTENT:
 ${trimmedRaw}
 
-REDDIT COMMUNITY POSTS (sentiment, complaints, discussions):
-${trimmedReddit || "No Reddit content available"}
+COMMUNITY POSTS (sentiment, complaints, discussions):
+${trimmedCommunity || "No community content available"}
 
 COMMUNITY COMPLAINTS & IMPROVEMENT REQUESTS:
 ${trimmedComplaints || "No complaint signals found"}

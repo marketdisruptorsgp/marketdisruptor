@@ -19,7 +19,7 @@ export const EXPLAINERS: Record<string, string> = {
   "section-overview":
     "Overview synthesizes the product's core value proposition, market size, confidence scores, and key insight into a single view. Start here to ground your analysis.",
   "section-community":
-    "Community Intel scrapes Reddit, forums, and review platforms to surface real user complaints, requests, and sentiment — the unfiltered voice of the market.",
+    "Community Intel scrapes forums, review platforms, and public discussions to surface real user complaints, requests, and sentiment — the unfiltered voice of the market.",
   "section-workflow":
     "User Journey maps every step a customer takes — from discovery to purchase to advocacy — and identifies friction points, drop-off risks, and delight moments.",
   "section-pricing":

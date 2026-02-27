@@ -40,7 +40,7 @@ export function KeyTakeawayBanner({ takeaway, accentColor = "hsl(var(--primary))
 }
 
 /** Derive a community takeaway from community insights data */
-export function getCommunityTakeaway(ci: { topComplaints?: string[]; improvementRequests?: string[]; redditSentiment?: string }) {
+export function getCommunityTakeaway(ci: { topComplaints?: string[]; improvementRequests?: string[]; communitySentiment?: string; redditSentiment?: string }) {
   const complaints = ci.topComplaints?.length || 0;
   const requests = ci.improvementRequests?.length || 0;
   if (complaints === 0 && requests === 0) return null;

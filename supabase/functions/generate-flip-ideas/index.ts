@@ -47,7 +47,7 @@ IMPORTANT: Not everything needs to be flipped. If parts of the current product/s
 
 THE DIFFERENCE BETWEEN A GOOD IDEA AND A GREAT ONE:
 - BAD: "A smart version with an app" (generic, no specifics)
-- GOOD: "A $39 modular version sold via TikTok Shop targeting the specific grip frustration that r/smartphones discusses weekly. BOM $4.20 via Shenzhen suppliers, 78% margin, breakeven at 890 units."
+- GOOD: "A $39 modular version sold via social commerce targeting the specific grip frustration that online communities discuss weekly. BOM $4.20 via Shenzhen suppliers, 78% margin, breakeven at 890 units."
 
 When a real analogous success exists, cite it — it strengthens the case. When an idea is genuinely novel with no precedent, that's fine — explain WHY the timing is right and what demand signals support it.
 
@@ -74,7 +74,7 @@ Each object must follow this EXACT structure:
     "timeline": "X months to market",
     "estimatedInvestment": "$X–$Y",
     "revenueProjection": "$X ARR at Y units/subscribers in year 1 — SHOW THE MATH",
-    "channels": ["TikTok Shop", "Amazon FBA", "Shopify DTC", "Kickstarter"]
+    "channels": ["Social Commerce", "Amazon FBA", "Shopify DTC", "Kickstarter"]
   },
   "riskLevel": "[Risk: Low/Medium/High]",
   "capitalRequired": "[Capital: Low/Medium/High]"
