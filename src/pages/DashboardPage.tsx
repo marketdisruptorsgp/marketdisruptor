@@ -104,7 +104,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center gap-3 sm:gap-4 mt-5 sm:mt-6">
             <button
               onClick={() => navigate("/about")}
-              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary border border-border text-foreground transition-colors hover:bg-muted">
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-full typo-nav-primary bg-primary text-primary-foreground transition-colors hover:opacity-90">
 
               Learn More
             </button>
@@ -205,10 +205,9 @@ export default function DashboardPage() {
                 <button
                   key={pill.id}
                   onClick={() => navigate(pill.path)}
-                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full typo-nav-primary border transition-colors hover:shadow-sm"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full typo-nav-primary text-white transition-colors hover:opacity-90 hover:shadow-sm"
                   style={{
-                    borderColor: `hsl(var(${pill.cssVar}))`,
-                    color: `hsl(var(${pill.cssVar}))`
+                    background: `hsl(var(${pill.cssVar}))`,
                   }}>
 
                   <Icon size={14} />
