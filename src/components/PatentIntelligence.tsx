@@ -127,6 +127,13 @@ export function PatentIntelligence({ product, onSave }: Props) {
     }
   };
 
+  // Auto-run on mount if no data
+  useState(() => {
+    if (!patentData && !loading) {
+      runAnalysis();
+    }
+  });
+
   if (!patentData && !loading) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-5">
