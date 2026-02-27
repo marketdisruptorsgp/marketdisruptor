@@ -370,13 +370,18 @@ export default function Index() {
 
     const hasCustom = customProducts && customProducts.length > 0;
 
+    const isServiceMode = params.category === "Service";
+
     // --- Scraping phase log messages ---
     pushLog(hasCustom
-      ? "Starting analysis pipeline for your custom products..."
-      : `Starting product intelligence pipeline for ${params.category}...`
+      ? `Starting analysis pipeline for your custom ${isServiceMode ? "service" : "products"}...`
+      : `Starting ${isServiceMode ? "service" : "product"} intelligence pipeline for ${params.category}...`
     );
     await new Promise(r => setTimeout(r, 300));
-    pushLog("Querying pricing databases for market intelligence...");
+    pushLog(isServiceMode
+      ? "Scanning customer reviews & competitor positioning..."
+      : "Querying pricing databases for market intelligence..."
+    );
     await new Promise(r => setTimeout(r, 600));
     pushLog("Crawling marketplace data for trend signals...");
     await new Promise(r => setTimeout(r, 600));
@@ -384,14 +389,17 @@ export default function Index() {
     await new Promise(r => setTimeout(r, 600));
     pushLog("Collecting demand & trend signals...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Searching wholesale directories for supply chain data...");
+    pushLog(isServiceMode
+      ? "Researching operational models & pricing strategies..."
+      : "Searching wholesale directories for supply chain data..."
+    );
     await new Promise(r => setTimeout(r, 600));
     pushLog("Collecting complaint signals & improvement requests...");
 
     try {
       setStepMessage(hasCustom
-        ? "Analyzing your product URLs across multiple data sources…"
-        : `Running deep market analysis for ${params.category} products…`
+        ? `Analyzing your ${isServiceMode ? "service" : "product"} URLs across multiple data sources…`
+        : `Running deep market analysis for ${params.category}${isServiceMode ? "" : " products"}…`
       );
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
         "scrape-products",
@@ -409,18 +417,30 @@ export default function Index() {
       }
 
       setStep("analyzing");
-      setStepMessage("Building deep intelligence: pricing, supply chain, trends, flip ideas & action plans…");
+      setStepMessage(isServiceMode
+        ? "Building deep intelligence: pricing, customer journey, competitive landscape & reinvention ideas…"
+        : "Building deep intelligence: pricing, supply chain, trends, flip ideas & action plans…"
+      );
 
       await new Promise(r => setTimeout(r, 400));
-      pushLog("Parsing product data & community sentiment...");
+      pushLog(isServiceMode
+        ? "Parsing service data & customer sentiment..."
+        : "Parsing product data & community sentiment..."
+      );
       await new Promise(r => setTimeout(r, 800));
       pushLog("Building pricing intelligence from real market data...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("Mapping supply chain: suppliers, manufacturers, distributors...");
+      pushLog(isServiceMode
+        ? "Mapping customer journey friction & operational bottlenecks..."
+        : "Mapping supply chain: suppliers, manufacturers, distributors..."
+      );
       await new Promise(r => setTimeout(r, 800));
       pushLog("Generating flipped ideas from community pain points...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("Searching patent databases for relevant filings...");
+      pushLog(isServiceMode
+        ? "Analyzing competitive landscape & differentiation opportunities..."
+        : "Searching patent databases for relevant filings..."
+      );
       await new Promise(r => setTimeout(r, 800));
       pushLog("Finalizing intelligence report...");
 
@@ -461,7 +481,7 @@ export default function Index() {
       const liveProducts: Product[] = analyzeData.products;
       if (!liveProducts?.length) throw new Error("No products returned from analysis.");
 
-      pushLog(`Analysis complete — ${liveProducts.length} products with full intelligence reports ready.`);
+      pushLog(`Analysis complete — ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with full intelligence reports ready.`);
       stopLoadingTimer();
 
       setProducts(liveProducts);

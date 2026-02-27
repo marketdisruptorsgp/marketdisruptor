@@ -291,27 +291,36 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     // Navigate to loading view
     navigate("/");
 
+    const isServiceMode = params.category === "Service";
+
     pushLog(hasCustom
-      ? "Starting analysis pipeline for your custom products..."
-      : `Starting product intelligence pipeline for ${params.category}...`
+      ? `Starting analysis pipeline for your custom ${isServiceMode ? "service" : "products"}...`
+      : `Starting ${isServiceMode ? "service" : "product"} intelligence pipeline for ${params.category}...`
     );
     await new Promise(r => setTimeout(r, 300));
-    pushLog("Scanning market data across pricing & resale sources...");
+    pushLog(isServiceMode
+      ? "Scanning customer reviews, competitor data & market positioning..."
+      : "Scanning market data across pricing & resale sources..."
+    );
     await new Promise(r => setTimeout(r, 600));
     pushLog("Analyzing community discussions & sentiment signals...");
     await new Promise(r => setTimeout(r, 600));
     pushLog("Cross-referencing trend data & search interest...");
     await new Promise(r => setTimeout(r, 600));
-    pushLog("Researching supply chain: suppliers, manufacturers, distributors...");
+    pushLog(isServiceMode
+      ? "Researching operational models, pricing tiers & delivery formats..."
+      : "Researching supply chain: suppliers, manufacturers, distributors..."
+    );
     await new Promise(r => setTimeout(r, 600));
     pushLog("Mining complaint signals & improvement requests...");
     await new Promise(r => setTimeout(r, 600));
     pushLog("Collecting competitive intelligence from multiple data sources...");
 
+
     try {
       setStepMessage(hasCustom
-        ? "Deep research across multiple data sources for your products…"
-        : `Deep research across multiple data sources for ${params.category} products…`
+        ? `Deep research across multiple data sources for your ${isServiceMode ? "service" : "products"}…`
+        : `Deep research across multiple data sources for ${params.category}${isServiceMode ? "" : " products"}…`
       );
       const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
         "scrape-products",
@@ -328,20 +337,32 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
 
       setStep("analyzing");
-      setStepMessage("Building deep intelligence: pricing, supply chain, trends, flip ideas & action plans…");
+      setStepMessage(isServiceMode
+        ? "Building deep intelligence: pricing, customer journey, competitive landscape & reinvention ideas…"
+        : "Building deep intelligence: pricing, supply chain, trends, flip ideas & action plans…"
+      );
 
       await new Promise(r => setTimeout(r, 400));
-      pushLog("Parsing product data & community sentiment...");
+      pushLog(isServiceMode
+        ? "Parsing service data & customer sentiment..."
+        : "Parsing product data & community sentiment..."
+      );
       await new Promise(r => setTimeout(r, 800));
       pushLog("Building pricing intelligence from real market data...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("Mapping supply chain: suppliers, manufacturers, distributors...");
+      pushLog(isServiceMode
+        ? "Mapping customer journey friction & operational bottlenecks..."
+        : "Mapping supply chain: suppliers, manufacturers, distributors..."
+      );
       await new Promise(r => setTimeout(r, 800));
       pushLog("Generating flipped ideas from community pain points...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("Scoring Revival Potential & building action plans...");
+      pushLog("Scoring potential & building action plans...");
       await new Promise(r => setTimeout(r, 800));
-      pushLog("Searching for real product images across data sources...");
+      pushLog(isServiceMode
+        ? "Analyzing competitive landscape & differentiation opportunities..."
+        : "Searching for real product images across data sources..."
+      );
 
       const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke(
         "analyze-products",
@@ -378,7 +399,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
 
       let liveProducts: Product[] = analyzeData.products;
-      if (!liveProducts?.length) throw new Error("No products returned by AI.");
+      if (!liveProducts?.length) throw new Error("No results returned from analysis.");
 
       // Restore user-uploaded images onto matching products
       if (customProducts?.length) {
@@ -393,14 +414,14 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
-      pushLog(`Analysis complete — ${liveProducts.length} products with full intelligence reports ready.`);
+      pushLog(`Analysis complete — ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with full intelligence reports ready.`);
       stopLoadingTimer();
 
       setProducts(liveProducts);
       setSelectedProduct(liveProducts[0]);
       setDetailTab("overview");
       setStep("done");
-      toast.success(`Found ${liveProducts.length} products with deep intelligence reports!`);
+      toast.success(`Found ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with deep intelligence reports!`);
 
       try {
         await supabase.rpc("increment_usage", { p_user_id: user?.id });

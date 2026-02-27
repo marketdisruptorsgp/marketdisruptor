@@ -131,7 +131,51 @@ CRITICAL RULES:
 - AVOID optimistic bias — use realistic, defensible projections
 - completionMessage should be a unique strategic insight, not a generic statement`;
 
-    const userPrompt = `Generate a full investor pitch deck for this product:
+    const isService = product.category === "Service";
+
+    const userPrompt = isService
+      ? `Generate a full investor pitch deck for this SERVICE:
+
+Service: ${product.name}
+Category: ${product.category}
+Description: ${product.description}
+Revival Score: ${product.revivalScore}/10
+Key Insight: ${product.keyInsight || "Not available"}
+Market Size Estimate: ${product.marketSizeEstimate || "Not available"}
+Trend Analysis: ${product.trendAnalysis || "Not available"}
+
+EXISTING PRICING INTEL:
+${JSON.stringify(product.pricingIntel || {}, null, 2)}
+
+OPERATIONAL INTEL:
+${JSON.stringify((product as Record<string, unknown>).operationalIntel || {}, null, 2)}
+
+EXISTING ACTION PLAN:
+${JSON.stringify(product.actionPlan || {}, null, 2)}
+
+COMMUNITY INSIGHTS:
+${JSON.stringify((product as Record<string, unknown>).communityInsights || {}, null, 2)}
+
+${disruptData ? `DISRUPT ANALYSIS (upstream):
+- Redesigned Concept: ${JSON.stringify((disruptData as Record<string, unknown>).redesignedConcept || {}, null, 2)}
+- Hidden Assumptions: ${JSON.stringify((disruptData as Record<string, unknown>).hiddenAssumptions || [], null, 2)}
+- Flipped Logic: ${JSON.stringify((disruptData as Record<string, unknown>).flippedLogic || [], null, 2)}
+` : ""}
+${redesignData ? `REDESIGN OUTPUT (latest concept):
+${JSON.stringify(redesignData, null, 2)}
+` : ""}
+${stressTestData ? `STRESS TEST RESULTS (upstream):
+${JSON.stringify(stressTestData, null, 2)}
+` : ""}
+${userScores ? `USER-ADJUSTED SCORES (override defaults with these):
+${JSON.stringify(userScores, null, 2)}
+` : ""}
+Build the most compelling, investor-ready pitch deck possible. Focus on SERVICE-specific elements: customer journey, operational efficiency, delivery model innovation, and scalability. Do NOT include product-specific fields like supplierContacts or physical manufacturing details. Instead focus on implementation partners, technology stack, and talent needs.
+Base scores on realistic market signals, competitive density, and structural feasibility — avoid optimistic defaults.
+The completionMessage should be a sharp strategic insight about WHY this service opportunity is worth pursuing.
+
+Return ONLY the JSON object.`
+      : `Generate a full investor pitch deck for this product:
 
 Product: ${product.name}
 Category: ${product.category}
