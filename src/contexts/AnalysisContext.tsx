@@ -715,6 +715,31 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   const handleLoadSaved = useCallback(async (analysis: any) => {
     setLoadedFromSaved(true);
+
+    // Ensure all products have an id and required fields (photo analyses may omit them)
+    const rawProducts = Array.isArray(analysis.products) ? analysis.products : [];
+    const sanitizedProducts = rawProducts.map((p: any, idx: number) => {
+      const base = {
+        id: p.id || `product-${analysis.id}-${idx}`,
+        name: p.name || "Untitled Product",
+        category: p.category || analysis.category || "",
+        image: p.image || "",
+        description: p.description || "",
+        specs: p.specs || "",
+        revivalScore: p.revivalScore ?? 0,
+        era: p.era || "All Eras / Current",
+        sources: Array.isArray(p.sources) ? p.sources : [],
+        reviews: Array.isArray(p.reviews) ? p.reviews : [],
+        socialSignals: Array.isArray(p.socialSignals) ? p.socialSignals : [],
+        competitors: Array.isArray(p.competitors) ? p.competitors : [],
+        assumptionsMap: Array.isArray(p.assumptionsMap) ? p.assumptionsMap : [],
+        flippedIdeas: Array.isArray(p.flippedIdeas) ? p.flippedIdeas : [],
+        confidenceScores: p.confidenceScores || { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
+      };
+      // Merge extra fields from DB (pricingIntel, supplyChain, etc.) without overriding guaranteed defaults
+      return { ...p, ...base };
+    });
+
     // Restore persisted step data
     const ad = analysis.analysis_data as Record<string, unknown> | null;
     if (ad?.disrupt) setDisruptData(ad.disrupt);
@@ -762,9 +787,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       toast.success("Business model analysis loaded!");
       navigate(`/business/${analysis.id}`);
     } else if (analysis.analysis_type === "first_principles") {
-      if (analysis.products && analysis.products.length > 0) {
-        setProducts(analysis.products);
-        setSelectedProduct(analysis.products[0]);
+      if (sanitizedProducts.length > 0) {
+        setProducts(sanitizedProducts);
+        setSelectedProduct(sanitizedProducts[0]);
         setStep("done");
       }
       setMainTab("custom");
@@ -773,9 +798,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       toast.success("First principles analysis loaded — re-run to see full results.");
       navigate(`/analysis/${analysis.id}/disrupt`);
     } else {
-      setProducts(analysis.products);
-      setSelectedProduct(analysis.products[0] || null);
-      setAnalysisParams({ category: analysis.category, era: analysis.era, batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
+      if (sanitizedProducts.length === 0) {
+        toast.error("This analysis has no product data to display.");
+        return;
+      }
+      setProducts(sanitizedProducts);
+      setSelectedProduct(sanitizedProducts[0]);
+      setAnalysisParams({ category: analysis.category, era: analysis.era || "All Eras / Current", batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
       setMainTab("custom");
       setActiveMode("custom");
       setDetailTab("overview");
@@ -783,7 +812,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setAnalysisId(analysis.id);
 
       // Use centralized resume logic
-      const hasProducts = analysis.products && analysis.products.length > 0;
+      const hasProducts = sanitizedProducts.length > 0;
       const { route: resumeRoute, label: resumeLabel } = getResumeRoute(ad, hasProducts);
 
       toast.success(`Resuming where you left off — ${resumeLabel}`);

@@ -80,8 +80,18 @@ export default function ReportPage() {
   const { products, selectedProduct, analysisParams, analysisId } = analysis;
 
   if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
-    navigate("/", { replace: true });
-    return null;
+    // Avoid redirect loop — only redirect if we're genuinely missing data
+    if (analysis.step === "idle" && products.length === 0) {
+      navigate("/", { replace: true });
+    }
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
+          <p className="text-sm text-muted-foreground">Loading analysis...</p>
+        </div>
+      </div>
+    );
   }
 
   const modeAccent = theme.primary;
