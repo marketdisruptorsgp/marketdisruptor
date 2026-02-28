@@ -21,7 +21,8 @@ import {
   Store, Truck, Factory, Users, Globe, Wrench, Heart, Rocket,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
-import { externalClasses, brand } from "@/theme/externalTokens";
+import { PlatformNav } from "@/components/PlatformNav";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface SharedData {
   title: string;
@@ -62,7 +63,7 @@ function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
 
 /* Shared label component — enforces 13px minimum */
 function DataLabel({ children }: { children: React.ReactNode }) {
-  return <p className={externalClasses.label}>{children}</p>;
+  return <p className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">{children}</p>;
 }
 
 export default function ShareableAnalysisPage() {
@@ -74,6 +75,7 @@ export default function ShareableAnalysisPage() {
   const [detailTab, setDetailTab] = useState("overview");
   const [stressTestTab, setStressTestTab] = useState<"debate" | "validate">("debate");
   const sectionTabsRef = useRef<HTMLDivElement>(null);
+  const { tier } = useSubscription();
 
   useEffect(() => {
     if (!id) return;
@@ -92,28 +94,33 @@ export default function ShareableAnalysisPage() {
     })();
   }, [id]);
 
+  const renderState = (content: React.ReactNode) => (
+    <div className="min-h-screen bg-background">
+      <PlatformNav tier={tier} />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 min-h-[calc(100vh-72px)] flex items-center justify-center">
+        {content}
+      </div>
+    </div>
+  );
+
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded flex items-center justify-center bg-primary">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-            </svg>
-          </div>
-          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    return renderState(
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-10 h-10 rounded flex items-center justify-center bg-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
         </div>
+        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (error || !data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-2">
-          <AlertTriangle size={32} className="mx-auto text-muted-foreground opacity-40" />
-          <p className="typo-card-body text-muted-foreground">{error || "Analysis not found"}</p>
-        </div>
+    return renderState(
+      <div className="text-center space-y-2">
+        <AlertTriangle size={32} className="mx-auto text-muted-foreground opacity-40" />
+        <p className="typo-card-body text-muted-foreground">{error || "Analysis not found"}</p>
       </div>
     );
   }
@@ -121,11 +128,7 @@ export default function ShareableAnalysisPage() {
   const ad = data.analysis_data;
   const product = data.products?.[0] as Product | undefined;
   if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="typo-card-body text-muted-foreground">No product data available</p>
-      </div>
-    );
+    return renderState(<p className="typo-card-body text-muted-foreground">No product data available</p>);
   }
 
   const disruptData = ad?.disrupt || (ad?.coreReality ? ad : null);
@@ -163,19 +166,22 @@ export default function ShareableAnalysisPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Shared banner */}
-      <div className={externalClasses.banner} style={{ background: "hsl(var(--primary))" }}>
-        <p className="typo-card-eyebrow text-white/70">{brand.name} · Shared Analysis</p>
-        <h1 className="typo-section-title text-white mt-0.5">{data.title}</h1>
-        <div className="flex items-center justify-center gap-3 mt-1">
-          <span className="typo-card-meta text-white/60">{data.category}</span>
-          {data.avg_revival_score && (
-            <span className="typo-card-meta font-bold text-white bg-white/20 px-2 py-0.5 rounded">{data.avg_revival_score}/10</span>
-          )}
+      <PlatformNav tier={tier} />
+
+      <div className="border-b border-border bg-card">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
+          <p className="typo-card-eyebrow">Market Disruptor · Shared Analysis</p>
+          <h1 className="typo-page-title text-2xl sm:text-3xl mt-1">{data.title}</h1>
+          <div className="flex items-center gap-3 mt-1.5">
+            <span className="typo-page-meta">{data.category}</span>
+            {data.avg_revival_score && (
+              <span className="typo-card-meta font-bold bg-muted border border-border px-2 py-0.5 rounded">{data.avg_revival_score}/10</span>
+            )}
+          </div>
         </div>
       </div>
 
-      <main className={`${externalClasses.container} py-4 sm:py-6 space-y-4 sm:space-y-5`}>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         {/* Step Navigator */}
         <StepNavigator
           steps={getSharedStepConfigs()}
@@ -457,8 +463,7 @@ export default function ShareableAnalysisPage() {
             {hasDisrupt && (
               <button
                 onClick={() => { setActiveStep(3); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className={`w-full ${externalClasses.buttonPrimary} py-3`}
-                style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
               >
                 <Brain size={14} /> Continue to Disrupt →
               </button>
@@ -482,7 +487,7 @@ export default function ShareableAnalysisPage() {
             />
 
             {hasDisrupt ? (
-              <div className={`rounded-xl overflow-hidden p-3 sm:p-5 ${externalClasses.card}`}>
+              <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
                 <FirstPrinciplesAnalysis
                   product={product}
                   flippedIdeas={product.flippedIdeas}
@@ -501,8 +506,7 @@ export default function ShareableAnalysisPage() {
             {hasDisrupt && (
               <button
                 onClick={() => { setActiveStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className={`w-full ${externalClasses.buttonPrimary} py-3`}
-                style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
               >
                 <Sparkles size={14} /> Continue to Redesign →
               </button>
@@ -521,7 +525,7 @@ export default function ShareableAnalysisPage() {
             />
 
             {hasDisrupt ? (
-              <div className={`rounded-xl overflow-hidden p-3 sm:p-5 ${externalClasses.card}`}>
+              <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
                 <FirstPrinciplesAnalysis
                   product={product}
                   flippedIdeas={product.flippedIdeas}
@@ -539,8 +543,7 @@ export default function ShareableAnalysisPage() {
             {hasStressTest && (
               <button
                 onClick={() => { setActiveStep(5); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className={`w-full ${externalClasses.buttonPrimary} py-3`}
-                style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
               >
                 <Swords size={14} /> Continue to Stress Test →
               </button>
@@ -564,7 +567,7 @@ export default function ShareableAnalysisPage() {
             />
 
             {hasStressTest ? (
-              <div className={`rounded-xl overflow-hidden p-3 sm:p-5 space-y-4 ${externalClasses.card}`}>
+              <div className="rounded-xl overflow-hidden p-3 sm:p-5 space-y-4 border border-border bg-card shadow-sm">
                 <SectionWorkflowNav
                   tabs={[
                     { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
@@ -593,8 +596,7 @@ export default function ShareableAnalysisPage() {
             {hasPitch && (
               <button
                 onClick={() => { setActiveStep(6); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className={`w-full ${externalClasses.buttonPrimary} py-3`}
-                style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
               >
                 <Presentation size={14} /> Continue to Pitch Deck →
               </button>
@@ -618,7 +620,7 @@ export default function ShareableAnalysisPage() {
             />
 
             {hasPitch ? (
-              <div className={`rounded-xl overflow-hidden p-3 sm:p-5 ${externalClasses.card}`}>
+              <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
                 <PitchDeck
                   product={product}
                   externalData={pitchDeckData}
@@ -639,13 +641,12 @@ export default function ShareableAnalysisPage() {
 
         {/* Footer */}
         <div className="pt-6 border-t border-border text-center space-y-3">
-          <p className={externalClasses.footer}>
-            Generated by {brand.name} · Analysis is for informational purposes only
+          <p className="typo-card-meta text-muted-foreground text-center">
+            Generated by Market Disruptor · Analysis is for informational purposes only
           </p>
           <a
             href="/"
-            className={externalClasses.buttonPrimary}
-            style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
           >
             <Rocket size={12} /> Run Your Own Analysis
           </a>

@@ -1,4 +1,4 @@
-const CACHE_NAME = "disruptor-v2";
+const CACHE_NAME = "disruptor-v3";
 const STATIC_CACHE = ["/favicon.ico", "/manifest.json", "/pwa-192.png", "/pwa-512.png"];
 
 function shouldCache(request, response) {
