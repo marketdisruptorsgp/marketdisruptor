@@ -73,7 +73,18 @@ export default function ReportPage() {
 
   const { products, selectedProduct, analysisParams, analysisId } = analysis;
 
+  // Allow time for state to hydrate from handleLoadSaved before redirecting
+  const [waitedForLoad, setWaitedForLoad] = React.useState(false);
+  React.useEffect(() => {
+    const t = setTimeout(() => setWaitedForLoad(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+
   if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
+    // Only redirect if we've waited AND state is still idle with no data
+    if (waitedForLoad && analysis.step === "idle" && products.length === 0) {
+      navigate("/", { replace: true });
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -86,7 +97,6 @@ export default function ReportPage() {
 
   const modeAccent = theme.primary;
   const isService = selectedProduct?.category === "Service";
-  const normalizedSupply = normalizeSupplyChain((selectedProduct as any).supplyChain);
 
   const handleManualSave = async () => {
     setIsSaving(true);
@@ -287,39 +297,27 @@ export default function ReportPage() {
         )}
 
         {/* 6. Supply Chain (products only) */}
-        {!isService && normalizedSupply && (
+        {!isService && selectedProduct.supplyChain && (
           <DetailPanel title="Supply Chain" icon={Package}>
             <div className="space-y-3">
-              {normalizedSupply.summary.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {normalizedSupply.summary.map((item) => (
-                    <div key={item.label} className="p-2.5 rounded-lg bg-muted border border-border">
-                      <p className="typo-card-eyebrow mb-0.5">{item.label}</p>
-                      <p className="text-xs text-foreground/80 leading-relaxed">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               <SupplySection title="Suppliers" icon={<Factory size={12} className="text-primary" />}
-                items={normalizedSupply.suppliers.map((s: any) => ({ name: s.name || s.supplier || "Unknown Supplier", badge: s.region || "N/A", detail: s.role || s.notes || "Supplier", url: s.url }))}
+                items={selectedProduct.supplyChain.suppliers.map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
                 color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
               <SupplySection title="Manufacturers" icon={<Package size={12} className="text-blue-500" />}
-                items={normalizedSupply.manufacturers.map((m: any) => ({ name: m.name || m.manufacturer || "Unknown Manufacturer", badge: m.region || "N/A", detail: m.moq ? `MOQ: ${m.moq}` : (m.role || "Manufacturer"), url: m.url }))}
+                items={selectedProduct.supplyChain.manufacturers.map((m: any) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
                 color="hsl(217 91% 60% / 0.08)" borderColor="hsl(217 91% 60% / 0.3)" />
               <SupplySection title="Vendors" icon={<Store size={12} className="text-purple-500" />}
-                items={normalizedSupply.vendors.map((v: any) => ({ name: v.name || "Unknown Vendor", badge: v.type || "Vendor", detail: v.notes || v.role || "", url: v.url }))}
+                items={selectedProduct.supplyChain.vendors.map((v: any) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
                 color="hsl(262 83% 58% / 0.08)" borderColor="hsl(262 83% 58% / 0.3)" />
               <SupplySection title="Distributors" icon={<Truck size={12} className="text-orange-500" />}
-                items={normalizedSupply.distributors.map((d: any) => ({ name: d.name || d.distributor || "Unknown Distributor", badge: d.region || "N/A", detail: d.notes || d.role || "Distributor", url: d.url }))}
+                items={selectedProduct.supplyChain.distributors.map((d: any) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
                 color="hsl(32 100% 50% / 0.08)" borderColor="hsl(32 100% 50% / 0.3)" />
-
-              {normalizedSupply.retailers.length > 0 && (
+              {selectedProduct.supplyChain.retailers?.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {normalizedSupply.retailers.map((r: any, i: number) => (
-                    <div key={r.name || `retailer-${i}`} className="p-2.5 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-                      <p className="text-xs font-bold text-foreground">{r.name || "Retailer"}</p>
-                      {r.marketShare && <p className="text-sm font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>}
+                  {selectedProduct.supplyChain.retailers.map((r: any) => (
+                    <div key={r.name} className="p-2.5 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+                      <p className="text-xs font-bold text-foreground">{r.name}</p>
+                      <p className="text-sm font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
                     </div>
                   ))}
                 </div>
@@ -409,30 +407,6 @@ function ProjectNotesSection({ analysisId, saveStepData }: { analysisId: string 
       <ProjectNotesEditor value={notes} onSave={handleSave} compact />
     </div>
   );
-}
-
-function normalizeSupplyChain(raw: unknown) {
-  if (!raw || typeof raw !== "object") return null;
-  const data = raw as Record<string, unknown>;
-
-  const toArray = (value: unknown): Record<string, unknown>[] =>
-    Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
-  const toText = (value: unknown) => (typeof value === "string" ? value : "");
-
-  const summary = [
-    { label: "Materials", value: toText(data.materials) },
-    { label: "Manufacturing", value: toText(data.manufacturing) },
-    { label: "Estimated COGS", value: toText(data.estimatedCOGS) },
-  ].filter((item) => item.value);
-
-  return {
-    suppliers: toArray(data.suppliers),
-    manufacturers: toArray(data.manufacturers),
-    vendors: toArray(data.vendors),
-    distributors: toArray(data.distributors),
-    retailers: toArray(data.retailers),
-    summary,
-  };
 }
 
 function SupplySection({

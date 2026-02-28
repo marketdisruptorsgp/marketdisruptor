@@ -26,15 +26,3 @@ export function buildPublicUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${getPublicBaseUrl()}${normalizedPath}`;
 }
-
-export function redirectLegacyHostToCanonical(): void {
-  if (typeof window === "undefined") return;
-
-  const { hostname, pathname, search, hash } = window.location;
-  if (!LEGACY_HOSTS.has(hostname)) return;
-
-  const target = `${CANONICAL_PUBLISHED_URL}${pathname}${search}${hash}`;
-  if (window.location.href !== target) {
-    window.location.replace(target);
-  }
-}
