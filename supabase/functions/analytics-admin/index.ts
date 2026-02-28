@@ -282,6 +282,58 @@ Deno.serve(async (req) => {
       return respond(data || []);
     }
 
+    if (action === "health") {
+      const { data: errors } = await supabase
+        .from("analytics_events")
+        .select("id, event_type, page_path, element_id, section_id, metadata, timestamp, device_type, viewport_width, session_id")
+        .in("event_type", ["js_error", "api_failure", "render_error", "slow_request"])
+        .gte("timestamp", since)
+        .order("timestamp", { ascending: false })
+        .limit(500);
+
+      // Aggregate by type
+      const summary: Record<string, { count: number; critical: number; medium: number; low: number; pages: Record<string, number> }> = {};
+      (errors || []).forEach((e: any) => {
+        const t = e.event_type;
+        if (!summary[t]) summary[t] = { count: 0, critical: 0, medium: 0, low: 0, pages: {} };
+        summary[t].count++;
+        const sev = e.metadata?.severity || "medium";
+        if (sev === "critical") summary[t].critical++;
+        else if (sev === "medium") summary[t].medium++;
+        else summary[t].low++;
+        const p = e.page_path || "unknown";
+        summary[t].pages[p] = (summary[t].pages[p] || 0) + 1;
+      });
+
+      // Anomaly detection: rage clicks without navigation (stuck users)
+      const { data: rageEvents } = await supabase
+        .from("analytics_events")
+        .select("session_id, element_id, page_path, timestamp")
+        .eq("event_type", "rage_click")
+        .gte("timestamp", since)
+        .limit(200);
+
+      const stuckSessions: Record<string, { element: string; page: string; count: number }> = {};
+      (rageEvents || []).forEach((e: any) => {
+        const key = e.session_id;
+        if (!stuckSessions[key]) stuckSessions[key] = { element: e.element_id || "", page: e.page_path || "", count: 0 };
+        stuckSessions[key].count++;
+      });
+
+      const stuckUsers = Object.entries(stuckSessions)
+        .filter(([, v]) => v.count >= 3)
+        .map(([sid, v]) => ({ session_id: sid, ...v }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 20);
+
+      return respond({
+        errors: errors || [],
+        summary,
+        stuckUsers,
+        totalIssues: (errors || []).length,
+      });
+    }
+
     return respond({ error: "Unknown action" });
   } catch (err) {
     console.error("Admin error:", err);
