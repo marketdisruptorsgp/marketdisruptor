@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getResumeRoute } from "@/utils/analysisSteps";
 
 export type AnalysisStep = "idle" | "scraping" | "analyzing" | "done" | "error";
@@ -718,7 +718,22 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
     // Ensure all products have an id and required fields (photo analyses may omit them)
     const rawProducts = Array.isArray(analysis.products) ? analysis.products : [];
+    const normalizeSupplyChainShape = (rawSupply: unknown) => {
+      if (!rawSupply || typeof rawSupply !== "object") return rawSupply;
+      const supply = rawSupply as Record<string, unknown>;
+      const asArray = (v: unknown) => (Array.isArray(v) ? v : []);
+      return {
+        ...supply,
+        suppliers: asArray(supply.suppliers),
+        manufacturers: asArray(supply.manufacturers),
+        vendors: asArray(supply.vendors),
+        distributors: asArray(supply.distributors),
+        retailers: asArray(supply.retailers),
+      };
+    };
+
     const sanitizedProducts = rawProducts.map((p: any, idx: number) => {
+      const normalizedSupplyChain = normalizeSupplyChainShape((p as any).supplyChain || (p as any).supplyChainIntel);
       const base = {
         id: p.id || `product-${analysis.id}-${idx}`,
         name: p.name || "Untitled Product",
@@ -735,6 +750,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         assumptionsMap: Array.isArray(p.assumptionsMap) ? p.assumptionsMap : [],
         flippedIdeas: Array.isArray(p.flippedIdeas) ? p.flippedIdeas : [],
         confidenceScores: p.confidenceScores || { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
+        supplyChain: normalizedSupplyChain,
       };
       // Merge extra fields from DB (pricingIntel, supplyChain, etc.) without overriding guaranteed defaults
       return { ...p, ...base };
@@ -827,6 +843,51 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, [navigate]);
+
+  // Deep-link hydration: allow opening /analysis/:id/{step} directly
+  const location = useLocation();
+  useEffect(() => {
+    const match = location.pathname.match(/^\/analysis\/([0-9a-f-]+)\/(report|disrupt|redesign|stress-test|pitch)$/i);
+    if (!match) return;
+
+    const routeAnalysisId = match[1];
+    if (!user?.id) return;
+
+    // Already hydrated for this analysis
+    if (analysisId === routeAnalysisId && step === "done" && products.length > 0) return;
+
+    // Only auto-load when context is empty/idle
+    if (step !== "idle" || products.length > 0) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await (supabase.from("saved_analyses") as any)
+          .select("*")
+          .eq("id", routeAnalysisId)
+          .single();
+
+        if (cancelled) return;
+
+        if (error || !data) {
+          toast.error("Could not load this analysis link.");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        handleLoadSaved(data);
+      } catch {
+        if (!cancelled) {
+          toast.error("Could not load this analysis link.");
+          navigate("/", { replace: true });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname, user?.id, analysisId, step, products.length, navigate, handleLoadSaved]);
 
   return (
     <AnalysisContext.Provider value={{
