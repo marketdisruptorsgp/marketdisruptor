@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
+import { resolveMode, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,8 +18,12 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    const mode = resolveMode("business");
+    const modeGuard = getModeGuardPrompt(mode);
+
     const systemPrompt = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFramework()}
+${modeGuard}
 
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
