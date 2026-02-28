@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ScrollToTopProvider } from "@/components/ScrollToTopProvider";
+import { lazy, Suspense, useEffect } from "react";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import DashboardPage from "./pages/DashboardPage";
@@ -33,10 +34,17 @@ import NotFound from "./pages/NotFound";
 import InstantAnalysisPage from "./pages/InstantAnalysisPage";
 import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
 
+const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
+
 const queryClient = new QueryClient();
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+
+  // Silent analytics tracker — no UI impact
+  useEffect(() => {
+    import("@/lib/analyticsTracker").then(({ initAnalyticsTracker }) => initAnalyticsTracker());
+  }, []);
 
   if (loading) {
     return (
@@ -58,6 +66,7 @@ function AppRoutes() {
 
   return (
     <Routes>
+      <Route path="/admin/analytics" element={<Suspense fallback={<div className="min-h-screen bg-background" />}><AdminAnalyticsPage /></Suspense>} />
       <Route path="/instant-analysis" element={<InstantAnalysisPage />} />
       <Route path="/share" element={<SharePage />} />
       <Route path="/analysis/share/:id" element={<ShareableAnalysisPage />} />
