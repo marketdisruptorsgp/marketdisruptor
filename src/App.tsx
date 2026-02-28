@@ -32,6 +32,7 @@ import StartBusinessPage from "./pages/StartBusinessPage";
 import NotFound from "./pages/NotFound";
 import InstantAnalysisPage from "./pages/InstantAnalysisPage";
 import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
+import { redirectLegacyHostToCanonical } from "@/lib/publicUrl";
 
 const queryClient = new QueryClient();
 
@@ -93,25 +94,29 @@ function AppRoutes() {
   );
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTopProvider>
-          <AuthProvider>
-            <SubscriptionProvider>
-              <AnalysisProvider>
-                <AppRoutes />
-                <HelpAssistantPanel />
-              </AnalysisProvider>
-            </SubscriptionProvider>
-          </AuthProvider>
-        </ScrollToTopProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  redirectLegacyHostToCanonical();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTopProvider>
+            <AuthProvider>
+              <SubscriptionProvider>
+                <AnalysisProvider>
+                  <AppRoutes />
+                  <HelpAssistantPanel />
+                </AnalysisProvider>
+              </SubscriptionProvider>
+            </AuthProvider>
+          </ScrollToTopProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
