@@ -1,103 +1,127 @@
-── INSTRUCTION PRECEDENCE ──
-
-When directives conflict, obey this priority order:
-
-1. Anti-default safeguards
-
-2. Mode-specific leverage rules
-
-3. Constraint-driven reasoning process
-
-4. Decision-first output standard
-
-5. Visual representation rules
-
-6. Distillation requirements
-
-Output formatting must never override causal validity.
-
-Visual clarity must never introduce speculative structure.  
   
-Visual requirement applies only to:
+NODE TYPE → VISUAL STYLE
 
-• constraints
+constraint → high contrast border
 
-• causal chains
+effect → neutral
 
-• leverage mechanisms
+leverage → emphasized
 
-• system structures
+intervention → action color
 
-• tradeoffs
+outcome → success tone  
+Surface v3 Visual Specs & Action Plans in UI
 
-Observations, assumptions, and uncertainties do not require visual mapping.  
-  
-  
-Reasoning Framework v3: Decision-Grade Output Engine
+### Problem
 
-### What This Changes
+The reasoning framework tells the AI to think in structural visuals and action plans, but the per-function JSON schemas don't include these fields — so the AI can't output them. And the frontend has no renderers for them.
 
-Upgrade the reasoning framework in `reasoningFramework.ts` to enforce **decision-first output standards**, **progressive disclosure**, **visual-first representation**, and two new output schemas (`VISUAL_SPEC_SCHEMA`, `ACTION_PLAN_SCHEMA`). This is purely a prompt-layer upgrade — no frontend or JSON schema changes.
+### Scope
 
-### Current State
+Start with `business-model-analysis` as proof of concept, then extend to the remaining 4 pipeline functions.
 
-The existing framework (v2) has the 9-step adaptive analysis process, anti-default safeguards, lens integration, scoring calibration, and quality standard. It tells the AI **how to reason** but not **how to structure output for decision usability**.
+### Implementation
 
-### What v3 Adds
+**1. Create `StructuralVisual` renderer component**
+New file: `src/components/StructuralVisual.tsx`
 
-Seven new directives layered onto the existing 9-step process:
+Renders visual specs from AI output. Supports these diagram types using pure CSS/HTML (no charting library needed):
 
-1. **Primary Operating Principles** — 7 rules (constraint-driven innovation, causal analysis, visual translatability, executive-consumable default, progressive depth, structure > coverage, fewer high-confidence insights)
-2. **Decision-First Output Standard** — default responses highlight only system-limiting constraints, ranked leverage, simplest viable redesign, explicit uncertainty
-3. **Progressive Disclosure Model** — 3 levels: L1 Executive Signal (default), L2 Structural Explanation, L3 Evidence & Validation
-4. **Visual-First Representation Rule** — every insight must map to: constraint map, causal chain, leverage hierarchy, system model, flow structure, impact pathway, or tradeoff matrix
-5. **Distillation Requirements** — 1 insight = 1 structural idea, no redundancy, no filler, 60-second comprehension target
-6. **Visual Spec Schema** — structured spec for programmatic rendering (visual_type, entities, relationships, layout_logic, interpretation_guide, priority_highlights)
-7. **Action Plan Schema** — structured intervention format (initiative_name, objective, leverage_type, mechanism_of_change, risk_profile, validation_strategy, decision_readiness 1-5)
+- `constraint_map` — nodes with directed edges showing friction → constraint → impact
+- `causal_chain` — linear left-to-right flow with arrows
+- `leverage_hierarchy` — vertical ranked list with priority indicators
 
-### Implementation Plan
+Each node shows: label, type badge (constraint/effect/leverage/intervention/outcome), priority level.
+Edges rendered as labeled arrows between nodes.
+Interpretation guide shown as a one-line subtitle.
 
-**File 1: `supabase/functions/_shared/reasoningFramework.ts**`
+**2. Create `ActionPlanCard` component**
+New file: `src/components/ActionPlanCard.tsx`
 
-Expand the `REASONING_FRAMEWORK` constant to add the 7 new directive blocks **after** the existing quality standard section but **before** the closing `END INTERNAL FRAMEWORK` line. The existing 9-step process, anti-default safeguards, lens integration, and scoring calibration remain untouched.
+Renders a single action plan with:
 
-New sections added (in order):
+- Initiative name (title)
+- Leverage type badge (optimization / structural / redesign)
+- Mechanism of change (one-liner)
+- Implementation complexity + time horizon
+- Decision readiness score (1–5 visual dots)
+- Expandable: risk profile, validation strategy, dependencies (using existing `DetailPanel`)
 
-- `── PRIMARY OPERATING PRINCIPLES ──`
-- `── DECISION-FIRST OUTPUT STANDARD ──`
-- `── PROGRESSIVE DISCLOSURE MODEL ──`
-- `── VISUAL-FIRST REPRESENTATION RULE ──`
-- `── DISTILLATION REQUIREMENTS ──`
-- `── VISUAL_SPEC_SCHEMA ──`
-- `── ACTION_PLAN_SCHEMA ──`
+**3. Update `business-model-analysis` edge function JSON schema**
+File: `supabase/functions/business-model-analysis/index.ts`
 
-Each section is transcribed directly from the user's specification with no interpretation changes.
+Add two new top-level fields to the JSON template:
 
-**Estimated prompt size increase**: ~120 lines added to existing ~125 lines. Total framework ~245 lines.
+```
+"visualSpecs": [
+  {
+    "visual_type": "constraint_map | causal_chain | leverage_hierarchy",
+    "title": "...",
+    "purpose": "...",
+    "nodes": [{ "id": "...", "label": "...", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1|2|3 }],
+    "edges": [{ "from": "...", "to": "...", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "..." }],
+    "layout": "linear | vertical | hierarchical",
+    "interpretation": "One sentence"
+  }
+],
+"actionPlans": [
+  {
+    "initiative": "...",
+    "objective": "...",
+    "leverage_type": "optimization | structural_improvement | redesign",
+    "mechanism": "...",
+    "complexity": "low | medium | high",
+    "time_horizon": "near_term | mid_term | long_term",
+    "risk": { "execution": "...", "adoption": "...", "market": "..." },
+    "validation": "...",
+    "decision_readiness": 1-5,
+    "confidence": "high | medium | exploratory"
+  }
+]
+```
 
-### What Does NOT Change
+Add prompt instruction: "Generate 1-2 visual specs for the dominant constraint structure. Generate 2-3 action plans for highest-leverage interventions."
 
-- The 9-step adaptive analysis process (Steps 1-9)
-- Anti-default safeguards
-- Lens integration rules
-- Scoring calibration rules
-- Mode enforcement (`modeEnforcement.ts`) — no changes
-- Lens prompt (`lensPrompt.ts`) — no changes
-- Edge function JSON schemas — output structures stay identical
-- Per-function system prompts in edge functions — untouched
-- Frontend components — no UI changes
-- `getReasoningFramework()` export interface — unchanged
+**4. Update `BusinessModelAnalysis.tsx` frontend**
+File: `src/components/BusinessModelAnalysis.tsx`
+
+- Add `visualSpecs` and `actionPlans` to the `BusinessModelAnalysisData` interface
+- Render `StructuralVisual` components at top of the "Business Reality" tab (before text content) — this is the L1 Executive Signal
+- Render `ActionPlanCard` components in the "Reinvented Model" tab alongside the implementation roadmap
+- Both use progressive disclosure: visual + one-line takeaway visible by default, details in `DetailPanel`
+
+**5. Extend to remaining 4 edge functions**
+Same pattern — add `visualSpecs` and `actionPlans` to JSON schemas in:
+
+- `first-principles-analysis/index.ts`
+- `critical-validation/index.ts`
+- `generate-flip-ideas/index.ts`
+- `generate-pitch-deck/index.ts`
+
+Update corresponding frontend components:
+
+- `FirstPrinciplesAnalysis.tsx` — visual in "reality" tab
+- `CriticalValidation.tsx` — visual in "debate" tab
+- (flip-ideas and pitch-deck render through existing components)
+
+### Files Created
+
+1. `src/components/StructuralVisual.tsx`
+2. `src/components/ActionPlanCard.tsx`
 
 ### Files Modified
 
-1. `supabase/functions/_shared/reasoningFramework.ts` — add 7 new directive sections to the `REASONING_FRAMEWORK` constant
+1. `supabase/functions/business-model-analysis/index.ts` — add visual/action schema
+2. `src/components/BusinessModelAnalysis.tsx` — render new fields
+3. `supabase/functions/first-principles-analysis/index.ts` — add visual/action schema
+4. `supabase/functions/critical-validation/index.ts` — add visual/action schema
+5. `supabase/functions/generate-flip-ideas/index.ts` — add visual/action schema
+6. `supabase/functions/generate-pitch-deck/index.ts` — add visual/action schema
+7. `src/components/FirstPrinciplesAnalysis.tsx` — render new fields
+8. `src/components/CriticalValidation.tsx` — render new fields
 
 ### Risk
 
-- Token usage increase ~40-50% on the framework prompt. Monitor for timeout issues on `analyze-products` (already near limits).
-- The `VISUAL_SPEC_SCHEMA` and `ACTION_PLAN_SCHEMA` are internal reasoning guidance — they will influence AI thinking but won't force JSON output changes because per-function schemas override. If you later want AI to actually emit these schemas, per-function JSON templates would need updating (separate task).
-- Progressive disclosure is prompt guidance only — the frontend doesn't currently have L1/L2/L3 rendering. This plants the seed for future UI work.
-
-### Deploy
-
-All 6 edge functions that import `getReasoningFramework()` will automatically pick up the changes on next deploy: `analyze-products`, `first-principles-analysis`, `generate-flip-ideas`, `critical-validation`, `generate-pitch-deck`, `business-model-analysis`.
+- Token increase ~10-15% per function from expanded JSON schema
+- AI may not always populate visual specs if constraints aren't clear — components handle empty/missing gracefully
+- Backward compatible: existing saved analyses without these fields still render normally
