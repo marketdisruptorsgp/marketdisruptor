@@ -4,7 +4,7 @@ import "./index.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
 
-const SW_RESET_KEY = "md_sw_reset_v2";
+const SW_RESET_KEY = "md_sw_reset_v3";
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
