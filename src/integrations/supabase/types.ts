@@ -14,6 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_admin_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          label: string | null
+          last_used_at: string | null
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          last_used_at?: string | null
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          last_used_at?: string | null
+          token_hash?: string
+        }
+        Relationships: []
+      }
+      analytics_events: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          element_id: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          page_path: string | null
+          scroll_percent: number | null
+          section_id: string | null
+          session_id: string
+          time_on_section_ms: number | null
+          timestamp: string
+          viewport_height: number | null
+          viewport_width: number | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          element_id?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          page_path?: string | null
+          scroll_percent?: number | null
+          section_id?: string | null
+          session_id: string
+          time_on_section_ms?: number | null
+          timestamp?: string
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          element_id?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          page_path?: string | null
+          scroll_percent?: number | null
+          section_id?: string | null
+          session_id?: string
+          time_on_section_ms?: number | null
+          timestamp?: string
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Relationships: []
+      }
+      analytics_insights: {
+        Row: {
+          computed_at: string
+          created_at: string
+          id: string
+          insight_type: string
+          payload: Json
+          period_end: string
+          period_start: string
+        }
+        Insert: {
+          computed_at?: string
+          created_at?: string
+          id?: string
+          insight_type: string
+          payload?: Json
+          period_end: string
+          period_start: string
+        }
+        Update: {
+          computed_at?: string
+          created_at?: string
+          id?: string
+          insight_type?: string
+          payload?: Json
+          period_end?: string
+          period_start?: string
+        }
+        Relationships: []
+      }
+      analytics_sessions: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          id: string
+          is_returning: boolean | null
+          landing_page: string | null
+          last_active_at: string
+          page_count: number | null
+          referrer: string | null
+          session_id: string
+          started_at: string
+          total_duration_ms: number | null
+          user_agent_hash: string | null
+          viewport_height: number | null
+          viewport_width: number | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          is_returning?: boolean | null
+          landing_page?: string | null
+          last_active_at?: string
+          page_count?: number | null
+          referrer?: string | null
+          session_id: string
+          started_at?: string
+          total_duration_ms?: number | null
+          user_agent_hash?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          is_returning?: boolean | null
+          landing_page?: string | null
+          last_active_at?: string
+          page_count?: number | null
+          referrer?: string | null
+          session_id?: string
+          started_at?: string
+          total_duration_ms?: number | null
+          user_agent_hash?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           created_at: string

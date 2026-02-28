@@ -39,3 +39,12 @@ verify_jwt = false
 [functions.help-assistant]
 verify_jwt = false
 
+[functions.ingest-analytics]
+verify_jwt = false
+
+[functions.analytics-admin]
+verify_jwt = false
+
+[functions.compute-analytics-insights]
+verify_jwt = false
+
