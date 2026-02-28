@@ -72,15 +72,7 @@ function isStale(iso: string) {
   return daysOld > 30;
 }
 
-function deduplicateAnalyses(items: SavedAnalysis[]): SavedAnalysis[] {
-  const seen = new Set<string>();
-  return items.filter((a) => {
-    const key = `${a.category}|${a.analysis_type ?? "product"}|${a.batch_size}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
+// Deduplication removed — was hiding legitimate projects with same category/type/batch_size
 
 function getScoreColor(score: number) {
   if (score >= 8) return "hsl(var(--score-high))";
@@ -321,9 +313,8 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
     } else {
       const all = ((data as unknown) as SavedAnalysis[]) || [];
       const withoutFirstPrinciples = all.filter((a) => a.analysis_type !== "first_principles");
-      const deduped = deduplicateAnalyses(withoutFirstPrinciples);
-      setAnalyses(deduped);
-      onCountChange?.(deduped.length);
+      setAnalyses(withoutFirstPrinciples);
+      onCountChange?.(withoutFirstPrinciples.length);
     }
     setLoading(false);
   };
