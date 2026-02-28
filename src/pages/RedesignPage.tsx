@@ -62,10 +62,9 @@ export default function RedesignPage() {
         <ModeHeader
           stepNumber={4}
           stepTitle="Redesign"
-          subtitle={`Interactive concept illustrations for <strong class="text-foreground">${selectedProduct.name}</strong> — visualizing the reinvented model.`}
+          subtitle={`Concept illustrations for <strong class="text-foreground">${selectedProduct.name}</strong>`}
           accentColor={theme.primary}
           explainerKey="step-redesign"
-          actions={<InfoExplainer explainerKey="lens-selector" />}
         />
 
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
