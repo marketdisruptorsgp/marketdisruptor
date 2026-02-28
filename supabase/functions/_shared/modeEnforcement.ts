@@ -233,6 +233,40 @@ export function resolveMode(
  */
 export function getModeGuardPrompt(mode: AnalysisMode): string {
   const cap = MODE_CAPABILITIES[mode];
+
+  const STRUCTURAL_DIMENSIONS: Record<AnalysisMode, string> = {
+    product: `
+STRUCTURAL ANALYSIS DIMENSIONS (Step 7):
+  • Physical limits — material properties, form factor constraints, physics boundaries
+  • Manufacturability — production complexity, tooling, supply chain feasibility
+  • Cost drivers — BOM, labor, logistics, margin structure
+  • Usability burden — learning curve, cognitive load, ergonomic friction
+  • Dependency structure — ecosystem lock-in, accessory requirements, platform dependencies
+
+LEVERAGE DOMAIN: Valid leverage = artifact change or architecture change.
+Do NOT propose flow changes or value engine changes unless a constraint explicitly crosses layers.`,
+    service: `
+STRUCTURAL ANALYSIS DIMENSIONS (Step 7):
+  • Process flow — sequence of delivery steps, handoffs, wait states
+  • Bottlenecks — capacity constraints, throughput limits, queuing effects
+  • Capacity limits — staff utilization, scheduling density, peak load handling
+  • Coordination cost — multi-party synchronization, communication overhead
+  • Behavioral barriers — customer adoption friction, habit change requirements
+
+LEVERAGE DOMAIN: Valid leverage = delivery flow change.
+Do NOT propose artifact changes or value engine changes unless a constraint explicitly crosses layers.`,
+    business: `
+STRUCTURAL ANALYSIS DIMENSIONS (Step 7):
+  • Revenue mechanics — pricing model, transaction structure, value capture method
+  • Cost structure — fixed vs variable, cost drivers, margin architecture
+  • Growth constraints — what limits scale, customer acquisition economics
+  • Competitive dynamics — moat depth, substitution risk, network effects
+  • Risk exposure — concentration risk, regulatory risk, market timing risk
+
+LEVERAGE DOMAIN: Valid leverage = value engine change.
+Do NOT propose artifact changes or flow changes unless a constraint explicitly crosses layers.`,
+  };
+
   return `
 ═══ MODE ENFORCEMENT: ${mode.toUpperCase()} ANALYSIS ═══
 
@@ -241,11 +275,13 @@ ${cap.allow.map((d) => `  ✓ ${d}`).join("\n")}
 
 BLOCKED DOMAINS (must NOT produce):
 ${cap.block.map((d) => `  ✗ ${d}`).join("\n")}
+${STRUCTURAL_DIMENSIONS[mode]}
 
 ANTI-DRIFT GUARDRAILS:
 • Do NOT default to AI-enabled solutions without evidence of necessity
 • Apply patents ONLY when structurally relevant to ${mode} analysis
 • Each insight must be unique to the ${mode} lens
 • Cross-mode logic is prohibited
+• Every constraint must connect to: cost, time, adoption, scale, reliability, or risk
 `;
 }

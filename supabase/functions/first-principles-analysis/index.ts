@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
+import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,6 +26,8 @@ serve(async (req) => {
     const modeGuard = getModeGuardPrompt(mode);
 
     const OS_PREAMBLE = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
+${getReasoningFramework()}
+${modeGuard}
 
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
