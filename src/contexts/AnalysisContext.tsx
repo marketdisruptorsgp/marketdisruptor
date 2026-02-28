@@ -846,6 +846,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // Deep-link hydration: allow opening /analysis/:id/{step} directly
   const location = useLocation();
+  const deepLinkLoadingRef = useRef(false);
   useEffect(() => {
     const match = location.pathname.match(/^\/analysis\/([0-9a-f-]+)\/(report|disrupt|redesign|stress-test|pitch)$/i);
     if (!match) return;
@@ -856,9 +857,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     // Already hydrated for this analysis
     if (analysisId === routeAnalysisId && step === "done" && products.length > 0) return;
 
-    // Only auto-load when context is empty/idle
-    if (step !== "idle" || products.length > 0) return;
+    // Only auto-load when context is empty/idle and not already loading
+    if (step !== "idle" || products.length > 0 || deepLinkLoadingRef.current) return;
 
+    deepLinkLoadingRef.current = true;
     let cancelled = false;
     (async () => {
       try {
@@ -872,6 +874,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         if (error || !data) {
           toast.error("Could not load this analysis link.");
           navigate("/", { replace: true });
+          deepLinkLoadingRef.current = false;
           return;
         }
 
@@ -880,6 +883,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         if (!cancelled) {
           toast.error("Could not load this analysis link.");
           navigate("/", { replace: true });
+          deepLinkLoadingRef.current = false;
         }
       }
     })();
