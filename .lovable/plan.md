@@ -1,124 +1,103 @@
-Stop identifying constraints when:
+── INSTRUCTION PRECEDENCE ──
 
-• additional constraints do not change leverage decisions OR
+When directives conflict, obey this priority order:
 
-• dominant outcome drivers are explained  
+1. Anti-default safeguards
+
+2. Mode-specific leverage rules
+
+3. Constraint-driven reasoning process
+
+4. Decision-first output standard
+
+5. Visual representation rules
+
+6. Distillation requirements
+
+Output formatting must never override causal validity.
+
+Visual clarity must never introduce speculative structure.  
   
-Every relevant friction MUST be assigned Tier 1, 2, or 3.
+Visual requirement applies only to:
 
-Redesign decisions may reference only Tier 1 or Tier 2.  
+• constraints
+
+• causal chains
+
+• leverage mechanisms
+
+• system structures
+
+• tradeoffs
+
+Observations, assumptions, and uncertainties do not require visual mapping.  
   
-Technology may only be proposed if:
-
-• a Tier 1 constraint requires capability change AND
-
-• non-technical interventions cannot remove it  
   
-Add to mode guard:
-
-Product → artifact change  
-Service → flow change  
-Business → value engine change
-
-Every constraint should connect to one of these:
-
-• cost  
-• time  
-• adoption  
-• scale  
-• reliability  
-• risk
-
-For each leverage point, state confidence level and what evidence would change it.  
-  
-Reasoning Framework Upgrade: Constraint-Driven Reinvention Engine
+Reasoning Framework v3: Decision-Grade Output Engine
 
 ### What This Changes
 
-Replace the current 6-part reasoning framework in `reasoningFramework.ts` with the constraint-driven adaptive analysis process you provided. This is the hidden prompt layer injected into all 5 edge functions.
+Upgrade the reasoning framework in `reasoningFramework.ts` to enforce **decision-first output standards**, **progressive disclosure**, **visual-first representation**, and two new output schemas (`VISUAL_SPEC_SCHEMA`, `ACTION_PLAN_SCHEMA`). This is purely a prompt-layer upgrade — no frontend or JSON schema changes.
 
 ### Current State
 
-The existing `reasoningFramework.ts` has 6 sections:
+The existing framework (v2) has the 9-step adaptive analysis process, anti-default safeguards, lens integration, scoring calibration, and quality standard. It tells the AI **how to reason** but not **how to structure output for decision usability**.
 
-1. Harvard-Style Structured Reasoning
-2. Deep First-Principles Validation
-3. Market Desirability Test
-4. Anti-Tech-Default Rule
-5. Realism Constraint + Score Calibration
-6. Output Quality Filters
+### What v3 Adds
 
-These are **heuristic guidelines** — they tell the AI what to think about but not **in what order** or **how to connect conclusions**. The process is flat: all 6 run in parallel with no dependency chain.
+Seven new directives layered onto the existing 9-step process:
 
-### What the New Framework Adds
-
-The new framework is **sequential and causal** — each step feeds the next:
-
-1. **Domain Confirmation** → locks the system type
-2. **Objective Definition** → defines success independent of current solution
-3. **First-Principles Decomposition** → separates constraints from assumptions (with a stopping rule)
-4. **Friction Discovery** → wide exploratory scan
-5. **Friction Relevance Qualification** → Tier 1/2/3 classification (only Tier 1-2 drive redesign)
-6. **Constraint Mapping** → causal chains: friction → constraint → system impact
-7. **Mode-Specific Structural Analysis** → dedicated evaluation dimensions per mode
-8. **Leverage Identification** → classify as optimization / structural improvement / system redesign
-9. **Solution Generation** → constraint-driven only, with explicit transformation tools
-
-Plus three cross-cutting rules:
-
-- **Anti-Default Safeguards** (technology requires causal necessity)
-- **Lens Integration** (reweight based on active lens)
-- **Quality Standard** (clarity > completeness, causality > creativity)
+1. **Primary Operating Principles** — 7 rules (constraint-driven innovation, causal analysis, visual translatability, executive-consumable default, progressive depth, structure > coverage, fewer high-confidence insights)
+2. **Decision-First Output Standard** — default responses highlight only system-limiting constraints, ranked leverage, simplest viable redesign, explicit uncertainty
+3. **Progressive Disclosure Model** — 3 levels: L1 Executive Signal (default), L2 Structural Explanation, L3 Evidence & Validation
+4. **Visual-First Representation Rule** — every insight must map to: constraint map, causal chain, leverage hierarchy, system model, flow structure, impact pathway, or tradeoff matrix
+5. **Distillation Requirements** — 1 insight = 1 structural idea, no redundancy, no filler, 60-second comprehension target
+6. **Visual Spec Schema** — structured spec for programmatic rendering (visual_type, entities, relationships, layout_logic, interpretation_guide, priority_highlights)
+7. **Action Plan Schema** — structured intervention format (initiative_name, objective, leverage_type, mechanism_of_change, risk_profile, validation_strategy, decision_readiness 1-5)
 
 ### Implementation Plan
 
-**Step 1: Replace `reasoningFramework.ts**`
+**File 1: `supabase/functions/_shared/reasoningFramework.ts**`
 
-Rewrite the `REASONING_FRAMEWORK` constant with the new 9-step adaptive analysis process, anti-default safeguards, lens integration rules, and quality standard. Keep the same export interface (`getReasoningFramework()`).
+Expand the `REASONING_FRAMEWORK` constant to add the 7 new directive blocks **after** the existing quality standard section but **before** the closing `END INTERNAL FRAMEWORK` line. The existing 9-step process, anti-default safeguards, lens integration, and scoring calibration remain untouched.
 
-**Step 2: Update `modeGuardPrompt` in `modeEnforcement.ts**`
+New sections added (in order):
 
-Align the mode guard prompt to reference the new Step 7 dimensions. Currently it lists allowed/blocked domains. Enhance it to include the mode-specific structural analysis dimensions from the new framework (e.g., Product: physical limits, manufacturability, cost drivers, usability burden, dependency structure).
+- `── PRIMARY OPERATING PRINCIPLES ──`
+- `── DECISION-FIRST OUTPUT STANDARD ──`
+- `── PROGRESSIVE DISCLOSURE MODEL ──`
+- `── VISUAL-FIRST REPRESENTATION RULE ──`
+- `── DISTILLATION REQUIREMENTS ──`
+- `── VISUAL_SPEC_SCHEMA ──`
+- `── ACTION_PLAN_SCHEMA ──`
 
-**Step 3: Add `getModeGuardPrompt()` to `business-model-analysis**`
+Each section is transcribed directly from the user's specification with no interpretation changes.
 
-This is a known gap — the business-model-analysis edge function currently imports `getReasoningFramework` and `buildLensPrompt` but not `getModeGuardPrompt`. Add mode enforcement to match the other pipeline functions.
-
-**Step 4: Preserve existing score calibration**
-
-The current score calibration rules (5-6 default, burden of proof for ≥8, long-horizon cap at 6) are embedded in individual edge function prompts, not just the framework. These stay. The new framework's quality standard complements rather than replaces per-function calibration.
+**Estimated prompt size increase**: ~120 lines added to existing ~125 lines. Total framework ~245 lines.
 
 ### What Does NOT Change
 
-- **Edge function JSON schemas** — output structures stay identical
-- `**modeEnforcement.ts` data filtering** — capability matrix and `filterInputData` untouched
-- `**lensPrompt.ts**` — lens injection logic unchanged
-- **Per-function system prompts** — the OS_PREAMBLE, persona descriptions, and JSON templates in each edge function remain
-- **Frontend components** — no UI changes
-
-### Technical Detail
-
-The new framework is ~120 lines of prompt text, replacing ~100 lines. It injects via the same `getReasoningFramework()` call already used by all 5 edge functions:
-
-- `analyze-products` (line 94)
-- `business-model-analysis` (line 21)
-- `generate-flip-ideas` (line 27)
-- `critical-validation` (line 26)
-- `generate-pitch-deck` (line 26)
-
-`first-principles-analysis` does NOT currently import `getReasoningFramework` — it uses its own inline preamble. This should also be updated to import the shared framework for consistency.
+- The 9-step adaptive analysis process (Steps 1-9)
+- Anti-default safeguards
+- Lens integration rules
+- Scoring calibration rules
+- Mode enforcement (`modeEnforcement.ts`) — no changes
+- Lens prompt (`lensPrompt.ts`) — no changes
+- Edge function JSON schemas — output structures stay identical
+- Per-function system prompts in edge functions — untouched
+- Frontend components — no UI changes
+- `getReasoningFramework()` export interface — unchanged
 
 ### Files Modified
 
-1. `supabase/functions/_shared/reasoningFramework.ts` — full rewrite of prompt constant
-2. `supabase/functions/_shared/modeEnforcement.ts` — enhance `getModeGuardPrompt()` with mode-specific structural dimensions
-3. `supabase/functions/business-model-analysis/index.ts` — add `getModeGuardPrompt` import and injection
-4. `supabase/functions/first-principles-analysis/index.ts` — add `getReasoningFramework()` import and injection
+1. `supabase/functions/_shared/reasoningFramework.ts` — add 7 new directive sections to the `REASONING_FRAMEWORK` constant
 
 ### Risk
 
-Prompt changes affect all AI output quality. The new framework is more structured and sequential, which should improve consistency, but may increase token usage by ~15-20%. Monitor for:
+- Token usage increase ~40-50% on the framework prompt. Monitor for timeout issues on `analyze-products` (already near limits).
+- The `VISUAL_SPEC_SCHEMA` and `ACTION_PLAN_SCHEMA` are internal reasoning guidance — they will influence AI thinking but won't force JSON output changes because per-function schemas override. If you later want AI to actually emit these schemas, per-function JSON templates would need updating (separate task).
+- Progressive disclosure is prompt guidance only — the frontend doesn't currently have L1/L2/L3 rendering. This plants the seed for future UI work.
 
-- Longer response times
-- Any change in score distributions
-- Whether the tiered friction classification actually manifests in output
+### Deploy
+
+All 6 edge functions that import `getReasoningFramework()` will automatically pick up the changes on next deploy: `analyze-products`, `first-principles-analysis`, `generate-flip-ideas`, `critical-validation`, `generate-pitch-deck`, `business-model-analysis`.
