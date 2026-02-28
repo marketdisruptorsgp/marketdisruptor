@@ -73,8 +73,16 @@ export default function ReportPage() {
 
   const { products, selectedProduct, analysisParams, analysisId } = analysis;
 
+  // Allow time for state to hydrate from handleLoadSaved before redirecting
+  const [waitedForLoad, setWaitedForLoad] = React.useState(false);
+  React.useEffect(() => {
+    const t = setTimeout(() => setWaitedForLoad(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+
   if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
-    if (analysis.step === "idle" && products.length === 0) {
+    // Only redirect if we've waited AND state is still idle with no data
+    if (waitedForLoad && analysis.step === "idle" && products.length === 0) {
       navigate("/", { replace: true });
     }
     return (
