@@ -6,22 +6,13 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { HeroSection } from "@/components/HeroSection";
 import { StepNavigator } from "@/components/StepNavigator";
 import { CriticalValidation } from "@/components/CriticalValidation";
-import { Swords, CheckCircle2 } from "lucide-react";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
-import { SectionWorkflowNav } from "@/components/SectionNav";
 import { KeyTakeawayBanner, getStressTestTakeaway } from "@/components/KeyTakeawayBanner";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ModeHeader } from "@/components/ModeHeader";
-import { InfoExplainer } from "@/components/InfoExplainer";
 import { scrollToTop } from "@/utils/scrollToTop";
-import { usePersistedSections } from "@/hooks/usePersistedSections";
-
-const STRESS_TEST_DESCRIPTIONS: Record<string, string> = {
-  debate: "Red Team attacks vs Green Team defenses",
-  validate: "Feasibility checklist & confidence scores",
-};
 
 export default function StressTestPage() {
   const analysis = useAnalysis();
@@ -39,14 +30,10 @@ export default function StressTestPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isOutdated = analysis.outdatedSteps.has("stressTest");
 
-  const { visited: persistedVisited, markVisited } = usePersistedSections(analysisId, "stress-test", ["debate"]);
-  const mergedVisited = new Set([...analysis.visitedStressTestTabs, ...persistedVisited]);
-  const allTabsVisited = mergedVisited.has("debate") && mergedVisited.has("validate");
-
   return (
-    <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
+    <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
-      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
+      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
         <StepNavigator
           steps={getStepConfigs(theme.primary)}
           activeStep={5}
@@ -74,34 +61,17 @@ export default function StressTestPage() {
         <ModeHeader
           stepNumber={5}
           stepTitle="Stress Test"
-          subtitle={`Red Team vs Green Team critical validation for <strong class="text-foreground">${selectedProduct.name}</strong>`}
+          subtitle={`Red vs Green validation for <strong class="text-foreground">${selectedProduct.name}</strong>`}
           accentColor={theme.primary}
           explainerKey="step-stress-test"
-          actions={<InfoExplainer explainerKey="lens-selector" />}
         />
 
-        <div className="rounded overflow-hidden p-4 sm:p-6 space-y-4 sm:space-y-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <SectionWorkflowNav
-            tabs={[
-              { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
-              { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
-            ]}
-            activeId={analysis.stressTestTab}
-            visitedIds={mergedVisited}
-            onSelect={(id) => {
-              analysis.setStressTestTab(id);
-              analysis.setVisitedStressTestTabs(new Set([...mergedVisited, id]));
-              markVisited(id);
-            }}
-            descriptions={STRESS_TEST_DESCRIPTIONS}
-            journeyLabel="Stress Test Journey"
-            accentColor={theme.primary}
-            explainerKeys={{ debate: "stress-debate", validate: "stress-validate" }}
-          />
+        {/* Single view — no tabs */}
+        <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <CriticalValidation
             product={selectedProduct}
             analysisData={selectedProduct}
-            activeTab={analysis.stressTestTab}
+            activeTab="debate"
             externalData={analysis.stressTestData}
             onDataLoaded={(d) => {
               analysis.setStressTestData(d);
@@ -112,12 +82,12 @@ export default function StressTestPage() {
           />
         </div>
 
+        {/* No gating */}
         <NextStepButton
           stepNumber={6}
           label="Pitch Deck"
           color={theme.primary}
           onClick={() => { scrollToTop(); navigate(`${baseUrl}/pitch`); }}
-          allSectionsVisited={allTabsVisited}
         />
       </main>
     </div>

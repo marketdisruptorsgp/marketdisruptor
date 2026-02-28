@@ -9,21 +9,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { HeroSection } from "@/components/HeroSection";
-import { usePersistedSections } from "@/hooks/usePersistedSections";
 import { StepNavigator } from "@/components/StepNavigator";
-import { getStepConfigs, SECTION_DESCRIPTIONS } from "@/lib/stepConfigs";
+import { getStepConfigs } from "@/lib/stepConfigs";
 import { ProductCard } from "@/components/ProductCard";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
-import { SectionHeader, NextSectionButton, DetailPanel, NextStepButton, StepNavBar, SectionWorkflowNav } from "@/components/SectionNav";
+import { DetailPanel, NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import {
   Target, Brain, Swords, Presentation, Save, RefreshCw, FileDown,
-  ChevronLeft, ChevronRight, ExternalLink, MessageSquare,
+  ExternalLink, MessageSquare,
   TrendingUp, TrendingDown, Minus, DollarSign, Package, Store, Truck,
   Factory, Rocket, Globe, Users, ThumbsDown, ThumbsUp, Wrench, Heart,
   ShieldAlert, CheckCircle2, Lightbulb, AlertTriangle, Zap, Database,
@@ -43,7 +42,7 @@ export default function ReportPage() {
   const navigate = useNavigate();
   const theme = useModeTheme();
   const { tier } = useSubscription();
-  const sectionTabsRef = useRef<HTMLDivElement>(null);
+  const [isSaving, setIsSaving] = React.useState(false);
   const [refreshingJourney, setRefreshingJourney] = useState(false);
 
   const handleRefreshJourney = async () => {
@@ -54,24 +53,19 @@ export default function ReportPage() {
         body: { product: selectedProduct, refreshWorkflowOnly: true },
       });
       if (error || !result?.success) {
-        toast.error("Failed to refresh user journey: " + (result?.error || error?.message || "Unknown error"));
+        toast.error("Failed to refresh user journey");
         return;
       }
       const newWorkflow = result.analysis?.userWorkflow;
-      if (!newWorkflow) {
-        toast.error("No user journey data returned.");
-        return;
-      }
-      // Update product in context
+      if (!newWorkflow) { toast.error("No journey data returned."); return; }
       const updatedProduct = { ...selectedProduct, userWorkflow: newWorkflow } as Product;
       const updatedProducts = analysis.products.map(p => p.name === selectedProduct.name ? updatedProduct : p);
       analysis.setProducts(updatedProducts);
       analysis.setSelectedProduct(updatedProduct);
-      // Persist to DB
       await analysis.saveStepData("products", JSON.parse(JSON.stringify(updatedProducts)));
-      toast.success("User journey refreshed with current-state data.");
+      toast.success("User journey refreshed.");
     } catch (err) {
-      toast.error("Unexpected error: " + String(err));
+      toast.error("Error: " + String(err));
     } finally {
       setRefreshingJourney(false);
     }
@@ -80,14 +74,13 @@ export default function ReportPage() {
   const { products, selectedProduct, analysisParams, analysisId } = analysis;
 
   if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
-    // Avoid redirect loop — only redirect if we're genuinely missing data
     if (analysis.step === "idle" && products.length === 0) {
       navigate("/", { replace: true });
     }
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
+          <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin border-primary" />
           <p className="text-sm text-muted-foreground">Loading analysis...</p>
         </div>
       </div>
@@ -95,39 +88,7 @@ export default function ReportPage() {
   }
 
   const modeAccent = theme.primary;
-  const totalSources = products.reduce((a, p) => a + (p.sources?.length || 0), 0);
-  const totalIdeas = products.reduce((acc, p) => acc + (p.flippedIdeas?.length || 0), 0);
-  const avgScore = (products.reduce((acc, p) => acc + p.revivalScore, 0) / products.length).toFixed(1);
-
-  const isService = selectedProduct.category === "Service";
-  const DETAIL_TABS = [
-    { id: "overview", label: "Overview", icon: Target },
-    { id: "community", label: "Community Intel", icon: MessageSquare },
-    { id: "workflow", label: "User Journey", icon: Clock },
-    { id: "pricing", label: "Pricing Intel", icon: DollarSign },
-    ...(!isService ? [
-      { id: "supply", label: "Supply Chain", icon: Package },
-      { id: "patents", label: "Patent Intel", icon: ScrollText },
-    ] : []),
-  ];
-
-  const { visited: persistedVisited, markVisited } = usePersistedSections(analysisId, "report", ["overview"]);
-  // Merge persisted + context visited tabs
-  const mergedVisited = new Set([...analysis.visitedDetailTabs, ...persistedVisited]);
-  const allSectionsVisited = DETAIL_TABS.every(t => mergedVisited.has(t.id));
-
-  const currentIdx = DETAIL_TABS.findIndex(t => t.id === analysis.detailTab);
-  const currentTab = DETAIL_TABS[currentIdx];
-  const nextTab = currentIdx < DETAIL_TABS.length - 1 ? DETAIL_TABS[currentIdx + 1] : null;
-
-  const goToTab = (tabId: string) => {
-    analysis.setDetailTab(tabId);
-    analysis.setVisitedDetailTabs(new Set([...mergedVisited, tabId]));
-    markVisited(tabId);
-    setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  };
-
-  const [isSaving, setIsSaving] = React.useState(false);
+  const isService = selectedProduct?.category === "Service";
 
   const handleManualSave = async () => {
     setIsSaving(true);
@@ -137,10 +98,14 @@ export default function ReportPage() {
 
   const baseUrl = `/analysis/${analysisId}`;
 
+  // Cast for typed access
+  const ci = (selectedProduct as any).communityInsights;
+  const uw = (selectedProduct as any).userWorkflow;
+
   return (
-    <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
+    <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
-      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
+      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
         <StepNavigator
           steps={getStepConfigs(modeAccent)}
           activeStep={2}
@@ -155,400 +120,215 @@ export default function ReportPage() {
 
         <StepNavBar backLabel="Home" backPath="/" accentColor={modeAccent} />
 
-        {/* Header */}
-        <div className="rounded overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-          <div className="px-3 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4" style={{ background: "hsl(var(--muted))" }}>
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center text-xs sm:text-sm font-semibold" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>2</span>
-              <div className="flex-1 min-w-0">
-                <h2 className="typo-section-title">Intelligence Report</h2>
-                <p className="typo-card-meta text-muted-foreground mt-0.5 truncate">
-                  {products.length} product{products.length > 1 ? "s" : ""} · {totalSources} sources · {totalIdeas} ideas · {avgScore}/10
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct)}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded typo-button-secondary transition-colors"
-                style={{ background: "hsl(var(--background))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-              >
-                <FileDown size={12} /> PDF
-              </button>
-              <button
-                onClick={handleManualSave}
-                disabled={isSaving}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded typo-button-secondary transition-colors"
-                style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))", opacity: isSaving ? 0.7 : 1 }}
-              >
-                {isSaving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
-                {isSaving ? "Saving…" : "Save"}
-              </button>
-              <ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={modeAccent} />
-            </div>
+        {/* Compact header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+          <h2 className="typo-section-title">Intelligence Report</h2>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct)} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
+              <FileDown size={12} /> PDF
+            </button>
+            <button onClick={handleManualSave} disabled={isSaving} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-primary text-primary-foreground" style={{ opacity: isSaving ? 0.7 : 1 }}>
+              {isSaving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
+              {isSaving ? "Saving…" : "Save"}
+            </button>
+            <ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={modeAccent} />
           </div>
         </div>
-
-        {/* Product Selector */}
-        {products.length > 1 && (
-          <div className="flex flex-wrap gap-1.5">
-            {products.map((product) => (
-              <button
-                key={product.id}
-                onClick={() => {
-                  analysis.setSelectedProduct(product);
-                  analysis.setDetailTab("overview");
-                }}
-                className="flex items-center gap-2 px-3 py-2 rounded typo-button-secondary transition-colors"
-                style={{
-                  background: selectedProduct?.id === product.id ? "hsl(var(--primary))" : "hsl(var(--muted))",
-                  color: selectedProduct?.id === product.id ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
-                  border: `1px solid ${selectedProduct?.id === product.id ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-                }}
-              >
-                {product.name}
-                {product.name}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* Product Card */}
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
-        {/* Section Workflow Navigator */}
-        <div ref={sectionTabsRef}>
-          <SectionWorkflowNav
-            tabs={DETAIL_TABS}
-            activeId={analysis.detailTab}
-            visitedIds={mergedVisited}
-            onSelect={goToTab}
-            descriptions={SECTION_DESCRIPTIONS}
-            journeyLabel="Your Analysis Journey"
-            explainerKeys={{
-              overview: "section-overview",
-              community: "section-community",
-              workflow: "section-workflow",
-              pricing: "section-pricing",
-              supply: "section-supply",
-              patents: "section-patents",
-            }}
-          />
-        </div>
+        {/* === ALL SECTIONS AS ACCORDIONS === */}
 
-        {/* Tab Content - Overview */}
-        {analysis.detailTab === "overview" && (
-          <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Overview" description={SECTION_DESCRIPTIONS.overview} icon={Target} explainerKey="section-overview" />
-            
-            {/* Key Takeaway Banner */}
-            {selectedProduct.keyInsight && (
-              <KeyTakeawayBanner
-                takeaway={selectedProduct.keyInsight}
-                accentColor={modeAccent}
-                badges={getVerdictBadges(selectedProduct as any)}
-              />
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                {selectedProduct.keyInsight && (
-                  <div className="insight-callout">
-                    <p className="typo-card-eyebrow mb-1">Key Insight</p>
-                    <p className="typo-card-body leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.85)" }}>{selectedProduct.keyInsight}</p>
-                  </div>
-                )}
-                {selectedProduct.description && (
-                  <div className="section-panel">
-                    <p className="typo-card-eyebrow mb-1">Description</p>
-                    <p className="typo-card-body leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{selectedProduct.description}</p>
-                  </div>
-                )}
-              </div>
-              <div className="space-y-3">
-                {selectedProduct.marketSizeEstimate && (
-                  <div className="insight-callout--success insight-callout">
-                    <p className="typo-card-body font-semibold" style={{ color: "hsl(142 70% 28%)" }}>TAM: {selectedProduct.marketSizeEstimate}</p>
-                  </div>
-                )}
-                <div className="section-panel">
-                  <p className="typo-card-eyebrow mb-2">Confidence Scores</p>
-                  <div className="grid grid-cols-1 gap-2">
-                    <ScoreBar label="Adoption Likelihood" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
-                    <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
-                    <ScoreBar label="Emotional Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
-                  </div>
-                </div>
-              </div>
+        {/* 1. Overview — open by default */}
+        <DetailPanel title="Overview" icon={Target} defaultOpen>
+          {selectedProduct.keyInsight && (
+            <div className="insight-callout mb-3">
+              <p className="typo-card-body font-semibold leading-snug">{selectedProduct.keyInsight}</p>
             </div>
-
-            <DetailPanel title={`Sources & Trend Analysis`} icon={TrendingUp} defaultOpen explainerKey="panel-sources">
-              {selectedProduct.trendAnalysis && (
-                <p className="typo-card-body text-foreground/80 leading-relaxed mb-2">{selectedProduct.trendAnalysis}</p>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-3">
+              {selectedProduct.description && (
+                <p className="typo-card-body text-foreground/80 leading-relaxed">{selectedProduct.description}</p>
               )}
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {selectedProduct.sources?.map((src) => (
-                  <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium"
-                    style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
-                    <ExternalLink size={9} /> {src.label?.slice(0, 30)}
-                  </a>
-                ))}
-              </div>
-            </DetailPanel>
-
-            <DetailPanel title="Assumptions Map" icon={Brain} explainerKey="panel-assumptions">
-              <div className="mb-2"><AssumptionsMap product={selectedProduct} /></div>
-            </DetailPanel>
-
-            {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-          </div>
-        )}
-
-        {/* Tab: Community Intel */}
-        {analysis.detailTab === "community" && (
-          <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Community Intel" description={SECTION_DESCRIPTIONS.community} icon={MessageSquare} explainerKey="section-community" />
-            
-            {/* Key Takeaway Banner */}
-            {(() => {
-              const ci = (selectedProduct as unknown as { communityInsights?: { topComplaints?: string[]; improvementRequests?: string[]; communitySentiment?: string } }).communityInsights;
-              const takeaway = ci ? getCommunityTakeaway(ci) : null;
-              return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(25 90% 40%)" /> : null;
-            })()}
-            {(selectedProduct as unknown as { communityInsights?: { communitySentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights ? (
-              (() => {
-                const ci = (selectedProduct as unknown as { communityInsights: { communitySentiment?: string; topComplaints?: string[]; improvementRequests?: string[]; competitorComplaints?: string[] } }).communityInsights;
-                const sentiment = ci.communitySentiment || (ci as any).redditSentiment;
-                const hasRealSentiment = sentiment && !/no direct.*found|not found|no.*sentiment.*found/i.test(sentiment);
-                return (
-                  <>
-                     {hasRealSentiment && (
-                      <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                         <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(25 90% 40%)" }}>Community Sentiment</p>
-                         <p className="typo-card-body leading-relaxed" style={{ color: "hsl(25 90% 30%)" }}>{sentiment}</p>
-                      </div>
-                    )}
-                    <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown} defaultOpen explainerKey="panel-complaints">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
-                        {ci.topComplaints?.length ? (
-                          <div className="space-y-1.5">
-                            <p className="typo-card-eyebrow">Top Complaints</p>
-                            {ci.topComplaints.map((c, i) => (
-                              <div key={i} className="flex gap-2 items-start typo-card-body"><ShieldAlert size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{c}</span></div>
-                            ))}
-                          </div>
-                        ) : null}
-                        {ci.improvementRequests?.length ? (
-                          <div className="space-y-1.5">
-                            <p className="typo-card-eyebrow">Improvement Requests</p>
-                            {ci.improvementRequests.map((r, i) => (
-                              <div key={i} className="flex gap-2 items-start typo-card-body"><Lightbulb size={10} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{r}</span></div>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    </DetailPanel>
-                    <DetailPanel title="Reviews, Signals & Triggers" icon={TrendingUp} explainerKey="panel-reviews">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
-                        <div className="space-y-1.5">
-                          {selectedProduct.reviews?.map((review, i) => (
-                            <div key={i} className="flex gap-2 items-start text-xs">
-                              <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
-                              <span className="text-foreground/80">{review.text}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="space-y-1.5">
-                          {selectedProduct.socialSignals?.map((sig, i) => (
-                            <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                              <div>
-                                <p className="text-[10px] text-muted-foreground">{sig.signal}</p>
-                              </div>
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: "hsl(var(--primary))", color: "white" }}>{sig.volume}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </DetailPanel>
-                  </>
-                );
-              })()
-            ) : (
-              <div className="py-8 text-center">
-                <p className="typo-card-body text-muted-foreground">Community insights appear after running a live analysis.</p>
-              </div>
-            )}
-            {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-          </div>
-        )}
-
-        {/* Tab: User Journey */}
-        {analysis.detailTab === "workflow" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="User Journey" description={SECTION_DESCRIPTIONS.workflow} icon={Clock} explainerKey="section-workflow" />
-              <button
-                onClick={handleRefreshJourney}
-                disabled={refreshingJourney}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
-                style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-              >
-                <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
-                {refreshingJourney ? "Refreshing..." : "Refresh Journey"}
-              </button>
+              {selectedProduct.marketSizeEstimate && (
+                <p className="typo-card-body font-semibold text-green-700">TAM: {selectedProduct.marketSizeEstimate}</p>
+              )}
             </div>
+            <div className="space-y-2">
+              <ScoreBar label="Adoption" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
+              <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
+              <ScoreBar label="Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
+            </div>
+          </div>
+          {selectedProduct.trendAnalysis && (
+            <p className="typo-card-body text-foreground/70 leading-relaxed mt-3">{selectedProduct.trendAnalysis}</p>
+          )}
+          {selectedProduct.sources?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {selectedProduct.sources.map((src: any) => (
+                <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium bg-primary/5 text-primary">
+                  <ExternalLink size={9} /> {src.label?.slice(0, 30)}
+                </a>
+              ))}
+            </div>
+          )}
+        </DetailPanel>
+
+        {/* 2. Assumptions */}
+        <DetailPanel title="Assumptions Map" icon={Brain}>
+          <AssumptionsMap product={selectedProduct} />
+        </DetailPanel>
+
+        {/* 3. Community Intel */}
+        {ci && (
+          <DetailPanel title="Community Intel" icon={MessageSquare}>
             {(() => {
-              const productData = selectedProduct as unknown as Record<string, unknown>;
-              const takeaway = getWorkflowTakeaway(productData);
-              return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(217 91% 55%)" /> : null;
-            })()}
-            {(() => {
-              const uw = (selectedProduct as unknown as { userWorkflow?: { stepByStep?: string[]; frictionPoints?: { step: string; friction: string; severity: "high" | "medium" | "low"; rootCause: string }[]; cognitiveLoad?: string; contextOfUse?: string } }).userWorkflow;
-              if (!uw?.stepByStep?.length) {
-                return (
-                  <div className="py-8 text-center">
-                    <Clock size={32} className="mx-auto mb-3 opacity-20" />
-                    <p className="text-sm text-muted-foreground">No user journey data available for this product.</p>
-                    <p className="text-xs text-muted-foreground mt-1">Try running a new analysis to generate journey data.</p>
-                  </div>
-                );
-              }
+              const sentiment = ci.communitySentiment || ci.redditSentiment;
+              const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
               return (
-                <div className="space-y-4">
-                  <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
-                  {(uw.cognitiveLoad || uw.contextOfUse) && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {uw.cognitiveLoad && (
-                        <div className="p-4 rounded-xl space-y-1.5" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <Brain size={13} style={{ color: "hsl(var(--foreground))" }} />
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Cognitive Load</p>
-                          </div>
-                          <p className="text-[13px] text-foreground/80 leading-relaxed">{uw.cognitiveLoad}</p>
+                <div className="space-y-3">
+                  {hasReal && <p className="typo-card-body text-foreground/80">{sentiment}</p>}
+                  {ci.topComplaints?.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="typo-card-eyebrow">Complaints</p>
+                      {ci.topComplaints.map((c: string, i: number) => (
+                        <div key={i} className="flex gap-2 items-start typo-card-body">
+                          <ShieldAlert size={10} className="text-destructive flex-shrink-0 mt-0.5" />
+                          <span className="text-foreground/80">{c}</span>
                         </div>
-                      )}
-                      {uw.contextOfUse && (
-                        <div className="p-4 rounded-xl space-y-1.5" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <Globe size={13} style={{ color: "hsl(var(--foreground))" }} />
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Context of Use</p>
-                          </div>
-                          <p className="text-[13px] text-foreground/80 leading-relaxed">{uw.contextOfUse}</p>
+                      ))}
+                    </div>
+                  )}
+                  {ci.improvementRequests?.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="typo-card-eyebrow">Requests</p>
+                      {ci.improvementRequests.map((r: string, i: number) => (
+                        <div key={i} className="flex gap-2 items-start typo-card-body">
+                          <Lightbulb size={10} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-foreground/80">{r}</span>
                         </div>
-                      )}
+                      ))}
+                    </div>
+                  )}
+                  {selectedProduct.reviews?.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="typo-card-eyebrow">Reviews</p>
+                      {selectedProduct.reviews.map((review: any, i: number) => (
+                        <div key={i} className="flex gap-2 items-start text-xs">
+                          <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
+                          <span className="text-foreground/80">{review.text}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
               );
             })()}
-            {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-          </div>
+          </DetailPanel>
         )}
 
-        {/* Tab: Pricing Intel */}
-        {analysis.detailTab === "pricing" && (
-          <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Pricing Intel" description={SECTION_DESCRIPTIONS.pricing} icon={DollarSign} explainerKey="section-pricing" />
-            {/* Key Takeaway Banner */}
-            {(() => {
-              const takeaway = selectedProduct.pricingIntel ? getPricingTakeaway(selectedProduct.pricingIntel as any) : null;
-              return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(142 70% 35%)" /> : null;
-            })()}
-            {selectedProduct.pricingIntel ? (
-              <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {[
-                    { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice, highlight: false },
-                    { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium, highlight: false },
-                    { label: "Resale Avg", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold, highlight: true },
-                    { label: "Vintage Avg", value: (selectedProduct.pricingIntel as any).vintageAvgSold || selectedProduct.pricingIntel.etsyAvgSold, highlight: true },
-                    { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal, highlight: false },
-                    { label: "Price Trend", value: selectedProduct.pricingIntel.priceDirection?.toUpperCase(), highlight: true },
-                  ].map((item) => (
-                    <div key={item.label} className="p-3 rounded-lg" style={{
-                      background: item.highlight ? "hsl(var(--primary-muted))" : "hsl(var(--muted))",
-                      border: item.highlight ? "1px solid hsl(var(--primary) / 0.2)" : "1px solid hsl(var(--border))",
-                    }}>
-                      <p className="typo-card-eyebrow mb-0.5">{item.label}</p>
-                       <p className="typo-card-body font-bold" style={{ color: item.highlight ? "hsl(var(--primary-dark))" : "hsl(var(--foreground))" }}>{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-                <DetailPanel title="Margins & Price Range" icon={DollarSign} defaultOpen explainerKey="panel-pricing-breakdown">
-                  <div className="space-y-2 mb-2">
-                    <p className="typo-card-body text-foreground/80">{selectedProduct.pricingIntel.margins}</p>
-                    <div className="flex items-center gap-3">
-                      <span className="typo-card-body font-bold text-foreground">{selectedProduct.pricingIntel.priceRange}</span>
-                      <TrendBadge trend={selectedProduct.pricingIntel.priceDirection as "up" | "down" | "stable"} />
-                    </div>
-                  </div>
-                </DetailPanel>
-              </>
-            ) : (
-              <p className="typo-card-body text-muted-foreground text-center py-8">No pricing intelligence available.</p>
-            )}
-            {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-          </div>
-        )}
-
-        {/* Tab: Supply Chain */}
-        {analysis.detailTab === "supply" && (
-          <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Supply Chain" description={SECTION_DESCRIPTIONS.supply} icon={Package} explainerKey="section-supply" />
-            {/* Key Takeaway Banner */}
-            {(() => {
-              const takeaway = selectedProduct.supplyChain ? getSupplyChainTakeaway(selectedProduct.supplyChain as any) : null;
-              return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(217 91% 55%)" /> : null;
-            })()}
-            {selectedProduct.supplyChain ? (
-              <>
-                <SupplySection title="Suppliers & IP Owners" icon={<Factory size={14} style={{ color: "hsl(var(--primary))" }} />}
-                  items={selectedProduct.supplyChain.suppliers.map((s) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
-                  color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
-                <DetailPanel title={`Manufacturers, Vendors & More (${selectedProduct.supplyChain.manufacturers.length + selectedProduct.supplyChain.vendors.length + selectedProduct.supplyChain.distributors.length})`} icon={Package} defaultOpen explainerKey="panel-supply-details">
-                  <div className="space-y-3 mb-2">
-                    <SupplySection title="Manufacturers / OEM" icon={<Package size={12} style={{ color: "hsl(217 91% 60%)" }} />}
-                      items={selectedProduct.supplyChain.manufacturers.map((m) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
-                      color="hsl(217 91% 60% / 0.08)" borderColor="hsl(217 91% 60% / 0.3)" />
-                    <SupplySection title="Vendors" icon={<Store size={12} style={{ color: "hsl(262 83% 58%)" }} />}
-                      items={selectedProduct.supplyChain.vendors.map((v) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
-                      color="hsl(262 83% 58% / 0.08)" borderColor="hsl(262 83% 58% / 0.3)" />
-                    <SupplySection title="Distributors" icon={<Truck size={12} style={{ color: "hsl(32 100% 50%)" }} />}
-                      items={selectedProduct.supplyChain.distributors.map((d) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
-                      color="hsl(32 100% 50% / 0.08)" borderColor="hsl(32 100% 50% / 0.3)" />
-                  </div>
-                </DetailPanel>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {selectedProduct.supplyChain.retailers.map((r) => (
-                    <div key={r.name} className="p-3 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-                      <p className="text-xs font-bold text-foreground">{r.name}</p>
-                      <p className="text-lg font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className="typo-card-body text-muted-foreground text-center py-8">No supply chain data available.</p>
-            )}
-            {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-          </div>
-        )}
-
-        {/* Action Plan tab removed - hidden from Intel Report */}
-
-        {/* Tab: Patent Intel */}
-        {analysis.detailTab === "patents" && !isService && (
-          <div className="space-y-4">
-            <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Patent Intel" description={SECTION_DESCRIPTIONS.patents} icon={ScrollText} explainerKey="section-patents" />
-            {selectedProduct.patentData && (
+        {/* 4. User Journey */}
+        {uw?.stepByStep?.length > 0 && (
+          <DetailPanel title="User Journey" icon={Clock}>
+            <div className="space-y-3">
               <div className="flex justify-end">
                 <button
-                  onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg typo-button-primary transition-colors"
-                  style={{ background: modeAccent, color: "white" }}
+                  onClick={handleRefreshJourney}
+                  disabled={refreshingJourney}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground disabled:opacity-50"
                 >
-                  <FileDown size={14} /> Download PDF
+                  <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
+                  {refreshingJourney ? "Refreshing..." : "Refresh"}
+                </button>
+              </div>
+              <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
+              {(uw.cognitiveLoad || uw.contextOfUse) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {uw.cognitiveLoad && (
+                    <div className="p-3 rounded-lg bg-card border border-border">
+                      <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
+                      <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
+                    </div>
+                  )}
+                  {uw.contextOfUse && (
+                    <div className="p-3 rounded-lg bg-card border border-border">
+                      <p className="typo-card-eyebrow mb-1">Context of Use</p>
+                      <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </DetailPanel>
+        )}
+
+        {/* 5. Pricing Intel */}
+        {selectedProduct.pricingIntel && (
+          <DetailPanel title="Pricing Intel" icon={DollarSign}>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice },
+                  { label: "Resale Avg", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold },
+                  { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal },
+                  { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium },
+                  { label: "Margins", value: selectedProduct.pricingIntel.margins },
+                  { label: "Trend", value: selectedProduct.pricingIntel.priceDirection?.toUpperCase() },
+                ].filter(x => x.value).map((item) => (
+                  <div key={item.label} className="p-2.5 rounded-lg bg-muted border border-border">
+                    <p className="typo-card-eyebrow mb-0.5">{item.label}</p>
+                    <p className="typo-card-body font-bold text-foreground">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </DetailPanel>
+        )}
+
+        {/* 6. Supply Chain (products only) */}
+        {!isService && selectedProduct.supplyChain && (
+          <DetailPanel title="Supply Chain" icon={Package}>
+            <div className="space-y-3">
+              <SupplySection title="Suppliers" icon={<Factory size={12} className="text-primary" />}
+                items={selectedProduct.supplyChain.suppliers.map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
+                color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
+              <SupplySection title="Manufacturers" icon={<Package size={12} className="text-blue-500" />}
+                items={selectedProduct.supplyChain.manufacturers.map((m: any) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
+                color="hsl(217 91% 60% / 0.08)" borderColor="hsl(217 91% 60% / 0.3)" />
+              <SupplySection title="Vendors" icon={<Store size={12} className="text-purple-500" />}
+                items={selectedProduct.supplyChain.vendors.map((v: any) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
+                color="hsl(262 83% 58% / 0.08)" borderColor="hsl(262 83% 58% / 0.3)" />
+              <SupplySection title="Distributors" icon={<Truck size={12} className="text-orange-500" />}
+                items={selectedProduct.supplyChain.distributors.map((d: any) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
+                color="hsl(32 100% 50% / 0.08)" borderColor="hsl(32 100% 50% / 0.3)" />
+              {selectedProduct.supplyChain.retailers?.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {selectedProduct.supplyChain.retailers.map((r: any) => (
+                    <div key={r.name} className="p-2.5 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+                      <p className="text-xs font-bold text-foreground">{r.name}</p>
+                      <p className="text-sm font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DetailPanel>
+        )}
+
+        {/* 7. Patent Intel (products only) */}
+        {!isService && (
+          <DetailPanel title="Patent Intel" icon={ScrollText}>
+            {selectedProduct.patentData && (
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary text-white text-xs"
+                  style={{ background: modeAccent }}
+                >
+                  <FileDown size={12} /> Patent PDF
                 </button>
               </div>
             )}
@@ -560,33 +340,29 @@ export default function ReportPage() {
                 );
                 analysis.setProducts(updated);
                 analysis.setSelectedProduct({ ...selectedProduct, patentData });
-                // Persist updated products array (with patent data) back to database
                 if (analysisId) {
                   (async () => {
                     try {
                       await (supabase.from("saved_analyses") as any)
                         .update({ products: JSON.parse(JSON.stringify(updated)) })
                         .eq("id", analysisId);
-                    } catch (err) {
-                      console.error("Failed to persist patent data:", err);
-                    }
+                    } catch (err) { console.error("Failed to persist patent data:", err); }
                   })();
                 }
               }}
             />
-          </div>
+          </DetailPanel>
         )}
 
         {/* Project Notes */}
         <ProjectNotesSection analysisId={analysisId} saveStepData={analysis.saveStepData} />
 
-        {/* Next Step button — gated on all sections visited */}
+        {/* Next Step — no gating */}
         <NextStepButton
           stepNumber={3}
           label="Disrupt"
           color={modeAccent}
           onClick={() => navigate(`${baseUrl}/disrupt`)}
-          allSectionsVisited={allSectionsVisited}
         />
       </main>
     </div>
@@ -616,7 +392,7 @@ function ProjectNotesSection({ analysisId, saveStepData }: { analysisId: string 
   };
 
   return (
-    <div className="rounded-lg p-4" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+    <div className="rounded-lg p-4 bg-muted border border-border">
       <p className="typo-card-eyebrow mb-2 flex items-center gap-1.5">
         <StickyNote size={11} /> Project Notes
       </p>
@@ -634,12 +410,13 @@ function SupplySection({
   color: string;
   borderColor: string;
 }) {
+  if (!items.length) return null;
   return (
     <div>
-      <p className="typo-card-eyebrow mb-2 flex items-center gap-2">{icon} {title}</p>
+      <p className="typo-card-eyebrow mb-1.5 flex items-center gap-2">{icon} {title}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {items.map((item) => (
-          <div key={item.name} className="p-3 rounded-lg flex items-start justify-between gap-2" style={{ background: color, border: `1px solid ${borderColor}` }}>
+          <div key={item.name} className="p-2.5 rounded-lg flex items-start justify-between gap-2" style={{ background: color, border: `1px solid ${borderColor}` }}>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-foreground truncate">{item.name}</p>
               <p className="text-[11px] text-muted-foreground">{item.detail}</p>
@@ -647,7 +424,7 @@ function SupplySection({
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-background/80 text-foreground/70">{item.badge}</span>
               {item.url && (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[10px]" style={{ color: "hsl(var(--primary))" }}>
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[10px] text-primary">
                   <ExternalLink size={9} /> Visit
                 </a>
               )}
