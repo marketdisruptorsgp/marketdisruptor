@@ -323,6 +323,119 @@ function trackFormAbandons() {
   });
 }
 
+// --- Self-diagnostic: capture JS errors, unhandled rejections, API failures ---
+
+function initDiagnostics() {
+  // JS errors
+  window.addEventListener("error", (e) => {
+    push({
+      event_type: "js_error",
+      page_path: currentPath,
+      metadata: {
+        message: e.message?.slice(0, 500),
+        source: e.filename?.slice(0, 200),
+        line: e.lineno,
+        col: e.colno,
+        severity: "critical",
+      },
+    });
+  });
+
+  // Unhandled promise rejections
+  window.addEventListener("unhandledrejection", (e) => {
+    const reason = e.reason instanceof Error ? e.reason.message : String(e.reason);
+    push({
+      event_type: "js_error",
+      page_path: currentPath,
+      metadata: {
+        message: reason?.slice(0, 500),
+        type: "unhandled_rejection",
+        severity: "critical",
+      },
+    });
+  });
+
+  // Intercept fetch to detect API failures
+  const originalFetch = window.fetch;
+  window.fetch = async function (...args) {
+    const url = typeof args[0] === "string" ? args[0] : (args[0] as Request)?.url || "";
+    const start = Date.now();
+    try {
+      const res = await originalFetch.apply(this, args);
+      const duration = Date.now() - start;
+
+      // Log failed API calls (4xx/5xx) but skip analytics ingestion to avoid loops
+      if (!res.ok && !url.includes("ingest-analytics")) {
+        push({
+          event_type: "api_failure",
+          page_path: currentPath,
+          metadata: {
+            url: url.slice(0, 300),
+            status: res.status,
+            statusText: res.statusText,
+            duration_ms: duration,
+            severity: res.status >= 500 ? "critical" : "medium",
+          },
+        });
+      }
+
+      // Log slow requests (>5s)
+      if (duration > 5000 && !url.includes("ingest-analytics")) {
+        push({
+          event_type: "slow_request",
+          page_path: currentPath,
+          metadata: {
+            url: url.slice(0, 300),
+            duration_ms: duration,
+            status: res.status,
+            severity: duration > 15000 ? "critical" : "medium",
+          },
+        });
+      }
+
+      return res;
+    } catch (err) {
+      if (!url.includes("ingest-analytics")) {
+        push({
+          event_type: "api_failure",
+          page_path: currentPath,
+          metadata: {
+            url: url.slice(0, 300),
+            error: err instanceof Error ? err.message.slice(0, 300) : "Network error",
+            severity: "critical",
+          },
+        });
+      }
+      throw err;
+    }
+  };
+
+  // Console error interception (captures React render errors surfaced via console.error)
+  const origConsoleError = console.error;
+  console.error = function (...args) {
+    origConsoleError.apply(console, args);
+    const msg = args.map((a) => (typeof a === "string" ? a : "")).join(" ");
+    // Only capture React-style or meaningful errors, skip noise
+    if (
+      msg.includes("Uncaught") ||
+      msg.includes("Error:") ||
+      msg.includes("Cannot read prop") ||
+      msg.includes("is not a function") ||
+      msg.includes("undefined is not") ||
+      msg.includes("ChunkLoadError")
+    ) {
+      push({
+        event_type: "render_error",
+        page_path: currentPath,
+        metadata: {
+          message: msg.slice(0, 500),
+          severity: "critical",
+        },
+      });
+    }
+  };
+}
+
 export function initAnalyticsTracker() {
   if (initialized) return;
   // Don't track on admin pages
@@ -356,6 +469,7 @@ export function initAnalyticsTracker() {
   document.addEventListener("mouseover", onMouseOver, { passive: true });
 
   trackFormAbandons();
+  initDiagnostics();
 
   // Track initial page view
   trackPageView();
