@@ -22,9 +22,12 @@ export default function StressTestPage() {
 
   const { selectedProduct, analysisId } = analysis;
 
+  const [ready, setReady] = React.useState(false);
+  React.useEffect(() => { const t = setTimeout(() => setReady(true), 600); return () => clearTimeout(t); }, []);
+
   if (analysis.step !== "done" || !selectedProduct) {
-    navigate("/", { replace: true });
-    return null;
+    if (ready && analysis.step === "idle") { navigate("/", { replace: true }); return null; }
+    return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin border-primary" /></div>;
   }
 
   const baseUrl = `/analysis/${analysisId}`;
