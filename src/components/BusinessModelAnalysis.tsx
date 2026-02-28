@@ -14,6 +14,8 @@ import { BundleDeepDive } from "./BundleDeepDive";
 
 import { LeverageScore } from "./LeverageScore";
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
+import { StructuralVisualList, type VisualSpec } from "./StructuralVisual";
+import { ActionPlanList, type ActionPlan } from "./ActionPlanCard";
 
 export interface BusinessModelInput {
   type: string;
@@ -110,6 +112,8 @@ export interface BusinessModelAnalysisData {
     biggestRisk: string;
     requiredCapabilities: string[];
   };
+  visualSpecs?: VisualSpec[];
+  actionPlans?: ActionPlan[];
 }
 
 const IMPACT_COLORS = {
@@ -398,6 +402,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
       {activeTab === "summary" && (
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Business Reality" icon={Eye} />
+
+          {/* L1 Executive Signal — Structural Visuals */}
+          <StructuralVisualList specs={data.visualSpecs} />
 
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>True Job To Be Done</p>
@@ -712,6 +719,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           </div>
 
           {/* Key Changes — top 3 */}
+          <ActionPlanList plans={data.actionPlans} />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {data.reinventedModel.keyChanges.slice(0, 3).map((c, i) => (
               <div key={i} className="flex gap-2 items-start p-2 rounded-lg text-xs"

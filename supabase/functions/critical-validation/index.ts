@@ -121,6 +121,34 @@ The JSON must follow this EXACT structure:
     "Critical blind spot 1 — be specific about what data is missing and where to find it",
     "Blind spot 2",
     "Blind spot 3"
+  ],
+  "visualSpecs": [
+    {
+      "visual_type": "constraint_map | causal_chain | leverage_hierarchy",
+      "title": "Short title for the visual",
+      "nodes": [
+        { "id": "node_id", "label": "Node label", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1 }
+      ],
+      "edges": [
+        { "from": "source_id", "to": "target_id", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "optional edge label" }
+      ],
+      "layout": "linear | vertical | hierarchical",
+      "interpretation": "One sentence explaining what limits performance and where to intervene"
+    }
+  ],
+  "actionPlans": [
+    {
+      "initiative": "Initiative name",
+      "objective": "What this achieves",
+      "leverage_type": "optimization | structural_improvement | redesign",
+      "mechanism": "How this creates change (one sentence)",
+      "complexity": "low | medium | high",
+      "time_horizon": "near_term | mid_term | long_term",
+      "risk": { "execution": "execution risk", "adoption": "adoption risk", "market": "market risk" },
+      "validation": "Minimum viable test to validate",
+      "decision_readiness": 3,
+      "confidence": "high | medium | exploratory"
+    }
   ]
 }`;
 
@@ -170,6 +198,8 @@ CRITICAL INSTRUCTIONS:
 7. BLIND SPOTS: What data is missing? Where would you find it?
 8. Provide 4-6 arguments for both Red and Green teams.
 9. Provide 3-5 counter-examples, 6-10 feasibility items, and 3-4 blind spots.
+
+10. VISUAL SPECS: Generate 1 visual spec (constraint_map or causal_chain) for the dominant risk/opportunity structure. Generate 2-3 action plans for highest-leverage next steps. Only generate visuals when structural causality is clear.
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 

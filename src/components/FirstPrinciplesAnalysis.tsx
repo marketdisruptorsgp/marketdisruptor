@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
+import { StructuralVisualList, type VisualSpec } from "./StructuralVisual";
+import { ActionPlanList, type ActionPlan } from "./ActionPlanCard";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -155,6 +157,8 @@ export interface FirstPrinciplesData {
   hiddenAssumptions: HiddenAssumption[];
   flippedLogic: FlippedLogicItem[];
   redesignedConcept: RedesignedConcept;
+  visualSpecs?: VisualSpec[];
+  actionPlans?: ActionPlan[];
 }
 
 interface FirstPrinciplesAnalysisProps {
@@ -843,6 +847,10 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {activeStep === "assumptions" && (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
+
+          {/* L1 Executive Signal — Structural Visuals */}
+          <StructuralVisualList specs={data?.visualSpecs} />
+          <ActionPlanList plans={data?.actionPlans} />
           {/* Individual pitch deck toggles on each card below */}
           <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-xs text-foreground/80 leading-relaxed">

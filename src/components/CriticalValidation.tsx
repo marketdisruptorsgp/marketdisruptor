@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
+import { StructuralVisualList, type VisualSpec } from "./StructuralVisual";
+import { ActionPlanList, type ActionPlan } from "./ActionPlanCard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -69,6 +71,8 @@ interface ValidationData {
   strategicRecommendations?: string[];
   currentApproachAssessment?: CurrentApproachAssessment;
   blindSpots: string[];
+  visualSpecs?: VisualSpec[];
+  actionPlans?: ActionPlan[];
 }
 
 interface CriticalValidationProps {
@@ -194,6 +198,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
     return (
       <div className="space-y-4">
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
+
+        {/* L1 Executive Signal — Structural Visuals */}
+        <StructuralVisualList specs={data.visualSpecs} />
+
         <PitchDeckToggle contentKey="stressTestDebate" label="Include in Pitch Deck" />
 
         {/* Re-run (collapsed) */}

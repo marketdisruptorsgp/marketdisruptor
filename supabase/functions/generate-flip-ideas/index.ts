@@ -77,7 +77,19 @@ Each object must follow this EXACT structure:
     "channels": ["Social Commerce", "Amazon FBA", "Shopify DTC", "Kickstarter"]
   },
   "riskLevel": "[Risk: Low/Medium/High]",
-  "capitalRequired": "[Capital: Low/Medium/High]"
+  "capitalRequired": "[Capital: Low/Medium/High]",
+  "visualSpec": {
+    "visual_type": "causal_chain | leverage_hierarchy",
+    "title": "Short title for the visual",
+    "nodes": [
+      { "id": "node_id", "label": "Node label", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1 }
+    ],
+    "edges": [
+      { "from": "source_id", "to": "target_id", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "optional edge label" }
+    ],
+    "layout": "linear | vertical",
+    "interpretation": "One sentence explaining the core leverage mechanism"
+  }
 }
 
 SCORE CALIBRATION RULES:

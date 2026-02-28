@@ -127,7 +127,35 @@ Return this EXACT structure:
     {"name": "Real distributor", "role": "Distributor/3PL", "region": "Region", "url": "https://...", "moq": "Min shipment", "leadTime": "Onboarding", "notes": "Context ≤15 words"}
   ],
   "investorHighlights": ["Highlight 1 ≤12 words", "Highlight 2", "Highlight 3", "Highlight 4", "Highlight 5"],
-  "completionMessage": "A bold strategic insight about what makes this worth pursuing. ≤2 sentences."
+  "completionMessage": "A bold strategic insight about what makes this worth pursuing. ≤2 sentences.",
+  "visualSpecs": [
+    {
+      "visual_type": "constraint_map | causal_chain | leverage_hierarchy",
+      "title": "Short title for the visual",
+      "nodes": [
+        { "id": "node_id", "label": "Node label", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1 }
+      ],
+      "edges": [
+        { "from": "source_id", "to": "target_id", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "optional edge label" }
+      ],
+      "layout": "linear | vertical | hierarchical",
+      "interpretation": "One sentence explaining the dominant constraint or leverage mechanism"
+    }
+  ],
+  "actionPlans": [
+    {
+      "initiative": "Initiative name",
+      "objective": "What this achieves",
+      "leverage_type": "optimization | structural_improvement | redesign",
+      "mechanism": "How this creates change (one sentence)",
+      "complexity": "low | medium | high",
+      "time_horizon": "near_term | mid_term | long_term",
+      "risk": { "execution": "execution risk", "adoption": "adoption risk", "market": "market risk" },
+      "validation": "Minimum viable test to validate",
+      "decision_readiness": 3,
+      "confidence": "high | medium | exploratory"
+    }
+  ]
 }
 
 CRITICAL RULES:

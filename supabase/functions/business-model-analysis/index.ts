@@ -127,7 +127,35 @@ The JSON must follow this EXACT structure:
     "estimatedROI": "Rough estimate of revenue or margin improvement with this model change",
     "biggestRisk": "The most likely failure mode and how to mitigate it",
     "requiredCapabilities": ["New capability or investment needed 1", "Needed capability 2", "Needed capability 3"]
-  }
+  },
+  "visualSpecs": [
+    {
+      "visual_type": "constraint_map | causal_chain | leverage_hierarchy",
+      "title": "Short title for the visual",
+      "nodes": [
+        { "id": "node_id", "label": "Node label", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1 }
+      ],
+      "edges": [
+        { "from": "source_id", "to": "target_id", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "optional edge label" }
+      ],
+      "layout": "linear | vertical | hierarchical",
+      "interpretation": "One sentence explaining what limits performance and where to intervene"
+    }
+  ],
+  "actionPlans": [
+    {
+      "initiative": "Initiative name",
+      "objective": "What this achieves",
+      "leverage_type": "optimization | structural_improvement | redesign",
+      "mechanism": "How this creates change (one sentence)",
+      "complexity": "low | medium | high",
+      "time_horizon": "near_term | mid_term | long_term",
+      "risk": { "execution": "execution risk", "adoption": "adoption risk", "market": "market risk" },
+      "validation": "Minimum viable test to validate",
+      "decision_readiness": 3,
+      "confidence": "high | medium | exploratory"
+    }
+  ]
 }`;
 
     const userPrompt = `Apply radical first-principles deconstruction to this business model.
@@ -154,6 +182,11 @@ CRITICAL INSTRUCTIONS:
 11. UNIT ECONOMICS: Include specific margin math for the reinvented model.
 12. COMPETITIVE MOAT: Explain specifically what prevents a competitor from copying the reinvented model within 12 months.
 13. SCORING CALIBRATION: leverageScores default to 4-6. Scores ≥8 require cited evidence. 9-10 almost never justified. Apply friction penalties for behavior change, infrastructure requirements, and capital intensity. Label every opportunity as "Near-term viable", "Conditional opportunity", or "Long-horizon concept".
+
+VISUAL & ACTION PLAN INSTRUCTIONS:
+- Generate 1-2 visual specs for the dominant constraint structure. Use constraint_map for showing how constraints connect, causal_chain for cause-effect flows, leverage_hierarchy for ranked interventions.
+- Generate 2-3 action plans for highest-leverage interventions. Each must connect to a specific constraint.
+- Only generate visuals when structural causality is clear. Do not force visuals.
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
