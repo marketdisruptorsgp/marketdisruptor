@@ -9,6 +9,7 @@ import {
   Upload, Briefcase, Building2, ArrowRight,
   ShieldCheck, BookOpen, Camera, Target,
   Search, Radar, Sparkles, Crosshair, Swords, Presentation,
+  ChevronRight,
 } from "lucide-react";
 
 const ROTATING_WORDS = [
@@ -98,31 +99,42 @@ export default function StartPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 sm:gap-6 relative">
             {PIPELINE_STEPS.map((item, i) => {
               const Icon = item.icon;
               const activeColor = ROTATING_WORDS[wordIndex].color;
               return (
-                <motion.div
-                  key={item.step}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.4, delay: i * 0.08 }}
-                  className="text-center group"
-                >
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors duration-500"
-                    style={{ background: `color-mix(in srgb, ${activeColor} 12%, transparent)` }}
+                <div key={item.step} className="relative">
+                  {/* Connector arrow — visible only on lg (6-col row) */}
+                  {i > 0 && (
+                    <div className="hidden lg:flex absolute -left-3 top-7 z-10 items-center justify-center">
+                      <ChevronRight
+                        size={14}
+                        className="transition-colors duration-500 opacity-40"
+                        style={{ color: activeColor }}
+                      />
+                    </div>
+                  )}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    className="text-center group"
                   >
-                    <Icon size={22} className="transition-colors duration-500" style={{ color: activeColor }} />
-                  </div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
-                    Step {item.step}
-                  </p>
-                  <p className="text-sm font-bold text-foreground mb-1">{item.label}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                </motion.div>
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors duration-500"
+                      style={{ background: `color-mix(in srgb, ${activeColor} 12%, transparent)` }}
+                    >
+                      <Icon size={22} className="transition-colors duration-500" style={{ color: activeColor }} />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                      Step {item.step}
+                    </p>
+                    <p className="text-sm font-bold text-foreground mb-1">{item.label}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </motion.div>
+                </div>
               );
             })}
           </div>
