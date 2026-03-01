@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { buildRegulatoryProfile } from "../_shared/regulatoryIntelligence.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -229,17 +230,20 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { category, geography } = await req.json();
+    const { category, geography, productName } = await req.json();
     const naicsCode = categoryToNaics(category || "");
 
     console.log(`[GeoData] Category: ${category}, NAICS: ${naicsCode}, Geography: ${geography || "all"}`);
 
-    // Fetch all data sources in parallel
-    const [stateData, businessData, globalData] = await Promise.all([
+    // Fetch all data sources in parallel (including adaptive regulatory data)
+    const [stateData, businessData, globalData, regulatoryProfile] = await Promise.all([
       fetchCensusStateData(),
       fetchBusinessPatterns(naicsCode),
       fetchWorldBankData(),
+      buildRegulatoryProfile(category || "", productName),
     ]);
+
+    console.log(`[GeoData] Regulatory relevance: ${regulatoryProfile.regulatoryRelevance} (${regulatoryProfile.matchedCategory || "none"})`);
 
     console.log(`[GeoData] Census: ${stateData.length} states, CBP: ${businessData.length} states, World Bank: ${globalData.length} countries`);
 
@@ -262,6 +266,9 @@ serve(async (req) => {
         census: stateData.length > 0 ? "US Census ACS 2022 (5-Year Estimates)" : "unavailable",
         businessPatterns: businessData.length > 0 ? "US Census County Business Patterns 2021" : "unavailable",
         worldBank: globalData.length > 0 ? "World Bank Open Data 2022" : "unavailable",
+        regulatory: regulatoryProfile.regulatoryRelevance !== "none"
+          ? `Federal Register API + Firecrawl (${regulatoryProfile.matchedCategory})`
+          : "not applicable",
       },
       us: {
         totalPopulation: totalUSPop,
@@ -274,6 +281,7 @@ serve(async (req) => {
       global: {
         topMarkets: globalOpportunities.slice(0, 10),
       },
+      regulatoryProfile,
       timestamp: new Date().toISOString(),
     };
 

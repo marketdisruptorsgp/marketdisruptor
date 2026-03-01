@@ -14,7 +14,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, disruptData, stressTestData, userScores, redesignData, insightPreferences, steeringText, lens, geoData } = await req.json();
+    const { product, disruptData, stressTestData, userScores, redesignData, insightPreferences, steeringText, lens, geoData, regulatoryData } = await req.json();
     const mode = resolveMode(product.analysisType, product.category);
     const filterResult = filterInputData(mode, product);
     console.log(`[ModeEnforcement] pitch-deck | ${mode} | ${missingDataWarning(mode)}`);
@@ -300,6 +300,15 @@ GEOGRAPHIC MARKET DATA (US Census ACS & World Bank — REAL data, use in TAM/mar
 - Top 5 US Markets: ${JSON.stringify((geoData.us?.topStates || []).slice(0, 5).map((s: any) => ({ state: s.name, pop: s.population, income: s.medianIncome, bizDensity: s.bizPerCapita, score: s.opportunityScore })))}
 - Top 5 Global Markets: ${JSON.stringify((geoData.global?.topMarkets || []).slice(0, 5).map((c: any) => ({ country: c.name, gdpPC: c.gdpPerCapita, popGrowth: c.populationGrowth, score: c.opportunityScore })))}
 Use this data for realistic TAM/SAM/SOM estimates and geographic GTM strategy.
+` : ""}
+${regulatoryData && regulatoryData.regulatoryRelevance !== "none" ? `
+REGULATORY INTELLIGENCE (REAL DATA — incorporate into risk slides and GTM):
+- Regulated Category: ${regulatoryData.matchedCategory} | Relevance: ${regulatoryData.regulatoryRelevance}
+- Agencies: ${(regulatoryData.agencies || []).join(", ")}
+- Active Federal Rulemaking: ${JSON.stringify((regulatoryData.activeRulemaking || []).slice(0, 3).map((r: any) => ({ title: r.title, type: r.type, date: r.publishedDate })))}
+- State Variance: ${JSON.stringify((regulatoryData.stateVariance || []).slice(0, 3))}
+- Risks: ${JSON.stringify(regulatoryData.risks || [])}
+Use this to: add regulatory risks to the Risks slide, recommend regulatory-favorable states in GTM strategy, include compliance costs in financial model.
 ` : ""}
 Build the most compelling, investor-ready pitch deck possible. Use all upstream data.
 Base scores on realistic market signals, competitive density, and structural feasibility.

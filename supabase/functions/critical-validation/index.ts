@@ -14,7 +14,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, analysisData, userSuggestions, lens, geoData } = await req.json();
+    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData } = await req.json();
     const mode = resolveMode(product.analysisType, product.category);
     const filterResult = filterInputData(mode, { ...product, ...analysisData });
     console.log(`[ModeEnforcement] critical-validation | ${mode} | ${missingDataWarning(mode)}`);
@@ -217,6 +217,22 @@ IMPORTANT: Use these real geographic data points to:
 - Support TAM estimates with real population and income data
 - Flag competitive density warnings using business establishment counts
 - Recommend specific geographic launch strategies in recommendations
+` : ""}
+${regulatoryData && regulatoryData.regulatoryRelevance !== "none" ? `
+REGULATORY & LEGAL INTELLIGENCE (REAL DATA — use these in Red Team/Green Team arguments):
+- Regulatory Relevance: ${regulatoryData.regulatoryRelevance?.toUpperCase()}
+- Regulated Category: ${regulatoryData.matchedCategory}
+- Governing Agencies: ${(regulatoryData.agencies || []).join(", ")}
+- Active Rulemaking (Federal Register): ${JSON.stringify((regulatoryData.activeRulemaking || []).slice(0, 3).map((r: any) => ({ title: r.title, type: r.type, date: r.publishedDate, agencies: r.agencyNames })))}
+- State-Level Variance: ${JSON.stringify((regulatoryData.stateVariance || []).slice(0, 3))}
+- Key Regulatory Risks: ${JSON.stringify(regulatoryData.risks || [])}
+- Web-Sourced Regulatory Insights: ${JSON.stringify((regulatoryData.firecrawlInsights || []).slice(0, 3).map((i: any) => ({ title: i.title, snippet: i.snippet?.slice(0, 200) })))}
+
+IMPORTANT: Use this REAL regulatory data to:
+- Red Team: Cite specific regulatory barriers, licensing requirements, state-by-state legal variance as concrete obstacles
+- Green Team: Identify states/jurisdictions with favorable regulatory environments as strategic entry points
+- Feasibility Checklist: Include specific regulatory compliance items with real agency names and requirements
+- Blind Spots: Flag missing regulatory data (e.g., pending state legislation, enforcement patterns)
 ` : ""}
 Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
