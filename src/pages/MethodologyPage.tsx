@@ -305,6 +305,47 @@ export default function MethodologyPage() {
           </div>
         </section>
 
+        {/* ── Section 5: Analysis Lenses ── */}
+        <section>
+          <h2 className="text-xl font-bold text-foreground mb-1">Analysis Lenses</h2>
+          <p className="text-sm text-muted-foreground mb-5">Lenses control <em>how</em> results are interpreted — the same data, scored through different strategic perspectives.</p>
+          <div className="space-y-3">
+            {[
+              {
+                name: "Default",
+                color: "hsl(var(--primary))",
+                desc: "Explores disruption potential and innovation opportunities. Best for brainstorming and discovering what's possible.",
+                details: "Scores favor novelty, market white-space, and radical re-imagination. Ideal for early-stage exploration."
+              },
+              {
+                name: "ETA Acquisition",
+                color: "hsl(142 70% 40%)",
+                desc: "Evaluates from an ownership & acquisition perspective — value durability, operational leverage, defensibility.",
+                details: "Recommendations prioritize process improvements over technology. Scores favor cash-flow stability, operational simplicity, and realistic improvement pathways. Built for search fund operators and acquirers."
+              },
+              {
+                name: "Custom",
+                color: "hsl(38 92% 50%)",
+                desc: "You define the priorities, risk tolerance, time horizon, and constraints. The AI reweights all scoring to match.",
+                details: "Set a primary objective (e.g. 'maximize margin'), time horizon, budget constraints, and evaluation weights. Every pipeline step adapts. Claims unsupported by your constraints are labeled as limitations."
+              },
+            ].map((lens) => (
+              <div key={lens.name} className="border border-border rounded-lg p-4 sm:p-5 bg-card" style={{ borderLeftWidth: "3px", borderLeftColor: lens.color }}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full" style={{ background: `${lens.color}15`, color: lens.color }}>{lens.name}</span>
+                </div>
+                <p className="text-sm font-semibold text-foreground mb-1">{lens.desc}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{lens.details}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+            <p className="text-xs text-foreground/70 leading-relaxed">
+              <strong className="text-foreground">Key principle:</strong> Lenses change <em>interpretation</em>, not data. The underlying intelligence remains identical — only the scoring, ranking, and strategic recommendations shift. Switch lenses anytime from your Workspace.
+            </p>
+          </div>
+        </section>
+
         {/* ── Output Philosophy ── */}
         <section>
           <h2 className="text-xl font-bold text-foreground mb-1">Output Philosophy</h2>
