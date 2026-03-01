@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, Link2, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserLens } from "@/components/LensToggle";
+import { toast } from "sonner";
 
 interface LensEditorProps {
   lens: UserLens | null;
@@ -28,9 +29,47 @@ export function LensEditor({ lens, onClose, onSaved }: LensEditorProps) {
   );
   const [saving, setSaving] = useState(false);
 
+  // URL autofill state
+  const [url, setUrl] = useState("");
+  const [scanning, setScanning] = useState(false);
+  const [scanned, setScanned] = useState(false);
+
+  const handleUrlScan = async () => {
+    if (!url.trim()) return;
+    setScanning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-url-autofill", {
+        body: { url: url.trim(), mode: "business" },
+      });
+      if (error) throw error;
+      const d = data?.data;
+      if (d) {
+        if (d.name && !name) setName(d.name + " Lens");
+        if (d.description) {
+          setPrimaryObjective((prev) => prev || `Evaluate opportunities in ${d.name || "this"} market`);
+        }
+        if (d.painPoints || d.notes) {
+          setConstraints((prev) => prev || (d.painPoints || d.notes || "").substring(0, 200));
+        }
+        if (d.revenueModel) {
+          setTargetOutcome((prev) => prev || d.revenueModel);
+        }
+        if (d.geography) {
+          setAvailableResources((prev) => prev || `Market: ${d.geography}`);
+        }
+        setScanned(true);
+        toast.success("Fields populated from URL — review & adjust below");
+      }
+    } catch (err) {
+      console.error("URL scan error:", err);
+      toast.error("Couldn't read that URL — fill in manually");
+    } finally {
+      setScanning(false);
+    }
+  };
+
   const handlePriorityChange = (key: string, value: number) => {
     const newPriorities = { ...priorities, [key]: value };
-    // Normalize to sum to 1
     const total = Object.values(newPriorities).reduce((a, b) => a + b, 0);
     if (total > 0) {
       Object.keys(newPriorities).forEach((k) => {
@@ -93,6 +132,44 @@ export function LensEditor({ lens, onClose, onSaved }: LensEditorProps) {
         </p>
 
         <div className="space-y-4">
+          {/* URL Autofill — first item */}
+          {!lens && (
+            <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03] p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles size={14} className="text-primary" />
+                <span className="text-xs font-bold text-foreground">Quick Start — Paste a URL</span>
+              </div>
+              <p className="text-[11px] text-foreground/60 mb-3 leading-relaxed">
+                Paste a company, product, or service URL and we'll auto-fill lens fields based on what we find. You can edit everything after.
+              </p>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Link2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    className="input-executive pl-9 text-xs"
+                    placeholder="https://example.com"
+                    value={url}
+                    onChange={(e) => { setUrl(e.target.value); setScanned(false); }}
+                    onKeyDown={(e) => e.key === "Enter" && handleUrlScan()}
+                    disabled={scanning}
+                  />
+                </div>
+                <button
+                  onClick={handleUrlScan}
+                  disabled={!url.trim() || scanning}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-1.5 flex-shrink-0"
+                >
+                  {scanning ? <><Loader2 size={12} className="animate-spin" /> Scanning…</> : scanned ? "Re-scan" : "Auto-fill"}
+                </button>
+              </div>
+              {scanned && (
+                <p className="text-[11px] text-primary font-medium mt-2 flex items-center gap-1">
+                  <Sparkles size={10} /> Fields populated — review and adjust below
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Name */}
           <div>
             <label className="typo-card-meta block mb-1">Lens Name *</label>
