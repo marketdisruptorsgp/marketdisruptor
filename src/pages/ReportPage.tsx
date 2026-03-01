@@ -83,6 +83,13 @@ export default function ReportPage() {
     return () => clearTimeout(t);
   }, []);
 
+  const shouldRedirectHome = waitedForLoad && analysis.step === "idle" && products.length === 0;
+  React.useEffect(() => {
+    if (shouldRedirectHome) {
+      navigate("/", { replace: true });
+    }
+  }, [shouldRedirectHome, navigate]);
+
   const isRunning = analysis.step === "scraping" || analysis.step === "analyzing";
 
   if (isRunning) {
@@ -101,9 +108,8 @@ export default function ReportPage() {
   }
 
   if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
-    // Only redirect if we've waited AND state is still idle with no data
-    if (waitedForLoad && analysis.step === "idle" && products.length === 0) {
-      navigate("/", { replace: true });
+    if (shouldRedirectHome) {
+      return null;
     }
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

@@ -34,8 +34,13 @@ export default function BusinessResultsPage() {
 
   const { businessAnalysisData, businessModelInput } = analysis;
 
+  React.useEffect(() => {
+    if (!businessAnalysisData) {
+      navigate("/", { replace: true });
+    }
+  }, [businessAnalysisData, navigate]);
+
   if (!businessAnalysisData) {
-    navigate("/", { replace: true });
     return null;
   }
 
