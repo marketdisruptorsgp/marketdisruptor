@@ -1770,7 +1770,7 @@ export default function Index() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
-                        onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct)}
+                        onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct, businessAnalysisData as any)}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
                         style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
                       >

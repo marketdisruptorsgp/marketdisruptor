@@ -158,7 +158,7 @@ export default function ReportPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
           <h2 className="typo-section-title">Intelligence Report</h2>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct)} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
+            <button onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct, analysis.selectedProduct?.patentData ? { ...((analysis as any).disruptData ? { disrupt: (analysis as any).disruptData } : {}), ...((analysis as any).stressTestData ? { stressTest: (analysis as any).stressTestData } : {}), ...((analysis as any).pitchDeckData ? { pitchDeck: (analysis as any).pitchDeckData } : {}), patentData: selectedProduct.patentData } : undefined)} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
               <FileDown size={12} /> PDF
             </button>
             <button onClick={handleManualSave} disabled={isSaving} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-primary text-primary-foreground" style={{ opacity: isSaving ? 0.7 : 1 }}>

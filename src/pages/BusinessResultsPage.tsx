@@ -108,7 +108,7 @@ export default function BusinessResultsPage() {
                   <p className="typo-card-body text-muted-foreground">Deep business model deconstruction for <strong className="text-foreground">{bizName}</strong></p>
                 </div>
                 
-                <button onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct)}
+                <button onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct, analysis.businessAnalysisData as any)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded typo-button-secondary transition-colors"
                   style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
                   <FileDown size={12} /> PDF
