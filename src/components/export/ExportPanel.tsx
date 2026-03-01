@@ -4,6 +4,7 @@ import { Download, FileText, Link2, ChevronDown, Check, Loader2, Presentation } 
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { generateInvestorPitchPDF } from "@/services/export/pdfGenerator";
+import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { generateOpportunityBriefPDF } from "@/services/export/opportunityBrief";
 import { generateInvestorPitchPPTX } from "@/services/export/pptxGenerator";
 import { buildPublicUrl } from "@/lib/publicUrl";
@@ -69,6 +70,18 @@ export function ExportPanel({
     }
   };
 
+  const handleFullReportPDF = () => {
+    setGenerating("full");
+    try {
+      downloadFullAnalysisPDF(product, analysisData || null);
+      toast.success("Full report PDF exported!");
+    } catch {
+      toast.error("Failed to export full report");
+    } finally {
+      setGenerating(null);
+    }
+  };
+
   const handleCopyLink = async () => {
     const shareUrl = buildPublicUrl(`/analysis/share/${analysisId || ""}`);
     await navigator.clipboard.writeText(shareUrl);
@@ -92,7 +105,22 @@ export function ExportPanel({
           className="absolute right-0 top-full mt-2 w-72 rounded-xl shadow-lg z-50 p-2 space-y-1"
           style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
         >
-          {/* PowerPoint — PRIMARY */}
+          {/* Full Report PDF — PRIMARY */}
+          <button
+            onClick={handleFullReportPDF}
+            disabled={!!generating}
+            className="w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-colors hover:bg-muted disabled:opacity-50"
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${accentColor}14` }}>
+              {generating === "full" ? <Loader2 size={14} className="animate-spin" style={{ color: accentColor }} /> : <FileText size={14} style={{ color: accentColor }} />}
+            </div>
+            <div>
+              <p className="text-xs font-bold text-foreground">Full Report PDF</p>
+              <p className="text-[10px] text-muted-foreground">Every section, all text, complete detail</p>
+            </div>
+          </button>
+
+          {/* PowerPoint */}
           <button
             onClick={handlePPTX}
             disabled={!!generating}

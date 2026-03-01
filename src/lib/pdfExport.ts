@@ -149,13 +149,15 @@ function addCover(doc: jsPDF, product: Product, subtitle = "") {
 }
 
 // ── Full analysis PDF ───────────────────────────────────────
-export function downloadFullAnalysisPDF(product: Product) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function downloadFullAnalysisPDF(product: Product, analysisData?: Record<string, any> | null) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   addCover(doc, product, "Full Intelligence Report");
 
   let y = 106;
+  const ad = analysisData || {};
 
-  // Overview
+  // ── Product Overview ──
   y = sectionTitle(doc, "Product Overview", y);
   if (product.keyInsight) {
     y = checkY(doc, y, 18);
@@ -178,7 +180,7 @@ export function downloadFullAnalysisPDF(product: Product) {
     y = body(doc, product.trendAnalysis, ML, y, CW) + 6;
   }
 
-  // Pricing
+  // ── Pricing Intelligence ──
   if (product.pricingIntel) {
     y = checkY(doc, y, 30);
     y = sectionTitle(doc, "Pricing Intelligence", y);
@@ -205,7 +207,7 @@ export function downloadFullAnalysisPDF(product: Product) {
     y = body(doc, pi.margins, ML, y, CW) + 6;
   }
 
-  // Supply Chain
+  // ── Supply Chain ──
   if (product.supplyChain) {
     y = checkY(doc, y, 30);
     y = sectionTitle(doc, "Supply Chain", y);
@@ -232,7 +234,7 @@ export function downloadFullAnalysisPDF(product: Product) {
     printContacts("Distributors", sc.distributors);
   }
 
-  // Action Plan
+  // ── Action Plan ──
   if (product.actionPlan) {
     y = checkY(doc, y, 30);
     y = sectionTitle(doc, "Action Plan", y);
@@ -271,7 +273,7 @@ export function downloadFullAnalysisPDF(product: Product) {
     }
   }
 
-  // Flipped Ideas
+  // ── Flipped Ideas ──
   if (product.flippedIdeas?.length) {
     y = checkY(doc, y, 30);
     y = sectionTitle(doc, "Flipped Product Ideas", y);
@@ -288,7 +290,7 @@ export function downloadFullAnalysisPDF(product: Product) {
     });
   }
 
-  // Reviews
+  // ── Reviews & Sentiment ──
   if (product.reviews?.length) {
     y = checkY(doc, y, 20);
     y = sectionTitle(doc, "Reviews & Sentiment", y);
@@ -303,8 +305,737 @@ export function downloadFullAnalysisPDF(product: Product) {
     });
   }
 
+  // ══════════════════════════════════════════════════════════
+  // EXTENDED SECTIONS FROM analysis_data
+  // ══════════════════════════════════════════════════════════
+
+  // ── Disruption Analysis (from disrupt step) ──
+  const disrupt = ad.disrupt as any;
+  if (disrupt) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Disruption Analysis", y);
+    if (disrupt.disruptionThesis || disrupt.thesis) {
+      label(doc, "Disruption Thesis", ML, y); y += 5;
+      y = body(doc, disrupt.disruptionThesis || disrupt.thesis, ML, y, CW) + 5;
+    }
+    if (disrupt.marketShifts || disrupt.shifts) {
+      const shifts = disrupt.marketShifts || disrupt.shifts;
+      if (typeof shifts === "string") {
+        label(doc, "Market Shifts", ML, y); y += 5;
+        y = body(doc, shifts, ML, y, CW) + 4;
+      } else if (Array.isArray(shifts)) {
+        label(doc, "Market Shifts", ML, y); y += 5;
+        shifts.forEach((s: any) => {
+          y = checkY(doc, y, 8);
+          const text = typeof s === "string" ? s : s.shift || s.name || JSON.stringify(s);
+          doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+          const lines = doc.splitTextToSize(`• ${text}`, CW - 3);
+          doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+        });
+        y += 3;
+      }
+    }
+    const disruptIdeas = disrupt.flippedIdeas || disrupt.ideas || disrupt.paths;
+    if (Array.isArray(disruptIdeas) && disruptIdeas.length > 0) {
+      label(doc, "Disruption Paths", ML, y); y += 5;
+      disruptIdeas.forEach((idea: any, i: number) => {
+        y = checkY(doc, y, 16);
+        doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(`${i + 1}. ${idea.name || idea.title || "Idea " + (i + 1)}`, ML, y); y += 4;
+        if (idea.description || idea.rationale) {
+          y = body(doc, idea.description || idea.rationale, ML + 3, y, CW - 3) + 3;
+        }
+        if (idea.marketSize) {
+          doc.setFontSize(7.5); rgb(doc, GREEN);
+          doc.text(`Market: ${idea.marketSize}`, ML + 3, y); y += 4;
+        }
+        if (idea.feasibility) {
+          doc.setFontSize(7.5); rgb(doc, PRIMARY);
+          doc.text(`Feasibility: ${idea.feasibility}`, ML + 3, y); y += 4;
+        }
+        y += 2;
+      });
+    }
+  }
+
+  // ── Critical Validation / Stress Test ──
+  const stressTest = ad.stressTest || ad.stressTestData || ad.criticalValidation;
+  if (stressTest) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Critical Validation & Stress Test", y);
+    const st = stressTest as any;
+
+    // Verdict / Summary
+    if (st.verdict || st.summary || st.overallAssessment) {
+      label(doc, "Overall Verdict", ML, y); y += 5;
+      y = body(doc, st.verdict || st.summary || st.overallAssessment, ML, y, CW) + 5;
+    }
+
+    // Strengths
+    const strengths = st.strengths || st.validatedStrengths;
+    if (Array.isArray(strengths) && strengths.length > 0) {
+      label(doc, "Validated Strengths", ML, y); y += 5;
+      strengths.forEach((s: any) => {
+        y = checkY(doc, y, 8);
+        const text = typeof s === "string" ? s : s.point || s.strength || JSON.stringify(s);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, GREEN);
+        doc.text("✓", ML, y); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(text, CW - 6);
+        doc.text(lines, ML + 5, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+
+    // Weaknesses
+    const weaknesses = st.weaknesses || st.criticalWeaknesses || st.vulnerabilities;
+    if (Array.isArray(weaknesses) && weaknesses.length > 0) {
+      label(doc, "Critical Weaknesses", ML, y); y += 5;
+      weaknesses.forEach((w: any) => {
+        y = checkY(doc, y, 8);
+        const text = typeof w === "string" ? w : w.point || w.weakness || w.vulnerability || JSON.stringify(w);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, RED);
+        doc.text("✕", ML, y); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(text, CW - 6);
+        doc.text(lines, ML + 5, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+
+    // Risks
+    const risks = st.risks || st.riskFactors;
+    if (Array.isArray(risks) && risks.length > 0) {
+      label(doc, "Risk Matrix", ML, y); y += 5;
+      risks.forEach((r: any) => {
+        y = checkY(doc, y, 14);
+        const sev = r.severity || r.level || "medium";
+        const c = sev === "high" ? RED : sev === "medium" ? AMBER : GREEN;
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, c);
+        doc.text(`[${String(sev).toUpperCase()}]`, ML, y);
+        rgb(doc, DARK); doc.setFont("helvetica", "normal");
+        const riskText = r.risk || r.name || r.title || "";
+        const rLines = doc.splitTextToSize(riskText, CW - 22);
+        doc.text(rLines, ML + 18, y);
+        y += Math.max(rLines.length * 3.5, 4) + 1;
+        if (r.mitigation || r.mitigationStrategy) {
+          doc.setFontSize(7.5); rgb(doc, GRAY);
+          const mLines = doc.splitTextToSize(`→ ${r.mitigation || r.mitigationStrategy}`, CW - 6);
+          doc.text(mLines, ML + 3, y); y += mLines.length * 3.2 + 3;
+        }
+      });
+      y += 3;
+    }
+
+    // Debate points / arguments
+    const debate = st.debate || st.arguments || st.debatePoints;
+    if (Array.isArray(debate) && debate.length > 0) {
+      label(doc, "Debate Points", ML, y); y += 5;
+      debate.forEach((d: any) => {
+        y = checkY(doc, y, 12);
+        const text = typeof d === "string" ? d : d.argument || d.point || d.claim || JSON.stringify(d);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`• ${text}`, CW - 3);
+        doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+        if (d.counterArgument || d.rebuttal) {
+          doc.setFontSize(7.5); rgb(doc, PRIMARY);
+          const caLines = doc.splitTextToSize(`↳ ${d.counterArgument || d.rebuttal}`, CW - 6);
+          doc.text(caLines, ML + 4, y); y += caLines.length * 3.2 + 3;
+        }
+      });
+      y += 3;
+    }
+
+    // Assumptions tested
+    const assumptions = st.assumptions || st.testedAssumptions;
+    if (Array.isArray(assumptions) && assumptions.length > 0) {
+      label(doc, "Assumptions Tested", ML, y); y += 5;
+      assumptions.forEach((a: any) => {
+        y = checkY(doc, y, 10);
+        const text = typeof a === "string" ? a : a.assumption || a.name || JSON.stringify(a);
+        const result = typeof a === "object" ? (a.result || a.verdict || a.status || "") : "";
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`• ${text}`, CW - 3);
+        doc.text(lines, ML, y); y += lines.length * 3.5 + 1;
+        if (result) {
+          doc.setFontSize(7.5); rgb(doc, GRAY);
+          doc.text(`  Result: ${result}`, ML + 3, y); y += 4;
+        }
+      });
+      y += 3;
+    }
+
+    // Kill / Pivot signals
+    const killSignals = st.killSignals || st.pivotSignals;
+    if (Array.isArray(killSignals) && killSignals.length > 0) {
+      label(doc, "Kill / Pivot Signals", ML, y); y += 5;
+      killSignals.forEach((s: any) => {
+        y = checkY(doc, y, 8);
+        const text = typeof s === "string" ? s : s.signal || s.name || JSON.stringify(s);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, RED);
+        const lines = doc.splitTextToSize(`⚠ ${text}`, CW - 3);
+        doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+  }
+
+  // ── Pitch Deck Data ──
+  const pitch = ad.pitchDeck || ad.businessPitchDeck;
+  if (pitch) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Pitch Deck Intelligence", y);
+    const pd = pitch as any;
+
+    if (pd.elevatorPitch) {
+      label(doc, "Elevator Pitch", ML, y); y += 5;
+      y = body(doc, pd.elevatorPitch, ML, y, CW, 10) + 5;
+    }
+    if (pd.problemStatement) {
+      label(doc, "Problem", ML, y); y += 5;
+      y = body(doc, pd.problemStatement, ML, y, CW) + 4;
+    }
+    if (pd.solutionStatement) {
+      label(doc, "Solution", ML, y); y += 5;
+      y = body(doc, pd.solutionStatement, ML, y, CW) + 4;
+    }
+    if (pd.whyNow) {
+      label(doc, "Why Now", ML, y); y += 5;
+      y = body(doc, pd.whyNow, ML, y, CW) + 5;
+    }
+
+    // Market Opportunity
+    const mo = pd.marketOpportunity;
+    if (mo) {
+      y = checkY(doc, y, 30);
+      label(doc, "Market Opportunity", ML, y); y += 5;
+      if (mo.tam) { doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK); doc.text(`TAM: ${mo.tam}`, ML, y); y += 4; }
+      if (mo.sam) { doc.text(`SAM: ${mo.sam}`, ML, y); y += 4; }
+      if (mo.som) { doc.text(`SOM: ${mo.som}`, ML, y); y += 4; }
+      if (mo.growthRate) { doc.setFont("helvetica", "normal"); y = body(doc, `Growth: ${mo.growthRate}`, ML, y, CW) + 3; }
+      if (mo.keyDrivers?.length) {
+        label(doc, "Key Drivers", ML, y); y += 5;
+        mo.keyDrivers.forEach((d: string) => {
+          y = checkY(doc, y, 6);
+          doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+          const lines = doc.splitTextToSize(`• ${d}`, CW - 3);
+          doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+        });
+        y += 3;
+      }
+    }
+
+    // Customer Persona
+    if (pd.customerPersona) {
+      const cp = pd.customerPersona;
+      y = checkY(doc, y, 20);
+      label(doc, `Customer: ${cp.name || "Target User"}`, ML, y); y += 5;
+      if (cp.age) y = body(doc, `Age/Segment: ${cp.age}`, ML, y, CW) + 2;
+      if (cp.buyingBehavior) y = body(doc, `Buying: ${cp.buyingBehavior}`, ML, y, CW) + 2;
+      if (cp.willingness) y = body(doc, `Price willingness: ${cp.willingness}`, ML, y, CW) + 2;
+      if (cp.painPoints?.length) {
+        cp.painPoints.forEach((p: string) => {
+          y = checkY(doc, y, 6);
+          doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+          doc.text(`• ${p}`, ML, y); y += 4;
+        });
+      }
+      y += 3;
+    }
+
+    // Financial Model
+    const fm = pd.financialModel;
+    if (fm) {
+      y = checkY(doc, y, 30);
+      label(doc, "Financial Model", ML, y); y += 5;
+      if (fm.unitEconomics) {
+        const ue = fm.unitEconomics;
+        const metrics = [["COGS", ue.cogs], ["Retail Price", ue.retailPrice], ["Gross Margin", ue.grossMargin], ["Contribution Margin", ue.contributionMargin], ["Payback Period", ue.paybackPeriod]];
+        metrics.forEach(([lbl, val]) => {
+          if (!val) return;
+          y = checkY(doc, y, 6);
+          doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, GRAY);
+          doc.text(`${lbl}: `, ML, y);
+          doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+          doc.text(String(val), ML + doc.getTextWidth(`${lbl}: `), y);
+          y += 4;
+        });
+        y += 3;
+      }
+      if (fm.pricingStrategy) { label(doc, "Pricing Strategy", ML, y); y += 5; y = body(doc, fm.pricingStrategy, ML, y, CW) + 4; }
+      if (fm.breakEvenAnalysis) { label(doc, "Break-Even", ML, y); y += 5; y = body(doc, fm.breakEvenAnalysis, ML, y, CW) + 4; }
+      if (fm.fundingAsk) { label(doc, "Funding Ask", ML, y); y += 5; doc.setFontSize(10); doc.setFont("helvetica", "bold"); rgb(doc, PRIMARY); doc.text(fm.fundingAsk, ML, y); y += 7; }
+      if (fm.useOfFunds?.length) {
+        label(doc, "Use of Funds", ML, y); y += 5;
+        fm.useOfFunds.forEach((f: string) => { y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK); doc.text(`• ${f}`, ML, y); y += 4; });
+        y += 3;
+      }
+      if (fm.exitStrategy) { label(doc, "Exit Strategy", ML, y); y += 5; y = body(doc, fm.exitStrategy, ML, y, CW) + 4; }
+    }
+
+    // GTM Strategy
+    const gtm = pd.gtmStrategy;
+    if (gtm) {
+      y = checkY(doc, y, 30);
+      label(doc, "Go-to-Market Strategy", ML, y); y += 5;
+      [["Launch", gtm.phase1], ["Scale", gtm.phase2], ["Dominate", gtm.phase3]].forEach(([ph, text]) => {
+        if (!text) return;
+        y = checkY(doc, y, 12);
+        doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, PRIMARY);
+        doc.text(`${ph}:`, ML, y); y += 4;
+        y = body(doc, text as string, ML + 3, y, CW - 3) + 3;
+      });
+      if (gtm.keyChannels?.length) {
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        doc.text(`Channels: ${gtm.keyChannels.join(", ")}`, ML, y); y += 5;
+      }
+      if (gtm.launchBudget) {
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, GREEN);
+        doc.text(`Budget: ${gtm.launchBudget}`, ML, y); y += 6;
+      }
+    }
+
+    // Investor Highlights
+    if (pd.investorHighlights?.length) {
+      y = checkY(doc, y, 14);
+      label(doc, "Investor Highlights", ML, y); y += 5;
+      pd.investorHighlights.forEach((h: string) => {
+        y = checkY(doc, y, 6);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, PRIMARY);
+        const lines = doc.splitTextToSize(`★ ${h}`, CW - 3);
+        doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+
+    // Risks from pitch
+    if (pd.risks?.length) {
+      label(doc, "Pitch Deck Risks", ML, y); y += 5;
+      pd.risks.forEach((r: any) => {
+        y = checkY(doc, y, 12);
+        const sev = r.severity || "medium";
+        const c = sev === "high" ? RED : sev === "medium" ? AMBER : GREEN;
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, c);
+        doc.text(`[${sev.toUpperCase()}]`, ML, y);
+        doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const rLines = doc.splitTextToSize(r.risk || "", CW - 22);
+        doc.text(rLines, ML + 18, y); y += rLines.length * 3.5 + 1;
+        if (r.mitigation) {
+          doc.setFontSize(7.5); rgb(doc, GRAY);
+          const mLines = doc.splitTextToSize(`→ ${r.mitigation}`, CW - 6);
+          doc.text(mLines, ML + 3, y); y += mLines.length * 3.2 + 3;
+        }
+      });
+      y += 3;
+    }
+
+    // Key Metrics
+    if (pd.keyMetrics?.length) {
+      label(doc, "Key Success Metrics", ML, y); y += 5;
+      pd.keyMetrics.forEach((m: any) => {
+        y = checkY(doc, y, 10);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(`${m.metric}: ${m.target}`, ML, y); y += 4;
+        if (m.why) {
+          doc.setFontSize(7.5); doc.setFont("helvetica", "normal"); rgb(doc, GRAY);
+          const wLines = doc.splitTextToSize(m.why, CW - 3);
+          doc.text(wLines, ML, y); y += wLines.length * 3.2 + 3;
+        }
+      });
+      y += 3;
+    }
+
+    // Suppliers & Distributors from pitch
+    if (pd.supplierContacts?.length) {
+      label(doc, "Supplier Contacts", ML, y); y += 5;
+      pd.supplierContacts.forEach((s: any) => {
+        y = checkY(doc, y, 12);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(s.name || "", ML, y); y += 4;
+        const detail = [s.role, s.region, s.email, s.moq ? `MOQ: ${s.moq}` : ""].filter(Boolean).join(" · ");
+        if (detail) { doc.setFont("helvetica", "normal"); rgb(doc, GRAY); doc.text(detail, ML, y); y += 4; }
+        if (s.notes) { y = body(doc, s.notes, ML, y, CW) + 2; }
+      });
+      y += 3;
+    }
+    if (pd.distributorContacts?.length) {
+      label(doc, "Distributor Contacts", ML, y); y += 5;
+      pd.distributorContacts.forEach((d: any) => {
+        y = checkY(doc, y, 12);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(d.name || "", ML, y); y += 4;
+        const detail = [d.role, d.region, d.email].filter(Boolean).join(" · ");
+        if (detail) { doc.setFont("helvetica", "normal"); rgb(doc, GRAY); doc.text(detail, ML, y); y += 4; }
+        if (d.notes) { y = body(doc, d.notes, ML, y, CW) + 2; }
+      });
+      y += 3;
+    }
+  }
+
+  // ── Geo Market Data ──
+  const geo = ad.geoMarketData || ad.geoOpportunity;
+  if (geo) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Geographic Market Intelligence", y);
+    const gd = geo as any;
+    if (typeof gd === "string") {
+      y = body(doc, gd, ML, y, CW) + 4;
+    } else {
+      if (gd.summary) { y = body(doc, gd.summary, ML, y, CW) + 5; }
+      if (gd.topMarkets && Array.isArray(gd.topMarkets)) {
+        label(doc, "Top Markets", ML, y); y += 5;
+        gd.topMarkets.forEach((m: any) => {
+          y = checkY(doc, y, 10);
+          const text = typeof m === "string" ? m : `${m.market || m.region || m.country}: ${m.opportunity || m.description || m.score || ""}`;
+          doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+          const lines = doc.splitTextToSize(`• ${text}`, CW - 3);
+          doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+        });
+        y += 3;
+      }
+      // Render any other geo keys as labeled text
+      for (const [key, val] of Object.entries(gd)) {
+        if (["summary", "topMarkets"].includes(key) || !val) continue;
+        if (typeof val === "string" && val.length > 10) {
+          y = checkY(doc, y, 12);
+          label(doc, key.replace(/([A-Z])/g, " $1").trim(), ML, y); y += 5;
+          y = body(doc, val, ML, y, CW) + 4;
+        }
+      }
+    }
+  }
+
+  // ── Regulatory Intelligence ──
+  const reg = ad.regulatoryIntelligence || ad.regulatoryContext || ad.regulatory_intelligence || ad.regulatory;
+  if (reg) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Regulatory Landscape", y);
+    const rd = reg as any;
+    if (rd.summary || rd.overview) {
+      y = body(doc, rd.summary || rd.overview, ML, y, CW) + 5;
+    }
+    if (rd.agencies?.length) {
+      label(doc, "Key Agencies", ML, y); y += 5;
+      rd.agencies.forEach((a: any) => {
+        y = checkY(doc, y, 8);
+        const text = typeof a === "string" ? a : `${a.name || a.agency}: ${a.role || a.jurisdiction || ""}`;
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`• ${text}`, CW - 3);
+        doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+    if (rd.activeRulemaking?.length || rd.active_rulemaking?.length) {
+      const rules = rd.activeRulemaking || rd.active_rulemaking;
+      label(doc, "Active Rulemaking", ML, y); y += 5;
+      rules.forEach((r: any) => {
+        y = checkY(doc, y, 10);
+        const text = typeof r === "string" ? r : `${r.rule || r.name || r.title}: ${r.status || ""} — ${r.impact || r.description || ""}`;
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`• ${text}`, CW - 3);
+        doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+    if (rd.stateVariance?.length || rd.state_variance?.length || rd.jurisdictions?.length) {
+      const states = rd.stateVariance || rd.state_variance || rd.jurisdictions;
+      label(doc, "State/Regional Variance", ML, y); y += 5;
+      states.forEach((s: any) => {
+        y = checkY(doc, y, 8);
+        const text = typeof s === "string" ? s : `${s.state || s.jurisdiction || s.region}: ${s.status || s.legalStatus || ""} — ${s.notes || s.details || ""}`;
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        const lines = doc.splitTextToSize(`• ${text}`, CW - 3);
+        doc.text(lines, ML, y); y += lines.length * 3.5 + 2;
+      });
+      y += 3;
+    }
+    if (rd.riskLevel || rd.risk_level) {
+      const risk = rd.riskLevel || rd.risk_level;
+      const rc = risk === "high" ? RED : risk === "medium" ? AMBER : GREEN;
+      doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, rc);
+      doc.text(`Regulatory Risk: ${String(risk).toUpperCase()}`, ML, y); y += 6;
+    }
+    // Render any remaining string fields
+    for (const [key, val] of Object.entries(rd)) {
+      if (["summary", "overview", "agencies", "activeRulemaking", "active_rulemaking", "stateVariance", "state_variance", "jurisdictions", "riskLevel", "risk_level"].includes(key)) continue;
+      if (typeof val === "string" && val.length > 10) {
+        y = checkY(doc, y, 12);
+        label(doc, key.replace(/([A-Z])/g, " $1").trim(), ML, y); y += 5;
+        y = body(doc, val, ML, y, CW) + 4;
+      }
+    }
+  }
+
+  // ── Redesign Data ──
+  const redesign = ad.redesign;
+  if (redesign) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Redesign Concepts", y);
+    const rd = redesign as any;
+    if (typeof rd === "string") {
+      y = body(doc, rd, ML, y, CW) + 4;
+    } else if (Array.isArray(rd)) {
+      rd.forEach((item: any, i: number) => {
+        y = checkY(doc, y, 14);
+        doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(`${i + 1}. ${item.name || item.title || "Concept " + (i + 1)}`, ML, y); y += 4;
+        if (item.description || item.concept) {
+          y = body(doc, item.description || item.concept, ML + 3, y, CW - 3) + 3;
+        }
+      });
+    } else if (rd.concepts || rd.ideas) {
+      const items = rd.concepts || rd.ideas;
+      if (Array.isArray(items)) {
+        items.forEach((item: any, i: number) => {
+          y = checkY(doc, y, 14);
+          doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+          doc.text(`${i + 1}. ${item.name || item.title || "Concept"}`, ML, y); y += 4;
+          if (item.description) y = body(doc, item.description, ML + 3, y, CW - 3) + 3;
+        });
+      }
+    }
+  }
+
+  // ── Business Model Data (for business mode) ──
+  const bm = ad.businessSummary || ad.businessModel;
+  if (bm) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Business Model Deconstruction", y);
+    const b = bm as any;
+    if (b.trueJobToBeDone) { label(doc, "True Job To Be Done", ML, y); y += 5; y = body(doc, b.trueJobToBeDone, ML, y, CW) + 4; }
+    if (b.currentModel) { label(doc, "Current Model", ML, y); y += 5; y = body(doc, b.currentModel, ML, y, CW) + 4; }
+    if (b.marketPosition) { label(doc, "Market Position", ML, y); y += 5; y = body(doc, b.marketPosition, ML, y, CW) + 4; }
+    if (b.hiddenStrengths?.length) {
+      label(doc, "Hidden Strengths", ML, y); y += 5;
+      b.hiddenStrengths.forEach((s: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        doc.text(`✓ ${s}`, ML, y); y += 4;
+      });
+      y += 3;
+    }
+  }
+
+  // ── Operations Audit ──
+  const oa = ad.operationalAudit;
+  if (oa) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Operations Audit", y);
+    const o = oa as any;
+    if (o.customerJourney?.length) {
+      label(doc, "Customer Journey", ML, y); y += 5;
+      o.customerJourney.forEach((step: string, i: number) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        doc.text(`${i + 1}. ${step}`, ML, y); y += 4;
+      });
+      y += 3;
+    }
+    if (o.frictionPoints?.length) {
+      label(doc, "Friction Points", ML, y); y += 5;
+      o.frictionPoints.forEach((fp: any) => {
+        y = checkY(doc, y, 10);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, AMBER);
+        doc.text(`[${(fp.impact || "medium").toUpperCase()}] ${fp.stage || ""}`, ML, y); y += 4;
+        rgb(doc, DARK); doc.setFont("helvetica", "normal");
+        y = body(doc, fp.friction, ML + 2, y, CW - 2) + 2;
+        if (fp.rootCause) { doc.setFontSize(7.5); rgb(doc, GRAY); doc.text(`Root cause: ${fp.rootCause}`, ML + 2, y); y += 4; }
+      });
+      y += 3;
+    }
+    if (o.revenueLeaks?.length) {
+      label(doc, "Revenue Leaks", ML, y); y += 5;
+      o.revenueLeaks.forEach((l: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, AMBER);
+        doc.text(`⚠ ${l}`, ML, y); y += 4;
+      });
+      y += 3;
+    }
+  }
+
+  // ── Technology Leverage ──
+  const tl = ad.technologyLeverage;
+  if (tl) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Technology Leverage", y);
+    const t = tl as any;
+    if (t.currentTechLevel) { y = body(doc, `Current Level: ${t.currentTechLevel}`, ML, y, CW) + 4; }
+    if (t.automationOpportunities?.length) {
+      label(doc, "Automation Opportunities", ML, y); y += 5;
+      t.automationOpportunities.forEach((ao: any) => {
+        y = checkY(doc, y, 10);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(ao.process || "", ML, y); y += 4;
+        doc.setFont("helvetica", "normal"); rgb(doc, PRIMARY);
+        doc.text(`→ ${ao.technology || ""}`, ML, y); y += 4;
+        if (ao.costSaving) { rgb(doc, GREEN); doc.text(`Saving: ${ao.costSaving}`, ML, y); y += 4; }
+      });
+      y += 3;
+    }
+    if (t.platformOpportunity) { label(doc, "Platform Opportunity", ML, y); y += 5; y = body(doc, t.platformOpportunity, ML, y, CW) + 4; }
+  }
+
+  // ── Revenue Reinvention ──
+  const rr = ad.revenueReinvention;
+  if (rr) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Revenue Reinvention", y);
+    const r = rr as any;
+    if (r.currentRevenueMix) { label(doc, "Current Revenue Mix", ML, y); y += 5; y = body(doc, r.currentRevenueMix, ML, y, CW) + 4; }
+    if (r.untappedStreams?.length) {
+      label(doc, "Untapped Revenue Streams", ML, y); y += 5;
+      r.untappedStreams.forEach((us: any) => {
+        y = checkY(doc, y, 12);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(us.stream || "", ML, y); y += 4;
+        doc.setFont("helvetica", "normal"); rgb(doc, GRAY);
+        doc.text(`Est. size: ${us.estimatedSize || "N/A"} · Effort: ${us.effort || "N/A"}`, ML, y); y += 4;
+        if (us.mechanism) y = body(doc, us.mechanism, ML, y, CW) + 2;
+      });
+      y += 3;
+    }
+    if (r.pricingRedesign) { label(doc, "Pricing Redesign", ML, y); y += 5; y = body(doc, r.pricingRedesign, ML, y, CW) + 4; }
+  }
+
+  // ── Disruption Map ──
+  const da = ad.disruptionAnalysis;
+  if (da) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Disruption Map", y);
+    const d = da as any;
+    if (d.vulnerabilities?.length) {
+      label(doc, "Vulnerabilities", ML, y); y += 5;
+      d.vulnerabilities.forEach((v: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, RED);
+        doc.text(`⚠ ${v}`, ML, y); y += 4;
+      });
+      y += 3;
+    }
+    if (d.disruptorProfile) { label(doc, "Disruptor Profile", ML, y); y += 5; y = body(doc, d.disruptorProfile, ML, y, CW) + 4; }
+    if (d.defenseMoves?.length) {
+      label(doc, "Defense Moves", ML, y); y += 5;
+      d.defenseMoves.forEach((m: string) => {
+        y = checkY(doc, y, 6); doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, GREEN);
+        doc.text(`✓ ${m}`, ML, y); y += 4;
+      });
+      y += 3;
+    }
+    if (d.attackMoves) { label(doc, "Attack Moves", ML, y); y += 5; y = body(doc, d.attackMoves, ML, y, CW) + 4; }
+  }
+
+  // ── Reinvented Model ──
+  const rm = ad.reinventedModel;
+  if (rm) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Reinvented Model", y);
+    const r = rm as any;
+    if (r.modelName) { doc.setFontSize(12); doc.setFont("helvetica", "bold"); rgb(doc, PRIMARY); doc.text(r.modelName, ML, y); y += 7; }
+    if (r.coreShift) { label(doc, "Core Shift", ML, y); y += 5; y = body(doc, r.coreShift, ML, y, CW) + 4; }
+    if (r.newValueProposition) { label(doc, "New Value Proposition", ML, y); y += 5; y = body(doc, r.newValueProposition, ML, y, CW) + 4; }
+    if (r.economicTransformation) { label(doc, "Economic Transformation", ML, y); y += 5; y = body(doc, r.economicTransformation, ML, y, CW) + 4; }
+    if (r.estimatedROI) { doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, GREEN); doc.text(`Estimated ROI: ${r.estimatedROI}`, ML, y); y += 6; }
+    if (r.biggestRisk) { label(doc, "Biggest Risk", ML, y); y += 5; y = body(doc, r.biggestRisk, ML, y, CW) + 4; }
+  }
+
+  // ── Hidden Assumptions ──
+  const ha = ad.hiddenAssumptions;
+  if (Array.isArray(ha) && ha.length > 0) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Hidden Assumptions", y);
+    ha.forEach((item: any) => {
+      y = checkY(doc, y, 14);
+      doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+      doc.text(`"${item.assumption || item}"`, ML, y); y += 5;
+      if (item.currentAnswer) {
+        doc.setFontSize(7.5); doc.setFont("helvetica", "italic"); rgb(doc, GRAY);
+        const caLines = doc.splitTextToSize(`Why: ${item.currentAnswer}`, CW - 3);
+        doc.text(caLines, ML, y); y += caLines.length * 3.2 + 2;
+      }
+      if (item.challengeIdea) {
+        doc.setFont("helvetica", "normal"); rgb(doc, PRIMARY);
+        const ciLines = doc.splitTextToSize(`→ ${item.challengeIdea}`, CW - 3);
+        doc.text(ciLines, ML, y); y += ciLines.length * 3.5 + 4;
+      }
+    });
+  }
+
+  // ── Patent Data ──
+  const patent = product.patentData || ad.patentData;
+  if (patent) {
+    y = checkY(doc, y, 30);
+    y = sectionTitle(doc, "Patent Intelligence", y);
+    const p = patent as any;
+    if (p.summary) { y = body(doc, p.summary, ML, y, CW) + 5; }
+    if (p.landscapeScore) { doc.setFontSize(9); doc.setFont("helvetica", "bold"); rgb(doc, PRIMARY); doc.text(`IP Landscape: ${p.landscapeScore}/10`, ML, y); y += 5; }
+    if (p.opportunityScore) { doc.text(`Opportunity: ${p.opportunityScore}/10`, ML, y); y += 6; }
+    if (p.expiredGoldmines?.length) {
+      label(doc, "Expired IP Goldmines", ML, y); y += 5;
+      p.expiredGoldmines.forEach((g: any) => {
+        y = checkY(doc, y, 14);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(g.title || "", ML, y); y += 4;
+        doc.setFont("helvetica", "normal"); rgb(doc, GRAY);
+        doc.text(`${g.originalHolder || ""} · Expired ${g.expiredYear || ""}`, ML, y); y += 4;
+        if (g.whatItCovers) y = body(doc, g.whatItCovers, ML + 2, y, CW - 2) + 2;
+        if (g.commercialOpportunity) {
+          rgb(doc, GREEN); doc.setFontSize(7.5);
+          const oLines = doc.splitTextToSize(`Opportunity: ${g.commercialOpportunity}`, CW - 3);
+          doc.text(oLines, ML, y); y += oLines.length * 3.2 + 3;
+        }
+      });
+      y += 3;
+    }
+    if (p.patentGaps?.length) {
+      label(doc, "Patent White Space", ML, y); y += 5;
+      p.patentGaps.forEach((g: any) => {
+        y = checkY(doc, y, 10);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        const gLines = doc.splitTextToSize(g.gap || "", CW - 3);
+        doc.text(gLines, ML, y); y += gLines.length * 3.5 + 2;
+        if (g.opportunity) {
+          doc.setFont("helvetica", "normal"); rgb(doc, PRIMARY);
+          doc.text(`→ ${g.opportunity}`, ML, y); y += 4;
+        }
+      });
+      y += 3;
+    }
+    if (p.innovationAngles?.length) {
+      label(doc, "Innovation Angles", ML, y); y += 5;
+      p.innovationAngles.forEach((a: any, i: number) => {
+        y = checkY(doc, y, 12);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(`${i + 1}. ${a.angle || ""}`, ML, y); y += 4;
+        if (a.description) y = body(doc, a.description, ML + 3, y, CW - 3) + 2;
+        if (a.marketPotential) { doc.setFontSize(7.5); rgb(doc, GREEN); doc.text(`Market: ${a.marketPotential}`, ML + 3, y); y += 4; }
+      });
+      y += 3;
+    }
+    if (p.keyHolders?.length) {
+      label(doc, "Key Patent Holders", ML, y); y += 5;
+      p.keyHolders.forEach((h: any) => {
+        y = checkY(doc, y, 10);
+        doc.setFontSize(8); doc.setFont("helvetica", "bold"); rgb(doc, DARK);
+        doc.text(`${h.name} (${h.patentCount || 0} patents)`, ML, y); y += 4;
+        if (h.focus) { doc.setFont("helvetica", "normal"); rgb(doc, GRAY); doc.text(h.focus, ML, y); y += 4; }
+      });
+      y += 3;
+    }
+  }
+
+  // ── User Scores (if manually scored) ──
+  const userScores = ad.userScores as Record<string, Record<string, number>> | undefined;
+  if (userScores && Object.keys(userScores).length > 0) {
+    y = checkY(doc, y, 20);
+    y = sectionTitle(doc, "User Ratings", y);
+    for (const [productId, scores] of Object.entries(userScores)) {
+      if (typeof scores !== "object") continue;
+      for (const [dim, score] of Object.entries(scores)) {
+        y = checkY(doc, y, 6);
+        doc.setFontSize(8); doc.setFont("helvetica", "normal"); rgb(doc, DARK);
+        doc.text(`${dim}: ${score}/10`, ML, y); y += 4;
+      }
+      y += 2;
+    }
+  }
+
   addFootersToAllPages(doc);
-  doc.save(`${product.name.replace(/[^a-z0-9]/gi, "_")}_analysis.pdf`);
+  doc.save(`${product.name.replace(/[^a-z0-9]/gi, "_")}_full_report.pdf`);
 }
 
 // ── Pitch Deck PDF ──────────────────────────────────────────
