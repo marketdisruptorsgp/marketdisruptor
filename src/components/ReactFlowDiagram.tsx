@@ -1,36 +1,109 @@
-import { useCallback, useMemo } from "react";
+import { useMemo, memo } from "react";
 import ReactFlow, {
   Background,
-  Controls,
   type Node,
   type Edge,
   MarkerType,
   Position,
   ConnectionLineType,
+  Handle,
+  type NodeProps,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import type { VisualSpec, VisualNode } from "./StructuralVisual";
 
-/* ── Node color mapping using CSS variable HSL values ── */
-const NODE_COLORS: Record<VisualNode["type"], { bg: string; border: string; badge: string }> = {
-  constraint:   { bg: "hsl(0 72% 52% / 0.08)",   border: "hsl(0 72% 52% / 0.4)",   badge: "hsl(0 72% 52%)" },
-  effect:       { bg: "hsl(220 14% 95%)",          border: "hsl(220 13% 86%)",        badge: "hsl(220 10% 40%)" },
-  leverage:     { bg: "hsl(229 89% 63% / 0.08)",   border: "hsl(229 89% 63% / 0.35)", badge: "hsl(229 89% 63%)" },
-  intervention: { bg: "hsl(38 92% 50% / 0.08)",    border: "hsl(38 92% 50% / 0.35)",  badge: "hsl(38 92% 35%)" },
-  outcome:      { bg: "hsl(142 70% 45% / 0.08)",   border: "hsl(142 70% 45% / 0.3)",  badge: "hsl(142 70% 30%)" },
+/* ── Node color mapping ── */
+const NODE_COLORS: Record<VisualNode["type"], { bg: string; border: string; badge: string; badgeBg: string }> = {
+  constraint:   { bg: "hsl(0 72% 52% / 0.06)",   border: "hsl(0 72% 52% / 0.35)",   badge: "hsl(0 72% 52%)",   badgeBg: "hsl(0 72% 52% / 0.10)" },
+  effect:       { bg: "hsl(var(--muted))",          border: "hsl(var(--border))",        badge: "hsl(var(--muted-foreground))", badgeBg: "hsl(var(--muted))" },
+  leverage:     { bg: "hsl(229 89% 63% / 0.06)",   border: "hsl(229 89% 63% / 0.3)",   badge: "hsl(229 89% 63%)", badgeBg: "hsl(229 89% 63% / 0.10)" },
+  intervention: { bg: "hsl(38 92% 50% / 0.06)",    border: "hsl(38 92% 50% / 0.3)",    badge: "hsl(38 92% 35%)",  badgeBg: "hsl(38 92% 50% / 0.10)" },
+  outcome:      { bg: "hsl(142 70% 45% / 0.06)",   border: "hsl(142 70% 45% / 0.25)",  badge: "hsl(142 70% 30%)", badgeBg: "hsl(142 70% 45% / 0.10)" },
 };
 
-/**
- * Auto-layout: positions nodes in a top-down DAG layout.
- * Constraints at top, drivers in middle, outcomes at bottom.
- */
-function autoLayout(spec: VisualSpec): { nodes: Node[]; edges: Edge[] } {
-  const CARD_W = 200;
-  const CARD_H = 64;
-  const GAP_X = 60;
-  const GAP_Y = 120;
+const PRIORITY_DOTS = (p?: number) => {
+  if (!p || p > 3) return null;
+  return (
+    <span style={{ display: "inline-flex", gap: 2, marginLeft: 4 }}>
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          style={{
+            width: 5,
+            height: 5,
+            borderRadius: "50%",
+            background: i < p ? "hsl(var(--primary))" : "hsl(var(--border))",
+          }}
+        />
+      ))}
+    </span>
+  );
+};
 
-  // Group by priority (1 = top, 2 = mid, 3 = bottom)
+/* ── Custom Node Component ── */
+const AnalysisNode = memo(({ data }: NodeProps) => {
+  const nodeType = (data.nodeType || "effect") as VisualNode["type"];
+  const colors = NODE_COLORS[nodeType] || NODE_COLORS.effect;
+  const priority = data.priority as number | undefined;
+
+  return (
+    <div
+      style={{
+        background: colors.bg,
+        border: `1.5px solid ${colors.border}`,
+        borderRadius: 12,
+        padding: "10px 14px",
+        minWidth: 160,
+        maxWidth: 220,
+      }}
+    >
+      <Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />
+
+      <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+        <span
+          style={{
+            padding: "1px 6px",
+            borderRadius: 4,
+            fontSize: 9,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            color: colors.badge,
+            background: colors.badgeBg,
+          }}
+        >
+          {nodeType}
+        </span>
+        {PRIORITY_DOTS(priority)}
+      </div>
+
+      <p
+        style={{
+          margin: 0,
+          fontSize: 12,
+          fontWeight: 600,
+          lineHeight: 1.35,
+          color: "hsl(var(--foreground))",
+        }}
+      >
+        {data.label}
+      </p>
+
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0, width: 1, height: 1 }} />
+    </div>
+  );
+});
+AnalysisNode.displayName = "AnalysisNode";
+
+const nodeTypes = { analysisNode: AnalysisNode };
+
+/* ── Auto-layout ── */
+function autoLayout(spec: VisualSpec): { nodes: Node[]; edges: Edge[] } {
+  const CARD_W = 220;
+  const CARD_H = 72;
+  const GAP_X = 50;
+  const GAP_Y = 110;
+
   const tiers: Map<number, VisualNode[]> = new Map();
   for (const n of spec.nodes) {
     const p = n.priority || 2;
@@ -47,28 +120,13 @@ function autoLayout(spec: VisualSpec): { nodes: Node[]; edges: Edge[] } {
     const startX = (maxWidth * (CARD_W + GAP_X) - totalW) / 2;
 
     tierNodes.forEach((n, i) => {
-      const colors = NODE_COLORS[n.type] || NODE_COLORS.effect;
       rfNodes.push({
         id: n.id,
+        type: "analysisNode",
         position: { x: startX + i * (CARD_W + GAP_X), y: tierIdx * (CARD_H + GAP_Y) },
-        data: { label: n.label, nodeType: n.type },
+        data: { label: n.label, nodeType: n.type, priority: n.priority },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top,
-        style: {
-          background: colors.bg,
-          border: `1.5px solid ${colors.border}`,
-          borderRadius: 12,
-          padding: "8px 14px",
-          fontSize: 12,
-          fontWeight: 600,
-          color: "hsl(224 20% 10%)",
-          width: CARD_W,
-          minHeight: CARD_H,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center" as const,
-        },
       });
     });
   });
@@ -96,9 +154,8 @@ export function ReactFlowDiagram({ spec }: { spec: VisualSpec }) {
 
   if (!spec?.nodes?.length) return null;
 
-  // Calculate container height based on tiers
-  const tiers = new Set(spec.nodes.map((n) => n.priority || 2)).size;
-  const containerH = Math.max(260, tiers * 184 + 60);
+  const tierCount = new Set(spec.nodes.map((n) => n.priority || 2)).size;
+  const containerH = Math.max(280, tierCount * 182 + 60);
 
   return (
     <div
@@ -112,8 +169,9 @@ export function ReactFlowDiagram({ spec }: { spec: VisualSpec }) {
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.25 }}
+        fitViewOptions={{ padding: 0.3 }}
         connectionLineType={ConnectionLineType.SmoothStep}
         proOptions={{ hideAttribution: true }}
         nodesDraggable={false}
