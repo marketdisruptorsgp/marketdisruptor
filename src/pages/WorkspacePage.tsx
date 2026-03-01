@@ -232,7 +232,7 @@ export default function WorkspacePage() {
             <WorkspaceExplorer onConversationSaved={() => setConvRefreshKey(k => k + 1)} loadConversation={loadConv} onLoadComplete={() => setLoadConv(null)} />
 
             {/* Saved Explorer Sessions */}
-            <SavedConversations refreshKey={convRefreshKey} onResumeConversation={(conv) => { setLoadConv(conv); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+            <SavedConversations refreshKey={convRefreshKey} onResumeConversation={(conv) => { setLoadConv({ ...conv }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
 
             {/* Section 1: My Top Choices */}
             <div className="rounded-xl border border-border bg-card p-5">
