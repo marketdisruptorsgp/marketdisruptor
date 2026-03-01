@@ -91,17 +91,21 @@ export function SavedConversations({ refreshKey, onResumeConversation }: Props) 
   if (loading || conversations.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
-          <MessageSquare size={16} className="text-primary" />
-          <p className="typo-section-title text-foreground">Explorer Sessions</p>
-          <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{conversations.length}</span>
+    <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <MessageSquare size={16} className="text-primary" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-foreground">Explorer Sessions</h2>
+              <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">{conversations.length}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">Click ▶ to resume any conversation from where you left off.</p>
+          </div>
         </div>
       </div>
-      <p className="typo-card-body text-foreground/70 mb-4">
-        Click resume to continue any conversation. Link sessions to projects for context.
-      </p>
 
       <div className="space-y-2">
         {conversations.map(conv => {
@@ -112,16 +116,16 @@ export function SavedConversations({ refreshKey, onResumeConversation }: Props) 
           const fileCount = conv.file_urls?.length || 0;
 
           return (
-            <div key={conv.id} className="rounded-xl border border-border overflow-hidden group">
-              <div className="flex items-center gap-2 p-3">
+            <div key={conv.id} className="rounded-xl border-2 border-border overflow-hidden group hover:border-primary/30 transition-colors bg-card">
+              <div className="flex items-center gap-2.5 p-3.5">
                 {/* Resume button */}
                 {onResumeConversation && (
                   <button
                     onClick={() => onResumeConversation(conv as ExplorerConversation)}
-                    className="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center flex-shrink-0 transition-colors"
+                    className="w-9 h-9 rounded-xl bg-primary hover:bg-primary/90 flex items-center justify-center flex-shrink-0 transition-all shadow-sm hover:shadow-md"
                     title="Resume conversation"
                   >
-                    <Play size={12} className="text-primary ml-0.5" />
+                    <Play size={13} className="text-primary-foreground ml-0.5" />
                   </button>
                 )}
 
