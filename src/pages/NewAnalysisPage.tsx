@@ -355,17 +355,18 @@ export default function NewAnalysisPage() {
 
         {/* ── Divider ── */}
         <div className="flex items-center gap-3 mb-5">
-          <div className="h-px flex-1 bg-border" />
+          <div className="h-px flex-1" style={{ background: "hsl(var(--mode-multi) / 0.3)" }} />
           <span
-            className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full"
+            className="text-sm font-bold uppercase tracking-wider px-4 py-1.5 rounded-full border"
             style={{
-              background: "hsl(var(--mode-multi) / 0.1)",
+              background: "hsl(var(--mode-multi) / 0.12)",
               color: "hsl(var(--mode-multi))",
+              borderColor: "hsl(var(--mode-multi) / 0.25)",
             }}
           >
-            Have a specific problem in mind?
+            ✦ Have a specific problem in mind?
           </span>
-          <div className="h-px flex-1 bg-border" />
+          <div className="h-px flex-1" style={{ background: "hsl(var(--mode-multi) / 0.3)" }} />
         </div>
 
         {/* ── Deconstruct My Problem ── */}
@@ -621,17 +622,18 @@ export default function NewAnalysisPage() {
         {/* ── Photo / Instant Analysis ── */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-5">
-            <div className="h-px flex-1 bg-border" />
+            <div className="h-px flex-1" style={{ background: "hsl(var(--primary) / 0.3)" }} />
             <span
-              className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full"
+              className="text-sm font-bold uppercase tracking-wider px-4 py-1.5 rounded-full border"
               style={{
-                background: "hsl(var(--primary) / 0.1)",
+                background: "hsl(var(--primary) / 0.12)",
                 color: "hsl(var(--primary))",
+                borderColor: "hsl(var(--primary) / 0.25)",
               }}
             >
-              Or Instant Analysis
+              📸 Or Instant Analysis
             </span>
-            <div className="h-px flex-1 bg-border" />
+            <div className="h-px flex-1" style={{ background: "hsl(var(--primary) / 0.3)" }} />
           </div>
 
           <div
