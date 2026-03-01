@@ -8,6 +8,7 @@ import { ActionPlanList } from "@/components/ActionPlanCard";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
+import { BusinessModelAnalysis, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import { ModeHeader } from "@/components/ModeHeader";
 import { SectionWorkflowNav } from "@/components/SectionNav";
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
@@ -128,8 +129,11 @@ export default function ShareableAnalysisPage() {
   }
 
   const ad = data.analysis_data;
+  const isBusinessModel = data.analysis_type === "business_model";
   const product = data.products?.[0] as Product | undefined;
-  if (!product) {
+
+  // Business Model analyses store data in analysis_data, not products
+  if (!isBusinessModel && !product) {
     return renderState(<p className="typo-card-body text-muted-foreground">No product data available</p>);
   }
 
@@ -185,18 +189,37 @@ export default function ShareableAnalysisPage() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
         {/* Step Navigator */}
-        <StepNavigator
-          steps={getSharedStepConfigs()}
-          activeStep={activeStep}
-          visitedSteps={visitedSteps}
-          onStepChange={(s) => {
-            setActiveStep(s);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        />
+        {!isBusinessModel && (
+          <StepNavigator
+            steps={getSharedStepConfigs()}
+            activeStep={activeStep}
+            visitedSteps={visitedSteps}
+            onStepChange={(s) => {
+              setActiveStep(s);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        )}
 
-        {/* ────────── STEP 2: Intelligence Report ────────── */}
-        {activeStep === 2 && (
+        {/* ────────── BUSINESS MODEL VIEW ────────── */}
+        {isBusinessModel && (
+          <div className="space-y-4">
+            <ModeHeader
+              stepNumber={2}
+              stepTitle="Business Model Analysis"
+              subtitle={`First-principles deconstruction of <strong class="text-foreground">${data.title}</strong>`}
+              accentColor={ACCENT}
+            />
+            <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
+              <BusinessModelAnalysis
+                initialData={ad as unknown as BusinessModelAnalysisData}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ────────── STEP 2: Intelligence Report (Product/Service) ────────── */}
+        {!isBusinessModel && activeStep === 2 && (
           <div className="space-y-4">
             <ModeHeader
               stepNumber={2}
@@ -478,7 +501,7 @@ export default function ShareableAnalysisPage() {
         )}
 
         {/* ────────── STEP 3: Disrupt ────────── */}
-        {activeStep === 3 && (
+        {!isBusinessModel && activeStep === 3 && (
           <div className="space-y-4">
             {(() => {
               const takeaway = getDisruptTakeaway(disruptData as Record<string, unknown> | null);
@@ -521,7 +544,7 @@ export default function ShareableAnalysisPage() {
         )}
 
         {/* ────────── STEP 4: Redesign ────────── */}
-        {activeStep === 4 && (
+        {!isBusinessModel && activeStep === 4 && (
           <div className="space-y-4">
             <ModeHeader
               stepNumber={4}
@@ -558,7 +581,7 @@ export default function ShareableAnalysisPage() {
         )}
 
         {/* ────────── STEP 5: Stress Test ────────── */}
-        {activeStep === 5 && (
+        {!isBusinessModel && activeStep === 5 && (
           <div className="space-y-4">
             {(() => {
               const takeaway = getStressTestTakeaway(stressTestData as Record<string, unknown> | null);
@@ -611,7 +634,7 @@ export default function ShareableAnalysisPage() {
         )}
 
         {/* ────────── STEP 6: Pitch Deck ────────── */}
-        {activeStep === 6 && (
+        {!isBusinessModel && activeStep === 6 && (
           <div className="space-y-4">
             {(() => {
               const takeaway = getPitchTakeaway(pitchDeckData as Record<string, unknown> | null);
