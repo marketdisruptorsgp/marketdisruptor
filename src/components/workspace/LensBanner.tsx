@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Focus, ChevronRight, Building2, Plus, Sparkles, Star, Check } from "lucide-react";
+import { Focus, ChevronRight, Building2, Plus, Sparkles, Star, Check, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,11 @@ import { ETA_LENS, getLensType } from "@/lib/etaLens";
 import type { UserLens } from "@/components/LensToggle";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /**
  * Prominent lens configuration banner for the workspace.
@@ -19,6 +24,7 @@ export function LensBanner() {
   const [lenses, setLenses] = useState<UserLens[]>([]);
   const [showEditor, setShowEditor] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [deletingLens, setDeletingLens] = useState<UserLens | null>(null);
 
   const activeLens = analysis.activeLens;
   const activeLensType = getLensType(activeLens);
@@ -47,6 +53,23 @@ export function LensBanner() {
   const handleSelectCustom = (lens: UserLens) => {
     analysis.setActiveLens({ ...lens, lensType: "custom" });
     toast.success(`"${lens.name}" lens activated`);
+  };
+
+  const handleDeleteLens = async () => {
+    if (!deletingLens?.id) return;
+    try {
+      await (supabase.from("user_lenses") as any).delete().eq("id", deletingLens.id);
+      setLenses((prev) => prev.filter((l) => l.id !== deletingLens.id));
+      if (activeLens?.id === deletingLens.id) {
+        analysis.setActiveLens(null);
+      }
+      toast.success(`"${deletingLens.name}" lens deleted`);
+    } catch (err) {
+      console.error("Delete lens error:", err);
+      toast.error("Failed to delete lens");
+    } finally {
+      setDeletingLens(null);
+    }
   };
 
   const getActiveLabel = () => {
@@ -171,30 +194,41 @@ export function LensBanner() {
 
                   {/* Custom lenses */}
                   {lenses.map((lens) => (
-                    <button
+                    <div
                       key={lens.id}
-                      onClick={() => handleSelectCustom(lens)}
-                      className={`relative flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
+                      className={`relative flex items-start gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         activeLens?.id === lens.id
                           ? "border-primary bg-primary/5 shadow-sm"
                           : "border-border hover:border-primary/30 hover:bg-primary/[0.02]"
                       }`}
+                      onClick={() => handleSelectCustom(lens)}
                     >
-                      {activeLens?.id === lens.id && (
+                      {activeLens?.id === lens.id ? (
                         <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                           <Check size={10} className="text-primary-foreground" />
                         </div>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDeletingLens(lens); }}
+                          className="absolute top-2 right-2 w-6 h-6 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 hover:!opacity-100 hover:bg-destructive/10 transition-all"
+                          style={{ opacity: undefined }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0"; }}
+                          aria-label={`Delete ${lens.name}`}
+                        >
+                          <Trash2 size={12} className="text-destructive" />
+                        </button>
                       )}
                       <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
                         <Star size={14} className="text-foreground/60" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-foreground truncate">{lens.name}</p>
                         <p className="text-[11px] text-foreground/60 mt-0.5 truncate">
                           {lens.primary_objective || "Custom evaluation priorities"}
                         </p>
                       </div>
-                    </button>
+                    </div>
                   ))}
 
                   {/* Create new card */}
@@ -228,6 +262,26 @@ export function LensBanner() {
           }}
         />
       )}
+
+      <AlertDialog open={!!deletingLens} onOpenChange={(open) => !open && setDeletingLens(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{deletingLens?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This lens will be permanently removed. Any future analyses will need a different lens selected. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteLens}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Lens
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
