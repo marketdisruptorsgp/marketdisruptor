@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Upload, Link, Briefcase, Building2, Telescope, ArrowLeft, ChevronRight, FileText, Image, X, Loader2, Sparkles } from "lucide-react";
+import { Upload, Link, Briefcase, Building2, Telescope, ArrowLeft, ChevronRight, FileText, Image, X, Loader2, Sparkles, Brain, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useBIExtraction, fileToDocumentText, extractionToContext, type BIExtraction } from "@/hooks/useBIExtraction";
 
 interface CustomProductInput {
   imageFile?: File;
@@ -205,6 +206,8 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     }
   };
 
+  const { extract, extracting, extraction: biExtraction, reset: resetExtraction } = useBIExtraction();
+
   const runBusinessAnalysis = async () => {
     if (!businessInput.type.trim() || !businessInput.description.trim()) {
       toast.error("Please enter the business type and a description.");
@@ -212,8 +215,31 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
     }
     setBusinessLoading(true);
     try {
+      // Step 1: Extract intelligence from uploaded documents/images if present
+      let extractedContext: string | undefined;
+      if (bizDocs.length > 0 || bizImages.length > 0) {
+        toast.info("Extracting business intelligence from your documents…");
+        const documentTexts = await Promise.all(
+          bizDocs.map(doc => fileToDocumentText(doc.file))
+        );
+        const imageUrls = bizImages.map(img => img.dataUrl);
+        const result = await extract({
+          documentTexts,
+          imageUrls,
+          context: `${businessInput.type} — ${businessInput.description}`,
+        });
+        if (result) {
+          extractedContext = extractionToContext(result);
+          toast.success("Document intelligence extracted — running full analysis…");
+        }
+      }
+
+      // Step 2: Run full analysis with extracted context
       const { data: result, error } = await supabase.functions.invoke("business-model-analysis", {
-        body: { businessModel: businessInput },
+        body: {
+          businessModel: businessInput,
+          extractedContext,
+        },
       });
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Analysis failed";
@@ -617,12 +643,50 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               <p className="typo-card-meta text-muted-foreground">{bizImages.length}/5 images uploaded</p>
             </div>
 
+            {/* Extraction status */}
+            {(extracting || biExtraction) && (
+              <div className={`rounded-xl border p-4 space-y-2 ${biExtraction ? "border-green-500/30 bg-green-500/[0.04]" : "border-primary/20 bg-primary/[0.03]"}`}>
+                <div className="flex items-center gap-2">
+                  {extracting ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin text-primary" />
+                      <span className="text-sm font-semibold text-foreground">Extracting business intelligence from documents…</span>
+                    </>
+                  ) : biExtraction ? (
+                    <>
+                      <CheckCircle2 size={14} className="text-green-600" />
+                      <span className="text-sm font-semibold text-foreground">Intelligence extracted</span>
+                    </>
+                  ) : null}
+                </div>
+                {biExtraction && (
+                  <div className="space-y-1">
+                    {biExtraction.business_overview?.primary_offering && (
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Offering:</span> {biExtraction.business_overview.primary_offering}
+                      </p>
+                    )}
+                    {biExtraction.constraints?.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">{biExtraction.constraints.length} constraints</span> identified
+                      </p>
+                    )}
+                    {biExtraction.signals_for_visualization?.candidate_leverage_points?.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">{biExtraction.signals_for_visualization.candidate_leverage_points.length} leverage points</span> found
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <button
               onClick={runBusinessAnalysis}
-              disabled={businessLoading || !businessInput.type || !businessInput.description}
+              disabled={businessLoading || extracting || !businessInput.type || !businessInput.description}
               className="w-full py-3 rounded-lg typo-button-primary text-white transition-colors btn-mode-business disabled:opacity-50"
             >
-              {businessLoading ? "Deconstructing..." : "Deconstruct Business Model"}
+              {extracting ? "Extracting intelligence…" : businessLoading ? "Deconstructing..." : bizDocs.length > 0 ? "Extract & Deconstruct" : "Deconstruct Business Model"}
             </button>
           </div>
         )}
