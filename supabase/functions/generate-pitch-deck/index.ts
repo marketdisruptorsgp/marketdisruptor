@@ -14,7 +14,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, disruptData, stressTestData, userScores, redesignData, insightPreferences, steeringText, lens } = await req.json();
+    const { product, disruptData, stressTestData, userScores, redesignData, insightPreferences, steeringText, lens, geoData } = await req.json();
     const mode = resolveMode(product.analysisType, product.category);
     const filterResult = filterInputData(mode, product);
     console.log(`[ModeEnforcement] pitch-deck | ${mode} | ${missingDataWarning(mode)}`);
@@ -293,6 +293,14 @@ ${steeringText ? `\nUSER STEERING GUIDANCE: ${steeringText}` : ""}
 ${insightPreferences ? `\nUSER INSIGHT PREFERENCES (weight liked insights more heavily, minimize dismissed ones):
 ${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "liked").map(([id]) => `✓ PRIORITIZE: ${id}`).join("\n")}
 ${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "dismissed").map(([id]) => `✗ DE-PRIORITIZE: ${id}`).join("\n")}` : ""}
+${geoData ? `
+GEOGRAPHIC MARKET DATA (US Census ACS & World Bank — REAL data, use in TAM/market slides):
+- US Establishments in Category: ${geoData.us?.totalEstablishments?.toLocaleString() || "N/A"} | Employees: ${geoData.us?.totalEmployees?.toLocaleString() || "N/A"}
+- US Avg Median Income: $${geoData.us?.avgMedianIncome?.toLocaleString() || "N/A"}
+- Top 5 US Markets: ${JSON.stringify((geoData.us?.topStates || []).slice(0, 5).map((s: any) => ({ state: s.name, pop: s.population, income: s.medianIncome, bizDensity: s.bizPerCapita, score: s.opportunityScore })))}
+- Top 5 Global Markets: ${JSON.stringify((geoData.global?.topMarkets || []).slice(0, 5).map((c: any) => ({ country: c.name, gdpPC: c.gdpPerCapita, popGrowth: c.populationGrowth, score: c.opportunityScore })))}
+Use this data for realistic TAM/SAM/SOM estimates and geographic GTM strategy.
+` : ""}
 Build the most compelling, investor-ready pitch deck possible. Use all upstream data.
 Base scores on realistic market signals, competitive density, and structural feasibility.
 ${buildLensPrompt(lens)}

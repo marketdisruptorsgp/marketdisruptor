@@ -142,6 +142,11 @@ interface AnalysisContextType {
   activeLens: UserLens | null;
   setActiveLens: (lens: UserLens | null) => void;
 
+  // Geo market data
+  geoData: unknown;
+  setGeoData: (d: unknown) => void;
+  fetchGeoData: (category: string) => Promise<void>;
+
   // Mode routing
   modeRouting: RoutingResult | null;
   setModeRouting: (r: RoutingResult | null) => void;
@@ -288,6 +293,25 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("stressTest");
     markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
+
+  // ── Geo Market Data ──
+  const [geoData, setGeoData] = useState<unknown>(null);
+  const fetchGeoData = useCallback(async (category: string) => {
+    try {
+      console.log("[GeoData] Fetching for category:", category);
+      const { data: result, error } = await supabase.functions.invoke("geo-market-data", {
+        body: { category },
+      });
+      if (error || !result?.success) {
+        console.warn("[GeoData] Fetch failed:", result?.error || error?.message);
+        return;
+      }
+      setGeoData(result.geoData);
+      console.log("[GeoData] Loaded successfully");
+    } catch (err) {
+      console.warn("[GeoData] Error:", err);
+    }
+  }, []);
 
   const togglePitchDeckExclusion = useCallback((key: string) => {
     setPitchDeckExclusions(prev => {
@@ -533,6 +557,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       pushLog(`Analysis complete — ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with full intelligence reports ready.`);
       stopLoadingTimer();
 
+      // Fetch geo market data in background (non-blocking)
+      fetchGeoData(params.category).then(() => {
+        console.log("[Pipeline] Geo market data fetched for", params.category);
+      }).catch(() => { /* best effort */ });
+
       setProducts(liveProducts);
       setSelectedProduct(liveProducts[0]);
       setDetailTab("overview");
@@ -760,6 +789,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     // Business pitch deck uses its own state — never overwrite product pitchDeckData
     // businessPitchDeck is loaded on-demand by BusinessResultsPage via analysis.pitchDeckData routing
     if (ad?.redesign) setRedesignData(ad.redesign);
+    if (ad?.geoOpportunity) setGeoData(ad.geoOpportunity);
     if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
     if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
     if (ad?.steeringText) setSteeringText(ad.steeringText as string);
@@ -870,6 +900,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       pitchDeckImages, setPitchDeckImage, removePitchDeckImage,
       pitchDeckExclusions, togglePitchDeckExclusion,
       activeLens, setActiveLens,
+      geoData, setGeoData, fetchGeoData,
       modeRouting, setModeRouting,
     }}>
       {children}

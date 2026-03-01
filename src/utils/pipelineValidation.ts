@@ -15,6 +15,10 @@ export const STEP_CONTRACTS: Record<string, StepContract> = {
     requires: [],
     produces: ["overview", "pricing", "supply", "community", "patents"],
   },
+  geoOpportunity: {
+    requires: [],
+    produces: ["usMarkets", "globalMarkets", "businessDensity"],
+  },
   disrupt: {
     requires: ["intelData"],
     produces: ["assumptions", "flippedIdeas", "challengeMap"],
@@ -49,7 +53,7 @@ export const STEP_CONTRACTS: Record<string, StepContract> = {
 /** Valid step keys for logging */
 const VALID_STEP_KEYS = new Set(Object.keys(STEP_CONTRACTS));
 // Also allow system keys
-const SYSTEM_KEYS = new Set(["userScores", "outdatedSteps", "previousSnapshot", "projectNotes", "insightPreferences", "steeringText", "pitchDeckImages", "pitchDeckExclusions", "activeLensId"]);
+const SYSTEM_KEYS = new Set(["userScores", "outdatedSteps", "previousSnapshot", "projectNotes", "insightPreferences", "steeringText", "pitchDeckImages", "pitchDeckExclusions", "activeLensId", "geoOpportunity"]);
 
 /**
  * Fail-loud guard: Validates that a section's computation owner matches its UI location.

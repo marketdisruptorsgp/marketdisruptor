@@ -13,6 +13,7 @@ import { InsightRating } from "./InsightRating";
 
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 import { StepLoadingTracker, STRESS_TEST_TASKS } from "@/components/StepLoadingTracker";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 
 interface RedTeamArg {
   title: string;
@@ -125,11 +126,14 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   const [loading, setLoading] = useState(false);
   const [userSuggestions, setUserSuggestions] = useState("");
 
+  let geoData: unknown = undefined;
+  try { geoData = useAnalysis().geoData; } catch { /* context may not be available in shared view */ }
+
   const runValidation = async () => {
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke("critical-validation", {
-        body: { product, analysisData, userSuggestions: userSuggestions || undefined },
+        body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined },
       });
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Validation failed";
