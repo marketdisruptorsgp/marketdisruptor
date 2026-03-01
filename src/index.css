@@ -80,6 +80,10 @@
     --mode-business-tint: 271 82% 96%;
     --mode-business-outline: 271 82% 70%;
 
+    --mode-multi: 200 75% 50%;
+    --mode-multi-hover: 200 70% 42%;
+    --mode-multi-tint: 200 75% 96%;
+    --mode-multi-outline: 200 75% 65%;
     --sidebar-background: 220 20% 97%;
     --sidebar-foreground: 224 20% 10%;
     --sidebar-primary: 229 89% 63%;
