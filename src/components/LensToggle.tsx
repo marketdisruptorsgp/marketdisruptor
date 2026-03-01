@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Focus, ChevronDown, Plus, Pencil, Trash2, Building2 } from "lucide-react";
+import { Focus, ChevronDown, Plus, Pencil, Trash2, Building2, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { LensEditor } from "@/components/LensEditor";
 import { ETA_LENS, getLensType } from "@/lib/etaLens";
 import { toast } from "sonner";
+
+const PRIMARY_LENS_KEY = "primary-lens-type";
+const PRIMARY_LENS_ID_KEY = "primary-lens-id";
 
 export interface UserLens {
   id: string;
@@ -28,6 +31,8 @@ export function LensToggle() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const [editingLens, setEditingLens] = useState<UserLens | null>(null);
+  const [primaryType, setPrimaryType] = useState<string>(() => localStorage.getItem(PRIMARY_LENS_KEY) || "default");
+  const [primaryId, setPrimaryId] = useState<string | null>(() => localStorage.getItem(PRIMARY_LENS_ID_KEY));
 
   const activeLens = analysis.activeLens;
   const activeLensType = getLensType(activeLens);
@@ -43,6 +48,51 @@ export function LensToggle() {
       if (data) setLenses(data.map((l: any) => ({ ...l, lensType: "custom" })));
     })();
   }, [user?.id, showEditor]);
+
+  // Auto-activate primary lens on first load
+  const hasAutoLoaded = React.useRef(false);
+  useEffect(() => {
+    if (hasAutoLoaded.current) return;
+    if (primaryType === "default") { hasAutoLoaded.current = true; return; }
+    if (primaryType === "eta") {
+      analysis.setActiveLens(ETA_LENS as UserLens);
+      hasAutoLoaded.current = true;
+      return;
+    }
+    if (primaryType === "custom" && primaryId && lenses.length > 0) {
+      const match = lenses.find(l => l.id === primaryId);
+      if (match) {
+        analysis.setActiveLens({ ...match, lensType: "custom" });
+      }
+      hasAutoLoaded.current = true;
+    }
+  }, [primaryType, primaryId, lenses]);
+
+  const savePrimary = (type: string, id?: string) => {
+    localStorage.setItem(PRIMARY_LENS_KEY, type);
+    setPrimaryType(type);
+    if (id) {
+      localStorage.setItem(PRIMARY_LENS_ID_KEY, id);
+      setPrimaryId(id);
+    } else {
+      localStorage.removeItem(PRIMARY_LENS_ID_KEY);
+      setPrimaryId(null);
+    }
+    // Update is_default in DB for custom lenses
+    if (user?.id) {
+      (supabase.from("user_lenses") as any).update({ is_default: false }).eq("user_id", user.id).then(() => {
+        if (type === "custom" && id) {
+          (supabase.from("user_lenses") as any).update({ is_default: true }).eq("id", id);
+        }
+      });
+    }
+    toast.success("Primary lens saved");
+  };
+
+  const isPrimary = (type: string, id?: string) => {
+    if (type === "custom") return primaryType === "custom" && primaryId === id;
+    return primaryType === type;
+  };
 
   const handleSelectDefault = () => {
     analysis.setActiveLens(null);
@@ -66,6 +116,7 @@ export function LensToggle() {
     await (supabase.from("user_lenses") as any).delete().eq("id", lens.id);
     setLenses((prev) => prev.filter((l) => l.id !== lens.id));
     if (activeLens?.id === lens.id) analysis.setActiveLens(null);
+    if (primaryId === lens.id) savePrimary("default");
     toast.success("Lens deleted");
   };
 
@@ -73,6 +124,22 @@ export function LensToggle() {
     if (activeLensType === "eta") return "ETA Acquisition";
     if (activeLensType === "custom") return activeLens?.name || "Custom";
     return "Default";
+  };
+
+  const PrimaryButton = ({ type, id }: { type: string; id?: string }) => {
+    const active = isPrimary(type, id);
+    return (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          savePrimary(type, id);
+        }}
+        title={active ? "Primary lens" : "Set as primary"}
+        className={`p-0.5 rounded transition-colors ${active ? "text-amber-500" : "text-muted-foreground/40 hover:text-amber-400"}`}
+      >
+        <Star size={10} fill={active ? "currentColor" : "none"} />
+      </button>
+    );
   };
 
   return (
@@ -90,6 +157,9 @@ export function LensToggle() {
       >
         <Focus size={12} />
         {getActiveLabel()}
+        {isPrimary(activeLensType, activeLens?.id) && activeLensType !== "default" && (
+          <Star size={9} className="text-amber-500" fill="currentColor" />
+        )}
         <ChevronDown size={10} />
       </button>
 
@@ -98,32 +168,32 @@ export function LensToggle() {
         <div className="absolute right-0 top-full mt-1 z-30 w-72 rounded-lg border border-border bg-popover shadow-lg p-1.5 space-y-0.5">
           {/* Default */}
           <p className="px-2 py-1 text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Perspective</p>
-          <button
-            onClick={handleSelectDefault}
-            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md text-xs transition-colors text-left ${
-              activeLensType === "default" ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${activeLensType === "default" ? "bg-primary" : "bg-muted-foreground/40"}`} />
-            <div>
-              <span className="font-semibold block">Default</span>
-              <span className="text-[10px] text-muted-foreground">Explore possibilities &amp; disruption potential</span>
-            </div>
-          </button>
+          <div className={`flex items-center gap-2 w-full px-2 py-2 rounded-md text-xs transition-colors ${
+            activeLensType === "default" ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
+          }`}>
+            <button onClick={handleSelectDefault} className="flex items-center gap-2 flex-1 text-left">
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${activeLensType === "default" ? "bg-primary" : "bg-muted-foreground/40"}`} />
+              <div>
+                <span className="font-semibold block">Default</span>
+                <span className="text-[10px] text-muted-foreground">Explore possibilities &amp; disruption potential</span>
+              </div>
+            </button>
+            <PrimaryButton type="default" />
+          </div>
 
           {/* ETA */}
-          <button
-            onClick={handleSelectEta}
-            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md text-xs transition-colors text-left ${
-              activeLensType === "eta" ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
-            }`}
-          >
-            <Building2 size={10} className={`flex-shrink-0 ${activeLensType === "eta" ? "text-primary" : "text-muted-foreground"}`} />
-            <div>
-              <span className="font-semibold block">ETA Acquisition</span>
-              <span className="text-[10px] text-muted-foreground">Ownership &amp; value-creation lens</span>
-            </div>
-          </button>
+          <div className={`flex items-center gap-2 w-full px-2 py-2 rounded-md text-xs transition-colors ${
+            activeLensType === "eta" ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
+          }`}>
+            <button onClick={handleSelectEta} className="flex items-center gap-2 flex-1 text-left">
+              <Building2 size={10} className={`flex-shrink-0 ${activeLensType === "eta" ? "text-primary" : "text-muted-foreground"}`} />
+              <div>
+                <span className="font-semibold block">ETA Acquisition</span>
+                <span className="text-[10px] text-muted-foreground">Ownership &amp; value-creation lens</span>
+              </div>
+            </button>
+            <PrimaryButton type="eta" />
+          </div>
 
           {/* Custom lenses */}
           {lenses.length > 0 && (
@@ -141,6 +211,7 @@ export function LensToggle() {
                     {lens.name}
                   </button>
                   <div className="flex items-center gap-1 ml-1 flex-shrink-0">
+                    <PrimaryButton type="custom" id={lens.id} />
                     <button
                       onClick={(e) => { e.stopPropagation(); setEditingLens(lens); setShowEditor(true); setShowDropdown(false); }}
                       className="p-0.5 rounded hover:bg-muted"
