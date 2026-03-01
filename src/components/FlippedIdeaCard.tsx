@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { FlippedIdea } from "@/data/mockProducts";
 import { ScoreBar } from "./ScoreBar";
 import { RiskBadge } from "./RiskBadge";
+import { StructuralVisual, type VisualSpec } from "./StructuralVisual";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -187,6 +188,11 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
           </div>
         )}
       </div>
+
+      {/* Structural Visual — per-idea mechanism */}
+      {(idea as unknown as Record<string, unknown>).visualSpec && (
+        <StructuralVisual spec={(idea as unknown as Record<string, unknown>).visualSpec as VisualSpec} />
+      )}
 
       {/* Details grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
+import { enforceVisualContract } from "../_shared/visualFallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -477,6 +478,8 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
       throw new Error("AI returned invalid JSON. Please retry.");
     }
 
+    enforceVisualContract(analysis);
+
     // ── Output Validation: check for cross-mode drift ──
     const validationResult = validateOutput(mode, analysis);
     const trace = buildTrace(mode, filterResult, validationResult);
@@ -484,7 +487,6 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
     if (!validationResult.valid) {
       console.warn(`[ModeEnforcement] Violations detected in ${mode} output:`, validationResult.violations);
-      // Attach violations as warnings but still return data (soft enforcement)
     }
 
     return new Response(JSON.stringify({ success: true, analysis, _modeTrace: trace }), {
