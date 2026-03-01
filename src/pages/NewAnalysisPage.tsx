@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { useSubscription } from "@/hooks/useSubscription";
+import { AnalysisStepIndicator } from "@/components/AnalysisStepIndicator";
 import {
   Upload, Briefcase, Building2, ArrowRight, CheckCircle2, Camera,
 } from "lucide-react";
@@ -69,23 +70,7 @@ export default function NewAnalysisPage() {
       <HeroSection tier={tier} remainingAnalyses={null} />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-14">
-        {/* Step indicator */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-primary text-primary-foreground">1</div>
-            <span className="typo-nav-primary text-foreground">Select Mode</span>
-          </div>
-          <div className="flex-1 h-px bg-border" />
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-muted text-muted-foreground">2</div>
-            <span className="typo-nav-primary text-muted-foreground">Configure Target</span>
-          </div>
-          <div className="flex-1 h-px bg-border" />
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-muted text-muted-foreground">3</div>
-            <span className="typo-nav-primary text-muted-foreground">Run Analysis</span>
-          </div>
-        </div>
+        <AnalysisStepIndicator currentStep={1} />
 
         <h1 className="typo-page-title text-2xl sm:text-3xl tracking-tight mb-2">
           Select Analysis Mode
