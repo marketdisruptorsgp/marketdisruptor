@@ -15,6 +15,7 @@ import { ActionItemsPanel } from "@/components/portfolio/ActionItemsPanel";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { LensBanner } from "@/components/workspace/LensBanner";
 import { WorkspaceExplorer } from "@/components/workspace/WorkspaceExplorer";
+import { SavedConversations } from "@/components/workspace/SavedConversations";
 
 interface SavedAnalysis {
   id: string;
@@ -54,6 +55,7 @@ export default function WorkspacePage() {
   const [loading, setLoading] = useState(true);
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
   const [didPreselect, setDidPreselect] = useState(false);
+  const [convRefreshKey, setConvRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -226,7 +228,10 @@ export default function WorkspacePage() {
             </div>
 
             {/* Intelligence Explorer */}
-            <WorkspaceExplorer />
+            <WorkspaceExplorer onConversationSaved={() => setConvRefreshKey(k => k + 1)} />
+
+            {/* Saved Explorer Sessions */}
+            <SavedConversations refreshKey={convRefreshKey} />
 
             {/* Section 1: My Top Choices */}
             <div className="rounded-xl border border-border bg-card p-5">
