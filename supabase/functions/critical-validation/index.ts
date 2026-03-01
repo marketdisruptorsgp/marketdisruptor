@@ -14,7 +14,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, analysisData, userSuggestions, lens } = await req.json();
+    const { product, analysisData, userSuggestions, lens, geoData } = await req.json();
     const mode = resolveMode(product.analysisType, product.category);
     const filterResult = filterInputData(mode, { ...product, ...analysisData });
     console.log(`[ModeEnforcement] critical-validation | ${mode} | ${missingDataWarning(mode)}`);
@@ -201,7 +201,23 @@ CRITICAL INSTRUCTIONS:
 9. Provide 3-5 counter-examples, 6-10 feasibility items, and 3-4 blind spots.
 
 10. VISUAL SPECS: Generate 1 visual spec (constraint_map or causal_chain) for the dominant risk/opportunity structure. Generate 2-3 action plans for highest-leverage next steps. Only generate visuals when structural causality is clear.
+${geoData ? `
+GEOGRAPHIC MARKET DATA (from US Census ACS & World Bank — use these REAL data points in your analysis):
+- Data Sources: ${JSON.stringify(geoData.dataSources || {})}
+- US Total Population: ${geoData.us?.totalPopulation?.toLocaleString() || "N/A"}
+- US Avg Median Income: $${geoData.us?.avgMedianIncome?.toLocaleString() || "N/A"}
+- US Business Establishments in Category: ${geoData.us?.totalEstablishments?.toLocaleString() || "N/A"}
+- US Employees in Category: ${geoData.us?.totalEmployees?.toLocaleString() || "N/A"}
+- Top 5 US States by Opportunity: ${JSON.stringify((geoData.us?.topStates || []).slice(0, 5).map((s: any) => ({ state: s.name, pop: s.population, income: s.medianIncome, bizDensity: s.bizPerCapita, score: s.opportunityScore })))}
+- Bottom 3 US States: ${JSON.stringify((geoData.us?.bottomStates || []).slice(0, 3).map((s: any) => ({ state: s.name, score: s.opportunityScore })))}
+- Top 5 Global Markets: ${JSON.stringify((geoData.global?.topMarkets || []).slice(0, 5).map((c: any) => ({ country: c.name, gdpPC: c.gdpPerCapita, popGrowth: c.populationGrowth, urbanRate: c.urbanizationRate, score: c.opportunityScore })))}
 
+IMPORTANT: Use these real geographic data points to:
+- Identify geographic concentration risks in Red Team arguments
+- Support TAM estimates with real population and income data
+- Flag competitive density warnings using business establishment counts
+- Recommend specific geographic launch strategies in recommendations
+` : ""}
 Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

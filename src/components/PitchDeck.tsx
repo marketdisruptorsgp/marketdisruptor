@@ -204,6 +204,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           userScores: userScores || undefined,
           insightPreferences: insightPreferences && Object.keys(insightPreferences).length > 0 ? insightPreferences : undefined,
           steeringText: steeringText || undefined,
+          geoData: analysisCtx.geoData || undefined,
         },
       });
       if (error || !result?.success) {

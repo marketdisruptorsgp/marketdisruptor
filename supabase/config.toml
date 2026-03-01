@@ -48,3 +48,6 @@ verify_jwt = false
 [functions.compute-analytics-insights]
 verify_jwt = false
 
+[functions.geo-market-data]
+verify_jwt = false
+
