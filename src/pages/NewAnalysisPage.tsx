@@ -91,7 +91,9 @@ export default function NewAnalysisPage() {
   const analysis = useAnalysis();
   const { setModeRouting } = analysis;
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
-  const [problemText, setProblemText] = useState("");
+  const [problemText, setProblemText] = useState(() => {
+    return sessionStorage.getItem("deconstruct-problem-text") || "";
+  });
   const [routing, setRouting] = useState<RoutingResult | null>(null);
   const [useDeconstruct, setUseDeconstruct] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -116,9 +118,17 @@ export default function NewAnalysisPage() {
 
   const handleTextChange = useCallback((value: string) => {
     setProblemText(value);
+    sessionStorage.setItem("deconstruct-problem-text", value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => runRouting(value), 500);
   }, [runRouting]);
+
+  // Re-run routing on mount if text was restored from session
+  useEffect(() => {
+    if (problemText.trim().length >= 15) {
+      runRouting(problemText);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
@@ -362,16 +372,18 @@ export default function NewAnalysisPage() {
 
         {/* ── Deconstruct My Problem ── */}
         <div
-          className="mb-8 rounded-2xl border-2 overflow-hidden transition-all"
+          className="mb-8 rounded-2xl border-2 overflow-hidden transition-all shadow-md"
           style={{
             borderColor: useDeconstruct
               ? "hsl(var(--mode-multi))"
               : routing
-                ? "hsl(var(--mode-multi) / 0.5)"
-                : "hsl(var(--border))",
-            borderTopWidth: "3px",
+                ? "hsl(var(--mode-multi) / 0.6)"
+                : "hsl(var(--mode-multi) / 0.35)",
+            borderTopWidth: "4px",
             borderTopColor: "hsl(var(--mode-multi))",
-            background: useDeconstruct ? "hsl(var(--mode-multi) / 0.02)" : undefined,
+            background: useDeconstruct
+              ? "hsl(var(--mode-multi) / 0.04)"
+              : "hsl(var(--mode-multi) / 0.02)",
           }}
         >
           <div className="p-5 sm:p-6">
@@ -608,17 +620,30 @@ export default function NewAnalysisPage() {
           )}
         </div>
 
-        {/* ── Photo Analysis ── */}
+        {/* ── Photo / Instant Analysis ── */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-5">
             <div className="h-px flex-1 bg-border" />
-            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">instant analysis</span>
+            <span
+              className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full"
+              style={{
+                background: "hsl(var(--primary) / 0.1)",
+                color: "hsl(var(--primary))",
+              }}
+            >
+              Or Instant Analysis
+            </span>
             <div className="h-px flex-1 bg-border" />
           </div>
 
           <div
             onClick={() => navigate("/instant-analysis")}
-            className="rounded-2xl border-2 border-dashed border-border bg-card p-5 sm:p-6 cursor-pointer transition-all hover:border-primary/40 hover:shadow-lg group"
+            className="rounded-2xl border-2 bg-card p-5 sm:p-6 cursor-pointer transition-all hover:shadow-lg group shadow-md"
+            style={{
+              borderColor: "hsl(var(--primary) / 0.3)",
+              borderTopWidth: "4px",
+              borderTopColor: "hsl(var(--primary))",
+            }}
           >
             <div className="flex items-start gap-4 mb-5">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 group-hover:bg-primary/15 transition-colors flex-shrink-0">
