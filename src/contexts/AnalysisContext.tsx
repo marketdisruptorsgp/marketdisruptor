@@ -536,7 +536,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setSelectedProduct(liveProducts[0]);
       setDetailTab("overview");
       setStep("done");
-      toast.success(`Found ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with deep intelligence reports!`);
+      // Defer toast to let React reconcile the DOM tree swap first
+      setTimeout(() => {
+        toast.success(`Found ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with deep intelligence reports!`);
+      }, 100);
 
       try {
         await supabase.rpc("increment_usage", { p_user_id: user?.id });
@@ -546,9 +549,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         // Milestone toasts
         const { data: usage } = await (supabase.from("user_usage") as any).select("analysis_count").eq("user_id", user?.id).single();
         const count = usage?.analysis_count || 0;
-        if (count === 5) toast("🏆 Milestone: 5 analyses completed!", { description: "You're building real market intelligence." });
-        else if (count === 10) toast("🔥 Milestone: 10 analyses!", { description: "You're a power user now." });
-        else if (count === 25) toast("⭐ Milestone: 25 analyses!", { description: "Elite-level market intelligence." });
+        if (count === 5) setTimeout(() => toast("🏆 Milestone: 5 analyses completed!", { description: "You're building real market intelligence." }), 200);
+        else if (count === 10) setTimeout(() => toast("🔥 Milestone: 10 analyses!", { description: "You're a power user now." }), 200);
+        else if (count === 25) setTimeout(() => toast("⭐ Milestone: 25 analyses!", { description: "Elite-level market intelligence." }), 200);
       } catch (_) { /* best effort */ }
       const customName = customProducts?.find(cp => cp.productName)?.productName;
       await saveAnalysis(liveProducts, baseParams, customName);
