@@ -14,7 +14,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { businessModel, userSuggestions, lens } = await req.json();
+    const { businessModel, userSuggestions, lens, extractedContext } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -159,6 +159,11 @@ The JSON must follow this EXACT structure:
   ]
 }`;
 
+    let extractedSection = "";
+    if (extractedContext) {
+      extractedSection = `\n\nDOCUMENT-EXTRACTED INTELLIGENCE (use this as primary evidence — it was extracted from uploaded business documents):\n${extractedContext}\n`;
+    }
+
     const userPrompt = `Apply radical first-principles deconstruction to this business model.
 
 BUSINESS TYPE: ${businessModel.type}
@@ -168,7 +173,7 @@ APPROXIMATE SIZE: ${businessModel.size || "Not specified"}
 GEOGRAPHY: ${businessModel.geography || "Not specified"}
 KNOWN PAIN POINTS: ${businessModel.painPoints || "Not specified"}
 NOTES: ${businessModel.notes || "None"}
-
+${extractedSection}
 CRITICAL INSTRUCTIONS:
 1. WORKFLOW: Map every step of customer acquisition, transaction, and fulfillment. Find every friction point.
 2. COSTS: Question every cost. What's fixed that shouldn't be? What can be eliminated or outsourced?
@@ -183,6 +188,7 @@ CRITICAL INSTRUCTIONS:
 11. UNIT ECONOMICS: Include specific margin math for the reinvented model.
 12. COMPETITIVE MOAT: Explain specifically what prevents a competitor from copying the reinvented model within 12 months.
 13. SCORING CALIBRATION: leverageScores default to 4-6. Scores ≥8 require cited evidence. 9-10 almost never justified. Apply friction penalties for behavior change, infrastructure requirements, and capital intensity. Label every opportunity as "Near-term viable", "Conditional opportunity", or "Long-horizon concept".
+${extractedContext ? "14. DOCUMENT EVIDENCE: Heavily weight the extracted intelligence from uploaded documents. Reference specific findings when making claims." : ""}
 
 VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 1-2 visual specs for the dominant constraint structure. Use constraint_map for showing how constraints connect, causal_chain for cause-effect flows, leverage_hierarchy for ranked interventions.
