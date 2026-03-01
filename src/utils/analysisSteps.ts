@@ -47,29 +47,15 @@ export function getResumeRoute(
 
   const steps = getCompletedSteps(analysisData);
 
-  // Find the highest completed step, then return the next one
-  let lastCompletedIdx = -1;
-  for (let i = steps.length - 1; i >= 0; i--) {
-    if (steps[i].completed) {
-      lastCompletedIdx = i;
-      break;
-    }
+  // Find the first incomplete step (gap-aware resume)
+  const firstIncomplete = steps.find((s) => !s.completed);
+  if (firstIncomplete) {
+    return { route: firstIncomplete.route, label: firstIncomplete.label };
   }
 
-  // If nothing completed, start at report
-  if (lastCompletedIdx === -1) {
-    return { route: "report", label: "Intelligence Report" };
-  }
-
-  // If last completed is the final step, resume there
-  if (lastCompletedIdx >= steps.length - 1) {
-    const last = steps[steps.length - 1];
-    return { route: last.route, label: last.label };
-  }
-
-  // Otherwise go to next step
-  const next = steps[lastCompletedIdx + 1];
-  return { route: next.route, label: next.label };
+  // All steps done — resume at the last step
+  const last = steps[steps.length - 1];
+  return { route: last.route, label: last.label };
 }
 
 /**
