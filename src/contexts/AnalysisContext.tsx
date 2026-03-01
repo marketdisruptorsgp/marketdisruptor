@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useRef, useEff
 import { type Product, type FlippedIdea } from "@/data/mockProducts";
 import { type AnalysisMode } from "@/components/AnalysisForm";
 import type { UserLens } from "@/components/LensToggle";
+import type { RoutingResult } from "@/lib/modeIntelligence";
 import { type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -140,6 +141,10 @@ interface AnalysisContextType {
   // Analysis Lens
   activeLens: UserLens | null;
   setActiveLens: (lens: UserLens | null) => void;
+
+  // Mode routing
+  modeRouting: RoutingResult | null;
+  setModeRouting: (r: RoutingResult | null) => void;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | null>(null);
@@ -271,6 +276,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // ── Analysis Lens ──
   const [activeLens, setActiveLensState] = useState<UserLens | null>(null);
+  // ── Mode Routing ──
+  const [modeRouting, setModeRouting] = useState<RoutingResult | null>(null);
   const pendingLensSaveRef = useRef<string | null | undefined>(undefined);
   const setActiveLens = useCallback((lens: UserLens | null) => {
     setActiveLensState(lens);
@@ -856,6 +863,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       pitchDeckImages, setPitchDeckImage, removePitchDeckImage,
       pitchDeckExclusions, togglePitchDeckExclusion,
       activeLens, setActiveLens,
+      modeRouting, setModeRouting,
     }}>
       {children}
     </AnalysisContext.Provider>
