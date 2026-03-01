@@ -403,8 +403,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     const id = crypto.randomUUID();
     setAnalysisId(id);
 
-    // Navigate to loading view
-    navigate("/");
+    // Navigate to report page so user sees loading progress in-place
+    navigate(`/analysis/${id}/report`);
 
     const isServiceMode = params.category === "Service";
 
