@@ -94,6 +94,11 @@ export interface Product {
   // Patent intelligence (persisted per product)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   patentData?: any;
+  // Structural visuals & action plans (v3 reasoning framework)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  visualSpecs?: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  v3ActionPlans?: any[];
 }
 
 export const sampleProducts: Product[] = [

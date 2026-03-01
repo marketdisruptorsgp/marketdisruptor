@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
+import { enforceVisualContract } from "../_shared/visualFallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -247,7 +248,32 @@ For each service, return an object with this EXACT structure:
       }
     }
   ],
-  "confidenceScores": {"adoptionLikelihood": 5, "feasibility": 5, "emotionalResonance": 6}
+  "confidenceScores": {"adoptionLikelihood": 5, "feasibility": 5, "emotionalResonance": 6},
+  "visualSpecs": [
+    {
+      "visual_type": "constraint_map | causal_chain | leverage_hierarchy",
+      "title": "string",
+      "purpose": "string",
+      "nodes": [{"id": "string", "label": "string", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1}],
+      "edges": [{"from": "node_id", "to": "node_id", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "string"}],
+      "layout": "linear | vertical | hierarchical",
+      "interpretation": "One-sentence reading guide"
+    }
+  ],
+  "v3ActionPlans": [
+    {
+      "initiative": "string",
+      "objective": "string",
+      "leverage_type": "optimization | structural_improvement | redesign",
+      "mechanism": "string",
+      "complexity": "low | medium | high",
+      "time_horizon": "near_term | mid_term | long_term",
+      "risk": {"execution": "string", "adoption": "string", "market": "string"},
+      "validation": "string",
+      "decision_readiness": 3,
+      "confidence": "high | medium | exploratory"
+    }
+  ]
 }
 
 CRITICAL RULES:
@@ -263,7 +289,9 @@ CRITICAL RULES:
 - trendAnalysis must include specific numbers (% growth, review counts, search volumes)
 - flippedIdeas should directly address customer journey friction and operational bottlenecks
 - Do NOT include product-specific fields like supplyChain, BOM, materials, or physical dimensions
-- Be BOLD — the flipped ideas should reimagine the entire service model, not just tweak pricing`;
+- Be BOLD — the flipped ideas should reimagine the entire service model, not just tweak pricing
+- Generate 1-2 structural visuals (visualSpecs) representing the dominant market constraint or friction mechanism per service
+- Generate 2-3 v3ActionPlans targeting the highest-leverage interventions per service`;
 
     const productSystemPrompt = OS_PREAMBLE + `You are a world-class Product Intelligence analyst and venture market analyst. You analyze scraped web content (including community posts, discussions, competitor data, and market signals) to extract deep, actionable product intelligence.
 
@@ -390,7 +418,32 @@ For each product, return an object with this EXACT structure:
       }
     }
   ],
-  "confidenceScores": {"adoptionLikelihood": 5, "feasibility": 5, "emotionalResonance": 6}
+  "confidenceScores": {"adoptionLikelihood": 5, "feasibility": 5, "emotionalResonance": 6},
+  "visualSpecs": [
+    {
+      "visual_type": "constraint_map | causal_chain | leverage_hierarchy",
+      "title": "string",
+      "purpose": "string",
+      "nodes": [{"id": "string", "label": "string", "type": "constraint|effect|leverage|intervention|outcome", "priority": 1}],
+      "edges": [{"from": "node_id", "to": "node_id", "relationship": "causes|relaxed_by|implemented_by|produces", "label": "string"}],
+      "layout": "linear | vertical | hierarchical",
+      "interpretation": "One-sentence reading guide"
+    }
+  ],
+  "v3ActionPlans": [
+    {
+      "initiative": "string",
+      "objective": "string",
+      "leverage_type": "optimization | structural_improvement | redesign",
+      "mechanism": "string",
+      "complexity": "low | medium | high",
+      "time_horizon": "near_term | mid_term | long_term",
+      "risk": {"execution": "string", "adoption": "string", "market": "string"},
+      "validation": "string",
+      "decision_readiness": 3,
+      "confidence": "high | medium | exploratory"
+    }
+  ]
 }
 
 CRITICAL RULES:
@@ -409,7 +462,9 @@ CRITICAL RULES:
 - actionPlan quickWins must be actions someone could take THIS WEEK with less than $500
 - trendAnalysis must include specific numbers (% growth, view counts, search volumes)
 - flippedIdeas should have 2-3 per product and directly address community complaints/requests
-- Be BOLD — the flipped ideas should surprise and inspire, not just iterate`;
+- Be BOLD — the flipped ideas should surprise and inspire, not just iterate
+- Generate 1-2 structural visuals (visualSpecs) representing the dominant market constraint or friction mechanism per product
+- Generate 2-3 v3ActionPlans targeting the highest-leverage interventions per product`;
 
     const systemPrompt = isService ? serviceSystemPrompt : productSystemPrompt;
 
@@ -578,6 +633,12 @@ Return ONLY a JSON array. Be specific, cite real companies, real prices, real pl
     if (!Array.isArray(products)) {
       products = [products];
     }
+
+    // Enforce visual contract on each product
+    products = products.map((p: Record<string, unknown>) => {
+      const enforced = enforceVisualContract(p);
+      return { ...p, visualSpecs: enforced.visualSpecs, v3ActionPlans: enforced.actionPlans };
+    });
 
     // Build a set of custom product names that have user-uploaded images
     const customWithImage = new Set(
