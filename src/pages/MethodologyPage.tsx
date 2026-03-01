@@ -305,7 +305,75 @@ export default function MethodologyPage() {
           </div>
         </section>
 
-        {/* ── Section 5: Analysis Lenses ── */}
+        {/* ── Section 5: Adaptive Market Intelligence ── */}
+        <section>
+          <h2 className="text-xl font-bold text-foreground mb-1">Adaptive Market Intelligence</h2>
+          <p className="text-sm text-muted-foreground mb-5">Context-aware data enrichment layers that activate based on the category and geography of each analysis.</p>
+          <div className="space-y-3">
+            {/* Geographic & Demographic */}
+            <div className="border border-border rounded-lg p-4 sm:p-5 bg-card">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 border border-primary/20">
+                  <BarChart3 size={16} className="text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-foreground mb-1">Geographic &amp; Demographic Enrichment</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                    Real-world population, income, business density, and regional growth data are pulled automatically to ground market sizing and go-to-market recommendations in actual numbers — not top-down estimates.
+                  </p>
+                  <ul className="space-y-1">
+                    {[
+                      "Population and median household income by region",
+                      "Business density and establishment counts",
+                      "Year-over-year growth rates for market sizing",
+                      "Applied in Stress Tests (TAM/SAM/SOM validation) and Pitch Decks (GTM strategy)",
+                    ].map((d, j) => (
+                      <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
+                        <span className="w-1 h-1 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Regulatory & Legal */}
+            <div className="border border-border rounded-lg p-4 sm:p-5 bg-card">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 border border-primary/20">
+                  <Swords size={16} className="text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-foreground mb-1">Regulatory &amp; Legal Context</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                    Category-aware detection identifies industries with legal complexity — cannabis, healthcare, fintech, food &amp; beverage, alcohol, firearms, and more — then fetches real-world regulatory data automatically. Non-regulated categories skip this entirely with zero overhead.
+                  </p>
+                  <ul className="space-y-1">
+                    {[
+                      "State-by-state legal variance and licensing requirements",
+                      "Active federal rulemaking and proposed regulations",
+                      "Adaptive: only triggered when the category has meaningful regulatory complexity",
+                      "Applied in Red Team arguments (citing real legal barriers) and GTM feasibility assessments",
+                    ].map((d, j) => (
+                      <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
+                        <span className="w-1 h-1 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+            <p className="text-xs text-foreground/70 leading-relaxed">
+              <strong className="text-foreground">Key principle:</strong> These layers are <em>adaptive, not blanket</em>. A SaaS analysis skips regulatory fetches entirely. A cannabis analysis in Missouri vs. Florida surfaces state-specific legal differences, active federal bills, and licensing requirements — all automatically.
+            </p>
+          </div>
+        </section>
+
+        {/* ── Section 6: Analysis Lenses ── */}
         <section>
           <h2 className="text-xl font-bold text-foreground mb-1">Analysis Lenses</h2>
           <p className="text-sm text-muted-foreground mb-5">Lenses control <em>how</em> results are interpreted — the same data, scored through different strategic perspectives.</p>
