@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Send, X, BarChart3, Loader2, Paperclip, Image, FileText, Tag, Brain, Zap, TrendingUp, Shield, Search, Lightbulb, ArrowRight, Bot, User, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { Sparkles, Send, X, BarChart3, Loader2, Paperclip, Image, FileText, Brain, Zap, TrendingUp, Shield, Search, Lightbulb, ArrowRight, Bot, User, AlertTriangle, CheckCircle2, Info, Target, Compass, Layers, Globe, Microscope, ChevronRight } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,11 +34,31 @@ interface SavedProject {
   title: string;
 }
 
-const QUICK_PROMPTS = [
-  { icon: TrendingUp, label: "Compare my top 3 projects", color: "hsl(var(--primary))" },
-  { icon: Shield, label: "What regulatory risks should I watch?", color: "hsl(var(--destructive))" },
-  { icon: BarChart3, label: "Which category has the highest scores?", color: "hsl(142 76% 36%)" },
-  { icon: Lightbulb, label: "Show my analysis trend over time", color: "hsl(38 92% 50%)" },
+// Rotating value propositions — NOT clickable prompts, just inspiration
+const VALUE_PROPOSITIONS = [
+  { icon: Target, headline: "Find blind spots in your strategy", sub: "\"What assumptions in my top project are most likely wrong?\"" },
+  { icon: TrendingUp, headline: "Spot market timing signals", sub: "\"Are there patent filings that validate or threaten my approach?\"" },
+  { icon: Shield, headline: "Stress-test before you invest", sub: "\"What's the weakest link across my portfolio right now?\"" },
+  { icon: Compass, headline: "Navigate competitive landscapes", sub: "\"Who's filing patents in my category and what does it mean?\"" },
+  { icon: Layers, headline: "Cross-pollinate your projects", sub: "\"Which of my projects could share a go-to-market strategy?\"" },
+  { icon: Globe, headline: "Decode regulatory risk", sub: "\"What regulations could block or accelerate my business model?\"" },
+  { icon: Microscope, headline: "Deep-dive any data point", sub: "\"Break down why Project X scored a 6.2 on market readiness\"" },
+  { icon: Lightbulb, headline: "Generate non-obvious connections", sub: "\"What trend signals overlap with my strongest project?\"" },
+  { icon: Brain, headline: "Get a second opinion on your pitch", sub: "\"Upload my deck — what would a VC push back on?\"" },
+  { icon: Zap, headline: "Prioritize your next move", sub: "\"Rank my projects by effort-to-impact ratio\"" },
+];
+
+const ROTATING_PROMPTS = [
+  "Compare my top 3 projects by market readiness",
+  "What regulatory risks should I watch for?",
+  "Which category has the highest average scores?",
+  "Show my analysis trend over time",
+  "What patents overlap with my projects?",
+  "Find the weakest assumption in my portfolio",
+  "Which project has the best risk-reward profile?",
+  "What trend signals support my top project?",
+  "Summarize my portfolio in one visual",
+  "What should I work on next?",
 ];
 
 const LOADING_INSIGHTS = [
@@ -54,7 +74,6 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/workspace-qu
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
 
-// Parse :::insight blocks from markdown
 interface InsightCard {
   level: "HIGH" | "MEDIUM" | "LOW";
   title: string;
@@ -183,25 +202,138 @@ function LoadingIndicator() {
   );
 }
 
-// Render assistant message with insight cards parsed out
+// Rotating value showcase for empty state
+function RotatingShowcase({ onPromptClick }: { onPromptClick: (text: string) => void }) {
+  const [vpIndex, setVpIndex] = useState(0);
+  const [promptIndex, setPromptIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVpIndex(prev => (prev + 1) % VALUE_PROPOSITIONS.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPromptIndex(prev => (prev + 1) % ROTATING_PROMPTS.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const vp = VALUE_PROPOSITIONS[vpIndex];
+  const Icon = vp.icon;
+
+  // Show 3 value props at a time
+  const visibleVPs = [0, 1, 2].map(offset => {
+    const idx = (vpIndex + offset) % VALUE_PROPOSITIONS.length;
+    return { ...VALUE_PROPOSITIONS[idx], idx };
+  });
+
+  return (
+    <div className="px-4 sm:px-5 pb-4 space-y-4">
+      {/* Rotating hero value prop */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={vpIndex}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.4 }}
+          className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-r from-primary/[0.06] to-transparent border border-primary/10"
+        >
+          <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+            <Icon size={20} className="text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[15px] font-bold text-foreground leading-snug">{vp.headline}</p>
+            <p className="text-sm text-muted-foreground mt-1 italic">{vp.sub}</p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Mini value prop pills — 3 visible, cycling */}
+      <div className="flex flex-wrap gap-2">
+        {visibleVPs.map((item, i) => {
+          const VPIcon = item.icon;
+          return (
+            <motion.div
+              key={item.idx}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.08 }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-background text-xs text-muted-foreground"
+            >
+              <VPIcon size={11} className="text-primary/60" />
+              <span className="truncate max-w-[160px]">{item.headline}</span>
+            </motion.div>
+          );
+        })}
+        <div className="flex items-center gap-1 px-2 py-1.5 text-[10px] text-muted-foreground/50">
+          +{VALUE_PROPOSITIONS.length - 3} more
+        </div>
+      </div>
+
+      {/* Rotating prompt suggestion — single line, clickable */}
+      <motion.button
+        onClick={() => onPromptClick(ROTATING_PROMPTS[promptIndex])}
+        className="group w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-border hover:border-primary/30 hover:bg-primary/[0.02] transition-all text-left"
+      >
+        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 group-hover:bg-primary/10 transition-colors">
+          <Search size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-0.5">Try asking</p>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={promptIndex}
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.3 }}
+              className="text-sm text-foreground/70 group-hover:text-primary transition-colors truncate"
+            >
+              {ROTATING_PROMPTS[promptIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+        <ChevronRight size={14} className="text-muted-foreground/0 group-hover:text-primary/60 transition-all flex-shrink-0" />
+      </motion.button>
+
+      {/* Capability badges */}
+      <div className="flex items-center gap-3 pt-1">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/40">Analyzes</span>
+        {[
+          { label: "Projects", icon: Layers },
+          { label: "Patents", icon: FileText },
+          { label: "Trends", icon: TrendingUp },
+          { label: "News", icon: Globe },
+          { label: "Uploads", icon: Image },
+        ].map(cap => (
+          <div key={cap.label} className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
+            <cap.icon size={9} />
+            <span>{cap.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AssistantMessage({ msg }: { msg: Message }) {
   const { cards, cleanText } = parseInsightCards(msg.content);
 
-  // Simple markdown renderer — strip heavy prose, keep structure
   const renderCleanMarkdown = (text: string) => {
     if (!text) return null;
-    // Split into lines and render with basic formatting
     const lines = text.split("\n").filter(l => l.trim());
     return (
       <div className="space-y-1">
         {lines.map((line, i) => {
           const trimmed = line.trim();
           if (!trimmed) return null;
-          // Bold verdict line
           if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
             return <p key={i} className="text-sm font-bold text-foreground">{trimmed.replace(/\*\*/g, "")}</p>;
           }
-          // Bullet points
           if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
             const content = trimmed.replace(/^[-•]\s*/, "");
             return (
@@ -211,14 +343,12 @@ function AssistantMessage({ msg }: { msg: Message }) {
               </div>
             );
           }
-          // Headers
           if (trimmed.startsWith("### ")) {
             return <p key={i} className="text-sm font-bold text-foreground mt-2">{trimmed.replace(/^###\s*/, "")}</p>;
           }
           if (trimmed.startsWith("## ")) {
             return <p key={i} className="text-base font-bold text-foreground mt-2">{trimmed.replace(/^##\s*/, "")}</p>;
           }
-          // Regular text
           return (
             <p key={i} className="text-sm text-foreground/80 leading-relaxed"
               dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>') }} />
@@ -234,15 +364,10 @@ function AssistantMessage({ msg }: { msg: Message }) {
         <Bot size={13} className="text-primary" />
       </div>
       <div className="flex-1 min-w-0 space-y-2.5">
-        {/* Charts first — visual lead */}
         {msg.charts?.map((chart, ci) => (
           <InlineChart key={ci} chart={chart} />
         ))}
-
-        {/* Clean text verdict */}
         {cleanText && renderCleanMarkdown(cleanText)}
-
-        {/* Insight cards — compact, hoverable */}
         {cards.length > 0 && (
           <div className="space-y-1.5">
             {cards.map((card, ci) => (
@@ -292,7 +417,6 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
     setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }), 50);
   };
 
-  // Auto-save: upsert conversation after each assistant response
   const autoSave = useCallback(async (msgs: Message[]) => {
     if (!userId || msgs.length < 2) return;
     const title = msgs[0]?.content.slice(0, 80) || "Untitled conversation";
@@ -300,7 +424,6 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
 
     try {
       if (autoSaveIdRef.current) {
-        // Update existing
         await supabase.from("explorer_conversations").update({
           title,
           messages: msgs as any,
@@ -308,7 +431,6 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
           updated_at: new Date().toISOString(),
         } as any).eq("id", autoSaveIdRef.current);
       } else {
-        // Create new
         const { data } = await supabase.from("explorer_conversations").insert({
           user_id: userId,
           title,
@@ -498,7 +620,6 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
 
       updateAssistant();
 
-      // Auto-save after response completes
       const finalMessages = [...messages, userMsg, { role: "assistant" as const, content: assistantText, charts: charts.length > 0 ? charts : undefined }];
       autoSave(finalMessages);
 
@@ -540,7 +661,7 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
           <div>
             <p className="text-base font-bold text-foreground tracking-tight">Intelligence Explorer</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {hasMessages ? `${messages.length} messages · auto-saved` : "Ask anything · Drop images or PDFs for context"}
+              {hasMessages ? `${messages.length} messages · auto-saved` : "Your strategic analyst — ask anything about your portfolio"}
             </p>
           </div>
         </div>
@@ -571,38 +692,9 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
         )}
       </AnimatePresence>
 
-      {/* Empty state with prompt cards */}
+      {/* Empty state — rotating showcase */}
       {!hasMessages && !dragging && (
-        <div className="px-4 sm:px-5 pb-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {QUICK_PROMPTS.map((prompt, i) => {
-              const Icon = prompt.icon;
-              return (
-                <motion.button
-                  key={prompt.label}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06, duration: 0.3 }}
-                  onClick={() => send(prompt.label)}
-                  className="group flex items-start gap-3 p-3 rounded-xl border border-border bg-background hover:border-primary/30 hover:bg-primary/[0.02] transition-all text-left"
-                >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
-                    style={{ backgroundColor: `${prompt.color}12` }}
-                  >
-                    <Icon size={14} style={{ color: prompt.color }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground leading-snug group-hover:text-primary transition-colors">
-                      {prompt.label}
-                    </p>
-                  </div>
-                  <ArrowRight size={12} className="text-muted-foreground/0 group-hover:text-primary/60 transition-all mt-1 flex-shrink-0" />
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
+        <RotatingShowcase onPromptClick={send} />
       )}
 
       {/* Messages */}
