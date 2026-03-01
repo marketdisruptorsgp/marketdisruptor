@@ -7,7 +7,7 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   Upload, Briefcase, Building2, ArrowRight, CheckCircle2, Camera,
   AlertCircle, Zap, Layers, Coffee, ShoppingBag, Headphones,
-  Link as LinkIcon, Image, Loader2, Sparkles,
+  Link as LinkIcon, Image, Loader2, Sparkles, FileText, Plus, X, Globe,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { LensToggle } from "@/components/LensToggle";
@@ -18,6 +18,12 @@ import {
 } from "@/lib/modeIntelligence";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useBIExtraction, fileToDocumentText, extractionToContext, type BIExtraction } from "@/hooks/useBIExtraction";
+
+const DOC_ACCEPT = ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt";
+const DOC_EXTENSIONS = ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "csv", "txt"];
+const MAX_DOCS = 5;
+const MAX_URLS = 3;
 
 const MODES = [
   {
@@ -97,12 +103,17 @@ export default function NewAnalysisPage() {
 
   // Inline clarifier state
   const [clarifierName, setClarifierName] = useState("");
-  const [clarifierUrl, setClarifierUrl] = useState("");
+  const [clarifierUrls, setClarifierUrls] = useState<string[]>([""]);
   const [clarifierImages, setClarifierImages] = useState<{ file: File; dataUrl: string }[]>([]);
+  const [clarifierDocs, setClarifierDocs] = useState<{ file: File; name: string }[]>([]);
   const [autofilling, setAutofilling] = useState(false);
   const [launching, setLaunching] = useState(false);
   const autofillTriggered = useRef<Set<string>>(new Set());
   const clarifierRef = useRef<HTMLDivElement>(null);
+
+  // BI Extraction
+  const { extract, extracting, extraction } = useBIExtraction();
+  const extractionTriggered = useRef(false);
 
   const runRouting = useCallback((text: string) => {
     if (text.trim().length < 15) {
@@ -189,6 +200,57 @@ export default function NewAnalysisPage() {
     }
   };
 
+  // Run BI extraction when docs/images are added
+  const runExtraction = useCallback(async () => {
+    if (extractionTriggered.current) return;
+    const hasDocs = clarifierDocs.length > 0;
+    const hasImages = clarifierImages.length > 0;
+    if (!hasDocs && !hasImages) return;
+
+    extractionTriggered.current = true;
+    toast.info("Extracting business intelligence from your uploads…");
+
+    try {
+      const documentTexts = await Promise.all(
+        clarifierDocs.map(d => fileToDocumentText(d.file))
+      );
+
+      // Upload images to get URLs for the extraction engine
+      const imageUrls: string[] = [];
+      for (const img of clarifierImages) {
+        const ext = img.file.name.split(".").pop() || "png";
+        const path = `bi-extract/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadErr } = await supabase.storage
+          .from("explorer-uploads")
+          .upload(path, img.file);
+        if (!uploadErr) {
+          const { data: urlData } = supabase.storage
+            .from("explorer-uploads")
+            .getPublicUrl(path);
+          if (urlData?.publicUrl) imageUrls.push(urlData.publicUrl);
+        }
+      }
+
+      const result = await extract({
+        documentTexts: documentTexts.length > 0 ? documentTexts : undefined,
+        imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
+        context: problemText || undefined,
+      });
+
+      if (result) {
+        // Auto-populate name from extraction
+        if (!clarifierName && result.business_overview?.company_name) {
+          setClarifierName(result.business_overview.company_name);
+        } else if (!clarifierName && result.business_overview?.primary_offering) {
+          setClarifierName(result.business_overview.primary_offering);
+        }
+        toast.success("Intelligence extracted — fields auto-populated!");
+      }
+    } catch (err) {
+      console.warn("BI extraction failed:", err);
+    }
+  }, [clarifierDocs, clarifierImages, clarifierName, problemText, extract]);
+
   // Launch analysis directly
   const handleLaunchAnalysis = async () => {
     if (!routing) return;
@@ -198,11 +260,14 @@ export default function NewAnalysisPage() {
     const primaryCard = toCardId(routing.primaryMode);
     const name = clarifierName.trim() || "Deconstruct Analysis";
     const notes = problemText;
-    const url = clarifierUrl.trim();
+    const urls = clarifierUrls.map(u => u.trim()).filter(Boolean);
+    const primaryUrl = urls[0] || "";
+
+    // Build extracted context if available
+    const extractedContext = extraction ? extractionToContext(extraction) : "";
 
     try {
       if (primaryCard === "business") {
-        // Business model flow
         analysis.setMainTab("business");
         analysis.setActiveMode("business");
 
@@ -211,12 +276,13 @@ export default function NewAnalysisPage() {
             businessModel: {
               type: name,
               description: notes,
-              revenueModel: "",
+              revenueModel: extraction?.revenue_engine?.revenue_sources?.join(", ") || "",
               size: "",
               geography: "",
               painPoints: notes,
-              notes: url ? `Source: ${url}` : "",
+              notes: urls.length ? `Sources: ${urls.join(", ")}` : "",
             },
+            extractedContext,
           },
         });
 
@@ -232,17 +298,20 @@ export default function NewAnalysisPage() {
         toast.success("Business model analysis complete!");
         navigate(`/business/${id}`);
       } else {
-        // Product or service flow
         const isService = primaryCard === "service";
         analysis.setMainTab(isService ? "service" : "custom");
         analysis.setActiveMode(isService ? "service" : "custom");
 
+        const enrichedNotes = extractedContext
+          ? `${isService ? "[SERVICE ANALYSIS] " : ""}${notes}\n\n--- EXTRACTED INTELLIGENCE ---\n${extractedContext}`
+          : `${isService ? "[SERVICE ANALYSIS] " : ""}${notes}`;
+
         const customProducts = [{
           productName: name,
-          notes: isService ? `[SERVICE ANALYSIS] ${notes}` : notes,
-          urls: url ? [url] : [],
+          notes: enrichedNotes,
+          urls,
           images: clarifierImages,
-          productUrl: url || "",
+          productUrl: primaryUrl,
           imageDataUrl: clarifierImages[0]?.dataUrl,
         }];
 
@@ -537,20 +606,115 @@ export default function NewAnalysisPage() {
                 />
               </div>
 
-              {/* URL */}
+              {/* URLs — multiple */}
               <div className="space-y-1.5">
                 <label className="typo-card-eyebrow text-xs flex items-center gap-2">
-                  <LinkIcon size={12} />
-                  Got a link? (optional)
+                  <Globe size={12} />
+                  Links (optional, up to {MAX_URLS})
                   {autofilling && <Loader2 size={13} className="animate-spin text-primary" />}
                 </label>
-                <input
-                  value={clarifierUrl}
-                  onChange={(e) => setClarifierUrl(e.target.value)}
-                  onBlur={(e) => handleUrlBlur(e.target.value)}
-                  placeholder="https://example.com — we'll extract details automatically"
-                  className="input-executive"
-                />
+                <div className="space-y-2">
+                  {clarifierUrls.map((url, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        value={url}
+                        onChange={(e) => {
+                          const next = [...clarifierUrls];
+                          next[i] = e.target.value;
+                          setClarifierUrls(next);
+                        }}
+                        onBlur={(e) => handleUrlBlur(e.target.value)}
+                        placeholder="https://example.com — we'll extract details automatically"
+                        className="input-executive flex-1"
+                      />
+                      {clarifierUrls.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setClarifierUrls(clarifierUrls.filter((_, j) => j !== i))}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {clarifierUrls.length < MAX_URLS && (
+                    <button
+                      type="button"
+                      onClick={() => setClarifierUrls([...clarifierUrls, ""])}
+                      className="text-xs font-medium flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-muted/80 transition-colors"
+                      style={{ color: "hsl(var(--mode-multi))" }}
+                    >
+                      <Plus size={12} /> Add another link
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Documents */}
+              <div className="space-y-1.5">
+                <label className="typo-card-eyebrow text-xs flex items-center gap-2">
+                  <FileText size={12} />
+                  Documents (optional, up to {MAX_DOCS})
+                </label>
+                <p className="text-[11px] text-muted-foreground -mt-0.5">
+                  PDF, Word, PowerPoint, Excel, CSV — we'll extract business intelligence to power your analysis.
+                </p>
+                <div className="space-y-1.5">
+                  {clarifierDocs.map((doc, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/30"
+                      style={{ borderColor: "hsl(var(--border))" }}
+                    >
+                      <FileText size={14} className="text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm text-foreground truncate flex-1">{doc.name}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {(doc.file.size / 1024).toFixed(0)}KB
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setClarifierDocs(clarifierDocs.filter((_, j) => j !== i));
+                          extractionTriggered.current = false;
+                        }}
+                        className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  {clarifierDocs.length < MAX_DOCS && (
+                    <label
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors hover:bg-muted/60"
+                      style={{ border: "1.5px dashed hsl(var(--border))", background: "hsl(var(--muted) / 0.3)" }}
+                    >
+                      <Upload size={14} className="text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Upload document</span>
+                      <input
+                        type="file"
+                        accept={DOC_ACCEPT}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const ext = file.name.split(".").pop()?.toLowerCase() || "";
+                          if (!DOC_EXTENSIONS.includes(ext)) {
+                            toast.error("Unsupported file type. Use PDF, Word, PowerPoint, Excel, or CSV.");
+                            return;
+                          }
+                          if (file.size > 20 * 1024 * 1024) {
+                            toast.error("File too large. Maximum 20MB.");
+                            return;
+                          }
+                          setClarifierDocs(prev => [...prev, { file, name: file.name }]);
+                          extractionTriggered.current = false;
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
 
               {/* Images */}
@@ -565,7 +729,10 @@ export default function NewAnalysisPage() {
                       <img src={img.dataUrl} alt="" className="w-full h-full object-cover" />
                       <button
                         type="button"
-                        onClick={() => setClarifierImages(clarifierImages.filter((_, j) => j !== i))}
+                        onClick={() => {
+                          setClarifierImages(clarifierImages.filter((_, j) => j !== i));
+                          extractionTriggered.current = false;
+                        }}
                         className="absolute top-0 right-0 w-4 h-4 flex items-center justify-center text-[9px] text-white rounded-bl"
                         style={{ background: "hsl(var(--destructive))" }}
                       >
@@ -588,7 +755,8 @@ export default function NewAnalysisPage() {
                           if (!file) return;
                           const reader = new FileReader();
                           reader.onload = () => {
-                            setClarifierImages([...clarifierImages, { file, dataUrl: reader.result as string }]);
+                            setClarifierImages(prev => [...prev, { file, dataUrl: reader.result as string }]);
+                            extractionTriggered.current = false;
                           };
                           reader.readAsDataURL(file);
                           e.target.value = "";
@@ -599,10 +767,70 @@ export default function NewAnalysisPage() {
                 </div>
               </div>
 
+              {/* Extraction status */}
+              {(clarifierDocs.length > 0 || clarifierImages.length > 0) && (
+                <div className="space-y-2">
+                  {!extracting && !extraction && (
+                    <button
+                      type="button"
+                      onClick={runExtraction}
+                      className="w-full py-2.5 rounded-lg text-xs font-semibold border transition-all flex items-center justify-center gap-2 hover:shadow-sm"
+                      style={{
+                        borderColor: "hsl(var(--mode-multi) / 0.3)",
+                        color: "hsl(var(--mode-multi))",
+                        background: "hsl(var(--mode-multi) / 0.06)",
+                      }}
+                    >
+                      <Sparkles size={13} />
+                      Extract Intelligence from Uploads
+                    </button>
+                  )}
+                  {extracting && (
+                    <div
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg border text-xs"
+                      style={{
+                        borderColor: "hsl(var(--mode-multi) / 0.2)",
+                        background: "hsl(var(--mode-multi) / 0.04)",
+                        color: "hsl(var(--mode-multi))",
+                      }}
+                    >
+                      <Loader2 size={14} className="animate-spin" />
+                      Analyzing documents… extracting business structure, constraints, and leverage points
+                    </div>
+                  )}
+                  {extraction && (
+                    <div
+                      className="px-3 py-2.5 rounded-lg border text-xs space-y-1"
+                      style={{
+                        borderColor: "hsl(142 70% 40% / 0.3)",
+                        background: "hsl(142 70% 40% / 0.04)",
+                      }}
+                    >
+                      <div className="flex items-center gap-1.5 font-semibold" style={{ color: "hsl(142 70% 40%)" }}>
+                        <CheckCircle2 size={13} />
+                        Intelligence extracted
+                      </div>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {extraction.business_overview?.primary_offering && (
+                          <span><strong className="text-foreground">Offering:</strong> {extraction.business_overview.primary_offering}. </span>
+                        )}
+                        {extraction.constraints?.length > 0 && (
+                          <span><strong className="text-foreground">{extraction.constraints.length} constraints</strong> identified. </span>
+                        )}
+                        {extraction.signals_for_visualization?.candidate_leverage_points?.length > 0 && (
+                          <span><strong className="text-foreground">{extraction.signals_for_visualization.candidate_leverage_points.length} leverage points</strong> found. </span>
+                        )}
+                        This data will power your analysis.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Launch button */}
               <button
                 onClick={handleLaunchAnalysis}
-                disabled={launching || isLoading}
+                disabled={launching || isLoading || extracting}
                 className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{ background: "hsl(var(--mode-multi))" }}
               >
@@ -610,6 +838,11 @@ export default function NewAnalysisPage() {
                   <>
                     <Loader2 size={16} className="animate-spin" />
                     Analyzing…
+                  </>
+                ) : extracting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Extracting…
                   </>
                 ) : (
                   <>
