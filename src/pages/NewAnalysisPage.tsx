@@ -6,13 +6,18 @@ import { AnalysisStepIndicator } from "@/components/AnalysisStepIndicator";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   Upload, Briefcase, Building2, ArrowRight, CheckCircle2, Camera,
-  AlertCircle, Zap, Layers, ScanLine, Coffee, ShoppingBag, Headphones,
+  AlertCircle, Zap, Layers, Coffee, ShoppingBag, Headphones,
+  Link as LinkIcon, Image, Loader2, Sparkles,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { LensToggle } from "@/components/LensToggle";
+import { InfoExplainer } from "@/components/InfoExplainer";
 import {
   routeInnovationMode, explainRouting, toCardId,
   type RoutingResult,
 } from "@/lib/modeIntelligence";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const MODES = [
   {
@@ -83,12 +88,22 @@ const PHOTO_EXAMPLES = [
 export default function NewAnalysisPage() {
   const navigate = useNavigate();
   const { tier } = useSubscription();
-  const { setModeRouting } = useAnalysis();
+  const analysis = useAnalysis();
+  const { setModeRouting } = analysis;
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [problemText, setProblemText] = useState("");
   const [routing, setRouting] = useState<RoutingResult | null>(null);
   const [useDeconstruct, setUseDeconstruct] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Inline clarifier state
+  const [clarifierName, setClarifierName] = useState("");
+  const [clarifierUrl, setClarifierUrl] = useState("");
+  const [clarifierImages, setClarifierImages] = useState<{ file: File; dataUrl: string }[]>([]);
+  const [autofilling, setAutofilling] = useState(false);
+  const [launching, setLaunching] = useState(false);
+  const autofillTriggered = useRef<Set<string>>(new Set());
+  const clarifierRef = useRef<HTMLDivElement>(null);
 
   const runRouting = useCallback((text: string) => {
     if (text.trim().length < 15) {
@@ -114,6 +129,10 @@ export default function NewAnalysisPage() {
     if (!routing) runRouting(problemText);
     setUseDeconstruct(true);
     setSelectedMode(null);
+    // Scroll to clarifier after render
+    setTimeout(() => {
+      clarifierRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
   };
 
   const handleCardClick = (id: string) => {
@@ -123,10 +142,8 @@ export default function NewAnalysisPage() {
 
   const handleContinue = () => {
     if (useDeconstruct && routing) {
-      setModeRouting(routing);
-      const cardId = toCardId(routing.primaryMode);
-      const mode = MODES.find(m => m.id === cardId);
-      if (mode) navigate(mode.path);
+      // Launch analysis directly from Deconstruct flow
+      handleLaunchAnalysis();
     } else {
       const mode = MODES.find(m => m.id === selectedMode);
       if (mode) {
@@ -136,11 +153,111 @@ export default function NewAnalysisPage() {
     }
   };
 
+  // URL autofill
+  const handleUrlBlur = async (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed || autofillTriggered.current.has(trimmed)) return;
+    if (!trimmed.match(/^https?:\/\/.+\..+/) && !trimmed.match(/^[a-zA-Z0-9].*\..+/)) return;
+
+    autofillTriggered.current.add(trimmed);
+    setAutofilling(true);
+    toast.info("Scanning URL to pre-fill fields...");
+
+    try {
+      const primaryCard = routing ? toCardId(routing.primaryMode) : "product";
+      const mode = primaryCard === "business" ? "business" : primaryCard === "service" ? "service" : "custom";
+      const { data, error } = await supabase.functions.invoke("scrape-url-autofill", {
+        body: { url: trimmed, mode },
+      });
+      if (!error && data?.success && data.data) {
+        if (!clarifierName && (data.data.name || data.data.type)) {
+          setClarifierName(data.data.name || data.data.type || "");
+        }
+        toast.success("Details extracted from URL!");
+      }
+    } catch (err) {
+      console.warn("Autofill failed:", err);
+    } finally {
+      setAutofilling(false);
+    }
+  };
+
+  // Launch analysis directly
+  const handleLaunchAnalysis = async () => {
+    if (!routing) return;
+    setLaunching(true);
+    setModeRouting(routing);
+
+    const primaryCard = toCardId(routing.primaryMode);
+    const name = clarifierName.trim() || "Deconstruct Analysis";
+    const notes = problemText;
+    const url = clarifierUrl.trim();
+
+    try {
+      if (primaryCard === "business") {
+        // Business model flow
+        analysis.setMainTab("business");
+        analysis.setActiveMode("business");
+
+        const { data: result, error } = await supabase.functions.invoke("business-model-analysis", {
+          body: {
+            businessModel: {
+              type: name,
+              description: notes,
+              revenueModel: "",
+              size: "",
+              geography: "",
+              painPoints: notes,
+              notes: url ? `Source: ${url}` : "",
+            },
+          },
+        });
+
+        if (error || !result?.success) {
+          toast.error("Analysis failed: " + (result?.error || error?.message || "Unknown error"));
+          setLaunching(false);
+          return;
+        }
+
+        analysis.setBusinessAnalysisData(result.analysis);
+        const id = crypto.randomUUID();
+        analysis.setAnalysisId(id);
+        toast.success("Business model analysis complete!");
+        navigate(`/business/${id}`);
+      } else {
+        // Product or service flow
+        const isService = primaryCard === "service";
+        analysis.setMainTab(isService ? "service" : "custom");
+        analysis.setActiveMode(isService ? "service" : "custom");
+
+        const customProducts = [{
+          productName: name,
+          notes: isService ? `[SERVICE ANALYSIS] ${notes}` : notes,
+          urls: url ? [url] : [],
+          images: clarifierImages,
+          productUrl: url || "",
+          imageDataUrl: clarifierImages[0]?.dataUrl,
+        }];
+
+        await analysis.handleAnalyze({
+          category: isService ? "Service" : "Custom",
+          era: "All Eras / Current",
+          batchSize: 1,
+          customProducts,
+        });
+      }
+    } catch (err) {
+      toast.error("Unexpected error: " + String(err));
+      setLaunching(false);
+    }
+  };
+
   const userExplanation = routing ? explainRouting(routing) : null;
   const detectedModes = routing
     ? [toCardId(routing.primaryMode), ...routing.secondaryModes.map(toCardId)]
     : [];
   const canContinue = useDeconstruct ? !!routing : !!selectedMode;
+  const isLoading = analysis.step === "scraping" || analysis.step === "analyzing";
 
   return (
     <div className="min-h-screen bg-background">
@@ -228,7 +345,7 @@ export default function NewAnalysisPage() {
           })}
         </div>
 
-        {/* ── Divider: call attention to Deconstruct ── */}
+        {/* ── Divider ── */}
         <div className="flex items-center gap-3 mb-6">
           <div className="h-px flex-1 bg-border" />
           <span
@@ -238,7 +355,7 @@ export default function NewAnalysisPage() {
               color: "hsl(var(--mode-multi))",
             }}
           >
-            or let us figure it out
+            Want it tailored to your situation?
           </span>
           <div className="h-px flex-1 bg-border" />
         </div>
@@ -259,20 +376,27 @@ export default function NewAnalysisPage() {
         >
           <div className="p-5 sm:p-6">
             {/* Header */}
-            <div className="flex items-start gap-3 mb-1">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "hsl(var(--mode-multi) / 0.12)" }}
-              >
-                <Layers size={20} style={{ color: "hsl(var(--mode-multi))" }} />
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <div className="flex items-start gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "hsl(var(--mode-multi) / 0.12)" }}
+                >
+                  <Layers size={20} style={{ color: "hsl(var(--mode-multi))" }} />
+                </div>
+                <div>
+                  <h2 className="typo-section-title text-lg">Deconstruct My Problem</h2>
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-1 max-w-xl">
+                    Describe your specific challenge in plain language. We'll automatically apply <strong className="text-foreground">every relevant mode</strong> and
+                    skip straight to analysis — no extra configuration needed.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="typo-section-title text-lg">Deconstruct My Problem</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed mt-1 max-w-xl">
-                  Not sure which mode fits? Describe your specific challenge in plain language.
-                  We'll analyze your input and automatically apply <strong className="text-foreground">every relevant mode</strong> —
-                  so you get a comprehensive, tailored analysis instead of picking just one.
-                </p>
+              {/* Lens selector */}
+              <div className="flex items-center gap-1.5 flex-shrink-0 mt-1">
+                <span className="text-[10px] font-medium uppercase tracking-wider hidden sm:inline" style={{ color: "hsl(var(--mode-multi))" }}>Lens</span>
+                <LensToggle />
+                <InfoExplainer explainerKey="lens-selector" accentColor="hsl(var(--mode-multi))" />
               </div>
             </div>
 
@@ -339,39 +463,147 @@ export default function NewAnalysisPage() {
             )}
 
             {/* CTA */}
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <p className="text-xs text-muted-foreground">
-                {routing
-                  ? "Lock in detected modes and continue."
-                  : "Type at least 15 characters to auto-detect."}
-              </p>
-              <button
-                onClick={handleDeconstruct}
-                disabled={problemText.trim().length < 15}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-                style={{
-                  background: "hsl(var(--mode-multi))",
-                  color: "white",
-                }}
-              >
-                <Zap size={14} />
-                Deconstruct My Problem
-              </button>
-            </div>
+            {!useDeconstruct && (
+              <div className="mt-4 flex items-center justify-between gap-4">
+                <p className="text-xs text-muted-foreground">
+                  {routing
+                    ? "Click below to lock in detected modes."
+                    : "Type at least 15 characters to auto-detect."}
+                </p>
+                <button
+                  onClick={handleDeconstruct}
+                  disabled={problemText.trim().length < 15}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+                  style={{
+                    background: "hsl(var(--mode-multi))",
+                    color: "white",
+                  }}
+                >
+                  <Zap size={14} />
+                  Deconstruct My Problem
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Confirmation strip */}
+          {/* ── Inline Clarifier (appears after Deconstruct) ── */}
           {useDeconstruct && routing && (
             <div
-              className="px-5 py-3 flex items-center gap-2 text-xs font-medium border-t"
+              ref={clarifierRef}
+              className="border-t px-5 sm:px-6 py-5 space-y-4"
               style={{
-                background: "hsl(var(--mode-multi) / 0.06)",
                 borderColor: "hsl(var(--mode-multi) / 0.15)",
-                color: "hsl(var(--mode-multi))",
+                background: "hsl(var(--mode-multi) / 0.03)",
               }}
             >
-              <CheckCircle2 size={14} />
-              Problem deconstructed — {detectedModes.length} mode{detectedModes.length > 1 ? "s" : ""} will be applied.
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles size={14} style={{ color: "hsl(var(--mode-multi))" }} />
+                <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "hsl(var(--mode-multi))" }}>
+                  Almost there — help us dial it in
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed -mt-2">
+                These are optional. The more you share, the sharper the analysis. Leave blank to proceed with what you've described.
+              </p>
+
+              {/* Name */}
+              <div className="space-y-1.5">
+                <label className="typo-card-eyebrow text-xs">
+                  What are we analyzing?
+                </label>
+                <input
+                  value={clarifierName}
+                  onChange={(e) => setClarifierName(e.target.value)}
+                  placeholder="e.g. Acme CRM, My coffee shop, Nike Air Max…"
+                  className="input-executive"
+                />
+              </div>
+
+              {/* URL */}
+              <div className="space-y-1.5">
+                <label className="typo-card-eyebrow text-xs flex items-center gap-2">
+                  <LinkIcon size={12} />
+                  Got a link? (optional)
+                  {autofilling && <Loader2 size={13} className="animate-spin text-primary" />}
+                </label>
+                <input
+                  value={clarifierUrl}
+                  onChange={(e) => setClarifierUrl(e.target.value)}
+                  onBlur={(e) => handleUrlBlur(e.target.value)}
+                  placeholder="https://example.com — we'll extract details automatically"
+                  className="input-executive"
+                />
+              </div>
+
+              {/* Images */}
+              <div className="space-y-1.5">
+                <label className="typo-card-eyebrow text-xs flex items-center gap-2">
+                  <Image size={12} />
+                  Images (optional, up to 5)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {clarifierImages.map((img, i) => (
+                    <div key={i} className="relative w-14 h-14 rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+                      <img src={img.dataUrl} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setClarifierImages(clarifierImages.filter((_, j) => j !== i))}
+                        className="absolute top-0 right-0 w-4 h-4 flex items-center justify-center text-[9px] text-white rounded-bl"
+                        style={{ background: "hsl(var(--destructive))" }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {clarifierImages.length < 5 && (
+                    <label
+                      className="w-14 h-14 rounded-lg flex items-center justify-center cursor-pointer transition-colors hover:bg-muted/80"
+                      style={{ border: "1.5px dashed hsl(var(--border))", background: "hsl(var(--muted) / 0.5)" }}
+                    >
+                      <Upload size={14} className="text-muted-foreground" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            setClarifierImages([...clarifierImages, { file, dataUrl: reader.result as string }]);
+                          };
+                          reader.readAsDataURL(file);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Launch button */}
+              <button
+                onClick={handleLaunchAnalysis}
+                disabled={launching || isLoading}
+                className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ background: "hsl(var(--mode-multi))" }}
+              >
+                {launching || isLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Analyzing…
+                  </>
+                ) : (
+                  <>
+                    <Zap size={16} />
+                    Start Analysis
+                  </>
+                )}
+              </button>
+
+              <p className="text-[11px] text-center text-muted-foreground">
+                {detectedModes.length} mode{detectedModes.length > 1 ? "s" : ""} will be applied: {detectedModes.map(m => MODE_LABELS[m]).join(", ")}
+              </p>
             </div>
           )}
         </div>
@@ -400,22 +632,18 @@ export default function NewAnalysisPage() {
                   </span>
                 </div>
                 <p className="typo-card-body text-muted-foreground leading-relaxed max-w-xl">
-                  See a product in the wild? Snap a photo. We'll identify it, run a full competitive teardown,
-                  and surface redesign opportunities — all from a single image. No typing required.
+                  See something interesting? Snap a photo. We'll identify it, run a full competitive teardown,
+                  and surface redesign opportunities — all from a single image. No typing, no URLs, no setup.
                 </p>
               </div>
               <ArrowRight size={18} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-1 hidden sm:block" />
             </div>
 
-            {/* Examples */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {PHOTO_EXAMPLES.map((ex) => {
                 const ExIcon = ex.icon;
                 return (
-                  <div
-                    key={ex.label}
-                    className="flex items-start gap-3 rounded-xl bg-muted/50 p-3"
-                  >
+                  <div key={ex.label} className="flex items-start gap-3 rounded-xl bg-muted/50 p-3">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/8 flex-shrink-0 mt-0.5">
                       <ExIcon size={15} className="text-primary/70" />
                     </div>
@@ -430,16 +658,18 @@ export default function NewAnalysisPage() {
           </div>
         </div>
 
-        {/* Continue button */}
-        <div className="flex justify-end">
-          <button
-            onClick={handleContinue}
-            disabled={!canContinue}
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-full typo-nav-primary bg-primary text-primary-foreground hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Continue to Configuration <ArrowRight size={15} />
-          </button>
-        </div>
+        {/* Continue button (only for manual mode selection) */}
+        {!useDeconstruct && (
+          <div className="flex justify-end">
+            <button
+              onClick={handleContinue}
+              disabled={!canContinue}
+              className="inline-flex items-center gap-2 px-7 py-3 rounded-full typo-nav-primary bg-primary text-primary-foreground hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Continue to Configuration <ArrowRight size={15} />
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
