@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AnalysisStepIndicator } from "@/components/AnalysisStepIndicator";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
-  Upload, Briefcase, Building2, ArrowRight, CheckCircle2, Camera,
+  Upload, Briefcase, Building2, ArrowRight, CheckCircle2, Camera, AlertCircle,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  routeInnovationMode, explainRouting, toCardId,
+  type RoutingResult,
+} from "@/lib/modeIntelligence";
 
 const MODES = [
   {
@@ -55,15 +61,58 @@ const MODES = [
   },
 ];
 
+const MODE_CSS_VAR: Record<string, string> = {
+  product: "--mode-product",
+  service: "--mode-service",
+  business: "--mode-business",
+};
+
 export default function NewAnalysisPage() {
   const navigate = useNavigate();
   const { tier } = useSubscription();
+  const { setModeRouting } = useAnalysis();
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
+  const [problemText, setProblemText] = useState("");
+  const [routing, setRouting] = useState<RoutingResult | null>(null);
+  const [isOverride, setIsOverride] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const runRouting = useCallback((text: string) => {
+    if (text.trim().length < 15) {
+      setRouting(null);
+      return;
+    }
+    const result = routeInnovationMode(text);
+    setRouting(result);
+    const cardId = toCardId(result.primaryMode);
+    setSelectedMode(cardId);
+    setIsOverride(false);
+  }, []);
+
+  const handleTextChange = useCallback((value: string) => {
+    setProblemText(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => runRouting(value), 500);
+  }, [runRouting]);
+
+  useEffect(() => {
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, []);
+
+  const handleCardClick = (id: string) => {
+    setSelectedMode(id);
+    if (routing) setIsOverride(toCardId(routing.primaryMode) !== id);
+  };
 
   const handleContinue = () => {
     const mode = MODES.find(m => m.id === selectedMode);
-    if (mode) navigate(mode.path);
+    if (mode) {
+      setModeRouting(routing);
+      navigate(mode.path);
+    }
   };
+
+  const userExplanation = routing ? explainRouting(routing) : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,9 +124,60 @@ export default function NewAnalysisPage() {
         <h1 className="typo-page-title text-2xl sm:text-3xl tracking-tight mb-2">
           Select Analysis Mode
         </h1>
-        <p className="typo-page-meta text-sm sm:text-base max-w-2xl leading-relaxed mb-8">
-          Choose the type of analysis that matches your target. Each mode applies tailored scrutiny for the specific opportunity type.
+        <p className="typo-page-meta text-sm sm:text-base max-w-2xl leading-relaxed mb-6">
+          Describe your problem or select a mode directly.
         </p>
+
+        {/* Problem description textarea */}
+        <div className="mb-6">
+          <Textarea
+            value={problemText}
+            onChange={(e) => handleTextChange(e.target.value)}
+            placeholder="Describe your problem or opportunity — we'll auto-detect the best analysis mode…"
+            className="input-executive min-h-[90px] text-sm leading-relaxed resize-none"
+            rows={3}
+          />
+
+          {/* Routing explanation banner */}
+          {userExplanation && (
+            <div
+              className="mt-3 rounded-xl border px-4 py-3 text-sm transition-all"
+              style={{
+                borderColor: `hsl(var(${MODE_CSS_VAR[toCardId(routing!.primaryMode)]}) / 0.4)`,
+                background: `hsl(var(${MODE_CSS_VAR[toCardId(routing!.primaryMode)]}) / 0.06)`,
+              }}
+            >
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold"
+                  style={{
+                    background: `hsl(var(${MODE_CSS_VAR[toCardId(routing!.primaryMode)]}) / 0.15)`,
+                    color: `hsl(var(${MODE_CSS_VAR[toCardId(routing!.primaryMode)]}))`,
+                  }}
+                >
+                  {userExplanation.confidence}% confidence
+                </span>
+                <span
+                  className="text-foreground/80"
+                  dangerouslySetInnerHTML={{ __html: userExplanation.explanation.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
+                />
+              </div>
+
+              {isOverride && (
+                <p className="mt-1.5 text-xs text-muted-foreground italic">
+                  You overrode the suggested mode — your selection will be used.
+                </p>
+              )}
+
+              {userExplanation.confidence < 45 && (
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <AlertCircle size={12} />
+                  Low confidence — add more detail for a stronger match.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {MODES.map((mode) => {
@@ -86,7 +186,7 @@ export default function NewAnalysisPage() {
             return (
               <button
                 key={mode.id}
-                onClick={() => setSelectedMode(mode.id)}
+                onClick={() => handleCardClick(mode.id)}
                 className="rounded-2xl border bg-card flex flex-col overflow-hidden transition-all hover:shadow-lg text-left"
                 style={{
                   borderWidth: isSelected ? "2px" : "1px",
