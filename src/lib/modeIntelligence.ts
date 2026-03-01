@@ -204,17 +204,65 @@ User problem:
 `;
 
 export const MODE_EXPLANATION_PROMPT = `
-Explain three innovation modes in plain language for non-experts.
-GOAL: Users should instantly understand what changes when they choose a mode.
-PRINCIPLE: Describe real-world change, not analysis method.
-DISTINCTIONS:
-Product → changes the offering itself
-Service → changes how value is delivered
-Business Model → changes how value is captured
-OUTPUT JSON:
+ROLE
+You are helping explain three innovation modes to non-expert users.
+
+GOAL
+Make each mode instantly understandable in under 3 seconds.
+Users should know what changes in the real world when they pick a mode.
+
+CORE PRINCIPLE
+Describe each mode by:
+• what changes
+• what does NOT change
+• when someone would choose it
+Do NOT describe analysis methods or internal system behavior.
+
+CLARITY REQUIREMENTS
+• Use everyday language
+• Use short, concrete sentences
+• Avoid jargon, frameworks, or strategy terminology
+• Avoid buzzwords and abstractions
+• If a high-school student wouldn't understand immediately, simplify
+• Each mode must feel clearly different from the others
+• Explanations must not overlap conceptually
+
+CONCEPTUAL DISTINCTION TO PRESERVE
+Each mode operates at a different layer of a business:
+Product Mode → changes the offering itself
+Service Mode → changes how value is delivered
+Business Model Mode → changes how value is captured
+These layers must remain clearly separated.
+
+USER MENTAL MODEL TARGET
+After reading, a user should intuitively understand:
+• one mode redesigns the thing
+• one mode redesigns the experience/process
+• one mode redesigns the economics
+
+STRUCTURE TO PRODUCE FOR EACH MODE
+Return an object with:
 {
-  productMode: { name, plainMeaning, whatChanges, whatStaysSame, whenToUse, realWorldOutcome },
-  serviceMode: {...},
-  businessModelMode: {...}
+  name: string,
+  plainMeaning: string,        // one short sentence
+  whatChanges: string[],       // 2–4 concrete items
+  whatStaysSame: string[],     // 2–4 concrete items
+  whenToUse: string,           // one simple scenario
+  realWorldOutcome: string     // tangible result a user would recognize
 }
+
+TONE
+Clear, neutral, human, direct.
+No hype. No metaphors. No teaching voice.
+
+VALIDATION CHECK BEFORE OUTPUT
+A user should be able to answer:
+"What exactly is changing?"
+in one thought after reading.
+
+OUTPUT FORMAT
+Return structured JSON with three objects:
+productMode
+serviceMode
+businessModelMode
 `;
