@@ -134,6 +134,7 @@ export default function DashboardPage() {
             See what a deep deconstruction reveals about your market.
           </p>
           <button
+            onClick={() => navigate("/analysis/new")}
             className="inline-flex items-center gap-2 px-5 sm:px-7 py-2.5 rounded-full typo-nav-primary text-primary-foreground transition-colors"
             style={{ background: "hsl(var(--primary))" }}>
 

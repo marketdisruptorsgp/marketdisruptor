@@ -273,7 +273,7 @@ export default function AboutPage() {
             <p className="text-sm text-muted-foreground mb-7 max-w-lg mx-auto">
               See what a deep deconstruction reveals about your market.
             </p>
-            <button onClick={() => navigate("/")} className="btn-primary inline-flex items-center gap-2 px-8 py-3 text-sm">
+            <button onClick={() => navigate("/analysis/new")} className="btn-primary inline-flex items-center gap-2 px-8 py-3 text-sm">
               Start Analysis <ArrowRight size={14} />
             </button>
           </div>
