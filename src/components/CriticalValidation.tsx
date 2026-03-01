@@ -199,8 +199,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
       <div className="space-y-4">
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
 
-        {/* L1 Executive Signal — Structural Visuals */}
+        {/* L1 Executive Signal — Structural Visuals & Action Plans */}
         <StructuralVisualList specs={data.visualSpecs} />
+        <ActionPlanList plans={data.actionPlans} />
 
         <PitchDeckToggle contentKey="stressTestDebate" label="Include in Pitch Deck" />
 
