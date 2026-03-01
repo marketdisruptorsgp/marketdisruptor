@@ -276,23 +276,6 @@ export default function StartPage() {
         </div>
       </section>
 
-      {/* Quick Launch Buttons */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-10 flex flex-wrap items-center justify-center gap-3">
-        {MODES.map((mode) => {
-          const Icon = mode.icon;
-          return (
-            <button
-              key={mode.id}
-              onClick={() => navigate(mode.path)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border bg-card text-sm font-semibold text-foreground hover:shadow-md transition-all"
-              style={{ borderColor: `hsl(var(${mode.cssVar}) / 0.3)` }}
-            >
-              <Icon size={14} style={{ color: `hsl(var(${mode.cssVar}))` }} />
-              {mode.label} <ArrowRight size={12} className="text-muted-foreground" />
-            </button>
-          );
-        })}
-      </section>
 
       {/* Footer */}
       <footer className="border-t border-border">
