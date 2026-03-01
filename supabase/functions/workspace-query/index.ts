@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
+import { getModeGuardPrompt, type AnalysisMode } from "../_shared/modeEnforcement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -151,7 +153,41 @@ ${deepData || "No deep analysis data."}`;
       ? `\n\nThe user has attached files. Images are provided inline. For PDFs, URLs are provided — analyze what you can infer.`
       : "";
 
+    // Detect dominant mode from user's project categories
+    const modeCounts: Record<AnalysisMode, number> = { product: 0, service: 0, business: 0 };
+    for (const a of analyses) {
+      const cat = (a.category || "").toLowerCase();
+      const atype = (a.analysis_type || "").toLowerCase();
+      if (cat.includes("service") || atype === "service") modeCounts.service++;
+      else if (cat.includes("business") || atype === "business") modeCounts.business++;
+      else modeCounts.product++;
+    }
+    const dominantMode: AnalysisMode = modeCounts.business >= modeCounts.product && modeCounts.business >= modeCounts.service
+      ? "business"
+      : modeCounts.service >= modeCounts.product
+        ? "service"
+        : "product";
+
+    const reasoningFramework = getReasoningFramework();
+    const modeGuard = getModeGuardPrompt(dominantMode);
+
     const systemPrompt = `You are a provocative strategic advisor — not a consultant, not a summarizer. You think like a founder who's built and sold companies. You find the non-obvious angle that changes how someone sees their business.
+
+${reasoningFramework}
+
+${modeGuard}
+
+EXPLORER-SPECIFIC ADAPTATION:
+The reasoning framework above is your INTERNAL thinking process. Apply it silently when:
+- Evaluating project viability or scoring
+- Identifying constraints, leverage points, or opportunities
+- Comparing projects or generating strategic recommendations
+- Analyzing uploaded documents for structural weaknesses
+
+You do NOT need to follow the framework rigidly for simple factual queries (e.g., "how many projects do I have?"). But for ANY strategic question, constraint analysis, or opportunity evaluation — reason through the 9 steps internally before responding.
+
+DOMINANT USER MODE: ${dominantMode.toUpperCase()}
+The user's portfolio leans toward ${dominantMode} analysis. Default to ${dominantMode}-mode structural dimensions when analyzing their projects, but adapt if a specific question targets a different mode.
 
 YOUR CORE MANDATE:
 The user came to THIS platform because generic AI answers are worthless. Every response must contain at least one insight they could NOT get from ChatGPT, Google, or a basic SWOT analysis. If you can't do that, say so honestly instead of generating filler.
@@ -161,13 +197,15 @@ HOW TO BE SPECIFIC (not generic):
 - When they upload a document, extract the SPECIFIC numbers, names, entities — don't summarize at surface level
 - Connect dots BETWEEN their projects, patents, and trends that they haven't seen
 - Challenge their assumptions using their own data as evidence
-- If their project scored a 6.2, explain WHY structurally — what specific factor dragged it down
+- If their project scored a 6.2, explain WHY structurally — what specific constraint dragged it down
+- Apply constraint-tier classification (Tier 1/2/3) when evaluating friction points
 
 THINKING FRAMEWORK:
 1. What does their data ACTUALLY say? (cite specific numbers/names)
-2. What's the non-obvious implication? (the thing they haven't considered)
-3. What would you DO differently? (concrete action, not "consider exploring")
+2. What's the structural constraint? (apply first-principles decomposition)
+3. Where's the leverage? (optimization vs structural improvement vs system redesign)
 4. What's the contrarian take? (flip the conventional wisdom)
+5. What would you DO differently? (concrete action tied to constraint removal, not "consider exploring")
 
 RESPONSE STRUCTURE:
 - **Lead with your sharpest insight** — the one thing that changes how they should think
