@@ -1,6 +1,8 @@
 import React from "react";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, Focus, Building2, Star } from "lucide-react";
 import { scrollToTop } from "@/utils/scrollToTop";
+import { useAnalysis } from "@/contexts/AnalysisContext";
+import { getLensType } from "@/lib/etaLens";
 
 export interface StepConfig {
   step: number;
@@ -27,17 +29,38 @@ const STEP_KEY_MAP: Record<number, string> = {
   6: "pitch",
 };
 
+function LensBadge() {
+  const analysis = useAnalysis();
+  const lensType = getLensType(analysis.activeLens);
+  const lensName = lensType === "eta" ? "ETA Acquisition" : lensType === "custom" ? (analysis.activeLens?.name || "Custom") : "Default";
+  const LensIcon = lensType === "eta" ? Building2 : lensType === "custom" ? Star : Focus;
+  const badgeColor = lensType === "eta" ? "hsl(142 70% 40%)" : lensType === "custom" ? "hsl(38 92% 50%)" : "hsl(var(--primary))";
+
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide flex-shrink-0"
+      style={{ background: `${badgeColor}15`, color: badgeColor, border: `1.5px solid ${badgeColor}30` }}
+    >
+      <LensIcon size={10} />
+      {lensName} Lens
+    </span>
+  );
+}
+
 export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, outdatedSteps, accentColor }: StepNavigatorProps) {
   const totalSteps = steps.length + 1;
   const accent = accentColor || "hsl(var(--primary))";
   return (
     <div className="sticky top-0 z-20 -mx-4 px-3 sm:px-4 py-3 sm:py-3.5 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide">
-        {/* Progress bar */}
+        {/* Progress bar + Lens badge */}
         <div className="flex items-center justify-between mb-2.5">
-          <p className="typo-status-label text-muted-foreground">
-            Step {activeStep} of {totalSteps}
-          </p>
+          <div className="flex items-center gap-2.5">
+            <p className="typo-status-label text-muted-foreground">
+              Step {activeStep} of {totalSteps}
+            </p>
+            <LensBadge />
+          </div>
           <div className="flex items-center gap-1">
             {Array.from({ length: totalSteps }, (_, i) => (
               <div key={i} className="rounded-full transition-all" style={{
