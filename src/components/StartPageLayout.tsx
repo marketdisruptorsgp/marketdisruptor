@@ -11,6 +11,7 @@ import PaywallModal from "@/components/PaywallModal";
 import { AlertCircle, ShieldCheck, BookOpen, Upload, Briefcase, Building2, ArrowLeft } from "lucide-react";
 import { LensToggle } from "@/components/LensToggle";
 import { InfoExplainer } from "@/components/InfoExplainer";
+import { AnalysisStepIndicator } from "@/components/AnalysisStepIndicator";
 import { useNavigate, Link } from "react-router-dom";
 
 const MODE_CONFIG = {
@@ -81,12 +82,13 @@ export default function StartPageLayout({ mode }: StartPageLayoutProps) {
       <HeroSection tier={tier} remainingAnalyses={null} />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10" ref={formRef}>
+        <AnalysisStepIndicator currentStep={2} />
         <Link
           to="/analysis/new"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
         >
           <ArrowLeft size={14} />
-          Back to Analysis Selection
+          Back to Mode Selection
         </Link>
         <div
           className="rounded-lg overflow-hidden border border-border bg-card shadow-sm"
