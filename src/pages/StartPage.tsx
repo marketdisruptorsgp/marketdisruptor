@@ -84,7 +84,7 @@ export default function StartPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
-    }, 2500);
+    }, 3800);
     return () => clearInterval(interval);
   }, []);
 
@@ -127,69 +127,100 @@ export default function StartPage() {
       </section>
 
       {/* How It Works Pipeline */}
-      <section className="border-t border-border overflow-hidden" style={{ background: "hsl(var(--muted) / 0.3)" }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
-          <div className="text-center mb-12">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] mb-2 flex items-center justify-center gap-1.5 transition-colors duration-500" style={{ color: ROTATING_WORDS[wordIndex].color }}>
-              <Sparkles size={12} /> How It Works
-            </p>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-              From raw data to investor-ready output
-            </h2>
-            <p className="text-sm text-muted-foreground mt-2">
-              Six stages of structured analysis, each building on the last
-            </p>
-          </div>
+      {(() => {
+        const activeColor = ROTATING_WORDS[wordIndex].color;
+        const modeKey = ROTATING_WORDS[wordIndex].word as "product" | "service" | "business";
+        const modeLabel = modeKey.charAt(0).toUpperCase() + modeKey.slice(1);
+        return (
+          <section
+            className="border-t border-border overflow-hidden transition-colors duration-700"
+            style={{ background: `color-mix(in srgb, ${activeColor} 4%, hsl(var(--background)))` }}
+          >
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
+              <div className="text-center mb-12">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] mb-3 flex items-center justify-center gap-1.5 transition-colors duration-700" style={{ color: activeColor }}>
+                  <Sparkles size={12} /> How It Works
+                </p>
+                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+                  From raw data to investor-ready output
+                </h2>
+                <p className="text-sm text-muted-foreground mt-2 mb-4">
+                  Six stages of structured analysis, each building on the last
+                </p>
+                {/* Mode pill */}
+                <motion.span
+                  key={modeKey}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors duration-700"
+                  style={{
+                    color: activeColor,
+                    borderColor: `color-mix(in srgb, ${activeColor} 30%, transparent)`,
+                    background: `color-mix(in srgb, ${activeColor} 8%, transparent)`,
+                  }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: activeColor }} />
+                  {modeLabel} Mode
+                </motion.span>
+              </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 sm:gap-6 relative">
-            {PIPELINE_STEPS.map((item, i) => {
-              const Icon = item.icon;
-              const activeColor = ROTATING_WORDS[wordIndex].color;
-              const modeKey = ROTATING_WORDS[wordIndex].word as "product" | "service" | "business";
-              return (
-                <div key={item.step} className="relative">
-                  {i > 0 && (
-                    <div className="hidden lg:flex absolute -left-3 top-7 z-10 items-center justify-center">
-                      <ChevronRight
-                        size={14}
-                        className="transition-colors duration-500 opacity-40"
-                        style={{ color: activeColor }}
-                      />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 sm:gap-6 relative">
+                {PIPELINE_STEPS.map((item, i) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={item.step} className="relative">
+                      {i > 0 && (
+                        <div className="hidden lg:flex absolute -left-3 top-9 z-10 items-center justify-center">
+                          <ChevronRight
+                            size={14}
+                            className="transition-colors duration-700 opacity-30"
+                            style={{ color: activeColor }}
+                          />
+                        </div>
+                      )}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-40px" }}
+                        transition={{ duration: 0.4, delay: i * 0.08 }}
+                        className="text-center rounded-xl border p-4 transition-all duration-700"
+                        style={{
+                          borderColor: `color-mix(in srgb, ${activeColor} 15%, hsl(var(--border)))`,
+                          background: `color-mix(in srgb, ${activeColor} 3%, hsl(var(--card)))`,
+                        }}
+                      >
+                        <div
+                          className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-all duration-700"
+                          style={{
+                            background: `color-mix(in srgb, ${activeColor} 14%, transparent)`,
+                            boxShadow: `0 4px 12px color-mix(in srgb, ${activeColor} 10%, transparent)`,
+                          }}
+                        >
+                          <Icon size={22} className="transition-colors duration-700" style={{ color: activeColor }} />
+                        </div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                          Step {item.step}
+                        </p>
+                        <p className="text-sm font-bold text-foreground mb-1">{item.label}</p>
+                        <motion.p
+                          key={modeKey}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.5 }}
+                          className="text-xs text-muted-foreground leading-relaxed"
+                        >
+                          {item.desc[modeKey]}
+                        </motion.p>
+                      </motion.div>
                     </div>
-                  )}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-40px" }}
-                    transition={{ duration: 0.4, delay: i * 0.08 }}
-                    className="text-center group"
-                  >
-                    <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors duration-500"
-                      style={{ background: `color-mix(in srgb, ${activeColor} 12%, transparent)` }}
-                    >
-                      <Icon size={22} className="transition-colors duration-500" style={{ color: activeColor }} />
-                    </div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
-                      Step {item.step}
-                    </p>
-                    <p className="text-sm font-bold text-foreground mb-1">{item.label}</p>
-                    <motion.p
-                      key={modeKey}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-xs text-muted-foreground leading-relaxed"
-                    >
-                      {item.desc[modeKey]}
-                    </motion.p>
-                  </motion.div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* CTA Banner */}
       <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
