@@ -1,63 +1,71 @@
 
 
-## Navigation Restructure Plan
+## What the User Shared
 
-### Changes Summary
+A **Mode Routing Engine** that auto-classifies user problem descriptions into product / service / business_model using signal-based text scoring, with LLM fallback for low-confidence cases.
 
-**4 files modified**, no new files.
+## Current State
 
----
+- Mode selection is **manual** — user picks from 3 cards on `/analysis/new`
+- No text input exists on the mode selection page
+- `modeGuards.ts` already has strict mode enforcement and `resolveStrictMode()`
+- The `AnalysisForm` already has a notes/description field per mode, but it's on the **next** page (Step 2)
+- No auto-routing logic exists anywhere
 
-### 1. Routing: Homepage is not Workspace (`src/App.tsx`)
+## Plan
 
-**Current**: `"/" → Navigate to /workspace`
-**Change**: `"/"` renders the `StartPage` component (the hero + mode selection page). Workspace stays at `/workspace`. Authenticated users land on the homepage, not workspace.
+### 1. Create Mode Intelligence Engine utility
 
-Also remove the `/start` → `/analysis/new` redirect since `/start` routes are still used by the analysis pipeline (`/start/product`, etc.).
+New file: `src/lib/modeIntelligence.ts`
 
----
+Contains the user's code, adapted to match existing type conventions:
+- `InnovationMode`, `ModeScore`, `RoutingResult` types
+- Signal dictionaries (PRODUCT_SIGNALS, SERVICE_SIGNALS, BUSINESS_MODEL_SIGNALS)
+- `scoreText()`, `normalizeScores()`, `routeInnovationMode()`
+- `createAnalysisPlan()`, `explainRouting()`
+- `analyzeProblem()` master entry point
+- `MODE_CLASSIFICATION_PROMPT` and `MODE_EXPLANATION_PROMPT` for future LLM fallback
 
-### 2. PlatformNav Restructure (`src/components/PlatformNav.tsx`)
+Map `business_model` ↔ `business` (existing frontend convention) in the adapter layer.
 
-**Current nav structure**:
-- Primary: Workspace, New Analysis, Intelligence
-- Secondary: How It Works, Resources
-- More dropdown: FAQs, API, Pricing
+### 2. Add problem description input to NewAnalysisPage
 
-**New nav structure**:
-- Primary tabs: **My Workspace** (`/workspace`), **New Analysis** (`/analysis/new`), **How It Works** (`/methodology`)
-- **Resources** dropdown (replaces both "Resources" tab and "More" dropdown): contains Intelligence, FAQs, API & Integrations, Pricing — each as its own item linking to its own page
-- Remove the standalone "Resources" and "Intelligence" tabs from the top bar
-- Remove the old "More" dropdown entirely
+On `/analysis/new` (Step 1: Select Mode), add above the mode cards:
+- **Text input** — "Describe your problem or opportunity" textarea (optional)
+- When user types ≥15 characters and pauses (debounce 500ms), run `routeInnovationMode()` client-side
+- Auto-select the highest-scoring mode card
+- Show a **routing explanation banner** below the input:
+  - Primary mode highlighted with confidence %
+  - Secondary modes mentioned if score > 25%
+  - e.g. "Primary constraint detected in **product** (62%) with contributing factors in **service**."
+- User can still manually override by clicking a different card — the explanation banner updates to note the override
+- If no text entered, manual selection works exactly as today (no regression)
 
-Mobile menu mirrors the same grouping: Navigate section has My Workspace, New Analysis, How It Works. Resources section has Intelligence, FAQs, API & Integrations, Pricing.
+### 3. Pass routing context downstream
 
----
+- Store `RoutingResult` in `AnalysisContext` as new optional field `modeRouting: RoutingResult | null`
+- When user continues to Step 2, the routing reasoning is available for the analysis form's notes field (pre-populated context)
+- Edge functions can receive the routing metadata for mode enforcement validation
 
-### 3. Workspace tab label
+### 4. Low-confidence LLM fallback (display only)
 
-Rename the nav label from "Workspace" to "My Workspace" in `PlatformNav.tsx` only. The `WorkspacePage` title already says "My Workspace".
+When `confidence < 0.45` (no mode dominates):
+- Show a subtle "Low confidence — consider adding more detail" hint below the explanation
+- No LLM call on this page — keep it instant. The `MODE_CLASSIFICATION_PROMPT` is available for future backend integration
 
----
+### 5. Visual treatment
 
-### 4. Route cleanup
-
-Keep all existing routes functional. The only routing change is `"/"` rendering `StartPage` instead of redirecting to `/workspace`.
-
----
+- Textarea styled with existing `input-executive` class
+- Routing banner uses mode accent colors from `--mode-product`, `--mode-service`, `--mode-business` CSS vars
+- Confidence shown as a small inline badge
+- Secondary modes shown as muted text
+- Smooth transition when auto-selection changes (card border animates)
 
 ### Technical Details
 
-**`src/App.tsx`**:
-- Import `StartPage`
-- Change line 74: `<Route path="/" element={<StartPage />} />`
-- Remove `/start` → `/analysis/new` redirect (line 81) since `/start` is still a valid prefix
+**Signal scoring** runs purely client-side — zero latency, no API calls. The text scoring engine is ~50 lines of deterministic logic.
 
-**`src/components/PlatformNav.tsx`**:
-- `PRIMARY_NAV`: `[{label: "My Workspace", path: "/workspace"}, {label: "New Analysis", path: "/analysis/new"}, {label: "How It Works", path: "/methodology"}]`
-- Remove `SECONDARY_NAV` array entirely
-- Rename `RESOURCES_ITEMS` to include Intelligence as first item, then FAQs, API, Pricing
-- Replace the "More" button label with "Resources"
-- Remove the secondary nav rendering loop and its divider
-- Update mobile menu sections accordingly
+**Type mapping**: `business_model` (engine) ↔ `business` (frontend) handled by a simple adapter in the utility, consistent with `resolveStrictMode()` in `modeGuards.ts`.
+
+**No breaking changes**: textarea is optional, all existing manual-select behavior preserved. `modeRouting` field defaults to `null`.
 
