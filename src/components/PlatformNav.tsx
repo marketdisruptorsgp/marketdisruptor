@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, FolderOpen, PlusCircle, Radar,
-  BookOpen, HelpCircle, Lightbulb, BarChart3, Code2,
+  BookOpen, HelpCircle, Lightbulb, BarChart3, Code2, Info,
   Menu, ChevronDown,
 } from "lucide-react";
 
@@ -19,10 +19,11 @@ interface PlatformNavProps {
 const PRIMARY_NAV = [
   { label: "My Workspace", path: "/workspace", icon: FolderOpen },
   { label: "New Analysis", path: "/analysis/new", icon: PlusCircle },
-  { label: "How It Works", path: "/methodology", icon: Lightbulb },
 ];
 
 const RESOURCES_ITEMS = [
+  { label: "About", desc: "Learn about Market Disruptor", icon: Info, path: "/about" },
+  { label: "Methodology", desc: "How the analysis pipeline works", icon: Lightbulb, path: "/methodology" },
   { label: "Intelligence", desc: "Market signals & platform insights", icon: Radar, path: "/intelligence" },
   { label: "FAQs", desc: "Common questions answered", icon: HelpCircle, path: "/faqs" },
   { label: "API & Integrations", desc: "Connect your tools via REST API", icon: Code2, path: "/api" },
