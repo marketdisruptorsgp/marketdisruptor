@@ -80,36 +80,40 @@ export default function StartPage() {
   const { tier } = useSubscription();
   const { profile } = useAuth();
   const [wordIndex, setWordIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
+    if (paused) return;
     const interval = setInterval(() => {
       setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
-    }, 3800);
+    }, 4500);
     return () => clearInterval(interval);
-  }, []);
+  }, [paused]);
 
   return (
     <div className="min-h-screen bg-background">
       <PlatformNav tier={tier} />
 
       {/* Hero */}
-      <section className="pt-16 sm:pt-24 pb-10 sm:pb-14 px-4">
+      <section className="pt-14 sm:pt-20 pb-8 sm:pb-10 px-4">
         <div className="max-w-5xl mx-auto text-left">
-          <h1 className="text-7xl sm:text-8xl md:text-9xl font-extrabold tracking-tight text-foreground leading-[1.05]">
+          <h1 className="text-7xl sm:text-8xl md:text-9xl font-extrabold tracking-tight text-foreground leading-[1.0]">
             Rethink any
           </h1>
           <motion.span
             key={wordIndex}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.4 }}
-            className="block text-7xl sm:text-8xl md:text-9xl font-extrabold tracking-tight leading-[1.05] mt-1"
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="block text-7xl sm:text-8xl md:text-9xl font-extrabold tracking-tight leading-[1.0] cursor-pointer select-none"
             style={{ color: ROTATING_WORDS[wordIndex].color }}
+            onClick={() => setPaused((p) => !p)}
           >
             {ROTATING_WORDS[wordIndex].word}
+            {paused && <span className="inline-block ml-3 text-lg align-middle opacity-50">⏸</span>}
           </motion.span>
-          <p className="text-base sm:text-lg text-muted-foreground mt-4 max-w-xl">
+          <p className="text-base sm:text-lg text-foreground/70 mt-3 max-w-xl">
             Deconstruct markets, stress-test strategies, and build what's next.
           </p>
           <button
@@ -133,18 +137,18 @@ export default function StartPage() {
         const modeLabel = modeKey.charAt(0).toUpperCase() + modeKey.slice(1);
         return (
           <section
-            className="border-t border-border overflow-hidden transition-colors duration-700"
+            className="border-t border-border overflow-hidden transition-colors duration-1000"
             style={{ background: `color-mix(in srgb, ${activeColor} 4%, hsl(var(--background)))` }}
           >
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
-              <div className="text-center mb-12">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] mb-3 flex items-center justify-center gap-1.5 transition-colors duration-700" style={{ color: activeColor }}>
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+              <div className="text-center mb-8">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] mb-2 flex items-center justify-center gap-1.5 transition-colors duration-1000" style={{ color: activeColor }}>
                   <Sparkles size={12} /> How It Works
                 </p>
                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
                   From raw data to investor-ready output
                 </h2>
-                <p className="text-sm text-muted-foreground mt-2 mb-4">
+                <p className="text-sm text-foreground/60 mt-1.5 mb-3">
                   Six stages of structured analysis, each building on the last
                 </p>
                 {/* Mode pill */}
@@ -152,12 +156,12 @@ export default function StartPage() {
                   key={modeKey}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4 }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors duration-700"
+                  transition={{ duration: 0.6 }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-all duration-1000"
                   style={{
                     color: activeColor,
-                    borderColor: `color-mix(in srgb, ${activeColor} 30%, transparent)`,
-                    background: `color-mix(in srgb, ${activeColor} 8%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${activeColor} 35%, transparent)`,
+                    background: `color-mix(in srgb, ${activeColor} 10%, transparent)`,
                   }}
                 >
                   <span className="w-1.5 h-1.5 rounded-full" style={{ background: activeColor }} />
@@ -165,16 +169,16 @@ export default function StartPage() {
                 </motion.span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 sm:gap-6 relative">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 relative">
                 {PIPELINE_STEPS.map((item, i) => {
                   const Icon = item.icon;
                   return (
                     <div key={item.step} className="relative">
                       {i > 0 && (
-                        <div className="hidden lg:flex absolute -left-3 top-9 z-10 items-center justify-center">
+                        <div className="hidden lg:flex absolute -left-2 top-8 z-10 items-center justify-center">
                           <ChevronRight
-                            size={14}
-                            className="transition-colors duration-700 opacity-30"
+                            size={12}
+                            className="transition-colors duration-1000 opacity-35"
                             style={{ color: activeColor }}
                           />
                         </div>
@@ -184,31 +188,31 @@ export default function StartPage() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-40px" }}
                         transition={{ duration: 0.4, delay: i * 0.08 }}
-                        className="text-center rounded-xl border p-4 transition-all duration-700"
+                        className="text-center rounded-xl border p-3 transition-all duration-1000"
                         style={{
-                          borderColor: `color-mix(in srgb, ${activeColor} 15%, hsl(var(--border)))`,
-                          background: `color-mix(in srgb, ${activeColor} 3%, hsl(var(--card)))`,
+                          borderColor: `color-mix(in srgb, ${activeColor} 18%, hsl(var(--border)))`,
+                          background: `color-mix(in srgb, ${activeColor} 4%, hsl(var(--card)))`,
                         }}
                       >
                         <div
-                          className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-all duration-700"
+                          className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-1000"
                           style={{
-                            background: `color-mix(in srgb, ${activeColor} 14%, transparent)`,
-                            boxShadow: `0 4px 12px color-mix(in srgb, ${activeColor} 10%, transparent)`,
+                            background: `color-mix(in srgb, ${activeColor} 16%, transparent)`,
+                            boxShadow: `0 3px 10px color-mix(in srgb, ${activeColor} 12%, transparent)`,
                           }}
                         >
-                          <Icon size={22} className="transition-colors duration-700" style={{ color: activeColor }} />
+                          <Icon size={20} className="transition-colors duration-1000" style={{ color: activeColor }} />
                         </div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/50 mb-0.5">
                           Step {item.step}
                         </p>
-                        <p className="text-sm font-bold text-foreground mb-1">{item.label}</p>
+                        <p className="text-sm font-bold text-foreground mb-0.5">{item.label}</p>
                         <motion.p
                           key={modeKey}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          transition={{ duration: 0.5 }}
-                          className="text-xs text-muted-foreground leading-relaxed"
+                          transition={{ duration: 0.8 }}
+                          className="text-xs text-foreground/60 leading-relaxed"
                         >
                           {item.desc[modeKey]}
                         </motion.p>
