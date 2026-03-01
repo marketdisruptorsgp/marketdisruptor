@@ -17,17 +17,13 @@ interface PlatformNavProps {
 }
 
 const PRIMARY_NAV = [
-  { label: "Workspace", path: "/workspace", icon: FolderOpen },
+  { label: "My Workspace", path: "/workspace", icon: FolderOpen },
   { label: "New Analysis", path: "/analysis/new", icon: PlusCircle },
-  { label: "Intelligence", path: "/intelligence", icon: Radar },
-];
-
-const SECONDARY_NAV = [
   { label: "How It Works", path: "/methodology", icon: Lightbulb },
-  { label: "Resources", path: "/resources", icon: BookOpen },
 ];
 
 const RESOURCES_ITEMS = [
+  { label: "Intelligence", desc: "Market signals & platform insights", icon: Radar, path: "/intelligence" },
   { label: "FAQs", desc: "Common questions answered", icon: HelpCircle, path: "/faqs" },
   { label: "API & Integrations", desc: "Connect your tools via REST API", icon: Code2, path: "/api" },
   { label: "Pricing", desc: "Plans and billing", icon: BarChart3, path: "/pricing" },
@@ -75,27 +71,11 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
 
             <div className="w-px h-5 bg-border mx-2" />
 
-            {/* Secondary nav items */}
-            {SECONDARY_NAV.map((item) => (
-              <a
-                key={item.path}
-                href={item.path}
-                onClick={(e) => { e.preventDefault(); navigate(item.path); }}
-                className={`typo-nav-primary px-3 py-3 transition-colors border-b-2 text-sm ${
-                  isActive(item.path)
-                    ? "text-foreground border-primary"
-                    : "text-muted-foreground hover:text-foreground border-transparent"
-                }`}
-              >
-                {item.label}
-              </a>
-            ))}
-
-            {/* Resources dropdown for sub-items */}
+            {/* Resources dropdown */}
             <Popover>
               <PopoverTrigger asChild>
                 <button className="typo-nav-primary text-muted-foreground hover:text-foreground bg-transparent h-auto py-3 px-3 inline-flex items-center gap-1 border-b-2 border-transparent transition-colors text-sm">
-                  More
+                  Resources
                   <ChevronDown size={12} className="ml-0.5" />
                 </button>
               </PopoverTrigger>
@@ -155,24 +135,7 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 })}
 
                 <div className="h-px bg-border my-2" />
-                <p className="typo-card-eyebrow px-3 pt-2 pb-1">Learn</p>
-                {SECONDARY_NAV.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <a
-                      key={item.path}
-                      href={item.path}
-                      onClick={(e) => { e.preventDefault(); navigate(item.path); setMobileOpen(false); }}
-                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
-                    >
-                      <Icon size={14} className="text-muted-foreground" />
-                      <span className="typo-nav-primary">{item.label}</span>
-                    </a>
-                  );
-                })}
-
-                <div className="h-px bg-border my-2" />
-                <p className="typo-card-eyebrow px-3 pt-2 pb-1">More</p>
+                <p className="typo-card-eyebrow px-3 pt-2 pb-1">Resources</p>
                 {RESOURCES_ITEMS.map((item) => {
                   const Icon = item.icon;
                   return (

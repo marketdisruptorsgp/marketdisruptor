@@ -32,6 +32,7 @@ import InstantAnalysisPage from "./pages/InstantAnalysisPage";
 import WorkspacePage from "./pages/WorkspacePage";
 import NewAnalysisPage from "./pages/NewAnalysisPage";
 import IntelligencePage from "./pages/IntelligencePage";
+import StartPage from "./pages/StartPage";
 import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
 
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
@@ -71,14 +72,13 @@ function AppRoutes() {
       {user ? (
         <>
           {/* Default landing → Workspace */}
-          <Route path="/" element={<Navigate to="/workspace" replace />} />
+          <Route path="/" element={<StartPage />} />
           <Route path="/workspace" element={<WorkspacePage />} />
           <Route path="/analysis/new" element={<NewAnalysisPage />} />
           <Route path="/intelligence" element={<IntelligencePage />} />
           {/* Legacy redirects */}
           <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
           <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
-          <Route path="/start" element={<Navigate to="/analysis/new" replace />} />
           {/* Analysis pipeline routes */}
           <Route path="/start/product" element={<StartProductPage />} />
           <Route path="/start/service" element={<StartServicePage />} />
