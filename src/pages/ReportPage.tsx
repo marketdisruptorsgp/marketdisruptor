@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { HeroSection } from "@/components/HeroSection";
+import { LoadingTracker } from "@/components/LoadingTracker";
 import { StepNavigator } from "@/components/StepNavigator";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { ProductCard } from "@/components/ProductCard";
@@ -81,6 +82,23 @@ export default function ReportPage() {
     const t = setTimeout(() => setWaitedForLoad(true), 600);
     return () => clearTimeout(t);
   }, []);
+
+  const isRunning = analysis.step === "scraping" || analysis.step === "analyzing";
+
+  if (isRunning) {
+    return (
+      <div className="min-h-screen bg-background">
+        <HeroSection tier={tier} remainingAnalyses={null} />
+        <main className="max-w-5xl mx-auto px-3 sm:px-6 py-8">
+          <LoadingTracker
+            step={analysis.step as "scraping" | "analyzing"}
+            elapsedSeconds={analysis.elapsedSeconds}
+            loadingLog={analysis.loadingLog}
+          />
+        </main>
+      </div>
+    );
+  }
 
   if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
     // Only redirect if we've waited AND state is still idle with no data
