@@ -11,6 +11,67 @@ function truncate(str: string | null, max = 120): string {
   return str.length > max ? str.slice(0, max) + "…" : str;
 }
 
+function safeStringify(obj: any, maxLen = 800): string {
+  try {
+    const s = JSON.stringify(obj);
+    return s.length > maxLen ? s.slice(0, maxLen) + "…" : s;
+  } catch { return ""; }
+}
+
+function extractProductDetails(products: any): string {
+  if (!Array.isArray(products) || products.length === 0) return "";
+  return products.slice(0, 8).map((p: any, i: number) => {
+    const name = p.name || p.title || `Product ${i + 1}`;
+    const score = p.revival_score ?? p.score ?? "N/A";
+    const desc = truncate(p.description || p.modernTwist || p.modern_twist || "", 150);
+    const pricing = p.pricing || p.price || "";
+    const audience = p.targetAudience || p.target_audience || "";
+    return `  • ${name} (score: ${score})${desc ? ` — ${desc}` : ""}${pricing ? ` | Price: ${pricing}` : ""}${audience ? ` | Audience: ${audience}` : ""}`;
+  }).join("\n");
+}
+
+function extractAnalysisDeepData(data: any): string {
+  if (!data || typeof data !== "object") return "";
+  const parts: string[] = [];
+
+  // Extract key sections with more depth
+  if (data.geoMarketData) {
+    parts.push(`Geographic Market Data: ${safeStringify(data.geoMarketData, 600)}`);
+  }
+  if (data.regulatoryIntelligence) {
+    parts.push(`Regulatory Intelligence: ${safeStringify(data.regulatoryIntelligence, 600)}`);
+  }
+  if (data.businessModelAnalysis) {
+    parts.push(`Business Model Analysis: ${safeStringify(data.businessModelAnalysis, 600)}`);
+  }
+  if (data.firstPrinciplesAnalysis) {
+    parts.push(`First Principles Analysis: ${safeStringify(data.firstPrinciplesAnalysis, 600)}`);
+  }
+  if (data.criticalValidation) {
+    parts.push(`Critical Validation (Red/Green Team): ${safeStringify(data.criticalValidation, 600)}`);
+  }
+  if (data.pitchDeck) {
+    parts.push(`Pitch Deck Summary: ${safeStringify(data.pitchDeck, 400)}`);
+  }
+  if (data.flippedIdeas) {
+    parts.push(`Disruption Ideas: ${safeStringify(data.flippedIdeas, 500)}`);
+  }
+  if (data.stressTest) {
+    parts.push(`Stress Test Results: ${safeStringify(data.stressTest, 400)}`);
+  }
+  if (data.supplyChain) {
+    parts.push(`Supply Chain Analysis: ${safeStringify(data.supplyChain, 400)}`);
+  }
+  if (data.userJourney) {
+    parts.push(`User Journey: ${safeStringify(data.userJourney, 400)}`);
+  }
+  if (data.extractedIntelligence) {
+    parts.push(`Extracted Business Intelligence: ${safeStringify(data.extractedIntelligence, 600)}`);
+  }
+
+  return parts.join("\n");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -44,59 +105,98 @@ serve(async (req) => {
       });
     }
 
-    // Gather user data in parallel
-    const [analysesRes, patentsRes, trendsRes, newsRes] = await Promise.all([
-      supabase.from("saved_analyses").select("title, category, analysis_type, avg_revival_score, created_at, era, audience, batch_size, analysis_data, products").eq("user_id", userId).order("created_at", { ascending: false }).limit(20),
-      supabase.from("patent_filings").select("title, category, assignee, filing_date, status").order("created_at", { ascending: false }).limit(30),
-      supabase.from("trend_signals").select("keyword, category, growth_note, opportunity_angle, data_quality").order("created_at", { ascending: false }).limit(20),
-      supabase.from("market_news").select("title, category, source_name, summary, published_at").order("created_at", { ascending: false }).limit(10),
+    // Gather user data in parallel — pull FULL analysis_data
+    const [analysesRes, patentsRes, trendsRes, newsRes, lensRes] = await Promise.all([
+      supabase.from("saved_analyses").select("title, category, analysis_type, avg_revival_score, created_at, era, audience, batch_size, analysis_data, products").eq("user_id", userId).order("created_at", { ascending: false }).limit(15),
+      supabase.from("patent_filings").select("title, category, assignee, filing_date, status, abstract").order("created_at", { ascending: false }).limit(30),
+      supabase.from("trend_signals").select("keyword, category, growth_note, opportunity_angle, data_quality, source, source_urls").order("created_at", { ascending: false }).limit(20),
+      supabase.from("market_news").select("title, category, source_name, summary, published_at, source_url").order("created_at", { ascending: false }).limit(15),
+      supabase.from("user_lenses").select("name, primary_objective, target_outcome, risk_tolerance, time_horizon, constraints, available_resources").eq("user_id", userId).limit(5),
     ]);
 
     const analyses = analysesRes.data || [];
     const patents = patentsRes.data || [];
     const trends = trendsRes.data || [];
     const news = newsRes.data || [];
+    const lenses = lensRes.data || [];
 
-    // Build context summary
+    // Build DEEP context — unpack the full analysis data
     const analysisSummary = analyses.map((a: any, i: number) => {
-      const data = a.analysis_data || {};
-      const geoSnippet = data.geoMarketData ? `Geo: ${truncate(JSON.stringify(data.geoMarketData), 200)}` : "";
-      const regSnippet = data.regulatoryIntelligence ? `Regulatory: ${truncate(JSON.stringify(data.regulatoryIntelligence), 200)}` : "";
-      const prodCount = Array.isArray(a.products) ? a.products.length : 0;
-      return `${i + 1}. "${a.title}" | Type: ${a.analysis_type || a.category} | Score: ${a.avg_revival_score ?? "N/A"} | Era: ${a.era} | Audience: ${a.audience} | Products: ${prodCount} | Created: ${a.created_at?.slice(0, 10)}${geoSnippet ? ` | ${geoSnippet}` : ""}${regSnippet ? ` | ${regSnippet}` : ""}`;
-    }).join("\n");
+      const productDetails = extractProductDetails(a.products);
+      const deepData = extractAnalysisDeepData(a.analysis_data);
+      return `--- PROJECT ${i + 1}: "${a.title}" ---
+Type: ${a.analysis_type || a.category} | Score: ${a.avg_revival_score ?? "N/A"} | Era: ${a.era} | Audience: ${a.audience} | Created: ${a.created_at?.slice(0, 10)}
+${productDetails ? `Products:\n${productDetails}` : ""}
+${deepData || "No deep analysis data."}`;
+    }).join("\n\n");
 
     const patentSummary = patents.length > 0
-      ? `Patent filings (${patents.length} recent):\n` + patents.slice(0, 15).map((p: any) => `- "${truncate(p.title, 80)}" | ${p.category} | ${p.assignee || "Unknown"} | ${p.filing_date || "N/A"}`).join("\n")
+      ? `PATENT FILINGS (${patents.length} recent):\n` + patents.slice(0, 20).map((p: any) => `- "${truncate(p.title, 100)}" | ${p.category} | Assignee: ${p.assignee || "Unknown"} | Filed: ${p.filing_date || "N/A"} | Status: ${p.status || "N/A"}${p.abstract ? ` | Abstract: ${truncate(p.abstract, 200)}` : ""}`).join("\n")
       : "No patent data available.";
 
     const trendSummary = trends.length > 0
-      ? `Trend signals (${trends.length}):\n` + trends.map((t: any) => `- ${t.keyword} (${t.category}) | ${t.growth_note || "No note"} | Quality: ${t.data_quality}`).join("\n")
+      ? `TREND SIGNALS (${trends.length}):\n` + trends.map((t: any) => `- ${t.keyword} (${t.category}) | Growth: ${t.growth_note || "Unknown"} | Opportunity: ${t.opportunity_angle || "None"} | Quality: ${t.data_quality}${t.source ? ` | Source: ${t.source}` : ""}`).join("\n")
       : "No trend data available.";
 
     const newsSummary = news.length > 0
-      ? `Market news (${news.length} recent):\n` + news.map((n: any) => `- "${truncate(n.title, 80)}" | ${n.category} | ${n.source_name}`).join("\n")
+      ? `MARKET NEWS (${news.length} recent):\n` + news.map((n: any) => `- "${truncate(n.title, 100)}" | ${n.category} | ${n.source_name} | ${n.published_at?.slice(0, 10) || "N/A"}${n.summary ? `\n  Summary: ${truncate(n.summary, 300)}` : ""}`).join("\n")
       : "No market news available.";
+
+    const lensSummary = lenses.length > 0
+      ? `USER'S STRATEGIC LENSES:\n` + lenses.map((l: any) => `- "${l.name}": Objective: ${l.primary_objective || "N/A"} | Outcome: ${l.target_outcome || "N/A"} | Risk tolerance: ${l.risk_tolerance || "N/A"} | Time horizon: ${l.time_horizon || "N/A"} | Constraints: ${l.constraints || "N/A"} | Resources: ${l.available_resources || "N/A"}`).join("\n")
+      : "";
 
     const hasAttachments = (Array.isArray(imageUrls) && imageUrls.length > 0) || (Array.isArray(pdfUrls) && pdfUrls.length > 0);
     const attachmentNote = hasAttachments
-      ? `\n\nThe user has attached files to this message. Images are provided inline. For PDFs, the URLs are provided — describe what you can infer or suggest the user share specific sections.`
+      ? `\n\nThe user has attached files. Images are provided inline. For PDFs, URLs are provided — analyze what you can infer.`
       : "";
 
-    const systemPrompt = `You are an expert strategic intelligence analyst embedded in a product/business analysis platform. The user has a workspace with saved analyses, and you have access to their data plus platform-wide market intelligence.
+    const systemPrompt = `You are a senior strategic intelligence analyst — not a chatbot. You think like a McKinsey partner crossed with a domain expert. You are embedded in a product/business analysis platform with deep access to the user's project data, market intelligence, patents, and trend signals.
 
-Your job:
-- Answer questions about their projects, scores, patterns, risks, and opportunities
-- Compare projects across dimensions (score, category, market size, risk)
-- Identify trends and insights from their portfolio data
-- When the user shares images or documents, analyze them and incorporate findings into your strategic advice
-- When useful, generate charts by calling the render_chart tool
-- Keep answers strategic, concise (3-6 sentences unless more detail requested)
-- Use a confident analyst tone${attachmentNote}
+YOUR CORE MANDATE:
+You must provide answers that are IMPOSSIBLE to get from a generic Google search or ChatGPT conversation. Your value comes from:
 
+1. CONNECTING THE USER'S SPECIFIC DATA to broader market dynamics
+2. IDENTIFYING NON-OBVIOUS PATTERNS across their portfolio, patents, and trends
+3. PROVIDING SPECIFIC, ACTIONABLE INTELLIGENCE — not general advice
+4. REASONING FROM EVIDENCE in their data, not from generic knowledge
+5. CHALLENGING ASSUMPTIONS when the data contradicts common thinking
+
+RESPONSE STANDARDS:
+- Every claim must be grounded in either the user's data OR specific market intelligence you have access to
+- If you reference industry data, be SPECIFIC (numbers, names, dates, regulations, case studies)
+- Never give advice that could apply to any business. Be specific to THEIR situation
+- If their data reveals a risk or opportunity they haven't noticed, FLAG IT proactively
+- When you lack data, say EXACTLY what data would unlock the answer and suggest how to get it
+- Use concrete comparisons: "Your score of X in category Y puts you in the top/bottom Z compared to..."
+- Identify CAUSAL RELATIONSHIPS between their projects, not just correlations
+
+DEPTH EXPECTATIONS:
+- Default to thorough, detailed responses (8-15 sentences minimum)
+- Structure complex answers with clear sections using bold headers
+- Include specific numbers, percentages, timelines, and benchmarks
+- Cross-reference between their projects, patents, and trend data
+- When the user asks about a market/regulation/trend: synthesize from ALL available data points, not just one
+
+ANTI-PATTERNS (NEVER DO THESE):
+- Never say "I don't have enough information" without explaining exactly what's missing and what you CAN infer
+- Never give generic industry overviews — always tie back to their specific data
+- Never say "consider consulting an expert" as your primary advice — YOU are the expert
+- Never respond with fewer than 4 substantive sentences
+- Never repeat what the user already knows without adding NEW insight
+- Never use filler phrases like "That's a great question" or "I'd be happy to help"
+
+PROACTIVE INTELLIGENCE:
+When answering any question, also consider:
+- What does their patent landscape tell us about competitive positioning?
+- What trend signals align or conflict with their strategy?
+- What gaps exist between their project scores and market opportunities?
+- Are there cross-project synergies or conflicts they might not see?${attachmentNote}
+
+${lensSummary ? `\n${lensSummary}\n` : ""}
 USER'S WORKSPACE DATA:
 
-Projects (${analyses.length} total):
+PROJECTS (${analyses.length} total — full analysis data below):
 ${analysisSummary || "No projects yet."}
 
 ${patentSummary}
@@ -118,9 +218,9 @@ When creating charts:
       { role: "system", content: systemPrompt },
     ];
 
-    // Add conversation history if provided
+    // Add conversation history
     if (Array.isArray(history)) {
-      for (const msg of history.slice(-6)) {
+      for (const msg of history.slice(-8)) {
         messages.push({ role: msg.role, content: msg.content });
       }
     }
@@ -128,27 +228,25 @@ When creating charts:
     // Build user message content (multimodal if images attached)
     const userContent: any[] = [];
 
-    // Add images as image_url parts
     if (Array.isArray(imageUrls)) {
       for (const url of imageUrls.slice(0, 4)) {
         userContent.push({ type: "image_url", image_url: { url } });
       }
     }
 
-    // Add PDF URLs as text context
     if (Array.isArray(pdfUrls) && pdfUrls.length > 0) {
       userContent.push({ type: "text", text: `[Attached PDFs: ${pdfUrls.join(", ")}]` });
     }
 
     userContent.push({ type: "text", text: question });
 
-    // Use multimodal format if attachments, otherwise plain text
     if (userContent.length > 1) {
       messages.push({ role: "user", content: userContent });
     } else {
       messages.push({ role: "user", content: question });
     }
 
+    // Use gemini-2.5-pro for deeper reasoning and longer context
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -156,7 +254,7 @@ When creating charts:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages,
         stream: true,
         tools: [
