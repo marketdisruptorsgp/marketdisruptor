@@ -24,8 +24,15 @@ export default function DisruptPage() {
   const [ready, setReady] = React.useState(false);
   React.useEffect(() => { const t = setTimeout(() => setReady(true), 600); return () => clearTimeout(t); }, []);
 
+  const shouldRedirectHome = ready && analysis.step === "idle";
+  React.useEffect(() => {
+    if (shouldRedirectHome) {
+      navigate("/", { replace: true });
+    }
+  }, [shouldRedirectHome, navigate]);
+
   if (analysis.step !== "done" || !selectedProduct) {
-    if (ready && analysis.step === "idle") { navigate("/", { replace: true }); return null; }
+    if (shouldRedirectHome) return null;
     return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin border-primary" /></div>;
   }
 
