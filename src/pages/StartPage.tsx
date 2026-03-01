@@ -11,7 +11,11 @@ import {
   Search, Radar, Sparkles, Crosshair, Swords, Presentation,
 } from "lucide-react";
 
-const ROTATING_WORDS = ["product", "service", "market", "model", "strategy"];
+const ROTATING_WORDS = [
+  { word: "product", color: "hsl(var(--mode-product))" },
+  { word: "service", color: "hsl(var(--mode-service))" },
+  { word: "business", color: "hsl(var(--mode-business))" },
+];
 
 const PIPELINE_STEPS = [
   { icon: Search, label: "Choose", desc: "Select your target — a product to deconstruct", step: 1 },
@@ -46,29 +50,32 @@ export default function StartPage() {
       <PlatformNav tier={tier} />
 
       {/* Hero */}
-      <section className="pt-16 sm:pt-24 pb-10 sm:pb-14 text-center px-4">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1]">
-          Rethink any{" "}
+      <section className="pt-16 sm:pt-24 pb-10 sm:pb-14 px-4">
+        <div className="max-w-5xl mx-auto text-left">
+          <h1 className="text-7xl sm:text-8xl md:text-9xl font-extrabold tracking-tight text-foreground leading-[1.05]">
+            Rethink any
+          </h1>
           <motion.span
             key={wordIndex}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4 }}
-            className="text-primary inline-block"
+            className="block text-7xl sm:text-8xl md:text-9xl font-extrabold tracking-tight leading-[1.05] mt-1"
+            style={{ color: ROTATING_WORDS[wordIndex].color }}
           >
-            {ROTATING_WORDS[wordIndex]}
+            {ROTATING_WORDS[wordIndex].word}
           </motion.span>
-        </h1>
-        <p className="text-base sm:text-lg text-muted-foreground mt-4 max-w-xl mx-auto">
-          Deconstruct markets, stress-test strategies, and build what's next.
-        </p>
-        <button
-          onClick={() => navigate("/methodology")}
-          className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          Learn More
-        </button>
+          <p className="text-base sm:text-lg text-muted-foreground mt-4 max-w-xl">
+            Deconstruct markets, stress-test strategies, and build what's next.
+          </p>
+          <button
+            onClick={() => navigate("/methodology")}
+            className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Learn More
+          </button>
+        </div>
       </section>
 
       {/* Showcase Gallery */}
