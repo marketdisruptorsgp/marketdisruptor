@@ -270,18 +270,18 @@ export default function NewAnalysisPage() {
     <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-14">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <AnalysisStepIndicator currentStep={1} />
 
-        <h1 className="typo-page-title text-2xl sm:text-3xl tracking-tight mb-2">
+        <h1 className="typo-page-title text-2xl sm:text-3xl tracking-tight mb-1">
           Select Analysis Mode
         </h1>
-        <p className="typo-page-meta text-sm sm:text-base max-w-2xl leading-relaxed mb-8">
+        <p className="typo-page-meta text-sm sm:text-base max-w-3xl leading-relaxed mb-6">
           Pick a mode if you already know your focus — or describe your challenge below for auto-detection.
         </p>
 
         {/* ── Mode Cards (top) ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {MODES.map((mode) => {
             const Icon = mode.icon;
             const isSelected = !useDeconstruct && selectedMode === mode.id;
@@ -354,7 +354,7 @@ export default function NewAnalysisPage() {
         </div>
 
         {/* ── Divider ── */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-5">
           <div className="h-px flex-1 bg-border" />
           <span
             className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full"
@@ -370,7 +370,7 @@ export default function NewAnalysisPage() {
 
         {/* ── Deconstruct My Problem ── */}
         <div
-          className="mb-8 rounded-2xl border-2 overflow-hidden transition-all shadow-md"
+          className="mb-6 rounded-2xl border-2 overflow-hidden transition-all shadow-md"
           style={{
             borderColor: useDeconstruct
               ? "hsl(var(--mode-multi))"
