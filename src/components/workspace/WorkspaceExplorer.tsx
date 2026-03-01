@@ -1,10 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Send, X, BarChart3, Loader2, Paperclip, Image, FileText, Save, Tag, Brain, Zap, TrendingUp, Shield, Search, Lightbulb, ArrowRight, Bot, User } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import { Sparkles, Send, X, BarChart3, Loader2, Paperclip, Image, FileText, Tag, Brain, Zap, TrendingUp, Shield, Search, Lightbulb, ArrowRight, Bot, User, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 interface ChartData {
   type: "bar" | "line" | "table";
@@ -54,6 +54,66 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/workspace-qu
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
 
+// Parse :::insight blocks from markdown
+interface InsightCard {
+  level: "HIGH" | "MEDIUM" | "LOW";
+  title: string;
+  body: string;
+}
+
+function parseInsightCards(text: string): { cards: InsightCard[]; cleanText: string } {
+  const cards: InsightCard[] = [];
+  const cleanText = text.replace(/:::insight\s+(HIGH|MEDIUM|LOW)\s*\n([\s\S]*?):::/gi, (_, level, content) => {
+    const lines = content.trim().split("\n");
+    const titleLine = lines[0]?.replace(/^\*\*|\*\*$/g, "").trim() || "Insight";
+    const body = lines.slice(1).join("\n").trim();
+    cards.push({ level: level.toUpperCase() as InsightCard["level"], title: titleLine, body });
+    return "";
+  });
+  return { cards, cleanText: cleanText.trim() };
+}
+
+const INSIGHT_CONFIG: Record<string, { icon: any; color: string; bg: string; border: string }> = {
+  HIGH: { icon: AlertTriangle, color: "hsl(var(--destructive))", bg: "hsl(var(--destructive) / 0.06)", border: "hsl(var(--destructive) / 0.2)" },
+  MEDIUM: { icon: Info, color: "hsl(38 92% 50%)", bg: "hsl(38 92% 50% / 0.06)", border: "hsl(38 92% 50% / 0.2)" },
+  LOW: { icon: CheckCircle2, color: "hsl(142 76% 36%)", bg: "hsl(142 76% 36% / 0.06)", border: "hsl(142 76% 36% / 0.2)" },
+};
+
+function InsightCardComponent({ card }: { card: InsightCard }) {
+  const config = INSIGHT_CONFIG[card.level] || INSIGHT_CONFIG.MEDIUM;
+  const Icon = config.icon;
+
+  return (
+    <HoverCard openDelay={200}>
+      <HoverCardTrigger asChild>
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all hover:shadow-sm"
+          style={{ background: config.bg, border: `1px solid ${config.border}` }}
+        >
+          <Icon size={14} style={{ color: config.color }} className="flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground leading-snug">{card.title}</p>
+            <p className="text-[11px] mt-0.5" style={{ color: config.color }}>
+              {card.level} priority · Hover for details
+            </p>
+          </div>
+        </motion.div>
+      </HoverCardTrigger>
+      <HoverCardContent side="top" className="w-80 p-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Icon size={14} style={{ color: config.color }} />
+            <span className="text-sm font-bold text-foreground">{card.title}</span>
+          </div>
+          <p className="text-sm text-foreground/80 leading-relaxed">{card.body}</p>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
+  );
+}
+
 function LoadingIndicator() {
   const [insightIndex, setInsightIndex] = useState(0);
   const [elapsed, setElapsed] = useState(0);
@@ -80,7 +140,6 @@ function LoadingIndicator() {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/[0.04] to-primary/[0.01] p-4 space-y-3"
     >
-      {/* Progress bar */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
           <motion.div
@@ -92,8 +151,6 @@ function LoadingIndicator() {
         </div>
         <span className="text-[10px] font-mono text-muted-foreground tabular-nums">{elapsed}s</span>
       </div>
-
-      {/* Rotating insight */}
       <AnimatePresence mode="wait">
         <motion.div
           key={insightIndex}
@@ -112,8 +169,6 @@ function LoadingIndicator() {
           </div>
         </motion.div>
       </AnimatePresence>
-
-      {/* Activity dots */}
       <div className="flex items-center gap-1 pl-11">
         {[0, 1, 2].map(i => (
           <motion.div
@@ -125,6 +180,78 @@ function LoadingIndicator() {
         ))}
       </div>
     </motion.div>
+  );
+}
+
+// Render assistant message with insight cards parsed out
+function AssistantMessage({ msg }: { msg: Message }) {
+  const { cards, cleanText } = parseInsightCards(msg.content);
+
+  // Simple markdown renderer — strip heavy prose, keep structure
+  const renderCleanMarkdown = (text: string) => {
+    if (!text) return null;
+    // Split into lines and render with basic formatting
+    const lines = text.split("\n").filter(l => l.trim());
+    return (
+      <div className="space-y-1">
+        {lines.map((line, i) => {
+          const trimmed = line.trim();
+          if (!trimmed) return null;
+          // Bold verdict line
+          if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
+            return <p key={i} className="text-sm font-bold text-foreground">{trimmed.replace(/\*\*/g, "")}</p>;
+          }
+          // Bullet points
+          if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
+            const content = trimmed.replace(/^[-•]\s*/, "");
+            return (
+              <div key={i} className="flex items-start gap-2 text-sm text-foreground/80">
+                <span className="text-primary mt-1.5 text-[6px]">●</span>
+                <span dangerouslySetInnerHTML={{ __html: content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>') }} />
+              </div>
+            );
+          }
+          // Headers
+          if (trimmed.startsWith("### ")) {
+            return <p key={i} className="text-sm font-bold text-foreground mt-2">{trimmed.replace(/^###\s*/, "")}</p>;
+          }
+          if (trimmed.startsWith("## ")) {
+            return <p key={i} className="text-base font-bold text-foreground mt-2">{trimmed.replace(/^##\s*/, "")}</p>;
+          }
+          // Regular text
+          return (
+            <p key={i} className="text-sm text-foreground/80 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: trimmed.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>') }} />
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex items-start gap-2.5">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center flex-shrink-0 mt-0.5 border border-primary/10">
+        <Bot size={13} className="text-primary" />
+      </div>
+      <div className="flex-1 min-w-0 space-y-2.5">
+        {/* Charts first — visual lead */}
+        {msg.charts?.map((chart, ci) => (
+          <InlineChart key={ci} chart={chart} />
+        ))}
+
+        {/* Clean text verdict */}
+        {cleanText && renderCleanMarkdown(cleanText)}
+
+        {/* Insight cards — compact, hoverable */}
+        {cards.length > 0 && (
+          <div className="space-y-1.5">
+            {cards.map((card, ci) => (
+              <InsightCardComponent key={ci} card={card} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -140,10 +267,8 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
   const [userId, setUserId] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [dragging, setDragging] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [showTagPicker, setShowTagPicker] = useState(false);
   const [projects, setProjects] = useState<SavedProject[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const autoSaveIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -166,6 +291,39 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
   const scrollToBottom = () => {
     setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }), 50);
   };
+
+  // Auto-save: upsert conversation after each assistant response
+  const autoSave = useCallback(async (msgs: Message[]) => {
+    if (!userId || msgs.length < 2) return;
+    const title = msgs[0]?.content.slice(0, 80) || "Untitled conversation";
+    const fileUrls = msgs.flatMap(m => m.attachments?.map(a => a.url) || []);
+
+    try {
+      if (autoSaveIdRef.current) {
+        // Update existing
+        await supabase.from("explorer_conversations").update({
+          title,
+          messages: msgs as any,
+          file_urls: fileUrls,
+          updated_at: new Date().toISOString(),
+        } as any).eq("id", autoSaveIdRef.current);
+      } else {
+        // Create new
+        const { data } = await supabase.from("explorer_conversations").insert({
+          user_id: userId,
+          title,
+          messages: msgs as any,
+          file_urls: fileUrls,
+        } as any).select("id").single() as any;
+        if (data?.id) {
+          autoSaveIdRef.current = data.id;
+        }
+      }
+      onConversationSaved?.();
+    } catch {
+      // Silent fail for auto-save
+    }
+  }, [userId, onConversationSaved]);
 
   const uploadFile = async (file: File): Promise<Attachment | null> => {
     if (!userId) return null;
@@ -211,28 +369,6 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
     e.preventDefault();
     setDragging(false);
     if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
-  };
-
-  const saveConversation = async () => {
-    if (messages.length < 2 || !userId) return;
-    setSaving(true);
-    try {
-      const title = messages[0]?.content.slice(0, 80) || "Untitled conversation";
-      const fileUrls = messages.flatMap(m => m.attachments?.map(a => a.url) || []);
-      await supabase.from("explorer_conversations").insert({
-        user_id: userId,
-        project_id: selectedProjectId,
-        title,
-        messages: messages as any,
-        file_urls: fileUrls,
-      } as any);
-      toast.success("Conversation saved!");
-      onConversationSaved?.();
-    } catch {
-      toast.error("Failed to save");
-    }
-    setSaving(false);
-    setShowTagPicker(false);
   };
 
   const send = useCallback(async (question: string) => {
@@ -361,12 +497,17 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
       }
 
       updateAssistant();
+
+      // Auto-save after response completes
+      const finalMessages = [...messages, userMsg, { role: "assistant" as const, content: assistantText, charts: charts.length > 0 ? charts : undefined }];
+      autoSave(finalMessages);
+
     } catch (e) {
       console.error("Explorer error:", e);
       toast.error("Failed to get response");
     }
     setLoading(false);
-  }, [messages, loading, attachments, accessToken]);
+  }, [messages, loading, attachments, accessToken, autoSave]);
 
   const hasMessages = messages.length > 0;
 
@@ -399,47 +540,13 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
           <div>
             <p className="text-base font-bold text-foreground tracking-tight">Intelligence Explorer</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {hasMessages ? `${messages.length} messages` : "Ask anything · Drop images or PDFs for context"}
+              {hasMessages ? `${messages.length} messages · auto-saved` : "Ask anything · Drop images or PDFs for context"}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-1">
-          {messages.length >= 2 && (
-            <div className="relative">
-              <button
-                onClick={() => setShowTagPicker(!showTagPicker)}
-                disabled={saving}
-                className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
-                title="Save conversation"
-              >
-                {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-              </button>
-              {showTagPicker && (
-                <div className="absolute right-0 top-full mt-1 z-20 w-64 bg-card border border-border rounded-xl shadow-xl p-3 space-y-2">
-                  <p className="text-xs font-semibold text-foreground">Tag to project (optional)</p>
-                  <select
-                    value={selectedProjectId || ""}
-                    onChange={e => setSelectedProjectId(e.target.value || null)}
-                    className="w-full text-sm rounded-lg border border-border bg-background px-2 py-1.5 text-foreground"
-                  >
-                    <option value="">No project</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>{(p.title || "Untitled").slice(0, 40)}</option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={saveConversation}
-                    disabled={saving}
-                    className="w-full px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-colors disabled:opacity-50"
-                  >
-                    {saving ? "Saving…" : "Save Conversation"}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
           {hasMessages && (
-            <button onClick={() => { setMessages([]); setExpanded(false); setAttachments([]); setShowTagPicker(false); }} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+            <button onClick={() => { setMessages([]); setExpanded(false); setAttachments([]); autoSaveIdRef.current = null; }} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
               <X size={14} />
             </button>
           )}
@@ -500,7 +607,7 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
 
       {/* Messages */}
       {expanded && hasMessages && (
-        <div ref={scrollRef} className="max-h-[440px] overflow-y-auto px-4 sm:px-5 space-y-4 pb-4">
+        <div ref={scrollRef} className="max-h-[500px] overflow-y-auto px-4 sm:px-5 space-y-4 pb-4">
           {messages.map((msg, i) => (
             <motion.div
               key={i}
@@ -537,19 +644,7 @@ export function WorkspaceExplorer({ onConversationSaved }: { onConversationSaved
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center flex-shrink-0 mt-0.5 border border-primary/10">
-                    <Bot size={13} className="text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0 space-y-3">
-                    <div className="prose prose-sm max-w-none text-foreground text-sm leading-relaxed [&_p]:mb-2 [&_ul]:mb-2 [&_li]:mb-0.5 [&_strong]:text-foreground [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-1 [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
-                    </div>
-                    {msg.charts?.map((chart, ci) => (
-                      <InlineChart key={ci} chart={chart} />
-                    ))}
-                  </div>
-                </div>
+                <AssistantMessage msg={msg} />
               )}
             </motion.div>
           ))}
