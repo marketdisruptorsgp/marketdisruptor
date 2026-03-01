@@ -145,7 +145,11 @@ interface AnalysisContextType {
   // Geo market data
   geoData: unknown;
   setGeoData: (d: unknown) => void;
-  fetchGeoData: (category: string) => Promise<void>;
+  fetchGeoData: (category: string, productName?: string) => Promise<void>;
+
+  // Regulatory data (adaptive — only populated for regulated categories)
+  regulatoryData: unknown;
+  setRegulatoryData: (d: unknown) => void;
 
   // Mode routing
   modeRouting: RoutingResult | null;
@@ -296,17 +300,27 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // ── Geo Market Data ──
   const [geoData, setGeoData] = useState<unknown>(null);
-  const fetchGeoData = useCallback(async (category: string) => {
+  // ── Regulatory Data (adaptive) ──
+  const [regulatoryData, setRegulatoryData] = useState<unknown>(null);
+
+  const fetchGeoData = useCallback(async (category: string, productName?: string) => {
     try {
       console.log("[GeoData] Fetching for category:", category);
       const { data: result, error } = await supabase.functions.invoke("geo-market-data", {
-        body: { category },
+        body: { category, productName },
       });
       if (error || !result?.success) {
         console.warn("[GeoData] Fetch failed:", result?.error || error?.message);
         return;
       }
       setGeoData(result.geoData);
+      // Extract regulatory profile if present
+      if (result.geoData?.regulatoryProfile && result.geoData.regulatoryProfile.regulatoryRelevance !== "none") {
+        setRegulatoryData(result.geoData.regulatoryProfile);
+        console.log("[GeoData] Regulatory data loaded:", result.geoData.regulatoryProfile.matchedCategory);
+      } else {
+        setRegulatoryData(null);
+      }
       console.log("[GeoData] Loaded successfully");
     } catch (err) {
       console.warn("[GeoData] Error:", err);
@@ -557,9 +571,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       pushLog(`Analysis complete — ${liveProducts.length} ${isServiceMode ? "service analyses" : "products"} with full intelligence reports ready.`);
       stopLoadingTimer();
 
-      // Fetch geo market data in background (non-blocking)
-      fetchGeoData(params.category).then(() => {
-        console.log("[Pipeline] Geo market data fetched for", params.category);
+      // Fetch geo market data + regulatory intelligence in background (non-blocking)
+      const productNameForGeo = customProducts?.find(cp => cp.productName)?.productName || liveProducts[0]?.name;
+      fetchGeoData(params.category, productNameForGeo).then(() => {
+        console.log("[Pipeline] Geo market data + regulatory intel fetched for", params.category);
       }).catch(() => { /* best effort */ });
 
       setProducts(liveProducts);
@@ -790,6 +805,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     // businessPitchDeck is loaded on-demand by BusinessResultsPage via analysis.pitchDeckData routing
     if (ad?.redesign) setRedesignData(ad.redesign);
     if (ad?.geoOpportunity) setGeoData(ad.geoOpportunity);
+    if (ad?.regulatoryContext) setRegulatoryData(ad.regulatoryContext);
     if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
     if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
     if (ad?.steeringText) setSteeringText(ad.steeringText as string);
@@ -901,6 +917,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       pitchDeckExclusions, togglePitchDeckExclusion,
       activeLens, setActiveLens,
       geoData, setGeoData, fetchGeoData,
+      regulatoryData, setRegulatoryData,
       modeRouting, setModeRouting,
     }}>
       {children}

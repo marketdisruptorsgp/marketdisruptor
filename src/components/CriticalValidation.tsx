@@ -127,13 +127,18 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   const [userSuggestions, setUserSuggestions] = useState("");
 
   let geoData: unknown = undefined;
-  try { geoData = useAnalysis().geoData; } catch { /* context may not be available in shared view */ }
+  let regulatoryData: unknown = undefined;
+  try {
+    const ctx = useAnalysis();
+    geoData = ctx.geoData;
+    regulatoryData = ctx.regulatoryData;
+  } catch { /* context may not be available in shared view */ }
 
   const runValidation = async () => {
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke("critical-validation", {
-        body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined },
+        body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined },
       });
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Validation failed";
