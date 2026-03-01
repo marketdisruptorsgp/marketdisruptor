@@ -14,6 +14,7 @@ import { ComparisonInsightView } from "@/components/portfolio/ComparisonInsightV
 import { ActionItemsPanel } from "@/components/portfolio/ActionItemsPanel";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { LensBanner } from "@/components/workspace/LensBanner";
+import { WorkspaceExplorer } from "@/components/workspace/WorkspaceExplorer";
 
 interface SavedAnalysis {
   id: string;
@@ -223,6 +224,9 @@ export default function WorkspacePage() {
                 </div>
               ))}
             </div>
+
+            {/* Intelligence Explorer */}
+            <WorkspaceExplorer />
 
             {/* Section 1: My Top Choices */}
             <div className="rounded-xl border border-border bg-card p-5">
