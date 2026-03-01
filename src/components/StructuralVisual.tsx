@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+
+const ReactFlowDiagram = lazy(() =>
+  import("./ReactFlowDiagram").then((m) => ({ default: m.ReactFlowDiagram }))
+);
 
 export interface VisualNode {
   id: string;
@@ -211,28 +215,37 @@ function ConstraintMap({ spec }: { spec: VisualSpec }) {
   );
 }
 
-export function StructuralVisual({ spec }: { spec: VisualSpec }) {
-  if (!spec?.nodes?.length) return null;
-
+function CardFallback({ spec }: { spec: VisualSpec }) {
   const Renderer = spec.visual_type === "causal_chain" ? CausalChain
     : spec.visual_type === "leverage_hierarchy" ? LeverageHierarchy
     : ConstraintMap;
+
+  return (
+    <div className="rounded-xl p-4" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
+      {spec.title && <p className="text-xs font-bold text-foreground mb-0.5">{spec.title}</p>}
+      <Renderer spec={spec} />
+    </div>
+  );
+}
+
+export function StructuralVisual({ spec }: { spec: VisualSpec }) {
+  if (!spec?.nodes?.length) return null;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.15 }}
-      className="rounded-xl p-4"
-      style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}
     >
       {spec.title && (
-        <p className="text-xs font-bold text-foreground mb-0.5">{spec.title}</p>
+        <p className="text-xs font-bold text-foreground mb-1">{spec.title}</p>
       )}
       {spec.interpretation && (
         <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">{spec.interpretation}</p>
       )}
-      <Renderer spec={spec} />
+      <Suspense fallback={<CardFallback spec={spec} />}>
+        <ReactFlowDiagram spec={spec} />
+      </Suspense>
     </motion.div>
   );
 }
