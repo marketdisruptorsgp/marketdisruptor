@@ -37,7 +37,7 @@ serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    const { question, history } = await req.json();
+    const { question, history, imageUrls, pdfUrls } = await req.json();
     if (!question || typeof question !== "string") {
       return new Response(JSON.stringify({ error: "Missing question" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -78,15 +78,21 @@ serve(async (req) => {
       ? `Market news (${news.length} recent):\n` + news.map((n: any) => `- "${truncate(n.title, 80)}" | ${n.category} | ${n.source_name}`).join("\n")
       : "No market news available.";
 
+    const hasAttachments = (Array.isArray(imageUrls) && imageUrls.length > 0) || (Array.isArray(pdfUrls) && pdfUrls.length > 0);
+    const attachmentNote = hasAttachments
+      ? `\n\nThe user has attached files to this message. Images are provided inline. For PDFs, the URLs are provided — describe what you can infer or suggest the user share specific sections.`
+      : "";
+
     const systemPrompt = `You are an expert strategic intelligence analyst embedded in a product/business analysis platform. The user has a workspace with saved analyses, and you have access to their data plus platform-wide market intelligence.
 
 Your job:
 - Answer questions about their projects, scores, patterns, risks, and opportunities
 - Compare projects across dimensions (score, category, market size, risk)
 - Identify trends and insights from their portfolio data
+- When the user shares images or documents, analyze them and incorporate findings into your strategic advice
 - When useful, generate charts by calling the render_chart tool
 - Keep answers strategic, concise (3-6 sentences unless more detail requested)
-- Use a confident analyst tone
+- Use a confident analyst tone${attachmentNote}
 
 USER'S WORKSPACE DATA:
 
@@ -118,7 +124,30 @@ When creating charts:
         messages.push({ role: msg.role, content: msg.content });
       }
     }
-    messages.push({ role: "user", content: question });
+
+    // Build user message content (multimodal if images attached)
+    const userContent: any[] = [];
+
+    // Add images as image_url parts
+    if (Array.isArray(imageUrls)) {
+      for (const url of imageUrls.slice(0, 4)) {
+        userContent.push({ type: "image_url", image_url: { url } });
+      }
+    }
+
+    // Add PDF URLs as text context
+    if (Array.isArray(pdfUrls) && pdfUrls.length > 0) {
+      userContent.push({ type: "text", text: `[Attached PDFs: ${pdfUrls.join(", ")}]` });
+    }
+
+    userContent.push({ type: "text", text: question });
+
+    // Use multimodal format if attachments, otherwise plain text
+    if (userContent.length > 1) {
+      messages.push({ role: "user", content: userContent });
+    } else {
+      messages.push({ role: "user", content: question });
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

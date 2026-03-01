@@ -236,6 +236,47 @@ export type Database = {
         }
         Relationships: []
       }
+      explorer_conversations: {
+        Row: {
+          created_at: string
+          file_urls: string[] | null
+          id: string
+          messages: Json
+          project_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          messages?: Json
+          project_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          messages?: Json
+          project_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "explorer_conversations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "saved_analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_intel: {
         Row: {
           created_at: string
