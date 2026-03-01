@@ -23,11 +23,12 @@ const MODES = [
   {
     id: "product" as const,
     label: "Product Analysis",
+    subtitle: "Change the thing itself",
     icon: Upload,
     cssVar: "--mode-product",
     path: "/start/product",
     description:
-      "Upload any physical or digital product and get a full competitive teardown — positioning gaps, overlooked segments, and data-driven redesign paths.",
+      "Use when the design, features, or technology are the problem. Deconstruct any physical or digital product to expose positioning gaps, overlooked segments, and data-driven redesign paths.",
     capabilities: [
       "Competitive landscape mapping",
       "Assumption stress-testing",
@@ -38,11 +39,12 @@ const MODES = [
   {
     id: "service" as const,
     label: "Service Analysis",
+    subtitle: "Change how it's delivered",
     icon: Briefcase,
     cssVar: "--mode-service",
     path: "/start/service",
     description:
-      "Deconstruct any service business — from SaaS to consulting — to expose friction, pricing leverage, and differentiation opportunities.",
+      "Use when the workflow, experience, or operations are the problem. Deconstruct any service — from SaaS to consulting — to expose friction, pricing leverage, and differentiation opportunities.",
     capabilities: [
       "User journey deconstruction",
       "Service model stress-test",
@@ -53,11 +55,12 @@ const MODES = [
   {
     id: "business" as const,
     label: "Business Model Analysis",
+    subtitle: "Change how money flows",
     icon: Building2,
     cssVar: "--mode-business",
     path: "/start/business",
     description:
-      "Full business model teardown across revenue, cost structure, and value chain — revealing hidden leverage and structural vulnerabilities.",
+      "Use when pricing, revenue, or margins are the problem. Full business model teardown across revenue, cost structure, and value chain — revealing hidden leverage and structural vulnerabilities.",
     capabilities: [
       "Revenue model decomposition",
       "Cost structure analysis",
@@ -332,7 +335,8 @@ export default function NewAnalysisPage() {
                     )}
                   </div>
 
-                  <h2 className="typo-section-title text-lg mb-2">{mode.label}</h2>
+                  <h2 className="typo-section-title text-lg mb-0.5">{mode.label}</h2>
+                  <p className="text-xs font-semibold mb-2" style={{ color: `hsl(var(${mode.cssVar}))` }}>{mode.subtitle}</p>
                   <p className="typo-card-body text-muted-foreground leading-relaxed mb-5">
                     {mode.description}
                   </p>
@@ -492,7 +496,7 @@ export default function NewAnalysisPage() {
                   }}
                 >
                   <Zap size={14} />
-                  Deconstruct My Problem
+                  Save
                 </button>
               </div>
             )}
