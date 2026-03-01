@@ -210,9 +210,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       pendingScoreSaveRef.current = next;
       return next;
     });
-    // Mark downstream steps as outdated
+    // Mark all downstream steps as outdated
     markStepOutdated("redesign");
-    markStepOutdated("pitch");
+    markStepOutdated("stressTest");
+    markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
 
   // ── Redesign Data (isolated from Disrupt) ──
@@ -282,10 +283,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const setActiveLens = useCallback((lens: UserLens | null) => {
     setActiveLensState(lens);
     pendingLensSaveRef.current = lens?.id ?? null;
-    // Mark downstream steps as outdated
+    // Mark all downstream steps as outdated
     markStepOutdated("redesign");
-    markStepOutdated("pitch");
     markStepOutdated("stressTest");
+    markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
 
   const togglePitchDeckExclusion = useCallback((key: string) => {
@@ -756,7 +757,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.stressTest) setStressTestData(ad.stressTest);
     if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
     if (ad?.businessStressTest) setBusinessStressTestData(ad.businessStressTest);
-    if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
+    // Business pitch deck uses its own state — never overwrite product pitchDeckData
+    // businessPitchDeck is loaded on-demand by BusinessResultsPage via analysis.pitchDeckData routing
     if (ad?.redesign) setRedesignData(ad.redesign);
     if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
     if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
@@ -789,6 +791,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
     if (analysis.analysis_type === "business_model") {
       setBusinessAnalysisData(analysis.analysis_data as BusinessModelAnalysisData);
+      // For business analyses, route businessPitchDeck into pitchDeckData
+      if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
       const titleParts = (analysis.title || "").split(" — ");
       setBusinessModelInput({ type: titleParts[0] || "Business", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "" });
       setMainTab("business");

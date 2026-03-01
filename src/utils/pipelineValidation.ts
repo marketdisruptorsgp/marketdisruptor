@@ -20,15 +20,15 @@ export const STEP_CONTRACTS: Record<string, StepContract> = {
     produces: ["assumptions", "flippedIdeas", "challengeMap"],
   },
   redesign: {
-    requires: ["disrupt"],
+    requires: ["intelData", "disrupt"],
     produces: ["concepts", "illustrations"],
   },
   stressTest: {
-    requires: ["disrupt"],
+    requires: ["intelData", "disrupt"],
     produces: ["redTeam", "greenTeam", "verdict"],
   },
   pitchDeck: {
-    requires: ["intelData"],
+    requires: ["intelData", "disrupt"],
     produces: ["slides", "elevatorPitch", "metrics"],
   },
   // Business mode variants
@@ -62,8 +62,8 @@ const STEP_UI_LOCATION: Record<string, number> = {
   stressTest: 5,
   pitchDeck: 6,
   businessAnalysis: 2,
-  businessStressTest: 3,
-  businessPitchDeck: 4,
+  businessStressTest: 4,
+  businessPitchDeck: 5,
 };
 
 export function assertStepOwnership(
