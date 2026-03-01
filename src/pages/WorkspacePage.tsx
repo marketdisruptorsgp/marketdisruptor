@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -13,7 +13,7 @@ import { ComparisonInsightView } from "@/components/portfolio/ComparisonInsightV
 import { ActionItemsPanel } from "@/components/portfolio/ActionItemsPanel";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import { LensBanner } from "@/components/workspace/LensBanner";
-import { WorkspaceExplorer } from "@/components/workspace/WorkspaceExplorer";
+import { WorkspaceExplorer, type ExplorerConversation } from "@/components/workspace/WorkspaceExplorer";
 import { SavedConversations } from "@/components/workspace/SavedConversations";
 
 interface SavedAnalysis {
@@ -55,6 +55,7 @@ export default function WorkspacePage() {
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
   const [didPreselect, setDidPreselect] = useState(false);
   const [convRefreshKey, setConvRefreshKey] = useState(0);
+  const [loadConv, setLoadConv] = useState<ExplorerConversation | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -228,10 +229,10 @@ export default function WorkspacePage() {
             </div>
 
             {/* Intelligence Explorer */}
-            <WorkspaceExplorer onConversationSaved={() => setConvRefreshKey(k => k + 1)} />
+            <WorkspaceExplorer onConversationSaved={() => setConvRefreshKey(k => k + 1)} loadConversation={loadConv} onLoadComplete={() => setLoadConv(null)} />
 
             {/* Saved Explorer Sessions */}
-            <SavedConversations refreshKey={convRefreshKey} />
+            <SavedConversations refreshKey={convRefreshKey} onResumeConversation={(conv) => { setLoadConv(conv); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
 
             {/* Section 1: My Top Choices */}
             <div className="rounded-xl border border-border bg-card p-5">
