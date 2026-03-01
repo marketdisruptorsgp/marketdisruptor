@@ -363,7 +363,7 @@ export default function NewAnalysisPage() {
               color: "hsl(var(--mode-multi))",
             }}
           >
-            Want it tailored to your situation?
+            Have a specific problem in mind?
           </span>
           <div className="h-px flex-1 bg-border" />
         </div>
