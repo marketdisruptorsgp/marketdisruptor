@@ -19,12 +19,54 @@ const ROTATING_WORDS = [
 ];
 
 const PIPELINE_STEPS = [
-  { icon: Search, label: "Analyze", desc: "Select your target and run a deep competitive scan", step: 1 },
-  { icon: Radar, label: "Deconstruct", desc: "Map pricing, supply chains, and comparative positioning", step: 2 },
-  { icon: Sparkles, label: "Flip", desc: "Challenge every assumption and generate radical alternatives", step: 3 },
-  { icon: Crosshair, label: "Redesign", desc: "Interactive redesigned concept with detailed illustrations", step: 4 },
-  { icon: Swords, label: "Stress Test", desc: "Red vs Green team adversarial validation & critical debate", step: 5 },
-  { icon: Presentation, label: "Pitch Deck", desc: "Investor-ready presentation with data-backed slides", step: 6 },
+  {
+    icon: Search, label: "Analyze", step: 1,
+    desc: {
+      product: "Select a product and run a deep competitive teardown",
+      service: "Define your service and map the competitive landscape",
+      business: "Specify your business model for a structural audit",
+    },
+  },
+  {
+    icon: Radar, label: "Deconstruct", step: 2,
+    desc: {
+      product: "Map pricing, supply chains, and comparative positioning",
+      service: "Analyze delivery workflows, pricing tiers, and friction points",
+      business: "Audit revenue streams, cost structures, and value chains",
+    },
+  },
+  {
+    icon: Sparkles, label: "Flip", step: 3,
+    desc: {
+      product: "Challenge every assumption and generate radical alternatives",
+      service: "Invert delivery models and reimagine the customer journey",
+      business: "Question the value engine and explore adjacent opportunities",
+    },
+  },
+  {
+    icon: Crosshair, label: "Redesign", step: 4,
+    desc: {
+      product: "Interactive redesigned concept with detailed illustrations",
+      service: "Redesigned service blueprint with implementation roadmap",
+      business: "Restructured model with new revenue and growth levers",
+    },
+  },
+  {
+    icon: Swords, label: "Stress Test", step: 5,
+    desc: {
+      product: "Red vs Green team adversarial validation & critical debate",
+      service: "Adversarial review of scalability, churn risk, and operations",
+      business: "Stress-test unit economics, moat durability, and market fit",
+    },
+  },
+  {
+    icon: Presentation, label: "Pitch Deck", step: 6,
+    desc: {
+      product: "Investor-ready presentation with data-backed slides",
+      service: "Scalability-focused pitch with implementation partnerships",
+      business: "Capital-ready deck with financial projections and strategy",
+    },
+  },
 ];
 
 const MODES = [
@@ -103,9 +145,9 @@ export default function StartPage() {
             {PIPELINE_STEPS.map((item, i) => {
               const Icon = item.icon;
               const activeColor = ROTATING_WORDS[wordIndex].color;
+              const modeKey = ROTATING_WORDS[wordIndex].word as "product" | "service" | "business";
               return (
                 <div key={item.step} className="relative">
-                  {/* Connector arrow — visible only on lg (6-col row) */}
                   {i > 0 && (
                     <div className="hidden lg:flex absolute -left-3 top-7 z-10 items-center justify-center">
                       <ChevronRight
@@ -132,7 +174,15 @@ export default function StartPage() {
                       Step {item.step}
                     </p>
                     <p className="text-sm font-bold text-foreground mb-1">{item.label}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                    <motion.p
+                      key={modeKey}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-xs text-muted-foreground leading-relaxed"
+                    >
+                      {item.desc[modeKey]}
+                    </motion.p>
                   </motion.div>
                 </div>
               );
