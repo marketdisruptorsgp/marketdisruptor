@@ -18,12 +18,12 @@ const ROTATING_WORDS = [
 ];
 
 const PIPELINE_STEPS = [
-  { icon: Search, label: "Choose", desc: "Select your target — a product to deconstruct", step: 1 },
-  { icon: Radar, label: "Intel", desc: "Deep market data, pricing intel, supply chain mapping & comparative analysis", step: 2 },
-  { icon: Sparkles, label: "Disrupt", desc: "Challenge assumptions & generate radical flip ideas", step: 3 },
+  { icon: Search, label: "Analyze", desc: "Select your target and run a deep competitive scan", step: 1 },
+  { icon: Radar, label: "Deconstruct", desc: "Map pricing, supply chains, and comparative positioning", step: 2 },
+  { icon: Sparkles, label: "Flip", desc: "Challenge every assumption and generate radical alternatives", step: 3 },
   { icon: Crosshair, label: "Redesign", desc: "Interactive redesigned concept with detailed illustrations", step: 4 },
-  { icon: Swords, label: "Test", desc: "Red vs Green team adversarial validation & critical debate", step: 5 },
-  { icon: Presentation, label: "Pitch", desc: "Investor-ready presentation with data-backed slides", step: 6 },
+  { icon: Swords, label: "Stress Test", desc: "Red vs Green team adversarial validation & critical debate", step: 5 },
+  { icon: Presentation, label: "Pitch Deck", desc: "Investor-ready presentation with data-backed slides", step: 6 },
 ];
 
 const MODES = [
@@ -84,11 +84,11 @@ export default function StartPage() {
       </section>
 
       {/* How It Works Pipeline */}
-      <section className="border-t border-border" style={{ background: "hsl(var(--muted) / 0.3)" }}>
+      <section className="border-t border-border overflow-hidden" style={{ background: "hsl(var(--muted) / 0.3)" }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
-          <div className="text-center mb-10">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground mb-2 flex items-center justify-center gap-1.5">
-              <Sparkles size={12} className="text-primary" /> How It Works
+          <div className="text-center mb-12">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] mb-2 flex items-center justify-center gap-1.5 transition-colors duration-500" style={{ color: ROTATING_WORDS[wordIndex].color }}>
+              <Sparkles size={12} /> How It Works
             </p>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
               From raw data to investor-ready output
@@ -98,26 +98,31 @@ export default function StartPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {PIPELINE_STEPS.map((item) => {
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5 sm:gap-6">
+            {PIPELINE_STEPS.map((item, i) => {
               const Icon = item.icon;
+              const activeColor = ROTATING_WORDS[wordIndex].color;
               return (
-                <div key={item.step} className="text-center">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 bg-primary/10">
-                    <Icon size={20} className="text-primary" />
+                <motion.div
+                  key={item.step}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.4, delay: i * 0.08 }}
+                  className="text-center group"
+                >
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors duration-500"
+                    style={{ background: `color-mix(in srgb, ${activeColor} 12%, transparent)` }}
+                  >
+                    <Icon size={22} className="transition-colors duration-500" style={{ color: activeColor }} />
                   </div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
                     Step {item.step}
                   </p>
                   <p className="text-sm font-bold text-foreground mb-1">{item.label}</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                  <button
-                    onClick={() => navigate("/methodology")}
-                    className="text-[11px] font-semibold text-primary mt-1.5 hover:underline"
-                  >
-                    More →
-                  </button>
-                </div>
+                </motion.div>
               );
             })}
           </div>
