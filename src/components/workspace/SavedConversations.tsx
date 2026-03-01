@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageSquare, Trash2, Tag, ChevronDown, ChevronUp, FileText, BarChart3, Pencil, Check, X, Link2, FolderOpen, Play } from "lucide-react";
+import { MessageSquare, Trash2, Tag, ChevronDown, ChevronUp, FileText, BarChart3, Pencil, Check, X, Link2, FolderOpen, Play, Download } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
@@ -88,6 +88,52 @@ export function SavedConversations({ refreshKey, onResumeConversation }: Props) 
     toast.success(projectId ? `Linked to "${projTitle}"` : "Unlinked from project");
   };
 
+  const downloadChat = (conv: Conversation) => {
+    const lines: string[] = [
+      `# ${conv.title}`,
+      `Date: ${format(parseISO(conv.created_at), "MMMM d, yyyy 'at' h:mm a")}`,
+      conv.project_title ? `Project: ${conv.project_title}` : "",
+      `Messages: ${conv.messages?.length || 0}`,
+      "",
+      "---",
+      "",
+    ].filter(Boolean);
+
+    for (const msg of conv.messages || []) {
+      const role = msg.role === "user" ? "You" : "Explorer";
+      lines.push(`## ${role}\n`);
+      if (msg.attachments?.length) {
+        for (const att of msg.attachments) {
+          lines.push(`📎 ${att.name || "Attachment"}${att.url ? ` — ${att.url}` : ""}`);
+        }
+        lines.push("");
+      }
+      lines.push(msg.content || "");
+      if (msg.charts?.length) {
+        for (const chart of msg.charts) {
+          lines.push(`\n### 📊 ${chart.title || "Chart"}`);
+          if (chart.type === "table" && chart.headers && chart.rows) {
+            lines.push(`| ${chart.headers.join(" | ")} |`);
+            lines.push(`| ${chart.headers.map(() => "---").join(" | ")} |`);
+            for (const row of chart.rows) lines.push(`| ${row.join(" | ")} |`);
+          } else if (chart.labels && chart.values) {
+            chart.labels.forEach((l: string, i: number) => lines.push(`- ${l}: ${chart.values[i]}`));
+          }
+        }
+      }
+      lines.push("\n---\n");
+    }
+
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${conv.title.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "chat"}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Chat downloaded");
+  };
+
   if (loading || conversations.length === 0) return null;
 
   return (
@@ -173,6 +219,15 @@ export function SavedConversations({ refreshKey, onResumeConversation }: Props) 
                     title="Rename"
                   >
                     <Pencil size={11} />
+                  </button>
+
+                  {/* Download */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); downloadChat(conv); }}
+                    className="p-1.5 rounded-lg hover:bg-muted text-foreground/40 hover:text-foreground transition-colors"
+                    title="Download chat"
+                  >
+                    <Download size={11} />
                   </button>
 
                   {/* Link to project */}
