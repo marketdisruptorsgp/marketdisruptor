@@ -1,150 +1,191 @@
 import { useNavigate } from "react-router-dom";
-import { HeroSection } from "@/components/HeroSection";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
+import { ShowcaseGallery } from "@/components/ShowcaseGallery";
+import { PlatformNav } from "@/components/PlatformNav";
+import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import {
-  Upload, Briefcase, Building2, ArrowRight, CheckCircle2,
-  ShieldCheck, BookOpen, Camera,
+  Upload, Briefcase, Building2, ArrowRight,
+  ShieldCheck, BookOpen, Camera, Target,
+  Search, Radar, Sparkles, Crosshair, Swords, Presentation,
 } from "lucide-react";
 
+const ROTATING_WORDS = ["product", "service", "market", "model", "strategy"];
+
+const PIPELINE_STEPS = [
+  { icon: Search, label: "Choose", desc: "Select your target — a product to deconstruct", step: 1 },
+  { icon: Radar, label: "Intel", desc: "Deep market data, pricing intel, supply chain mapping & comparative analysis", step: 2 },
+  { icon: Sparkles, label: "Disrupt", desc: "Challenge assumptions & generate radical flip ideas", step: 3 },
+  { icon: Crosshair, label: "Redesign", desc: "Interactive redesigned concept with detailed illustrations", step: 4 },
+  { icon: Swords, label: "Test", desc: "Red vs Green team adversarial validation & critical debate", step: 5 },
+  { icon: Presentation, label: "Pitch", desc: "Investor-ready presentation with data-backed slides", step: 6 },
+];
+
 const MODES = [
-  {
-    id: "product",
-    label: "Product Analysis",
-    icon: Upload,
-    cssVar: "--mode-product",
-    path: "/start/product",
-    description:
-      "Upload any physical or digital product and get a full competitive teardown — positioning gaps, overlooked segments, and data-driven redesign paths.",
-    capabilities: [
-      "Competitive landscape mapping",
-      "Assumption stress-testing",
-      "Redesign & disruption paths",
-      "Investor-ready pitch deck",
-    ],
-  },
-  {
-    id: "service",
-    label: "Service Analysis",
-    icon: Briefcase,
-    cssVar: "--mode-service",
-    path: "/start/service",
-    description:
-      "Deconstruct any service business — from SaaS to consulting — to expose friction, pricing leverage, and differentiation opportunities.",
-    capabilities: [
-      "User journey deconstruction",
-      "Service model stress-test",
-      "Pricing & packaging analysis",
-      "Competitive moat assessment",
-    ],
-  },
-  {
-    id: "business",
-    label: "Business Model Analysis",
-    icon: Building2,
-    cssVar: "--mode-business",
-    path: "/start/business",
-    description:
-      "Full business model teardown across revenue, cost structure, and value chain — revealing hidden leverage and structural vulnerabilities.",
-    capabilities: [
-      "Revenue model decomposition",
-      "Cost structure analysis",
-      "Value chain mapping",
-      "First-principles reconstruction",
-    ],
-  },
+  { id: "product", label: "Product", icon: Upload, cssVar: "--mode-product", path: "/start/product" },
+  { id: "service", label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/start/service" },
+  { id: "business", label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/start/business" },
 ];
 
 export default function StartPage() {
   const navigate = useNavigate();
   const { tier } = useSubscription();
   const { profile } = useAuth();
+  const [wordIndex, setWordIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
-      <HeroSection
-        tier={tier}
-        remainingAnalyses={0}
-        profileFirstName={profile?.first_name}
-      />
+      <PlatformNav tier={tier} />
 
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-6">
-        <h1 className="typo-page-title text-3xl sm:text-5xl tracking-tight text-center">
-          Start Disrupting
+      {/* Hero */}
+      <section className="pt-16 sm:pt-24 pb-10 sm:pb-14 text-center px-4">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+          Rethink any{" "}
+          <motion.span
+            key={wordIndex}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.4 }}
+            className="text-primary inline-block"
+          >
+            {ROTATING_WORDS[wordIndex]}
+          </motion.span>
         </h1>
-        <p className="typo-page-meta text-sm sm:text-base md:text-lg mt-3 sm:mt-4 max-w-2xl mx-auto leading-relaxed text-center">
-          Choose an analysis mode. Each applies rigorous, data-driven scrutiny
-          tailored to the type of opportunity you're exploring.
+        <p className="text-base sm:text-lg text-muted-foreground mt-4 max-w-xl mx-auto">
+          Deconstruct markets, stress-test strategies, and build what's next.
         </p>
+        <button
+          onClick={() => navigate("/methodology")}
+          className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+        >
+          Learn More
+        </button>
       </section>
 
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
-          {MODES.map((mode) => {
-            const Icon = mode.icon;
-            return (
-              <div
-                key={mode.id}
-                className="rounded-2xl border border-border bg-card flex flex-col overflow-hidden transition-shadow hover:shadow-lg"
-                style={{ borderTopWidth: "3px", borderTopColor: `hsl(var(${mode.cssVar}))` }}
-              >
-                <div className="p-5 sm:p-6 flex-1 flex flex-col">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
-                    style={{ background: `hsl(var(${mode.cssVar}) / 0.12)` }}
-                  >
-                    <Icon size={20} style={{ color: `hsl(var(${mode.cssVar}))` }} />
-                  </div>
+      {/* Showcase Gallery */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6">
+        <ShowcaseGallery />
+      </section>
 
-                  <h2 className="typo-section-title text-lg mb-2">{mode.label}</h2>
-                  <p className="typo-card-body text-muted-foreground leading-relaxed mb-5">
-                    {mode.description}
-                  </p>
-
-                  <ul className="space-y-2 mb-6 flex-1">
-                    {mode.capabilities.map((cap) => (
-                      <li key={cap} className="flex items-start gap-2">
-                        <CheckCircle2
-                          size={14}
-                          className="flex-shrink-0 mt-0.5"
-                          style={{ color: `hsl(var(${mode.cssVar}))` }}
-                        />
-                        <span className="typo-card-body text-foreground/80">{cap}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    onClick={() => navigate(mode.path)}
-                    className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl typo-nav-primary text-primary-foreground transition-colors hover:opacity-90"
-                    style={{ background: `hsl(var(${mode.cssVar}))` }}
-                  >
-                    Get Started <ArrowRight size={15} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Photo Analysis — quick-access tool */}
-        <div
-          onClick={() => navigate("/instant-analysis")}
-          className="mt-5 sm:mt-6 rounded-2xl border-2 border-dashed border-border bg-muted/30 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 cursor-pointer transition-all hover:border-primary/40 hover:shadow-md group"
-        >
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 group-hover:bg-primary/15 transition-colors">
-            <Camera size={22} className="text-primary" />
-          </div>
-          <div className="flex-1">
-            <h3 className="typo-section-title text-base mb-1">Photo Analysis</h3>
-            <p className="typo-card-body text-muted-foreground text-sm leading-relaxed">
-              Point. Shoot. Understand Everything. — Snap a photo or upload an image and instantly map its supply chain, user journey, patent landscape, and market position.
+      {/* How It Works Pipeline */}
+      <section className="border-t border-border" style={{ background: "hsl(var(--muted) / 0.3)" }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground mb-2 flex items-center justify-center gap-1.5">
+              <Sparkles size={12} className="text-primary" /> How It Works
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              From raw data to investor-ready output
+            </h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              Six stages of structured analysis, each building on the last
             </p>
           </div>
-          <ArrowRight size={18} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 hidden sm:block" />
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+            {PIPELINE_STEPS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.step} className="text-center">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 bg-primary/10">
+                    <Icon size={20} className="text-primary" />
+                  </div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
+                    Step {item.step}
+                  </p>
+                  <p className="text-sm font-bold text-foreground mb-1">{item.label}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                  <button
+                    onClick={() => navigate("/methodology")}
+                    className="text-[11px] font-semibold text-primary mt-1.5 hover:underline"
+                  >
+                    More →
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
+      {/* CTA Banner */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+        <div className="rounded-2xl bg-card border border-border p-8 sm:p-10 text-center shadow-sm">
+          <p className="text-lg sm:text-xl font-extrabold text-foreground mb-2">
+            Apply a level of scrutiny that exceeds normal bandwidth.
+          </p>
+          <p className="text-sm text-muted-foreground mb-6">
+            See what a deep deconstruction reveals about your market.
+          </p>
+          <button
+            onClick={() => navigate("/analysis/new")}
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Start Analysis <ArrowRight size={14} />
+          </button>
+        </div>
+      </section>
+
+      {/* What to expect */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-4">
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 flex items-start gap-4">
+          <Target size={20} className="flex-shrink-0 mt-0.5 text-primary" />
+          <div>
+            <p className="text-sm font-bold text-foreground mb-1">What to expect</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Photo Analysis */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+        <div
+          onClick={() => navigate("/instant-analysis")}
+          className="rounded-2xl border border-border bg-card p-5 sm:p-6 flex items-center gap-4 cursor-pointer transition-all hover:shadow-md group"
+        >
+          <Camera size={22} className="text-primary flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-foreground mb-0.5">Instant Photo Analysis</p>
+            <p className="text-xs text-muted-foreground">
+              Snap a photo of any product and get an AI-powered competitive teardown in seconds.
+            </p>
+          </div>
+          <button className="flex-shrink-0 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors">
+            Try It <ArrowRight size={12} className="inline ml-1" />
+          </button>
+        </div>
+      </section>
+
+      {/* Quick Launch Buttons */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-10 flex flex-wrap items-center justify-center gap-3">
+        {MODES.map((mode) => {
+          const Icon = mode.icon;
+          return (
+            <button
+              key={mode.id}
+              onClick={() => navigate(mode.path)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border bg-card text-sm font-semibold text-foreground hover:shadow-md transition-all"
+              style={{ borderColor: `hsl(var(${mode.cssVar}) / 0.3)` }}
+            >
+              <Icon size={14} style={{ color: `hsl(var(${mode.cssVar}))` }} />
+              {mode.label} <ArrowRight size={12} className="text-muted-foreground" />
+            </button>
+          );
+        })}
+      </section>
+
+      {/* Footer */}
       <footer className="border-t border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
@@ -152,6 +193,17 @@ export default function StartPage() {
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:flex items-center gap-1"><BookOpen size={11} /> Analyses scoped to your account via RLS</span>
           </div>
+          <div className="flex items-center gap-3">
+            <a href="/pricing" className="font-semibold text-primary hover:underline py-1">Enterprise & Teams</a>
+          </div>
+        </div>
+        <div className="border-t border-border py-5 text-center px-4">
+          <p className="text-xs">
+            <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:opacity-80 transition-opacity">
+              Built by SGP Capital
+            </a>
+            {profile && <span className="text-muted-foreground"> · Signed in as <strong className="text-foreground">{profile.first_name}</strong></span>}
+          </p>
         </div>
       </footer>
     </div>
