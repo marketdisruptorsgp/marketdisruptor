@@ -53,10 +53,20 @@ Deno.serve(async (req) => {
     const scrapeData = await scrapeRes.json();
 
     if (!scrapeRes.ok) {
-      console.error("Firecrawl error:", scrapeData);
+      console.warn("Firecrawl error (will try fallback):", scrapeData);
+      // Return a graceful fallback instead of 502 — some sites (e.g. LinkedIn) are blocked
+      const urlObj = new URL(formattedUrl);
+      const fallbackName = urlObj.hostname.replace("www.", "").split(".")[0];
       return new Response(
-        JSON.stringify({ success: false, error: "Failed to scrape URL" }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: true,
+          data: {
+            name: fallbackName.charAt(0).toUpperCase() + fallbackName.slice(1),
+            description: "",
+            notes: `Auto-fill could not read this URL (${urlObj.hostname} may block scraping). Please fill in the details manually.`,
+          },
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
