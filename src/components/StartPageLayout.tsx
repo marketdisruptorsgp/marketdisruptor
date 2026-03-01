@@ -82,11 +82,11 @@ export default function StartPageLayout({ mode }: StartPageLayoutProps) {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10" ref={formRef}>
         <Link
-          to="/"
+          to="/analysis/new"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
         >
           <ArrowLeft size={14} />
-          Back to Home
+          Back to Analysis Selection
         </Link>
         <div
           className="rounded-lg overflow-hidden border border-border bg-card shadow-sm"

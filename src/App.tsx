@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ScrollToTopProvider } from "@/components/ScrollToTopProvider";
 import { lazy, Suspense, useEffect } from "react";
@@ -20,18 +20,18 @@ import PricingPage from "./pages/PricingPage";
 import SharePage from "./pages/SharePage";
 import AboutPage from "./pages/AboutPage";
 import ResourcesPage from "./pages/ResourcesPage";
-import IntelPage from "./pages/IntelPage";
 import MethodologyPage from "./pages/MethodologyPage";
 import FaqsPage from "./pages/FaqsPage";
-import PortfolioPage from "./pages/PortfolioPage";
 import ApiPage from "./pages/ApiPage";
 import ShareableAnalysisPage from "./pages/ShareableAnalysisPage";
-import StartPage from "./pages/StartPage";
 import StartProductPage from "./pages/StartProductPage";
 import StartServicePage from "./pages/StartServicePage";
 import StartBusinessPage from "./pages/StartBusinessPage";
 import NotFound from "./pages/NotFound";
 import InstantAnalysisPage from "./pages/InstantAnalysisPage";
+import WorkspacePage from "./pages/WorkspacePage";
+import NewAnalysisPage from "./pages/NewAnalysisPage";
+import IntelligencePage from "./pages/IntelligencePage";
 import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
 
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
@@ -42,7 +42,6 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   const { user, loading } = useAuth();
 
-  // Silent analytics tracker — no UI impact
   useEffect(() => {
     import("@/lib/analyticsTracker").then(({ initAnalyticsTracker }) => initAnalyticsTracker());
   }, []);
@@ -51,10 +50,7 @@ function AppRoutes() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
         <div className="flex flex-col items-center gap-4">
-          <div
-            className="w-10 h-10 rounded flex items-center justify-center"
-            style={{ background: "hsl(var(--primary))" }}
-          >
+          <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
@@ -74,8 +70,16 @@ function AppRoutes() {
       <Route path="/analysis/share/:id" element={<ShareableAnalysisPage />} />
       {user ? (
         <>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/start" element={<StartPage />} />
+          {/* Default landing → Workspace */}
+          <Route path="/" element={<Navigate to="/workspace" replace />} />
+          <Route path="/workspace" element={<WorkspacePage />} />
+          <Route path="/analysis/new" element={<NewAnalysisPage />} />
+          <Route path="/intelligence" element={<IntelligencePage />} />
+          {/* Legacy redirects */}
+          <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
+          <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
+          <Route path="/start" element={<Navigate to="/analysis/new" replace />} />
+          {/* Analysis pipeline routes */}
           <Route path="/start/product" element={<StartProductPage />} />
           <Route path="/start/service" element={<StartServicePage />} />
           <Route path="/start/business" element={<StartBusinessPage />} />
@@ -88,10 +92,8 @@ function AppRoutes() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
-          <Route path="/intel" element={<IntelPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/faqs" element={<FaqsPage />} />
-          <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/api" element={<ApiPage />} />
           <Route path="*" element={<NotFound />} />
         </>
