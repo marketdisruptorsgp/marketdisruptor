@@ -77,7 +77,7 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
 
         <div className="flex items-center justify-end pt-1">
           <div className="flex gap-1 flex-wrap justify-end">
-            {product.sources.slice(0, 2).map((s) => (
+            {(product.sources || []).slice(0, 2).map((s) => (
               <a
                 key={s.label}
                 href={s.url}
