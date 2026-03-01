@@ -13,6 +13,7 @@ import { ScoreInsightPanel } from "@/components/portfolio/ScoreInsightPanel";
 import { ComparisonInsightView } from "@/components/portfolio/ComparisonInsightView";
 import { ActionItemsPanel } from "@/components/portfolio/ActionItemsPanel";
 import { InfoExplainer } from "@/components/InfoExplainer";
+import { LensBanner } from "@/components/workspace/LensBanner";
 
 interface SavedAnalysis {
   id: string;
@@ -182,6 +183,8 @@ export default function WorkspacePage() {
           <PlusCircle size={15} />
           New Analysis
         </button>
+        {/* Lens Configuration */}
+        <LensBanner />
 
         {totalProjects === 0 ? (
           <div className="text-center py-20">
