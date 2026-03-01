@@ -513,8 +513,15 @@ export default function NewAnalysisPage() {
                   Almost there — help us dial it in
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed -mt-2">
-                These are optional. The more you share, the sharper the analysis. Leave blank to proceed with what you've described.
+              <p
+                className="text-sm leading-relaxed -mt-1 px-3 py-2 rounded-md border"
+                style={{
+                  background: "hsl(var(--mode-multi) / 0.06)",
+                  borderColor: "hsl(var(--mode-multi) / 0.18)",
+                  color: "hsl(var(--mode-multi) / 0.85)",
+                }}
+              >
+                💡 <strong>These are optional.</strong> The more you share, the sharper the analysis. Leave blank to proceed with what you've described.
               </p>
 
               {/* Name */}
