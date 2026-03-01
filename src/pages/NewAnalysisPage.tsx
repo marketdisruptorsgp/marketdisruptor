@@ -32,7 +32,7 @@ const MODES = [
     subtitle: "Change the thing itself",
     icon: Upload,
     cssVar: "--mode-product",
-    path: "/start/product",
+    path: "/analysis/new",
     description: "When design, features, or tech are the problem.",
     capabilities: [
       "Visual & material teardown",
@@ -46,7 +46,7 @@ const MODES = [
     subtitle: "Change how it's delivered",
     icon: Briefcase,
     cssVar: "--mode-service",
-    path: "/start/service",
+    path: "/analysis/new",
     description: "When workflow, experience, or ops are the problem.",
     capabilities: [
       "Journey friction mapping",
@@ -60,7 +60,7 @@ const MODES = [
     subtitle: "Change how money flows",
     icon: Building2,
     cssVar: "--mode-business",
-    path: "/start/business",
+    path: "/analysis/new",
     description: "When pricing, revenue, or margins are the problem.",
     capabilities: [
       "Revenue decomposition",
@@ -94,6 +94,7 @@ export default function NewAnalysisPage() {
   const analysis = useAnalysis();
   const { setModeRouting } = analysis;
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
+  const [showManualClarifier, setShowManualClarifier] = useState(false);
   const [problemText, setProblemText] = useState(() => {
     return sessionStorage.getItem("deconstruct-problem-text") || "";
   });
@@ -156,18 +157,36 @@ export default function NewAnalysisPage() {
   const handleCardClick = (id: string) => {
     setSelectedMode(id);
     setUseDeconstruct(false);
+    setShowManualClarifier(false);
   };
 
   const handleContinue = () => {
     if (useDeconstruct && routing) {
       // Launch analysis directly from Deconstruct flow
       handleLaunchAnalysis();
-    } else {
-      const mode = MODES.find(m => m.id === selectedMode);
-      if (mode) {
-        setModeRouting(routing);
-        navigate(mode.path);
-      }
+    } else if (selectedMode) {
+      // Create synthetic routing for the manually selected mode
+      const engineMode = selectedMode === "business" ? "business_model" as const
+        : selectedMode === "service" ? "service" as const
+        : "product" as const;
+      const syntheticRouting: RoutingResult = {
+        primaryMode: engineMode,
+        secondaryModes: [],
+        scores: {
+          product: engineMode === "product" ? 1 : 0,
+          service: engineMode === "service" ? 1 : 0,
+          business_model: engineMode === "business_model" ? 1 : 0,
+        },
+        confidence: 1,
+        reasoning: `Manual selection: **${selectedMode}** mode.`,
+      };
+      setRouting(syntheticRouting);
+      setModeRouting(syntheticRouting);
+      setShowManualClarifier(true);
+      // Scroll to clarifier
+      setTimeout(() => {
+        clarifierRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
     }
   };
 
@@ -340,7 +359,7 @@ export default function NewAnalysisPage() {
       <HeroSection tier={tier} remainingAnalyses={null} />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        <AnalysisStepIndicator currentStep={1} />
+        <AnalysisStepIndicator currentStep={showManualClarifier || useDeconstruct ? 2 : 1} />
 
         <h1 className="typo-page-title text-2xl sm:text-3xl tracking-tight mb-1">
           Select Analysis Mode
@@ -923,8 +942,8 @@ export default function NewAnalysisPage() {
           </div>
         </div>
 
-        {/* Continue button (only for manual mode selection) */}
-        {!useDeconstruct && (
+        {/* Continue button (only for manual mode selection, before clarifier shown) */}
+        {!useDeconstruct && !showManualClarifier && (
           <div className="flex justify-end">
             <button
               onClick={handleContinue}
@@ -935,6 +954,203 @@ export default function NewAnalysisPage() {
             </button>
           </div>
         )}
+
+        {/* ── Manual Mode Clarifier ── */}
+        {showManualClarifier && routing && selectedMode && (() => {
+          const modeConfig = MODES.find(m => m.id === selectedMode);
+          const cssVar = modeConfig ? modeConfig.cssVar : "--mode-product";
+          const modeLabel = modeConfig?.label || "Product";
+          return (
+            <div
+              ref={clarifierRef}
+              className="rounded-2xl border-2 overflow-hidden shadow-md mb-6"
+              style={{
+                borderColor: `hsl(var(${cssVar}))`,
+                borderTopWidth: "4px",
+                borderTopColor: `hsl(var(${cssVar}))`,
+                background: `hsl(var(${cssVar}) / 0.03)`,
+              }}
+            >
+              <div className="px-5 sm:px-6 pt-5 pb-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `hsl(var(${cssVar}) / 0.12)` }}>
+                    {modeConfig && <modeConfig.icon size={20} style={{ color: `hsl(var(${cssVar}))` }} />}
+                  </div>
+                  <div>
+                    <h2 className="typo-section-title text-lg">Configure {modeLabel} Analysis</h2>
+                    <p className="text-sm text-muted-foreground mt-0.5">Add details to sharpen your analysis — or skip straight to results.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span className="text-[10px] font-medium uppercase tracking-wider hidden sm:inline" style={{ color: `hsl(var(${cssVar}))` }}>Lens</span>
+                  <LensToggle />
+                  <InfoExplainer explainerKey="lens-selector" accentColor={`hsl(var(${cssVar}))`} />
+                </div>
+              </div>
+
+              <div className="border-t px-5 sm:px-6 py-5 space-y-4" style={{ borderColor: `hsl(var(${cssVar}) / 0.15)` }}>
+                <p
+                  className="text-sm leading-relaxed px-3 py-2 rounded-md border"
+                  style={{
+                    background: `hsl(var(${cssVar}) / 0.06)`,
+                    borderColor: `hsl(var(${cssVar}) / 0.18)`,
+                    color: `hsl(var(${cssVar}) / 0.85)`,
+                  }}
+                >
+                  💡 <strong>These are optional.</strong> The more you share, the sharper the analysis. Leave blank to proceed with defaults.
+                </p>
+
+                {/* Name */}
+                <div className="space-y-1.5">
+                  <label className="typo-card-eyebrow text-xs">What are we analyzing?</label>
+                  <input
+                    value={clarifierName}
+                    onChange={(e) => setClarifierName(e.target.value)}
+                    placeholder="e.g. Acme CRM, My coffee shop, Nike Air Max…"
+                    className="input-executive"
+                  />
+                </div>
+
+                {/* URLs */}
+                <div className="space-y-1.5">
+                  <label className="typo-card-eyebrow text-xs flex items-center gap-2">
+                    <Globe size={12} />
+                    Links (optional, up to {MAX_URLS})
+                    {autofilling && <Loader2 size={13} className="animate-spin text-primary" />}
+                  </label>
+                  <div className="space-y-2">
+                    {clarifierUrls.map((url, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <input
+                          value={url}
+                          onChange={(e) => { const next = [...clarifierUrls]; next[i] = e.target.value; setClarifierUrls(next); }}
+                          onBlur={(e) => handleUrlBlur(e.target.value)}
+                          placeholder="https://example.com — we'll extract details automatically"
+                          className="input-executive flex-1"
+                        />
+                        {clarifierUrls.length > 1 && (
+                          <button type="button" onClick={() => setClarifierUrls(clarifierUrls.filter((_, j) => j !== i))} className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {clarifierUrls.length < MAX_URLS && (
+                      <button type="button" onClick={() => setClarifierUrls([...clarifierUrls, ""])} className="text-xs font-medium flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-muted/80 transition-colors" style={{ color: `hsl(var(${cssVar}))` }}>
+                        <Plus size={12} /> Add another link
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Documents */}
+                <div className="space-y-1.5">
+                  <label className="typo-card-eyebrow text-xs flex items-center gap-2">
+                    <FileText size={12} />
+                    Documents (optional, up to {MAX_DOCS})
+                  </label>
+                  <p className="text-[11px] text-muted-foreground -mt-0.5">PDF, Word, PowerPoint, Excel, CSV — we'll extract business intelligence.</p>
+                  <div className="space-y-1.5">
+                    {clarifierDocs.map((doc, i) => (
+                      <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/30" style={{ borderColor: "hsl(var(--border))" }}>
+                        <FileText size={14} className="text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm text-foreground truncate flex-1">{doc.name}</span>
+                        <span className="text-[10px] text-muted-foreground">{(doc.file.size / 1024).toFixed(0)}KB</span>
+                        <button type="button" onClick={() => { setClarifierDocs(clarifierDocs.filter((_, j) => j !== i)); extractionTriggered.current = false; }} className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors">
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    {clarifierDocs.length < MAX_DOCS && (
+                      <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors hover:bg-muted/60" style={{ border: "1.5px dashed hsl(var(--border))", background: "hsl(var(--muted) / 0.3)" }}>
+                        <Upload size={14} className="text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Upload document</span>
+                        <input type="file" accept={DOC_ACCEPT} className="hidden" onChange={(e) => {
+                          const file = e.target.files?.[0]; if (!file) return;
+                          const ext = file.name.split(".").pop()?.toLowerCase() || "";
+                          if (!DOC_EXTENSIONS.includes(ext)) { toast.error("Unsupported file type."); return; }
+                          if (file.size > 20 * 1024 * 1024) { toast.error("File too large. Maximum 20MB."); return; }
+                          setClarifierDocs(prev => [...prev, { file, name: file.name }]); extractionTriggered.current = false; e.target.value = "";
+                        }} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {/* Images */}
+                <div className="space-y-1.5">
+                  <label className="typo-card-eyebrow text-xs flex items-center gap-2">
+                    <Image size={12} />
+                    Images (optional, up to 5)
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {clarifierImages.map((img, i) => (
+                      <div key={i} className="relative w-14 h-14 rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+                        <img src={img.dataUrl} alt="" className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => { setClarifierImages(clarifierImages.filter((_, j) => j !== i)); extractionTriggered.current = false; }} className="absolute top-0 right-0 w-4 h-4 flex items-center justify-center text-[9px] text-white rounded-bl" style={{ background: "hsl(var(--destructive))" }}>✕</button>
+                      </div>
+                    ))}
+                    {clarifierImages.length < 5 && (
+                      <label className="w-14 h-14 rounded-lg flex items-center justify-center cursor-pointer transition-colors hover:bg-muted/80" style={{ border: "1.5px dashed hsl(var(--border))", background: "hsl(var(--muted) / 0.5)" }}>
+                        <Upload size={14} className="text-muted-foreground" />
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                          const file = e.target.files?.[0]; if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = () => { setClarifierImages(prev => [...prev, { file, dataUrl: reader.result as string }]); extractionTriggered.current = false; };
+                          reader.readAsDataURL(file); e.target.value = "";
+                        }} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {/* Extraction status */}
+                {(clarifierDocs.length > 0 || clarifierImages.length > 0) && (
+                  <div className="space-y-2">
+                    {!extracting && !extraction && (
+                      <button type="button" onClick={runExtraction} className="w-full py-2.5 rounded-lg text-xs font-semibold border transition-all flex items-center justify-center gap-2 hover:shadow-sm" style={{ borderColor: `hsl(var(${cssVar}) / 0.3)`, color: `hsl(var(${cssVar}))`, background: `hsl(var(${cssVar}) / 0.06)` }}>
+                        <Sparkles size={13} /> Extract Intelligence from Uploads
+                      </button>
+                    )}
+                    {extracting && (
+                      <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg border text-xs" style={{ borderColor: `hsl(var(${cssVar}) / 0.2)`, background: `hsl(var(${cssVar}) / 0.04)`, color: `hsl(var(${cssVar}))` }}>
+                        <Loader2 size={14} className="animate-spin" /> Analyzing documents…
+                      </div>
+                    )}
+                    {extraction && (
+                      <div className="px-3 py-2.5 rounded-lg border text-xs space-y-1" style={{ borderColor: "hsl(142 70% 40% / 0.3)", background: "hsl(142 70% 40% / 0.04)" }}>
+                        <div className="flex items-center gap-1.5 font-semibold" style={{ color: "hsl(142 70% 40%)" }}>
+                          <CheckCircle2 size={13} /> Intelligence extracted
+                        </div>
+                        <p className="text-muted-foreground leading-relaxed">
+                          {extraction.business_overview?.primary_offering && <span><strong className="text-foreground">Offering:</strong> {extraction.business_overview.primary_offering}. </span>}
+                          {extraction.constraints?.length > 0 && <span><strong className="text-foreground">{extraction.constraints.length} constraints</strong> identified. </span>}
+                          This data will power your analysis.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Launch button */}
+                <button
+                  onClick={handleLaunchAnalysis}
+                  disabled={launching || isLoading || extracting}
+                  className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  style={{ background: `hsl(var(${cssVar}))` }}
+                >
+                  {launching || isLoading ? (
+                    <><Loader2 size={16} className="animate-spin" /> Analyzing…</>
+                  ) : extracting ? (
+                    <><Loader2 size={16} className="animate-spin" /> Extracting…</>
+                  ) : (
+                    <><Zap size={16} /> Start {modeLabel} Analysis</>
+                  )}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
       </main>
     </div>
   );
