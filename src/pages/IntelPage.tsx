@@ -15,6 +15,8 @@ import { PatentTreemap } from "@/components/intel/PatentTreemap";
 import { AboutDataPanel } from "@/components/intel/AboutDataPanel";
 import { MarketNewsSection } from "@/components/intel/MarketNewsSection";
 import { PlatformAnalyticsVisual } from "@/components/intel/PlatformAnalyticsVisual";
+import { RegulatoryLandscapeCard } from "@/components/intel/RegulatoryLandscapeCard";
+import { useAuth } from "@/hooks/useAuth";
 
 const CATEGORY_COLORS = [
   "hsl(var(--primary))", "hsl(var(--destructive))", "hsl(142 76% 36%)",
@@ -23,6 +25,7 @@ const CATEGORY_COLORS = [
 ];
 
 export default function IntelPage() {
+  const { user } = useAuth();
   const { tier } = useSubscription();
   const [patents, setPatents] = useState<any[]>([]);
   const [trends, setTrends] = useState<any[]>([]);
@@ -38,8 +41,9 @@ export default function IntelPage() {
   const [topFlippedIdeas, setTopFlippedIdeas] = useState<any[]>([]);
   const [notableScores, setNotableScores] = useState<any[]>([]);
   const [monthlyActivity, setMonthlyActivity] = useState<any[]>([]);
+  const [regulatoryData, setRegulatoryData] = useState<any[]>([]);
 
-  useEffect(() => { fetchAllData(); }, []);
+  useEffect(() => { fetchAllData(); }, [user]);
 
   async function fetchAllData() {
     setLoading(true);
@@ -73,6 +77,32 @@ export default function IntelPage() {
     if (patentRes.data?.[0]?.scraped_at) {
       const patentTime = patentRes.data[0].scraped_at;
       if (!lastUpdated || patentTime > lastUpdated) setLastUpdated(patentTime);
+    }
+
+    // Extract regulatory data from saved analyses
+    if (user?.id) {
+      const { data: analyses } = await supabase
+        .from("saved_analyses")
+        .select("analysis_data, category")
+        .eq("user_id", user.id)
+        .not("analysis_data", "is", null)
+        .order("updated_at", { ascending: false })
+        .limit(50);
+
+      if (analyses) {
+        const regMap = new Map<string, any>();
+        for (const a of analyses) {
+          const ad = a.analysis_data as any;
+          const reg = ad?.regulatoryIntelligence || ad?.regulatory_intelligence || ad?.regulatory;
+          if (reg && (reg.agencies?.length || reg.active_rulemaking?.length || reg.state_variances?.length)) {
+            const cat = reg.category || a.category || "Unknown";
+            if (!regMap.has(cat)) {
+              regMap.set(cat, { category: cat, ...reg });
+            }
+          }
+        }
+        setRegulatoryData(Array.from(regMap.values()));
+      }
     }
 
     setLoading(false);
@@ -611,6 +641,11 @@ export default function IntelPage() {
 
         {/* ── Market News ── */}
         <MarketNewsSection news={news} />
+
+        {/* ── Regulatory Landscape ── */}
+        {regulatoryData.length > 0 && (
+          <RegulatoryLandscapeCard regulatoryData={regulatoryData} />
+        )}
 
         {/* ── Platform Analytics ── */}
         {platformOverview && (
