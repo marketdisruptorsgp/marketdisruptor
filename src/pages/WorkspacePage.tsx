@@ -5,8 +5,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { HeroSection } from "@/components/HeroSection";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Database, TrendingUp, Award, Calendar, Crown, Heart, ArrowRight, PlusCircle } from "lucide-react";
+import { Database, TrendingUp, Award, Calendar, Crown, Heart, ArrowRight, PlusCircle, Search, SlidersHorizontal } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ProjectInsightCard } from "@/components/portfolio/ProjectInsightCard";
 import { ScoreInsightPanel } from "@/components/portfolio/ScoreInsightPanel";
@@ -86,16 +85,25 @@ export default function WorkspacePage() {
   const [filterMode, setFilterMode] = useState<string>("all");
   const [filterScore, setFilterScore] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "score">("date");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredAnalyses = useMemo(() => {
     let result = [...analyses];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(a =>
+        (a.title || "").toLowerCase().includes(q) ||
+        (a.category || "").toLowerCase().includes(q) ||
+        (a.analysis_type || "").toLowerCase().includes(q)
+      );
+    }
     if (filterMode !== "all") result = result.filter(a => (a.analysis_type || "product") === filterMode);
     if (filterScore === "high") result = result.filter(a => (a.avg_revival_score || 0) >= 7.5);
     else if (filterScore === "mid") result = result.filter(a => (a.avg_revival_score || 0) >= 5 && (a.avg_revival_score || 0) < 7.5);
     else if (filterScore === "low") result = result.filter(a => (a.avg_revival_score || 0) < 5);
     if (sortBy === "score") result.sort((a, b) => (b.avg_revival_score || 0) - (a.avg_revival_score || 0));
     return result;
-  }, [analyses, filterMode, filterScore, sortBy]);
+  }, [analyses, filterMode, filterScore, sortBy, searchQuery]);
 
   const totalProjects = analyses.length;
   const avgScore = totalProjects > 0
@@ -108,14 +116,6 @@ export default function WorkspacePage() {
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
 
-  const timeline = useMemo(() => {
-    const map: Record<string, number> = {};
-    analyses.forEach((a) => {
-      const month = format(parseISO(a.created_at), "MMM yyyy");
-      map[month] = (map[month] || 0) + 1;
-    });
-    return Object.entries(map).map(([month, count]) => ({ month, count })).reverse();
-  }, [analyses]);
 
   const favorites = useMemo(() => {
     return analyses.filter(a => a.is_favorite).sort((a, b) => (b.avg_revival_score || 0) - (a.avg_revival_score || 0)).slice(0, 5);
@@ -293,55 +293,163 @@ export default function WorkspacePage() {
               )}
             </div>
 
-            {/* Section 2: Projects Grid */}
+            {/* Section 2: All Projects with Search/Filter */}
             <div className="rounded-xl border border-border bg-card p-5">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="typo-section-title text-foreground">Projects</p>
-                <InfoExplainer text="All your saved analyses. Select up to 3 to compare across strategic dimensions." />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <p className="typo-section-title text-foreground">All Projects</p>
+                  <InfoExplainer text="All your saved analyses. Use search and filters to find projects. Select up to 3 to compare." />
+                  <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{filteredAnalyses.length}</span>
+                </div>
               </div>
-              <p className="typo-card-body text-foreground/70 mb-4">
-                Select projects to compare across revival score, risk, market size, GTM readiness, innovation, and unit economics.
-              </p>
-              <div className="flex flex-wrap gap-1.5 mb-5">
-                {analyses.slice(0, 20).map((a) => (
-                  <button key={a.id} onClick={() => toggleCompare(a.id)}
-                    className="px-3 py-1.5 rounded-lg typo-card-meta font-medium transition-all"
-                    style={{
-                      background: compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--background))",
-                      color: compareIds.has(a.id) ? "white" : "hsl(var(--foreground))",
-                      border: `1.5px solid ${compareIds.has(a.id) ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-                      boxShadow: compareIds.has(a.id) ? "0 2px 8px hsl(var(--primary) / 0.25)" : "none",
-                    }}>
-                    {(a.title || "Untitled").length > 25 ? (a.title || "Untitled").slice(0, 25) + "..." : (a.title || "Untitled")}
+
+              {/* Search + Filters */}
+              <div className="space-y-3 mb-5">
+                <div className="relative">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search projects by name, category..."
+                    className="w-full pl-9 pr-3 py-2.5 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <SlidersHorizontal size={13} className="text-muted-foreground" />
+                  {/* Mode filter */}
+                  {[
+                    { key: "all", label: "All Types" },
+                    { key: "product", label: "Product" },
+                    { key: "service", label: "Service" },
+                    { key: "business_model", label: "Business" },
+                  ].map((f) => (
+                    <button
+                      key={f.key}
+                      onClick={() => setFilterMode(f.key)}
+                      className="px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors"
+                      style={{
+                        background: filterMode === f.key ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                        color: filterMode === f.key ? "white" : "hsl(var(--foreground))",
+                      }}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                  <span className="text-border">|</span>
+                  {/* Score filter */}
+                  {[
+                    { key: "all", label: "Any Score" },
+                    { key: "high", label: "7.5+" },
+                    { key: "mid", label: "5–7.4" },
+                    { key: "low", label: "<5" },
+                  ].map((f) => (
+                    <button
+                      key={f.key}
+                      onClick={() => setFilterScore(f.key)}
+                      className="px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors"
+                      style={{
+                        background: filterScore === f.key ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                        color: filterScore === f.key ? "white" : "hsl(var(--foreground))",
+                      }}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                  <span className="text-border">|</span>
+                  {/* Sort */}
+                  <button
+                    onClick={() => setSortBy(sortBy === "date" ? "score" : "date")}
+                    className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted text-foreground transition-colors hover:bg-muted/80"
+                  >
+                    Sort: {sortBy === "date" ? "Newest" : "Top Score"}
                   </button>
-                ))}
+                </div>
               </div>
-              <ComparisonInsightView compareList={compareList} />
+
+              {/* Project list */}
+              {filteredAnalyses.length === 0 ? (
+                <div className="text-center py-8">
+                  <Search size={24} className="mx-auto mb-2 opacity-20" />
+                  <p className="text-sm text-muted-foreground">No projects match your filters.</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                  {filteredAnalyses.map((a) => {
+                    const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
+                    const score = a.avg_revival_score || 0;
+                    const isCompared = compareIds.has(a.id);
+                    return (
+                      <div
+                        key={a.id}
+                        className="flex items-center gap-3 rounded-lg p-3 transition-all hover:bg-muted/50 group"
+                        style={{
+                          border: `1.5px solid ${isCompared ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+                          background: isCompared ? "hsl(var(--primary) / 0.04)" : "hsl(var(--background))",
+                        }}
+                      >
+                        {/* Compare checkbox */}
+                        <button
+                          onClick={() => toggleCompare(a.id)}
+                          className="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
+                          style={{
+                            borderColor: isCompared ? "hsl(var(--primary))" : "hsl(var(--border))",
+                            background: isCompared ? "hsl(var(--primary))" : "transparent",
+                          }}
+                          title="Compare"
+                        >
+                          {isCompared && <span className="text-white text-[10px] font-bold">✓</span>}
+                        </button>
+
+                        {/* Main clickable area */}
+                        <button
+                          onClick={() => analysis.handleLoadSaved(a as any)}
+                          className="flex-1 min-w-0 text-left"
+                        >
+                          <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">{a.title || "Untitled"}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: `${cat.color}15`, color: cat.color }}>
+                              {cat.label}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">{a.category}</span>
+                            <span className="text-[10px] text-muted-foreground">·</span>
+                            <span className="text-[10px] text-muted-foreground">{format(parseISO(a.created_at), "MMM d, yyyy")}</span>
+                          </div>
+                        </button>
+
+                        {/* Score */}
+                        {score > 0 && (
+                          <span className="text-sm font-bold tabular-nums flex-shrink-0" style={{ color: getScoreColor(score) }}>{score}/10</span>
+                        )}
+
+                        {/* Favorite */}
+                        <button
+                          onClick={() => toggleFavorite(a.id)}
+                          className="p-1.5 rounded-lg hover:bg-muted transition-colors flex-shrink-0"
+                        >
+                          <Heart size={13} className={a.is_favorite ? "text-primary fill-primary" : "text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Comparison view */}
+              {compareList.length > 0 && (
+                <div className="mt-5 pt-4 border-t border-border">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                    Comparing {compareList.length} project{compareList.length > 1 ? "s" : ""}
+                  </p>
+                  <ComparisonInsightView compareList={compareList} />
+                </div>
+              )}
             </div>
 
             {/* Section 3: Action Items */}
             <ActionItemsPanel analyses={analyses} />
 
-            {/* Section 4: Recent Activity */}
-            {timeline.length > 1 && (
-              <div className="rounded-xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="typo-section-title text-foreground">Recent Activity</p>
-                  <InfoExplainer text="Your analysis cadence over time. Consistent exploration compounds strategic intuition." />
-                </div>
-                <p className="typo-card-body text-foreground/70 mb-4">
-                  Your analysis activity over time.
-                </p>
-                <ResponsiveContainer width="100%" height={140}>
-                  <AreaChart data={timeline}>
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="count" fill="hsl(var(--primary) / 0.12)" stroke="hsl(var(--primary))" strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+            {/* Recent Activity section removed */}
 
             {/* Score Intelligence */}
             <ScoreInsightPanel analyses={analyses} />
