@@ -6,7 +6,7 @@ import { AnalysisStepIndicator } from "@/components/AnalysisStepIndicator";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   Upload, Briefcase, Building2, ArrowRight, CheckCircle2, Camera,
-  AlertCircle, Zap, Layers,
+  AlertCircle, Zap, Layers, ScanLine, Coffee, ShoppingBag, Headphones,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -74,6 +74,12 @@ const MODE_LABELS: Record<string, string> = {
   business: "Business Model",
 };
 
+const PHOTO_EXAMPLES = [
+  { icon: Coffee, label: "Your morning coffee maker", detail: "Why does this design dominate? What's the disruption opportunity?" },
+  { icon: ShoppingBag, label: "A competitor's packaging", detail: "Snap it at the store — get a full positioning teardown in seconds." },
+  { icon: Headphones, label: "Your office headphones", detail: "Materials, ergonomics, pricing leverage — all from one photo." },
+];
+
 export default function NewAnalysisPage() {
   const navigate = useNavigate();
   const { tier } = useSubscription();
@@ -81,7 +87,6 @@ export default function NewAnalysisPage() {
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [problemText, setProblemText] = useState("");
   const [routing, setRouting] = useState<RoutingResult | null>(null);
-  const [isOverride, setIsOverride] = useState(false);
   const [useDeconstruct, setUseDeconstruct] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -108,17 +113,12 @@ export default function NewAnalysisPage() {
     if (problemText.trim().length < 15) return;
     if (!routing) runRouting(problemText);
     setUseDeconstruct(true);
-    // Auto-select primary mode
-    if (routing) {
-      setSelectedMode(toCardId(routing.primaryMode));
-      setIsOverride(false);
-    }
+    setSelectedMode(null);
   };
 
   const handleCardClick = (id: string) => {
     setSelectedMode(id);
     setUseDeconstruct(false);
-    if (routing) setIsOverride(toCardId(routing.primaryMode) !== id);
   };
 
   const handleContinue = () => {
@@ -137,12 +137,9 @@ export default function NewAnalysisPage() {
   };
 
   const userExplanation = routing ? explainRouting(routing) : null;
-
-  // Detected modes for the multi-mode indicator
   const detectedModes = routing
     ? [toCardId(routing.primaryMode), ...routing.secondaryModes.map(toCardId)]
     : [];
-
   const canContinue = useDeconstruct ? !!routing : !!selectedMode;
 
   return (
@@ -156,150 +153,11 @@ export default function NewAnalysisPage() {
           Select Analysis Mode
         </h1>
         <p className="typo-page-meta text-sm sm:text-base max-w-2xl leading-relaxed mb-8">
-          Describe your challenge below and we'll auto-detect the right modes — or select one directly.
+          Pick a mode if you already know your focus — or describe your challenge below for auto-detection.
         </p>
 
-        {/* ── Deconstruct My Problem ── */}
-        <div
-          className="mb-8 rounded-2xl border-2 overflow-hidden transition-all"
-          style={{
-            borderColor: useDeconstruct
-              ? "hsl(var(--mode-multi))"
-              : routing
-                ? "hsl(var(--mode-multi) / 0.5)"
-                : "hsl(var(--border))",
-            borderTopWidth: "3px",
-            borderTopColor: "hsl(var(--mode-multi))",
-          }}
-        >
-          <div className="p-5 sm:p-6">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: "hsl(var(--mode-multi) / 0.12)" }}
-              >
-                <Layers size={20} style={{ color: "hsl(var(--mode-multi))" }} />
-              </div>
-              <div>
-                <h2 className="typo-section-title text-lg">Deconstruct My Problem</h2>
-                <p className="text-xs text-muted-foreground">
-                  Explain your challenge — we'll determine which analysis modes apply.
-                </p>
-              </div>
-            </div>
-
-            {/* Textarea */}
-            <Textarea
-              value={problemText}
-              onChange={(e) => handleTextChange(e.target.value)}
-              placeholder="e.g. Our product manufacturing costs are too high and our delivery process takes too long for enterprise clients…"
-              className="input-executive min-h-[100px] text-sm leading-relaxed resize-none border-border/60 focus:border-[hsl(var(--mode-multi))]"
-              rows={4}
-            />
-
-            {/* Routing explanation banner */}
-            {userExplanation && (
-              <div
-                className="mt-4 rounded-xl border px-4 py-3 text-sm"
-                style={{
-                  borderColor: "hsl(var(--mode-multi) / 0.3)",
-                  background: "hsl(var(--mode-multi) / 0.04)",
-                }}
-              >
-                <div className="flex items-start gap-3">
-                  <Zap size={16} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--mode-multi))" }} />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <span className="text-xs font-medium text-muted-foreground">Detected modes:</span>
-                      {detectedModes.map((modeId) => (
-                        <span
-                          key={modeId}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold"
-                          style={{
-                            background: `hsl(var(${MODE_CSS_VAR[modeId]}) / 0.15)`,
-                            color: `hsl(var(${MODE_CSS_VAR[modeId]}))`,
-                          }}
-                        >
-                          <span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ background: `hsl(var(${MODE_CSS_VAR[modeId]}))` }}
-                          />
-                          {MODE_LABELS[modeId]}
-                          {modeId === toCardId(routing!.primaryMode) && (
-                            <span className="opacity-60 ml-0.5">({userExplanation.confidence}%)</span>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                    <p
-                      className="text-foreground/70 text-xs leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: userExplanation.explanation.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>'),
-                      }}
-                    />
-
-                    {userExplanation.confidence < 45 && (
-                      <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <AlertCircle size={12} />
-                        Low confidence — add more detail for a stronger match.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* CTA button */}
-            <div className="mt-4 flex items-center justify-between">
-              <p className="text-xs text-muted-foreground max-w-sm">
-                {routing
-                  ? "Click below to lock in detected modes and continue."
-                  : "Type at least 15 characters to auto-detect analysis modes."}
-              </p>
-              <button
-                onClick={handleDeconstruct}
-                disabled={problemText.trim().length < 15}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{
-                  background: "hsl(var(--mode-multi))",
-                  color: "white",
-                }}
-              >
-                <Zap size={14} />
-                Deconstruct My Problem
-              </button>
-            </div>
-          </div>
-
-          {/* Active state indicator */}
-          {useDeconstruct && routing && (
-            <div
-              className="px-5 py-3 flex items-center gap-2 text-xs font-medium border-t"
-              style={{
-                background: "hsl(var(--mode-multi) / 0.06)",
-                borderColor: "hsl(var(--mode-multi) / 0.15)",
-                color: "hsl(var(--mode-multi))",
-              }}
-            >
-              <CheckCircle2 size={14} />
-              Problem deconstructed — {detectedModes.length} mode{detectedModes.length > 1 ? "s" : ""} selected.
-              <span className="text-muted-foreground font-normal ml-1">
-                Or select a specific mode below to override.
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">or select a mode directly</span>
-          <div className="h-px flex-1 bg-border" />
-        </div>
-
-        {/* Mode cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* ── Mode Cards (top) ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
           {MODES.map((mode) => {
             const Icon = mode.icon;
             const isSelected = !useDeconstruct && selectedMode === mode.id;
@@ -334,7 +192,7 @@ export default function NewAnalysisPage() {
                         <CheckCircle2 size={14} className="text-white" />
                       </div>
                     )}
-                    {isDetected && !isSelected && (
+                    {isDetected && (
                       <span
                         className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
                         style={{
@@ -370,25 +228,210 @@ export default function NewAnalysisPage() {
           })}
         </div>
 
-        {/* Photo Analysis quick-access */}
+        {/* ── Divider: call attention to Deconstruct ── */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="h-px flex-1 bg-border" />
+          <span
+            className="text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full"
+            style={{
+              background: "hsl(var(--mode-multi) / 0.1)",
+              color: "hsl(var(--mode-multi))",
+            }}
+          >
+            or let us figure it out
+          </span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        {/* ── Deconstruct My Problem ── */}
         <div
-          onClick={() => navigate("/instant-analysis")}
-          className="mt-5 rounded-2xl border-2 border-dashed border-border bg-muted/30 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 cursor-pointer transition-all hover:border-primary/40 hover:shadow-md group"
+          className="mb-8 rounded-2xl border-2 overflow-hidden transition-all"
+          style={{
+            borderColor: useDeconstruct
+              ? "hsl(var(--mode-multi))"
+              : routing
+                ? "hsl(var(--mode-multi) / 0.5)"
+                : "hsl(var(--border))",
+            borderTopWidth: "3px",
+            borderTopColor: "hsl(var(--mode-multi))",
+            background: useDeconstruct ? "hsl(var(--mode-multi) / 0.02)" : undefined,
+          }}
         >
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 group-hover:bg-primary/15 transition-colors">
-            <Camera size={22} className="text-primary" />
+          <div className="p-5 sm:p-6">
+            {/* Header */}
+            <div className="flex items-start gap-3 mb-1">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: "hsl(var(--mode-multi) / 0.12)" }}
+              >
+                <Layers size={20} style={{ color: "hsl(var(--mode-multi))" }} />
+              </div>
+              <div>
+                <h2 className="typo-section-title text-lg">Deconstruct My Problem</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed mt-1 max-w-xl">
+                  Not sure which mode fits? Describe your specific challenge in plain language.
+                  We'll analyze your input and automatically apply <strong className="text-foreground">every relevant mode</strong> —
+                  so you get a comprehensive, tailored analysis instead of picking just one.
+                </p>
+              </div>
+            </div>
+
+            {/* Textarea */}
+            <div className="mt-4">
+              <Textarea
+                value={problemText}
+                onChange={(e) => handleTextChange(e.target.value)}
+                placeholder='e.g. "Our product costs too much to manufacture and enterprise clients say our onboarding takes too long…"'
+                className="input-executive min-h-[100px] text-sm leading-relaxed resize-none"
+                rows={4}
+              />
+            </div>
+
+            {/* Routing result */}
+            {userExplanation && (
+              <div
+                className="mt-4 rounded-xl border px-4 py-3 text-sm"
+                style={{
+                  borderColor: "hsl(var(--mode-multi) / 0.3)",
+                  background: "hsl(var(--mode-multi) / 0.04)",
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  <Zap size={16} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--mode-multi))" }} />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <span className="text-xs font-medium text-muted-foreground">Modes we'll apply:</span>
+                      {detectedModes.map((modeId) => (
+                        <span
+                          key={modeId}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                          style={{
+                            background: `hsl(var(${MODE_CSS_VAR[modeId]}) / 0.15)`,
+                            color: `hsl(var(${MODE_CSS_VAR[modeId]}))`,
+                          }}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ background: `hsl(var(${MODE_CSS_VAR[modeId]}))` }}
+                          />
+                          {MODE_LABELS[modeId]}
+                          {modeId === toCardId(routing!.primaryMode) && (
+                            <span className="opacity-60">· {userExplanation.confidence}%</span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                    <p
+                      className="text-foreground/70 text-xs leading-relaxed"
+                      dangerouslySetInnerHTML={{
+                        __html: userExplanation.explanation.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>'),
+                      }}
+                    />
+                    {userExplanation.confidence < 45 && (
+                      <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <AlertCircle size={12} />
+                        Low confidence — add more detail for a stronger match.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* CTA */}
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <p className="text-xs text-muted-foreground">
+                {routing
+                  ? "Lock in detected modes and continue."
+                  : "Type at least 15 characters to auto-detect."}
+              </p>
+              <button
+                onClick={handleDeconstruct}
+                disabled={problemText.trim().length < 15}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+                style={{
+                  background: "hsl(var(--mode-multi))",
+                  color: "white",
+                }}
+              >
+                <Zap size={14} />
+                Deconstruct My Problem
+              </button>
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className="typo-section-title text-base mb-1">Photo Analysis</h3>
-            <p className="typo-card-body text-muted-foreground text-sm leading-relaxed">
-              Snap a photo or upload an image for instant competitive teardown.
-            </p>
+
+          {/* Confirmation strip */}
+          {useDeconstruct && routing && (
+            <div
+              className="px-5 py-3 flex items-center gap-2 text-xs font-medium border-t"
+              style={{
+                background: "hsl(var(--mode-multi) / 0.06)",
+                borderColor: "hsl(var(--mode-multi) / 0.15)",
+                color: "hsl(var(--mode-multi))",
+              }}
+            >
+              <CheckCircle2 size={14} />
+              Problem deconstructed — {detectedModes.length} mode{detectedModes.length > 1 ? "s" : ""} will be applied.
+            </div>
+          )}
+        </div>
+
+        {/* ── Photo Analysis ── */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">instant analysis</span>
+            <div className="h-px flex-1 bg-border" />
           </div>
-          <ArrowRight size={18} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 hidden sm:block" />
+
+          <div
+            onClick={() => navigate("/instant-analysis")}
+            className="rounded-2xl border-2 border-dashed border-border bg-card p-5 sm:p-6 cursor-pointer transition-all hover:border-primary/40 hover:shadow-lg group"
+          >
+            <div className="flex items-start gap-4 mb-5">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 group-hover:bg-primary/15 transition-colors flex-shrink-0">
+                <Camera size={22} className="text-primary" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="typo-section-title text-lg">Photo Analysis</h3>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/10 text-primary">
+                    Instant
+                  </span>
+                </div>
+                <p className="typo-card-body text-muted-foreground leading-relaxed max-w-xl">
+                  See a product in the wild? Snap a photo. We'll identify it, run a full competitive teardown,
+                  and surface redesign opportunities — all from a single image. No typing required.
+                </p>
+              </div>
+              <ArrowRight size={18} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-1 hidden sm:block" />
+            </div>
+
+            {/* Examples */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {PHOTO_EXAMPLES.map((ex) => {
+                const ExIcon = ex.icon;
+                return (
+                  <div
+                    key={ex.label}
+                    className="flex items-start gap-3 rounded-xl bg-muted/50 p-3"
+                  >
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/8 flex-shrink-0 mt-0.5">
+                      <ExIcon size={15} className="text-primary/70" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{ex.label}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{ex.detail}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Continue button */}
-        <div className="mt-8 flex justify-end">
+        <div className="flex justify-end">
           <button
             onClick={handleContinue}
             disabled={!canContinue}
