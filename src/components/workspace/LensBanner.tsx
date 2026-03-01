@@ -203,22 +203,18 @@ export function LensBanner() {
                       }`}
                       onClick={() => handleSelectCustom(lens)}
                     >
-                      {activeLens?.id === lens.id ? (
+                      {activeLens?.id === lens.id && (
                         <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                           <Check size={10} className="text-primary-foreground" />
                         </div>
-                      ) : (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setDeletingLens(lens); }}
-                          className="absolute top-2 right-2 w-6 h-6 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 hover:!opacity-100 hover:bg-destructive/10 transition-all"
-                          style={{ opacity: undefined }}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0"; }}
-                          aria-label={`Delete ${lens.name}`}
-                        >
-                          <Trash2 size={12} className="text-destructive" />
-                        </button>
                       )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDeletingLens(lens); }}
+                        className={`absolute ${activeLens?.id === lens.id ? "top-2 right-9" : "top-2 right-2"} w-6 h-6 rounded-lg flex items-center justify-center hover:bg-destructive/10 transition-colors`}
+                        aria-label={`Delete ${lens.name}`}
+                      >
+                        <Trash2 size={12} className="text-destructive/60 hover:text-destructive" />
+                      </button>
                       <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
                         <Star size={14} className="text-foreground/60" />
                       </div>
