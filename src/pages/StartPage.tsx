@@ -70,9 +70,9 @@ const PIPELINE_STEPS = [
 ];
 
 const MODES = [
-  { id: "product", label: "Product", icon: Upload, cssVar: "--mode-product", path: "/start/product" },
-  { id: "service", label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/start/service" },
-  { id: "business", label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/start/business" },
+  { id: "product", label: "Product", icon: Upload, cssVar: "--mode-product", path: "/analysis/new" },
+  { id: "service", label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/analysis/new" },
+  { id: "business", label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/analysis/new" },
 ];
 
 export default function StartPage() {

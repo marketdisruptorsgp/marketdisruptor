@@ -26,9 +26,9 @@ const MODE_WORDS = [
 
 
 const MODE_PILLS = [
-{ id: "custom" as const, label: "Product", icon: Upload, cssVar: "--mode-product", path: "/start/product" },
-{ id: "service" as const, label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/start/service" },
-{ id: "business" as const, label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/start/business" }];
+{ id: "custom" as const, label: "Product", icon: Upload, cssVar: "--mode-product", path: "/analysis/new" },
+{ id: "service" as const, label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/analysis/new" },
+{ id: "business" as const, label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/analysis/new" }];
 
 
 export default function DashboardPage() {

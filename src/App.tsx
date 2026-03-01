@@ -79,10 +79,10 @@ function AppRoutes() {
           {/* Legacy redirects */}
           <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
           <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
-          {/* Analysis pipeline routes */}
-          <Route path="/start/product" element={<StartProductPage />} />
-          <Route path="/start/service" element={<StartServicePage />} />
-          <Route path="/start/business" element={<StartBusinessPage />} />
+          {/* Legacy redirects for start pages */}
+          <Route path="/start/product" element={<Navigate to="/analysis/new" replace />} />
+          <Route path="/start/service" element={<Navigate to="/analysis/new" replace />} />
+          <Route path="/start/business" element={<Navigate to="/analysis/new" replace />} />
           <Route path="/analysis/:id/report" element={<ReportPage />} />
           <Route path="/analysis/:id/disrupt" element={<DisruptPage />} />
           <Route path="/analysis/:id/redesign" element={<RedesignPage />} />
