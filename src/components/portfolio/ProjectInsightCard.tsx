@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { Lightbulb, Rocket, Target, ChevronRight, Presentation, StickyNote, Heart } from "lucide-react";
+import { Lightbulb, Rocket, Target, ChevronRight, Presentation, StickyNote, Heart, FileDown, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectNotesEditor } from "./ProjectNotesEditor";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
+import { toast } from "sonner";
 
 interface SavedAnalysis {
   id: string;
@@ -45,6 +47,22 @@ export function ProjectInsightCard({ analysis, onOpen, onToggleFavorite }: { ana
   const hasPitch = !!(analysis.analysis_data as any)?.pitchDeck;
   const projectNotes = (analysis.analysis_data as any)?.projectNotes || "";
   const [notesOpen, setNotesOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPDF = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const products = (analysis.products || []) as any[];
+    const syntheticProduct = products[0] || { name: analysis.title, category: analysis.category };
+    setExporting(true);
+    try {
+      downloadFullAnalysisPDF(syntheticProduct, analysis.analysis_data || null);
+      toast.success("Full report exported!");
+    } catch {
+      toast.error("Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleSaveNotes = async (notes: string) => {
     try {
@@ -128,7 +146,16 @@ export function ProjectInsightCard({ analysis, onOpen, onToggleFavorite }: { ana
           </div>
         )}
 
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handleExportPDF}
+            disabled={exporting}
+            className="flex items-center gap-1 typo-card-meta font-semibold px-2 py-1 rounded-md transition-colors hover:bg-primary/10 text-primary"
+            title="Download Full Report PDF"
+          >
+            {exporting ? <Loader2 size={11} className="animate-spin" /> : <FileDown size={11} />}
+            PDF Report
+          </button>
           <ChevronRight size={14} className="text-muted-foreground/40 group-hover:text-foreground transition-colors" />
         </div>
       </button>
