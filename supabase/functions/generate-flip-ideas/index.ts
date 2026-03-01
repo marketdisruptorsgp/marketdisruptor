@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, missingDataWarning } from "../_shared/modeEnforcement.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
+import { enforceVisualContract } from "../_shared/visualFallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -228,6 +229,33 @@ Return ONLY a JSON array with exactly ${ideaCount} flipped idea objects.${buildL
     }
 
     if (!Array.isArray(ideas)) ideas = [ideas];
+
+    // Enforce visual contract on each idea that has a visualSpec
+    for (const idea of ideas) {
+      if (idea && typeof idea === "object") {
+        // Per-idea visual spec is optional but enforce if schema expects it
+        const ideaObj = idea as Record<string, unknown>;
+        if (!ideaObj.visualSpec || !(ideaObj.visualSpec as Record<string, unknown>)?.nodes?.length) {
+          // Generate a minimal per-idea visual from available data
+          const name = String(ideaObj.name || "Idea");
+          ideaObj.visualSpec = {
+            visual_type: "causal_chain",
+            title: `${name} — Mechanism`,
+            nodes: [
+              { id: "constraint", label: String(ideaObj.demandSignal || "Market gap").slice(0, 50), type: "constraint", priority: 1 },
+              { id: "intervention", label: name.slice(0, 50), type: "intervention", priority: 2 },
+              { id: "outcome", label: String(ideaObj.whyNow || "New value created").slice(0, 50), type: "outcome", priority: 3 },
+            ],
+            edges: [
+              { from: "constraint", to: "intervention", relationship: "relaxed_by" },
+              { from: "intervention", to: "outcome", relationship: "produces" },
+            ],
+            layout: "linear",
+            interpretation: `${name} addresses the identified gap to produce the target outcome.`,
+          };
+        }
+      }
+    }
 
     return new Response(JSON.stringify({ success: true, ideas }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

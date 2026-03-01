@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export interface VisualNode {
   id: string;
@@ -52,12 +54,23 @@ const PRIORITY_INDICATOR = (p?: number) => {
   );
 };
 
-function NodeCard({ node }: { node: VisualNode }) {
+const nodeVariant = {
+  hidden: { opacity: 0, y: 6 },
+  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.15 } }),
+};
+
+function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; index?: number; expandable?: boolean }) {
+  const [expanded, setExpanded] = useState(false);
   const s = NODE_STYLES[node.type] || NODE_STYLES.effect;
   return (
-    <div
-      className="px-3 py-2 rounded-lg min-w-[120px] max-w-[220px]"
+    <motion.div
+      custom={index}
+      variants={nodeVariant}
+      initial="hidden"
+      animate="visible"
+      className={cn("px-3 py-2 rounded-lg min-w-[120px] max-w-[220px]", expandable && "cursor-pointer")}
       style={{ background: s.bg, border: `1.5px solid ${s.border}`, color: s.text }}
+      onClick={expandable ? () => setExpanded(!expanded) : undefined}
     >
       <div className="flex items-center gap-1.5 mb-0.5">
         <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style={{ background: `${s.badge}18`, color: s.badge }}>
@@ -66,7 +79,10 @@ function NodeCard({ node }: { node: VisualNode }) {
         {PRIORITY_INDICATOR(node.priority)}
       </div>
       <p className="text-xs font-semibold leading-snug">{node.label}</p>
-    </div>
+      {expanded && node.attributes && (
+        <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{node.attributes}</p>
+      )}
+    </motion.div>
   );
 }
 
@@ -74,16 +90,13 @@ function CausalChain({ spec }: { spec: VisualSpec }) {
   const orderedNodeIds: string[] = [];
   const edgeMap = new Map<string, VisualEdge>();
 
-  // Build adjacency
   for (const e of spec.edges) {
     edgeMap.set(e.from, e);
   }
 
-  // Find start nodes (not a target of any edge)
   const targets = new Set(spec.edges.map(e => e.to));
   const starts = spec.nodes.filter(n => !targets.has(n.id));
   
-  // Walk chains
   const visited = new Set<string>();
   const walk = (id: string) => {
     if (visited.has(id)) return;
@@ -93,30 +106,51 @@ function CausalChain({ spec }: { spec: VisualSpec }) {
     if (edge) walk(edge.to);
   };
   starts.forEach(n => walk(n.id));
-  // Add any unvisited
   spec.nodes.forEach(n => { if (!visited.has(n.id)) orderedNodeIds.push(n.id); });
 
   const nodeMap = new Map(spec.nodes.map(n => [n.id, n]));
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {orderedNodeIds.map((id, i) => {
-        const node = nodeMap.get(id);
-        if (!node) return null;
-        const edge = edgeMap.get(id);
-        return (
-          <div key={id} className="flex items-center gap-2">
-            <NodeCard node={node} />
-            {i < orderedNodeIds.length - 1 && edge && (
-              <div className="flex flex-col items-center gap-0.5 px-1">
-                <span className="text-[9px] font-semibold text-muted-foreground whitespace-nowrap">{edge.label || RELATIONSHIP_LABELS[edge.relationship]}</span>
-                <span className="text-muted-foreground text-sm">→</span>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+    <>
+      {/* Desktop: horizontal scroll */}
+      <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1">
+        {orderedNodeIds.map((id, i) => {
+          const node = nodeMap.get(id);
+          if (!node) return null;
+          const edge = edgeMap.get(id);
+          return (
+            <div key={id} className="flex items-center gap-2 flex-shrink-0">
+              <NodeCard node={node} index={i} expandable />
+              {i < orderedNodeIds.length - 1 && edge && (
+                <div className="flex flex-col items-center gap-0.5 px-1">
+                  <span className="text-[9px] font-semibold text-muted-foreground whitespace-nowrap">{edge.label || RELATIONSHIP_LABELS[edge.relationship]}</span>
+                  <span className="text-muted-foreground text-sm">→</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {/* Mobile: vertical stack */}
+      <div className="flex sm:hidden flex-col gap-1.5">
+        {orderedNodeIds.map((id, i) => {
+          const node = nodeMap.get(id);
+          if (!node) return null;
+          const edge = edgeMap.get(id);
+          return (
+            <div key={id} className="space-y-1">
+              <NodeCard node={node} index={i} expandable />
+              {i < orderedNodeIds.length - 1 && edge && (
+                <div className="flex items-center gap-1.5 pl-4">
+                  <span className="text-muted-foreground text-sm">↓</span>
+                  <span className="text-[9px] font-semibold text-muted-foreground">{edge.label || RELATIONSHIP_LABELS[edge.relationship]}</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -130,7 +164,7 @@ function LeverageHierarchy({ spec }: { spec: VisualSpec }) {
             style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
             {i + 1}
           </span>
-          <NodeCard node={node} />
+          <NodeCard node={node} index={i} expandable />
         </div>
       ))}
     </div>
@@ -139,22 +173,19 @@ function LeverageHierarchy({ spec }: { spec: VisualSpec }) {
 
 function ConstraintMap({ spec }: { spec: VisualSpec }) {
   const nodeMap = new Map(spec.nodes.map(n => [n.id, n]));
-  // Group by type for a structured layout
   const constraints = spec.nodes.filter(n => n.type === "constraint");
   const others = spec.nodes.filter(n => n.type !== "constraint");
 
   return (
     <div className="space-y-3">
-      {/* Constraints row */}
       {constraints.length > 0 && (
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">System Constraints</p>
           <div className="flex flex-wrap gap-2">
-            {constraints.map(n => <NodeCard key={n.id} node={n} />)}
+            {constraints.map((n, i) => <NodeCard key={n.id} node={n} index={i} expandable />)}
           </div>
         </div>
       )}
-      {/* Edges */}
       {spec.edges.length > 0 && (
         <div className="space-y-1 pl-2" style={{ borderLeft: "2px solid hsl(var(--border))" }}>
           {spec.edges.map((e, i) => {
@@ -171,10 +202,9 @@ function ConstraintMap({ spec }: { spec: VisualSpec }) {
           })}
         </div>
       )}
-      {/* Other nodes */}
       {others.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {others.map(n => <NodeCard key={n.id} node={n} />)}
+          {others.map((n, i) => <NodeCard key={n.id} node={n} index={i + constraints.length} expandable />)}
         </div>
       )}
     </div>
@@ -189,7 +219,13 @@ export function StructuralVisual({ spec }: { spec: VisualSpec }) {
     : ConstraintMap;
 
   return (
-    <div className="rounded-xl p-4" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.15 }}
+      className="rounded-xl p-4"
+      style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}
+    >
       {spec.title && (
         <p className="text-xs font-bold text-foreground mb-0.5">{spec.title}</p>
       )}
@@ -197,7 +233,7 @@ export function StructuralVisual({ spec }: { spec: VisualSpec }) {
         <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">{spec.interpretation}</p>
       )}
       <Renderer spec={spec} />
-    </div>
+    </motion.div>
   );
 }
 

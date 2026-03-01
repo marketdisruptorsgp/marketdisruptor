@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
+import { enforceVisualContract } from "../_shared/visualFallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -400,6 +401,8 @@ Return ONLY the JSON object.`;
         exitStrategy: deck.investmentAsk?.exitStrategy || "",
       };
     }
+
+    enforceVisualContract(deck);
 
     // ── Output Validation ──
     const validationResult = validateOutput(mode, deck);
