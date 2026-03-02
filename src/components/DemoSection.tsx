@@ -5,13 +5,12 @@ import { Play, Pause, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import SceneLimitation from "./demo/SceneLimitation";
 import SceneEngagement from "./demo/SceneEngagement";
 import SceneFlip from "./demo/SceneFlip";
-import SceneGeneralization from "./demo/SceneGeneralization";
 import SceneSynthesis from "./demo/SceneSynthesis";
 import ScenePositioning from "./demo/ScenePositioning";
 
 /* ═══════════════════════════════════════════════════════════════
-   CINEMATIC PRODUCT DEMO — 60s, 6 scenes
-   Premium product launch storytelling. Not a tutorial.
+   CINEMATIC PRODUCT FILM — 60s, 5 scenes
+   Intelligence reveal. Not a tutorial.
    ═══════════════════════════════════════════════════════════════ */
 
 interface Scene {
@@ -22,30 +21,27 @@ interface Scene {
 }
 
 const SCENES: Scene[] = [
-  { id: "limitation", title: "The Limitation", duration: 8000, Component: SceneLimitation },
-  { id: "engagement", title: "System Engagement", duration: 12000, Component: SceneEngagement },
-  { id: "flip", title: "First-Principles Flip", duration: 12000, Component: SceneFlip },
-  { id: "generalization", title: "Generalization", duration: 10000, Component: SceneGeneralization },
-  { id: "synthesis", title: "Decision Synthesis", duration: 10000, Component: SceneSynthesis },
-  { id: "positioning", title: "Positioning", duration: 8000, Component: ScenePositioning },
+  { id: "limitation", title: "Limitation", duration: 8000, Component: SceneLimitation },
+  { id: "engagement", title: "Engagement", duration: 12000, Component: SceneEngagement },
+  { id: "flip", title: "The Flip", duration: 20000, Component: SceneFlip },
+  { id: "synthesis", title: "Clarity", duration: 15000, Component: SceneSynthesis },
+  { id: "positioning", title: "Position", duration: 5000, Component: ScenePositioning },
 ];
 
 const TOTAL_DURATION = SCENES.reduce((s, sc) => s + sc.duration, 0);
 
-/* ── Voiceover narration scripts ── */
+/* ── Voiceover narration — locked script ── */
 const NARRATION: Record<string, string> = {
   limitation:
-    "Conventional tools recommend improvements without understanding the system. More power. More features. More noise. None of it addresses the real problem.",
+    "Most analysis improves features. But features aren't the system.",
   engagement:
-    "The system maps every friction, scores each constraint, and mathematically proves which one dominates. Coverage geometry emerges as the binding constraint... removing it resolves seventy-three percent of downstream problems.",
+    "Real performance is determined by structure — and structure is governed by constraint.",
   flip:
-    "This is the moment everything changes. Conventional thinking says increase power. Structural reasoning says fix coverage geometry. The entire recommendation flips... when the real constraint is identified.",
-  generalization:
-    "Same reasoning engine. Product mode reveals design geometry. Service mode reveals placement workflow. Business mode reveals install footprint. Three domains. One structural truth.",
+    "Instead of optimizing symptoms, the system decomposes the product, maps causality, and identifies what actually limits performance. When the dominant constraint is revealed, the solution isn't chosen — it becomes inevitable.",
   synthesis:
-    "From objective, to binding constraint, to leverage point, to decision. The causal chain assembles itself. Confidence locks. Execution priority is clear.",
+    "Change the structure. The outcome changes with it.",
   positioning:
-    "Stop optimizing symptoms. Identify what actually drives outcomes.",
+    "Market Disruptor. See what to change.",
 };
 
 /* ── TTS Audio Engine ── */
@@ -149,7 +145,7 @@ export default function DemoSection() {
     };
   }, [playing, active, scene.duration]);
 
-  // Sync audio with play/mute state
+  // Sync audio with play/mute
   useEffect(() => {
     if (playing && !muted) resumeAudio();
     else pauseAudio();
@@ -205,7 +201,7 @@ export default function DemoSection() {
           className="text-[9px] font-bold uppercase tracking-[0.25em]"
           style={{ color: "hsl(var(--muted-foreground) / 0.5)" }}
         >
-          Product Demo
+          Product Film
         </p>
         <div className="flex items-center gap-1.5">
           <button
@@ -322,7 +318,7 @@ export default function DemoSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="flex-1 flex flex-col"
           >
             <scene.Component />
