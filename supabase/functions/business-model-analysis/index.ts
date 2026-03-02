@@ -7,6 +7,7 @@ import { getGovernedSchemaPrompt, buildValidationObject, deepValidateGoverned } 
 import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
+import { extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -239,27 +240,18 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     }
 
     const aiData = await response.json();
-    const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
 
-    let cleaned = rawText
-      .replace(/^```(?:json)?\s*/im, "")
-      .replace(/\s*```\s*$/m, "")
-      .trim();
-
-    const firstBrace = cleaned.indexOf("{");
-    const lastBrace = cleaned.lastIndexOf("}");
-    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-      cleaned = cleaned.slice(firstBrace, lastBrace + 1);
-    }
-
+    // §2: Structured output extraction
     let analysis;
     try {
-      analysis = JSON.parse(cleaned);
+      analysis = extractStructuredResponse(aiData);
     } catch (parseErr) {
-      console.error("JSON parse failed:", parseErr);
-      console.error("Raw content (first 500):", cleaned.slice(0, 500));
-      throw new Error("AI returned invalid JSON. Please retry.");
+      console.error("[StructuredOutput] Extraction failed:", parseErr);
+      throw new Error("AI returned invalid output. Please retry.");
     }
+
+    const structuredValidation = validateStructuredResponse(analysis, "business-model-analysis");
+    console.log(`[StructuredOutput] business-model: valid=${structuredValidation.valid}, missing=${structuredValidation.missing.length}`);
 
     enforceVisualContract(analysis);
 

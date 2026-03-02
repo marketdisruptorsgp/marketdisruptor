@@ -727,6 +727,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       // ── GOVERNED: Extract and persist governed artifacts at TOP LEVEL ──
       const { extractGovernedArtifacts, mergeGovernedIntoAnalysisData, checkRetroactiveInvalidation, applyRetroactiveInvalidation } = await import("@/lib/governedPersistence");
       const { buildEvidenceRegistry } = await import("@/lib/evidenceRegistry");
+      const { applyLensAdaptation } = await import("@/lib/lensAdaptationEngine");
       const extraction = extractGovernedArtifacts(stepKey, data);
       
       let merged: Record<string, unknown> = { ...prev, [stepKey]: data, previousSnapshot, governedHashes };
@@ -740,6 +741,19 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         const registry = buildEvidenceRegistry(merged);
         merged._evidenceRegistry = registry;
         console.log(`[EvidenceRegistry] ${registry.trace}`);
+
+        // §7: Apply lens adaptation — re-score constraints under active lens
+        const governedForLens = merged.governed as Record<string, unknown> | undefined;
+        if (governedForLens) {
+          const activeLens = (merged as any)._activeLens || null;
+          const lensResult = applyLensAdaptation(governedForLens, activeLens);
+          if (lensResult) {
+            merged._lensAdaptation = lensResult;
+            if (lensResult.structuralChangeLog.length > 0) {
+              console.log(`[LensAdaptation] Structural changes: ${lensResult.structuralChangeLog.join(" | ")}`);
+            }
+          }
+        }
         
         // ── RETROACTIVE INVALIDATION: Check if falsification triggers upstream downgrades ──
         const governedObj = merged.governed as Record<string, unknown>;

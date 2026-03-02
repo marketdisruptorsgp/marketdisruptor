@@ -115,36 +115,16 @@ function buildInsightMap(data: Record<string, unknown>): VisualSpec | null {
   };
 }
 
-function buildIntelligenceSurface(data: Record<string, unknown>): VisualSpec | null {
-  const signalKeys = Object.keys(data).filter(k => {
-    const v = data[k];
-    if (v === null || v === undefined) return false;
-    if (typeof v === "string") return v.trim().length > 5;
-    if (Array.isArray(v)) return v.length > 0;
-    if (typeof v === "object") return Object.keys(v as object).length > 0;
-    return false;
-  });
-
-  const topKeys = signalKeys.slice(0, 6);
-  if (topKeys.length < 2) return null;
-
-  const nodes: VisualNode[] = topKeys.map((k, i) => ({
-    id: `signal_${i}`,
-    label: k.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase()).trim(),
-    role: "system" as const,
-    priority: 2 as const,
-    certainty: "assumption" as const,
-  }));
-
-  return {
-    visual_type: "system_model",
-    title: "Available Intelligence",
-    nodes,
-    edges: [],
-    structurally_grounded: false,
-    version: 1,
-    interpretation: "Signals detected but structural relationships unclear.",
-  };
+/**
+ * §9 VISUAL TRUTHFULNESS: buildIntelligenceSurface is SUPPRESSED when governed data exists.
+ * This function only runs as a last-resort for legacy analyses without governed artifacts.
+ * It is explicitly blocked from producing visuals from object key names.
+ */
+function buildIntelligenceSurface(_data: Record<string, unknown>): VisualSpec | null {
+  // §9: Suppress key-name-based visual generation entirely.
+  // Visuals must derive from governed causal structure.
+  // If we reach this point, it means no governed data and no insights — return null.
+  return null;
 }
 
 /* ── Action Plan Extraction (from visualContract) ── */
