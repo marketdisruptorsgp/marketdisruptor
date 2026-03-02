@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { StructuralVisualList, type VisualSpec } from "./StructuralVisual";
 import { ActionPlanList, type ActionPlan } from "./ActionPlanCard";
+import { getEnforcedVisualSpecs, getEnforcedActionPlans } from "@/lib/visualContract";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -208,9 +209,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
       <div className="space-y-4">
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
 
-        {/* L1 Executive Signal — Structural Visuals & Action Plans */}
-        <StructuralVisualList specs={data.visualSpecs} />
-        <ActionPlanList plans={data.actionPlans} />
+        {/* L1 Executive Signal — Structural Visuals & Action Plans (enforced) */}
+        <StructuralVisualList specs={getEnforcedVisualSpecs(data as unknown as Record<string, unknown>)} />
+        <ActionPlanList plans={getEnforcedActionPlans(data as unknown as Record<string, unknown>)} />
 
         <PitchDeckToggle contentKey="stressTestDebate" label="Include in Pitch Deck" />
 
