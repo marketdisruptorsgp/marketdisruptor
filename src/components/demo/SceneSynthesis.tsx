@@ -1,111 +1,142 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Target, Search, Zap, Shield, ArrowDown } from "lucide-react";
 
-/* Scene 5 — DECISION SYNTHESIS
-   Final recommendation assembles from causal chain. Confidence locks. */
+/* ═══════════════════════════════════════════════════════════════
+   SCENE 5 — DECISION SYNTHESIS
+   A causal chain materializes vertically.
+   Each node connects to the next with a directed line.
+   Confidence emerges as the chain completes.
+   The decision feels inevitable — assembled, not recommended.
+   ═══════════════════════════════════════════════════════════════ */
+
+const CHAIN = [
+  { label: "Objective", opacity: 0.25 },
+  { label: "Constraint", opacity: 0.4 },
+  { label: "Leverage", opacity: 0.65 },
+  { label: "Decision", opacity: 1 },
+];
+
 export default function SceneSynthesis() {
-  const chain = [
-    { Icon: Target, label: "Objective", value: "Maximize drying completion" },
-    { Icon: Search, label: "Binding Constraint", value: "Coverage geometry gap" },
-    { Icon: Zap, label: "Leverage", value: "Nozzle spread redesign" },
-    {
-      Icon: Shield,
-      label: "Decision",
-      value: "Proceed — 73% friction reduction",
-      final: true,
-    },
-  ];
-
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <div className="w-full max-w-sm space-y-1">
-        {chain.map((s, i) => (
-          <React.Fragment key={i}>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: i * 0.8,
-                duration: 0.5,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="rounded-xl p-4 border flex items-center gap-3"
-              style={{
-                background: s.final
-                  ? "hsl(var(--primary) / 0.05)"
-                  : "hsl(var(--muted) / 0.3)",
-                borderColor: s.final
-                  ? "hsl(var(--primary) / 0.3)"
-                  : "hsl(var(--border))",
-              }}
-            >
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{
-                  background: s.final
-                    ? "hsl(var(--primary) / 0.12)"
-                    : "hsl(var(--muted))",
-                }}
-              >
-                <s.Icon
-                  className="w-4 h-4"
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+      <div className="relative flex flex-col items-center" style={{ height: 280 }}>
+        {CHAIN.map((node, i) => {
+          const isFinal = i === CHAIN.length - 1;
+          const delay = i * 1.0;
+
+          return (
+            <div key={i} className="flex flex-col items-center">
+              {/* Connecting line */}
+              {i > 0 && (
+                <motion.div
+                  className="rounded-full"
                   style={{
-                    color: s.final
-                      ? "hsl(var(--primary))"
-                      : "hsl(var(--muted-foreground))",
+                    width: 1.5,
+                    background: isFinal
+                      ? "hsl(var(--primary) / 0.4)"
+                      : "hsl(var(--foreground) / 0.08)",
+                  }}
+                  initial={{ height: 0 }}
+                  animate={{ height: 28 }}
+                  transition={{
+                    delay: delay - 0.3,
+                    duration: 0.5,
+                    ease: [0.22, 1, 0.36, 1],
                   }}
                 />
-              </div>
-              <div>
-                <p
-                  className="text-[9px] font-bold uppercase tracking-[0.2em]"
+              )}
+
+              {/* Node */}
+              <motion.div
+                className="flex items-center gap-3"
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  delay,
+                  duration: 0.6,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              >
+                <motion.div
+                  className="rounded-full flex items-center justify-center"
                   style={{
-                    color: s.final
-                      ? "hsl(var(--primary) / 0.7)"
-                      : "hsl(var(--muted-foreground) / 0.5)",
+                    width: isFinal ? 40 : 28,
+                    height: isFinal ? 40 : 28,
+                    background: isFinal
+                      ? "hsl(var(--primary) / 0.1)"
+                      : "hsl(var(--foreground) / 0.03)",
+                    border: `${isFinal ? 2 : 1}px solid ${
+                      isFinal
+                        ? "hsl(var(--primary) / 0.3)"
+                        : "hsl(var(--foreground) / 0.06)"
+                    }`,
+                  }}
+                  animate={
+                    isFinal
+                      ? {
+                          boxShadow: [
+                            "0 0 0 0px hsl(var(--primary) / 0)",
+                            "0 0 0 10px hsl(var(--primary) / 0.04)",
+                            "0 0 0 0px hsl(var(--primary) / 0)",
+                          ],
+                        }
+                      : {}
+                  }
+                  transition={
+                    isFinal
+                      ? { delay: 4, duration: 2.5, repeat: Infinity }
+                      : {}
+                  }
+                >
+                  {isFinal && (
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ background: "hsl(var(--primary))" }}
+                    />
+                  )}
+                </motion.div>
+                <span
+                  className="text-[10px] font-semibold tracking-wide"
+                  style={{
+                    color: isFinal
+                      ? "hsl(var(--primary))"
+                      : `hsl(var(--foreground) / ${node.opacity})`,
                   }}
                 >
-                  {s.label}
-                </p>
-                <p
-                  className="text-sm font-semibold mt-0.5"
-                  style={{ color: "hsl(var(--foreground))" }}
-                >
-                  {s.value}
-                </p>
-              </div>
-            </motion.div>
-            {i < chain.length - 1 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.3 }}
-                transition={{ delay: i * 0.8 + 0.4 }}
-                className="flex justify-center py-0.5"
-              >
-                <ArrowDown className="w-3 h-3" style={{ color: "hsl(var(--primary))" }} />
+                  {node.label}
+                </span>
               </motion.div>
-            )}
-          </React.Fragment>
-        ))}
+            </div>
+          );
+        })}
 
         {/* Confidence lock */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 3.6, duration: 0.5 }}
-          className="rounded-xl p-3 mt-3 text-center border"
-          style={{
-            background: "hsl(var(--primary) / 0.06)",
-            borderColor: "hsl(var(--primary) / 0.15)",
-          }}
+          className="mt-6 flex items-center gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 4.5, duration: 0.8 }}
         >
-          <p
-            className="text-[10px] font-bold uppercase tracking-[0.15em]"
-            style={{ color: "hsl(var(--primary))" }}
+          <motion.div
+            className="h-px"
+            style={{ background: "hsl(var(--primary) / 0.2)" }}
+            initial={{ width: 0 }}
+            animate={{ width: 20 }}
+            transition={{ delay: 4.8, duration: 0.6 }}
+          />
+          <span
+            className="text-[8px] font-bold uppercase tracking-[0.2em]"
+            style={{ color: "hsl(var(--primary) / 0.4)" }}
           >
-            Confidence: High · Execution Priority: 1
-          </p>
+            Confidence locked
+          </span>
+          <motion.div
+            className="h-px"
+            style={{ background: "hsl(var(--primary) / 0.2)" }}
+            initial={{ width: 0 }}
+            animate={{ width: 20 }}
+            transition={{ delay: 4.8, duration: 0.6 }}
+          />
         </motion.div>
       </div>
     </div>
