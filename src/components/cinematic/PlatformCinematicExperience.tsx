@@ -45,7 +45,8 @@ interface Props {
 export default function PlatformCinematicExperience({ dataBindings }: Props) {
   const [state, setState] = useState<"idle" | "loading" | "playing" | "paused" | "ended">("idle");
   const [progress, setProgress] = useState(0);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const autoplayTriggered = useRef(false);
   const [subtitle, setSubtitle] = useState("");
   const [audioFailed, setAudioFailed] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -235,6 +236,18 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
     return () => document.removeEventListener("fullscreenchange", onFsChange);
   }, []);
 
+  /* ── Autoplay on mute ── */
+  useEffect(() => {
+    if (autoplayTriggered.current) return;
+    autoplayTriggered.current = true;
+    // Small delay to let canvas mount
+    const t = setTimeout(() => {
+      setMuted(true);
+      startPlayback();
+    }, 600);
+    return () => clearTimeout(t);
+  }, [startPlayback]);
+
   /* ── Cleanup ── */
   useEffect(() => {
     return () => {
@@ -325,7 +338,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
                 className="text-[10px] font-bold tracking-[0.25em] uppercase"
                 style={{ color: "rgba(30,31,46,0.4)" }}
               >
-                Platform Intelligence Film
+                See How It Works
               </p>
 
               <button
@@ -359,7 +372,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
               </button>
 
               <p className="text-[11px] font-medium" style={{ color: "rgba(30,31,46,0.35)" }}>
-                60-second overview · {audioFailed ? "Visuals only" : "With voiceover"}
+                {muted ? "Tap to unmute" : "Watch the overview"}
               </p>
             </motion.div>
           )}
