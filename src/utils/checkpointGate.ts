@@ -204,3 +204,63 @@ function isGovernedStepData(stepKey: string, data: unknown): boolean {
   const d = data as Record<string, unknown>;
   return !!d.governed || !!d._governedValidation;
 }
+
+/**
+ * ARTIFACT VERSIONING: Compute a hash of governed artifact content
+ * for dependency tracking. If upstream hash changes, downstream must regenerate.
+ */
+export function computeArtifactHash(artifact: unknown): string {
+  if (!artifact) return "null";
+  const str = JSON.stringify(artifact);
+  // Simple hash for change detection (not cryptographic)
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0;
+  }
+  return `v${Math.abs(hash).toString(36)}`;
+}
+
+/**
+ * Check if downstream artifacts are stale based on upstream dependency hashes.
+ */
+export function checkDependencyFreshness(
+  stepId: string,
+  currentHashes: Record<string, string>,
+  storedUpstreamHashes: Record<string, string> | undefined
+): { fresh: boolean; staleUpstream: string[] } {
+  const deps = GOVERNED_DEPENDENCY_GRAPH[stepId];
+  if (!deps || deps.length === 0) return { fresh: true, staleUpstream: [] };
+  if (!storedUpstreamHashes) return { fresh: false, staleUpstream: deps };
+  
+  const stale = deps.filter(dep => {
+    const current = currentHashes[dep];
+    const stored = storedUpstreamHashes[dep];
+    return !current || !stored || current !== stored;
+  });
+  
+  return { fresh: stale.length === 0, staleUpstream: stale };
+}
+
+/**
+ * Enforce dependency integrity during saveStepData.
+ * Returns steps that must be purged due to upstream changes.
+ */
+export function enforceDependencyIntegrity(
+  stepKey: string,
+  newData: unknown,
+  existingGovernedHashes: Record<string, string>
+): { purgeSteps: string[]; newHash: string } {
+  const newHash = computeArtifactHash(newData);
+  const existingHash = existingGovernedHashes[stepKey];
+  
+  // If hash hasn't changed, no downstream impact
+  if (existingHash && existingHash === newHash) {
+    return { purgeSteps: [], newHash };
+  }
+  
+  // Hash changed → invalidate all downstream
+  const purgeSteps = getInvalidatedSteps(stepKey);
+  return { purgeSteps, newHash };
+}

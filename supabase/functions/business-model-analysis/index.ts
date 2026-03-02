@@ -3,6 +3,9 @@ import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { resolveMode, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
+import { getGovernedSchemaPrompt, buildValidationObject, deepValidateGoverned } from "../_shared/governedSchema.ts";
+import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
+import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -195,7 +198,10 @@ VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 2-3 action plans for highest-leverage interventions. Each must connect to a specific constraint.
 - Only generate visuals when structural causality is clear. Do not force visuals.
 
-Return ONLY the JSON object.${buildLensPrompt(lens)}`;
+GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include a "governed" object:
+${getGovernedSchemaPrompt("first-principles")}
+
+Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -256,7 +262,55 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
     enforceVisualContract(analysis);
 
-    return new Response(JSON.stringify({ success: true, analysis }), {
+    // ── Governed: build validation object for checkpoint gates ──
+    const governed = analysis.governed || {};
+    const governedValidation = buildValidationObject("first-principles", governed, [
+      "domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"
+    ]);
+    console.log(`[Governed] business-model-analysis validation:`, JSON.stringify(governedValidation));
+
+    // ── RUNTIME ENFORCEMENT: Return 422 if governed validation fails ──
+    if (!governedValidation.validation_passed) {
+      console.error(`[Governed] CHECKPOINT BLOCKED: ${governedValidation.blocking_reason_if_any}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Governed validation failed — required reasoning artifacts missing",
+        _governedValidation: governedValidation,
+        analysis,
+      }), {
+        status: 422,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Deep validation: check field quality ──
+    const deepValidation = deepValidateGoverned(governed);
+    if (!deepValidation.validation_passed) {
+      console.error(`[Governed] DEEP VALIDATION FAILED: ${deepValidation.blocking_reason_if_any}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Governed deep validation failed — structural artifacts incomplete",
+        _governedValidation: deepValidation,
+        analysis,
+      }), {
+        status: 422,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Evidence-governed confidence computation ──
+    const confidenceResult = computeGovernedConfidence(governed);
+    console.log(`[Governed] Computed confidence: ${confidenceResult.computation_trace}`);
+    // Override AI-generated confidence with computed confidence
+    if (governed.decision_synthesis) {
+      const ds = governed.decision_synthesis as Record<string, unknown>;
+      ds.confidence_score = confidenceResult.computed_confidence;
+      ds.decision_grade = confidenceResult.computed_decision_grade;
+      ds._confidence_computation = confidenceResult.computation_trace;
+      ds._evidence_distribution = confidenceResult.evidence_distribution;
+    }
+
+    return new Response(JSON.stringify({ success: true, analysis, _governedValidation: governedValidation }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

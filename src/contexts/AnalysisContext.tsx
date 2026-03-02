@@ -689,7 +689,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
 
     // ── GOVERNED: Checkpoint gate — validate governed artifacts before persistence ──
-    const { validateBeforePersistence } = await import("@/utils/checkpointGate");
+    const { validateBeforePersistence, enforceDependencyIntegrity, computeArtifactHash } = await import("@/utils/checkpointGate");
     const governedCheck = validateBeforePersistence(stepKey, data);
     if (!governedCheck.allowed) {
       console.error(`[Governed] PERSISTENCE BLOCKED for "${stepKey}": ${governedCheck.reason}`);
@@ -719,15 +719,24 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         previousSnapshot[stepKey] = prev[stepKey];
       }
 
+      // ── GOVERNED: Artifact versioning + dependency integrity ──
+      const governedHashes = (prev.governedHashes as Record<string, string>) || {};
+      const depIntegrity = enforceDependencyIntegrity(stepKey, data, governedHashes);
+      governedHashes[stepKey] = depIntegrity.newHash;
+
       // ── GOVERNED: Purge invalidated downstream governed artifacts ──
-      const merged = { ...prev, [stepKey]: data, previousSnapshot };
-      if (governedCheck.invalidatedSteps.length > 0) {
-        for (const depStep of governedCheck.invalidatedSteps) {
-          // Only purge governed sub-artifacts, not primary step data
+      const merged = { ...prev, [stepKey]: data, previousSnapshot, governedHashes };
+      const allPurgeSteps = [...new Set([...governedCheck.invalidatedSteps, ...depIntegrity.purgeSteps])];
+      if (allPurgeSteps.length > 0) {
+        for (const depStep of allPurgeSteps) {
+          markStepOutdated(depStep);
+          // Purge governed sub-artifacts
           const governedData = merged.governed as Record<string, unknown> | undefined;
           if (governedData && governedData[depStep]) {
             console.log(`[Governed] Purging stale governed artifact: ${depStep}`);
             delete governedData[depStep];
+            // Remove stale hash
+            delete governedHashes[depStep];
           }
         }
       }
