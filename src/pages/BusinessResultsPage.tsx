@@ -9,6 +9,7 @@ import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
+import { gatherBusinessAnalysisData } from "@/lib/gatherAnalysisData";
 import { InfoExplainer } from "@/components/InfoExplainer";
 
 import type { Product } from "@/data/mockProducts";
@@ -108,7 +109,7 @@ export default function BusinessResultsPage() {
                   <p className="typo-card-body text-muted-foreground">Deep business model deconstruction for <strong className="text-foreground">{bizName}</strong></p>
                 </div>
                 
-                <button onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct, analysis.businessAnalysisData as any)}
+                <button onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct, gatherBusinessAnalysisData(analysis))}
                   className="flex items-center gap-1.5 px-3 py-2 rounded typo-button-secondary transition-colors"
                   style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
                   <FileDown size={12} /> PDF
