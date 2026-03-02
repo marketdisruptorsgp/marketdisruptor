@@ -1,11 +1,14 @@
 /* =========================================================
    VISUAL STORY COMPILER
-   Insight-structure-driven story selection.
+   Governed-artifact-driven story selection.
+   Uses causal structure from governed data when available,
+   falls back to heuristic signal ranking otherwise.
    Step biases preference; structure determines outcome.
    ========================================================= */
 
 import type { RankedSignal, SignalRole, SignalRelationship } from "./signalRanking";
 import { inferRelationships } from "./signalRanking";
+import { extractFromGoverned } from "./governedSignalExtraction";
 import type { AnalysisStep } from "./stepVisualTypes";
 
 export type VisualStoryType =
@@ -138,21 +141,37 @@ const STORY_QUESTIONS: Record<VisualStoryType, string> = {
   PRIORITIZED_SIGNAL_FIELD: "What matters most in this analysis?",
 };
 
-/** Core compiler: insight structure determines story, step biases preference */
+/** Core compiler: governed causal structure first, heuristic fallback second */
 export function compileVisualStory(
   rankedSignals: RankedSignal[],
-  stepType?: AnalysisStep
+  stepType?: AnalysisStep,
+  governedData?: Record<string, unknown> | null
 ): VisualStory {
-  const drivers = countByRole(rankedSignals, "driver");
-  const constraints = countByRole(rankedSignals, "constraint");
-  const mechanisms = countByRole(rankedSignals, "mechanism");
-  const assumptions = countByRole(rankedSignals, "assumption");
-  const leverages = countByRole(rankedSignals, "leverage");
-  const outcomes = countByRole(rankedSignals, "outcome");
+  // ── GOVERNED PATH: Extract signals from governed artifacts if available ──
+  let activeSignals = rankedSignals;
+  let activeRelationships: SignalRelationship[] | null = null;
+
+  if (governedData && Object.keys(governedData).length > 0) {
+    const governedResult = extractFromGoverned(governedData);
+    if (governedResult && governedResult.signals.length >= 3) {
+      activeSignals = governedResult.signals;
+      activeRelationships = governedResult.relationships;
+      console.log(`[VisualStoryCompiler] Using GOVERNED signals (${governedResult.signals.length} signals, ${governedResult.relationships.length} relationships)`);
+    } else {
+      console.log(`[VisualStoryCompiler] Governed data insufficient (${governedResult?.signals.length || 0} signals), falling back to heuristic`);
+    }
+  }
+
+  const drivers = countByRole(activeSignals, "driver");
+  const constraints = countByRole(activeSignals, "constraint");
+  const mechanisms = countByRole(activeSignals, "mechanism");
+  const assumptions = countByRole(activeSignals, "assumption");
+  const leverages = countByRole(activeSignals, "leverage");
+  const outcomes = countByRole(activeSignals, "outcome");
 
   // 1. Score each story type by structural fit
   const structuralScores = scoreStructuralFit(
-    drivers, constraints, mechanisms, assumptions, leverages, rankedSignals.length
+    drivers, constraints, mechanisms, assumptions, leverages, activeSignals.length
   );
 
   // 2. Apply step bias — add bonus to preferred types (bias, not override)
@@ -176,17 +195,17 @@ export function compileVisualStory(
   }
 
   // 4. Validate: a visual must have relationships to render
-  const relationships = inferRelationships(rankedSignals);
+  const relationships = activeRelationships ?? inferRelationships(activeSignals);
   if (relationships.length === 0 && bestType !== "PRIORITIZED_SIGNAL_FIELD") {
     // If no relationships, only allow signal field or clustered (which is a field variant)
     if (bestType !== "CLUSTERED_INTELLIGENCE") {
-      bestType = rankedSignals.length >= 5 ? "CLUSTERED_INTELLIGENCE" : "PRIORITIZED_SIGNAL_FIELD";
+      bestType = activeSignals.length >= 5 ? "CLUSTERED_INTELLIGENCE" : "PRIORITIZED_SIGNAL_FIELD";
     }
   }
 
   const meta = STORY_META[bestType];
   const verdict = synthesizeVerdict(drivers, constraints, assumptions, outcomes);
-  const topSignals = rankedSignals.slice(0, 8);
+  const topSignals = activeSignals.slice(0, 8);
 
   return {
     type: bestType,

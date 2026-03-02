@@ -538,9 +538,10 @@ export function AnalysisVisualLayer({
   const result = resolveAdaptiveVisuals(analysis);
   const stepConfig = getStepVisualConfig(step);
 
-  // Compile visual story from ranked signals
+  // Compile visual story — governed causal structure preferred, heuristic fallback
   const rankedSignals = useMemo(() => extractAndRankSignals(analysis), [analysis]);
-  const story = useMemo(() => compileVisualStory(rankedSignals, step), [rankedSignals, step]);
+  const governedData = useMemo(() => (analysis?.governed as Record<string, unknown>) || null, [analysis]);
+  const story = useMemo(() => compileVisualStory(rankedSignals, step, governedData), [rankedSignals, step, governedData]);
   const validation = useMemo(() => validateVisualStory(story, rankedSignals), [story, rankedSignals]);
   
   // Enforcement gate: only render story visual if validation passes
