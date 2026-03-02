@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════
-   CANVAS CINEMATIC ENGINE v3 — World-class light UI aesthetic
+   CANVAS CINEMATIC ENGINE v4 — HIGH CONTRAST, HIGH IMPACT
    
-   Premium structural visuals on white background.
-   Rounded cards with depth, flowing connections,
-   radial glows, particle fields, and typographic hierarchy.
+   Bold structural visuals. Gradient-filled blocks, deep shadows,
+   intense glows, thick animated flow lines, dramatic particles.
+   Every element pops against a clean white canvas.
    ═══════════════════════════════════════════════════════════════ */
 
 export interface CameraState {
@@ -29,9 +29,15 @@ export interface UIBlock {
   cornerRadius?: number;
   accentBar?: boolean;
   strikethrough?: boolean;
-  progressBar?: number; // 0-1
+  progressBar?: number;
   progressColor?: string;
-  iconDot?: string; // color of small indicator dot
+  iconDot?: string;
+  fillGradient?: boolean; // NEW: gradient fill instead of white
+  fillColor?: string; // NEW: solid background tint
+  shadowColor?: string; // NEW: custom shadow color
+  scale?: number; // NEW: scale transform
+  badge?: string; // NEW: small text badge top-right
+  badgeColor?: string;
 }
 
 export interface FlowLine {
@@ -41,6 +47,8 @@ export interface FlowLine {
   strength: number;
   animated: boolean;
   dashed?: boolean;
+  thick?: boolean; // NEW: thick lines for emphasis
+  glowTrail?: boolean; // NEW: glowing trail effect
 }
 
 export interface TextElement {
@@ -55,6 +63,9 @@ export interface TextElement {
   maxWidth?: number;
   font?: string;
   letterSpacing?: number;
+  shadow?: boolean; // NEW: text shadow for punch
+  underline?: boolean; // NEW: underline accent
+  underlineColor?: string;
 }
 
 export interface Particle {
@@ -65,6 +76,7 @@ export interface Particle {
   opacity: number;
   vx?: number;
   vy?: number;
+  ring?: boolean; // NEW: ring particle instead of filled
 }
 
 export interface SceneFrame {
@@ -77,7 +89,9 @@ export interface SceneFrame {
   bgGradient?: { stops: { offset: number; color: string }[] };
   accentGlow?: { x: number; y: number; radius: number; color: string; intensity: number };
   secondaryGlow?: { x: number; y: number; radius: number; color: string; intensity: number };
+  tertiaryGlow?: { x: number; y: number; radius: number; color: string; intensity: number };
   scanLine?: { y: number; color: string; opacity: number };
+  vignette?: number; // NEW: edge darkening 0-1
 }
 
 /* ── Math helpers ── */
@@ -142,7 +156,7 @@ export function renderFrame(
   }
   ctx.fillRect(0, 0, W, H);
 
-  // Subtle dot grid (more refined than lines)
+  // Subtle dot grid
   renderDotGrid(ctx, W, H, time, dpr);
 
   // Camera transform
@@ -152,28 +166,43 @@ export function renderFrame(
   ctx.scale(frame.camera.zoom, frame.camera.zoom);
   ctx.translate(-cx + frame.camera.x * dpr, -cy + frame.camera.y * dpr);
 
-  // Primary accent glow
+  // Glows — much more intense now
   if (frame.accentGlow && frame.accentGlow.intensity > 0) {
     renderRadialGlow(ctx, frame.accentGlow, W, H);
   }
-
-  // Secondary glow
   if (frame.secondaryGlow && frame.secondaryGlow.intensity > 0) {
     renderRadialGlow(ctx, frame.secondaryGlow, W, H);
   }
+  if (frame.tertiaryGlow && frame.tertiaryGlow.intensity > 0) {
+    renderRadialGlow(ctx, frame.tertiaryGlow, W, H);
+  }
 
-  // Particles (behind blocks)
+  // Particles (behind blocks) — bigger and bolder
   for (const p of frame.particles) {
     if (p.opacity <= 0) continue;
     const px = p.x * W;
     const py = p.y * H;
-    ctx.beginPath();
-    ctx.arc(px, py, p.radius * dpr, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${hexToRgb(p.color)}, ${p.opacity})`;
-    ctx.fill();
+    const r = p.radius * dpr;
+    if (p.ring) {
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${hexToRgb(p.color)}, ${p.opacity})`;
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.stroke();
+    } else {
+      // Soft glow behind particle
+      ctx.beginPath();
+      ctx.arc(px, py, r * 3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${hexToRgb(p.color)}, ${p.opacity * 0.15})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${hexToRgb(p.color)}, ${p.opacity})`;
+      ctx.fill();
+    }
   }
 
-  // Flow lines
+  // Flow lines — thicker and glowing
   const blockMap = new Map(frame.blocks.map(b => [b.id, b]));
   for (const line of frame.lines) {
     const from = blockMap.get(line.from);
@@ -182,23 +211,32 @@ export function renderFrame(
     renderFlowLine(ctx, from, to, line, W, H, time, dpr);
   }
 
-  // Scan line effect
+  // Scan line effect — more visible
   if (frame.scanLine && frame.scanLine.opacity > 0) {
     const sy = frame.scanLine.y * H;
-    const grad = ctx.createLinearGradient(0, sy - 30 * dpr, 0, sy + 30 * dpr);
+    const grad = ctx.createLinearGradient(0, sy - 50 * dpr, 0, sy + 50 * dpr);
     grad.addColorStop(0, `rgba(${hexToRgb(frame.scanLine.color)}, 0)`);
-    grad.addColorStop(0.5, `rgba(${hexToRgb(frame.scanLine.color)}, ${frame.scanLine.opacity * 0.15})`);
+    grad.addColorStop(0.5, `rgba(${hexToRgb(frame.scanLine.color)}, ${frame.scanLine.opacity * 0.25})`);
     grad.addColorStop(1, `rgba(${hexToRgb(frame.scanLine.color)}, 0)`);
     ctx.fillStyle = grad;
-    ctx.fillRect(0, sy - 30 * dpr, W, 60 * dpr);
+    ctx.fillRect(0, sy - 50 * dpr, W, 100 * dpr);
   }
 
-  // Blocks
+  // Blocks — with gradient fills and deep shadows
   for (const block of frame.blocks) {
     renderBlock(ctx, block, W, H, time, dpr);
   }
 
   ctx.restore();
+
+  // Vignette overlay
+  if (frame.vignette && frame.vignette > 0) {
+    const vig = ctx.createRadialGradient(W / 2, H / 2, W * 0.25, W / 2, H / 2, W * 0.7);
+    vig.addColorStop(0, "rgba(0,0,0,0)");
+    vig.addColorStop(1, `rgba(0,0,0,${frame.vignette * 0.08})`);
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, W, H);
+  }
 
   // Text elements (post-camera for crisp rendering)
   ctx.save();
@@ -210,11 +248,11 @@ export function renderFrame(
 
 function renderDotGrid(ctx: CanvasRenderingContext2D, w: number, h: number, _t: number, dpr: number) {
   const spacing = 40 * dpr;
-  ctx.fillStyle = "rgba(0,0,0,0.028)";
+  ctx.fillStyle = "rgba(0,0,0,0.03)";
   for (let x = spacing; x < w; x += spacing) {
     for (let y = spacing; y < h; y += spacing) {
       ctx.beginPath();
-      ctx.arc(x, y, 0.8 * dpr, 0, Math.PI * 2);
+      ctx.arc(x, y, 0.9 * dpr, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -229,8 +267,10 @@ function renderRadialGlow(
     glow.x * w, glow.y * h, 0,
     glow.x * w, glow.y * h, glow.radius * Math.max(w, h)
   );
-  grad.addColorStop(0, `rgba(${hexToRgb(glow.color)}, ${glow.intensity * 0.12})`);
-  grad.addColorStop(0.4, `rgba(${hexToRgb(glow.color)}, ${glow.intensity * 0.05})`);
+  // MUCH higher intensity — 3-4x previous values
+  grad.addColorStop(0, `rgba(${hexToRgb(glow.color)}, ${glow.intensity * 0.4})`);
+  grad.addColorStop(0.35, `rgba(${hexToRgb(glow.color)}, ${glow.intensity * 0.18})`);
+  grad.addColorStop(0.7, `rgba(${hexToRgb(glow.color)}, ${glow.intensity * 0.05})`);
   grad.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
@@ -247,51 +287,72 @@ function renderBlock(
   const bw = block.w * w;
   const bh = block.h * h;
   const r = (block.cornerRadius ?? 12) * dpr;
-  const pulseScale = block.pulse ? 1 + Math.sin(time * block.pulse) * 0.012 : 1;
+  const pulseScale = block.pulse ? 1 + Math.sin(time * block.pulse) * 0.018 : 1;
+  const totalScale = (block.scale ?? 1) * pulseScale;
 
   ctx.save();
   ctx.globalAlpha = block.opacity;
 
-  if (pulseScale !== 1) {
+  if (totalScale !== 1) {
     ctx.translate(x + bw / 2, y + bh / 2);
-    ctx.scale(pulseScale, pulseScale);
+    ctx.scale(totalScale, totalScale);
     ctx.translate(-(x + bw / 2), -(y + bh / 2));
   }
 
-  // Shadow
+  // DEEP shadow — much more dramatic
   if (block.glow) {
-    ctx.shadowColor = `rgba(${hexToRgb(block.color)}, 0.2)`;
-    ctx.shadowBlur = 28 * dpr;
-    ctx.shadowOffsetY = 6 * dpr;
+    const shadowRgb = hexToRgb(block.shadowColor || block.color);
+    ctx.shadowColor = `rgba(${shadowRgb}, 0.35)`;
+    ctx.shadowBlur = 40 * dpr;
+    ctx.shadowOffsetY = 10 * dpr;
   } else {
-    ctx.shadowColor = "rgba(0,0,0,0.05)";
-    ctx.shadowBlur = 12 * dpr;
-    ctx.shadowOffsetY = 3 * dpr;
+    ctx.shadowColor = `rgba(0,0,0,0.1)`;
+    ctx.shadowBlur = 20 * dpr;
+    ctx.shadowOffsetY = 5 * dpr;
   }
 
-  // Fill
+  // Fill — gradient or tinted, not just white
   roundRect(ctx, x, y, bw, bh, r);
-  ctx.fillStyle = "#ffffff";
-  ctx.fill();
+  if (block.fillGradient) {
+    const rgb = hexToRgb(block.color);
+    const grad = ctx.createLinearGradient(x, y, x, y + bh);
+    grad.addColorStop(0, `rgba(${rgb}, 0.08)`);
+    grad.addColorStop(1, `rgba(${rgb}, 0.02)`);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    // White overlay for depth
+    roundRect(ctx, x, y, bw, bh, r);
+    ctx.fillStyle = "rgba(255,255,255,0.88)";
+    ctx.fill();
+  } else if (block.fillColor) {
+    const rgb = hexToRgb(block.fillColor);
+    ctx.fillStyle = `rgba(${rgb}, 0.06)`;
+    ctx.fill();
+    roundRect(ctx, x, y, bw, bh, r);
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.fill();
+  } else {
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+  }
 
   // Clear shadow
   ctx.shadowColor = "transparent";
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // Border
+  // Border — stronger
   roundRect(ctx, x, y, bw, bh, r);
   ctx.strokeStyle = block.glow
-    ? `rgba(${hexToRgb(block.borderColor)}, 0.5)`
-    : `rgba(${hexToRgb(block.borderColor)}, 0.15)`;
-  ctx.lineWidth = (block.glow ? 1.5 : 1) * dpr;
+    ? `rgba(${hexToRgb(block.borderColor)}, 0.7)`
+    : `rgba(${hexToRgb(block.borderColor)}, 0.25)`;
+  ctx.lineWidth = (block.glow ? 2 : 1.2) * dpr;
   ctx.stroke();
 
-  // Left accent bar
+  // Left accent bar — thicker
   if (block.accentBar || block.glow) {
     ctx.fillStyle = block.color;
-    const barW = 3.5 * dpr;
-    // Clip to rounded corners
+    const barW = 4.5 * dpr;
     ctx.save();
     roundRect(ctx, x, y, barW + r, bh, r);
     ctx.clip();
@@ -299,83 +360,111 @@ function renderBlock(
     ctx.restore();
   }
 
-  // Icon dot (small colored circle top-right)
+  // Icon dot — larger with glow ring
   if (block.iconDot) {
-    const dotR = 4 * dpr;
-    const dotX = x + bw - 12 * dpr;
-    const dotY = y + 12 * dpr;
+    const dotR = 5 * dpr;
+    const dotX = x + bw - 14 * dpr;
+    const dotY = y + 14 * dpr;
+    // Glow ring
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, dotR * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${hexToRgb(block.iconDot)}, 0.1)`;
+    ctx.fill();
+    // Dot
     ctx.beginPath();
     ctx.arc(dotX, dotY, dotR, 0, Math.PI * 2);
     ctx.fillStyle = block.iconDot;
     ctx.fill();
   }
 
-  // Crack effect
+  // Badge
+  if (block.badge) {
+    const badgeSize = 9 * dpr;
+    const bc = block.badgeColor || block.color;
+    ctx.font = `700 ${badgeSize}px "Inter", -apple-system, sans-serif`;
+    const badgeW = ctx.measureText(block.badge).width + 10 * dpr;
+    const badgeH = 16 * dpr;
+    const badgeX = x + bw - badgeW - 8 * dpr;
+    const badgeY = y + bh - badgeH - 6 * dpr;
+    roundRect(ctx, badgeX, badgeY, badgeW, badgeH, badgeH / 2);
+    ctx.fillStyle = `rgba(${hexToRgb(bc)}, 0.12)`;
+    ctx.fill();
+    ctx.fillStyle = bc;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(block.badge, badgeX + badgeW / 2, badgeY + badgeH / 2);
+  }
+
+  // Crack effect — bolder red
   if (block.cracked) {
-    ctx.strokeStyle = `rgba(${hexToRgb("#d94040")}, 0.45)`;
-    ctx.lineWidth = 1.5 * dpr;
-    const cx = x + bw * 0.4;
-    const cy = y + bh * 0.15;
+    ctx.strokeStyle = `rgba(${hexToRgb("#c62828")}, 0.7)`;
+    ctx.lineWidth = 2.5 * dpr;
+    const cx2 = x + bw * 0.4;
+    const cy2 = y + bh * 0.12;
     ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + bw * 0.06, cy + bh * 0.22);
-    ctx.lineTo(cx - bw * 0.04, cy + bh * 0.42);
-    ctx.lineTo(cx + bw * 0.05, cy + bh * 0.65);
-    ctx.lineTo(cx - bw * 0.02, cy + bh * 0.82);
+    ctx.moveTo(cx2, cy2);
+    ctx.lineTo(cx2 + bw * 0.07, cy2 + bh * 0.24);
+    ctx.lineTo(cx2 - bw * 0.05, cy2 + bh * 0.45);
+    ctx.lineTo(cx2 + bw * 0.06, cy2 + bh * 0.68);
+    ctx.lineTo(cx2 - bw * 0.03, cy2 + bh * 0.85);
     ctx.stroke();
     // Second crack
     ctx.beginPath();
-    ctx.moveTo(cx + bw * 0.3, cy + bh * 0.1);
-    ctx.lineTo(cx + bw * 0.25, cy + bh * 0.35);
-    ctx.lineTo(cx + bw * 0.32, cy + bh * 0.55);
+    ctx.moveTo(cx2 + bw * 0.33, cy2 + bh * 0.08);
+    ctx.lineTo(cx2 + bw * 0.27, cy2 + bh * 0.38);
+    ctx.lineTo(cx2 + bw * 0.35, cy2 + bh * 0.58);
     ctx.stroke();
   }
 
-  // Strikethrough
+  // Strikethrough — bolder
   if (block.strikethrough) {
-    ctx.strokeStyle = `rgba(${hexToRgb("#d94040")}, 0.6)`;
-    ctx.lineWidth = 2 * dpr;
+    ctx.strokeStyle = `rgba(${hexToRgb("#c62828")}, 0.8)`;
+    ctx.lineWidth = 2.5 * dpr;
     ctx.beginPath();
-    ctx.moveTo(x + bw * 0.1, y + bh * 0.5);
-    ctx.lineTo(x + bw * 0.9, y + bh * 0.5);
+    ctx.moveTo(x + bw * 0.08, y + bh * 0.5);
+    ctx.lineTo(x + bw * 0.92, y + bh * 0.5);
     ctx.stroke();
   }
 
-  // Progress bar
+  // Progress bar — taller and more visible
   if (block.progressBar !== undefined && block.progressBar > 0) {
-    const pbH = 3 * dpr;
-    const pbY = y + bh - 10 * dpr;
-    const pbX = x + 12 * dpr;
-    const pbW = bw - 24 * dpr;
+    const pbH = 5 * dpr;
+    const pbY = y + bh - 14 * dpr;
+    const pbX = x + 14 * dpr;
+    const pbW = bw - 28 * dpr;
     // Track
-    ctx.fillStyle = "rgba(0,0,0,0.04)";
+    ctx.fillStyle = "rgba(0,0,0,0.06)";
     roundRect(ctx, pbX, pbY, pbW, pbH, pbH / 2);
     ctx.fill();
-    // Fill
-    ctx.fillStyle = block.progressColor || block.color;
+    // Fill with gradient
+    const pColor = block.progressColor || block.color;
+    const pGrad = ctx.createLinearGradient(pbX, pbY, pbX + pbW * block.progressBar, pbY);
+    pGrad.addColorStop(0, pColor);
+    pGrad.addColorStop(1, `rgba(${hexToRgb(pColor)}, 0.6)`);
+    ctx.fillStyle = pGrad;
     roundRect(ctx, pbX, pbY, pbW * block.progressBar, pbH, pbH / 2);
     ctx.fill();
   }
 
-  // Label
+  // Label — larger, bolder
   if (block.label) {
-    const fontSize = Math.max(10 * dpr, Math.min(14 * dpr, bh * 0.2));
-    ctx.font = `600 ${fontSize}px "Inter", -apple-system, system-ui, sans-serif`;
-    ctx.fillStyle = block.glow ? block.color : "rgba(30,35,50,0.88)";
+    const fontSize = Math.max(11 * dpr, Math.min(16 * dpr, bh * 0.22));
+    ctx.font = `700 ${fontSize}px "Inter", -apple-system, system-ui, sans-serif`;
+    ctx.fillStyle = block.glow ? block.color : "rgba(20,24,40,0.92)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     const labelY = block.sublabel ? y + bh * 0.38 : y + bh * 0.5;
     ctx.fillText(block.label, x + bw / 2, labelY, bw * 0.85);
   }
 
-  // Sublabel
+  // Sublabel — slightly more visible
   if (block.sublabel) {
-    const subSize = Math.max(8 * dpr, Math.min(11 * dpr, bh * 0.14));
-    ctx.font = `400 ${subSize}px "Inter", -apple-system, system-ui, sans-serif`;
-    ctx.fillStyle = "rgba(100,110,130,0.65)";
+    const subSize = Math.max(9 * dpr, Math.min(12 * dpr, bh * 0.15));
+    ctx.font = `500 ${subSize}px "Inter", -apple-system, system-ui, sans-serif`;
+    ctx.fillStyle = "rgba(80,90,115,0.7)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(block.sublabel, x + bw / 2, y + bh * 0.6, bw * 0.85);
+    ctx.fillText(block.sublabel, x + bw / 2, y + bh * 0.62, bw * 0.85);
   }
 
   ctx.restore();
@@ -394,38 +483,63 @@ function renderFlowLine(
   const y2 = to.y * h;
   const cpOffset = Math.abs(y2 - y1) * 0.45;
 
+  const baseWidth = line.thick ? 3.5 : Math.max(1.5, line.strength * 2.5);
+
+  // Glow trail behind line
+  if (line.glowTrail && line.strength > 0.2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.bezierCurveTo(x1, y1 + cpOffset, x2, y2 - cpOffset, x2, y2);
+    ctx.strokeStyle = `rgba(${hexToRgb(line.color)}, ${line.strength * 0.12})`;
+    ctx.lineWidth = (baseWidth + 8) * dpr;
+    ctx.setLineDash([]);
+    ctx.stroke();
+  }
+
   ctx.beginPath();
   ctx.moveTo(x1, y1);
   ctx.bezierCurveTo(x1, y1 + cpOffset, x2, y2 - cpOffset, x2, y2);
 
-  ctx.strokeStyle = `rgba(${hexToRgb(line.color)}, ${line.strength * 0.35})`;
-  ctx.lineWidth = Math.max(1, line.strength * 2) * dpr;
+  ctx.strokeStyle = `rgba(${hexToRgb(line.color)}, ${line.strength * 0.55})`;
+  ctx.lineWidth = baseWidth * dpr;
 
   if (line.dashed) {
-    ctx.setLineDash([5 * dpr, 7 * dpr]);
-    ctx.lineDashOffset = -(time * 25);
+    ctx.setLineDash([6 * dpr, 8 * dpr]);
+    ctx.lineDashOffset = -(time * 30);
   } else if (line.animated) {
-    ctx.setLineDash([4 * dpr, 6 * dpr]);
-    ctx.lineDashOffset = -(time * 35);
+    ctx.setLineDash([5 * dpr, 7 * dpr]);
+    ctx.lineDashOffset = -(time * 45);
   } else {
     ctx.setLineDash([]);
   }
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Traveling dot
-  if (line.animated && line.strength > 0.2) {
-    const tPos = (time * 0.4) % 1;
+  // Traveling dot — bigger, with trail
+  if (line.animated && line.strength > 0.15) {
+    const tPos = (time * 0.5) % 1;
     const dotX = bezierPt(x1, x1, x2, x2, tPos);
     const dotY = bezierPt(y1, y1 + cpOffset, y2 - cpOffset, y2, tPos);
+    // Trail dots
+    for (let i = 1; i <= 3; i++) {
+      const tp = ((time * 0.5) - i * 0.04) % 1;
+      if (tp < 0) continue;
+      const tx = bezierPt(x1, x1, x2, x2, tp);
+      const ty = bezierPt(y1, y1 + cpOffset, y2 - cpOffset, y2, tp);
+      ctx.beginPath();
+      ctx.arc(tx, ty, (4 - i) * dpr, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${hexToRgb(line.color)}, ${(line.strength * 0.3) / i})`;
+      ctx.fill();
+    }
+    // Main dot
     ctx.beginPath();
-    ctx.arc(dotX, dotY, 3 * dpr, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${hexToRgb(line.color)}, ${line.strength * 0.7})`;
+    ctx.arc(dotX, dotY, 4.5 * dpr, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${hexToRgb(line.color)}, ${line.strength * 0.9})`;
     ctx.fill();
     // Glow around dot
     ctx.beginPath();
-    ctx.arc(dotX, dotY, 8 * dpr, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${hexToRgb(line.color)}, ${line.strength * 0.08})`;
+    ctx.arc(dotX, dotY, 12 * dpr, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${hexToRgb(line.color)}, ${line.strength * 0.12})`;
     ctx.fill();
   }
 }
@@ -445,15 +559,22 @@ function renderText(
   const fontSize = txt.size * dpr;
   const family = txt.font || '"Inter", -apple-system, system-ui, sans-serif';
   ctx.font = `${txt.weight} ${fontSize}px ${family}`;
-  ctx.fillStyle = `rgba(${hexToRgb(txt.color)}, ${txt.opacity})`;
   ctx.textAlign = txt.align || "center";
   ctx.textBaseline = "middle";
 
+  // Text shadow for punch
+  if (txt.shadow) {
+    ctx.shadowColor = `rgba(${hexToRgb(txt.color)}, 0.3)`;
+    ctx.shadowBlur = 8 * dpr;
+    ctx.shadowOffsetY = 2 * dpr;
+  }
+
+  ctx.fillStyle = `rgba(${hexToRgb(txt.color)}, ${txt.opacity})`;
+
   if (txt.letterSpacing && txt.letterSpacing > 0) {
-    // Manual letter spacing
     const chars = txt.text.split("");
     let xPos = txt.x * w;
-    if (txt.align === "center") {
+    if (txt.align === "center" || !txt.align) {
       const totalW = ctx.measureText(txt.text).width + (chars.length - 1) * txt.letterSpacing * dpr;
       xPos -= totalW / 2;
     }
@@ -466,6 +587,23 @@ function renderText(
     const maxW = txt.maxWidth ? txt.maxWidth * w : undefined;
     ctx.fillText(txt.text, txt.x * w, txt.y * h, maxW);
   }
+
+  // Underline accent
+  if (txt.underline) {
+    const textW = ctx.measureText(txt.text).width;
+    const ux = (txt.align === "center" || !txt.align) ? txt.x * w - textW / 2 : txt.x * w;
+    const uy = txt.y * h + fontSize * 0.6;
+    ctx.strokeStyle = txt.underlineColor || `rgba(${hexToRgb(txt.color)}, ${txt.opacity * 0.5})`;
+    ctx.lineWidth = 2.5 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(ux, uy);
+    ctx.lineTo(ux + textW, uy);
+    ctx.stroke();
+  }
+
+  ctx.shadowColor = "transparent";
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
 }
 
 function roundRect(
