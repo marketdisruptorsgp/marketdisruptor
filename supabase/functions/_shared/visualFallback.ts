@@ -10,6 +10,7 @@ interface VisualNode {
   label: string;
   type: "constraint" | "effect" | "leverage" | "intervention" | "outcome";
   priority?: 1 | 2 | 3;
+  certainty?: "verified" | "modeled" | "assumption";
 }
 
 interface VisualEdge {
@@ -102,9 +103,9 @@ function buildFallbackVisual(data: Record<string, unknown>): VisualSpec {
     visual_type: "constraint_map",
     title: "Dominant Constraint Structure",
     nodes: [
-      { id: "cause", label: cause, type: "effect", priority: 2 },
-      { id: "constraint", label: constraint, type: "constraint", priority: 1 },
-      { id: "impact", label: impact, type: "outcome", priority: 3 },
+      { id: "cause", label: cause, type: "effect", priority: 2, certainty: "modeled" as const },
+      { id: "constraint", label: constraint, type: "constraint", priority: 1, certainty: "verified" as const },
+      { id: "impact", label: impact, type: "outcome", priority: 3, certainty: "assumption" as const },
     ],
     edges: [
       { from: "cause", to: "constraint", relationship: "causes" },
