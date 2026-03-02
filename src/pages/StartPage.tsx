@@ -11,6 +11,7 @@ import {
   Search, Radar, Sparkles, Crosshair, Swords, Presentation,
   ChevronRight,
 } from "lucide-react";
+import PlatformCinematicExperience from "@/components/cinematic/PlatformCinematicExperience";
 
 const DemoSection = lazy(() => import("@/components/DemoSection"));
 
@@ -131,6 +132,11 @@ export default function StartPage() {
       {/* Showcase Gallery */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6">
         <ShowcaseGallery />
+      </section>
+
+      {/* Cinematic Platform Film */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <PlatformCinematicExperience />
       </section>
 
       {/* How It Works Pipeline */}
