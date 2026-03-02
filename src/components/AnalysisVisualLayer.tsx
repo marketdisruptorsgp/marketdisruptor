@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from "react";
+import React, { ReactNode, useMemo, useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { StructuralVisualList, StructuralVisual } from "./StructuralVisual";
 import { ActionPlanList } from "./ActionPlanCard";
@@ -16,6 +16,9 @@ import { validateVisualStory, normalizeSignalLabel } from "@/lib/visualEnforceme
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { ChevronRight, Layers, Cpu, Target, Eye, Shield, Zap, ArrowRight, AlertTriangle, Activity, GitBranch, BarChart3, Info } from "lucide-react";
 
+const CinematicArena = lazy(() =>
+  import("./cinematic/CinematicArena").then((m) => ({ default: m.CinematicArena }))
+);
 // Re-export for backward compatibility
 export { enforceVisualContract } from "@/lib/visualContract";
 export type { VisualSpec, ActionPlan } from "@/lib/visualContract";
@@ -428,7 +431,12 @@ function SignalField({ story, title }: { story: VisualStory; title: string }) {
 /* ── Story Renderer Dispatcher ── */
 function StoryVisual({ story }: { story: VisualStory }) {
   switch (story.type) {
-    case "SURVIVAL_JUDGMENT": return <AdversarialArena story={story} />;
+    case "SURVIVAL_JUDGMENT":
+      return (
+        <Suspense fallback={<AdversarialArena story={story} />}>
+          <CinematicArena story={story} />
+        </Suspense>
+      );
     case "SYSTEM_TENSION": return <SystemTensionMap story={story} />;
     case "VALUE_FLOW": return <ValueFlowVisual story={story} />;
     case "FRAGILITY_STRUCTURE": return <FragilityMap story={story} />;
