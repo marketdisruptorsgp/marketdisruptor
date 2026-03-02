@@ -1,13 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, RotateCcw, Volume2, VolumeX, AlertCircle } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { renderFrame } from "./canvasEngine";
 import { buildSceneFrame, getActiveScene, SCENE_TIMELINE, type DataBindings } from "./sceneDefinitions";
 
 /* ═══════════════════════════════════════════════════════════
-   VOICEOVER — exact script
+   VOICEOVER SCRIPT — exact lines for subtitle sync
    ═══════════════════════════════════════════════════════════ */
-
 const SCRIPT_LINES = [
   "Most people don't fail because they lack ideas.",
   "They fail because they're solving the wrong problem.",
@@ -39,7 +38,6 @@ function getSubtitle(pct: number): string {
 /* ═══════════════════════════════════════════════════════════
    COMPONENT
    ═══════════════════════════════════════════════════════════ */
-
 interface Props {
   dataBindings?: Partial<DataBindings>;
 }
@@ -57,14 +55,14 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
   const rafRef = useRef<number>(0);
   const startTimeRef = useRef(0);
   const pausedAtRef = useRef(0);
-  const aspectRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const fallbackRef = useRef(false);
 
   const bindings: DataBindings = {
     bindingConstraintStrength: 0.85,
     confidenceScore: 0.78,
     signalDensity: 0.72,
-    decisionGrade: 0.88,
+    decisionGrade: 0.91,
     lensWeight: 0.65,
     ...dataBindings,
   };
@@ -74,7 +72,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
   /* ── Canvas resize ── */
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
-    const container = aspectRef.current;
+    const container = containerRef.current;
     if (!canvas || !container) return;
     const dpr = window.devicePixelRatio || 1;
     const rect = container.getBoundingClientRect();
@@ -91,7 +89,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
     return () => window.removeEventListener("resize", resizeCanvas);
   }, [resizeCanvas]);
 
-  /* ── Render a single frame ── */
+  /* ── Draw single frame ── */
   const drawFrame = useCallback((pct: number, elapsed: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -118,7 +116,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
     rafRef.current = requestAnimationFrame(renderLoopAudio);
   }, [drawFrame]);
 
-  /* ── Render loop (fallback timer) ── */
+  /* ── Render loop (fallback 60s timer) ── */
   const startFallbackLoop = useCallback(() => {
     fallbackRef.current = true;
     const duration = 60;
@@ -135,11 +133,12 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
     rafRef.current = requestAnimationFrame(tick);
   }, [drawFrame]);
 
-  /* ── Playback control ── */
+  /* ── Start playback ── */
   const startPlayback = useCallback(async () => {
     setState("loading");
     startTimeRef.current = performance.now();
     setAudioFailed(false);
+
     const audio = new Audio();
     audio.preload = "auto";
     audioRef.current = audio;
@@ -175,6 +174,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
     }
   }, [muted, renderLoopAudio, startFallbackLoop]);
 
+  /* ── Pause/resume ── */
   const togglePause = useCallback(() => {
     if (state === "playing") {
       if (audioRef.current && !audioRef.current.paused) audioRef.current.pause();
@@ -187,8 +187,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
         setState("playing");
         rafRef.current = requestAnimationFrame(renderLoopAudio);
       } else {
-        const pauseDuration = performance.now() - pausedAtRef.current;
-        startTimeRef.current += pauseDuration;
+        startTimeRef.current += performance.now() - pausedAtRef.current;
         setState("playing");
         fallbackRef.current = true;
         startFallbackLoop();
@@ -196,6 +195,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
     }
   }, [state, renderLoopAudio, startFallbackLoop]);
 
+  /* ── Replay ── */
   const replay = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -210,8 +210,10 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
     setState("idle");
   }, []);
 
+  /* ── Mute sync ── */
   useEffect(() => { if (audioRef.current) audioRef.current.muted = muted; }, [muted]);
 
+  /* ── Cleanup ── */
   useEffect(() => {
     return () => {
       cancelAnimationFrame(rafRef.current);
@@ -223,7 +225,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
     };
   }, []);
 
-  /* ── Idle preview ── */
+  /* ── Idle ambient animation ── */
   useEffect(() => {
     if (state !== "idle") return;
     const canvas = canvasRef.current;
@@ -237,7 +239,9 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
       const w = canvas.width / dpr;
       const h = canvas.height / dpr;
       const t = performance.now() / 1000;
-      const frame = buildSceneFrame("problem", 0.3, t, bindings);
+      // Gentle breathing animation on problem scene
+      const breathe = 0.25 + Math.sin(t * 0.4) * 0.05;
+      const frame = buildSceneFrame("problem", breathe, t, bindings);
       renderFrame(ctx, w, h, frame, t);
       requestAnimationFrame(idleLoop);
     };
@@ -253,10 +257,17 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
       audioRef.current.currentTime = pct * audioRef.current.duration;
       setProgress(pct);
       setSubtitle(getSubtitle(pct));
+    } else if (fallbackRef.current || state === "paused") {
+      // For fallback mode, adjust start time
+      const duration = 60;
+      startTimeRef.current = performance.now() - pct * duration * 1000;
+      setProgress(pct);
+      setSubtitle(getSubtitle(pct));
     }
-  }, []);
+  }, [state]);
 
   const isActive = state === "playing" || state === "paused" || state === "ended";
+  const showControls = hovered || state === "paused" || state === "ended";
 
   return (
     <section
@@ -265,9 +276,14 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
       onMouseLeave={() => setHovered(false)}
     >
       <div
-        ref={aspectRef}
-        className="relative w-full overflow-hidden rounded-2xl border border-border"
-        style={{ background: "#f8f9fc", paddingBottom: "56.25%" }}
+        ref={containerRef}
+        className="relative w-full overflow-hidden rounded-2xl"
+        style={{
+          paddingBottom: "56.25%",
+          background: "#f8f9fc",
+          boxShadow: "0 4px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
+          border: "1px solid rgba(0,0,0,0.06)",
+        }}
       >
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
@@ -275,13 +291,16 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
         <AnimatePresence>
           {(state === "idle" || state === "loading") && (
             <motion.div
-              key="idle-overlay"
+              key="idle"
               className="absolute inset-0 flex flex-col items-center justify-center gap-5 z-10"
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8 }}
-              style={{ background: "rgba(248,249,252,0.85)", backdropFilter: "blur(6px)" }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              style={{ background: "rgba(248,249,252,0.82)", backdropFilter: "blur(8px)" }}
             >
-              <p className="text-xs font-semibold tracking-[0.2em] uppercase text-muted-foreground">
+              <p
+                className="text-[10px] font-bold tracking-[0.25em] uppercase"
+                style={{ color: "rgba(30,31,46,0.4)" }}
+              >
                 Platform Intelligence Film
               </p>
 
@@ -290,64 +309,64 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
                 disabled={state === "loading"}
                 className="group relative flex items-center justify-center transition-all duration-300 disabled:opacity-50"
                 style={{
-                  width: 72, height: 72, borderRadius: "50%",
-                  background: "rgba(75,104,245,0.08)",
-                  border: "2px solid rgba(75,104,245,0.25)",
+                  width: 80, height: 80, borderRadius: "50%",
+                  background: "rgba(75,104,245,0.06)",
+                  border: "1.5px solid rgba(75,104,245,0.2)",
                 }}
               >
                 {state === "loading" ? (
                   <motion.div
                     className="rounded-full"
-                    style={{ width: 24, height: 24, border: "3px solid rgba(75,104,245,0.2)", borderTopColor: "#4b68f5" }}
+                    style={{ width: 28, height: 28, border: "2.5px solid rgba(75,104,245,0.15)", borderTopColor: "#4b68f5" }}
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
                   />
                 ) : (
-                  <Play size={28} fill="#4b68f5" color="#4b68f5" className="ml-1" />
+                  <Play size={30} fill="#4b68f5" color="#4b68f5" className="ml-1" />
                 )}
                 {state === "idle" && (
                   <motion.div
                     className="absolute inset-0 rounded-full"
-                    style={{ border: "2px solid rgba(75,104,245,0.2)" }}
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
-                    transition={{ duration: 3, repeat: Infinity }}
+                    style={{ border: "1.5px solid rgba(75,104,245,0.15)" }}
+                    animate={{ scale: [1, 1.6, 1], opacity: [0.25, 0, 0.25] }}
+                    transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
                   />
                 )}
               </button>
 
-              <p className="text-xs text-muted-foreground">
-                60-second overview · Click to play
+              <p className="text-[11px] font-medium" style={{ color: "rgba(30,31,46,0.35)" }}>
+                60-second overview · {audioFailed ? "Visuals only" : "With voiceover"}
               </p>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ═══ CENTER PAUSE (hover) ═══ */}
+        {/* ═══ CENTER PAUSE CONTROL ═══ */}
         <AnimatePresence>
           {((state === "playing" && hovered) || state === "paused") && (
             <motion.button
-              key="center-control"
+              key="center-ctl"
               onClick={togglePause}
-              className="absolute inset-0 flex items-center justify-center z-10"
+              className="absolute inset-0 flex items-center justify-center z-10 cursor-pointer"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{ background: "rgba(248,249,252,0.3)" }}
+              transition={{ duration: 0.15 }}
+              style={{ background: "rgba(248,249,252,0.18)" }}
             >
               <div
-                className="flex items-center justify-center"
+                className="flex items-center justify-center transition-transform duration-200 hover:scale-105"
                 style={{
                   width: 64, height: 64, borderRadius: "50%",
-                  background: "rgba(255,255,255,0.85)",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  background: "rgba(255,255,255,0.9)",
+                  border: "1px solid rgba(0,0,0,0.06)",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
                 }}
               >
                 {state === "paused" ? (
-                  <Play size={28} fill="#4b68f5" color="#4b68f5" className="ml-1" />
+                  <Play size={26} fill="#4b68f5" color="#4b68f5" className="ml-0.5" />
                 ) : (
-                  <Pause size={28} color="#1e2332" />
+                  <Pause size={26} color="#1a1f2e" />
                 )}
               </div>
             </motion.button>
@@ -358,24 +377,26 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
         <AnimatePresence>
           {state === "ended" && (
             <motion.div
-              key="ended-overlay"
+              key="ended"
               className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              style={{ background: "rgba(248,249,252,0.85)", backdropFilter: "blur(6px)" }}
+              style={{ background: "rgba(248,249,252,0.85)", backdropFilter: "blur(8px)" }}
             >
               <button
                 onClick={replay}
-                className="flex items-center justify-center transition-all"
+                className="flex items-center justify-center transition-all hover:scale-105"
                 style={{
                   width: 64, height: 64, borderRadius: "50%",
-                  background: "rgba(75,104,245,0.08)",
-                  border: "2px solid rgba(75,104,245,0.25)",
+                  background: "rgba(75,104,245,0.06)",
+                  border: "1.5px solid rgba(75,104,245,0.2)",
                 }}
               >
                 <RotateCcw size={24} color="#4b68f5" />
               </button>
-              <p className="text-xs text-muted-foreground font-medium">Replay</p>
+              <p className="text-xs font-medium" style={{ color: "rgba(30,31,46,0.4)" }}>
+                Replay
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -385,85 +406,88 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
           <motion.div
             className="absolute bottom-0 left-0 right-0 z-20"
             initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: hovered || state === "paused" || state === "ended" ? 1 : 0.3, y: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ background: "linear-gradient(transparent, rgba(248,249,252,0.95))" }}
+            animate={{ opacity: showControls ? 1 : 0, y: showControls ? 0 : 4 }}
+            transition={{ duration: 0.25 }}
+            style={{ background: "linear-gradient(transparent, rgba(248,249,252,0.96) 40%)" }}
           >
             {/* Timeline */}
             <div
               className="w-full cursor-pointer group"
-              style={{ height: 20, paddingTop: 8, paddingLeft: 12, paddingRight: 12 }}
+              style={{ height: 22, paddingTop: 10, paddingLeft: 14, paddingRight: 14 }}
               onClick={handleTimelineClick}
             >
-              <div className="w-full relative" style={{ height: 4, borderRadius: 2, background: "rgba(0,0,0,0.08)" }}>
+              <div className="w-full relative" style={{ height: 3, borderRadius: 2, background: "rgba(0,0,0,0.06)" }}>
+                {/* Scene markers */}
+                {SCENE_TIMELINE.slice(1).map((s, i) => (
+                  <div
+                    key={i}
+                    className="absolute top-0 bottom-0 w-px"
+                    style={{ left: `${s.startPct * 100}%`, background: "rgba(0,0,0,0.08)" }}
+                  />
+                ))}
+                {/* Filled progress */}
                 <div
-                  className="absolute top-0 left-0 h-full transition-[width] duration-100"
+                  className="absolute top-0 left-0 h-full transition-[width] duration-75"
                   style={{ width: `${progress * 100}%`, borderRadius: 2, background: "#4b68f5" }}
                 />
+                {/* Scrubber dot */}
                 <div
-                  className="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
                   style={{
                     left: `${progress * 100}%`, transform: "translate(-50%, -50%)",
                     width: 12, height: 12, borderRadius: "50%",
                     background: "#4b68f5", border: "2px solid white",
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+                    boxShadow: "0 1px 6px rgba(75,104,245,0.3)",
                   }}
                 />
               </div>
             </div>
 
-            {/* Buttons */}
+            {/* Controls row */}
             <div className="flex items-center justify-between px-3 pb-2.5">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={togglePause}
-                  className="flex items-center justify-center hover:bg-black/5 transition-colors"
-                  style={{ width: 32, height: 32, borderRadius: 6 }}
-                  title={state === "playing" ? "Pause" : "Play"}
+                  className="flex items-center justify-center hover:bg-black/[0.04] transition-colors"
+                  style={{ width: 32, height: 32, borderRadius: 8 }}
                 >
                   {state === "playing" ? (
-                    <Pause size={18} color="#1e2332" />
+                    <Pause size={16} color="#1a1f2e" />
                   ) : (
-                    <Play size={18} fill="#1e2332" color="#1e2332" className="ml-0.5" />
+                    <Play size={16} fill="#1a1f2e" color="#1a1f2e" className="ml-0.5" />
                   )}
                 </button>
 
                 <button
                   onClick={() => setMuted(m => !m)}
-                  className="flex items-center justify-center hover:bg-black/5 transition-colors"
-                  style={{ width: 32, height: 32, borderRadius: 6 }}
-                  title={muted ? "Unmute" : "Mute"}
+                  className="flex items-center justify-center hover:bg-black/[0.04] transition-colors"
+                  style={{ width: 32, height: 32, borderRadius: 8 }}
                 >
                   {muted || audioFailed ? (
-                    <VolumeX size={18} color="#8892a8" />
+                    <VolumeX size={16} color="#8892a8" />
                   ) : (
-                    <Volume2 size={18} color="#1e2332" />
+                    <Volume2 size={16} color="#1a1f2e" />
                   )}
                 </button>
 
-                <span className="text-[11px] text-muted-foreground tabular-nums">
+                <span className="text-[11px] tabular-nums ml-1" style={{ color: "rgba(30,31,46,0.35)" }}>
                   {formatTime(progress * 60)} / 1:00
                 </span>
-
-                {audioFailed && (
-                  <span className="flex items-center gap-1 text-[10px]" style={{ color: "#d64174" }}>
-                    <AlertCircle size={12} />
-                    Audio unavailable
-                  </span>
-                )}
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="uppercase tracking-widest text-[9px] font-bold text-muted-foreground/50">
+                <span
+                  className="text-[9px] font-bold tracking-[0.15em] uppercase hidden sm:inline"
+                  style={{ color: "rgba(30,31,46,0.25)" }}
+                >
                   {activeScene.label}
                 </span>
                 <button
                   onClick={replay}
-                  className="flex items-center justify-center hover:bg-black/5 transition-colors"
-                  style={{ width: 32, height: 32, borderRadius: 6 }}
-                  title="Replay"
+                  className="flex items-center justify-center hover:bg-black/[0.04] transition-colors"
+                  style={{ width: 32, height: 32, borderRadius: 8 }}
                 >
-                  <RotateCcw size={16} color="#8892a8" />
+                  <RotateCcw size={14} color="#8892a8" />
                 </button>
               </div>
             </div>
@@ -474,20 +498,20 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
         {(state === "playing" || state === "paused") && subtitle && (
           <motion.div
             className="absolute left-0 right-0 flex justify-center px-6 z-10"
-            style={{ bottom: 56 }}
+            style={{ bottom: 58 }}
             key={subtitle}
-            initial={{ opacity: 0, y: 6 }}
+            initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           >
             <p
-              className="text-xs sm:text-sm font-medium px-5 py-2 rounded-lg max-w-lg text-center"
+              className="text-[11px] sm:text-[13px] font-medium px-5 py-2 rounded-lg max-w-lg text-center leading-relaxed"
               style={{
-                color: "#1e2332",
+                color: "#1a1f2e",
                 background: "rgba(255,255,255,0.92)",
-                backdropFilter: "blur(12px)",
-                border: "1px solid rgba(0,0,0,0.06)",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                backdropFilter: "blur(16px)",
+                border: "1px solid rgba(0,0,0,0.04)",
+                boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
               }}
             >
               {subtitle}
