@@ -265,6 +265,34 @@ Return ONLY a JSON array with exactly ${ideaCount} flipped idea objects.${buildL
       }
     }
 
+    // ── Governed: validate constraint_linkage on each idea ──
+    let linkageErrors: string[] = [];
+    for (const idea of ideas) {
+      if (idea && typeof idea === "object") {
+        const ideaObj = idea as Record<string, unknown>;
+        const linkage = ideaObj.constraint_linkage as Record<string, unknown> | undefined;
+        if (!linkage || !linkage.constraint_linkage_id || String(linkage.constraint_linkage_id).trim() === "") {
+          linkageErrors.push(`Idea "${ideaObj.name || "Unknown"}" missing constraint_linkage_id`);
+        }
+        if (!linkage || !linkage.causal_mechanism || String(linkage.causal_mechanism).trim() === "") {
+          linkageErrors.push(`Idea "${ideaObj.name || "Unknown"}" missing causal_mechanism`);
+        }
+      }
+    }
+
+    if (linkageErrors.length > 0) {
+      console.error(`[Governed] FLIP LINKAGE FAILURES: ${linkageErrors.join("; ")}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Governed validation failed — flip ideas missing constraint linkage",
+        linkage_errors: linkageErrors,
+        ideas, // include partial for client to display
+      }), {
+        status: 422,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ success: true, ideas }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

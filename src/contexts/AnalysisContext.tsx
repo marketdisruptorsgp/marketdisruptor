@@ -674,6 +674,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // Persist step-level data (disrupt, stress-test, pitch, userScores) into analysis_data JSON
   // Also snapshot previous values for version comparison
+  // ── GOVERNED: Checkpoint gate validation before persistence ──
   const saveStepData = useCallback(async (stepKey: string, data: unknown) => {
     if (!analysisId) return;
 
@@ -685,6 +686,23 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (!validation.valid) {
       console.error("[Pipeline] Validation failed for step:", stepKey, validation.errors);
       return; // Block invalid data from persisting
+    }
+
+    // ── GOVERNED: Checkpoint gate — validate governed artifacts before persistence ──
+    const { validateBeforePersistence } = await import("@/utils/checkpointGate");
+    const governedCheck = validateBeforePersistence(stepKey, data);
+    if (!governedCheck.allowed) {
+      console.error(`[Governed] PERSISTENCE BLOCKED for "${stepKey}": ${governedCheck.reason}`);
+      toast.error(`Checkpoint gate blocked: ${governedCheck.reason}`);
+      return; // Do not persist invalid governed data
+    }
+
+    // ── GOVERNED: Invalidate dependent downstream steps ──
+    if (governedCheck.invalidatedSteps.length > 0) {
+      console.log(`[Governed] Invalidating downstream steps: ${governedCheck.invalidatedSteps.join(", ")}`);
+      for (const depStep of governedCheck.invalidatedSteps) {
+        markStepOutdated(depStep);
+      }
     }
 
     try {
@@ -701,7 +719,19 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         previousSnapshot[stepKey] = prev[stepKey];
       }
 
+      // ── GOVERNED: Purge invalidated downstream governed artifacts ──
       const merged = { ...prev, [stepKey]: data, previousSnapshot };
+      if (governedCheck.invalidatedSteps.length > 0) {
+        for (const depStep of governedCheck.invalidatedSteps) {
+          // Only purge governed sub-artifacts, not primary step data
+          const governedData = merged.governed as Record<string, unknown> | undefined;
+          if (governedData && governedData[depStep]) {
+            console.log(`[Governed] Purging stale governed artifact: ${depStep}`);
+            delete governedData[depStep];
+          }
+        }
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: updateError } = await (supabase.from("saved_analyses") as any)
         .update({ analysis_data: merged, updated_at: new Date().toISOString() })
@@ -714,7 +744,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Failed to persist step data:", err);
     }
-  }, [analysisId]);
+  }, [analysisId, markStepOutdated]);
 
   // Auto-persist userScores when changed
   useEffect(() => {
