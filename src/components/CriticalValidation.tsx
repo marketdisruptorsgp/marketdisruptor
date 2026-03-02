@@ -207,7 +207,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
       <div className="space-y-4">
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
 
-        <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>}>
+        <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="stressTest">
         <PitchDeckToggle contentKey="stressTestDebate" label="Include in Pitch Deck" />
 
         {/* Re-run (collapsed) */}

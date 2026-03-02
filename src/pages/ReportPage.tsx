@@ -173,7 +173,7 @@ export default function ReportPage() {
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
         {/* Adaptive Visual Layer — enforces visual primacy + text suppression */}
-        <AnalysisVisualLayer analysis={selectedProduct as unknown as Record<string, unknown>}>
+        <AnalysisVisualLayer analysis={selectedProduct as unknown as Record<string, unknown>} step="report">
           {/* === ALL SECTIONS AS ACCORDIONS === */}
 
           {/* 1. Overview — open by default */}
