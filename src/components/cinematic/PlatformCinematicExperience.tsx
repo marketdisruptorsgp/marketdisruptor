@@ -56,6 +56,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
   const startTimeRef = useRef(0);
   const pausedAtRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const aspectRef = useRef<HTMLDivElement>(null);
   const fallbackRef = useRef(false);
 
   const bindings: DataBindings = {
@@ -72,10 +73,11 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
   /* ── Canvas resize ── */
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
-    const container = containerRef.current;
+    const container = aspectRef.current;
     if (!canvas || !container) return;
     const dpr = window.devicePixelRatio || 1;
     const rect = container.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     canvas.style.width = `${rect.width}px`;
@@ -286,14 +288,14 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
 
   return (
     <section
-      ref={containerRef}
       className="relative w-full"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <div
+        ref={aspectRef}
         className="relative w-full overflow-hidden rounded-2xl border border-border/30"
-        style={{ aspectRatio: "16 / 9", background: "#060810" }}
+        style={{ background: "#060810", paddingBottom: "56.25%" }}
       >
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
