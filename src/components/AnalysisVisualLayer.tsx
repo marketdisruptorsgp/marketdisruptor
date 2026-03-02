@@ -1,5 +1,5 @@
-import React, { ReactNode, useMemo } from "react";
-import { motion } from "framer-motion";
+import React, { ReactNode, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { StructuralVisualList, StructuralVisual } from "./StructuralVisual";
 import { ActionPlanList } from "./ActionPlanCard";
 import { resolveAdaptiveVisuals } from "@/lib/adaptiveVisualEngine";
@@ -13,7 +13,8 @@ import type { RankedSignal } from "@/lib/signalRanking";
 import { compileVisualStory } from "@/lib/visualStoryCompiler";
 import type { VisualStory, VisualStoryType } from "@/lib/visualStoryCompiler";
 import { validateVisualStory, normalizeSignalLabel } from "@/lib/visualEnforcementHelpers";
-import { ChevronRight, Layers, Cpu, Target, Eye, Shield, Zap, ArrowRight, AlertTriangle, Activity, GitBranch, BarChart3 } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { ChevronRight, Layers, Cpu, Target, Eye, Shield, Zap, ArrowRight, AlertTriangle, Activity, GitBranch, BarChart3, Info } from "lucide-react";
 
 // Re-export for backward compatibility
 export { enforceVisualContract } from "@/lib/visualContract";
@@ -80,7 +81,7 @@ function StrategicQuestion({ question }: { question: string }) {
   );
 }
 
-/* ── Signal Chip ── */
+/* ── Signal Chip (interactive: hover → tooltip, click → expand) ── */
 const ROLE_CHIP_COLORS: Record<string, string> = {
   driver: "hsl(var(--vi-glow-outcome))",
   constraint: "hsl(var(--vi-glow-system))",
@@ -90,18 +91,136 @@ const ROLE_CHIP_COLORS: Record<string, string> = {
   outcome: "hsl(var(--vi-glow-outcome))",
 };
 
-function SignalChip({ signal }: { signal: RankedSignal }) {
+const ROLE_LABELS: Record<string, string> = {
+  driver: "Driver", constraint: "Constraint", mechanism: "Mechanism",
+  assumption: "Assumption", leverage: "Leverage Point", outcome: "Outcome",
+};
+
+function SignalChip({ signal, compact }: { signal: RankedSignal; compact?: boolean }) {
   const c = ROLE_CHIP_COLORS[signal.role] || "hsl(var(--muted-foreground))";
   const label = normalizeSignalLabel(signal.label);
+  const [hovered, setHovered] = useState(false);
+
   return (
-    <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold"
-      style={{ background: `${c}10`, color: c, border: `1px solid ${c}20` }}
-      title={`${signal.role} · Impact ${signal.impact} · Confidence ${signal.confidence} · Score ${signal.score}`}
-    >
-      <span className="w-1.5 h-1.5 rounded-full" style={{ background: c }} />
-      {label}
-    </span>
+    <Popover>
+      <PopoverTrigger asChild>
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold cursor-pointer transition-all duration-150 relative"
+          style={{
+            background: hovered ? `${c}18` : `${c}10`,
+            color: c,
+            border: `1px solid ${hovered ? `${c}40` : `${c}20`}`,
+            transform: hovered ? "scale(1.04)" : "scale(1)",
+          }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+        >
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: c }} />
+          {label}
+          {!compact && (
+            <Info size={8} className="ml-0.5 opacity-40" />
+          )}
+          {/* Hover tooltip — quick meta */}
+          <AnimatePresence>
+            {hovered && (
+              <motion.span
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.12 }}
+                className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded text-[9px] font-bold z-50 pointer-events-none"
+                style={{ background: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))", border: "1px solid hsl(var(--border))", boxShadow: "0 4px 12px hsl(var(--foreground) / 0.08)" }}
+              >
+                {ROLE_LABELS[signal.role] || signal.role} · Score {signal.score}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </span>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-0" align="start" side="bottom" sideOffset={6}>
+        <SignalDetailPanel signal={signal} color={c} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/* ── Signal Detail Panel (click-expanded) ── */
+function SignalDetailPanel({ signal, color }: { signal: RankedSignal; color: string }) {
+  return (
+    <div className="p-4 space-y-3">
+      <div className="flex items-start gap-2">
+        <span className="w-2 h-2 rounded-full mt-1 flex-shrink-0" style={{ background: color }} />
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold text-foreground leading-snug">{signal.label}</p>
+          <p className="text-[10px] font-semibold mt-0.5" style={{ color }}>
+            {ROLE_LABELS[signal.role] || signal.role}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <MetricBlock label="Impact" value={signal.impact} max={5} color={color} />
+        <MetricBlock label="Confidence" value={signal.confidence} max={5} color={color} />
+        <MetricBlock label="Recurrence" value={signal.recurrence} max={5} color={color} />
+      </div>
+
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Composite Score</span>
+          <span className="text-[11px] font-extrabold" style={{ color }}>{signal.score}</span>
+        </div>
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--border) / 0.3)" }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min(100, (signal.score / 75) * 100)}%` }}
+            transition={{ duration: 0.4 }}
+            className="h-full rounded-full"
+            style={{ background: `linear-gradient(90deg, ${color}, ${color}80)` }}
+          />
+        </div>
+      </div>
+
+      {signal.sourceKeys.length > 0 && (
+        <div className="pt-1 border-t" style={{ borderColor: "hsl(var(--border) / 0.5)" }}>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Sources</p>
+          <div className="flex flex-wrap gap-1">
+            {signal.sourceKeys.map((src, i) => (
+              <span key={i} className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">
+                {src}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-1.5">
+        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Polarity</span>
+        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+          signal.polarity === "positive" ? "bg-green-500/10 text-green-600" :
+          signal.polarity === "negative" ? "bg-red-500/10 text-red-600" :
+          "bg-muted text-muted-foreground"
+        }`}>
+          {signal.polarity}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function MetricBlock({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground text-center">{label}</p>
+      <div className="flex items-center justify-center gap-0.5">
+        {Array.from({ length: max }).map((_, i) => (
+          <span
+            key={i}
+            className="w-1.5 h-3 rounded-sm transition-colors"
+            style={{ background: i < value ? color : "hsl(var(--border) / 0.3)" }}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -160,11 +279,8 @@ function ForceColumn({ signals, label, icon: Icon, color, side }: {
       </div>
       {signals.length > 0 ? signals.slice(0, 5).map((s, i) => (
         <motion.div key={i} initial={{ opacity: 0, x: side === "left" ? -8 : 8 }} animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 + i * 0.05 }} className="flex items-start gap-2">
-          <ArrowRight size={10} className="mt-0.5 flex-shrink-0" style={{ color }} />
-          <span className="text-[11px] font-semibold text-foreground leading-snug">
-            {s.label.length > 50 ? s.label.slice(0, 48) + "…" : s.label}
-          </span>
+          transition={{ delay: 0.1 + i * 0.05 }}>
+          <SignalChip signal={s} compact />
         </motion.div>
       )) : <p className="text-[10px] text-muted-foreground italic">No signals detected</p>}
     </div>
