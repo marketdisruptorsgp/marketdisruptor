@@ -4,6 +4,7 @@ import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { buildValidationObject } from "../_shared/governedSchema.ts";
+import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -347,6 +348,17 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
         status: 422,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // ── Evidence-governed confidence computation ──
+    const confidenceResult = computeGovernedConfidence(governed);
+    console.log(`[Governed] critical-validation computed confidence: ${confidenceResult.computation_trace}`);
+    if (governed.decision_synthesis) {
+      const ds = governed.decision_synthesis as Record<string, unknown>;
+      ds.confidence_score = confidenceResult.computed_confidence;
+      ds.decision_grade = confidenceResult.computed_decision_grade;
+      ds._confidence_computation = confidenceResult.computation_trace;
+      ds._evidence_distribution = confidenceResult.evidence_distribution;
     }
 
     // ── Output Validation ──

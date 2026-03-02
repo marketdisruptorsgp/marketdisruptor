@@ -388,6 +388,63 @@ GOVERNED OUTPUT REQUIREMENT — Include decision synthesis:
     "next_required_evidence": "what evidence is needed"
   }
 }`,
+
+    "business-model-analysis": `
+GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include a "governed" object with ALL of the following:
+"governed": {
+  "domain_confirmation": {
+    "system_type": "business_model",
+    "outcome_mechanism": "causal transformation this business performs",
+    "success_condition": "solution-independent success definition",
+    "domain_lock": true
+  },
+  "objective_definition": {
+    "measurable_outcome_targets": ["target1", "target2"],
+    "success_independent_of_current_solution": "success criteria independent of any solution",
+    "decision_criteria": ["criterion1", "criterion2"]
+  },
+  "first_principles": {
+    "minimum_viable_system": "irreducible system description",
+    "causal_model": { "inputs": ["input1"], "mechanism": "core mechanism", "outputs": ["output1"] },
+    "fundamental_constraints": ["constraint1", "constraint2"],
+    "resource_limits": ["limit1"],
+    "behavioral_realities": ["reality1"],
+    "dependency_structure": ["dep1"],
+    "viability_assumptions": [
+      {"assumption": "text", "evidence_status": "verified|modeled|speculative", "leverage_if_wrong": 7}
+    ]
+  },
+  "friction_map": [
+    {"friction_id": "f1", "dimension_classification": "cost|time|adoption|scale|reliability|risk", "root_cause": "why", "impacted_outcome": "what"}
+  ],
+  "friction_tiers": {
+    "tier_1": [{"friction_id": "f1", "description": "system-limiting", "system_impact": "impact"}],
+    "tier_2": [{"friction_id": "f2", "description": "optimization", "optimization_target": "target"}],
+    "tier_3": [{"friction_id": "f3", "description": "observational"}]
+  },
+  "constraint_map": {
+    "causal_chains": [{"friction_id": "f1", "structural_constraint": "root", "system_impact": "effect", "impact_dimension": "cost|time|adoption|scale|reliability|risk"}],
+    "binding_constraint_id": "f1",
+    "dominance_proof": "comparative evidence",
+    "counterfactual_removal_result": "what changes",
+    "next_binding_constraint": "what becomes limiting"
+  },
+  "leverage_map": [
+    {"lever_id": "l1", "target_constraint_id": "f1", "mechanism_of_relief": "how", "confidence_level": "high|medium|exploratory", "evidence_that_would_change_assessment": "what"}
+  ],
+  "decision_synthesis": {
+    "decision_grade": "decision_grade|conditional|blocked",
+    "confidence_score": 55,
+    "blocking_uncertainties": ["uncertainty1"],
+    "fastest_validation_experiment": "description",
+    "next_required_evidence": "what evidence"
+  }
+}
+
+EVIDENCE GOVERNANCE RULES:
+- Every viability_assumption MUST have evidence_status: "verified", "modeled", or "speculative"
+- confidence_score > 80 REQUIRES verified evidence
+- assumption-only chains CANNOT produce decision_grade "decision_grade"`,
   };
 
   return schemas[stepId] || "";

@@ -4,6 +4,8 @@ import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { getGovernedSchemaPrompt, buildValidationObject } from "../_shared/governedSchema.ts";
+import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
+import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -422,7 +424,7 @@ VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 2-3 action plans for highest-leverage interventions. Each must connect to a specific constraint.
 - Only generate visuals when structural causality is clear. Do not force visuals.
 
-Return ONLY the JSON object.${buildLensPrompt(lens)}`;
+Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}`;
 
     // ── USER CURATION CONTEXT (for redesign mode) ──
     let curationPrompt = "";
@@ -561,6 +563,19 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
         status: 422,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // ── Evidence-governed confidence computation ──
+    const { computeGovernedConfidence: computeConf } = await import("../_shared/confidenceComputation.ts");
+    const confidenceResult = computeConf(governed);
+    console.log(`[Governed] Computed confidence: ${confidenceResult.computation_trace}`);
+    // Override AI-generated confidence with computed confidence
+    if (governed.decision_synthesis) {
+      const ds = governed.decision_synthesis as Record<string, unknown>;
+      ds.confidence_score = confidenceResult.computed_confidence;
+      ds.decision_grade = confidenceResult.computed_decision_grade;
+      ds._confidence_computation = confidenceResult.computation_trace;
+      ds._evidence_distribution = confidenceResult.evidence_distribution;
     }
 
     // ── Output Validation: check for cross-mode drift ──
