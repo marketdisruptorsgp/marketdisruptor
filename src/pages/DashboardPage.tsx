@@ -50,8 +50,8 @@ export default function DashboardPage() {
       setTimeout(() => {
         setWordIndex((prev) => (prev + 1) % MODE_WORDS.length);
         setVisible(true);
-      }, 300);
-    }, 3000);
+      }, 150);
+    }, 1500);
     return () => clearInterval(interval);
   }, []);
 
