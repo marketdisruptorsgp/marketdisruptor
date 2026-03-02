@@ -15,6 +15,7 @@ import { InfoExplainer } from "@/components/InfoExplainer";
 import { LensBanner } from "@/components/workspace/LensBanner";
 import { WorkspaceExplorer, type ExplorerConversation } from "@/components/workspace/WorkspaceExplorer";
 import { SavedConversations } from "@/components/workspace/SavedConversations";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SavedAnalysis {
   id: string;
@@ -50,19 +51,28 @@ function SectionHeader({ icon: Icon, iconColor, title, subtitle, badge, children
   icon: any; iconColor: string; title: string; subtitle?: string; badge?: React.ReactNode; children?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start sm:items-center justify-between gap-3 mb-4 flex-col sm:flex-row">
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${iconColor}15` }}>
-          <Icon size={16} style={{ color: iconColor }} />
+    <div className="flex items-start sm:items-center justify-between gap-2 mb-3 flex-col sm:flex-row">
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${iconColor}15` }}>
+          <Icon size={14} style={{ color: iconColor }} />
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-foreground">{title}</h2>
+            <h2 className="text-sm font-bold text-foreground">{title}</h2>
             {badge}
           </div>
-          {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{subtitle}</p>}
         </div>
       </div>
+      {children}
+    </div>
+  );
+}
+
+/* ── Dashboard card wrapper ── */
+function DashCard({ children, className = "", span = "" }: { children: React.ReactNode; className?: string; span?: string }) {
+  return (
+    <div className={`rounded-xl border border-border bg-card p-4 flex flex-col ${span} ${className}`}>
       {children}
     </div>
   );
@@ -185,18 +195,18 @@ export default function WorkspacePage() {
     <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-8">
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* ── Page Header ── */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">My Workspace</h1>
-            <p className="text-sm text-muted-foreground mt-1">Your operating surface for analyses and strategic work</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">My Workspace</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Your operating surface for analyses and strategic work</p>
           </div>
           <button
             onClick={() => navigate("/analysis/new")}
-            className="hidden sm:inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md hover:shadow-lg"
+            className="hidden sm:inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md hover:shadow-lg"
           >
-            <PlusCircle size={15} />
+            <PlusCircle size={14} />
             New Analysis
           </button>
         </div>
@@ -204,14 +214,16 @@ export default function WorkspacePage() {
         {/* Mobile CTA */}
         <button
           onClick={() => navigate("/analysis/new")}
-          className="sm:hidden w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-colors shadow-md"
+          className="sm:hidden w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-colors shadow-md mb-4"
         >
-          <PlusCircle size={15} />
+          <PlusCircle size={14} />
           New Analysis
         </button>
 
         {/* Lens Configuration */}
-        <LensBanner />
+        <div className="mb-5">
+          <LensBanner />
+        </div>
 
         {totalProjects === 0 ? (
           <div className="text-center py-20 rounded-xl border-2 border-dashed border-border bg-card/50">
@@ -222,14 +234,14 @@ export default function WorkspacePage() {
               onClick={() => navigate("/analysis/new")}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-colors shadow-md"
             >
-              <PlusCircle size={15} />
+              <PlusCircle size={14} />
               Start Your First Analysis
             </button>
           </div>
         ) : (
           <>
-            {/* ── Metrics Strip ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* ── Metrics Strip (full width) ── */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
               {[
                 { icon: Database, label: "Total Projects", value: totalProjects, accent: "hsl(var(--primary))" },
                 { icon: TrendingUp, label: "Avg Score", value: avgScore, accent: "hsl(var(--warning))" },
@@ -238,321 +250,305 @@ export default function WorkspacePage() {
               ].map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-xl border border-border bg-card p-4 flex items-center gap-3 hover:shadow-sm transition-shadow"
+                  className="rounded-xl border border-border bg-card p-3 flex items-center gap-3 hover:shadow-sm transition-shadow"
                   style={{ borderLeft: `4px solid ${stat.accent}` }}
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${stat.accent}15` }}>
-                    <stat.icon size={18} style={{ color: stat.accent }} />
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${stat.accent}15` }}>
+                    <stat.icon size={16} style={{ color: stat.accent }} />
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-foreground tabular-nums">{stat.value}</p>
+                    <p className="text-lg font-bold text-foreground tabular-nums">{stat.value}</p>
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* ── My Top Choices ── */}
-            <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
-              <SectionHeader
-                icon={Heart}
-                iconColor="hsl(var(--destructive))"
-                title="My Top Choices"
-                subtitle="Your hand-picked favorites — the ideas you're most excited about."
-                badge={<InfoExplainer text="Projects you've marked as favorites. These are your personal picks — the ideas you're most excited about pursuing." />}
-              />
-              {favorites.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {favorites.map((a) => {
-                    const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
-                    const score = a.avg_revival_score || 0;
-                    const data = a.analysis_data as any;
-                    const imgList = data?.pitchDeckImages as { url: string; ideaName: string }[] | undefined;
-                    const productImg = (a.products as any[])?.[0]?.image;
-                    const heroImg = imgList?.[0]?.url || productImg;
-                    return (
-                      <button
-                        key={a.id}
-                        onClick={() => analysis.handleLoadSaved(a as any)}
-                        className="rounded-xl border-2 border-primary/20 bg-primary/[0.03] overflow-hidden text-left transition-all hover:shadow-lg hover:border-primary/40 group relative"
-                      >
-                        <div
-                          className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border hover:bg-destructive/10 transition-colors"
-                          onClick={(e) => { e.stopPropagation(); toggleFavorite(a.id); }}
-                        >
-                          <Heart size={12} className="text-primary fill-primary" />
-                        </div>
-                        {heroImg && (
-                          <div className="w-full h-32 overflow-hidden">
-                            <img src={heroImg} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                          </div>
-                        )}
-                        <div className="p-3.5">
-                          <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">{a.title}</p>
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md" style={{ background: `${cat.color}15`, color: cat.color }}>
-                              {cat.label}
-                            </span>
-                            <span className="text-lg font-bold tabular-nums" style={{ color: getScoreColor(score) }}>{score}</span>
-                          </div>
-                          <div className="flex items-center gap-1 mt-2 text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                            Open analysis <ChevronRight size={12} />
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center py-8 text-center rounded-xl border-2 border-dashed border-border bg-muted/30">
-                  <Heart size={32} className="text-muted-foreground/30 mb-3" />
-                  <p className="text-sm font-semibold text-foreground/60 mb-1">No favorites yet</p>
-                  <p className="text-xs text-muted-foreground max-w-sm">
-                    Tap the <Heart size={10} className="inline text-primary fill-primary" /> icon on any project card below to add it to your top choices.
-                  </p>
-                </div>
-              )}
-            </div>
+            {/* ═══════════ DASHBOARD GRID ═══════════ */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-            {/* ── Intelligence Explorer ── */}
-            <WorkspaceExplorer onConversationSaved={() => setConvRefreshKey(k => k + 1)} loadConversation={loadConv} onLoadComplete={() => setLoadConv(null)} />
-
-            {/* ── Saved Explorer Sessions ── */}
-            <SavedConversations refreshKey={convRefreshKey} onResumeConversation={(conv) => { setLoadConv({ ...conv }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
-
-            {/* ── All Projects ── */}
-            <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
-              <SectionHeader
-                icon={FolderOpen}
-                iconColor="hsl(var(--primary))"
-                title="All Projects"
-                subtitle="Search, filter, and compare your analyses."
-                badge={
-                  <>
-                    <InfoExplainer text="All your saved analyses. Use search and filters to find projects. Select up to 3 to compare." />
-                    <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">{filteredAnalyses.length}</span>
-                  </>
-                }
-              />
-
-              {/* Search + Filters */}
-              <div className="space-y-3 mb-5">
-                <div className="relative">
-                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search projects by name, category..."
-                    className="w-full pl-10 pr-4 py-3 text-sm rounded-xl border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 transition-all"
-                  />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <SlidersHorizontal size={13} className="text-muted-foreground" />
-                  {[
-                    { key: "all", label: "All Types" },
-                    { key: "product", label: "Product" },
-                    { key: "service", label: "Service" },
-                    { key: "business_model", label: "Business" },
-                  ].map((f) => (
-                    <button
-                      key={f.key}
-                      onClick={() => setFilterMode(f.key)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                      style={{
-                        background: filterMode === f.key ? "hsl(var(--primary))" : "hsl(var(--muted))",
-                        color: filterMode === f.key ? "white" : "hsl(var(--foreground))",
-                        boxShadow: filterMode === f.key ? "0 2px 8px hsl(var(--primary) / 0.25)" : "none",
-                      }}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                  <div className="w-px h-5 bg-border" />
-                  {[
-                    { key: "all", label: "Any Score" },
-                    { key: "high", label: "7.5+" },
-                    { key: "mid", label: "5–7.4" },
-                    { key: "low", label: "<5" },
-                  ].map((f) => (
-                    <button
-                      key={f.key}
-                      onClick={() => setFilterScore(f.key)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                      style={{
-                        background: filterScore === f.key ? "hsl(var(--score-high))" : "hsl(var(--muted))",
-                        color: filterScore === f.key ? "white" : "hsl(var(--foreground))",
-                        boxShadow: filterScore === f.key ? "0 2px 8px hsl(142 76% 36% / 0.25)" : "none",
-                      }}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                  <div className="w-px h-5 bg-border" />
-                  <button
-                    onClick={() => setSortBy(sortBy === "date" ? "score" : "date")}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-muted text-foreground transition-colors hover:bg-accent"
-                  >
-                    Sort: {sortBy === "date" ? "Newest" : "Top Score"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Project list */}
-              {filteredAnalyses.length === 0 ? (
-                <div className="text-center py-10 rounded-xl border-2 border-dashed border-border bg-muted/20">
-                  <Search size={28} className="mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-sm font-semibold text-muted-foreground">No projects match your filters.</p>
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                  {filteredAnalyses.map((a) => {
-                    const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
-                    const score = a.avg_revival_score || 0;
-                    const isCompared = compareIds.has(a.id);
-                    return (
-                      <div
-                        key={a.id}
-                        className="flex items-center gap-3 rounded-xl p-3.5 transition-all hover:shadow-md group cursor-pointer"
-                        style={{
-                          border: `2px solid ${isCompared ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
-                          background: isCompared ? "hsl(var(--primary) / 0.04)" : "hsl(var(--card))",
-                        }}
-                      >
-                        {/* Compare checkbox */}
-                        <button
-                          onClick={() => toggleCompare(a.id)}
-                          className="w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all hover:scale-110"
-                          style={{
-                            borderColor: isCompared ? "hsl(var(--primary))" : "hsl(var(--border))",
-                            background: isCompared ? "hsl(var(--primary))" : "transparent",
-                          }}
-                          title="Select to compare"
-                        >
-                          {isCompared && <span className="text-white text-xs font-bold">✓</span>}
-                        </button>
-
-                        {/* Main clickable area */}
-                        <button
-                          onClick={() => analysis.handleLoadSaved(a as any)}
-                          className="flex-1 min-w-0 text-left"
-                        >
-                          <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{a.title || "Untitled"}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md" style={{ background: `${cat.color}15`, color: cat.color }}>
-                              {cat.label}
-                            </span>
-                            <span className="text-[11px] text-muted-foreground">{a.category}</span>
-                            <span className="text-muted-foreground">·</span>
-                            <span className="text-[11px] text-muted-foreground">{format(parseISO(a.created_at), "MMM d, yyyy")}</span>
-                          </div>
-                        </button>
-
-                        {/* Score */}
-                        {score > 0 && (
-                          <div className="flex flex-col items-center flex-shrink-0">
-                            <span className="text-base font-bold tabular-nums" style={{ color: getScoreColor(score) }}>{score}</span>
-                            <span className="text-[9px] font-bold uppercase" style={{ color: getScoreColor(score) }}>
-                              {score >= 8 ? "Strong" : score >= 6 ? "Good" : "Low"}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Favorite */}
-                        <button
-                          onClick={() => toggleFavorite(a.id)}
-                          className="p-2 rounded-lg hover:bg-primary/10 transition-colors flex-shrink-0"
-                        >
-                          <Heart size={14} className={a.is_favorite ? "text-primary fill-primary" : "text-muted-foreground/30 group-hover:text-muted-foreground transition-opacity"} />
-                        </button>
-
-                        {/* Arrow */}
-                        <ChevronRight size={14} className="text-muted-foreground/30 group-hover:text-primary transition-colors flex-shrink-0" />
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Comparison view */}
-              {compareList.length > 0 && (
-                <div className="mt-5 pt-5 border-t-2 border-border">
-                  <div className="flex items-center gap-2 mb-4">
-                    <BarChart3 size={14} className="text-primary" />
-                    <p className="text-xs font-bold text-foreground uppercase tracking-wider">
-                      Comparing {compareList.length} project{compareList.length > 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <ComparisonInsightView compareList={compareList} />
-                </div>
-              )}
-            </div>
-
-            {/* ── Action Items ── */}
-            <ActionItemsPanel analyses={analyses} />
-
-            {/* ── Score Intelligence ── */}
-            <ScoreInsightPanel analyses={analyses} />
-
-            {/* ── Top Performers ── */}
-            {topPerformers.length > 0 && (
-              <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+              {/* ── My Top Choices ── */}
+              <DashCard>
                 <SectionHeader
-                  icon={Crown}
-                  iconColor="hsl(var(--warning))"
-                  title={favorites.length > 0 ? "Other Top Performers" : "Top Performers"}
-                  subtitle="Your strongest opportunities ranked by revival score."
+                  icon={Heart}
+                  iconColor="hsl(var(--destructive))"
+                  title="My Top Choices"
+                  badge={<InfoExplainer text="Projects you've marked as favorites." />}
                 />
-                <div className="space-y-2">
-                  {topPerformers.map((a, rank) => {
-                    const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
-                    const score = a.avg_revival_score || 0;
-                    return (
+                <div className="flex-1 overflow-y-auto max-h-[340px] -mx-1 px-1">
+                  {favorites.length > 0 ? (
+                    <div className="space-y-2">
+                      {favorites.map((a) => {
+                        const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
+                        const score = a.avg_revival_score || 0;
+                        const data = a.analysis_data as any;
+                        const imgList = data?.pitchDeckImages as { url: string; ideaName: string }[] | undefined;
+                        const productImg = (a.products as any[])?.[0]?.image;
+                        const heroImg = imgList?.[0]?.url || productImg;
+                        return (
+                          <button
+                            key={a.id}
+                            onClick={() => analysis.handleLoadSaved(a as any)}
+                            className="w-full rounded-lg border border-primary/20 bg-primary/[0.03] overflow-hidden text-left transition-all hover:shadow-md hover:border-primary/40 group relative flex items-center gap-3 p-2.5"
+                          >
+                            {heroImg && (
+                              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                <img src={heroImg} alt={a.title} className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">{a.title}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: `${cat.color}15`, color: cat.color }}>
+                                  {cat.label}
+                                </span>
+                                <span className="text-sm font-bold tabular-nums" style={{ color: getScoreColor(score) }}>{score}</span>
+                              </div>
+                            </div>
+                            <div
+                              className="p-1 rounded hover:bg-destructive/10 transition-colors flex-shrink-0"
+                              onClick={(e) => { e.stopPropagation(); toggleFavorite(a.id); }}
+                            >
+                              <Heart size={12} className="text-primary fill-primary" />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center py-6 text-center">
+                      <Heart size={24} className="text-muted-foreground/30 mb-2" />
+                      <p className="text-xs font-semibold text-foreground/60">No favorites yet</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Tap <Heart size={9} className="inline text-primary fill-primary" /> on any project.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </DashCard>
+
+              {/* ── All Projects ── */}
+              <DashCard span="lg:row-span-2">
+                <SectionHeader
+                  icon={FolderOpen}
+                  iconColor="hsl(var(--primary))"
+                  title="All Projects"
+                  badge={<span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{filteredAnalyses.length}</span>}
+                />
+
+                {/* Search + Filters (compact) */}
+                <div className="space-y-2 mb-3">
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search projects..."
+                      className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {[
+                      { key: "all", label: "All" },
+                      { key: "product", label: "Product" },
+                      { key: "service", label: "Service" },
+                      { key: "business_model", label: "Business" },
+                    ].map((f) => (
                       <button
-                        key={a.id}
-                        onClick={() => analysis.handleLoadSaved(a as any)}
-                        className="w-full flex items-center gap-4 rounded-xl p-4 text-left transition-all hover:shadow-md group"
+                        key={f.key}
+                        onClick={() => setFilterMode(f.key)}
+                        className="px-2.5 py-1 rounded-md text-[10px] font-bold transition-all"
                         style={{
-                          background: rank === 0 ? "hsl(var(--primary) / 0.04)" : "hsl(var(--background))",
-                          border: `2px solid ${rank === 0 ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}`,
+                          background: filterMode === f.key ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                          color: filterMode === f.key ? "white" : "hsl(var(--foreground))",
                         }}
                       >
-                        <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-bold"
+                        {f.label}
+                      </button>
+                    ))}
+                    <div className="w-px h-4 bg-border" />
+                    {[
+                      { key: "all", label: "Any" },
+                      { key: "high", label: "7.5+" },
+                      { key: "mid", label: "5–7" },
+                      { key: "low", label: "<5" },
+                    ].map((f) => (
+                      <button
+                        key={f.key}
+                        onClick={() => setFilterScore(f.key)}
+                        className="px-2.5 py-1 rounded-md text-[10px] font-bold transition-all"
+                        style={{
+                          background: filterScore === f.key ? "hsl(var(--score-high))" : "hsl(var(--muted))",
+                          color: filterScore === f.key ? "white" : "hsl(var(--foreground))",
+                        }}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setSortBy(sortBy === "date" ? "score" : "date")}
+                      className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-muted text-foreground hover:bg-accent transition-colors ml-auto"
+                    >
+                      {sortBy === "date" ? "Newest" : "Top"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Project list */}
+                <div className="flex-1 overflow-y-auto max-h-[520px] -mx-1 px-1">
+                  {filteredAnalyses.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Search size={20} className="mx-auto mb-1 text-muted-foreground/30" />
+                      <p className="text-xs text-muted-foreground">No projects match.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {filteredAnalyses.map((a) => {
+                        const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
+                        const score = a.avg_revival_score || 0;
+                        const isCompared = compareIds.has(a.id);
+                        return (
+                          <div
+                            key={a.id}
+                            className="flex items-center gap-2 rounded-lg p-2.5 transition-all hover:shadow-sm group cursor-pointer"
+                            style={{
+                              border: `1.5px solid ${isCompared ? "hsl(var(--primary))" : "hsl(var(--border))"}`,
+                              background: isCompared ? "hsl(var(--primary) / 0.04)" : "transparent",
+                            }}
+                          >
+                            <button
+                              onClick={() => toggleCompare(a.id)}
+                              className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                              style={{
+                                borderWidth: "1.5px",
+                                borderStyle: "solid",
+                                borderColor: isCompared ? "hsl(var(--primary))" : "hsl(var(--border))",
+                                background: isCompared ? "hsl(var(--primary))" : "transparent",
+                              }}
+                            >
+                              {isCompared && <span className="text-white text-[9px] font-bold">✓</span>}
+                            </button>
+                            <button
+                              onClick={() => analysis.handleLoadSaved(a as any)}
+                              className="flex-1 min-w-0 text-left"
+                            >
+                              <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">{a.title || "Untitled"}</p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: `${cat.color}15`, color: cat.color }}>
+                                  {cat.label}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground">{format(parseISO(a.created_at), "MMM d")}</span>
+                              </div>
+                            </button>
+                            {score > 0 && (
+                              <span className="text-sm font-bold tabular-nums flex-shrink-0" style={{ color: getScoreColor(score) }}>{score}</span>
+                            )}
+                            <button
+                              onClick={() => toggleFavorite(a.id)}
+                              className="p-1 rounded hover:bg-primary/10 transition-colors flex-shrink-0"
+                            >
+                              <Heart size={11} className={a.is_favorite ? "text-primary fill-primary" : "text-muted-foreground/20 group-hover:text-muted-foreground"} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Comparison view */}
+                {compareList.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BarChart3 size={12} className="text-primary" />
+                      <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">
+                        Comparing {compareList.length}
+                      </p>
+                    </div>
+                    <ComparisonInsightView compareList={compareList} />
+                  </div>
+                )}
+              </DashCard>
+
+              {/* ── Score Intelligence ── */}
+              <DashCard>
+                <div className="flex-1 overflow-y-auto max-h-[340px]">
+                  <ScoreInsightPanel analyses={analyses} />
+                </div>
+              </DashCard>
+
+              {/* ── Intelligence Explorer ── */}
+              <DashCard span="md:col-span-2 lg:col-span-1">
+                <SectionHeader
+                  icon={Zap}
+                  iconColor="hsl(var(--mode-product))"
+                  title="Intelligence Explorer"
+                />
+                <div className="flex-1 overflow-y-auto max-h-[360px] -mx-1 px-1">
+                  <WorkspaceExplorer onConversationSaved={() => setConvRefreshKey(k => k + 1)} loadConversation={loadConv} onLoadComplete={() => setLoadConv(null)} />
+                </div>
+              </DashCard>
+
+              {/* ── Action Items ── */}
+              <DashCard>
+                <div className="flex-1 overflow-y-auto max-h-[360px]">
+                  <ActionItemsPanel analyses={analyses} />
+                </div>
+              </DashCard>
+
+              {/* ── Top Performers ── */}
+              {topPerformers.length > 0 && (
+                <DashCard>
+                  <SectionHeader
+                    icon={Crown}
+                    iconColor="hsl(var(--warning))"
+                    title={favorites.length > 0 ? "Other Top Performers" : "Top Performers"}
+                  />
+                  <div className="flex-1 overflow-y-auto max-h-[340px] -mx-1 px-1 space-y-1.5">
+                    {topPerformers.map((a, rank) => {
+                      const cat = CATEGORY_MAP[a.analysis_type || a.category] || CATEGORY_MAP.custom;
+                      const score = a.avg_revival_score || 0;
+                      return (
+                        <button
+                          key={a.id}
+                          onClick={() => analysis.handleLoadSaved(a as any)}
+                          className="w-full flex items-center gap-3 rounded-lg p-3 text-left transition-all hover:shadow-sm group"
                           style={{
-                            background: rank === 0 ? "hsl(var(--primary))" : "hsl(var(--muted))",
-                            color: rank === 0 ? "white" : "hsl(var(--foreground))",
+                            background: rank === 0 ? "hsl(var(--primary) / 0.04)" : "transparent",
+                            border: `1.5px solid ${rank === 0 ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}`,
                           }}
                         >
-                          #{rank + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">{a.title}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md" style={{ background: `${cat.color}15`, color: cat.color }}>
-                              {cat.label}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {format(parseISO(a.created_at), "MMM d, yyyy")}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                          <span className="text-2xl font-bold tabular-nums" style={{ color: getScoreColor(score) }}>{score}</span>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); toggleFavorite(a.id); }}
-                            className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold"
+                            style={{
+                              background: rank === 0 ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                              color: rank === 0 ? "white" : "hsl(var(--foreground))",
+                            }}
                           >
-                            <Heart size={14} className={a.is_favorite ? "text-primary fill-primary" : "text-muted-foreground"} />
-                          </button>
-                        </div>
-                        <ChevronRight size={16} className="text-muted-foreground/30 group-hover:text-primary transition-colors flex-shrink-0" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                            #{rank + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">{a.title}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: `${cat.color}15`, color: cat.color }}>
+                                {cat.label}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="text-lg font-bold tabular-nums flex-shrink-0" style={{ color: getScoreColor(score) }}>{score}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </DashCard>
+              )}
+
+              {/* ── Saved Conversations ── */}
+              <DashCard span="md:col-span-2 lg:col-span-3">
+                <SavedConversations refreshKey={convRefreshKey} onResumeConversation={(conv) => { setLoadConv({ ...conv }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+              </DashCard>
+            </div>
           </>
         )}
       </main>
