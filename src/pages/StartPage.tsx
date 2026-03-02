@@ -86,7 +86,7 @@ export default function StartPage() {
     if (paused) return;
     const interval = setInterval(() => {
       setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
-    }, 4500);
+    }, 1000);
     return () => clearInterval(interval);
   }, [paused]);
 
@@ -95,7 +95,7 @@ export default function StartPage() {
       <PlatformNav tier={tier} />
 
       {/* Hero */}
-      <section className="pt-14 sm:pt-20 pb-8 sm:pb-10 px-4">
+      <section className="pt-8 sm:pt-12 pb-4 sm:pb-6 px-4">
         <div className="max-w-5xl mx-auto text-left">
           <h1 className="text-7xl sm:text-8xl md:text-9xl font-extrabold tracking-tight text-foreground leading-[1.0]">
             Rethink any
