@@ -3,6 +3,7 @@ import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWa
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
+import { buildValidationObject } from "../_shared/governedSchema.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -150,7 +151,23 @@ The JSON must follow this EXACT structure:
       "decision_readiness": 3,
       "confidence": "high | medium | exploratory"
     }
-  ]
+  ],
+  "governed": {
+    "falsification": {
+      "falsification_conditions": ["specific condition that would prove this model wrong"],
+      "redesign_invalidation_evidence": ["evidence that would invalidate the proposed redesign"],
+      "adoption_failure_conditions": ["conditions under which user adoption fails"],
+      "economic_collapse_scenario": "specific scenario where unit economics collapse",
+      "model_fragility_score": 45
+    },
+    "decision_synthesis": {
+      "decision_grade": "decision_grade|conditional|blocked",
+      "confidence_score": 55,
+      "blocking_uncertainties": ["key uncertainty that blocks decision"],
+      "fastest_validation_experiment": "cheapest test to validate viability — under $500, specific method",
+      "next_required_evidence": "what evidence would change the assessment"
+    }
+  }
 }`;
 
     const userPrompt = `STRESS TEST this product/service redesign concept with SPECIFIC, EVIDENCE-BASED analysis.
@@ -295,12 +312,19 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
     enforceVisualContract(validation);
 
+    // ── Governed: build validation object for checkpoint gates ──
+    const governed = validation.governed || {};
+    const governedValidation = buildValidationObject("critical-validation", governed, [
+      "falsification", "decision_synthesis"
+    ]);
+    console.log(`[Governed] Validation:`, JSON.stringify(governedValidation));
+
     // ── Output Validation ──
     const validationResult = validateOutput(mode, validation);
     const trace = buildTrace(mode, filterResult, validationResult);
     console.log(`[ModeEnforcement] Trace:`, JSON.stringify(trace));
 
-    return new Response(JSON.stringify({ success: true, validation, _modeTrace: trace }), {
+    return new Response(JSON.stringify({ success: true, validation, _modeTrace: trace, _governedValidation: governedValidation }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

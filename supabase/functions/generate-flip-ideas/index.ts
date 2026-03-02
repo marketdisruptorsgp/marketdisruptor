@@ -3,6 +3,7 @@ import { resolveMode, filterInputData, missingDataWarning } from "../_shared/mod
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
+// Governed schema: constraint-driven flip linkage
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,6 +80,13 @@ Each object must follow this EXACT structure:
   },
   "riskLevel": "[Risk: Low/Medium/High]",
   "capitalRequired": "[Capital: Low/Medium/High]",
+  "constraint_linkage": {
+    "original_assumption": "the assumption being structurally challenged",
+    "structural_inversion": "what structural change this creates",
+    "causal_mechanism": "how the flip creates value through constraint removal",
+    "constraint_relief_path": "which Tier 1 or Tier 2 friction this relaxes",
+    "constraint_linkage_id": "ID linking to a specific friction from upstream analysis"
+  },
   "visualSpec": {
     "visual_type": "causal_chain | leverage_hierarchy",
     "title": "Short title for the visual",

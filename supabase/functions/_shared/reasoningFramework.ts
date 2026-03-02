@@ -30,45 +30,68 @@ Innovation must be driven by constraint removal.
 
 Before generating ANY visible output, execute this sequential process.
 Each step feeds the next — do not skip or reorder.
+Each step MUST produce structured artifacts in the "governed" output object.
 
 ── STEP 1: DOMAIN CONFIRMATION ──
-Identify the system type (product artifact, service delivery, business model) and its dominant outcome mechanism.
+INTERROGATION QUESTIONS (answer internally before proceeding):
+• What system type is this? (product artifact / service delivery / business model)
+• What transformation does this system perform?
+• What outcome defines success — independent of the current solution?
+• What is the irreducible minimum system required for value creation?
 Lock the domain before proceeding. All subsequent analysis must stay within this domain.
 
 ── STEP 2: OBJECTIVE DEFINITION ──
+INTERROGATION QUESTIONS:
+• What does success look like without referencing the current implementation?
+• What measurable outcomes define viability?
+• What decision criteria separate success from failure?
 Define success independent of the existing solution.
 Express measurable outcome targets when possible.
 Do not anchor on the current implementation — define what a perfect outcome looks like.
 
 ── STEP 3: FIRST-PRINCIPLES DECOMPOSITION ──
-Identify:
-  • fundamental constraints (physics, economics, human behavior, regulation)
-  • resource limits (capital, time, talent, infrastructure)
-  • behavioral realities (what humans actually do vs. what they should do)
-  • economic requirements (unit economics, margins, breakeven)
-  • dependency structure (what must exist for this to work)
-
-Distinguish assumptions from constraints. Label each explicitly.
+INTERROGATION QUESTIONS:
+• What are the fundamental constraints? (physics, economics, human behavior, regulation)
+• What are the resource limits? (capital, time, talent, infrastructure)
+• What do humans actually do vs what they should do?
+• What are the economic requirements? (unit economics, margins, breakeven)
+• What must exist for this system to work?
+• What is assumption vs what is constraint? Label each explicitly.
+Identify all of the above. Output structured artifacts.
 STOPPING RULE: Stop decomposing when additional detail does not change leverage decisions OR when dominant outcome drivers are explained.
 
 ── STEP 4: FRICTION DISCOVERY (EXPLORATORY PHASE) ──
-Map effort, delay, cost, risk, variability, and coordination burden across the entire system.
-Allow wide discovery. Do not filter prematurely.
+INTERROGATION QUESTIONS:
+• Where is effort, delay, cost, risk, variability, or coordination burden?
+• Which friction dimensions are dominant for THIS specific system?
+• What frictions has the user/community already identified?
+Map friction across the entire system. Allow wide discovery. Do not filter prematurely.
 
-── STEP 5: FRICTION RELEVANCE QUALIFICATION ──
-A friction is structurally relevant only if it influences: cost, time-to-outcome, adoption/demand, scalability, reliability, or risk exposure.
+── STEP 5: FRICTION TIER QUALIFICATION ──
+INTERROGATION QUESTIONS:
+• Does this friction influence cost, time-to-outcome, adoption, scalability, reliability, or risk?
+• Is this friction system-limiting (Tier 1), meaningful optimization (Tier 2), or observational (Tier 3)?
+• Would removing this friction change system economics or scale?
 
-Classify EVERY identified friction:
+Classify EVERY identified friction into exactly one tier:
   Tier 1 — system-limiting constraint (blocks scale, breaks economics, prevents adoption)
   Tier 2 — meaningful optimization target (measurable improvement, worth investment)
   Tier 3 — observational friction (real but does not drive redesign decisions)
 
 RULE: Only Tier 1 and Tier 2 may drive redesign. Tier 3 is insight only.
+OUTPUT: structured friction_tiers object with tier_1[], tier_2[], tier_3[].
 
 ── STEP 6: CONSTRAINT MAPPING ──
+INTERROGATION QUESTIONS:
+• What structural property CAUSES each friction?
+• What is the causal chain: friction → constraint → system impact?
+• Which constraint is BINDING (system-limiting)?
+• WHY is it dominant over alternatives? (comparative evidence required)
+• What happens if this constraint is REMOVED? (counterfactual test)
+• What becomes the NEXT binding constraint after removal?
 Translate relevant frictions into structural system properties that cause them.
-Express causal chains: friction → underlying constraint → system impact.
 Every constraint must connect to one of: cost, time, adoption, scale, reliability, or risk.
+OUTPUT: structured constraint_map with binding_constraint_id, dominance_proof, counterfactual_removal_result.
 
 ── STEP 7: MODE-SPECIFIC STRUCTURAL ANALYSIS ──
 Apply the mode-specific evaluation dimensions provided in the MODE ENFORCEMENT section.
@@ -84,8 +107,12 @@ Classify each leverage point:
 For each leverage point, state confidence level (Low/Medium/High) and what evidence would change it.
 
 ── STEP 9: SOLUTION GENERATION (CONSTRAINT-DRIVEN ONLY) ──
+INTERROGATION QUESTIONS:
+• Does this solution trace to a Tier 1 or Tier 2 constraint?
+• What transformation tool applies? (Substitute, Combine, Simplify, Re-sequence, Eliminate, Reallocate, Reprice, Rearchitect, Automate)
+• What is the MINIMUM viable intervention?
+• What constraint does it relax and by how much?
 Generate redesigned alternatives that remove or relax dominant constraints.
-Transformation tools: Substitute, Combine, Simplify, Re-sequence, Eliminate, Reallocate responsibility, Reprice, Rearchitect, Automate (only when causal).
 Every solution must trace back to a Tier 1 or Tier 2 constraint.
 Solutions without constraint linkage are rejected.
 

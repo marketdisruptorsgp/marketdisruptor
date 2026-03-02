@@ -3,6 +3,7 @@ import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWa
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
+import { getGovernedSchemaPrompt, buildValidationObject } from "../_shared/governedSchema.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -285,7 +286,7 @@ The JSON must follow this EXACT structure:
       "interpretation": "One sentence explaining what limits performance and where to intervene"
     }
   ],
-  "actionPlans": [
+   "actionPlans": [
     {
       "initiative": "Initiative name",
       "objective": "What this achieves",
@@ -298,7 +299,51 @@ The JSON must follow this EXACT structure:
       "decision_readiness": 3,
       "confidence": "high | medium | exploratory"
     }
-  ]
+  ],
+  "governed": {
+    "domain_confirmation": {
+      "system_type": "product | service | business_model",
+      "outcome_mechanism": "causal transformation this system performs",
+      "success_condition": "solution-independent success definition",
+      "domain_lock": true
+    },
+    "first_principles": {
+      "minimum_viable_system": "irreducible system — what MUST exist for value creation",
+      "causal_model": {
+        "inputs": ["input1", "input2"],
+        "mechanism": "core transformation mechanism",
+        "outputs": ["output1", "output2"]
+      },
+      "fundamental_constraints": ["hard constraint 1", "hard constraint 2"],
+      "resource_limits": ["capital/time/talent limit"],
+      "behavioral_realities": ["what humans actually do vs should do"],
+      "dependency_structure": ["what must exist for this to work"],
+      "viability_assumptions": [
+        {"assumption": "text", "evidence_status": "verified|modeled|speculative", "leverage_if_wrong": 7}
+      ]
+    },
+    "friction_tiers": {
+      "tier_1": [{"friction_id": "f1", "description": "system-limiting friction", "system_impact": "blocks scale/breaks economics/prevents adoption"}],
+      "tier_2": [{"friction_id": "f2", "description": "meaningful optimization target", "optimization_target": "measurable improvement worth investment"}],
+      "tier_3": [{"friction_id": "f3", "description": "observational friction — real but does not drive redesign"}]
+    },
+    "constraint_map": {
+      "causal_chains": [
+        {"friction_id": "f1", "structural_constraint": "root constraint", "system_impact": "downstream effect", "impact_dimension": "cost|time|adoption|scale|reliability|risk"}
+      ],
+      "binding_constraint_id": "f1",
+      "dominance_proof": "why this constraint dominates — comparative evidence",
+      "counterfactual_removal_result": "what changes if this constraint is removed",
+      "next_binding_constraint": "what becomes limiting after removal"
+    },
+    "decision_synthesis": {
+      "decision_grade": "decision_grade|conditional|blocked",
+      "confidence_score": 55,
+      "blocking_uncertainties": ["key uncertainty 1"],
+      "fastest_validation_experiment": "cheapest way to test this",
+      "next_required_evidence": "what evidence would change the assessment"
+    }
+  }
 }`;
 
     const userPrompt = isService
@@ -480,6 +525,13 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
     enforceVisualContract(analysis);
 
+    // ── Governed: build validation object for checkpoint gates ──
+    const governed = analysis.governed || {};
+    const governedValidation = buildValidationObject("first-principles", governed, [
+      "domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"
+    ]);
+    console.log(`[Governed] Validation:`, JSON.stringify(governedValidation));
+
     // ── Output Validation: check for cross-mode drift ──
     const validationResult = validateOutput(mode, analysis);
     const trace = buildTrace(mode, filterResult, validationResult);
@@ -489,7 +541,7 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
       console.warn(`[ModeEnforcement] Violations detected in ${mode} output:`, validationResult.violations);
     }
 
-    return new Response(JSON.stringify({ success: true, analysis, _modeTrace: trace }), {
+    return new Response(JSON.stringify({ success: true, analysis, _modeTrace: trace, _governedValidation: governedValidation }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
