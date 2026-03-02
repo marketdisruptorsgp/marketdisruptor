@@ -5,6 +5,7 @@ import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { buildValidationObject } from "../_shared/governedSchema.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
+import { extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -289,27 +290,18 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
     }
 
     const aiData = await response.json();
-    const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
 
-    let cleaned = rawText
-      .replace(/^```(?:json)?\s*/im, "")
-      .replace(/\s*```\s*$/m, "")
-      .trim();
-
-    const firstBrace = cleaned.indexOf("{");
-    const lastBrace = cleaned.lastIndexOf("}");
-    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-      cleaned = cleaned.slice(firstBrace, lastBrace + 1);
-    }
-
+    // §2: Structured output extraction
     let validation;
     try {
-      validation = JSON.parse(cleaned);
+      validation = extractStructuredResponse(aiData);
     } catch (parseErr) {
-      console.error("JSON parse failed:", parseErr);
-      console.error("Raw content (first 500):", cleaned.slice(0, 500));
-      throw new Error("AI returned invalid JSON. Please retry.");
+      console.error("[StructuredOutput] Extraction failed:", parseErr);
+      throw new Error("AI returned invalid output. Please retry.");
     }
+
+    const structuredValidation = validateStructuredResponse(validation, "critical-validation");
+    console.log(`[StructuredOutput] critical-validation: valid=${structuredValidation.valid}, missing=${structuredValidation.missing.length}`);
 
     enforceVisualContract(validation);
 

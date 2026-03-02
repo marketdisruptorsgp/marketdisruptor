@@ -7,6 +7,7 @@ import { getGovernedSchemaPrompt, buildValidationObject } from "../_shared/gover
 import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
+import { extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -503,28 +504,22 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     }
 
     const aiData = await response.json();
-    const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
-
-    let cleaned = rawText
-      .replace(/^```(?:json)?\s*/im, "")
-      .replace(/\s*```\s*$/m, "")
-      .trim();
-
-    // Extract JSON object — find first { and last }
-    const firstBrace = cleaned.indexOf("{");
-    const lastBrace = cleaned.lastIndexOf("}");
-    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-      cleaned = cleaned.slice(firstBrace, lastBrace + 1);
-    }
-
+    
+    // §2: Structured output extraction — replaces heuristic JSON salvage
     let analysis;
     try {
-      analysis = JSON.parse(cleaned);
+      analysis = extractStructuredResponse(aiData);
     } catch (parseErr) {
-      console.error("JSON parse failed:", parseErr);
-      console.error("Raw content (first 500):", cleaned.slice(0, 500));
-      throw new Error("AI returned invalid JSON. Please retry.");
+      console.error("[StructuredOutput] Extraction failed:", parseErr);
+      throw new Error("AI returned invalid output. Please retry.");
     }
+
+    // §2: Validate governed fields are present
+    const structuredValidation = validateStructuredResponse(analysis, "first-principles");
+    if (structuredValidation.truncated) {
+      console.error(`[StructuredOutput] TRUNCATION DETECTED: missing ${structuredValidation.missing.join(", ")}`);
+    }
+    console.log(`[StructuredOutput] Validation: valid=${structuredValidation.valid}, missing=${structuredValidation.missing.length}`);
 
     enforceVisualContract(analysis);
 
