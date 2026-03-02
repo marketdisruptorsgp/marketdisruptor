@@ -29,27 +29,25 @@ serve(async (req) => {
       });
     }
 
-    // Use "Rachel" voice — warm, professional, human-sounding
-    // Voice ID for Rachel: 21m00Tcm4TlvDq8ikWAM
-    const voiceId = "21m00Tcm4TlvDq8ikWAM";
+    const voiceId = "8iDUAV5slUpRv30f3cyz";
 
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
       {
         method: "POST",
         headers: {
           "xi-api-key": ELEVENLABS_API_KEY,
           "Content-Type": "application/json",
-          Accept: "audio/mpeg",
         },
         body: JSON.stringify({
           text,
           model_id: "eleven_multilingual_v2",
           voice_settings: {
-            stability: 0.6,
+            stability: 0.7,
             similarity_boost: 0.8,
-            style: 0.35,
+            style: 0.25,
             use_speaker_boost: true,
+            speed: 0.95,
           },
         }),
       }
