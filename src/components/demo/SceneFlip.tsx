@@ -2,191 +2,236 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 /* ═══════════════════════════════════════════════════════════════
-   SCENE 3 — THE FLIP
-   The most important moment. Two force vectors visualized.
-   Conventional vector shrinks. Structural vector expands.
-   Impact field shifts. The system reorganizes.
-   1.5s hold in silence after the flip.
+   SCENE 3 — CONSTRAINT DOMINANCE + FIRST PRINCIPLES FLIP [20–40s]
+   The dominant constraint locks into focus.
+   System reorganizes structure around it.
+   Invalid paths fade. New design emerges from constraint.
+   Impact shifts from 35% → 73%.
+   1.5s hold after the flip — the "aha" moment.
    ═══════════════════════════════════════════════════════════════ */
 
+const INVALID_PATHS = [
+  { label: "Motor upgrade", x: 15, y: 20 },
+  { label: "Filter addition", x: 12, y: 45 },
+  { label: "Speed increase", x: 18, y: 70 },
+];
+
+const STRUCTURAL_CHAIN = [
+  { label: "Coverage geometry", isPrimary: true },
+  { label: "Nozzle angle", isPrimary: false },
+  { label: "Drying surface", isPrimary: false },
+  { label: "Time reduction", isPrimary: false },
+];
+
 export default function SceneFlip() {
-  const [flipped, setFlipped] = useState(false);
+  const [phase, setPhase] = useState<"build" | "flip" | "hold">("build");
 
   useEffect(() => {
-    const t = setTimeout(() => setFlipped(true), 2500);
-    return () => clearTimeout(t);
+    const t1 = setTimeout(() => setPhase("flip"), 5000);
+    const t2 = setTimeout(() => setPhase("hold"), 10000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, []);
 
+  const isFlipped = phase === "flip" || phase === "hold";
+
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-      <div className="relative w-full max-w-lg h-[280px]">
-        {/* Impact field — background energy */}
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden min-h-[300px]">
+      <div className="relative w-full max-w-lg h-[300px]">
+        {/* Background energy field shifts */}
         <motion.div
           className="absolute inset-0 rounded-2xl"
-          style={{
-            background: flipped
-              ? "radial-gradient(ellipse at 70% 50%, hsl(var(--primary) / 0.04) 0%, transparent 70%)"
-              : "radial-gradient(ellipse at 30% 50%, hsl(var(--foreground) / 0.02) 0%, transparent 70%)",
+          animate={{
+            background: isFlipped
+              ? "radial-gradient(ellipse at 65% 50%, hsl(var(--primary) / 0.06) 0%, transparent 70%)"
+              : "radial-gradient(ellipse at 35% 50%, hsl(var(--foreground) / 0.015) 0%, transparent 70%)",
           }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.5 }}
+          transition={{ duration: 2 }}
         />
 
-        {/* Conventional vector — left */}
-        <motion.div
-          className="absolute left-6 sm:left-10 top-1/2 -translate-y-1/2"
-          animate={{
-            opacity: flipped ? 0.15 : 0.8,
-            scale: flipped ? 0.7 : 1,
-            x: flipped ? -10 : 0,
-          }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <div className="flex flex-col items-center gap-3">
-            {/* Force line — thin, diminishing */}
+        {/* LEFT: Invalid paths — fade out on flip */}
+        <div className="absolute left-4 sm:left-8 top-0 bottom-0 flex flex-col justify-center gap-5">
+          {INVALID_PATHS.map((p, i) => (
             <motion.div
-              className="rounded-full"
-              style={{
-                width: 3,
-                background: "hsl(var(--foreground) / 0.12)",
+              key={i}
+              className="flex items-center gap-2.5"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{
+                opacity: isFlipped ? 0.06 : 0.5,
+                x: isFlipped ? -12 : 0,
+                filter: isFlipped ? "blur(2px)" : "blur(0px)",
               }}
-              animate={{ height: flipped ? 40 : 100 }}
-              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            />
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{
-                border: "1px solid hsl(var(--foreground) / 0.08)",
-                background: "hsl(var(--foreground) / 0.02)",
+              transition={{
+                delay: isFlipped ? i * 0.1 : 0.5 + i * 0.4,
+                duration: 1.2,
+                ease: [0.22, 1, 0.36, 1],
               }}
             >
+              <div
+                className="w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: isFlipped
+                    ? "hsl(var(--foreground) / 0.05)"
+                    : "hsl(var(--foreground) / 0.12)",
+                }}
+              />
               <span
-                className="text-[10px] font-bold tabular-nums"
-                style={{ color: "hsl(var(--foreground) / 0.2)" }}
+                className="text-[10px] font-medium"
+                style={{
+                  color: isFlipped
+                    ? "hsl(var(--foreground) / 0.08)"
+                    : "hsl(var(--foreground) / 0.3)",
+                  textDecoration: isFlipped ? "line-through" : "none",
+                }}
               >
-                35
+                {p.label}
               </span>
-            </div>
-            <span
-              className="text-[8px] font-semibold tracking-widest uppercase"
-              style={{ color: "hsl(var(--foreground) / 0.15)" }}
-            >
-              Incremental
-            </span>
-          </div>
-        </motion.div>
+            </motion.div>
+          ))}
+        </div>
 
-        {/* Center divider — transforms */}
+        {/* CENTER: Vertical divider transforms */}
         <motion.div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          className="absolute left-[38%] sm:left-[42%] top-[15%] bottom-[15%]"
           animate={{
-            scaleY: flipped ? 0.6 : 1,
-            opacity: flipped ? 0.1 : 0.15,
+            opacity: isFlipped ? 0.06 : 0.1,
           }}
           transition={{ duration: 1 }}
         >
           <div
-            className="w-px h-40"
-            style={{ background: "hsl(var(--foreground) / 0.1)" }}
+            className="w-px h-full"
+            style={{ background: "hsl(var(--foreground))" }}
           />
         </motion.div>
 
-        {/* Structural vector — right, dominates */}
-        <motion.div
-          className="absolute right-6 sm:right-10 top-1/2 -translate-y-1/2"
-          animate={{
-            opacity: flipped ? 1 : 0.3,
-            scale: flipped ? 1.1 : 0.9,
-            x: flipped ? -20 : 0,
-          }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <div className="flex flex-col items-center gap-3">
-            {/* Force line — strong, expanding */}
-            <motion.div
-              className="rounded-full"
-              style={{
-                width: 4,
-                background: flipped
-                  ? "hsl(var(--primary) / 0.6)"
-                  : "hsl(var(--primary) / 0.1)",
-              }}
-              animate={{ height: flipped ? 120 : 60 }}
-              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            />
-            <motion.div
-              className="rounded-full flex items-center justify-center"
-              style={{
-                border: `2px solid ${
-                  flipped
-                    ? "hsl(var(--primary) / 0.4)"
-                    : "hsl(var(--primary) / 0.08)"
-                }`,
-                background: flipped
-                  ? "hsl(var(--primary) / 0.08)"
-                  : "transparent",
-              }}
-              animate={{
-                width: flipped ? 56 : 40,
-                height: flipped ? 56 : 40,
-              }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <motion.span
-                className="text-sm font-bold tabular-nums"
-                style={{ color: "hsl(var(--primary))" }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: flipped ? 1 : 0 }}
-                transition={{ delay: 0.6 }}
+        {/* RIGHT: Structural chain — emerges and dominates */}
+        <div className="absolute right-4 sm:right-8 top-0 bottom-0 flex flex-col justify-center gap-1">
+          {STRUCTURAL_CHAIN.map((node, i) => (
+            <div key={i} className="flex flex-col items-start">
+              {/* Connecting line */}
+              {i > 0 && (
+                <motion.div
+                  className="ml-3 rounded-full"
+                  style={{
+                    width: 1.5,
+                    background: isFlipped
+                      ? "hsl(var(--primary) / 0.3)"
+                      : "hsl(var(--primary) / 0.06)",
+                  }}
+                  initial={{ height: 0 }}
+                  animate={{ height: isFlipped ? 16 : 8 }}
+                  transition={{
+                    delay: isFlipped ? 0.5 + i * 0.3 : 1 + i * 0.5,
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                />
+              )}
+              <motion.div
+                className="flex items-center gap-2.5"
+                initial={{ opacity: 0, x: 8 }}
+                animate={{
+                  opacity: isFlipped ? 1 : 0.3,
+                  x: 0,
+                  scale: isFlipped && node.isPrimary ? 1.08 : 1,
+                }}
+                transition={{
+                  delay: isFlipped ? 0.3 + i * 0.3 : 0.8 + i * 0.5,
+                  duration: 0.8,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
               >
-                73
-              </motion.span>
-            </motion.div>
-            <span
-              className="text-[8px] font-semibold tracking-widest uppercase"
+                <div
+                  className="rounded-full shrink-0"
+                  style={{
+                    width: node.isPrimary ? 8 : 6,
+                    height: node.isPrimary ? 8 : 6,
+                    background: isFlipped
+                      ? node.isPrimary
+                        ? "hsl(var(--primary))"
+                        : "hsl(var(--primary) / 0.4)"
+                      : "hsl(var(--primary) / 0.1)",
+                  }}
+                />
+                <span
+                  className="text-[11px] font-semibold tracking-tight"
+                  style={{
+                    color: isFlipped
+                      ? node.isPrimary
+                        ? "hsl(var(--primary))"
+                        : "hsl(var(--foreground) / 0.6)"
+                      : "hsl(var(--foreground) / 0.15)",
+                  }}
+                >
+                  {node.label}
+                </span>
+              </motion.div>
+            </div>
+          ))}
+        </div>
+
+        {/* Impact shift indicator: 35 → 73 */}
+        <motion.div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isFlipped ? 1 : 0 }}
+          transition={{ delay: 1.5, duration: 1 }}
+        >
+          <span
+            className="text-[11px] font-bold tabular-nums"
+            style={{ color: "hsl(var(--foreground) / 0.2)" }}
+          >
+            35%
+          </span>
+          <motion.div
+            className="flex items-center gap-1"
+            initial={{ width: 0 }}
+            animate={{ width: isFlipped ? 60 : 0 }}
+            transition={{ delay: 2, duration: 0.8 }}
+          >
+            <div
+              className="h-px flex-1"
+              style={{ background: "hsl(var(--primary) / 0.3)" }}
+            />
+            <div
+              className="w-0 h-0"
               style={{
-                color: flipped
-                  ? "hsl(var(--primary) / 0.7)"
-                  : "hsl(var(--primary) / 0.15)",
+                borderLeft: "4px solid hsl(var(--primary) / 0.4)",
+                borderTop: "2px solid transparent",
+                borderBottom: "2px solid transparent",
               }}
-            >
-              Structural
-            </span>
-          </div>
+            />
+          </motion.div>
+          <motion.span
+            className="text-base font-bold tabular-nums"
+            style={{ color: "hsl(var(--primary))" }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{
+              opacity: isFlipped ? 1 : 0,
+              scale: isFlipped ? 1 : 0.8,
+            }}
+            transition={{ delay: 2.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            73%
+          </motion.span>
         </motion.div>
 
-        {/* Impact arc — connects the shift */}
-        {flipped && (
+        {/* Hold marker — silence after flip */}
+        {phase === "hold" && (
           <motion.div
-            className="absolute top-6 left-1/2 -translate-x-1/2"
-            initial={{ opacity: 0, scaleX: 0 }}
-            animate={{ opacity: 0.15, scaleX: 1 }}
-            transition={{ delay: 0.8, duration: 1 }}
+            className="absolute top-4 left-1/2 -translate-x-1/2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.2 }}
+            transition={{ duration: 1.5 }}
           >
-            <svg width="200" height="30" viewBox="0 0 200 30">
-              <path
-                d="M 20 28 Q 100 0 180 28"
-                fill="none"
-                stroke="hsl(var(--primary))"
-                strokeWidth="1"
-                strokeDasharray="3 5"
-              />
-            </svg>
+            <div
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: "hsl(var(--primary))" }}
+            />
           </motion.div>
         )}
-
-        {/* The hold — silence after flip */}
-        <motion.div
-          className="absolute bottom-4 left-0 right-0 flex justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: flipped ? 1 : 0 }}
-          transition={{ delay: 1.8, duration: 1 }}
-        >
-          <div
-            className="w-2 h-2 rounded-full"
-            style={{ background: "hsl(var(--primary) / 0.3)" }}
-          />
-        </motion.div>
       </div>
     </div>
   );
