@@ -6,6 +6,7 @@ import {
   TrendingUp, Crosshair, BarChart3, Zap, CheckCircle2,
   XCircle, ArrowDown, Layers, Target, Shield, GitBranch,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ═══════════════════════════════════════════════════════════════
    CINEMATIC DEMO — Secret Weapon Storytelling Engine
@@ -39,20 +40,52 @@ const ACTS: Act[] = [
 
 const TOTAL_DURATION = ACTS.reduce((s, a) => s + a.duration, 0);
 
-/* ── Voice Engine ── */
-function speakText(text: string) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 0.92; u.pitch = 1.0; u.volume = 0.85;
-  const voices = window.speechSynthesis.getVoices();
-  const pref = voices.find(v => v.name.includes("Daniel") || v.name.includes("Google UK English Male") || v.name.includes("Samantha"));
-  if (pref) u.voice = pref;
-  window.speechSynthesis.speak(u);
+/* ── Voice Engine (ElevenLabs TTS with cache) ── */
+const audioCache = new Map<string, string>(); // actId → blob URL
+let currentAudio: HTMLAudioElement | null = null;
+
+async function fetchTTSAudio(actId: string, text: string): Promise<string | null> {
+  if (audioCache.has(actId)) return audioCache.get(actId)!;
+  try {
+    const res = await supabase.functions.invoke("demo-tts", {
+      body: { text, actId },
+    });
+    if (res.error || !res.data) {
+      console.warn("TTS fetch failed, falling back to silence:", res.error);
+      return null;
+    }
+    // res.data is a Blob when responseType is not set
+    const blob = res.data instanceof Blob ? res.data : new Blob([res.data], { type: "audio/mpeg" });
+    const url = URL.createObjectURL(blob);
+    audioCache.set(actId, url);
+    return url;
+  } catch (err) {
+    console.warn("TTS fetch error:", err);
+    return null;
+  }
 }
-function cancelSpeech() { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); }
-function pauseSpeech() { if ("speechSynthesis" in window) window.speechSynthesis.pause(); }
-function resumeSpeech() { if ("speechSynthesis" in window) window.speechSynthesis.resume(); }
+
+function playAudio(url: string) {
+  stopAudio();
+  currentAudio = new Audio(url);
+  currentAudio.play().catch(() => {});
+}
+
+function pauseAudio() {
+  if (currentAudio && !currentAudio.paused) currentAudio.pause();
+}
+
+function resumeAudio() {
+  if (currentAudio && currentAudio.paused) currentAudio.play().catch(() => {});
+}
+
+function stopAudio() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
+  }
+}
 
 /* ════════════════════════════════════════════════════════════════
    CUSTOM VISUAL SCENES — all code-built, design-token-driven
@@ -488,14 +521,18 @@ export default function DemoSection() {
   const act = ACTS[activeAct];
   const Visual = ACT_VISUALS[act.id];
 
-  // Voiceover
+  // Voiceover — ElevenLabs TTS
   useEffect(() => {
-    if (!playing || muted) { cancelSpeech(); return; }
+    if (!playing || muted) { stopAudio(); return; }
     if (lastSpoken.current === activeAct) return;
     lastSpoken.current = activeAct;
     const text = NARRATION[act.id];
-    if (text) speakText(text);
-    return () => cancelSpeech();
+    if (text) {
+      fetchTTSAudio(act.id, text).then(url => {
+        if (url) playAudio(url);
+      });
+    }
+    return () => stopAudio();
   }, [activeAct, playing, muted, act.id]);
 
   // Timer
@@ -506,7 +543,7 @@ export default function DemoSection() {
         const next = p + 100;
         if (next >= act.duration) {
           if (activeAct < ACTS.length - 1) { setActiveAct(s => s + 1); return 0; }
-          else { setPlaying(false); cancelSpeech(); return act.duration; }
+          else { setPlaying(false); stopAudio(); return act.duration; }
         }
         return next;
       });
@@ -515,7 +552,7 @@ export default function DemoSection() {
   }, [playing, activeAct, act.duration]);
 
   useEffect(() => {
-    if (playing && !muted) resumeSpeech(); else pauseSpeech();
+    if (playing && !muted) resumeAudio(); else pauseAudio();
   }, [playing, muted]);
 
   useEffect(() => {
@@ -536,12 +573,12 @@ export default function DemoSection() {
   }, [isFs]);
 
   const goTo = useCallback((i: number) => {
-    cancelSpeech(); lastSpoken.current = -1;
+    stopAudio(); lastSpoken.current = -1;
     setActiveAct(i); setElapsed(0); setPlaying(true);
   }, []);
 
   const stop = useCallback(() => {
-    cancelSpeech(); lastSpoken.current = -1;
+    stopAudio(); lastSpoken.current = -1;
     setPlaying(false); setActiveAct(0); setElapsed(0);
   }, []);
 
@@ -572,8 +609,8 @@ export default function DemoSection() {
         <div className="flex items-center gap-1.5">
           <CtrlBtn onClick={() => { if (!playing) lastSpoken.current = -1; setPlaying(p => !p); }} icon={playing ? Pause : Play} label={playing ? "Pause" : "Play"} active={playing} large />
           <CtrlBtn onClick={stop} icon={Square} label="Stop" />
-          <CtrlBtn onClick={() => { cancelSpeech(); lastSpoken.current = -1; setActiveAct(0); setElapsed(0); setPlaying(true); }} icon={RotateCcw} label="Restart" />
-          <CtrlBtn onClick={() => { setMuted(m => !m); if (!muted) cancelSpeech(); }} icon={muted ? VolumeX : Volume2} label={muted ? "Unmute" : "Mute"} />
+          <CtrlBtn onClick={() => { stopAudio(); lastSpoken.current = -1; setActiveAct(0); setElapsed(0); setPlaying(true); }} icon={RotateCcw} label="Restart" />
+          <CtrlBtn onClick={() => { setMuted(m => !m); if (!muted) stopAudio(); }} icon={muted ? VolumeX : Volume2} label={muted ? "Unmute" : "Mute"} />
           <CtrlBtn onClick={toggleFs} icon={isFs ? Minimize : Maximize} label={isFs ? "Exit Fullscreen" : "Fullscreen"} />
         </div>
       </div>
