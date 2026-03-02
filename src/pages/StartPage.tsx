@@ -86,7 +86,7 @@ export default function StartPage() {
     if (paused) return;
     const interval = setInterval(() => {
       setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
-    }, 1000);
+    }, 1500);
     return () => clearInterval(interval);
   }, [paused]);
 
