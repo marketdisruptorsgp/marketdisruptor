@@ -33,11 +33,11 @@ export type { VisualSpec, ActionPlan } from "@/lib/visualContract";
 
 /* ── Story type icons & colors ── */
 const STORY_STYLE: Record<VisualStoryType, { icon: typeof Cpu; color: string }> = {
-  ADVERSARIAL_ARENA:       { icon: Shield,       color: "hsl(var(--vi-glow-system))" },
+  SURVIVAL_JUDGMENT:       { icon: Shield,       color: "hsl(var(--vi-glow-system))" },
   SYSTEM_TENSION:          { icon: Activity,     color: "hsl(var(--vi-glow-mechanism))" },
   VALUE_FLOW:              { icon: GitBranch,    color: "hsl(var(--vi-glow-leverage))" },
-  FRAGILITY_MAP:           { icon: AlertTriangle,color: "hsl(var(--vi-glow-system))" },
-  CLUSTER_LANDSCAPE:       { icon: Layers,       color: "hsl(var(--muted-foreground))" },
+  FRAGILITY_STRUCTURE:     { icon: AlertTriangle,color: "hsl(var(--vi-glow-system))" },
+  CLUSTERED_INTELLIGENCE:  { icon: Layers,       color: "hsl(var(--muted-foreground))" },
   PRIORITIZED_SIGNAL_FIELD:{ icon: BarChart3,    color: "hsl(var(--vi-glow-outcome))" },
 };
 
@@ -84,6 +84,7 @@ const ROLE_CHIP_COLORS: Record<string, string> = {
   driver: "hsl(var(--vi-glow-outcome))",
   constraint: "hsl(var(--vi-glow-system))",
   mechanism: "hsl(var(--vi-glow-mechanism))",
+  assumption: "hsl(38 92% 45%)",
   leverage: "hsl(var(--vi-glow-leverage))",
   outcome: "hsl(var(--vi-glow-outcome))",
 };
@@ -109,14 +110,16 @@ function SignalChip({ signal }: { signal: RankedSignal }) {
 
 /* ── Adversarial Arena (stressTest) ── */
 function AdversarialArena({ story }: { story: VisualStory }) {
-  const red = story.constraints;
-  const green = story.drivers;
+  const red = [...story.constraints, ...story.assumptions];
+  const green = [...story.drivers, ...story.leverages];
   const total = red.length + green.length || 1;
   const viability = green.length / total;
-  const verdict = viability > 0.6 ? "Resilient" : viability > 0.35 ? "Conditional" : "Breaks";
-  const vc = verdict === "Resilient"
+  const verdictLabel = story.verdict.level === "strong" ? "Resilient"
+    : story.verdict.level === "conditional" ? "Conditional"
+    : story.verdict.level === "weak" ? "Breaks" : "Insufficient Data";
+  const vc = story.verdict.level === "strong"
     ? "hsl(var(--vi-glow-outcome))"
-    : verdict === "Conditional" ? "hsl(var(--vi-glow-mechanism))" : "hsl(var(--vi-glow-system))";
+    : story.verdict.level === "conditional" ? "hsl(var(--vi-glow-mechanism))" : "hsl(var(--vi-glow-system))";
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
@@ -124,7 +127,7 @@ function AdversarialArena({ story }: { story: VisualStory }) {
       style={{ background: "hsl(var(--vi-surface-elevated))", border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-vi-panel)" }}
     >
       <div className="px-5 pt-4 pb-2 text-center">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Adversarial Arena</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Survival Judgment</p>
         <div className="flex items-center justify-center gap-2 mb-2">
           <div className="w-16 h-16 rounded-full flex items-center justify-center"
             style={{ background: `conic-gradient(${vc} ${viability * 360}deg, hsl(var(--border) / 0.3) 0deg)`, boxShadow: `0 0 20px ${vc}30` }}>
@@ -134,7 +137,8 @@ function AdversarialArena({ story }: { story: VisualStory }) {
           </div>
         </div>
         <span className="inline-block px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest"
-          style={{ color: vc, background: `${vc}12`, border: `1px solid ${vc}25` }}>{verdict}</span>
+          style={{ color: vc, background: `${vc}12`, border: `1px solid ${vc}25` }}>{verdictLabel}</span>
+        <p className="text-[10px] text-muted-foreground mt-1.5 max-w-xs mx-auto">{story.verdict.summary}</p>
       </div>
       <div className="grid grid-cols-2 gap-0 border-t" style={{ borderColor: "hsl(var(--border) / 0.5)" }}>
         <ForceColumn signals={red} label="Red Team" icon={Shield} color="hsl(var(--vi-glow-system))" side="left" />
@@ -245,13 +249,14 @@ function ValueFlowVisual({ story }: { story: VisualStory }) {
 
 /* ── Fragility Map ── */
 function FragilityMap({ story }: { story: VisualStory }) {
-  const sorted = [...story.constraints].sort((a, b) => b.score - a.score);
+  const sorted = [...story.assumptions, ...story.constraints].sort((a, b) => b.score - a.score);
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
       className="rounded-xl p-5"
       style={{ background: "hsl(var(--vi-surface-elevated))", border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-vi-panel)" }}
     >
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Fragility Map</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Fragility Structure</p>
+      <p className="text-[10px] text-muted-foreground mb-3">{story.verdict.summary}</p>
       <div className="space-y-2">
         {sorted.slice(0, 6).map((s, i) => {
           const barWidth = Math.min(100, (s.score / (sorted[0]?.score || 1)) * 100);
@@ -283,7 +288,7 @@ function FragilityMap({ story }: { story: VisualStory }) {
 
 /* ── Cluster Landscape / Prioritized Signal Field ── */
 function SignalField({ story, title }: { story: VisualStory; title: string }) {
-  const all = [...story.drivers, ...story.constraints, ...story.mechanisms, ...story.leverages, ...story.outcomes]
+  const all = [...story.drivers, ...story.constraints, ...story.mechanisms, ...story.assumptions, ...story.leverages, ...story.outcomes]
     .sort((a, b) => b.score - a.score).slice(0, 8);
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
@@ -306,11 +311,11 @@ function SignalField({ story, title }: { story: VisualStory; title: string }) {
 /* ── Story Renderer Dispatcher ── */
 function StoryVisual({ story }: { story: VisualStory }) {
   switch (story.type) {
-    case "ADVERSARIAL_ARENA": return <AdversarialArena story={story} />;
+    case "SURVIVAL_JUDGMENT": return <AdversarialArena story={story} />;
     case "SYSTEM_TENSION": return <SystemTensionMap story={story} />;
     case "VALUE_FLOW": return <ValueFlowVisual story={story} />;
-    case "FRAGILITY_MAP": return <FragilityMap story={story} />;
-    case "CLUSTER_LANDSCAPE": return <SignalField story={story} title="Signal Landscape" />;
+    case "FRAGILITY_STRUCTURE": return <FragilityMap story={story} />;
+    case "CLUSTERED_INTELLIGENCE": return <SignalField story={story} title="Intelligence Landscape" />;
     case "PRIORITIZED_SIGNAL_FIELD": return <SignalField story={story} title="Priority Signals" />;
   }
 }
@@ -374,10 +379,12 @@ export function AnalysisVisualLayer({
 
   return (
     <div className="space-y-4">
-      {/* Strategic Question */}
-      {step && step !== "generic" && (
+      {/* Strategic Question — from story compiler (insight-driven) or step config fallback */}
+      {hasStorySignals ? (
+        <StrategicQuestion question={story.strategicQuestion} />
+      ) : step && step !== "generic" ? (
         <StrategicQuestion question={stepConfig.question} />
-      )}
+      ) : null}
 
       {/* Story indicator — tells user what grammar was selected */}
       {hasStorySignals && <StoryIndicator story={story} />}
@@ -390,7 +397,7 @@ export function AnalysisVisualLayer({
       )}
 
       {/* 2️⃣ STRUCTURAL MODEL — canonical system model (if not arena, which already shows forces) */}
-      {hasCanonical && story.type !== "ADVERSARIAL_ARENA" && (
+      {hasCanonical && story.type !== "SURVIVAL_JUDGMENT" && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
           <StructuralVisualList specs={[result.canonicalSpec!]} />
         </motion.div>
