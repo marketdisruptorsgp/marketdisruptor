@@ -1,6 +1,7 @@
 /**
  * Visual Fallback Generator — Universal Visual Intelligence Platform Contract
  *
+ * Backend counterpart of src/lib/visualContract.ts.
  * Ensures every pipeline response includes a canonical VisualSystemModel.
  * Uses the 5-role semantic grammar: system → force → mechanism → leverage → outcome
  */
@@ -26,7 +27,7 @@ interface VisualEdge {
 }
 
 interface VisualSpec {
-  visual_type: "system_model" | "constraint_map" | "causal_chain" | "leverage_hierarchy";
+  visual_type: "system_model";
   system?: string;
   title: string;
   nodes: VisualNode[];
@@ -43,130 +44,105 @@ interface ActionPlan {
   mechanism: string;
   complexity: "low" | "medium" | "high";
   time_horizon: "near_term" | "mid_term" | "long_term";
-  risk: { execution: string; adoption: string; market: string };
-  validation: string;
-  decision_readiness: number;
   confidence: "high" | "medium" | "exploratory";
+  risk?: { execution: string; adoption: string; market: string };
+  validation?: string;
+  decision_readiness?: number;
 }
 
-/**
- * Extract structural components from analysis output.
- */
-function extractSystemComponents(data: Record<string, unknown>): {
-  system: string;
-  forces: string[];
-  mechanism: string | null;
-  leverage: string | null;
-  outcome: string;
-} {
-  // System / constraint
-  let system = "Primary system constraint";
-  const opAudit = data.operationalAudit as Record<string, unknown> | undefined;
-  if (opAudit?.revenueLeaks) {
-    const leaks = opAudit.revenueLeaks as string[];
-    if (leaks.length > 0) system = leaks[0].slice(0, 60);
-  } else if (data.problemStatement) {
-    system = String(data.problemStatement).slice(0, 60);
-  }
+/* ── Helpers ── */
 
-  const friction = data.frictionDimensions as Record<string, unknown> | undefined;
-  if (friction?.primaryFriction) {
-    system = String(friction.primaryFriction).slice(0, 60);
-  }
-
-  // Forces
-  const forces: string[] = [];
-  const redTeam = data.redTeam as Record<string, unknown> | undefined;
-  if (redTeam?.killShot) forces.push(String(redTeam.killShot).slice(0, 50));
-  const vulns = data.vulnerabilities as string[] | undefined;
-  if (Array.isArray(vulns)) forces.push(...vulns.slice(0, 2).map(v => String(v).slice(0, 50)));
-  if (forces.length === 0) forces.push("Structural limitation");
-
-  // Mechanism
-  const mechanism = data.mechanism || data.coreStrategy || data.approach;
-  const mechanismStr = mechanism ? String(mechanism).slice(0, 55) : null;
-
-  // Leverage
-  const leverageRaw = data.leveragePoint || data.recommendation || data.strategicRecommendation;
-  const leverageStr = leverageRaw ? String(leverageRaw).slice(0, 55) : null;
-
-  // Outcome
-  const outcomeRaw = data.impact || data.verdict || data.completionMessage;
-  const outcome = outcomeRaw ? String(outcomeRaw).slice(0, 60) : "Performance ceiling";
-
-  return { system, forces, mechanism: mechanismStr, leverage: leverageStr, outcome };
+function truncate(s: string, max: number): string {
+  return s.length <= max ? s : s.slice(0, max - 1) + "…";
 }
 
-function buildFallbackVisual(data: Record<string, unknown>): VisualSpec {
-  const { system, forces, mechanism, leverage, outcome } = extractSystemComponents(data);
+function extractField(data: Record<string, unknown>, ...keys: string[]): string | undefined {
+  for (const k of keys) {
+    const v = data[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return undefined;
+}
+
+function extractArray(data: Record<string, unknown>, ...keys: string[]): string[] {
+  for (const k of keys) {
+    const v = data[k];
+    if (Array.isArray(v) && v.length > 0) {
+      return v.filter((x): x is string => typeof x === "string" && x.trim().length > 0).slice(0, 4);
+    }
+  }
+  return [];
+}
+
+/* ── Derivation ── */
+
+function deriveVisualSystemModel(data: Record<string, unknown>): VisualSpec {
+  const system = extractField(data, "problemStatement", "coreProblem", "keyInsight", "primaryFriction") || "Primary system constraint";
+  const forces = extractArray(data, "factors", "marketForces", "vulnerabilities", "blindSpots");
+  const mechanism = extractField(data, "mechanism", "coreStrategy", "approach");
+  const leverage = extractField(data, "leveragePoint", "recommendation", "strategicRecommendation");
+  const outcome = extractField(data, "impact", "verdict", "completionMessage");
 
   const nodes: VisualNode[] = [
-    { id: "system", label: system, role: "system", priority: 1, certainty: "verified" },
+    { id: "system", label: truncate(system, 60), role: "system", priority: 1, certainty: "verified" },
   ];
   const edges: VisualEdge[] = [];
 
-  // Force nodes
-  forces.forEach((f, i) => {
-    const id = `force_${i}`;
-    nodes.push({ id, label: f, role: "force", priority: 2, certainty: "modeled" });
-    edges.push({ from: id, to: "system", relationship: "acts on" });
-  });
+  if (forces.length > 0) {
+    forces.slice(0, 3).forEach((f, i) => {
+      const id = `force_${i}`;
+      nodes.push({ id, label: truncate(f, 50), role: "force", priority: 2, certainty: "modeled" });
+      edges.push({ from: id, to: "system", relationship: "acts on" });
+    });
+  } else {
+    nodes.push({ id: "force_0", label: "Structural driver", role: "force", priority: 2, certainty: "assumption" });
+    edges.push({ from: "force_0", to: "system", relationship: "acts on" });
+  }
 
-  // Mechanism
   if (mechanism) {
-    nodes.push({ id: "mechanism", label: mechanism, role: "mechanism", priority: 2, certainty: "modeled" });
+    nodes.push({ id: "mechanism", label: truncate(mechanism, 55), role: "mechanism", priority: 2, certainty: "modeled" });
     edges.push({ from: "system", to: "mechanism", relationship: "operates through" });
     edges.push({ from: "mechanism", to: "outcome", relationship: "produces" });
   } else {
     edges.push({ from: "system", to: "outcome", relationship: "produces" });
   }
 
-  // Leverage
   if (leverage) {
-    nodes.push({ id: "leverage", label: leverage, role: "leverage", priority: 1, certainty: "modeled" });
+    nodes.push({ id: "leverage", label: truncate(leverage, 55), role: "leverage", priority: 1, certainty: "modeled" });
     edges.push({ from: "leverage", to: mechanism ? "mechanism" : "system", relationship: "intervenes at" });
   }
 
-  // Outcome
-  nodes.push({ id: "outcome", label: outcome, role: "outcome", priority: 3, certainty: "assumption" });
+  nodes.push({
+    id: "outcome",
+    label: outcome ? truncate(outcome, 60) : "System outcome",
+    role: "outcome",
+    priority: 3,
+    certainty: "assumption",
+  });
 
   return {
     visual_type: "system_model",
-    system,
+    system: truncate(system, 40),
     title: "System Structure",
     nodes,
     edges,
     layout: "vertical",
     interpretation: leverage
-      ? `Target "${leverage}" to shift the system outcome.`
-      : `Address "${system}" to improve "${outcome}".`,
+      ? `Target "${truncate(leverage, 40)}" to shift system outcome.`
+      : `Address "${truncate(system, 40)}" to improve outcome.`,
     version: 1,
   };
 }
 
-function buildFallbackActionPlan(data: Record<string, unknown>): ActionPlan {
-  const { system, leverage } = extractSystemComponents(data);
-  return {
-    initiative: leverage ? `Leverage: ${leverage.slice(0, 40)}` : `Address: ${system.slice(0, 40)}`,
-    objective: `Remove or relax the dominant system constraint`,
-    leverage_type: "structural_improvement",
-    mechanism: "Target the root cause of the primary system limitation",
-    complexity: "medium",
-    time_horizon: "near_term",
-    risk: {
-      execution: "Requires focused resource allocation",
-      adoption: "Stakeholder alignment needed",
-      market: "Market response uncertain",
-    },
-    validation: "Run a minimum viable test targeting the constraint within 30 days",
-    decision_readiness: 2,
-    confidence: "exploratory",
+/* ── Validation ── */
+
+function legacyToRole(type?: string): NodeRole {
+  const map: Record<string, NodeRole> = {
+    constraint: "system", effect: "force", leverage: "leverage", intervention: "mechanism", outcome: "outcome",
   };
+  return map[type || ""] || "force";
 }
 
-/**
- * Validates structural density: must have system + mechanism/force + outcome.
- */
 function isValidVisualSpec(spec: Record<string, unknown>): boolean {
   const nodes = spec.nodes as Array<Record<string, unknown>> | undefined;
   if (!Array.isArray(nodes) || nodes.length < 3) return false;
@@ -174,11 +150,27 @@ function isValidVisualSpec(spec: Record<string, unknown>): boolean {
   return (roles.has("system") || roles.has("force")) && (roles.has("outcome") || roles.has("leverage"));
 }
 
-function legacyToRole(type?: string): NodeRole {
-  const map: Record<string, NodeRole> = {
-    constraint: "system", effect: "force", leverage: "leverage", intervention: "mechanism", outcome: "outcome",
+/* ── Fallback Action Plan ── */
+
+function buildFallbackActionPlan(data: Record<string, unknown>): ActionPlan {
+  const system = extractField(data, "problemStatement", "coreProblem") || "Primary constraint";
+  const leverage = extractField(data, "leveragePoint", "recommendation");
+  return {
+    initiative: leverage ? `Leverage: ${truncate(leverage, 40)}` : `Address: ${truncate(system, 40)}`,
+    objective: "Remove or relax the dominant system constraint",
+    leverage_type: "structural_improvement",
+    mechanism: "Target the root cause of the primary system limitation",
+    complexity: "medium",
+    time_horizon: "near_term",
+    confidence: "exploratory",
+    risk: {
+      execution: "Requires focused resource allocation",
+      adoption: "Stakeholder alignment needed",
+      market: "Market response uncertain",
+    },
+    validation: "Run a minimum viable test targeting the constraint within 30 days",
+    decision_readiness: 2,
   };
-  return map[type || ""] || "force";
 }
 
 /**
@@ -188,7 +180,7 @@ function legacyToRole(type?: string): NodeRole {
 export function enforceVisualContract<T extends Record<string, unknown>>(data: T): T {
   const specs = data.visualSpecs as unknown[] | undefined;
   if (!Array.isArray(specs) || specs.length === 0 || !specs.every(s => isValidVisualSpec(s as Record<string, unknown>))) {
-    data.visualSpecs = [buildFallbackVisual(data)] as unknown as T[keyof T];
+    data.visualSpecs = [deriveVisualSystemModel(data)] as unknown as T[keyof T];
   }
 
   const plans = data.actionPlans as unknown[] | undefined;

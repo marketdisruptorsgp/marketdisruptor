@@ -1,66 +1,16 @@
 import { useState, lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import type { NodeRole, Certainty, LegacyNodeType, VisualNode, VisualEdge, VisualSpec } from "@/lib/visualContract";
+import { resolveRole } from "@/lib/visualContract";
+
+// Re-export types and resolveRole for backward compatibility
+export type { NodeRole, Certainty, LegacyNodeType, VisualNode, VisualEdge, VisualSpec };
+export { resolveRole };
 
 const ReactFlowDiagram = lazy(() =>
   import("./ReactFlowDiagram").then((m) => ({ default: m.ReactFlowDiagram }))
 );
-
-/* ── Canonical Node Role Model ── */
-export type NodeRole = "system" | "force" | "mechanism" | "leverage" | "outcome";
-export type Certainty = "verified" | "modeled" | "assumption";
-
-/** Legacy type alias for backward compatibility */
-export type LegacyNodeType = "constraint" | "effect" | "leverage" | "intervention" | "outcome";
-
-export interface VisualNode {
-  id: string;
-  label: string;
-  /** Canonical role in the system model */
-  role?: NodeRole;
-  /** @deprecated Use `role` instead. Kept for legacy data compatibility. */
-  type?: LegacyNodeType;
-  priority?: 1 | 2 | 3;
-  attributes?: string | string[];
-  certainty?: Certainty;
-}
-
-export interface VisualEdge {
-  from: string;
-  to: string;
-  relationship?: string;
-  label?: string;
-  strength?: number;
-}
-
-export interface VisualSpec {
-  visual_type?: "constraint_map" | "causal_chain" | "leverage_hierarchy" | "system_model";
-  system?: string;
-  title?: string;
-  purpose?: string;
-  nodes: VisualNode[];
-  edges: VisualEdge[];
-  layout?: "linear" | "vertical" | "hierarchical";
-  interpretation?: string;
-  confidence?: number;
-  assumptions?: string[];
-  version?: number;
-}
-
-/* ── Legacy → Canonical Role Migration ── */
-const LEGACY_TO_ROLE: Record<LegacyNodeType, NodeRole> = {
-  constraint: "system",
-  effect: "force",
-  leverage: "leverage",
-  intervention: "mechanism",
-  outcome: "outcome",
-};
-
-export function resolveRole(node: VisualNode): NodeRole {
-  if (node.role) return node.role;
-  if (node.type) return LEGACY_TO_ROLE[node.type] || "force";
-  return "force";
-}
 
 function resolveAttributes(attrs?: string | string[]): string | undefined {
   if (!attrs) return undefined;

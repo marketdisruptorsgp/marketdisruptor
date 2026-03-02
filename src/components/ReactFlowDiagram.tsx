@@ -10,8 +10,8 @@ import ReactFlow, {
   type NodeProps,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import type { VisualSpec, VisualNode, NodeRole } from "./StructuralVisual";
-import { resolveRole } from "./StructuralVisual";
+import type { VisualSpec, VisualNode, NodeRole } from "@/lib/visualContract";
+import { resolveRole } from "@/lib/visualContract";
 
 /* ── Role color mapping (canonical semantic grammar) ── */
 const ROLE_COLORS: Record<NodeRole, { bg: string; border: string; badge: string; badgeBg: string }> = {
