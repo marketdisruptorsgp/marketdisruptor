@@ -2,12 +2,24 @@
  * Visual Fallback Generator — Universal Visual Intelligence Platform Contract
  *
  * Backend counterpart of src/lib/visualContract.ts.
- * Ensures every pipeline response includes a canonical VisualSystemModel.
+ * Ensures every pipeline response includes a canonical VisualSystemModel
+ * ONLY when sufficient structural signal exists.
  * Uses the 5-role semantic grammar: system → force → mechanism → leverage → outcome
+ *
+ * NO fallback diagrams. NO placeholder labels. NO truncation.
  */
 
 type NodeRole = "system" | "force" | "mechanism" | "leverage" | "outcome";
 type Certainty = "verified" | "modeled" | "assumption";
+type RelationshipType = "causal" | "reinforcing" | "limiting" | "tradeoff" | "dependency";
+type VisualGrammar =
+  | "causal_pathway"
+  | "system_influence"
+  | "loop_diagram"
+  | "tiered_intervention"
+  | "tension_map"
+  | "process_architecture"
+  | "scenario_tree";
 
 interface VisualNode {
   id: string;
@@ -22,12 +34,14 @@ interface VisualEdge {
   from: string;
   to: string;
   relationship?: string;
+  relationship_type?: RelationshipType;
   label?: string;
   strength?: number;
 }
 
 interface VisualSpec {
   visual_type: "system_model";
+  visual_grammar?: VisualGrammar;
   system?: string;
   title: string;
   nodes: VisualNode[];
@@ -35,6 +49,7 @@ interface VisualSpec {
   layout: "linear" | "vertical" | "hierarchical";
   interpretation: string;
   version: number;
+  structurally_grounded?: boolean;
 }
 
 interface ActionPlan {
@@ -50,11 +65,7 @@ interface ActionPlan {
   decision_readiness?: number;
 }
 
-/* ── Helpers ── */
-
-function truncate(s: string, max: number): string {
-  return s.length <= max ? s : s.slice(0, max - 1) + "…";
-}
+/* ── Helpers (NO truncation) ── */
 
 function extractField(data: Record<string, unknown>, ...keys: string[]): string | undefined {
   for (const k of keys) {
@@ -74,67 +85,111 @@ function extractArray(data: Record<string, unknown>, ...keys: string[]): string[
   return [];
 }
 
+/* ── Structural Signal Assessment ── */
+
+function hasStructuralSignal(data: Record<string, unknown>): boolean {
+  const system = extractField(data, "problemStatement", "coreProblem", "keyInsight", "primaryFriction");
+  const forces = extractArray(data, "factors", "marketForces", "vulnerabilities", "blindSpots");
+  const mechanism = extractField(data, "mechanism", "coreStrategy", "approach");
+  const outcome = extractField(data, "impact", "verdict", "completionMessage");
+
+  const hasSystem = !!system;
+  const hasForces = forces.length > 0;
+  const hasMechanism = !!mechanism;
+  const hasOutcome = !!outcome;
+
+  return hasSystem && (hasForces || hasMechanism) && hasOutcome;
+}
+
+/* ── Visual Grammar Selection ── */
+
+function selectVisualGrammar(data: Record<string, unknown>, nodes: VisualNode[], edges: VisualEdge[]): VisualGrammar {
+  const edgeSet = new Set(edges.map(e => `${e.from}->${e.to}`));
+  const hasLoop = edges.some(e => edgeSet.has(`${e.to}->${e.from}`));
+  if (hasLoop) return "loop_diagram";
+
+  const tradeoffs = extractArray(data, "tradeoffs", "tensions", "paradoxes");
+  if (tradeoffs.length > 0) return "tension_map";
+
+  const scenarios = extractArray(data, "scenarios", "alternatives", "possibleOutcomes");
+  if (scenarios.length >= 2) return "scenario_tree";
+
+  const leverageCount = nodes.filter(n => n.role === "leverage").length;
+  if (leverageCount >= 2) return "tiered_intervention";
+
+  const forceCount = nodes.filter(n => n.role === "force").length;
+  if (forceCount >= 3) return "system_influence";
+
+  const stages = extractArray(data, "stages", "steps", "phases", "workflowStages");
+  if (stages.length >= 2) return "process_architecture";
+
+  return "causal_pathway";
+}
+
 /* ── Derivation ── */
 
-function deriveVisualSystemModel(data: Record<string, unknown>): VisualSpec {
-  const system = extractField(data, "problemStatement", "coreProblem", "keyInsight", "primaryFriction") || "Primary system constraint";
+function deriveVisualSystemModel(data: Record<string, unknown>): VisualSpec | null {
+  if (!hasStructuralSignal(data)) return null;
+
+  const system = extractField(data, "problemStatement", "coreProblem", "keyInsight", "primaryFriction")!;
   const forces = extractArray(data, "factors", "marketForces", "vulnerabilities", "blindSpots");
   const mechanism = extractField(data, "mechanism", "coreStrategy", "approach");
   const leverage = extractField(data, "leveragePoint", "recommendation", "strategicRecommendation");
-  const outcome = extractField(data, "impact", "verdict", "completionMessage");
+  const outcome = extractField(data, "impact", "verdict", "completionMessage")!;
 
   const nodes: VisualNode[] = [
-    { id: "system", label: truncate(system, 60), role: "system", priority: 1, certainty: "verified" },
+    { id: "system", label: system, role: "system", priority: 1, certainty: "verified" },
   ];
   const edges: VisualEdge[] = [];
 
-  if (forces.length > 0) {
-    forces.slice(0, 3).forEach((f, i) => {
-      const id = `force_${i}`;
-      nodes.push({ id, label: truncate(f, 50), role: "force", priority: 2, certainty: "modeled" });
-      edges.push({ from: id, to: "system", relationship: "acts on" });
-    });
-  } else {
-    nodes.push({ id: "force_0", label: "Structural driver", role: "force", priority: 2, certainty: "assumption" });
-    edges.push({ from: "force_0", to: "system", relationship: "acts on" });
-  }
+  // Only real extracted forces — no placeholders
+  forces.slice(0, 3).forEach((f, i) => {
+    const id = `force_${i}`;
+    nodes.push({ id, label: f, role: "force", priority: 2, certainty: "modeled" });
+    edges.push({ from: id, to: "system", relationship: "acts on", relationship_type: "causal" });
+  });
 
   if (mechanism) {
-    nodes.push({ id: "mechanism", label: truncate(mechanism, 55), role: "mechanism", priority: 2, certainty: "modeled" });
-    edges.push({ from: "system", to: "mechanism", relationship: "operates through" });
-    edges.push({ from: "mechanism", to: "outcome", relationship: "produces" });
+    nodes.push({ id: "mechanism", label: mechanism, role: "mechanism", priority: 2, certainty: "modeled" });
+    edges.push({ from: "system", to: "mechanism", relationship: "operates through", relationship_type: "causal" });
+    edges.push({ from: "mechanism", to: "outcome", relationship: "produces", relationship_type: "causal" });
   } else {
-    edges.push({ from: "system", to: "outcome", relationship: "produces" });
+    edges.push({ from: "system", to: "outcome", relationship: "produces", relationship_type: "causal" });
   }
 
   if (leverage) {
-    nodes.push({ id: "leverage", label: truncate(leverage, 55), role: "leverage", priority: 1, certainty: "modeled" });
-    edges.push({ from: "leverage", to: mechanism ? "mechanism" : "system", relationship: "intervenes at" });
+    nodes.push({ id: "leverage", label: leverage, role: "leverage", priority: 1, certainty: "modeled" });
+    edges.push({ from: "leverage", to: mechanism ? "mechanism" : "system", relationship: "intervenes at", relationship_type: "causal" });
   }
 
-  nodes.push({
-    id: "outcome",
-    label: outcome ? truncate(outcome, 60) : "System outcome",
-    role: "outcome",
-    priority: 3,
-    certainty: "assumption",
-  });
+  nodes.push({ id: "outcome", label: outcome, role: "outcome", priority: 3, certainty: "assumption" });
+
+  const grammar = selectVisualGrammar(data, nodes, edges);
 
   return {
     visual_type: "system_model",
-    system: truncate(system, 40),
+    visual_grammar: grammar,
+    system,
     title: "System Structure",
     nodes,
     edges,
     layout: "vertical",
     interpretation: leverage
-      ? `Target "${truncate(leverage, 40)}" to shift system outcome.`
-      : `Address "${truncate(system, 40)}" to improve outcome.`,
+      ? `Target "${leverage}" to shift system outcome.`
+      : `Address "${system}" to improve outcome.`,
     version: 1,
+    structurally_grounded: true,
   };
 }
 
 /* ── Validation ── */
+
+const PLACEHOLDER_LABELS = new Set([
+  "Primary system constraint",
+  "Structural driver",
+  "System outcome",
+  "Primary constraint",
+]);
 
 function legacyToRole(type?: string): NodeRole {
   const map: Record<string, NodeRole> = {
@@ -146,17 +201,21 @@ function legacyToRole(type?: string): NodeRole {
 function isValidVisualSpec(spec: Record<string, unknown>): boolean {
   const nodes = spec.nodes as Array<Record<string, unknown>> | undefined;
   if (!Array.isArray(nodes) || nodes.length < 3) return false;
+  // Reject placeholder labels
+  if (nodes.some(n => PLACEHOLDER_LABELS.has(n.label as string))) return false;
   const roles = new Set(nodes.map(n => n.role || legacyToRole(n.type as string)));
   return (roles.has("system") || roles.has("force")) && (roles.has("outcome") || roles.has("leverage"));
 }
 
 /* ── Fallback Action Plan ── */
 
-function buildFallbackActionPlan(data: Record<string, unknown>): ActionPlan {
-  const system = extractField(data, "problemStatement", "coreProblem") || "Primary constraint";
+function buildFallbackActionPlan(data: Record<string, unknown>): ActionPlan | null {
   const leverage = extractField(data, "leveragePoint", "recommendation");
+  const system = extractField(data, "problemStatement", "coreProblem");
+  if (!leverage && !system) return null;
+
   return {
-    initiative: leverage ? `Leverage: ${truncate(leverage, 40)}` : `Address: ${truncate(system, 40)}`,
+    initiative: leverage ? `Leverage: ${leverage}` : `Address: ${system}`,
     objective: "Remove or relax the dominant system constraint",
     leverage_type: "structural_improvement",
     mechanism: "Target the root cause of the primary system limitation",
@@ -175,17 +234,21 @@ function buildFallbackActionPlan(data: Record<string, unknown>): ActionPlan {
 
 /**
  * Ensures the parsed analysis object contains valid visualSpecs and actionPlans.
- * Mutates the object in place and returns it.
+ * Returns null visualSpecs if insufficient structural signal exists — no decorative diagrams.
  */
 export function enforceVisualContract<T extends Record<string, unknown>>(data: T): T {
   const specs = data.visualSpecs as unknown[] | undefined;
-  if (!Array.isArray(specs) || specs.length === 0 || !specs.every(s => isValidVisualSpec(s as Record<string, unknown>))) {
-    data.visualSpecs = [deriveVisualSystemModel(data)] as unknown as T[keyof T];
+  const hasValidSpecs = Array.isArray(specs) && specs.length > 0 && specs.every(s => isValidVisualSpec(s as Record<string, unknown>));
+
+  if (!hasValidSpecs) {
+    const derived = deriveVisualSystemModel(data);
+    data.visualSpecs = (derived ? [derived] : []) as unknown as T[keyof T];
   }
 
   const plans = data.actionPlans as unknown[] | undefined;
   if (!Array.isArray(plans) || plans.length === 0) {
-    data.actionPlans = [buildFallbackActionPlan(data)] as unknown as T[keyof T];
+    const fallback = buildFallbackActionPlan(data);
+    data.actionPlans = (fallback ? [fallback] : []) as unknown as T[keyof T];
   }
 
   return data;
