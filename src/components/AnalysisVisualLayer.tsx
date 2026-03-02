@@ -19,6 +19,18 @@ import { ChevronRight, Layers, Cpu, Target, Eye, Shield, Zap, ArrowRight, AlertT
 const CinematicArena = lazy(() =>
   import("./cinematic/CinematicArena").then((m) => ({ default: m.CinematicArena }))
 );
+const CinematicFragility = lazy(() =>
+  import("./cinematic/CinematicFragility").then((m) => ({ default: m.CinematicFragility }))
+);
+const CinematicTension = lazy(() =>
+  import("./cinematic/CinematicTension").then((m) => ({ default: m.CinematicTension }))
+);
+const CinematicValueFlow = lazy(() =>
+  import("./cinematic/CinematicValueFlow").then((m) => ({ default: m.CinematicValueFlow }))
+);
+const CinematicConstellation = lazy(() =>
+  import("./cinematic/CinematicConstellation").then((m) => ({ default: m.CinematicConstellation }))
+);
 // Re-export for backward compatibility
 export { enforceVisualContract } from "@/lib/visualContract";
 export type { VisualSpec, ActionPlan } from "@/lib/visualContract";
@@ -428,20 +440,54 @@ function SignalField({ story, title }: { story: VisualStory; title: string }) {
   );
 }
 
-/* ── Story Renderer Dispatcher ── */
+/* ── Story Renderer Dispatcher — ALL cinematic ── */
+function CinematicFallback() {
+  return (
+    <div className="rounded-2xl flex items-center justify-center"
+      style={{ height: 300, background: "hsl(var(--cin-depth-bg))", border: "1px solid hsl(var(--cin-depth-fg) / 0.3)" }}>
+      <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--cin-label) / 0.3)", borderTopColor: "transparent" }} />
+    </div>
+  );
+}
+
 function StoryVisual({ story }: { story: VisualStory }) {
   switch (story.type) {
     case "SURVIVAL_JUDGMENT":
       return (
-        <Suspense fallback={<AdversarialArena story={story} />}>
+        <Suspense fallback={<CinematicFallback />}>
           <CinematicArena story={story} />
         </Suspense>
       );
-    case "SYSTEM_TENSION": return <SystemTensionMap story={story} />;
-    case "VALUE_FLOW": return <ValueFlowVisual story={story} />;
-    case "FRAGILITY_STRUCTURE": return <FragilityMap story={story} />;
-    case "CLUSTERED_INTELLIGENCE": return <SignalField story={story} title="Intelligence Landscape" />;
-    case "PRIORITIZED_SIGNAL_FIELD": return <SignalField story={story} title="Priority Signals" />;
+    case "SYSTEM_TENSION":
+      return (
+        <Suspense fallback={<CinematicFallback />}>
+          <CinematicTension story={story} />
+        </Suspense>
+      );
+    case "VALUE_FLOW":
+      return (
+        <Suspense fallback={<CinematicFallback />}>
+          <CinematicValueFlow story={story} />
+        </Suspense>
+      );
+    case "FRAGILITY_STRUCTURE":
+      return (
+        <Suspense fallback={<CinematicFallback />}>
+          <CinematicFragility story={story} />
+        </Suspense>
+      );
+    case "CLUSTERED_INTELLIGENCE":
+      return (
+        <Suspense fallback={<CinematicFallback />}>
+          <CinematicConstellation story={story} title="Intelligence Landscape" />
+        </Suspense>
+      );
+    case "PRIORITIZED_SIGNAL_FIELD":
+      return (
+        <Suspense fallback={<CinematicFallback />}>
+          <CinematicConstellation story={story} title="Priority Signals" />
+        </Suspense>
+      );
   }
 }
 

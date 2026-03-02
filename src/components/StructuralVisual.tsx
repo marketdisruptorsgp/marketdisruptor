@@ -1,312 +1,242 @@
-import { useState, lazy, Suspense } from "react";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import type { NodeRole, Certainty, LegacyNodeType, VisualNode, VisualEdge, VisualSpec } from "@/lib/visualContract";
+import React, { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import type { VisualSpec, VisualNode, NodeRole } from "@/lib/visualContract";
 import { resolveRole } from "@/lib/visualContract";
 
-// Re-export types and resolveRole for backward compatibility
-export type { NodeRole, Certainty, LegacyNodeType, VisualNode, VisualEdge, VisualSpec };
+/* ═══════════════════════════════════════════════════════════════
+   CINEMATIC STRUCTURAL VISUAL
+   Replaces ReactFlow node-link diagrams with a spatial field.
+   Nodes positioned by role tier (top→bottom), rendered as
+   glowing orbs with relationship lines.
+   ═══════════════════════════════════════════════════════════════ */
+
+export type { NodeRole, VisualNode, VisualSpec };
 export { resolveRole };
+// Re-export edge/certainty types for backward compat
+export type { Certainty, LegacyNodeType, VisualEdge } from "@/lib/visualContract";
 
-const ReactFlowDiagram = lazy(() =>
-  import("./ReactFlowDiagram").then((m) => ({ default: m.ReactFlowDiagram }))
-);
+const ROLE_TIER: Record<NodeRole, number> = {
+  system: 0, force: 1, mechanism: 2, leverage: 3, outcome: 4,
+};
 
-function resolveAttributes(attrs?: string | string[]): string | undefined {
-  if (!attrs) return undefined;
-  if (Array.isArray(attrs)) return attrs.join(" · ");
-  return attrs;
+const ROLE_COLORS: Record<NodeRole, { solid: string; glow: string }> = {
+  system:    { solid: "hsl(var(--cin-red))",     glow: "hsl(var(--cin-red-glow))" },
+  force:     { solid: "hsl(var(--cin-label))",   glow: "hsl(var(--cin-label))" },
+  mechanism: { solid: "hsl(38 92% 50%)",         glow: "hsl(38 92% 60%)" },
+  leverage:  { solid: "hsl(229 89% 63%)",        glow: "hsl(229 89% 73%)" },
+  outcome:   { solid: "hsl(var(--cin-green))",   glow: "hsl(var(--cin-green-glow))" },
+};
+
+const ROLE_LABELS: Record<NodeRole, string> = {
+  system: "System", force: "Driver", mechanism: "Mechanism",
+  leverage: "Leverage", outcome: "Outcome",
+};
+
+interface NodePos {
+  node: VisualNode;
+  x: number;
+  y: number;
+  role: NodeRole;
 }
 
-/* ── Visual Encoding ── */
-const ROLE_STYLES: Record<NodeRole, { bg: string; border: string; text: string; badge: string }> = {
-  system:    { bg: "hsl(var(--destructive) / 0.06)", border: "hsl(var(--destructive) / 0.35)", text: "hsl(var(--foreground))", badge: "hsl(var(--destructive))" },
-  force:     { bg: "hsl(var(--muted))",               border: "hsl(var(--border))",              text: "hsl(var(--foreground))", badge: "hsl(var(--muted-foreground))" },
-  mechanism: { bg: "hsl(38 92% 50% / 0.06)",          border: "hsl(38 92% 50% / 0.3)",           text: "hsl(var(--foreground))", badge: "hsl(38 92% 35%)" },
-  leverage:  { bg: "hsl(var(--primary) / 0.06)",      border: "hsl(var(--primary) / 0.3)",       text: "hsl(var(--foreground))", badge: "hsl(var(--primary))" },
-  outcome:   { bg: "hsl(142 70% 45% / 0.06)",         border: "hsl(142 70% 45% / 0.25)",         text: "hsl(var(--foreground))", badge: "hsl(142 70% 30%)" },
-};
+function layoutNodes(spec: VisualSpec): NodePos[] {
+  const tiers = new Map<number, VisualNode[]>();
+  for (const n of spec.nodes) {
+    const role = resolveRole(n);
+    const tier = ROLE_TIER[role] ?? 2;
+    if (!tiers.has(tier)) tiers.set(tier, []);
+    tiers.get(tier)!.push(n);
+  }
 
-const CERTAINTY_BORDER_STYLE: Record<string, string> = {
-  verified: "solid",
-  modeled: "dashed",
-  assumption: "dotted",
-};
+  const sorted = [...tiers.entries()].sort(([a], [b]) => a - b);
+  const totalTiers = sorted.length;
+  const positions: NodePos[] = [];
 
-const PRIORITY_SIZE: Record<number, string> = {
-  1: "min-w-[150px] px-4 py-3",
-  2: "min-w-[120px] px-3 py-2",
-  3: "min-w-[100px] px-2.5 py-1.5",
-};
+  sorted.forEach(([, nodes], tierIdx) => {
+    const yPercent = totalTiers <= 1 ? 50 : 15 + (tierIdx / (totalTiers - 1)) * 70;
+    const totalNodes = nodes.length;
+    nodes.forEach((node, i) => {
+      const xPercent = totalNodes <= 1 ? 50 : 15 + (i / (totalNodes - 1)) * 70;
+      positions.push({ node, x: xPercent, y: yPercent, role: resolveRole(node) });
+    });
+  });
 
-const PRIORITY_INDICATOR = (p?: number) => {
-  if (!p || p > 3) return null;
-  const dots = Array.from({ length: 3 }, (_, i) => i < p);
-  return (
-    <span className="inline-flex gap-0.5 ml-1">
-      {dots.map((filled, i) => (
-        <span key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: filled ? "hsl(var(--primary))" : "hsl(var(--border))" }} />
-      ))}
-    </span>
-  );
-};
-
-const nodeVariant = {
-  hidden: { opacity: 0, y: 6 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.15 } }),
-};
-
-const LABEL_MAX = 48;
-
-function normalizeLabel(label: string): { display: string; tooltip: string | undefined } {
-  if (label.length <= LABEL_MAX) return { display: label, tooltip: undefined };
-  return { display: label.slice(0, LABEL_MAX) + "…", tooltip: label };
+  return positions;
 }
 
-function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; index?: number; expandable?: boolean }) {
-  const [expanded, setExpanded] = useState(false);
-  const role = resolveRole(node);
-  const s = ROLE_STYLES[role];
-  const priority = node.priority || 2;
-  const certainty = node.certainty || "verified";
-  const borderStyle = CERTAINTY_BORDER_STYLE[certainty] || "solid";
-  const sizeClass = PRIORITY_SIZE[priority] || PRIORITY_SIZE[2];
-  const fontSize = priority === 1 ? "text-[13px]" : priority === 3 ? "text-[11px]" : "text-xs";
-  const attrStr = resolveAttributes(node.attributes);
-  const { display, tooltip } = normalizeLabel(node.label);
+function StructuralOrb({
+  pos, index, onSelect, isSelected,
+}: {
+  pos: NodePos; index: number;
+  onSelect: (n: VisualNode | null) => void; isSelected: boolean;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const { solid: color, glow: glowColor } = ROLE_COLORS[pos.role] || ROLE_COLORS.force;
+  const priority = pos.node.priority || 2;
+  const size = priority === 1 ? 56 : priority === 3 ? 38 : 46;
+  const label = pos.node.label.length > 22 ? pos.node.label.slice(0, 20) + "…" : pos.node.label;
 
   return (
     <motion.div
-      custom={index}
-      variants={nodeVariant}
-      initial="hidden"
-      animate="visible"
-      className={cn("rounded-lg", sizeClass, expandable && "cursor-pointer")}
-      style={{ background: s.bg, border: `1.5px ${borderStyle} ${s.border}`, color: s.text }}
-      onClick={expandable ? () => setExpanded(!expanded) : undefined}
-      title={tooltip}
+      initial={{ opacity: 0, scale: 0.3 }}
+      animate={{ opacity: 1, scale: hovered || isSelected ? 1.15 : 1 }}
+      transition={{ delay: 0.1 + index * 0.06, duration: 0.4, type: "spring" }}
+      className="absolute cursor-pointer"
+      style={{
+        left: `${pos.x}%`, top: `${pos.y}%`,
+        transform: "translate(-50%, -50%)",
+        zIndex: isSelected ? 20 : hovered ? 15 : 10,
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={(e) => { e.stopPropagation(); onSelect(isSelected ? null : pos.node); }}
     >
-      <div className="flex items-center gap-1.5 mb-0.5">
-        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style={{ background: `${s.badge}18`, color: s.badge }}>
-          {role}
+      <motion.div
+        animate={{
+          boxShadow: hovered || isSelected
+            ? `0 0 ${size}px ${size / 3}px ${glowColor}30`
+            : `0 0 ${size / 3}px ${size / 6}px ${glowColor}12`,
+        }}
+        className="rounded-full flex flex-col items-center justify-center"
+        style={{
+          width: size, height: size,
+          background: `radial-gradient(circle at 40% 35%, ${color}22, ${color}04)`,
+          border: `1.5px solid ${color}${hovered || isSelected ? '50' : '20'}`,
+        }}
+      >
+        <span className="text-[7px] font-bold uppercase tracking-wider mb-0.5 opacity-60" style={{ color }}>{ROLE_LABELS[pos.role]}</span>
+        <span className="text-[9px] font-bold text-center leading-tight px-1 select-none" style={{ color }}>
+          {label}
         </span>
-        {PRIORITY_INDICATOR(node.priority)}
-        {certainty !== "verified" && (
-          <span className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground ml-1">{certainty}</span>
-        )}
-      </div>
-      <p className={cn(fontSize, "font-semibold leading-snug")}>{display}</p>
-      {expanded && attrStr && (
-        <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{attrStr}</p>
-      )}
+      </motion.div>
     </motion.div>
   );
 }
 
-function CausalChain({ spec }: { spec: VisualSpec }) {
-  const orderedNodeIds: string[] = [];
-  const edgeMap = new Map<string, VisualEdge>();
-
-  for (const e of spec.edges) {
-    edgeMap.set(e.from, e);
-  }
-
-  const targets = new Set(spec.edges.map(e => e.to));
-  const starts = spec.nodes.filter(n => !targets.has(n.id));
-
-  const visited = new Set<string>();
-  const walk = (id: string) => {
-    if (visited.has(id)) return;
-    visited.add(id);
-    orderedNodeIds.push(id);
-    const edge = edgeMap.get(id);
-    if (edge) walk(edge.to);
-  };
-  starts.forEach(n => walk(n.id));
-  spec.nodes.forEach(n => { if (!visited.has(n.id)) orderedNodeIds.push(n.id); });
-
-  const nodeMap = new Map(spec.nodes.map(n => [n.id, n]));
+function NodeDetail({ node, role, onClose }: { node: VisualNode; role: NodeRole; onClose: () => void }) {
+  const { solid: color } = ROLE_COLORS[role] || ROLE_COLORS.force;
+  const attrs = node.attributes
+    ? Array.isArray(node.attributes) ? node.attributes.join(" · ") : node.attributes
+    : null;
 
   return (
-    <>
-      {/* Desktop: horizontal scroll */}
-      <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1">
-        {orderedNodeIds.map((id, i) => {
-          const node = nodeMap.get(id);
-          if (!node) return null;
-          const edge = edgeMap.get(id);
-          return (
-            <div key={id} className="flex items-center gap-2 flex-shrink-0">
-              <NodeCard node={node} index={i} expandable />
-              {i < orderedNodeIds.length - 1 && edge && (
-                <div className="flex flex-col items-center gap-0.5 px-1">
-                  <span className="text-[9px] font-semibold text-muted-foreground whitespace-nowrap">{edge.label || edge.relationship || "→"}</span>
-                  <span className="text-muted-foreground text-sm">→</span>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {/* Mobile: vertical stack */}
-      <div className="flex sm:hidden flex-col gap-1.5">
-        {orderedNodeIds.map((id, i) => {
-          const node = nodeMap.get(id);
-          if (!node) return null;
-          const edge = edgeMap.get(id);
-          return (
-            <div key={id} className="space-y-1">
-              <NodeCard node={node} index={i} expandable />
-              {i < orderedNodeIds.length - 1 && edge && (
-                <div className="flex items-center gap-1.5 pl-4">
-                  <span className="text-muted-foreground text-sm">↓</span>
-                  <span className="text-[9px] font-semibold text-muted-foreground">{edge.label || edge.relationship || "→"}</span>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-}
-
-function LeverageHierarchy({ spec }: { spec: VisualSpec }) {
-  const sorted = [...spec.nodes].sort((a, b) => (a.priority || 3) - (b.priority || 3));
-  return (
-    <div className="space-y-1.5">
-      {sorted.map((node, i) => (
-        <div key={node.id} className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-            style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-            {i + 1}
-          </span>
-          <NodeCard node={node} index={i} expandable />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function SystemModel({ spec }: { spec: VisualSpec }) {
-  const roleOrder: NodeRole[] = ["system", "force", "mechanism", "leverage", "outcome"];
-  const grouped = new Map<NodeRole, VisualNode[]>();
-  for (const n of spec.nodes) {
-    const role = resolveRole(n);
-    if (!grouped.has(role)) grouped.set(role, []);
-    grouped.get(role)!.push(n);
-  }
-
-  const nodeMap = new Map(spec.nodes.map(n => [n.id, n]));
-  let idx = 0;
-
-  return (
-    <div className="space-y-3">
-      {roleOrder.map(role => {
-        const nodes = grouped.get(role);
-        if (!nodes?.length) return null;
-        return (
-          <div key={role}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">{role}</p>
-            <div className="flex flex-wrap gap-2">
-              {nodes.map(n => <NodeCard key={n.id} node={n} index={idx++} expandable />)}
-            </div>
-          </div>
-        );
-      })}
-      {spec.edges.length > 0 && (
-        <div className="space-y-1 pl-2" style={{ borderLeft: "2px solid hsl(var(--border))" }}>
-          {spec.edges.map((e, i) => {
-            const from = nodeMap.get(e.from);
-            const to = nodeMap.get(e.to);
-            return (
-              <p key={i} className="text-[11px] text-muted-foreground">
-                <span className="font-semibold text-foreground">{from?.label || e.from}</span>
-                {" → "}
-                <span className="font-semibold text-foreground">{to?.label || e.to}</span>
-                {e.label && <span className="italic"> — {e.label}</span>}
-              </p>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ConstraintMap({ spec }: { spec: VisualSpec }) {
-  const nodeMap = new Map(spec.nodes.map(n => [n.id, n]));
-  const systemNodes = spec.nodes.filter(n => resolveRole(n) === "system");
-  const others = spec.nodes.filter(n => resolveRole(n) !== "system");
-
-  return (
-    <div className="space-y-3">
-      {systemNodes.length > 0 && (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+      className="absolute z-30 rounded-xl p-4 max-w-[220px]"
+      style={{
+        right: "6%", bottom: "8%",
+        background: "hsl(var(--cin-depth-mid) / 0.95)",
+        border: `1px solid ${color}20`,
+        backdropFilter: "blur(16px)",
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-start gap-2 mb-2">
+        <div className="w-2 h-2 rounded-full mt-1" style={{ background: color }} />
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">System Constraints</p>
-          <div className="flex flex-wrap gap-2">
-            {systemNodes.map((n, i) => <NodeCard key={n.id} node={n} index={i} expandable />)}
-          </div>
+          <p className="text-xs font-bold" style={{ color: "hsl(0 0% 90%)" }}>{node.label}</p>
+          <p className="text-[10px] font-semibold" style={{ color }}>{ROLE_LABELS[role]}</p>
         </div>
+      </div>
+      {attrs && <p className="text-[10px] leading-relaxed" style={{ color: "hsl(var(--cin-label) / 0.6)" }}>{attrs}</p>}
+      {node.certainty && node.certainty !== "verified" && (
+        <span className="inline-block mt-2 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded"
+          style={{ background: "hsl(var(--cin-depth-fg))", color: "hsl(var(--cin-label) / 0.5)" }}>{node.certainty}</span>
       )}
-      {spec.edges.length > 0 && (
-        <div className="space-y-1 pl-2" style={{ borderLeft: "2px solid hsl(var(--border))" }}>
-          {spec.edges.map((e, i) => {
-            const from = nodeMap.get(e.from);
-            const to = nodeMap.get(e.to);
-            return (
-              <p key={i} className="text-[11px] text-muted-foreground">
-                <span className="font-semibold text-foreground">{from?.label || e.from}</span>
-                {" → "}
-                <span className="font-semibold text-foreground">{to?.label || e.to}</span>
-                {e.label && <span className="italic"> — {e.label}</span>}
-              </p>
-            );
-          })}
-        </div>
-      )}
-      {others.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {others.map((n, i) => <NodeCard key={n.id} node={n} index={i + systemNodes.length} expandable />)}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CardFallback({ spec }: { spec: VisualSpec }) {
-  const vt = spec.visual_type;
-  const Renderer = vt === "causal_chain" ? CausalChain
-    : vt === "leverage_hierarchy" ? LeverageHierarchy
-    : vt === "system_model" ? SystemModel
-    : ConstraintMap;
-
-  return (
-    <div className="rounded-xl p-4" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
-      {spec.title && <p className="text-xs font-bold text-foreground mb-0.5">{spec.title}</p>}
-      <Renderer spec={spec} />
-    </div>
+      <button onClick={onClose}
+        className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px]"
+        style={{ background: "hsl(var(--cin-depth-fg))", color: "hsl(var(--cin-label) / 0.5)" }}>×</button>
+    </motion.div>
   );
 }
 
 export function StructuralVisual({ spec }: { spec: VisualSpec }) {
+  const [selected, setSelected] = useState<VisualNode | null>(null);
+  const positions = useMemo(() => layoutNodes(spec), [spec]);
+  const nodeMap = useMemo(() => new Map(positions.map(p => [p.node.id, p])), [positions]);
+
   if (!spec?.nodes?.length) return null;
+
+  const selectedPos = selected ? nodeMap.get(selected.id) : null;
+  const tierCount = new Set(positions.map(p => ROLE_TIER[p.role])).size;
+  const height = Math.max(280, tierCount * 120 + 60);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}
+      className="relative w-full rounded-2xl overflow-hidden"
+      style={{
+        height,
+        background: "radial-gradient(ellipse 75% 55% at 50% 50%, hsl(var(--cin-depth-mid)), hsl(var(--cin-depth-bg)))",
+        border: "1px solid hsl(var(--cin-depth-fg) / 0.5)",
+        boxShadow: "0 12px 60px -12px hsl(0 0% 0% / 0.5)",
+      }}
+      onClick={() => setSelected(null)}
     >
       {spec.title && (
-        <p className="text-xs font-bold text-foreground mb-1">{spec.title}</p>
+        <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] font-extrabold uppercase tracking-[0.2em] z-10"
+          style={{ color: "hsl(var(--cin-label) / 0.4)" }}>{spec.title}</motion.p>
       )}
+
+      {/* Relationship lines */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+        {spec.edges.map((e, i) => {
+          const from = nodeMap.get(e.from);
+          const to = nodeMap.get(e.to);
+          if (!from || !to) return null;
+          const color = ROLE_COLORS[from.role]?.solid || "hsl(var(--cin-label))";
+          return (
+            <motion.line key={i}
+              x1={`${from.x}%`} y1={`${from.y}%`} x2={`${to.x}%`} y2={`${to.y}%`}
+              stroke={`${color}`} strokeOpacity="0.12" strokeWidth="1"
+              initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
+              transition={{ delay: 0.5 + i * 0.08, duration: 0.5 }}
+            />
+          );
+        })}
+      </svg>
+
+      {/* Edge labels */}
+      {spec.edges.map((e, i) => {
+        const from = nodeMap.get(e.from);
+        const to = nodeMap.get(e.to);
+        if (!from || !to || !e.label) return null;
+        const mx = (from.x + to.x) / 2;
+        const my = (from.y + to.y) / 2;
+        return (
+          <motion.span key={`lbl-${i}`}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 + i * 0.05 }}
+            className="absolute text-[7px] font-bold uppercase tracking-wider pointer-events-none z-5"
+            style={{
+              left: `${mx}%`, top: `${my}%`,
+              transform: "translate(-50%, -50%)",
+              color: "hsl(var(--cin-label) / 0.3)",
+            }}>
+            {e.label || e.relationship}
+          </motion.span>
+        );
+      })}
+
+      {positions.map((pos, i) => (
+        <StructuralOrb key={pos.node.id} pos={pos} index={i}
+          onSelect={setSelected} isSelected={selected === pos.node} />
+      ))}
+
+      <AnimatePresence>
+        {selected && selectedPos && (
+          <NodeDetail node={selected} role={selectedPos.role} onClose={() => setSelected(null)} />
+        )}
+      </AnimatePresence>
+
       {spec.interpretation && (
-        <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">{spec.interpretation}</p>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-medium text-center max-w-[250px] z-10"
+          style={{ color: "hsl(var(--cin-label) / 0.25)" }}>
+          {spec.interpretation.length > 60 ? spec.interpretation.slice(0, 58) + "…" : spec.interpretation}
+        </motion.p>
       )}
-      <Suspense fallback={<CardFallback spec={spec} />}>
-        <ReactFlowDiagram spec={spec} />
-      </Suspense>
     </motion.div>
   );
 }
