@@ -1,8 +1,12 @@
 /**
- * EVIDENCE-GOVERNED CONFIDENCE COMPUTATION
+ * EVIDENCE-GOVERNED CONFIDENCE — UNIFIED ENGINE
  * 
- * Replaces AI-generated narrative confidence with computed confidence
- * derived from evidence quality distribution.
+ * The SINGLE SOURCE OF TRUTH for confidence is the edge function computation
+ * stored in analysis_data.governed.decision_synthesis.
+ * 
+ * This module provides:
+ * 1. readStoredConfidence() — reads from persisted governed data (PRIMARY)
+ * 2. computeConfidence() — recomputes for testing/audit only (SECONDARY)
  */
 
 export type EvidenceStatus = "verified" | "modeled" | "speculative" | "assumption";
@@ -159,4 +163,31 @@ export function getFalsificationResilience(falsification: Record<string, unknown
   const fragility = Number(falsification.model_fragility_score || 50);
   // Resilience is inverse of fragility
   return Math.max(0.1, Math.min(1, 1 - (fragility / 100)));
+}
+
+/**
+ * READ STORED CONFIDENCE — Primary frontend access point.
+ * Reads the edge-function-computed confidence from persisted governed data.
+ * Returns null if not available (analysis not yet completed or governed data missing).
+ */
+export function readStoredConfidence(
+  analysisData: Record<string, unknown> | null | undefined
+): ConfidenceResult | null {
+  if (!analysisData) return null;
+
+  const governed = analysisData.governed as Record<string, unknown> | undefined;
+  if (!governed) return null;
+
+  const ds = governed.decision_synthesis as Record<string, unknown> | undefined;
+  if (!ds || typeof ds.confidence_score !== "number") return null;
+
+  return {
+    confidence_score: Number(ds.confidence_score),
+    evidence_distribution: (ds._evidence_distribution as ConfidenceResult["evidence_distribution"]) || {
+      verified: 0, modeled: 0, speculative: 0, assumption: 0,
+    },
+    decision_grade: (ds.decision_grade as ConfidenceResult["decision_grade"]) || "blocked",
+    computation_trace: String(ds._confidence_computation || "stored"),
+    blocking_reasons: (ds.blocking_uncertainties as string[]) || [],
+  };
 }

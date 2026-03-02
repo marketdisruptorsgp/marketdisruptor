@@ -674,7 +674,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // Persist step-level data (disrupt, stress-test, pitch, userScores) into analysis_data JSON
   // Also snapshot previous values for version comparison
-  // ── GOVERNED: Checkpoint gate validation before persistence ──
+  // ── GOVERNED: Checkpoint gate validation + atomic governed persistence ──
   const saveStepData = useCallback(async (stepKey: string, data: unknown) => {
     if (!analysisId) return;
 
@@ -689,7 +689,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
 
     // ── GOVERNED: Checkpoint gate — validate governed artifacts before persistence ──
-    const { validateBeforePersistence, enforceDependencyIntegrity, computeArtifactHash } = await import("@/utils/checkpointGate");
+    const { validateBeforePersistence, enforceDependencyIntegrity } = await import("@/utils/checkpointGate");
     const governedCheck = validateBeforePersistence(stepKey, data);
     if (!governedCheck.allowed) {
       console.error(`[Governed] PERSISTENCE BLOCKED for "${stepKey}": ${governedCheck.reason}`);
@@ -724,8 +724,32 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const depIntegrity = enforceDependencyIntegrity(stepKey, data, governedHashes);
       governedHashes[stepKey] = depIntegrity.newHash;
 
+      // ── GOVERNED: Extract and persist governed artifacts at TOP LEVEL ──
+      const { extractGovernedArtifacts, mergeGovernedIntoAnalysisData, checkRetroactiveInvalidation, applyRetroactiveInvalidation } = await import("@/lib/governedPersistence");
+      const extraction = extractGovernedArtifacts(stepKey, data);
+      
+      let merged: Record<string, unknown> = { ...prev, [stepKey]: data, previousSnapshot, governedHashes };
+      
+      // Merge governed artifacts into analysis_data.governed (top level)
+      if (extraction.hasGoverned && extraction.valid) {
+        merged = mergeGovernedIntoAnalysisData(merged, extraction);
+        console.log(`[GovernedPersistence] Merged ${extraction.presentArtifacts.length} artifacts (${extraction.governedByteSize} bytes) into analysis_data.governed`);
+        
+        // ── RETROACTIVE INVALIDATION: Check if falsification triggers upstream downgrades ──
+        const governedObj = merged.governed as Record<string, unknown>;
+        const invalidation = checkRetroactiveInvalidation(governedObj);
+        if (invalidation.shouldInvalidate) {
+          merged.governed = applyRetroactiveInvalidation(governedObj, invalidation);
+          console.warn(`[RetroactiveInvalidation] Applied: confidence downgraded by ${invalidation.confidenceDowngrade}, fragility=${invalidation.fragilityScore}`);
+          for (const affected of invalidation.affectedArtifacts) {
+            markStepOutdated(affected);
+          }
+        }
+      } else if (extraction.hasGoverned && !extraction.valid) {
+        console.warn(`[GovernedPersistence] Governed data present but INVALID (${extraction.governedByteSize} bytes, ${extraction.presentArtifacts.length} artifacts). Rejecting.`);
+      }
+
       // ── GOVERNED: Purge invalidated downstream governed artifacts ──
-      const merged = { ...prev, [stepKey]: data, previousSnapshot, governedHashes };
       const allPurgeSteps = [...new Set([...governedCheck.invalidatedSteps, ...depIntegrity.purgeSteps])];
       if (allPurgeSteps.length > 0) {
         for (const depStep of allPurgeSteps) {
@@ -748,7 +772,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       if (updateError) {
         console.error("saveStepData update failed:", updateError, "analysisId:", analysisId, "stepKey:", stepKey);
       } else {
-        logStepExecution(stepKey, "save", { analysisId, success: true });
+        logStepExecution(stepKey, "save", { analysisId, success: true, governedByteSize: extraction.governedByteSize });
       }
     } catch (err) {
       console.error("Failed to persist step data:", err);
