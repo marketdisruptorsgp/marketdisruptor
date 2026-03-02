@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Maximize, Minimize, Subtitles } from "lucide-react";
 import { renderFrame } from "./canvasEngine";
 import { buildSceneFrame, getActiveScene, SCENE_TIMELINE, type DataBindings } from "./sceneDefinitions";
 
@@ -49,6 +49,9 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
   const [subtitle, setSubtitle] = useState("");
   const [audioFailed, setAudioFailed] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [ccEnabled, setCcEnabled] = useState(true);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -213,6 +216,25 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
   /* ── Mute sync ── */
   useEffect(() => { if (audioRef.current) audioRef.current.muted = muted; }, [muted]);
 
+  /* ── Fullscreen ── */
+  const toggleFullscreen = useCallback(async () => {
+    const el = sectionRef.current;
+    if (!el) return;
+    if (!document.fullscreenElement) {
+      await el.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      await document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
+
   /* ── Cleanup ── */
   useEffect(() => {
     return () => {
@@ -271,9 +293,11 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
 
   return (
     <section
+      ref={sectionRef}
       className="relative w-full"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      style={isFullscreen ? { background: "#f8f9fc", display: "flex", alignItems: "center", justifyContent: "center" } : undefined}
     >
       <div
         ref={containerRef}
@@ -475,19 +499,52 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <span
-                  className="text-[9px] font-bold tracking-[0.15em] uppercase hidden sm:inline"
+                  className="text-[9px] font-bold tracking-[0.15em] uppercase hidden sm:inline mr-1"
                   style={{ color: "rgba(30,31,46,0.25)" }}
                 >
                   {activeScene.label}
                 </span>
+
+                {/* CC toggle */}
+                <button
+                  onClick={() => setCcEnabled(c => !c)}
+                  className="flex items-center justify-center hover:bg-black/[0.04] transition-colors"
+                  style={{
+                    width: 32, height: 32, borderRadius: 8,
+                    ...(ccEnabled ? { background: "rgba(75,104,245,0.08)" } : {}),
+                  }}
+                  aria-label={ccEnabled ? "Disable captions" : "Enable captions"}
+                  title={ccEnabled ? "Captions on" : "Captions off"}
+                >
+                  <Subtitles size={14} color={ccEnabled ? "#4b68f5" : "#8892a8"} />
+                </button>
+
+                {/* Restart */}
                 <button
                   onClick={replay}
                   className="flex items-center justify-center hover:bg-black/[0.04] transition-colors"
                   style={{ width: 32, height: 32, borderRadius: 8 }}
+                  aria-label="Restart"
+                  title="Restart"
                 >
                   <RotateCcw size={14} color="#8892a8" />
+                </button>
+
+                {/* Fullscreen */}
+                <button
+                  onClick={toggleFullscreen}
+                  className="flex items-center justify-center hover:bg-black/[0.04] transition-colors"
+                  style={{ width: 32, height: 32, borderRadius: 8 }}
+                  aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                  title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                >
+                  {isFullscreen ? (
+                    <Minimize size={14} color="#1a1f2e" />
+                  ) : (
+                    <Maximize size={14} color="#1a1f2e" />
+                  )}
                 </button>
               </div>
             </div>
@@ -495,7 +552,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
         )}
 
         {/* ═══ SUBTITLE ═══ */}
-        {(state === "playing" || state === "paused") && subtitle && (
+        {(state === "playing" || state === "paused") && subtitle && ccEnabled && (
           <motion.div
             className="absolute left-0 right-0 flex justify-center px-6 z-10"
             style={{ bottom: 58 }}
