@@ -12,6 +12,7 @@ import { extractAndRankSignals, getTopSignals } from "@/lib/signalRanking";
 import type { RankedSignal } from "@/lib/signalRanking";
 import { compileVisualStory } from "@/lib/visualStoryCompiler";
 import type { VisualStory, VisualStoryType } from "@/lib/visualStoryCompiler";
+import { validateVisualStory, normalizeSignalLabel } from "@/lib/visualEnforcementHelpers";
 import { ChevronRight, Layers, Cpu, Target, Eye, Shield, Zap, ArrowRight, AlertTriangle, Activity, GitBranch, BarChart3 } from "lucide-react";
 
 // Re-export for backward compatibility
@@ -91,7 +92,7 @@ const ROLE_CHIP_COLORS: Record<string, string> = {
 
 function SignalChip({ signal }: { signal: RankedSignal }) {
   const c = ROLE_CHIP_COLORS[signal.role] || "hsl(var(--muted-foreground))";
-  const label = signal.label.length > 40 ? signal.label.slice(0, 38) + "…" : signal.label;
+  const label = normalizeSignalLabel(signal.label);
   return (
     <span
       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold"
@@ -370,7 +371,10 @@ export function AnalysisVisualLayer({
   // Compile visual story from ranked signals
   const rankedSignals = useMemo(() => extractAndRankSignals(analysis), [analysis]);
   const story = useMemo(() => compileVisualStory(rankedSignals, step), [rankedSignals, step]);
-  const hasStorySignals = rankedSignals.length >= 2;
+  const validation = useMemo(() => validateVisualStory(story, rankedSignals), [story, rankedSignals]);
+  
+  // Enforcement gate: only render story visual if validation passes
+  const hasStorySignals = rankedSignals.length >= 2 && validation.valid;
 
   const hasCanonical = !!result.canonicalSpec;
   const hasOntologyPanels = result.ontologySpecs.length > 0;
