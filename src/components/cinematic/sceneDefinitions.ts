@@ -1,9 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════
-   SCENE DEFINITIONS v3 — World-class 60s cinematic
+   SCENE DEFINITIONS v4 — HIGH IMPACT STORYTELLING
    
-   6 scenes, precisely timed to voiceover script.
-   Premium light-mode structural visuals.
-   Each scene tells a visual story of cause → effect.
+   6 scenes, 60s. Every frame demands attention.
+   Bold colors, dramatic transitions, visual narrative arc.
    ═══════════════════════════════════════════════════════════════ */
 
 import type { SceneFrame, UIBlock, FlowLine, TextElement, Particle } from "./canvasEngine";
@@ -44,41 +43,46 @@ export const SCENE_TIMELINE: SceneSpec[] = [
   { id: "outcome",         label: "Decision-Ready",    startPct: 0.800, endPct: 1.000 },
 ];
 
-/* ── Brand Colors ── */
+/* ── Brand Colors — SATURATED for max contrast ── */
 const C = {
-  blue: "#4b68f5",
-  blueLt: "#8a9df8",
-  pink: "#d64174",
-  pinkLt: "#e87a9f",
-  purple: "#9030ea",
-  purpleLt: "#b46af0",
-  red: "#d94040",
-  redLt: "#e87070",
-  green: "#22b573",
-  greenLt: "#5ed498",
-  amber: "#d4983b",
-  amberLt: "#eab960",
-  gray: "#8892a8",
-  grayLt: "#c5cad6",
-  grayXLt: "#e8ecf2",
-  dark: "#1a1f2e",
-  mid: "#4a5068",
-  bg: "#f8f9fc",
-  bgWarm: "#fafafa",
+  blue: "#3554e8",
+  blueLt: "#6b85f5",
+  blueXLt: "#c5d0fc",
+  pink: "#c9245e",
+  pinkLt: "#e06590",
+  purple: "#7b22d4",
+  purpleLt: "#a95ef0",
+  red: "#c62828",
+  redLt: "#e05050",
+  redBg: "#fff0f0",
+  green: "#15803d",
+  greenLt: "#34d399",
+  greenBg: "#ecfdf5",
+  amber: "#b45309",
+  amberLt: "#f59e0b",
+  amberBg: "#fffbeb",
+  gray: "#64748b",
+  grayLt: "#94a3b8",
+  grayXLt: "#e2e8f0",
+  dark: "#0f172a",
+  mid: "#334155",
+  bg: "#f8fafc",
+  white: "#ffffff",
 };
 
-function particles(count: number, seed: number, color: string, opacity: number, drift = false): Particle[] {
+function particles(count: number, seed: number, color: string, opacity: number, drift = false, rings = false): Particle[] {
   const ps: Particle[] = [];
   for (let i = 0; i < count; i++) {
     const s = seed + i * 137.508;
     ps.push({
       x: (Math.sin(s * 0.1) * 0.5 + 0.5) * 0.92 + 0.04,
       y: (Math.cos(s * 0.13) * 0.5 + 0.5) * 0.88 + 0.06,
-      radius: 1.2 + Math.abs(Math.sin(s * 0.3)) * 1.8,
+      radius: 1.8 + Math.abs(Math.sin(s * 0.3)) * 2.5,
       color,
-      opacity: opacity * (0.3 + Math.abs(Math.sin(s * 0.5)) * 0.7),
-      vx: drift ? Math.sin(s) * 0.0002 : 0,
-      vy: drift ? Math.cos(s) * 0.0001 : 0,
+      opacity: opacity * (0.4 + Math.abs(Math.sin(s * 0.5)) * 0.6),
+      vx: drift ? Math.sin(s) * 0.0003 : 0,
+      vy: drift ? Math.cos(s) * 0.0002 : 0,
+      ring: rings && i % 3 === 0,
     });
   }
   return ps;
@@ -106,12 +110,8 @@ export function buildSceneFrame(
 
 /* ═══════════════════════════════════════════════════════════════
    SCENE 1: THE PROBLEM (0-8s)
-   "Most people don't fail because they lack ideas.
-    They fail because they're solving the wrong problem."
-   
-   Visual: Scattered symptom cards appear chaotically,
-   overlapping, competing — visual noise that fades to
-   reveal emptiness underneath.
+   Chaotic symptom cards — visual noise.
+   Cards shake, overlap, crowd the screen. Red warning glow.
    ═══════════════════════════════════════════════════════════════ */
 function sceneProblem(p: number, t: number, _d: DataBindings): SceneFrame {
   const ep = easeOutExpo(p);
@@ -131,147 +131,149 @@ function sceneProblem(p: number, t: number, _d: DataBindings): SceneFrame {
   const blocks: UIBlock[] = symptoms.map((s, i) => {
     const col = i % 3;
     const row = Math.floor(i / 3);
-    const stagger = Math.max(0, Math.min(1, (ep - i * 0.06) * 4));
+    const stagger = Math.max(0, Math.min(1, (ep - i * 0.05) * 5));
     const appear = easeOutBack(stagger);
-    // Shake increases over time
-    const shake = Math.sin(t * 3.5 + i * 1.7) * lerp(0, 0.005, ep);
-    // Fade out in last quarter
-    const fadeOut = p > 0.75 ? lerp(1, 0.15, (p - 0.75) * 4) : 1;
+    const shake = Math.sin(t * 4 + i * 1.9) * lerp(0, 0.008, ep);
+    const fadeOut = p > 0.75 ? lerp(1, 0.08, (p - 0.75) * 4) : 1;
 
     return {
       id: `f${i}`,
-      x: 0.14 + col * 0.245 + shake,
-      y: 0.14 + row * 0.26 + Math.sin(t * 2.2 + i) * 0.003,
-      w: 0.21,
-      h: 0.20,
+      x: 0.12 + col * 0.255 + shake,
+      y: 0.12 + row * 0.27 + Math.sin(t * 2.5 + i) * 0.005,
+      w: 0.22,
+      h: 0.21,
       color: C.gray,
       borderColor: C.grayLt,
       opacity: appear * fadeOut,
       label: s.label,
       sublabel: s.sub,
-      cornerRadius: 12,
-      iconDot: C.grayLt,
+      cornerRadius: 14,
+      iconDot: C.red,
+      fillGradient: true,
+      badge: "×",
+      badgeColor: C.red,
     };
   });
 
   const texts: TextElement[] = [];
-  if (ep > 0.5) {
+  if (ep > 0.3) {
     texts.push({
       text: "OPTIMIZING SYMPTOMS",
-      x: 0.5, y: 0.94,
-      size: 11, color: C.red, weight: 700,
-      opacity: lerp(0, 0.65, (ep - 0.5) * 2),
-      letterSpacing: 3,
+      x: 0.5, y: 0.95,
+      size: 13, color: C.red, weight: 800,
+      opacity: lerp(0, 0.85, (ep - 0.3) * 1.5),
+      letterSpacing: 4,
+      shadow: true,
     });
   }
 
   return {
-    camera: { x: 0, y: 0, zoom: lerp(1.06, 1.0, easeOutQuart(p)) },
+    camera: { x: 0, y: 0, zoom: lerp(1.08, 1.0, easeOutQuart(p)) },
     blocks, lines: [], texts,
-    particles: particles(18, 42, C.grayLt, 0.08),
+    particles: particles(24, 42, C.redLt, 0.15),
     bgColor: C.bg,
-    accentGlow: { x: 0.5, y: 0.5, radius: 0.55, color: C.red, intensity: ep * 0.15 },
+    accentGlow: { x: 0.5, y: 0.5, radius: 0.6, color: C.red, intensity: ep * 0.5 },
+    secondaryGlow: { x: 0.2, y: 0.3, radius: 0.3, color: C.amber, intensity: ep * 0.2 },
+    vignette: ep * 0.4,
   };
 }
 
 /* ═══════════════════════════════════════════════════════════════
    SCENE 2: ASSUMPTIONS (8-16s)
-   "They're building on assumptions they never questioned.
-    When the foundation is wrong, nothing works."
-   
-   Visual: Strategy card sits atop assumption blocks.
-   Assumptions crack and collapse, strategy card sinks.
+   Strategy card rests on cracking assumption pillars.
+   Dramatic crack + collapse visual.
    ═══════════════════════════════════════════════════════════════ */
 function sceneAssumptions(p: number, t: number, _d: DataBindings): SceneFrame {
   const ep = easeInOutCubic(p);
 
   const assumptions = [
     "Market is stable",
-    "Price drives value",
-    "Features = growth",
+    "Price = value",
+    "Features → growth",
     "Customers know needs",
     "Competition is clear",
   ];
 
   const blocks: UIBlock[] = [];
 
-  // Foundation blocks
+  // Foundation pillars
   assumptions.forEach((label, i) => {
-    const crackT = Math.max(0, (ep - 0.35 - i * 0.07) * 3.5);
-    const shake = crackT > 0 ? Math.sin(t * 9 + i * 2.3) * crackT * 0.006 : 0;
-    const sink = crackT > 0.5 ? (crackT - 0.5) * 0.06 : 0;
-    const appear = Math.min(1, ep * 3);
+    const crackT = Math.max(0, (ep - 0.3 - i * 0.06) * 4);
+    const shake = crackT > 0 ? Math.sin(t * 12 + i * 2.3) * crackT * 0.01 : 0;
+    const sink = crackT > 0.5 ? (crackT - 0.5) * 0.08 : 0;
+    const appear = Math.min(1, ep * 3.5);
 
     blocks.push({
       id: `a${i}`,
-      x: 0.06 + i * 0.182 + shake,
-      y: 0.58 + sink,
-      w: 0.162,
-      h: 0.30,
-      color: crackT > 0.2 ? C.red : C.amber,
-      borderColor: crackT > 0.2 ? C.redLt : C.amberLt,
+      x: 0.04 + i * 0.188 + shake,
+      y: 0.56 + sink,
+      w: 0.168,
+      h: 0.32,
+      color: crackT > 0.15 ? C.red : C.amber,
+      borderColor: crackT > 0.15 ? C.red : C.amberLt,
       opacity: appear,
       label,
       cornerRadius: 10,
-      cracked: crackT > 0.15,
-      glow: crackT > 0.6,
+      cracked: crackT > 0.1,
+      glow: crackT > 0.5,
       accentBar: true,
+      fillGradient: true,
+      fillColor: crackT > 0.15 ? C.red : C.amber,
     });
   });
 
-  // Strategy card on top
-  const strategySink = Math.max(0, (ep - 0.6) * 2.5) * 0.05;
-  const strategyTilt = Math.max(0, (ep - 0.7) * 3.3);
+  // Strategy card on top — sinking
+  const strategySink = Math.max(0, (ep - 0.55) * 2.2) * 0.07;
   blocks.push({
     id: "strategy",
-    x: 0.22,
-    y: 0.15 + strategySink,
-    w: 0.56,
-    h: 0.30,
+    x: 0.18,
+    y: 0.12 + strategySink,
+    w: 0.64,
+    h: 0.32,
     color: C.blue,
-    borderColor: C.blueLt,
-    opacity: lerp(0.3, 0.95, Math.min(1, ep * 2.5)),
+    borderColor: C.blue,
+    opacity: lerp(0.4, 1, Math.min(1, ep * 2.5)),
     label: "Your Strategy",
     sublabel: "built on assumptions",
-    cornerRadius: 14,
+    cornerRadius: 16,
     accentBar: true,
     iconDot: C.blue,
+    fillGradient: true,
+    glow: true,
   });
 
-  // Connection lines
+  // Connection lines — dashed
   const lines: FlowLine[] = assumptions.map((_, i) => ({
     from: "strategy", to: `a${i}`,
-    color: C.gray, strength: 0.25, animated: false, dashed: true,
+    color: ep > 0.5 ? C.red : C.gray, strength: 0.4, animated: false, dashed: true,
   }));
 
   const texts: TextElement[] = [];
-  if (ep > 0.75) {
+  if (ep > 0.65) {
     texts.push({
       text: "WRONG FOUNDATION",
-      x: 0.5, y: 0.94,
-      size: 11, color: C.red, weight: 700,
-      opacity: lerp(0, 0.65, (ep - 0.75) * 4),
-      letterSpacing: 3,
+      x: 0.5, y: 0.95,
+      size: 13, color: C.red, weight: 800,
+      opacity: lerp(0, 0.85, (ep - 0.65) * 3),
+      letterSpacing: 4,
+      shadow: true,
     });
   }
 
   return {
     camera: { x: 0, y: 0, zoom: 1.0 },
     blocks, lines, texts,
-    particles: particles(12, 200, C.amberLt, 0.06),
+    particles: particles(16, 200, C.redLt, 0.12),
     bgColor: C.bg,
-    accentGlow: { x: 0.5, y: 0.72, radius: 0.35, color: C.red, intensity: ep * 0.2 },
-    scanLine: { y: lerp(0.2, 0.8, (t * 0.15) % 1), color: C.red, opacity: ep * 0.4 },
+    accentGlow: { x: 0.5, y: 0.72, radius: 0.4, color: C.red, intensity: ep * 0.55 },
+    scanLine: { y: lerp(0.15, 0.85, (t * 0.18) % 1), color: C.red, opacity: ep * 0.6 },
+    vignette: ep * 0.3,
   };
 }
 
 /* ═══════════════════════════════════════════════════════════════
    SCENE 3: DECONSTRUCTION (16-26s)
-   "It takes any product, service, or business and breaks it
-    down to what actually drives results."
-   
-   Visual: Clustered mass separates into clean, labeled
-   fundamental components. Precise grid alignment.
+   Clustered mass → clean grid. Color-coded fundamentals.
    ═══════════════════════════════════════════════════════════════ */
 function sceneDeconstruction(p: number, t: number, _d: DataBindings): SceneFrame {
   const ep = easeInOutQuint(p);
@@ -288,63 +290,61 @@ function sceneDeconstruction(p: number, t: number, _d: DataBindings): SceneFrame
   const blocks: UIBlock[] = components.map((comp, i) => {
     const col = i % 3;
     const row = Math.floor(i / 3);
-    const stagger = Math.max(0, Math.min(1, (ep - i * 0.06) * 3.5));
+    const stagger = Math.max(0, Math.min(1, (ep - i * 0.05) * 4));
     const appear = easeOutQuart(stagger);
-    // Start clustered → separate to grid
-    const startX = 0.36 + Math.sin(i * 2.3) * 0.07;
-    const startY = 0.36 + Math.cos(i * 1.7) * 0.06;
-    const endX = 0.09 + col * 0.29;
-    const endY = 0.26 + row * 0.34;
+    const startX = 0.38 + Math.sin(i * 2.3) * 0.1;
+    const startY = 0.38 + Math.cos(i * 1.7) * 0.08;
+    const endX = 0.07 + col * 0.30;
+    const endY = 0.24 + row * 0.36;
 
     return {
       id: `d${i}`,
       x: lerp(startX, endX, appear),
       y: lerp(startY, endY, appear),
-      w: 0.24,
-      h: 0.26,
+      w: 0.26,
+      h: 0.28,
       color: comp.color,
       borderColor: comp.color,
       opacity: appear,
       label: comp.label,
       sublabel: comp.sub,
-      cornerRadius: 12,
-      accentBar: appear > 0.5,
-      glow: ep > 0.8,
-      pulse: ep > 0.85 ? 1.8 : 0,
+      cornerRadius: 14,
+      accentBar: appear > 0.4,
+      glow: ep > 0.7,
+      pulse: ep > 0.8 ? 2.0 : 0,
       iconDot: comp.color,
+      fillGradient: true,
+      fillColor: comp.color,
     };
   });
 
   const texts: TextElement[] = [
     {
       text: "FIRST-PRINCIPLES BREAKDOWN",
-      x: 0.5, y: 0.1,
-      size: 12, color: C.dark, weight: 700,
-      opacity: lerp(0, 0.7, ep),
-      letterSpacing: 2.5,
+      x: 0.5, y: 0.08,
+      size: 14, color: C.dark, weight: 800,
+      opacity: lerp(0, 0.85, ep),
+      letterSpacing: 3,
+      shadow: true,
     },
   ];
 
-  // Scan line sweeping during decomposition
-  const scanY = lerp(0.2, 0.85, (t * 0.12) % 1);
-
   return {
-    camera: { x: 0, y: 0, zoom: lerp(1.12, 1.0, easeOutQuart(p)) },
+    camera: { x: 0, y: 0, zoom: lerp(1.15, 1.0, easeOutQuart(p)) },
     blocks, lines: [], texts,
-    particles: particles(22, 371, C.blueLt, 0.05, true),
+    particles: particles(30, 371, C.blueLt, 0.1, true, true),
     bgColor: C.bg,
-    accentGlow: { x: 0.5, y: 0.45, radius: 0.5, color: C.blue, intensity: ep * 0.15 },
-    secondaryGlow: { x: 0.5, y: 0.55, radius: 0.3, color: C.purple, intensity: ep * 0.1 },
-    scanLine: { y: scanY, color: C.blue, opacity: ep * 0.3 },
+    accentGlow: { x: 0.35, y: 0.4, radius: 0.45, color: C.blue, intensity: ep * 0.4 },
+    secondaryGlow: { x: 0.65, y: 0.55, radius: 0.35, color: C.purple, intensity: ep * 0.3 },
+    scanLine: { y: lerp(0.15, 0.9, (t * 0.14) % 1), color: C.blue, opacity: ep * 0.5 },
+    vignette: 0.2,
   };
 }
 
 /* ═══════════════════════════════════════════════════════════════
    SCENE 4: CONSTRAINT DISCOVERY (26-36s)
-   "Finds the real constraint holding growth back."
-   
-   Visual: All components fade except the binding constraint,
-   which scales up with a glowing pulse. Others become ghosted.
+   Everything fades except the binding constraint.
+   Constraint pulses with dramatic red glow. Others ghost out.
    ═══════════════════════════════════════════════════════════════ */
 function sceneConstraint(p: number, t: number, d: DataBindings): SceneFrame {
   const ep = easeInOutCubic(p);
@@ -354,18 +354,18 @@ function sceneConstraint(p: number, t: number, d: DataBindings): SceneFrame {
     "Cost Structure", "Time to Value", "Adoption Curve",
     "Scale Dynamics", "Reliability", "Risk Profile",
   ];
-  const colors = [C.gray, C.gray, C.red, C.gray, C.gray, C.gray];
+  const baseColors = [C.grayLt, C.grayLt, C.red, C.grayLt, C.grayLt, C.grayLt];
 
   const blocks: UIBlock[] = labels.map((label, i) => {
     const col = i % 3;
     const row = Math.floor(i / 3);
     const isC = i === constraintIdx;
-    const fade = isC ? 1 : lerp(1, 0.12, ep);
-    const scale = isC ? lerp(1, 1.2, easeOutQuart(ep)) : lerp(1, 0.92, ep);
-    const baseW = 0.24;
-    const baseH = 0.26;
-    const bx = 0.09 + col * 0.29;
-    const by = 0.26 + row * 0.34;
+    const fade = isC ? 1 : lerp(1, 0.08, ep);
+    const scale = isC ? lerp(1, 1.25, easeOutQuart(ep)) : lerp(1, 0.88, ep);
+    const baseW = 0.26;
+    const baseH = 0.28;
+    const bx = 0.07 + col * 0.30;
+    const by = 0.24 + row * 0.36;
 
     return {
       id: `c${i}`,
@@ -373,56 +373,62 @@ function sceneConstraint(p: number, t: number, d: DataBindings): SceneFrame {
       y: by - (isC ? (scale - 1) * baseH / 2 : 0),
       w: baseW * scale,
       h: baseH * scale,
-      color: colors[i],
+      color: baseColors[i],
       borderColor: isC ? C.red : C.grayXLt,
       opacity: fade,
       label,
-      sublabel: isC ? "binding constraint" : undefined,
-      cornerRadius: 12,
-      glow: isC && ep > 0.25,
-      pulse: isC ? 2.5 : 0,
+      sublabel: isC ? "BINDING CONSTRAINT" : undefined,
+      cornerRadius: 14,
+      glow: isC && ep > 0.2,
+      pulse: isC ? 3.0 : 0,
       accentBar: isC,
       iconDot: isC ? C.red : undefined,
       progressBar: isC ? d.bindingConstraintStrength * ep : undefined,
       progressColor: C.red,
+      fillGradient: isC,
+      fillColor: isC ? C.red : undefined,
+      shadowColor: isC ? C.red : undefined,
+      badge: isC ? `${Math.round(d.bindingConstraintStrength * 100)}%` : undefined,
+      badgeColor: C.red,
     };
   });
 
   const texts: TextElement[] = [
     {
       text: "ROOT CAUSE IDENTIFIED",
-      x: 0.5, y: 0.1,
-      size: 12, color: C.red, weight: 700,
-      opacity: lerp(0, 0.75, Math.max(0, ep - 0.25) * 1.33),
-      letterSpacing: 2.5,
+      x: 0.5, y: 0.08,
+      size: 15, color: C.red, weight: 800,
+      opacity: lerp(0, 0.9, Math.max(0, ep - 0.2) * 1.25),
+      letterSpacing: 3.5,
+      shadow: true,
+      underline: true,
+      underlineColor: C.red,
     },
     {
       text: `Constraint strength: ${Math.round(d.bindingConstraintStrength * 100 * ep)}%`,
-      x: 0.5, y: 0.94,
-      size: 11, color: C.red, weight: 500,
-      opacity: lerp(0, 0.5, Math.max(0, ep - 0.4) * 1.7),
+      x: 0.5, y: 0.95,
+      size: 12, color: C.red, weight: 600,
+      opacity: lerp(0, 0.7, Math.max(0, ep - 0.35) * 1.5),
     },
   ];
 
   return {
-    camera: { x: 0, y: 0, zoom: lerp(1.0, 1.08, easeOutQuart(ep)) },
+    camera: { x: 0, y: 0, zoom: lerp(1.0, 1.12, easeOutQuart(ep)) },
     blocks, lines: [], texts,
-    particles: particles(14, 489, C.redLt, 0.06),
+    particles: particles(20, 489, C.redLt, 0.15, false, true),
     bgColor: C.bg,
-    accentGlow: { x: 0.38, y: 0.43, radius: 0.22, color: C.red, intensity: ep * 0.45 },
+    accentGlow: { x: 0.38, y: 0.42, radius: 0.28, color: C.red, intensity: ep * 0.8 },
+    secondaryGlow: { x: 0.38, y: 0.42, radius: 0.15, color: C.red, intensity: ep * 0.4 },
+    vignette: ep * 0.5,
   };
 }
 
 /* ═══════════════════════════════════════════════════════════════
    SCENE 5: REBUILD (36-48s)
-   "Then it rebuilds the strategy from the ground up.
-    Not just ideas — clear, creative solutions tied to real causes."
-   
-   Visual: Layered reconstruction from constraint upward.
-   Each layer slides in from alternating sides.
-   Animated flow lines connect layers.
+   Layered reconstruction from bottom up.
+   Bold colored cards slide in with flow lines connecting them.
    ═══════════════════════════════════════════════════════════════ */
-function sceneRebuild(p: number, t: number, d: DataBindings): SceneFrame {
+function sceneRebuild(p: number, t: number, _d: DataBindings): SceneFrame {
   const ep = easeOutQuart(p);
 
   const layers = [
@@ -433,40 +439,44 @@ function sceneRebuild(p: number, t: number, d: DataBindings): SceneFrame {
   ];
 
   const blocks: UIBlock[] = layers.map((layer, i) => {
-    const stagger = Math.max(0, Math.min(1, (ep - i * 0.12) * 2.8));
+    const stagger = Math.max(0, Math.min(1, (ep - i * 0.1) * 3));
     const appear = easeOutBack(stagger);
-    const slideX = lerp(i % 2 === 0 ? -0.35 : 0.35, 0, appear);
+    const slideX = lerp(i % 2 === 0 ? -0.5 : 0.5, 0, appear);
 
     return {
       id: `r${i}`,
-      x: 0.18 + slideX,
+      x: 0.15 + slideX,
       y: layer.y,
-      w: 0.64,
+      w: 0.70,
       h: 0.14,
       color: layer.color,
       borderColor: layer.color,
       opacity: Math.min(1, appear),
       label: layer.label,
       sublabel: layer.sub,
-      cornerRadius: 12,
-      glow: appear > 0.7,
+      cornerRadius: 14,
+      glow: appear > 0.6,
       accentBar: true,
       iconDot: layer.color,
-      progressBar: appear > 0.5 ? lerp(0, 1, (appear - 0.5) * 2) : undefined,
+      progressBar: appear > 0.4 ? lerp(0, 1, (appear - 0.4) * 1.67) : undefined,
       progressColor: layer.color,
+      fillGradient: true,
+      fillColor: layer.color,
     };
   });
 
-  // Animated flow lines between layers
+  // Bold animated flow lines
   const lines: FlowLine[] = [];
   for (let i = 0; i < layers.length - 1; i++) {
-    const appear = Math.max(0, Math.min(1, (ep - (i + 1) * 0.12) * 2.8));
-    if (appear > 0.3) {
+    const appear = Math.max(0, Math.min(1, (ep - (i + 1) * 0.1) * 3));
+    if (appear > 0.2) {
       lines.push({
         from: `r${i}`, to: `r${i + 1}`,
         color: layers[i + 1].color,
-        strength: appear * 0.55,
+        strength: appear * 0.75,
         animated: true,
+        thick: true,
+        glowTrail: true,
       });
     }
   }
@@ -474,109 +484,123 @@ function sceneRebuild(p: number, t: number, d: DataBindings): SceneFrame {
   const texts: TextElement[] = [
     {
       text: "SOLUTIONS FROM TRUTH",
-      x: 0.5, y: 0.06,
-      size: 12, color: C.dark, weight: 700,
-      opacity: lerp(0, 0.7, Math.max(0, ep - 0.4) * 1.7),
-      letterSpacing: 2.5,
+      x: 0.5, y: 0.05,
+      size: 14, color: C.dark, weight: 800,
+      opacity: lerp(0, 0.85, Math.max(0, ep - 0.3) * 1.4),
+      letterSpacing: 3,
+      shadow: true,
     },
   ];
 
   return {
     camera: { x: 0, y: 0, zoom: 1.0 },
     blocks, lines, texts,
-    particles: particles(18, 600, C.greenLt, 0.05, true),
+    particles: particles(25, 600, C.greenLt, 0.12, true),
     bgColor: C.bg,
-    accentGlow: { x: 0.5, y: 0.4, radius: 0.45, color: C.green, intensity: ep * 0.15 },
-    secondaryGlow: { x: 0.5, y: 0.65, radius: 0.3, color: C.purple, intensity: ep * 0.1 },
+    accentGlow: { x: 0.5, y: 0.35, radius: 0.45, color: C.green, intensity: ep * 0.4 },
+    secondaryGlow: { x: 0.5, y: 0.65, radius: 0.35, color: C.purple, intensity: ep * 0.25 },
+    tertiaryGlow: { x: 0.5, y: 0.5, radius: 0.25, color: C.blue, intensity: ep * 0.15 },
+    vignette: 0.2,
   };
 }
 
 /* ═══════════════════════════════════════════════════════════════
    SCENE 6: OUTCOME (48-60s)
-   "Every opportunity becomes decision-ready.
-    Stop optimizing symptoms. Start fixing what actually matters."
-   
-   Visual: Four output cards with progress bars fill in.
-   Central decision grade appears with confidence score.
-   Calm resolution, clear hierarchy.
+   Four bold output cards with central decision grade.
+   Triumphant green glow. Everything feels resolved.
    ═══════════════════════════════════════════════════════════════ */
 function sceneOutcome(p: number, t: number, d: DataBindings): SceneFrame {
   const ep = easeInOutCubic(p);
 
   const outputs = [
-    { label: "Actionable Strategy",   sub: "execution-ready",      color: C.green,  x: 0.04, y: 0.34 },
-    { label: "Validated Assumptions",  sub: "evidence-bounded",     color: C.blue,   x: 0.52, y: 0.34 },
-    { label: "Execution Path",         sub: "step-by-step roadmap", color: C.purple, x: 0.04, y: 0.62 },
-    { label: "Investor Narrative",     sub: "pitch-ready deck",     color: C.pink,   x: 0.52, y: 0.62 },
+    { label: "Actionable Strategy",   sub: "execution-ready",      color: C.green,  x: 0.03, y: 0.36 },
+    { label: "Validated Assumptions",  sub: "evidence-bounded",     color: C.blue,   x: 0.52, y: 0.36 },
+    { label: "Execution Path",         sub: "step-by-step roadmap", color: C.purple, x: 0.03, y: 0.64 },
+    { label: "Investor Narrative",     sub: "pitch-ready deck",     color: C.pink,   x: 0.52, y: 0.64 },
   ];
 
   const blocks: UIBlock[] = outputs.map((out, i) => {
-    const stagger = Math.max(0, Math.min(1, (ep - i * 0.08) * 2.5));
+    const stagger = Math.max(0, Math.min(1, (ep - i * 0.07) * 2.8));
     const appear = easeOutQuart(stagger);
     return {
       id: `o${i}`,
       x: out.x,
       y: out.y,
-      w: 0.44,
-      h: 0.22,
+      w: 0.45,
+      h: 0.23,
       color: out.color,
       borderColor: out.color,
       opacity: appear,
       label: out.label,
       sublabel: out.sub,
-      cornerRadius: 14,
-      glow: appear > 0.5,
+      cornerRadius: 16,
+      glow: appear > 0.4,
       accentBar: true,
       iconDot: out.color,
-      progressBar: appear > 0.3 ? lerp(0, 1, (appear - 0.3) * 1.43) : 0,
+      progressBar: appear > 0.25 ? lerp(0, 1, (appear - 0.25) * 1.33) : 0,
       progressColor: out.color,
-      pulse: appear > 0.9 ? 1.0 : 0,
+      pulse: appear > 0.85 ? 1.2 : 0,
+      fillGradient: true,
+      fillColor: out.color,
+      badge: appear > 0.7 ? "✓" : undefined,
+      badgeColor: out.color,
     };
   });
 
-  // Central decision grade card
-  const gradeAppear = Math.max(0, Math.min(1, (ep - 0.25) * 1.33));
+  // Central decision grade card — large and bold
+  const gradeAppear = Math.max(0, Math.min(1, (ep - 0.2) * 1.25));
   const gradeEased = easeOutBack(gradeAppear);
   blocks.push({
     id: "grade",
-    x: 0.26, y: 0.06, w: 0.48, h: 0.20,
+    x: 0.22, y: 0.05, w: 0.56, h: 0.24,
     color: C.green, borderColor: C.green,
     opacity: gradeEased,
     label: `Decision Grade: ${Math.round(d.decisionGrade * 100 * gradeAppear)}`,
     sublabel: "decision-ready",
-    cornerRadius: 16,
+    cornerRadius: 18,
     glow: true,
     accentBar: true,
-    pulse: gradeAppear > 0.8 ? 1.2 : 0,
-    progressBar: gradeAppear > 0.5 ? d.decisionGrade : 0,
+    pulse: gradeAppear > 0.7 ? 1.5 : 0,
+    progressBar: gradeAppear > 0.4 ? d.decisionGrade : 0,
     progressColor: C.green,
     iconDot: C.green,
+    fillGradient: true,
+    fillColor: C.green,
+    shadowColor: C.green,
+    badge: gradeAppear > 0.8 ? `${Math.round(d.decisionGrade * 100)}` : undefined,
+    badgeColor: C.green,
   });
 
-  // Lines from outputs to grade
+  // Animated flow lines from outputs to grade
   const lines: FlowLine[] = outputs.map((_, i) => ({
     from: `o${i}`, to: "grade",
     color: outputs[i].color,
-    strength: lerp(0, 0.35, Math.max(0, ep - 0.35) * 1.5),
+    strength: lerp(0, 0.5, Math.max(0, ep - 0.3) * 1.4),
     animated: true,
+    glowTrail: true,
   }));
 
   const texts: TextElement[] = [
     {
       text: "DECISION-GRADE CLARITY",
-      x: 0.5, y: 0.94,
-      size: 12, color: C.dark, weight: 700,
-      opacity: lerp(0, 0.7, Math.max(0, ep - 0.6) * 2.5),
-      letterSpacing: 2.5,
+      x: 0.5, y: 0.95,
+      size: 14, color: C.dark, weight: 800,
+      opacity: lerp(0, 0.85, Math.max(0, ep - 0.5) * 2),
+      letterSpacing: 3.5,
+      shadow: true,
+      underline: true,
+      underlineColor: C.green,
     },
   ];
 
   return {
-    camera: { x: 0, y: 0, zoom: lerp(1.06, 1.0, easeOutQuart(ep)) },
+    camera: { x: 0, y: 0, zoom: lerp(1.08, 1.0, easeOutQuart(ep)) },
     blocks, lines, texts,
-    particles: particles(25, 877, C.greenLt, 0.04, true),
+    particles: particles(35, 877, C.greenLt, 0.12, true, true),
     bgColor: C.bg,
-    accentGlow: { x: 0.5, y: 0.2, radius: 0.35, color: C.green, intensity: ep * 0.2 },
-    secondaryGlow: { x: 0.5, y: 0.6, radius: 0.4, color: C.blue, intensity: ep * 0.08 },
+    accentGlow: { x: 0.5, y: 0.18, radius: 0.4, color: C.green, intensity: ep * 0.6 },
+    secondaryGlow: { x: 0.3, y: 0.55, radius: 0.35, color: C.blue, intensity: ep * 0.2 },
+    tertiaryGlow: { x: 0.7, y: 0.55, radius: 0.35, color: C.purple, intensity: ep * 0.15 },
+    vignette: 0.15,
   };
 }
