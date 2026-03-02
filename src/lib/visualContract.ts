@@ -344,26 +344,7 @@ export function enforceVisualContract<T extends Record<string, unknown>>(data: T
 }
 
 /* ── 9. INLINE ENFORCEMENT HELPERS ──
-   Used by consumers that render StructuralVisualList / ActionPlanList directly,
-   ensuring they always go through the canonical derivation pipeline. */
+   Re-exported from visualEnforcementHelpers.ts to avoid circular dependency.
+   These route through the adaptive visual engine for tiered resolution. */
 
-/** Extract enforced visualSpecs from any analysis-shaped object */
-export function getEnforcedVisualSpecs(data: Record<string, unknown> | null | undefined): VisualSpec[] {
-  if (!data) return [];
-  const enforced = enforceVisualContract({ ...data });
-  return enforced.visualSpecs;
-}
-
-/** Extract enforced actionPlans from any analysis-shaped object (handles v3ActionPlans alias) */
-export function getEnforcedActionPlans(data: Record<string, unknown> | null | undefined): ActionPlan[] {
-  if (!data) return [];
-  const enforced = enforceVisualContract({ ...data });
-  return enforced.actionPlans;
-}
-
-/** Extract ontology-specific visual specs for multi-panel rendering */
-export function getEnforcedOntologySpecs(data: Record<string, unknown> | null | undefined): VisualSpec[] {
-  if (!data) return [];
-  const enforced = enforceVisualContract({ ...data });
-  return enforced.ontologySpecs;
-}
+export { getEnforcedVisualSpecs, getEnforcedActionPlans, getEnforcedOntologySpecs } from "./visualEnforcementHelpers";
