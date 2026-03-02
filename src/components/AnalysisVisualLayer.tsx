@@ -544,8 +544,12 @@ export function AnalysisVisualLayer({
   const story = useMemo(() => compileVisualStory(rankedSignals, step, governedData), [rankedSignals, step, governedData]);
   const validation = useMemo(() => validateVisualStory(story, rankedSignals), [story, rankedSignals]);
   
-  // Enforcement gate: only render story visual if validation passes
-  const hasStorySignals = rankedSignals.length >= 2 && validation.valid;
+  // §9 VISUAL TRUTHFULNESS: Only render visuals when governed data provides structural basis
+  // Suppress fallback visuals from key names when governed data is available but incomplete
+  const hasGovernedStructure = !!(governedData?.constraint_map || governedData?.causal_chains || governedData?.first_principles);
+  const hasStorySignals = rankedSignals.length >= 2 && validation.valid && (
+    hasGovernedStructure || !governedData // Allow heuristic only when no governed data exists at all
+  );
 
   const hasCanonical = !!result.canonicalSpec;
   const hasOntologyPanels = result.ontologySpecs.length > 0;

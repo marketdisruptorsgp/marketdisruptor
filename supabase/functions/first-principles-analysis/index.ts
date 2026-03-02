@@ -6,6 +6,7 @@ import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { getGovernedSchemaPrompt, buildValidationObject } from "../_shared/governedSchema.ts";
 import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
+import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -424,7 +425,7 @@ VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 2-3 action plans for highest-leverage interventions. Each must connect to a specific constraint.
 - Only generate visuals when structural causality is clear. Do not force visuals.
 
-Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}`;
+Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}`;
 
     // ── USER CURATION CONTEXT (for redesign mode) ──
     let curationPrompt = "";

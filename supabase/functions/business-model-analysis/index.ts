@@ -6,6 +6,7 @@ import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { getGovernedSchemaPrompt, buildValidationObject, deepValidateGoverned } from "../_shared/governedSchema.ts";
 import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
+import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -201,7 +202,7 @@ VISUAL & ACTION PLAN INSTRUCTIONS:
 GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include a "governed" object:
 ${getGovernedSchemaPrompt("first-principles")}
 
-Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}`;
+Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
