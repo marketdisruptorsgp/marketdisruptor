@@ -91,7 +91,31 @@ export function extractAndRankSignals(data: Record<string, unknown>): RankedSign
       items.push(value.trim());
     } else if (Array.isArray(value)) {
       for (const item of value) {
-        if (typeof item === "string" && item.trim().length > 5) items.push(item.trim());
+        if (typeof item === "string" && item.trim().length > 5) {
+          items.push(item.trim());
+        } else if (item && typeof item === "object") {
+          // Extract signals from nested objects (e.g., competitorAnalysis, pricingIntel)
+          const nested = item as Record<string, unknown>;
+          for (const nVal of Object.values(nested)) {
+            if (typeof nVal === "string" && nVal.trim().length > 5) {
+              items.push(nVal.trim());
+            }
+          }
+        }
+      }
+    } else if (value && typeof value === "object" && !Array.isArray(value)) {
+      // Extract from nested objects like competitorAnalysis, pricingIntel, governed
+      const obj = value as Record<string, unknown>;
+      for (const [nKey, nVal] of Object.entries(obj)) {
+        if (typeof nVal === "string" && nVal.trim().length > 5) {
+          items.push(nVal.trim());
+        } else if (Array.isArray(nVal)) {
+          for (const arrItem of nVal) {
+            if (typeof arrItem === "string" && arrItem.trim().length > 5) {
+              items.push(arrItem.trim());
+            }
+          }
+        }
       }
     }
 
