@@ -318,8 +318,9 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
         style={{
           paddingBottom: "56.25%",
           background: "#f8f9fc",
-          boxShadow: "0 4px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
-          border: "1px solid rgba(0,0,0,0.06)",
+          boxShadow: "0 8px 60px rgba(75,104,245,0.08), 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)",
+          border: "1.5px solid rgba(75,104,245,0.12)",
+          borderRadius: 20,
         }}
       >
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
@@ -338,7 +339,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
                 className="text-[10px] font-bold tracking-[0.25em] uppercase"
                 style={{ color: "rgba(30,31,46,0.4)" }}
               >
-                See How It Works
+                Watch the Demo
               </p>
 
               <button
@@ -372,7 +373,7 @@ export default function PlatformCinematicExperience({ dataBindings }: Props) {
               </button>
 
               <p className="text-[11px] font-medium" style={{ color: "rgba(30,31,46,0.35)" }}>
-                {muted ? "Tap to unmute" : "Watch the overview"}
+                {muted ? "🔇 Tap to unmute" : "60-second overview"}
               </p>
             </motion.div>
           )}
