@@ -56,6 +56,13 @@ const nodeVariant = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.15 } }),
 };
 
+const LABEL_MAX = 48;
+
+function normalizeLabel(label: string): { display: string; tooltip: string | undefined } {
+  if (label.length <= LABEL_MAX) return { display: label, tooltip: undefined };
+  return { display: label.slice(0, LABEL_MAX) + "…", tooltip: label };
+}
+
 function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; index?: number; expandable?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const role = resolveRole(node);
@@ -66,6 +73,7 @@ function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; i
   const sizeClass = PRIORITY_SIZE[priority] || PRIORITY_SIZE[2];
   const fontSize = priority === 1 ? "text-[13px]" : priority === 3 ? "text-[11px]" : "text-xs";
   const attrStr = resolveAttributes(node.attributes);
+  const { display, tooltip } = normalizeLabel(node.label);
 
   return (
     <motion.div
@@ -76,6 +84,7 @@ function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; i
       className={cn("rounded-lg", sizeClass, expandable && "cursor-pointer")}
       style={{ background: s.bg, border: `1.5px ${borderStyle} ${s.border}`, color: s.text }}
       onClick={expandable ? () => setExpanded(!expanded) : undefined}
+      title={tooltip}
     >
       <div className="flex items-center gap-1.5 mb-0.5">
         <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style={{ background: `${s.badge}18`, color: s.badge }}>
@@ -86,7 +95,7 @@ function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; i
           <span className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground ml-1">{certainty}</span>
         )}
       </div>
-      <p className={cn(fontSize, "font-semibold leading-snug")}>{node.label}</p>
+      <p className={cn(fontSize, "font-semibold leading-snug")}>{display}</p>
       {expanded && attrStr && (
         <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{attrStr}</p>
       )}
