@@ -60,19 +60,22 @@ export function AnalysisVisualLayer({
 
   return (
     <>
-      {/* L1 Executive Signal — primary structural model */}
-      {hasStructuralVisuals && <StructuralVisualList specs={enriched.visualSpecs} />}
-
-      {/* L1.5 Domain Panels — ontology-specific multi-panel dashboard */}
+      {/* 1️⃣ DOMAIN INTELLIGENCE PANELS — always first */}
       {hasOntologyPanels && (
-        <div className="mt-3">
-          <MultiPanelDashboard specs={enriched.ontologySpecs} />
+        <MultiPanelDashboard specs={enriched.ontologySpecs} />
+      )}
+
+      {/* 2️⃣ CORE SYSTEM MODEL */}
+      {hasStructuralVisuals && (
+        <div className={hasOntologyPanels ? "mt-3" : undefined}>
+          <StructuralVisualList specs={enriched.visualSpecs} />
         </div>
       )}
 
+      {/* 3️⃣ ACTION PLANS */}
       {enriched.actionPlans.length > 0 && <ActionPlanList plans={enriched.actionPlans} />}
 
-      {/* L2/L3 Detail — strictly hidden when structural visuals present */}
+      {/* 4️⃣ TEXT DEPTH — collapsed when visuals exist */}
       {suppressText && hasVisuals ? (
         <details className="group mt-1">
           <summary className="cursor-pointer select-none inline-flex items-center gap-2 px-2 py-1 rounded text-[11px] font-bold text-muted-foreground/70 transition-colors hover:text-foreground hover:bg-muted/50">

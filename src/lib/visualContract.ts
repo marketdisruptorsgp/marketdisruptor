@@ -229,7 +229,7 @@ export function deriveVisualSystemModel(data: Record<string, unknown>): VisualSp
   };
 }
 
-/* ── 6. STRICT STRUCTURAL VALIDATION ── */
+/* ── 6. STRUCTURAL VALIDATION ── */
 
 const PLACEHOLDER_LABELS = new Set([
   "Primary system constraint",
@@ -238,18 +238,25 @@ const PLACEHOLDER_LABELS = new Set([
   "Primary constraint",
 ]);
 
+/** Relaxed meaningfulness check: 2+ non-decorative nodes with an anchor, OR 1+ relationship edge */
+export function isStructurallyMeaningful(nodes: VisualNode[], edges: VisualEdge[]): boolean {
+  const meaningfulNodes = nodes.filter(n => !PLACEHOLDER_LABELS.has(n.label));
+  const hasRelationship = edges.length >= 1;
+  const hasBinaryInsight = meaningfulNodes.length >= 2;
+  const hasAnchor = meaningfulNodes.some(n => resolveRole(n) === "system");
+  return hasRelationship || (hasBinaryInsight && hasAnchor);
+}
+
 function isValidVisualSpec(spec: unknown): boolean {
   const s = spec as Record<string, unknown>;
   const nodes = s?.nodes as VisualNode[] | undefined;
-  if (!Array.isArray(nodes) || nodes.length < 3) return false;
+  const edges = (s?.edges as VisualEdge[] | undefined) || [];
+  if (!Array.isArray(nodes) || nodes.length < 2) return false;
 
   // No placeholder labels allowed
   if (nodes.some(n => PLACEHOLDER_LABELS.has(n.label))) return false;
 
-  const roles = new Set(nodes.map(n => resolveRole(n)));
-
-  // Must have system + at least force or mechanism + outcome
-  return (roles.has("system") || roles.has("force")) && (roles.has("outcome") || roles.has("leverage"));
+  return isStructurallyMeaningful(nodes, edges);
 }
 
 /* ── 7. LEGACY → CANONICAL MERGE ── */
@@ -325,12 +332,13 @@ export function enforceVisualContract<T extends Record<string, unknown>>(data: T
   const existingPlans = (data.v3ActionPlans || data.actionPlans) as ActionPlan[] | undefined;
   const actionPlans = Array.isArray(existingPlans) && existingPlans.length > 0 ? existingPlans : generateFallbackAction(data);
 
-  // If no structurally grounded model exists, visualSpecs is empty — no decorative diagrams
-  const visualSpecs = canonical ? [canonical] : [];
+  // Only structurally meaningful models render — no decorative diagrams
+  const visualSpecs = canonical && isStructurallyMeaningful(canonical.nodes, canonical.edges) ? [canonical] : [];
 
-  // Multi-signal ontology detection — derive domain-specific panels
+  // Multi-signal ontology detection — derive domain-specific panels, validated for meaningfulness
   const signals = detectSignals(data);
-  const ontologySpecs = signals.length > 0 ? deriveAllOntologySpecs(data, signals) : [];
+  const rawOntology = signals.length > 0 ? deriveAllOntologySpecs(data, signals) : [];
+  const ontologySpecs = rawOntology.filter(s => isStructurallyMeaningful(s.nodes, s.edges));
 
   return { ...data, visualSpecs, actionPlans, ontologySpecs };
 }
