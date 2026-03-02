@@ -4,13 +4,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { ShowcaseGallery } from "@/components/ShowcaseGallery";
 import { PlatformNav } from "@/components/PlatformNav";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import {
   Upload, Briefcase, Building2, ArrowRight,
   ShieldCheck, BookOpen, Camera, Target,
   Search, Radar, Sparkles, Crosshair, Swords, Presentation,
   ChevronRight,
 } from "lucide-react";
+
+const DemoSection = lazy(() => import("@/components/DemoSection"));
 
 const ROTATING_WORDS = [
   { word: "product", color: "hsl(var(--mode-product))" },
@@ -122,6 +124,13 @@ export default function StartPage() {
           >
             Learn More
           </button>
+        </div>
+
+        {/* Interactive Demo */}
+        <div className="max-w-5xl mx-auto mt-8">
+          <Suspense fallback={<div className="h-64 rounded-2xl bg-muted animate-pulse" />}>
+            <DemoSection />
+          </Suspense>
         </div>
       </section>
 
