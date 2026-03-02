@@ -128,6 +128,47 @@ export interface ConstraintDrivenFlip {
   constraint_linkage_id: string;
 }
 
+/* ── Reasoning Synopsis ── */
+export interface CausalRelationship {
+  cause: string;
+  effect: string;
+  mechanism: string;
+}
+
+export interface DecisionDriver {
+  factor: string;
+  weight: "high" | "medium";
+  rationale: string;
+}
+
+export interface ReasoningSynopsis {
+  problem_framing: {
+    objective_interpretation: string;
+    success_criteria: string[];
+  };
+  lens_influence: {
+    lens_name: string;
+    prioritized_factors: string[];
+    deprioritized_factors: string[];
+    alternative_lens_impact: string;
+  };
+  evaluation_path: {
+    dimensions_examined: string[];
+    evaluation_logic: string;
+  };
+  core_causal_logic: {
+    primary_relationships: CausalRelationship[];
+    dominant_mechanism: string;
+  };
+  decision_drivers: DecisionDriver[];
+  confidence_sensitivity: {
+    overall_confidence: "high" | "medium" | "low";
+    confidence_score: number;
+    most_sensitive_variable: string;
+    sensitivity_explanation?: string;
+  };
+}
+
 /* ── Governed Output Wrapper ── */
 export interface GovernedOutput<T> {
   artifact: T;
@@ -143,6 +184,7 @@ export interface GovernedOutput<T> {
   constraint_driven_solution?: ConstraintDrivenSolution;
   falsification?: FalsificationProtocol;
   decision_synthesis?: DecisionSynthesisArtifact;
+  reasoning_synopsis?: ReasoningSynopsis;
 }
 
 /* ── Deep Field Validity Check ── */
@@ -323,6 +365,14 @@ GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include thes
     "blocking_uncertainties": ["uncertainty1"],
     "fastest_validation_experiment": "description",
     "next_required_evidence": "what evidence is needed next"
+  },
+  "reasoning_synopsis": {
+    "problem_framing": {"objective_interpretation": "how you interpreted the objective", "success_criteria": ["criterion1"]},
+    "lens_influence": {"lens_name": "Default or lens name", "prioritized_factors": ["factor1"], "deprioritized_factors": ["factor2"], "alternative_lens_impact": "how conclusion might differ"},
+    "evaluation_path": {"dimensions_examined": ["dim1", "dim2"], "evaluation_logic": "why this order"},
+    "core_causal_logic": {"primary_relationships": [{"cause": "X", "effect": "Y", "mechanism": "how"}], "dominant_mechanism": "primary pathway"},
+    "decision_drivers": [{"factor": "key observation", "weight": "high|medium", "rationale": "why it matters"}],
+    "confidence_sensitivity": {"overall_confidence": "high|medium|low", "confidence_score": 65, "most_sensitive_variable": "variable", "sensitivity_explanation": "what changes"}
   }
 }
 
@@ -355,6 +405,14 @@ GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include thes
     "blocking_uncertainties": ["uncertainty1"],
     "fastest_validation_experiment": "cheapest way to test viability — under $500, specific method",
     "next_required_evidence": "what evidence is needed"
+  },
+  "reasoning_synopsis": {
+    "problem_framing": {"objective_interpretation": "how you interpreted the objective", "success_criteria": ["criterion1"]},
+    "lens_influence": {"lens_name": "Default or lens name", "prioritized_factors": ["factor1"], "deprioritized_factors": ["factor2"], "alternative_lens_impact": "how conclusion might differ"},
+    "evaluation_path": {"dimensions_examined": ["dim1", "dim2"], "evaluation_logic": "why this order"},
+    "core_causal_logic": {"primary_relationships": [{"cause": "X", "effect": "Y", "mechanism": "how"}], "dominant_mechanism": "primary pathway"},
+    "decision_drivers": [{"factor": "key observation", "weight": "high|medium", "rationale": "why it matters"}],
+    "confidence_sensitivity": {"overall_confidence": "high|medium|low", "confidence_score": 65, "most_sensitive_variable": "variable", "sensitivity_explanation": "what changes"}
   }
 }
 
@@ -438,6 +496,14 @@ GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include a "g
     "blocking_uncertainties": ["uncertainty1"],
     "fastest_validation_experiment": "description",
     "next_required_evidence": "what evidence"
+  },
+  "reasoning_synopsis": {
+    "problem_framing": {"objective_interpretation": "how you interpreted the objective", "success_criteria": ["criterion1"]},
+    "lens_influence": {"lens_name": "Default or lens name", "prioritized_factors": ["factor1"], "deprioritized_factors": ["factor2"], "alternative_lens_impact": "how conclusion might differ"},
+    "evaluation_path": {"dimensions_examined": ["dim1", "dim2"], "evaluation_logic": "why this order"},
+    "core_causal_logic": {"primary_relationships": [{"cause": "X", "effect": "Y", "mechanism": "how"}], "dominant_mechanism": "primary pathway"},
+    "decision_drivers": [{"factor": "key observation", "weight": "high|medium", "rationale": "why it matters"}],
+    "confidence_sensitivity": {"overall_confidence": "high|medium|low", "confidence_score": 65, "most_sensitive_variable": "variable", "sensitivity_explanation": "what changes"}
   }
 }
 

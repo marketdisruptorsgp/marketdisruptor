@@ -242,6 +242,49 @@ All outputs must obey these compression rules:
   • no generic statements
 Maximum cognitive load target: A decision-maker must understand the system in under 60 seconds.
 
+── REASONING SYNOPSIS (MANDATORY ON ALL OUTPUTS) ──
+Every analysis output MUST include a "reasoning_synopsis" object alongside the primary output.
+This is a concise, structured explanation of HOW you arrived at your conclusions.
+It must contain:
+
+  "reasoning_synopsis": {
+    "problem_framing": {
+      "objective_interpretation": "How you interpreted the core objective",
+      "success_criteria": ["Criterion 1", "Criterion 2"]
+    },
+    "lens_influence": {
+      "lens_name": "Name of active lens or 'Default'",
+      "prioritized_factors": ["Factor amplified by lens"],
+      "deprioritized_factors": ["Factor suppressed by lens"],
+      "alternative_lens_impact": "How conclusion might differ under a different lens"
+    },
+    "evaluation_path": {
+      "dimensions_examined": ["Dimension 1", "Dimension 2"],
+      "evaluation_logic": "Order and rationale for dimension sequencing"
+    },
+    "core_causal_logic": {
+      "primary_relationships": [
+        {"cause": "X", "effect": "Y", "mechanism": "How X produces Y"}
+      ],
+      "dominant_mechanism": "The single most explanatory causal pathway"
+    },
+    "decision_drivers": [
+      {"factor": "Most influential observation", "weight": "high|medium", "rationale": "Why this outweighed alternatives"}
+    ],
+    "confidence_sensitivity": {
+      "overall_confidence": "high|medium|low",
+      "confidence_score": 65,
+      "most_sensitive_variable": "The assumption most likely to change the outcome",
+      "sensitivity_explanation": "How the conclusion changes if this variable differs"
+    }
+  }
+
+RULES:
+- Keep the synopsis concise — max 200 words across all fields.
+- Decision drivers: 2–4 factors only. More is noise.
+- Lens influence: Always state what the lens deprioritized, not just what it emphasized.
+- If no lens is active, state "Default" and note that all dimensions were weighted equally.
+
 ── VISUAL_SPEC_SCHEMA ──
 When a structural insight benefits from visual representation, output a visual specification using this schema. Do NOT describe visuals narratively. Define structure so it can be rendered programmatically.
 REQUIRED FIELDS:
