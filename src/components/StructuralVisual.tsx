@@ -34,9 +34,9 @@ const CERTAINTY_BORDER_STYLE: Record<string, string> = {
 };
 
 const PRIORITY_SIZE: Record<number, string> = {
-  1: "min-w-[150px] max-w-[260px] px-4 py-3",
-  2: "min-w-[120px] max-w-[220px] px-3 py-2",
-  3: "min-w-[100px] max-w-[190px] px-2.5 py-1.5",
+  1: "min-w-[150px] px-4 py-3",
+  2: "min-w-[120px] px-3 py-2",
+  3: "min-w-[100px] px-2.5 py-1.5",
 };
 
 const PRIORITY_INDICATOR = (p?: number) => {

@@ -41,11 +41,11 @@ const PRIORITY_DOTS = (p?: number) => {
   );
 };
 
-/* ── Size scaling by priority ── */
-const PRIORITY_SCALE: Record<number, { minW: number; maxW: number; pad: string; fontSize: number }> = {
-  1: { minW: 190, maxW: 260, pad: "12px 16px", fontSize: 13 },
-  2: { minW: 160, maxW: 220, pad: "10px 14px", fontSize: 12 },
-  3: { minW: 130, maxW: 190, pad: "8px 12px", fontSize: 11 },
+/* ── Size scaling by priority — NO max-width truncation ── */
+const PRIORITY_SCALE: Record<number, { minW: number; pad: string; fontSize: number }> = {
+  1: { minW: 200, pad: "12px 16px", fontSize: 13 },
+  2: { minW: 170, pad: "10px 14px", fontSize: 12 },
+  3: { minW: 140, pad: "8px 12px", fontSize: 11 },
 };
 
 /* ── Certainty border encoding ── */
@@ -72,7 +72,6 @@ const AnalysisNode = memo(({ data }: NodeProps) => {
         borderRadius: 12,
         padding: scale.pad,
         minWidth: scale.minW,
-        maxWidth: scale.maxW,
       }}
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />

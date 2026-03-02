@@ -23,16 +23,17 @@ export function AnalysisVisualLayer({
   suppressText?: boolean;
 }) {
   const enriched = enforceVisualContract(analysis);
-  const hasVisuals = enriched.visualSpecs.length > 0 || enriched.actionPlans.length > 0;
+  const hasStructuralVisuals = enriched.visualSpecs.length > 0 && enriched.visualSpecs.some((s: VisualSpec) => s.structurally_grounded);
+  const hasContent = hasStructuralVisuals || enriched.actionPlans.length > 0;
 
   return (
     <>
-      {/* L1 Executive Signal — always visible, visual-first */}
-      <StructuralVisualList specs={enriched.visualSpecs} />
-      <ActionPlanList plans={enriched.actionPlans} />
+      {/* L1 Executive Signal — only if structurally grounded */}
+      {hasStructuralVisuals && <StructuralVisualList specs={enriched.visualSpecs} />}
+      {enriched.actionPlans.length > 0 && <ActionPlanList plans={enriched.actionPlans} />}
 
-      {/* L2/L3 Detail — strictly hidden when visuals present */}
-      {suppressText && hasVisuals ? (
+      {/* L2/L3 Detail — strictly hidden when structural visuals present */}
+      {suppressText && hasStructuralVisuals ? (
         <details className="group mt-1">
           <summary className="cursor-pointer select-none inline-flex items-center gap-2 px-2 py-1 rounded text-[11px] font-bold text-muted-foreground/70 transition-colors hover:text-foreground hover:bg-muted/50">
             <span className="transition-transform group-open:rotate-90 text-[9px]">▶</span>

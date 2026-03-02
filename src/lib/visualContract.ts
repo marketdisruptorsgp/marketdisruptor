@@ -8,6 +8,17 @@
 
 export type NodeRole = "system" | "force" | "mechanism" | "leverage" | "outcome";
 export type Certainty = "verified" | "modeled" | "assumption";
+export type RelationshipType = "causal" | "reinforcing" | "limiting" | "tradeoff" | "dependency";
+
+/** Adaptive visual grammar — chosen by structural content, never defaulted */
+export type VisualGrammar =
+  | "causal_pathway"
+  | "system_influence"
+  | "loop_diagram"
+  | "tiered_intervention"
+  | "tension_map"
+  | "process_architecture"
+  | "scenario_tree";
 
 /** Legacy type alias for backward compatibility */
 export type LegacyNodeType = "constraint" | "effect" | "leverage" | "intervention" | "outcome";
@@ -28,12 +39,14 @@ export interface VisualEdge {
   from: string;
   to: string;
   relationship?: string;
+  relationship_type?: RelationshipType;
   label?: string;
   strength?: number;
 }
 
 export interface VisualSpec {
   visual_type?: "system_model" | "constraint_map" | "causal_chain" | "leverage_hierarchy";
+  visual_grammar?: VisualGrammar;
   system?: string;
   title?: string;
   purpose?: string;
@@ -44,6 +57,8 @@ export interface VisualSpec {
   confidence?: number;
   assumptions?: string[];
   version?: number;
+  /** If true, the model was derived from real content. If false/missing, treat as insufficient. */
+  structurally_grounded?: boolean;
 }
 
 export interface ActionPlan {
@@ -74,12 +89,9 @@ export function resolveRole(node: VisualNode): NodeRole {
   return "force";
 }
 
-/* ── 2. CANONICAL STRUCTURE DERIVATION ── */
+/* ── 2. STRUCTURAL EXTRACTION HELPERS ── */
 
-function truncate(s: string, max: number): string {
-  return s.length <= max ? s : s.slice(0, max - 1) + "…";
-}
-
+/** NO truncation — labels must carry full meaning */
 function extractField(data: Record<string, unknown>, ...keys: string[]): string | undefined {
   for (const k of keys) {
     const v = data[k];
@@ -98,85 +110,152 @@ function extractArray(data: Record<string, unknown>, ...keys: string[]): string[
   return [];
 }
 
-export function deriveVisualSystemModel(data: Record<string, unknown>): VisualSpec {
-  const system = extractField(data, "problemStatement", "coreProblem", "keyInsight", "description") || "Primary system constraint";
+/* ── 3. SEMANTIC SIGNAL ASSESSMENT ── */
+
+/** Returns true only if the data contains enough real semantic content to ground a structural model. */
+function hasStructuralSignal(data: Record<string, unknown>): boolean {
+  const system = extractField(data, "problemStatement", "coreProblem", "keyInsight", "description", "primaryFriction");
+  const forces = extractArray(data, "factors", "marketForces", "vulnerabilities", "blindSpots", "hiddenStrengths");
+  const mechanism = extractField(data, "mechanism", "coreStrategy", "approach");
+  const outcome = extractField(data, "impact", "verdict", "tagline", "completionMessage", "recommendation");
+
+  // Must have at least a real system AND (forces or mechanism) AND outcome
+  const hasSystem = !!system && system !== "Primary system constraint";
+  const hasForces = forces.length > 0;
+  const hasMechanism = !!mechanism;
+  const hasOutcome = !!outcome && outcome !== "System outcome";
+
+  return hasSystem && (hasForces || hasMechanism) && hasOutcome;
+}
+
+/* ── 4. ADAPTIVE VISUAL GRAMMAR SELECTION ── */
+
+function selectVisualGrammar(data: Record<string, unknown>, nodes: VisualNode[], edges: VisualEdge[]): VisualGrammar {
+  // Detect reinforcing loops
+  const edgeSet = new Set(edges.map(e => `${e.from}->${e.to}`));
+  const hasLoop = edges.some(e => edgeSet.has(`${e.to}->${e.from}`));
+  if (hasLoop) return "loop_diagram";
+
+  // Detect tradeoffs / tensions
+  const tradeoffs = extractArray(data, "tradeoffs", "tensions", "paradoxes");
+  if (tradeoffs.length > 0) return "tension_map";
+
+  // Detect scenarios / uncertainty dominance
+  const scenarios = extractArray(data, "scenarios", "alternatives", "possibleOutcomes");
+  if (scenarios.length >= 2) return "scenario_tree";
+
+  // Detect leverage hierarchy (multiple leverage nodes)
+  const leverageCount = nodes.filter(n => resolveRole(n) === "leverage").length;
+  if (leverageCount >= 2) return "tiered_intervention";
+
+  // Detect multiple interacting drivers (system influence)
+  const forceCount = nodes.filter(n => resolveRole(n) === "force").length;
+  if (forceCount >= 3) return "system_influence";
+
+  // Detect stage/process structure
+  const stages = extractArray(data, "stages", "steps", "phases", "workflowStages");
+  if (stages.length >= 2) return "process_architecture";
+
+  // Default: causal pathway
+  return "causal_pathway";
+}
+
+/* ── 5. CANONICAL STRUCTURE DERIVATION ── */
+
+export function deriveVisualSystemModel(data: Record<string, unknown>): VisualSpec | null {
+  // Stage 1: Check for sufficient structural signal
+  if (!hasStructuralSignal(data)) {
+    return null; // Fallback diagrams are forbidden
+  }
+
+  const system = extractField(data, "problemStatement", "coreProblem", "keyInsight", "description")!;
   const forces = extractArray(data, "factors", "marketForces", "vulnerabilities", "blindSpots", "hiddenStrengths");
   const mechanism = extractField(data, "mechanism", "coreStrategy", "approach", "primaryFriction");
   const leverage = extractField(data, "leveragePoint", "recommendation", "strategicRecommendation");
-  const outcome = extractField(data, "impact", "verdict", "tagline", "completionMessage", "recommendation");
+  const outcome = extractField(data, "impact", "verdict", "tagline", "completionMessage", "recommendation")!;
 
   const nodes: VisualNode[] = [
-    { id: "system", label: truncate(system, 60), role: "system", priority: 1, certainty: "verified" },
+    { id: "system", label: system, role: "system", priority: 1, certainty: "verified" },
   ];
   const edges: VisualEdge[] = [];
 
-  // Force nodes
-  if (forces.length > 0) {
-    forces.slice(0, 3).forEach((f, i) => {
-      const id = `force_${i}`;
-      nodes.push({ id, label: truncate(f, 50), role: "force", priority: 2, certainty: "modeled" });
-      edges.push({ from: id, to: "system", relationship: "acts on" });
-    });
-  } else {
-    nodes.push({ id: "force_0", label: "Structural driver", role: "force", priority: 2, certainty: "assumption" });
-    edges.push({ from: "force_0", to: "system", relationship: "acts on" });
-  }
+  // Force nodes — only real extracted forces, no placeholders
+  forces.slice(0, 3).forEach((f, i) => {
+    const id = `force_${i}`;
+    nodes.push({ id, label: f, role: "force", priority: 2, certainty: "modeled" });
+    edges.push({ from: id, to: "system", relationship: "acts on", relationship_type: "causal" });
+  });
 
   // Mechanism
   if (mechanism) {
-    nodes.push({ id: "mechanism", label: truncate(mechanism, 55), role: "mechanism", priority: 2, certainty: "modeled" });
-    edges.push({ from: "system", to: "mechanism", relationship: "operates through" });
-    edges.push({ from: "mechanism", to: "outcome", relationship: "produces" });
+    nodes.push({ id: "mechanism", label: mechanism, role: "mechanism", priority: 2, certainty: "modeled" });
+    edges.push({ from: "system", to: "mechanism", relationship: "operates through", relationship_type: "causal" });
+    edges.push({ from: "mechanism", to: "outcome", relationship: "produces", relationship_type: "causal" });
   } else {
-    edges.push({ from: "system", to: "outcome", relationship: "produces" });
+    edges.push({ from: "system", to: "outcome", relationship: "produces", relationship_type: "causal" });
   }
 
   // Leverage
   if (leverage) {
-    nodes.push({ id: "leverage", label: truncate(leverage, 55), role: "leverage", priority: 1, certainty: "modeled" });
-    edges.push({ from: "leverage", to: mechanism ? "mechanism" : "system", relationship: "intervenes at" });
+    nodes.push({ id: "leverage", label: leverage, role: "leverage", priority: 1, certainty: "modeled" });
+    edges.push({ from: "leverage", to: mechanism ? "mechanism" : "system", relationship: "intervenes at", relationship_type: "causal" });
   }
 
-  // Outcome (always present)
-  nodes.push({
-    id: "outcome",
-    label: outcome ? truncate(outcome, 60) : "System outcome",
-    role: "outcome",
-    priority: 3,
-    certainty: "assumption",
-  });
+  // Outcome
+  nodes.push({ id: "outcome", label: outcome, role: "outcome", priority: 3, certainty: "assumption" });
+
+  // Stage 3: Select visual grammar
+  const grammar = selectVisualGrammar(data, nodes, edges);
 
   return {
     visual_type: "system_model",
-    system: truncate(system, 40),
+    visual_grammar: grammar,
+    system,
     title: "System Structure",
     nodes,
     edges,
     layout: "vertical",
     interpretation: leverage
-      ? `Target "${truncate(leverage, 40)}" to shift system outcome.`
-      : `Address "${truncate(system, 40)}" to improve outcome.`,
+      ? `Target "${leverage}" to shift system outcome.`
+      : `Address "${system}" to improve outcome.`,
     version: 1,
+    structurally_grounded: true,
   };
 }
 
-/* ── 3. STRICT STRUCTURAL VALIDATION ── */
+/* ── 6. STRICT STRUCTURAL VALIDATION ── */
+
+const PLACEHOLDER_LABELS = new Set([
+  "Primary system constraint",
+  "Structural driver",
+  "System outcome",
+  "Primary constraint",
+]);
 
 function isValidVisualSpec(spec: unknown): boolean {
   const s = spec as Record<string, unknown>;
   const nodes = s?.nodes as VisualNode[] | undefined;
   if (!Array.isArray(nodes) || nodes.length < 3) return false;
+
+  // No placeholder labels allowed
+  if (nodes.some(n => PLACEHOLDER_LABELS.has(n.label))) return false;
+
   const roles = new Set(nodes.map(n => resolveRole(n)));
+
+  // Must have system + at least force or mechanism + outcome
   return (roles.has("system") || roles.has("force")) && (roles.has("outcome") || roles.has("leverage"));
 }
 
-/* ── 4. LEGACY → CANONICAL MERGE ── */
+/* ── 7. LEGACY → CANONICAL MERGE ── */
 
-export function resolveCanonicalVisualModel(data: Record<string, unknown>): VisualSpec {
+export function resolveCanonicalVisualModel(data: Record<string, unknown>): VisualSpec | null {
   const canonical = deriveVisualSystemModel(data);
   const legacySpecs = data.visualSpecs as unknown[] | undefined;
   const legacy = Array.isArray(legacySpecs) ? legacySpecs.find(isValidVisualSpec) as VisualSpec | undefined : undefined;
 
+  // If no canonical and no valid legacy → null (no diagram)
+  if (!canonical && !legacy) return null;
+  if (!canonical) return legacy!;
   if (!legacy) return canonical;
 
   // Merge: canonical provides structural guarantee, legacy provides AI-enriched labels
@@ -207,14 +286,14 @@ export function resolveCanonicalVisualModel(data: Record<string, unknown>): Visu
   };
 }
 
-/* ── 5. GLOBAL VISUAL ENFORCEMENT ── */
+/* ── 8. GLOBAL VISUAL ENFORCEMENT ── */
 
 function generateFallbackAction(data: Record<string, unknown>): ActionPlan[] {
   const recs = extractArray(data, "recommendations", "strategicRecommendations", "keyChanges");
 
   if (recs.length > 0) {
     return recs.slice(0, 2).map((r) => ({
-      initiative: truncate(r, 80),
+      initiative: r,
       objective: "Improve system performance by addressing identified constraint",
       leverage_type: "structural_improvement" as const,
       mechanism: r,
@@ -240,5 +319,8 @@ export function enforceVisualContract<T extends Record<string, unknown>>(data: T
   const existingPlans = (data.v3ActionPlans || data.actionPlans) as ActionPlan[] | undefined;
   const actionPlans = Array.isArray(existingPlans) && existingPlans.length > 0 ? existingPlans : generateFallbackAction(data);
 
-  return { ...data, visualSpecs: [canonical], actionPlans };
+  // If no structurally grounded model exists, visualSpecs is empty — no decorative diagrams
+  const visualSpecs = canonical ? [canonical] : [];
+
+  return { ...data, visualSpecs, actionPlans };
 }
