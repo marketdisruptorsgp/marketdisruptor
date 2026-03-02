@@ -1,72 +1,146 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-/* Scene 1 — THE LIMITATION
-   Conventional output zooms in, then red annotation condemns it. */
-export default function SceneLimitation() {
-  const items = [
-    "Increase motor wattage for faster drying",
-    "Add HEPA filter for hygiene claims",
-    "Reduce noise with acoustic dampening",
-  ];
+/* ═══════════════════════════════════════════════════════════════
+   SCENE 1 — THE LIMITATION
+   Conventional output appears confident but shallow.
+   Nodes float disconnected. No structure. No causality.
+   A faint grid beneath reveals: there IS a structure — they just missed it.
+   ═══════════════════════════════════════════════════════════════ */
 
+const NODES = [
+  { x: 15, y: 25, label: "Power", size: 38 },
+  { x: 55, y: 18, label: "Filter", size: 32 },
+  { x: 82, y: 35, label: "Noise", size: 28 },
+  { x: 30, y: 65, label: "Speed", size: 26 },
+  { x: 68, y: 70, label: "Hygiene", size: 30 },
+];
+
+export default function SceneLimitation() {
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      {/* Conventional output card */}
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+      {/* Ghost grid — the hidden structure they can't see */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md rounded-2xl border p-6"
-        style={{
-          background: "hsl(var(--muted) / 0.4)",
-          borderColor: "hsl(var(--border))",
-        }}
+        className="absolute inset-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.03 }}
+        transition={{ delay: 2, duration: 2 }}
       >
-        <p
-          className="text-[9px] font-bold uppercase tracking-[0.25em] mb-4"
-          style={{ color: "hsl(var(--muted-foreground) / 0.5)" }}
-        >
-          Conventional Analysis Output
-        </p>
-        <div className="space-y-2.5">
-          {items.map((text, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -6 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 + i * 0.4, duration: 0.5, ease: "easeOut" }}
-              className="flex items-center gap-3 py-2 px-3 rounded-xl"
-              style={{ background: "hsl(var(--background) / 0.8)" }}
-            >
-              <div
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ background: "hsl(var(--muted-foreground) / 0.25)" }}
-              />
-              <span
-                className="text-sm leading-snug"
-                style={{ color: "hsl(var(--muted-foreground) / 0.7)" }}
-              >
-                {text}
-              </span>
-            </motion.div>
-          ))}
-        </div>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={`h-${i}`}
+            className="absolute w-full h-px"
+            style={{
+              top: `${12.5 * (i + 1)}%`,
+              background: "hsl(var(--foreground))",
+            }}
+          />
+        ))}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={`v-${i}`}
+            className="absolute h-full w-px"
+            style={{
+              left: `${12.5 * (i + 1)}%`,
+              background: "hsl(var(--foreground))",
+            }}
+          />
+        ))}
       </motion.div>
 
-      {/* Red annotation — the condemnation */}
+      {/* Floating disconnected nodes */}
+      <div className="relative w-full max-w-lg h-[260px]">
+        {NODES.map((n, i) => (
+          <motion.div
+            key={i}
+            className="absolute flex items-center justify-center rounded-full"
+            style={{
+              left: `${n.x}%`,
+              top: `${n.y}%`,
+              width: n.size,
+              height: n.size,
+              border: "1px solid hsl(var(--foreground) / 0.08)",
+              background: "hsl(var(--foreground) / 0.03)",
+            }}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: [0, -3, 0, 2, 0],
+            }}
+            transition={{
+              opacity: { delay: i * 0.3, duration: 0.6 },
+              scale: { delay: i * 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+              y: {
+                delay: i * 0.3 + 0.6,
+                duration: 4 + i * 0.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              },
+            }}
+          >
+            <span
+              className="text-[9px] font-semibold tracking-wide"
+              style={{ color: "hsl(var(--foreground) / 0.25)" }}
+            >
+              {n.label}
+            </span>
+          </motion.div>
+        ))}
+
+        {/* Dashed lines attempting connections — but failing */}
+        <svg className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
+          {[
+            { x1: "17%", y1: "30%", x2: "53%", y2: "22%" },
+            { x1: "57%", y1: "24%", x2: "80%", y2: "38%" },
+            { x1: "32%", y1: "68%", x2: "66%", y2: "73%" },
+          ].map((line, i) => (
+            <motion.line
+              key={i}
+              x1={line.x1}
+              y1={line.y1}
+              x2={line.x2}
+              y2={line.y2}
+              stroke="hsl(var(--foreground) / 0.06)"
+              strokeWidth="1"
+              strokeDasharray="4 6"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: 1.5 + i * 0.3, duration: 1 }}
+            />
+          ))}
+        </svg>
+      </div>
+
+      {/* The damning verdict — no text explanation, just a visual signal */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 2.4, duration: 0.6 }}
-        className="mt-6 text-center"
+        className="absolute bottom-8 left-0 right-0 flex justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 3.5, duration: 1.2 }}
       >
-        <p
-          className="text-xs font-semibold tracking-wide"
-          style={{ color: "hsl(var(--destructive))" }}
-        >
-          No constraint identification. No causal chain.
-        </p>
+        <div className="flex items-center gap-3">
+          <motion.div
+            className="h-px"
+            style={{ background: "hsl(var(--destructive) / 0.4)" }}
+            initial={{ width: 0 }}
+            animate={{ width: 40 }}
+            transition={{ delay: 3.8, duration: 0.8 }}
+          />
+          <span
+            className="text-[10px] font-semibold tracking-[0.15em] uppercase"
+            style={{ color: "hsl(var(--destructive) / 0.6)" }}
+          >
+            No structure found
+          </span>
+          <motion.div
+            className="h-px"
+            style={{ background: "hsl(var(--destructive) / 0.4)" }}
+            initial={{ width: 0 }}
+            animate={{ width: 40 }}
+            transition={{ delay: 3.8, duration: 0.8 }}
+          />
+        </div>
       </motion.div>
     </div>
   );
