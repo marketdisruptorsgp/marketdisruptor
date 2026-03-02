@@ -3,9 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { StepNavigator, type StepConfig } from "@/components/StepNavigator";
 import { ProductCard } from "@/components/ProductCard";
-import { StructuralVisualList } from "@/components/StructuralVisual";
-import { ActionPlanList } from "@/components/ActionPlanCard";
-import { getEnforcedVisualSpecs, getEnforcedActionPlans } from "@/lib/visualContract";
+import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
@@ -231,10 +229,7 @@ export default function ShareableAnalysisPage() {
 
             <ProductCard product={product} isSelected={true} onClick={() => {}} />
 
-            {/* L1 Executive Signal — Structural Visuals & Action Plans (enforced) */}
-            <StructuralVisualList specs={getEnforcedVisualSpecs(product as unknown as Record<string, unknown>)} />
-            <ActionPlanList plans={getEnforcedActionPlans(product as unknown as Record<string, unknown>)} />
-
+            <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>}>
             {/* Section nav */}
             <div ref={sectionTabsRef}>
               <SectionWorkflowNav
@@ -498,6 +493,7 @@ export default function ShareableAnalysisPage() {
                 <Brain size={14} /> Continue to Disrupt →
               </button>
             )}
+            </AnalysisVisualLayer>
           </div>
         )}
 

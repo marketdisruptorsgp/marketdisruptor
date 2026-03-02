@@ -13,9 +13,7 @@ import { LoadingTracker } from "@/components/LoadingTracker";
 import { StepNavigator } from "@/components/StepNavigator";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { ProductCard } from "@/components/ProductCard";
-import { StructuralVisualList } from "@/components/StructuralVisual";
-import { ActionPlanList } from "@/components/ActionPlanCard";
-import { getEnforcedVisualSpecs, getEnforcedActionPlans } from "@/lib/visualContract";
+import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
@@ -174,225 +172,224 @@ export default function ReportPage() {
         {/* Product Card */}
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
-        {/* L1 Executive Signal — Structural Visuals & Action Plans (enforced) */}
-        <StructuralVisualList specs={getEnforcedVisualSpecs(selectedProduct as unknown as Record<string, unknown>)} />
-        <ActionPlanList plans={getEnforcedActionPlans(selectedProduct as unknown as Record<string, unknown>)} />
+        {/* Adaptive Visual Layer — enforces visual primacy + text suppression */}
+        <AnalysisVisualLayer analysis={selectedProduct as unknown as Record<string, unknown>}>
+          {/* === ALL SECTIONS AS ACCORDIONS === */}
 
-        {/* === ALL SECTIONS AS ACCORDIONS === */}
-
-        {/* 1. Overview — open by default */}
-        <DetailPanel title="Overview" icon={Target} defaultOpen>
-          {selectedProduct.keyInsight && (
-            <div className="insight-callout mb-3">
-              <p className="typo-card-body font-semibold leading-snug">{selectedProduct.keyInsight}</p>
-            </div>
-          )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-3">
-              {selectedProduct.description && (
-                <p className="typo-card-body text-foreground/80 leading-relaxed">{selectedProduct.description}</p>
-              )}
-              {selectedProduct.marketSizeEstimate && (
-                <p className="typo-card-body font-semibold text-green-700">TAM: {selectedProduct.marketSizeEstimate}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <ScoreBar label="Adoption" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
-              <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
-              <ScoreBar label="Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
-            </div>
-          </div>
-          {selectedProduct.trendAnalysis && (
-            <p className="typo-card-body text-foreground/70 leading-relaxed mt-3">{selectedProduct.trendAnalysis}</p>
-          )}
-          {selectedProduct.sources?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {selectedProduct.sources.map((src: any) => (
-                <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium bg-primary/5 text-primary">
-                  <ExternalLink size={9} /> {src.label?.slice(0, 30)}
-                </a>
-              ))}
-            </div>
-          )}
-        </DetailPanel>
-
-        {/* 2. Assumptions */}
-        <DetailPanel title="Assumptions Map" icon={Brain}>
-          <AssumptionsMap product={selectedProduct} />
-        </DetailPanel>
-
-        {/* 3. Community Intel */}
-        {ci && (
-          <DetailPanel title="Community Intel" icon={MessageSquare}>
-            {(() => {
-              const sentiment = ci.communitySentiment || ci.redditSentiment;
-              const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
-              return (
-                <div className="space-y-3">
-                  {hasReal && <p className="typo-card-body text-foreground/80">{sentiment}</p>}
-                  {ci.topComplaints?.length > 0 && (
-                    <div className="space-y-1">
-                      <p className="typo-card-eyebrow">Complaints</p>
-                      {ci.topComplaints.map((c: string, i: number) => (
-                        <div key={i} className="flex gap-2 items-start typo-card-body">
-                          <ShieldAlert size={10} className="text-destructive flex-shrink-0 mt-0.5" />
-                          <span className="text-foreground/80">{c}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {ci.improvementRequests?.length > 0 && (
-                    <div className="space-y-1">
-                      <p className="typo-card-eyebrow">Requests</p>
-                      {ci.improvementRequests.map((r: string, i: number) => (
-                        <div key={i} className="flex gap-2 items-start typo-card-body">
-                          <Lightbulb size={10} className="text-blue-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-foreground/80">{r}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {selectedProduct.reviews?.length > 0 && (
-                    <div className="space-y-1">
-                      <p className="typo-card-eyebrow">Reviews</p>
-                      {selectedProduct.reviews.map((review: any, i: number) => (
-                        <div key={i} className="flex gap-2 items-start text-xs">
-                          <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
-                          <span className="text-foreground/80">{review.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-          </DetailPanel>
-        )}
-
-        {/* 4. User Journey */}
-        {uw?.stepByStep?.length > 0 && (
-          <DetailPanel title="User Journey" icon={Clock}>
-            <div className="space-y-3">
-              <div className="flex justify-end">
-                <button
-                  onClick={handleRefreshJourney}
-                  disabled={refreshingJourney}
-                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground disabled:opacity-50"
-                >
-                  <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
-                  {refreshingJourney ? "Refreshing..." : "Refresh"}
-                </button>
+          {/* 1. Overview — open by default */}
+          <DetailPanel title="Overview" icon={Target} defaultOpen>
+            {selectedProduct.keyInsight && (
+              <div className="insight-callout mb-3">
+                <p className="typo-card-body font-semibold leading-snug">{selectedProduct.keyInsight}</p>
               </div>
-              <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
-              {(uw.cognitiveLoad || uw.contextOfUse) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {uw.cognitiveLoad && (
-                    <div className="p-3 rounded-lg bg-card border border-border">
-                      <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
-                      <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
-                    </div>
-                  )}
-                  {uw.contextOfUse && (
-                    <div className="p-3 rounded-lg bg-card border border-border">
-                      <p className="typo-card-eyebrow mb-1">Context of Use</p>
-                      <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
-                    </div>
-                  )}
-                </div>
-              )}
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-3">
+                {selectedProduct.description && (
+                  <p className="typo-card-body text-foreground/80 leading-relaxed">{selectedProduct.description}</p>
+                )}
+                {selectedProduct.marketSizeEstimate && (
+                  <p className="typo-card-body font-semibold text-green-700">TAM: {selectedProduct.marketSizeEstimate}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <ScoreBar label="Adoption" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
+                <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
+                <ScoreBar label="Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
+              </div>
             </div>
-          </DetailPanel>
-        )}
-
-        {/* 5. Pricing Intel */}
-        {selectedProduct.pricingIntel && (
-          <DetailPanel title="Pricing Intel" icon={DollarSign}>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {[
-                  { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice },
-                  { label: "Resale Avg", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold },
-                  { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal },
-                  { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium },
-                  { label: "Margins", value: selectedProduct.pricingIntel.margins },
-                  { label: "Trend", value: selectedProduct.pricingIntel.priceDirection?.toUpperCase() },
-                ].filter(x => x.value).map((item) => (
-                  <div key={item.label} className="p-2.5 rounded-lg bg-muted border border-border">
-                    <p className="typo-card-eyebrow mb-0.5">{item.label}</p>
-                    <p className="typo-card-body font-bold text-foreground">{item.value}</p>
-                  </div>
+            {selectedProduct.trendAnalysis && (
+              <p className="typo-card-body text-foreground/70 leading-relaxed mt-3">{selectedProduct.trendAnalysis}</p>
+            )}
+            {selectedProduct.sources?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {selectedProduct.sources.map((src: any) => (
+                  <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium bg-primary/5 text-primary">
+                    <ExternalLink size={9} /> {src.label?.slice(0, 30)}
+                  </a>
                 ))}
               </div>
-            </div>
+            )}
           </DetailPanel>
-        )}
 
-        {/* 6. Supply Chain (products only) */}
-        {!isService && selectedProduct.supplyChain && (
-          <DetailPanel title="Supply Chain" icon={Package}>
-            <div className="space-y-3">
-              <SupplySection title="Suppliers" icon={<Factory size={12} className="text-primary" />}
-                items={selectedProduct.supplyChain.suppliers.map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
-                color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
-              <SupplySection title="Manufacturers" icon={<Package size={12} className="text-blue-500" />}
-                items={selectedProduct.supplyChain.manufacturers.map((m: any) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
-                color="hsl(217 91% 60% / 0.08)" borderColor="hsl(217 91% 60% / 0.3)" />
-              <SupplySection title="Vendors" icon={<Store size={12} className="text-purple-500" />}
-                items={selectedProduct.supplyChain.vendors.map((v: any) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
-                color="hsl(262 83% 58% / 0.08)" borderColor="hsl(262 83% 58% / 0.3)" />
-              <SupplySection title="Distributors" icon={<Truck size={12} className="text-orange-500" />}
-                items={selectedProduct.supplyChain.distributors.map((d: any) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
-                color="hsl(32 100% 50% / 0.08)" borderColor="hsl(32 100% 50% / 0.3)" />
-              {selectedProduct.supplyChain.retailers?.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {selectedProduct.supplyChain.retailers.map((r: any) => (
-                    <div key={r.name} className="p-2.5 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-                      <p className="text-xs font-bold text-foreground">{r.name}</p>
-                      <p className="text-sm font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
+          {/* 2. Assumptions */}
+          <DetailPanel title="Assumptions Map" icon={Brain}>
+            <AssumptionsMap product={selectedProduct} />
+          </DetailPanel>
+
+          {/* 3. Community Intel */}
+          {ci && (
+            <DetailPanel title="Community Intel" icon={MessageSquare}>
+              {(() => {
+                const sentiment = ci.communitySentiment || ci.redditSentiment;
+                const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
+                return (
+                  <div className="space-y-3">
+                    {hasReal && <p className="typo-card-body text-foreground/80">{sentiment}</p>}
+                    {ci.topComplaints?.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="typo-card-eyebrow">Complaints</p>
+                        {ci.topComplaints.map((c: string, i: number) => (
+                          <div key={i} className="flex gap-2 items-start typo-card-body">
+                            <ShieldAlert size={10} className="text-destructive flex-shrink-0 mt-0.5" />
+                            <span className="text-foreground/80">{c}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {ci.improvementRequests?.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="typo-card-eyebrow">Requests</p>
+                        {ci.improvementRequests.map((r: string, i: number) => (
+                          <div key={i} className="flex gap-2 items-start typo-card-body">
+                            <Lightbulb size={10} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-foreground/80">{r}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {selectedProduct.reviews?.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="typo-card-eyebrow">Reviews</p>
+                        {selectedProduct.reviews.map((review: any, i: number) => (
+                          <div key={i} className="flex gap-2 items-start text-xs">
+                            <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
+                            <span className="text-foreground/80">{review.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </DetailPanel>
+          )}
+
+          {/* 4. User Journey */}
+          {uw?.stepByStep?.length > 0 && (
+            <DetailPanel title="User Journey" icon={Clock}>
+              <div className="space-y-3">
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleRefreshJourney}
+                    disabled={refreshingJourney}
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground disabled:opacity-50"
+                  >
+                    <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
+                    {refreshingJourney ? "Refreshing..." : "Refresh"}
+                  </button>
+                </div>
+                <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
+                {(uw.cognitiveLoad || uw.contextOfUse) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {uw.cognitiveLoad && (
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
+                        <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
+                      </div>
+                    )}
+                    {uw.contextOfUse && (
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <p className="typo-card-eyebrow mb-1">Context of Use</p>
+                        <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </DetailPanel>
+          )}
+
+          {/* 5. Pricing Intel */}
+          {selectedProduct.pricingIntel && (
+            <DetailPanel title="Pricing Intel" icon={DollarSign}>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice },
+                    { label: "Resale Avg", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold },
+                    { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal },
+                    { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium },
+                    { label: "Margins", value: selectedProduct.pricingIntel.margins },
+                    { label: "Trend", value: selectedProduct.pricingIntel.priceDirection?.toUpperCase() },
+                  ].filter(x => x.value).map((item) => (
+                    <div key={item.label} className="p-2.5 rounded-lg bg-muted border border-border">
+                      <p className="typo-card-eyebrow mb-0.5">{item.label}</p>
+                      <p className="typo-card-body font-bold text-foreground">{item.value}</p>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          </DetailPanel>
-        )}
-
-        {/* 7. Patent Intel (products only) */}
-        {!isService && (
-          <DetailPanel title="Patent Intel" icon={ScrollText}>
-            {selectedProduct.patentData && (
-              <div className="flex justify-end mb-2">
-                <button
-                  onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary text-white text-xs"
-                  style={{ background: modeAccent }}
-                >
-                  <FileDown size={12} /> Patent PDF
-                </button>
               </div>
-            )}
-            <PatentIntelligence
-              product={selectedProduct}
-              onSave={(patentData) => {
-                const updated = products.map(p =>
-                  p.id === selectedProduct.id ? { ...p, patentData } : p
-                );
-                analysis.setProducts(updated);
-                analysis.setSelectedProduct({ ...selectedProduct, patentData });
-                if (analysisId) {
-                  (async () => {
-                    try {
-                      await (supabase.from("saved_analyses") as any)
-                        .update({ products: JSON.parse(JSON.stringify(updated)) })
-                        .eq("id", analysisId);
-                    } catch (err) { console.error("Failed to persist patent data:", err); }
-                  })();
-                }
-              }}
-            />
-          </DetailPanel>
-        )}
+            </DetailPanel>
+          )}
+
+          {/* 6. Supply Chain (products only) */}
+          {!isService && selectedProduct.supplyChain && (
+            <DetailPanel title="Supply Chain" icon={Package}>
+              <div className="space-y-3">
+                <SupplySection title="Suppliers" icon={<Factory size={12} className="text-primary" />}
+                  items={selectedProduct.supplyChain.suppliers.map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
+                  color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
+                <SupplySection title="Manufacturers" icon={<Package size={12} className="text-blue-500" />}
+                  items={selectedProduct.supplyChain.manufacturers.map((m: any) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
+                  color="hsl(217 91% 60% / 0.08)" borderColor="hsl(217 91% 60% / 0.3)" />
+                <SupplySection title="Vendors" icon={<Store size={12} className="text-purple-500" />}
+                  items={selectedProduct.supplyChain.vendors.map((v: any) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
+                  color="hsl(262 83% 58% / 0.08)" borderColor="hsl(262 83% 58% / 0.3)" />
+                <SupplySection title="Distributors" icon={<Truck size={12} className="text-orange-500" />}
+                  items={selectedProduct.supplyChain.distributors.map((d: any) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
+                  color="hsl(32 100% 50% / 0.08)" borderColor="hsl(32 100% 50% / 0.3)" />
+                {selectedProduct.supplyChain.retailers?.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {selectedProduct.supplyChain.retailers.map((r: any) => (
+                      <div key={r.name} className="p-2.5 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+                        <p className="text-xs font-bold text-foreground">{r.name}</p>
+                        <p className="text-sm font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </DetailPanel>
+          )}
+
+          {/* 7. Patent Intel (products only) */}
+          {!isService && (
+            <DetailPanel title="Patent Intel" icon={ScrollText}>
+              {selectedProduct.patentData && (
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary text-white text-xs"
+                    style={{ background: modeAccent }}
+                  >
+                    <FileDown size={12} /> Patent PDF
+                  </button>
+                </div>
+              )}
+              <PatentIntelligence
+                product={selectedProduct}
+                onSave={(patentData) => {
+                  const updated = products.map(p =>
+                    p.id === selectedProduct.id ? { ...p, patentData } : p
+                  );
+                  analysis.setProducts(updated);
+                  analysis.setSelectedProduct({ ...selectedProduct, patentData });
+                  if (analysisId) {
+                    (async () => {
+                      try {
+                        await (supabase.from("saved_analyses") as any)
+                          .update({ products: JSON.parse(JSON.stringify(updated)) })
+                          .eq("id", analysisId);
+                      } catch (err) { console.error("Failed to persist patent data:", err); }
+                    })();
+                  }
+                }}
+              />
+            </DetailPanel>
+          )}
+        </AnalysisVisualLayer>
 
         {/* Project Notes */}
         <ProjectNotesSection analysisId={analysisId} saveStepData={analysis.saveStepData} />
