@@ -16,6 +16,7 @@ import { LeverageScore } from "./LeverageScore";
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 import { StructuralVisualList, type VisualSpec } from "./StructuralVisual";
 import { ActionPlanList, type ActionPlan } from "./ActionPlanCard";
+import { getEnforcedVisualSpecs } from "@/lib/visualContract";
 
 export interface BusinessModelInput {
   type: string;
@@ -403,8 +404,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Business Reality" icon={Eye} />
 
-          {/* L1 Executive Signal — Structural Visuals */}
-          <StructuralVisualList specs={data.visualSpecs} />
+          {/* L1 Executive Signal — Structural Visuals (enforced) */}
+          <StructuralVisualList specs={getEnforcedVisualSpecs(data as unknown as Record<string, unknown>)} />
 
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>True Job To Be Done</p>

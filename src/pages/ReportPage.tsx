@@ -15,6 +15,7 @@ import { getStepConfigs } from "@/lib/stepConfigs";
 import { ProductCard } from "@/components/ProductCard";
 import { StructuralVisualList } from "@/components/StructuralVisual";
 import { ActionPlanList } from "@/components/ActionPlanCard";
+import { getEnforcedVisualSpecs, getEnforcedActionPlans } from "@/lib/visualContract";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
@@ -173,9 +174,9 @@ export default function ReportPage() {
         {/* Product Card */}
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
-        {/* L1 Executive Signal — Structural Visuals & Action Plans */}
-        <StructuralVisualList specs={selectedProduct.visualSpecs} />
-        <ActionPlanList plans={selectedProduct.v3ActionPlans} />
+        {/* L1 Executive Signal — Structural Visuals & Action Plans (enforced) */}
+        <StructuralVisualList specs={getEnforcedVisualSpecs(selectedProduct as unknown as Record<string, unknown>)} />
+        <ActionPlanList plans={getEnforcedActionPlans(selectedProduct as unknown as Record<string, unknown>)} />
 
         {/* === ALL SECTIONS AS ACCORDIONS === */}
 
