@@ -1,17 +1,19 @@
 import React, { ReactNode } from "react";
 import { StructuralVisualList, StructuralVisual } from "./StructuralVisual";
 import { ActionPlanList } from "./ActionPlanCard";
-import { enforceVisualContract } from "@/lib/visualContract";
+import { resolveAdaptiveVisuals } from "@/lib/adaptiveVisualEngine";
+import type { AdaptiveVisualResult } from "@/lib/adaptiveVisualEngine";
 import type { VisualSpec, ActionPlan } from "@/lib/visualContract";
+import { enforceVisualContract } from "@/lib/visualContract";
 
 // Re-export for backward compatibility
 export { enforceVisualContract } from "@/lib/visualContract";
 export type { VisualSpec, ActionPlan } from "@/lib/visualContract";
 
 /* ═══════════════════════════════════════════════════════════
-   UNIVERSAL RENDERING CONTRACT
+   ADAPTIVE VISUAL RENDERING LAYER
+   Tiered: STRUCTURAL_MODEL → INSIGHT_MAP → INTELLIGENCE_SURFACE
    Visual always leads. Text always collapses.
-   Multi-panel ontology specs render as a visual dashboard.
    ═══════════════════════════════════════════════════════════ */
 
 function OntologyPanel({ spec }: { spec: VisualSpec }) {
@@ -31,8 +33,6 @@ function OntologyPanel({ spec }: { spec: VisualSpec }) {
 
 function MultiPanelDashboard({ specs }: { specs: VisualSpec[] }) {
   if (specs.length === 0) return null;
-
-  // Single panel → no grid
   if (specs.length === 1) return <OntologyPanel spec={specs[0]} />;
 
   return (
@@ -41,6 +41,20 @@ function MultiPanelDashboard({ specs }: { specs: VisualSpec[] }) {
         <OntologyPanel key={`ontology-${i}`} spec={spec} />
       ))}
     </div>
+  );
+}
+
+function TierBadge({ tier }: { tier: AdaptiveVisualResult["tier"] }) {
+  const config = {
+    STRUCTURAL_MODEL: { label: "Structural", color: "bg-primary/10 text-primary" },
+    INSIGHT_MAP: { label: "Insight", color: "bg-accent/60 text-accent-foreground" },
+    INTELLIGENCE_SURFACE: { label: "Surface", color: "bg-muted text-muted-foreground" },
+  };
+  const c = config[tier];
+  return (
+    <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest ${c.color}`}>
+      {c.label}
+    </span>
   );
 }
 
@@ -53,27 +67,36 @@ export function AnalysisVisualLayer({
   children: ReactNode;
   suppressText?: boolean;
 }) {
-  const enriched = enforceVisualContract(analysis);
-  const hasStructuralVisuals = enriched.visualSpecs.length > 0 && enriched.visualSpecs.some((s: VisualSpec) => s.structurally_grounded);
-  const hasOntologyPanels = enriched.ontologySpecs.length > 0;
-  const hasVisuals = hasStructuralVisuals || hasOntologyPanels;
+  const result = resolveAdaptiveVisuals(analysis);
+
+  const hasOntologyPanels = result.ontologySpecs.length > 0;
+  const hasCanonical = !!result.canonicalSpec;
+  const hasSurface = result.surfaceSpecs.length > 0;
+  const hasVisuals = hasOntologyPanels || hasCanonical || hasSurface;
 
   return (
     <>
       {/* 1️⃣ DOMAIN INTELLIGENCE PANELS — always first */}
       {hasOntologyPanels && (
-        <MultiPanelDashboard specs={enriched.ontologySpecs} />
+        <MultiPanelDashboard specs={result.ontologySpecs} />
       )}
 
       {/* 2️⃣ CORE SYSTEM MODEL */}
-      {hasStructuralVisuals && (
+      {hasCanonical && (
         <div className={hasOntologyPanels ? "mt-3" : undefined}>
-          <StructuralVisualList specs={enriched.visualSpecs} />
+          <StructuralVisualList specs={[result.canonicalSpec!]} />
+        </div>
+      )}
+
+      {/* 2b️⃣ SURFACE / INSIGHT FALLBACK SPECS */}
+      {hasSurface && !hasCanonical && (
+        <div className={hasOntologyPanels ? "mt-3" : undefined}>
+          <MultiPanelDashboard specs={result.surfaceSpecs} />
         </div>
       )}
 
       {/* 3️⃣ ACTION PLANS */}
-      {enriched.actionPlans.length > 0 && <ActionPlanList plans={enriched.actionPlans} />}
+      {result.actionPlans.length > 0 && <ActionPlanList plans={result.actionPlans} />}
 
       {/* 4️⃣ TEXT DEPTH — collapsed when visuals exist */}
       {suppressText && hasVisuals ? (
