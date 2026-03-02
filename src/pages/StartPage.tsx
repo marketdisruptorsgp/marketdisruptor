@@ -126,12 +126,6 @@ export default function StartPage() {
           </button>
         </div>
 
-        {/* Interactive Demo */}
-        <div className="max-w-5xl mx-auto mt-8">
-          <Suspense fallback={<div className="h-64 rounded-2xl bg-muted animate-pulse" />}>
-            <DemoSection />
-          </Suspense>
-        </div>
       </section>
 
       {/* Showcase Gallery */}
