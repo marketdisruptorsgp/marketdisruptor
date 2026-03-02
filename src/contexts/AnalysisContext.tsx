@@ -726,6 +726,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
       // ── GOVERNED: Extract and persist governed artifacts at TOP LEVEL ──
       const { extractGovernedArtifacts, mergeGovernedIntoAnalysisData, checkRetroactiveInvalidation, applyRetroactiveInvalidation } = await import("@/lib/governedPersistence");
+      const { buildEvidenceRegistry } = await import("@/lib/evidenceRegistry");
       const extraction = extractGovernedArtifacts(stepKey, data);
       
       let merged: Record<string, unknown> = { ...prev, [stepKey]: data, previousSnapshot, governedHashes };
@@ -734,6 +735,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       if (extraction.hasGoverned && extraction.valid) {
         merged = mergeGovernedIntoAnalysisData(merged, extraction);
         console.log(`[GovernedPersistence] Merged ${extraction.presentArtifacts.length} artifacts (${extraction.governedByteSize} bytes) into analysis_data.governed`);
+        
+        // §8: Build evidence registry from current analysis state
+        const registry = buildEvidenceRegistry(merged);
+        merged._evidenceRegistry = registry;
+        console.log(`[EvidenceRegistry] ${registry.trace}`);
         
         // ── RETROACTIVE INVALIDATION: Check if falsification triggers upstream downgrades ──
         const governedObj = merged.governed as Record<string, unknown>;
