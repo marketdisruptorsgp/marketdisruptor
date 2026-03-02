@@ -14,9 +14,7 @@ import { BundleDeepDive } from "./BundleDeepDive";
 
 import { LeverageScore } from "./LeverageScore";
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
-import { StructuralVisualList, type VisualSpec } from "./StructuralVisual";
-import { ActionPlanList, type ActionPlan } from "./ActionPlanCard";
-import { getEnforcedVisualSpecs } from "@/lib/visualContract";
+import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
 
 export interface BusinessModelInput {
   type: string;
@@ -113,8 +111,8 @@ export interface BusinessModelAnalysisData {
     biggestRisk: string;
     requiredCapabilities: string[];
   };
-  visualSpecs?: VisualSpec[];
-  actionPlans?: ActionPlan[];
+  visualSpecs?: import("@/lib/visualContract").VisualSpec[];
+  actionPlans?: import("@/lib/visualContract").ActionPlan[];
 }
 
 const IMPACT_COLORS = {
@@ -404,9 +402,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Business Reality" icon={Eye} />
 
-          {/* L1 Executive Signal — Structural Visuals (enforced) */}
-          <StructuralVisualList specs={getEnforcedVisualSpecs(data as unknown as Record<string, unknown>)} />
-
+          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>}>
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>True Job To Be Done</p>
             <p className="text-sm text-foreground leading-relaxed">{data.businessSummary.trueJobToBeDone}</p>
@@ -436,6 +432,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           </DetailPanel>
 
           {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
+          </AnalysisVisualLayer>
         </div>
       )}
 
@@ -719,8 +716,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             </div>
           </div>
 
-          {/* Key Changes — top 3 */}
-          <ActionPlanList plans={data.actionPlans} />
+          {/* Key Changes — rendered via AnalysisVisualLayer for action plans */}
+          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} suppressText={false}>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {data.reinventedModel.keyChanges.slice(0, 3).map((c, i) => (
@@ -784,6 +781,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               <CheckCircle2 size={12} style={{ color: "hsl(142 70% 40%)" }} /> All sections explored
             </span>
           </div>
+          </AnalysisVisualLayer>
         </div>
       )}
     </div>

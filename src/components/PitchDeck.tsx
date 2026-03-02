@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { StructuralVisualList } from "./StructuralVisual";
-import { ActionPlanList } from "./ActionPlanCard";
-import { getEnforcedVisualSpecs, getEnforcedActionPlans } from "@/lib/visualContract";
+import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { downloadPitchDeckPDF } from "@/lib/pdfExport";
@@ -737,10 +735,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         </div>
       </div>
 
-      {/* L1 Executive Signal — Structural Visuals & Action Plans (enforced) */}
-      <StructuralVisualList specs={getEnforcedVisualSpecs(data as unknown as Record<string, unknown>)} />
-      <ActionPlanList plans={getEnforcedActionPlans(data as unknown as Record<string, unknown>)} />
-
+      <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>}>
       {/* Toolbar */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <p className="typo-card-meta text-muted-foreground">{TOTAL} slides · Click any to jump</p>
@@ -772,6 +767,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           </button>
         </>
       )}
+      </AnalysisVisualLayer>
 
       <div className="mt-6"><ReferralCTA compact /></div>
     </div>
