@@ -22,7 +22,7 @@ export interface LensImpactReport {
   structural_impact: boolean; // true if lens changed any ranking
 }
 
-interface LensConfig {
+export interface LensConfig {
   name: string;
   lensType?: "default" | "eta" | "custom";
   evaluation_priorities?: Record<string, number>;

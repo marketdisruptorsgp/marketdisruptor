@@ -37,6 +37,7 @@ import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
 
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
 const AdminHealthPage = lazy(() => import("./pages/AdminHealthPage"));
+const GovernanceAuditPage = lazy(() => import("./pages/GovernanceAuditPage"));
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/admin/analytics" element={<Suspense fallback={<div className="min-h-screen bg-background" />}><AdminAnalyticsPage /></Suspense>} />
       <Route path="/admin/health" element={<Suspense fallback={<div className="min-h-screen bg-background" />}><AdminHealthPage /></Suspense>} />
+      <Route path="/admin/governance" element={<Suspense fallback={<div className="min-h-screen bg-background" />}><GovernanceAuditPage /></Suspense>} />
       <Route path="/instant-analysis" element={<InstantAnalysisPage />} />
       <Route path="/share" element={<SharePage />} />
       <Route path="/analysis/share/:id" element={<ShareableAnalysisPage />} />
