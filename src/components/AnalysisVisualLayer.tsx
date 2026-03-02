@@ -144,14 +144,14 @@ export function AnalysisVisualLayer({
       <StructuralVisualList specs={enriched.visualSpecs} />
       <ActionPlanList plans={enriched.actionPlans} />
 
-      {/* L2/L3 Detail — collapsed when visuals present */}
+      {/* L2/L3 Detail — strictly hidden when visuals present; on-demand only */}
       {suppressText && hasVisuals ? (
-        <details className="group mt-2">
-          <summary className="cursor-pointer select-none flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-muted-foreground transition-colors hover:text-foreground hover:bg-muted">
-            <span className="transition-transform group-open:rotate-90">▶</span>
-            Full Analysis Detail
+        <details className="group mt-1">
+          <summary className="cursor-pointer select-none inline-flex items-center gap-2 px-2 py-1 rounded text-[11px] font-bold text-muted-foreground/70 transition-colors hover:text-foreground hover:bg-muted/50">
+            <span className="transition-transform group-open:rotate-90 text-[9px]">▶</span>
+            Deep Dive
           </summary>
-          <div className="mt-3 space-y-4">
+          <div className="mt-3 space-y-4 border-l-2 border-border/50 pl-3">
             {children}
           </div>
         </details>

@@ -40,21 +40,38 @@ const PRIORITY_DOTS = (p?: number) => {
   );
 };
 
+/* ── Size scaling by priority ── */
+const PRIORITY_SCALE: Record<number, { minW: number; maxW: number; pad: string; fontSize: number }> = {
+  1: { minW: 190, maxW: 260, pad: "12px 16px", fontSize: 13 },
+  2: { minW: 160, maxW: 220, pad: "10px 14px", fontSize: 12 },
+  3: { minW: 130, maxW: 190, pad: "8px 12px", fontSize: 11 },
+};
+
+/* ── Certainty border encoding ── */
+const CERTAINTY_BORDER: Record<string, string> = {
+  verified: "solid",
+  modeled: "dashed",
+  assumption: "dotted",
+};
+
 /* ── Custom Node Component ── */
 const AnalysisNode = memo(({ data }: NodeProps) => {
   const nodeType = (data.nodeType || "effect") as VisualNode["type"];
   const colors = NODE_COLORS[nodeType] || NODE_COLORS.effect;
-  const priority = data.priority as number | undefined;
+  const priority = (data.priority as number) || 2;
+  const certainty = (data.certainty as string) || "verified";
+  const scale = PRIORITY_SCALE[priority] || PRIORITY_SCALE[2];
+  const borderStyle = CERTAINTY_BORDER[certainty] || "solid";
 
   return (
     <div
       style={{
         background: colors.bg,
-        border: `1.5px solid ${colors.border}`,
+        border: `1.5px ${borderStyle} ${colors.border}`,
         borderRadius: 12,
-        padding: "10px 14px",
-        minWidth: 160,
-        maxWidth: 220,
+        padding: scale.pad,
+        minWidth: scale.minW,
+        maxWidth: scale.maxW,
       }}
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />
@@ -75,12 +92,17 @@ const AnalysisNode = memo(({ data }: NodeProps) => {
           {nodeType}
         </span>
         {PRIORITY_DOTS(priority)}
+        {certainty !== "verified" && (
+          <span style={{ fontSize: 8, fontWeight: 600, color: "hsl(var(--muted-foreground))", textTransform: "uppercase", letterSpacing: "0.06em", marginLeft: 2 }}>
+            {certainty}
+          </span>
+        )}
       </div>
 
       <p
         style={{
           margin: 0,
-          fontSize: 12,
+          fontSize: scale.fontSize,
           fontWeight: 600,
           lineHeight: 1.35,
           color: "hsl(var(--foreground))",
@@ -88,6 +110,12 @@ const AnalysisNode = memo(({ data }: NodeProps) => {
       >
         {data.label}
       </p>
+
+      {data.attributes && (
+        <p style={{ margin: "4px 0 0", fontSize: 10, lineHeight: 1.4, color: "hsl(var(--muted-foreground))" }}>
+          {data.attributes}
+        </p>
+      )}
 
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0, width: 1, height: 1 }} />
     </div>
@@ -124,7 +152,7 @@ function autoLayout(spec: VisualSpec): { nodes: Node[]; edges: Edge[] } {
         id: n.id,
         type: "analysisNode",
         position: { x: startX + i * (CARD_W + GAP_X), y: tierIdx * (CARD_H + GAP_Y) },
-        data: { label: n.label, nodeType: n.type, priority: n.priority },
+        data: { label: n.label, nodeType: n.type, priority: n.priority, certainty: n.certainty, attributes: n.attributes },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top,
       });

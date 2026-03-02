@@ -12,6 +12,8 @@ export interface VisualNode {
   type: "constraint" | "effect" | "leverage" | "intervention" | "outcome";
   priority?: 1 | 2 | 3;
   attributes?: string;
+  /** Certainty encoding: verified (solid), modeled (dashed), assumption (dotted) */
+  certainty?: "verified" | "modeled" | "assumption";
 }
 
 export interface VisualEdge {
@@ -63,17 +65,35 @@ const nodeVariant = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.15 } }),
 };
 
+const CERTAINTY_BORDER_STYLE: Record<string, string> = {
+  verified: "solid",
+  modeled: "dashed",
+  assumption: "dotted",
+};
+
+const PRIORITY_SIZE: Record<number, string> = {
+  1: "min-w-[150px] max-w-[260px] px-4 py-3",
+  2: "min-w-[120px] max-w-[220px] px-3 py-2",
+  3: "min-w-[100px] max-w-[190px] px-2.5 py-1.5",
+};
+
 function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; index?: number; expandable?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const s = NODE_STYLES[node.type] || NODE_STYLES.effect;
+  const priority = node.priority || 2;
+  const certainty = node.certainty || "verified";
+  const borderStyle = CERTAINTY_BORDER_STYLE[certainty] || "solid";
+  const sizeClass = PRIORITY_SIZE[priority] || PRIORITY_SIZE[2];
+  const fontSize = priority === 1 ? "text-[13px]" : priority === 3 ? "text-[11px]" : "text-xs";
+
   return (
     <motion.div
       custom={index}
       variants={nodeVariant}
       initial="hidden"
       animate="visible"
-      className={cn("px-3 py-2 rounded-lg min-w-[120px] max-w-[220px]", expandable && "cursor-pointer")}
-      style={{ background: s.bg, border: `1.5px solid ${s.border}`, color: s.text }}
+      className={cn("rounded-lg", sizeClass, expandable && "cursor-pointer")}
+      style={{ background: s.bg, border: `1.5px ${borderStyle} ${s.border}`, color: s.text }}
       onClick={expandable ? () => setExpanded(!expanded) : undefined}
     >
       <div className="flex items-center gap-1.5 mb-0.5">
@@ -81,8 +101,11 @@ function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; i
           {node.type}
         </span>
         {PRIORITY_INDICATOR(node.priority)}
+        {certainty !== "verified" && (
+          <span className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground ml-1">{certainty}</span>
+        )}
       </div>
-      <p className="text-xs font-semibold leading-snug">{node.label}</p>
+      <p className={cn(fontSize, "font-semibold leading-snug")}>{node.label}</p>
       {expanded && node.attributes && (
         <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{node.attributes}</p>
       )}
