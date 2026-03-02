@@ -10,15 +10,16 @@ import ReactFlow, {
   type NodeProps,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import type { VisualSpec, VisualNode } from "./StructuralVisual";
+import type { VisualSpec, VisualNode, NodeRole } from "./StructuralVisual";
+import { resolveRole } from "./StructuralVisual";
 
-/* ── Node color mapping ── */
-const NODE_COLORS: Record<VisualNode["type"], { bg: string; border: string; badge: string; badgeBg: string }> = {
-  constraint:   { bg: "hsl(0 72% 52% / 0.06)",   border: "hsl(0 72% 52% / 0.35)",   badge: "hsl(0 72% 52%)",   badgeBg: "hsl(0 72% 52% / 0.10)" },
-  effect:       { bg: "hsl(var(--muted))",          border: "hsl(var(--border))",        badge: "hsl(var(--muted-foreground))", badgeBg: "hsl(var(--muted))" },
-  leverage:     { bg: "hsl(229 89% 63% / 0.06)",   border: "hsl(229 89% 63% / 0.3)",   badge: "hsl(229 89% 63%)", badgeBg: "hsl(229 89% 63% / 0.10)" },
-  intervention: { bg: "hsl(38 92% 50% / 0.06)",    border: "hsl(38 92% 50% / 0.3)",    badge: "hsl(38 92% 35%)",  badgeBg: "hsl(38 92% 50% / 0.10)" },
-  outcome:      { bg: "hsl(142 70% 45% / 0.06)",   border: "hsl(142 70% 45% / 0.25)",  badge: "hsl(142 70% 30%)", badgeBg: "hsl(142 70% 45% / 0.10)" },
+/* ── Role color mapping (canonical semantic grammar) ── */
+const ROLE_COLORS: Record<NodeRole, { bg: string; border: string; badge: string; badgeBg: string }> = {
+  system:    { bg: "hsl(0 72% 52% / 0.06)",   border: "hsl(0 72% 52% / 0.35)",   badge: "hsl(0 72% 52%)",   badgeBg: "hsl(0 72% 52% / 0.10)" },
+  force:     { bg: "hsl(var(--muted))",          border: "hsl(var(--border))",        badge: "hsl(var(--muted-foreground))", badgeBg: "hsl(var(--muted))" },
+  mechanism: { bg: "hsl(38 92% 50% / 0.06)",    border: "hsl(38 92% 50% / 0.3)",    badge: "hsl(38 92% 35%)",  badgeBg: "hsl(38 92% 50% / 0.10)" },
+  leverage:  { bg: "hsl(229 89% 63% / 0.06)",   border: "hsl(229 89% 63% / 0.3)",   badge: "hsl(229 89% 63%)", badgeBg: "hsl(229 89% 63% / 0.10)" },
+  outcome:   { bg: "hsl(142 70% 45% / 0.06)",   border: "hsl(142 70% 45% / 0.25)",  badge: "hsl(142 70% 30%)", badgeBg: "hsl(142 70% 45% / 0.10)" },
 };
 
 const PRIORITY_DOTS = (p?: number) => {
@@ -56,8 +57,8 @@ const CERTAINTY_BORDER: Record<string, string> = {
 
 /* ── Custom Node Component ── */
 const AnalysisNode = memo(({ data }: NodeProps) => {
-  const nodeType = (data.nodeType || "effect") as VisualNode["type"];
-  const colors = NODE_COLORS[nodeType] || NODE_COLORS.effect;
+  const role = (data.role || "force") as NodeRole;
+  const colors = ROLE_COLORS[role] || ROLE_COLORS.force;
   const priority = (data.priority as number) || 2;
   const certainty = (data.certainty as string) || "verified";
   const scale = PRIORITY_SCALE[priority] || PRIORITY_SCALE[2];
@@ -89,7 +90,7 @@ const AnalysisNode = memo(({ data }: NodeProps) => {
             background: colors.badgeBg,
           }}
         >
-          {nodeType}
+          {role}
         </span>
         {PRIORITY_DOTS(priority)}
         {certainty !== "verified" && (
@@ -113,7 +114,7 @@ const AnalysisNode = memo(({ data }: NodeProps) => {
 
       {data.attributes && (
         <p style={{ margin: "4px 0 0", fontSize: 10, lineHeight: 1.4, color: "hsl(var(--muted-foreground))" }}>
-          {data.attributes}
+          {Array.isArray(data.attributes) ? data.attributes.join(" · ") : data.attributes}
         </p>
       )}
 
@@ -125,6 +126,15 @@ AnalysisNode.displayName = "AnalysisNode";
 
 const nodeTypes = { analysisNode: AnalysisNode };
 
+/* ── Canonical role tier ordering ── */
+const ROLE_TIER: Record<NodeRole, number> = {
+  system: 0,
+  force: 1,
+  mechanism: 2,
+  leverage: 3,
+  outcome: 4,
+};
+
 /* ── Auto-layout ── */
 function autoLayout(spec: VisualSpec): { nodes: Node[]; edges: Edge[] } {
   const CARD_W = 220;
@@ -132,11 +142,13 @@ function autoLayout(spec: VisualSpec): { nodes: Node[]; edges: Edge[] } {
   const GAP_X = 50;
   const GAP_Y = 110;
 
+  // Group nodes by their semantic tier (role → priority fallback)
   const tiers: Map<number, VisualNode[]> = new Map();
   for (const n of spec.nodes) {
-    const p = n.priority || 2;
-    if (!tiers.has(p)) tiers.set(p, []);
-    tiers.get(p)!.push(n);
+    const role = resolveRole(n);
+    const tier = ROLE_TIER[role] ?? (n.priority || 2);
+    if (!tiers.has(tier)) tiers.set(tier, []);
+    tiers.get(tier)!.push(n);
   }
 
   const sortedTiers = [...tiers.entries()].sort(([a], [b]) => a - b);
@@ -148,11 +160,12 @@ function autoLayout(spec: VisualSpec): { nodes: Node[]; edges: Edge[] } {
     const startX = (maxWidth * (CARD_W + GAP_X) - totalW) / 2;
 
     tierNodes.forEach((n, i) => {
+      const role = resolveRole(n);
       rfNodes.push({
         id: n.id,
         type: "analysisNode",
         position: { x: startX + i * (CARD_W + GAP_X), y: tierIdx * (CARD_H + GAP_Y) },
-        data: { label: n.label, nodeType: n.type, priority: n.priority, certainty: n.certainty, attributes: n.attributes },
+        data: { label: n.label, role, priority: n.priority, certainty: n.certainty, attributes: n.attributes },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top,
       });
@@ -182,7 +195,7 @@ export function ReactFlowDiagram({ spec }: { spec: VisualSpec }) {
 
   if (!spec?.nodes?.length) return null;
 
-  const tierCount = new Set(spec.nodes.map((n) => n.priority || 2)).size;
+  const tierCount = new Set(spec.nodes.map((n) => resolveRole(n))).size;
   const containerH = Math.max(280, tierCount * 182 + 60);
 
   return (

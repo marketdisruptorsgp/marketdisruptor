@@ -6,46 +6,87 @@ const ReactFlowDiagram = lazy(() =>
   import("./ReactFlowDiagram").then((m) => ({ default: m.ReactFlowDiagram }))
 );
 
+/* ── Canonical Node Role Model ── */
+export type NodeRole = "system" | "force" | "mechanism" | "leverage" | "outcome";
+export type Certainty = "verified" | "modeled" | "assumption";
+
+/** Legacy type alias for backward compatibility */
+export type LegacyNodeType = "constraint" | "effect" | "leverage" | "intervention" | "outcome";
+
 export interface VisualNode {
   id: string;
   label: string;
-  type: "constraint" | "effect" | "leverage" | "intervention" | "outcome";
+  /** Canonical role in the system model */
+  role?: NodeRole;
+  /** @deprecated Use `role` instead. Kept for legacy data compatibility. */
+  type?: LegacyNodeType;
   priority?: 1 | 2 | 3;
-  attributes?: string;
-  /** Certainty encoding: verified (solid), modeled (dashed), assumption (dotted) */
-  certainty?: "verified" | "modeled" | "assumption";
+  attributes?: string | string[];
+  certainty?: Certainty;
 }
 
 export interface VisualEdge {
   from: string;
   to: string;
-  relationship: "causes" | "relaxed_by" | "implemented_by" | "produces";
+  relationship?: string;
   label?: string;
+  strength?: number;
 }
 
 export interface VisualSpec {
-  visual_type: "constraint_map" | "causal_chain" | "leverage_hierarchy";
+  visual_type?: "constraint_map" | "causal_chain" | "leverage_hierarchy" | "system_model";
+  system?: string;
   title?: string;
   purpose?: string;
   nodes: VisualNode[];
   edges: VisualEdge[];
   layout?: "linear" | "vertical" | "hierarchical";
   interpretation?: string;
+  confidence?: number;
+  assumptions?: string[];
+  version?: number;
 }
 
-const NODE_STYLES: Record<VisualNode["type"], { bg: string; border: string; text: string; badge: string }> = {
-  constraint:   { bg: "hsl(var(--destructive) / 0.06)", border: "hsl(var(--destructive) / 0.35)", text: "hsl(var(--foreground))", badge: "hsl(var(--destructive))" },
-  effect:       { bg: "hsl(var(--muted))",               border: "hsl(var(--border))",              text: "hsl(var(--foreground))", badge: "hsl(var(--muted-foreground))" },
-  leverage:     { bg: "hsl(var(--primary) / 0.06)",      border: "hsl(var(--primary) / 0.3)",       text: "hsl(var(--foreground))", badge: "hsl(var(--primary))" },
-  intervention: { bg: "hsl(38 92% 50% / 0.06)",          border: "hsl(38 92% 50% / 0.3)",           text: "hsl(var(--foreground))", badge: "hsl(38 92% 35%)" },
-  outcome:      { bg: "hsl(142 70% 45% / 0.06)",         border: "hsl(142 70% 45% / 0.25)",         text: "hsl(var(--foreground))", badge: "hsl(142 70% 30%)" },
+/* ── Legacy → Canonical Role Migration ── */
+const LEGACY_TO_ROLE: Record<LegacyNodeType, NodeRole> = {
+  constraint: "system",
+  effect: "force",
+  leverage: "leverage",
+  intervention: "mechanism",
+  outcome: "outcome",
 };
 
-const RELATIONSHIP_LABELS: Record<VisualEdge["relationship"], string> = {
-  causes: "→ causes",
-  relaxed_by: "← relaxed by",
-  implemented_by: "← implemented by",
-  produces: "→ produces",
+export function resolveRole(node: VisualNode): NodeRole {
+  if (node.role) return node.role;
+  if (node.type) return LEGACY_TO_ROLE[node.type] || "force";
+  return "force";
+}
+
+function resolveAttributes(attrs?: string | string[]): string | undefined {
+  if (!attrs) return undefined;
+  if (Array.isArray(attrs)) return attrs.join(" · ");
+  return attrs;
+}
+
+/* ── Visual Encoding ── */
+const ROLE_STYLES: Record<NodeRole, { bg: string; border: string; text: string; badge: string }> = {
+  system:    { bg: "hsl(var(--destructive) / 0.06)", border: "hsl(var(--destructive) / 0.35)", text: "hsl(var(--foreground))", badge: "hsl(var(--destructive))" },
+  force:     { bg: "hsl(var(--muted))",               border: "hsl(var(--border))",              text: "hsl(var(--foreground))", badge: "hsl(var(--muted-foreground))" },
+  mechanism: { bg: "hsl(38 92% 50% / 0.06)",          border: "hsl(38 92% 50% / 0.3)",           text: "hsl(var(--foreground))", badge: "hsl(38 92% 35%)" },
+  leverage:  { bg: "hsl(var(--primary) / 0.06)",      border: "hsl(var(--primary) / 0.3)",       text: "hsl(var(--foreground))", badge: "hsl(var(--primary))" },
+  outcome:   { bg: "hsl(142 70% 45% / 0.06)",         border: "hsl(142 70% 45% / 0.25)",         text: "hsl(var(--foreground))", badge: "hsl(142 70% 30%)" },
+};
+
+const CERTAINTY_BORDER_STYLE: Record<string, string> = {
+  verified: "solid",
+  modeled: "dashed",
+  assumption: "dotted",
+};
+
+const PRIORITY_SIZE: Record<number, string> = {
+  1: "min-w-[150px] max-w-[260px] px-4 py-3",
+  2: "min-w-[120px] max-w-[220px] px-3 py-2",
+  3: "min-w-[100px] max-w-[190px] px-2.5 py-1.5",
 };
 
 const PRIORITY_INDICATOR = (p?: number) => {
@@ -65,26 +106,16 @@ const nodeVariant = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.15 } }),
 };
 
-const CERTAINTY_BORDER_STYLE: Record<string, string> = {
-  verified: "solid",
-  modeled: "dashed",
-  assumption: "dotted",
-};
-
-const PRIORITY_SIZE: Record<number, string> = {
-  1: "min-w-[150px] max-w-[260px] px-4 py-3",
-  2: "min-w-[120px] max-w-[220px] px-3 py-2",
-  3: "min-w-[100px] max-w-[190px] px-2.5 py-1.5",
-};
-
 function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; index?: number; expandable?: boolean }) {
   const [expanded, setExpanded] = useState(false);
-  const s = NODE_STYLES[node.type] || NODE_STYLES.effect;
+  const role = resolveRole(node);
+  const s = ROLE_STYLES[role];
   const priority = node.priority || 2;
   const certainty = node.certainty || "verified";
   const borderStyle = CERTAINTY_BORDER_STYLE[certainty] || "solid";
   const sizeClass = PRIORITY_SIZE[priority] || PRIORITY_SIZE[2];
   const fontSize = priority === 1 ? "text-[13px]" : priority === 3 ? "text-[11px]" : "text-xs";
+  const attrStr = resolveAttributes(node.attributes);
 
   return (
     <motion.div
@@ -98,7 +129,7 @@ function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; i
     >
       <div className="flex items-center gap-1.5 mb-0.5">
         <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" style={{ background: `${s.badge}18`, color: s.badge }}>
-          {node.type}
+          {role}
         </span>
         {PRIORITY_INDICATOR(node.priority)}
         {certainty !== "verified" && (
@@ -106,8 +137,8 @@ function NodeCard({ node, index = 0, expandable = false }: { node: VisualNode; i
         )}
       </div>
       <p className={cn(fontSize, "font-semibold leading-snug")}>{node.label}</p>
-      {expanded && node.attributes && (
-        <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{node.attributes}</p>
+      {expanded && attrStr && (
+        <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{attrStr}</p>
       )}
     </motion.div>
   );
@@ -123,7 +154,7 @@ function CausalChain({ spec }: { spec: VisualSpec }) {
 
   const targets = new Set(spec.edges.map(e => e.to));
   const starts = spec.nodes.filter(n => !targets.has(n.id));
-  
+
   const visited = new Set<string>();
   const walk = (id: string) => {
     if (visited.has(id)) return;
@@ -150,7 +181,7 @@ function CausalChain({ spec }: { spec: VisualSpec }) {
               <NodeCard node={node} index={i} expandable />
               {i < orderedNodeIds.length - 1 && edge && (
                 <div className="flex flex-col items-center gap-0.5 px-1">
-                  <span className="text-[9px] font-semibold text-muted-foreground whitespace-nowrap">{edge.label || RELATIONSHIP_LABELS[edge.relationship]}</span>
+                  <span className="text-[9px] font-semibold text-muted-foreground whitespace-nowrap">{edge.label || edge.relationship || "→"}</span>
                   <span className="text-muted-foreground text-sm">→</span>
                 </div>
               )}
@@ -170,7 +201,7 @@ function CausalChain({ spec }: { spec: VisualSpec }) {
               {i < orderedNodeIds.length - 1 && edge && (
                 <div className="flex items-center gap-1.5 pl-4">
                   <span className="text-muted-foreground text-sm">↓</span>
-                  <span className="text-[9px] font-semibold text-muted-foreground">{edge.label || RELATIONSHIP_LABELS[edge.relationship]}</span>
+                  <span className="text-[9px] font-semibold text-muted-foreground">{edge.label || edge.relationship || "→"}</span>
                 </div>
               )}
             </div>
@@ -198,18 +229,64 @@ function LeverageHierarchy({ spec }: { spec: VisualSpec }) {
   );
 }
 
-function ConstraintMap({ spec }: { spec: VisualSpec }) {
+function SystemModel({ spec }: { spec: VisualSpec }) {
+  const roleOrder: NodeRole[] = ["system", "force", "mechanism", "leverage", "outcome"];
+  const grouped = new Map<NodeRole, VisualNode[]>();
+  for (const n of spec.nodes) {
+    const role = resolveRole(n);
+    if (!grouped.has(role)) grouped.set(role, []);
+    grouped.get(role)!.push(n);
+  }
+
   const nodeMap = new Map(spec.nodes.map(n => [n.id, n]));
-  const constraints = spec.nodes.filter(n => n.type === "constraint");
-  const others = spec.nodes.filter(n => n.type !== "constraint");
+  let idx = 0;
 
   return (
     <div className="space-y-3">
-      {constraints.length > 0 && (
+      {roleOrder.map(role => {
+        const nodes = grouped.get(role);
+        if (!nodes?.length) return null;
+        return (
+          <div key={role}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">{role}</p>
+            <div className="flex flex-wrap gap-2">
+              {nodes.map(n => <NodeCard key={n.id} node={n} index={idx++} expandable />)}
+            </div>
+          </div>
+        );
+      })}
+      {spec.edges.length > 0 && (
+        <div className="space-y-1 pl-2" style={{ borderLeft: "2px solid hsl(var(--border))" }}>
+          {spec.edges.map((e, i) => {
+            const from = nodeMap.get(e.from);
+            const to = nodeMap.get(e.to);
+            return (
+              <p key={i} className="text-[11px] text-muted-foreground">
+                <span className="font-semibold text-foreground">{from?.label || e.from}</span>
+                {" → "}
+                <span className="font-semibold text-foreground">{to?.label || e.to}</span>
+                {e.label && <span className="italic"> — {e.label}</span>}
+              </p>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConstraintMap({ spec }: { spec: VisualSpec }) {
+  const nodeMap = new Map(spec.nodes.map(n => [n.id, n]));
+  const systemNodes = spec.nodes.filter(n => resolveRole(n) === "system");
+  const others = spec.nodes.filter(n => resolveRole(n) !== "system");
+
+  return (
+    <div className="space-y-3">
+      {systemNodes.length > 0 && (
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5">System Constraints</p>
           <div className="flex flex-wrap gap-2">
-            {constraints.map((n, i) => <NodeCard key={n.id} node={n} index={i} expandable />)}
+            {systemNodes.map((n, i) => <NodeCard key={n.id} node={n} index={i} expandable />)}
           </div>
         </div>
       )}
@@ -221,7 +298,7 @@ function ConstraintMap({ spec }: { spec: VisualSpec }) {
             return (
               <p key={i} className="text-[11px] text-muted-foreground">
                 <span className="font-semibold text-foreground">{from?.label || e.from}</span>
-                {" "}{RELATIONSHIP_LABELS[e.relationship]}{" "}
+                {" → "}
                 <span className="font-semibold text-foreground">{to?.label || e.to}</span>
                 {e.label && <span className="italic"> — {e.label}</span>}
               </p>
@@ -231,7 +308,7 @@ function ConstraintMap({ spec }: { spec: VisualSpec }) {
       )}
       {others.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {others.map((n, i) => <NodeCard key={n.id} node={n} index={i + constraints.length} expandable />)}
+          {others.map((n, i) => <NodeCard key={n.id} node={n} index={i + systemNodes.length} expandable />)}
         </div>
       )}
     </div>
@@ -239,8 +316,10 @@ function ConstraintMap({ spec }: { spec: VisualSpec }) {
 }
 
 function CardFallback({ spec }: { spec: VisualSpec }) {
-  const Renderer = spec.visual_type === "causal_chain" ? CausalChain
-    : spec.visual_type === "leverage_hierarchy" ? LeverageHierarchy
+  const vt = spec.visual_type;
+  const Renderer = vt === "causal_chain" ? CausalChain
+    : vt === "leverage_hierarchy" ? LeverageHierarchy
+    : vt === "system_model" ? SystemModel
     : ConstraintMap;
 
   return (

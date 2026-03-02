@@ -1,10 +1,16 @@
 import React, { ReactNode } from "react";
-import { StructuralVisualList, type VisualSpec, type VisualNode, type VisualEdge } from "./StructuralVisual";
+import { StructuralVisualList, type VisualSpec, type VisualNode, type VisualEdge, type NodeRole } from "./StructuralVisual";
 import { ActionPlanList, type ActionPlan } from "./ActionPlanCard";
 
+/* ═══════════════════════════════════════════════════════════
+   STRUCTURAL DERIVATION ENGINE
+   Converts ANY analysis into a canonical VisualSystemModel.
+   No output may render without structural model.
+   ═══════════════════════════════════════════════════════════ */
+
 /**
- * Client-side fallback: guarantees every analysis has at least one structural visual
- * and one action plan — even for legacy data saved before the visual directive.
+ * Ensures every analysis has at least one visual spec and one action plan.
+ * Derives structure from text when AI output lacks explicit visual model.
  */
 export function ensureVisuals<T extends Record<string, unknown>>(data: T): T & { visualSpecs: VisualSpec[]; actionPlans: ActionPlan[] } {
   const existingVisuals = data.visualSpecs as VisualSpec[] | undefined;
@@ -14,15 +20,36 @@ export function ensureVisuals<T extends Record<string, unknown>>(data: T): T & {
   const hasPlans = Array.isArray(existingPlans) && existingPlans.length > 0;
 
   if (hasVisuals && hasPlans) {
-    return { ...data, visualSpecs: existingVisuals!, actionPlans: existingPlans! };
+    // Validate structural density — must contain system + mechanism + outcome
+    const valid = existingVisuals!.every(validateVisualSpec);
+    if (valid) return { ...data, visualSpecs: existingVisuals!, actionPlans: existingPlans! };
   }
 
-  const visualSpecs = hasVisuals ? existingVisuals! : generateFallbackVisual(data);
+  const visualSpecs = hasVisuals ? existingVisuals! : deriveVisualSystemModel(data);
   const actionPlans = hasPlans ? existingPlans! : generateFallbackAction(data);
 
   return { ...data, visualSpecs, actionPlans };
 }
 
+/* ── Structural Validation ── */
+function validateVisualSpec(spec: VisualSpec): boolean {
+  if (!spec.nodes || spec.nodes.length < 3) return false;
+  // Accept both new `role` and legacy `type` fields
+  const roles = new Set(spec.nodes.map(n => n.role || legacyToRole(n.type)));
+  // Must contain at minimum: system (or constraint) + some mechanism/force + outcome
+  const hasSystem = roles.has("system") || roles.has("force");
+  const hasOutcome = roles.has("outcome") || roles.has("leverage");
+  return hasSystem && hasOutcome;
+}
+
+function legacyToRole(type?: string): NodeRole {
+  const map: Record<string, NodeRole> = {
+    constraint: "system", effect: "force", leverage: "leverage", intervention: "mechanism", outcome: "outcome",
+  };
+  return map[type || ""] || "force";
+}
+
+/* ── Text extraction helpers ── */
 function extractField(data: Record<string, unknown>, ...keys: string[]): string | undefined {
   for (const k of keys) {
     const v = data[k];
@@ -41,54 +68,73 @@ function extractArray(data: Record<string, unknown>, ...keys: string[]): string[
   return [];
 }
 
-function generateFallbackVisual(data: Record<string, unknown>): VisualSpec[] {
-  // Try to derive meaningful nodes from common analysis fields
-  const problem = extractField(data, "coreProblem", "problemStatement", "keyInsight", "description");
-  const factors = extractArray(data, "factors", "marketForces", "vulnerabilities", "blindSpots", "hiddenStrengths");
-  const outcome = extractField(data, "recommendation", "verdict", "tagline", "completionMessage");
+/* ── Structural Derivation Engine ── */
+function deriveVisualSystemModel(data: Record<string, unknown>): VisualSpec[] {
+  const system = extractField(data, "coreProblem", "problemStatement", "keyInsight", "description") || "Primary System";
+  const forces = extractArray(data, "factors", "marketForces", "vulnerabilities", "blindSpots", "hiddenStrengths");
+  const mechanism = extractField(data, "mechanism", "coreStrategy", "approach", "primaryFriction");
+  const leverage = extractField(data, "leveragePoint", "recommendation", "strategicRecommendation");
+  const outcome = extractField(data, "recommendation", "verdict", "tagline", "completionMessage", "impact");
 
   const nodes: VisualNode[] = [];
   const edges: VisualEdge[] = [];
 
-  // Node A: Constraint / Problem
-  const nodeA: VisualNode = {
-    id: "a",
-    label: problem ? truncate(problem, 60) : "Primary Constraint",
-    type: "constraint",
+  // System node (always P1, always present)
+  nodes.push({
+    id: "system",
+    label: truncate(system, 60),
+    role: "system",
     priority: 1,
-  };
-  nodes.push(nodeA);
+    certainty: "verified",
+  });
 
-  // Nodes B..E: Drivers / Factors
-  if (factors.length > 0) {
-    factors.slice(0, 3).forEach((f, i) => {
-      const id = `f${i}`;
-      nodes.push({ id, label: truncate(f, 50), type: "effect", priority: 2 });
-      edges.push({ from: id, to: "a", relationship: "causes", label: "drives" });
+  // Force nodes
+  if (forces.length > 0) {
+    forces.slice(0, 3).forEach((f, i) => {
+      const id = `force_${i}`;
+      nodes.push({ id, label: truncate(f, 50), role: "force", priority: 2, certainty: "modeled" });
+      edges.push({ from: id, to: "system", relationship: "acts on" });
     });
   } else {
-    nodes.push({ id: "f0", label: "Underlying Driver", type: "effect", priority: 2 });
-    edges.push({ from: "f0", to: "a", relationship: "causes", label: "drives" });
+    nodes.push({ id: "force_0", label: "Underlying Driver", role: "force", priority: 2, certainty: "assumption" });
+    edges.push({ from: "force_0", to: "system", relationship: "acts on" });
   }
 
-  // Node Z: Outcome
-  const nodeZ: VisualNode = {
-    id: "z",
+  // Mechanism node
+  if (mechanism) {
+    nodes.push({ id: "mechanism", label: truncate(mechanism, 55), role: "mechanism", priority: 2, certainty: "modeled" });
+    edges.push({ from: "system", to: "mechanism", relationship: "operates through" });
+    edges.push({ from: "mechanism", to: "outcome", relationship: "produces" });
+  } else {
+    edges.push({ from: "system", to: "outcome", relationship: "produces" });
+  }
+
+  // Leverage node
+  if (leverage) {
+    nodes.push({ id: "leverage", label: truncate(leverage, 55), role: "leverage", priority: 1, certainty: "modeled" });
+    edges.push({ from: "leverage", to: mechanism ? "mechanism" : "system", relationship: "intervenes at" });
+  }
+
+  // Outcome node (always present)
+  nodes.push({
+    id: "outcome",
     label: outcome ? truncate(outcome, 60) : "Expected Impact",
-    type: "outcome",
+    role: "outcome",
     priority: 3,
-  };
-  nodes.push(nodeZ);
-  edges.push({ from: "a", to: "z", relationship: "produces", label: "results in" });
+    certainty: "assumption",
+  });
 
   return [{
-    visual_type: "constraint_map",
-    title: "System Constraint Map",
-    purpose: "Identifies the primary constraint and its causal drivers",
+    visual_type: "system_model",
+    system: truncate(system, 40),
+    title: "System Structure",
     nodes,
     edges,
     layout: "vertical",
-    interpretation: "Address the driving factors to relax the primary constraint and improve the outcome.",
+    interpretation: leverage
+      ? `Target "${truncate(leverage, 40)}" to shift the system outcome.`
+      : "Address the primary system constraint to improve the outcome.",
+    version: 1,
   }];
 }
 
@@ -122,10 +168,11 @@ function truncate(s: string, max: number): string {
   return s.length <= max ? s : s.slice(0, max - 1) + "…";
 }
 
-/**
- * Universal wrapper: renders L1 visuals above content and collapses
- * narrative text when visuals are present (progressive disclosure).
- */
+/* ═══════════════════════════════════════════════════════════
+   UNIVERSAL RENDERING CONTRACT
+   Visual always leads. Text always collapses.
+   ═══════════════════════════════════════════════════════════ */
+
 export function AnalysisVisualLayer({
   analysis,
   children,
@@ -140,11 +187,11 @@ export function AnalysisVisualLayer({
 
   return (
     <>
-      {/* L1 Executive Signal — always visible */}
+      {/* L1 Executive Signal — always visible, visual-first */}
       <StructuralVisualList specs={enriched.visualSpecs} />
       <ActionPlanList plans={enriched.actionPlans} />
 
-      {/* L2/L3 Detail — strictly hidden when visuals present; on-demand only */}
+      {/* L2/L3 Detail — strictly hidden when visuals present */}
       {suppressText && hasVisuals ? (
         <details className="group mt-1">
           <summary className="cursor-pointer select-none inline-flex items-center gap-2 px-2 py-1 rounded text-[11px] font-bold text-muted-foreground/70 transition-colors hover:text-foreground hover:bg-muted/50">
