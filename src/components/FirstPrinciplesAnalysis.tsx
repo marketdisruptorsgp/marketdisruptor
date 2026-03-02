@@ -847,7 +847,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
 
-          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>}>
+          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="firstPrinciples">
           {/* Individual pitch deck toggles on each card below */}
           <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="text-xs text-foreground/80 leading-relaxed">

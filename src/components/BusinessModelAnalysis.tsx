@@ -402,7 +402,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Business Reality" icon={Eye} />
 
-          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>}>
+          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="businessModel">
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>True Job To Be Done</p>
             <p className="text-sm text-foreground leading-relaxed">{data.businessSummary.trueJobToBeDone}</p>
@@ -717,7 +717,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           </div>
 
           {/* Key Changes — rendered via AnalysisVisualLayer for action plans */}
-          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} suppressText={false}>
+          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} suppressText={false} step="businessModel">
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {data.reinventedModel.keyChanges.slice(0, 3).map((c, i) => (

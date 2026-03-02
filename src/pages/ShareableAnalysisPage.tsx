@@ -229,7 +229,7 @@ export default function ShareableAnalysisPage() {
 
             <ProductCard product={product} isSelected={true} onClick={() => {}} />
 
-            <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>}>
+            <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>} step="report">
             {/* Section nav */}
             <div ref={sectionTabsRef}>
               <SectionWorkflowNav
