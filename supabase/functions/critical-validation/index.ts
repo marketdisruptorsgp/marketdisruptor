@@ -319,6 +319,36 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}`;
     ]);
     console.log(`[Governed] Validation:`, JSON.stringify(governedValidation));
 
+    // ── RUNTIME ENFORCEMENT: Return 422 if governed validation fails ──
+    if (!governedValidation.validation_passed) {
+      console.error(`[Governed] CHECKPOINT BLOCKED: ${governedValidation.blocking_reason_if_any}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Governed validation failed — required reasoning artifacts missing",
+        _governedValidation: governedValidation,
+        validation,
+      }), {
+        status: 422,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Deep validation ──
+    const { deepValidateGoverned } = await import("../_shared/governedSchema.ts");
+    const deepValidation = deepValidateGoverned(governed);
+    if (!deepValidation.validation_passed) {
+      console.error(`[Governed] DEEP VALIDATION FAILED: ${deepValidation.blocking_reason_if_any}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Governed deep validation failed — structural artifacts incomplete",
+        _governedValidation: deepValidation,
+        validation,
+      }), {
+        status: 422,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // ── Output Validation ──
     const validationResult = validateOutput(mode, validation);
     const trace = buildTrace(mode, filterResult, validationResult);
