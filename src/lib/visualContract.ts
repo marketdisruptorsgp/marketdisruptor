@@ -4,6 +4,12 @@
    Single Source of Truth for types, derivation, validation
    ========================================================= */
 
+import { detectSignals, getRequiredPanels } from "./signalDetection";
+import { deriveAllOntologySpecs } from "./ontologyDerivation";
+export type { SignalType, VisualOntology, DetectedSignal } from "./signalDetection";
+export { detectSignals, getRequiredPanels, getOntologyLabel } from "./signalDetection";
+export { deriveOntologySpec, deriveAllOntologySpecs } from "./ontologyDerivation";
+
 /* ── 1. CANONICAL ROLE SYSTEM ── */
 
 export type NodeRole = "system" | "force" | "mechanism" | "leverage" | "outcome";
@@ -314,7 +320,7 @@ function generateFallbackAction(data: Record<string, unknown>): ActionPlan[] {
   }];
 }
 
-export function enforceVisualContract<T extends Record<string, unknown>>(data: T): T & { visualSpecs: VisualSpec[]; actionPlans: ActionPlan[] } {
+export function enforceVisualContract<T extends Record<string, unknown>>(data: T): T & { visualSpecs: VisualSpec[]; actionPlans: ActionPlan[]; ontologySpecs: VisualSpec[] } {
   const canonical = resolveCanonicalVisualModel(data);
   const existingPlans = (data.v3ActionPlans || data.actionPlans) as ActionPlan[] | undefined;
   const actionPlans = Array.isArray(existingPlans) && existingPlans.length > 0 ? existingPlans : generateFallbackAction(data);
@@ -322,7 +328,11 @@ export function enforceVisualContract<T extends Record<string, unknown>>(data: T
   // If no structurally grounded model exists, visualSpecs is empty — no decorative diagrams
   const visualSpecs = canonical ? [canonical] : [];
 
-  return { ...data, visualSpecs, actionPlans };
+  // Multi-signal ontology detection — derive domain-specific panels
+  const signals = detectSignals(data);
+  const ontologySpecs = signals.length > 0 ? deriveAllOntologySpecs(data, signals) : [];
+
+  return { ...data, visualSpecs, actionPlans, ontologySpecs };
 }
 
 /* ── 9. INLINE ENFORCEMENT HELPERS ──
@@ -341,4 +351,11 @@ export function getEnforcedActionPlans(data: Record<string, unknown> | null | un
   if (!data) return [];
   const enforced = enforceVisualContract({ ...data });
   return enforced.actionPlans;
+}
+
+/** Extract ontology-specific visual specs for multi-panel rendering */
+export function getEnforcedOntologySpecs(data: Record<string, unknown> | null | undefined): VisualSpec[] {
+  if (!data) return [];
+  const enforced = enforceVisualContract({ ...data });
+  return enforced.ontologySpecs;
 }
