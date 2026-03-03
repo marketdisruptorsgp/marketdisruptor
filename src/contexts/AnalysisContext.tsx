@@ -466,6 +466,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setStressTestData(null);
     setPitchDeckData(null);
     setRedesignData(null);
+    setGovernedData(null);
+    setActiveBranchIdState(null);
     setUserScores({});
     setOutdatedSteps(new Set());
     setInsightPreferences({});
