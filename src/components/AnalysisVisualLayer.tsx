@@ -576,7 +576,7 @@ export function AnalysisVisualLayer({
                   : "text-muted-foreground hover:text-foreground hover:bg-card/50"
               }`}
             >
-              {tab === "visual" ? "📊 Visual" : "🧠 Reasoning"}
+              {tab === "visual" ? "Visual" : "Reasoning"}
             </button>
           ))}
         </div>
