@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
 import BranchGravityMap from "@/components/BranchGravityMap";
+import { HypothesisInterrogation } from "@/components/HypothesisInterrogation";
 import type { StrategicRankingResult, StrategicHypothesis } from "@/lib/strategicOS";
 
 interface StructuralInterpretationsPanelProps {
@@ -20,6 +21,10 @@ interface StructuralInterpretationsPanelProps {
   activeBranchId: string | null;
   onSelectBranch: (hypothesisId: string) => void;
   loading?: boolean;
+  analysisData?: any;
+  title?: string;
+  category?: string;
+  onApplyRevision?: (revision: any) => void;
 }
 
 const CONSTRAINT_ICONS: Record<string, typeof Zap> = {
@@ -196,6 +201,10 @@ export default function StructuralInterpretationsPanel({
   activeBranchId,
   onSelectBranch,
   loading,
+  analysisData,
+  title,
+  category,
+  onApplyRevision,
 }: StructuralInterpretationsPanelProps) {
   const isMobile = useIsMobile();
 
@@ -223,6 +232,16 @@ export default function StructuralInterpretationsPanel({
           ? "We've identified multiple plausible root constraints — each one reshapes how the entire analysis reads. The highest-weighted interpretation is selected by default, but you can click any alternative to shift the lens. When you do, every downstream step (Disrupt, Redesign, Stress Test, Pitch) will adapt to reflect that structural angle. You can always come back here to try a different path."
           : "The primary structural driver is highlighted below. Click any branch to explore an alternative interpretation — when you do, all downstream steps will adapt to follow your chosen angle. You can switch back anytime to compare perspectives."}
       </p>
+
+      {/* Pose Another Hypothesis — interactive panel */}
+      {analysisData && (
+        <HypothesisInterrogation
+          analysisData={analysisData}
+          title={title || ""}
+          category={category || ""}
+          onApplyRevision={onApplyRevision}
+        />
+      )}
 
       {/* Gravity map on desktop, card list on mobile */}
       {!isMobile ? (
