@@ -595,12 +595,12 @@ export function AnalysisVisualLayer({
           >
             <ReasoningSynopsis
               data={synopsisData}
-              analysisData={analysis}
-              products={(analysis as any)?.products}
-              title={(analysis as any)?.title || ""}
+              analysisData={{ ...analysis, governed: governedData }}
+              products={(analysis as any)?.products || (analysis as any)?.data?.sources}
+              title={(analysis as any)?.title || (analysis as any)?.name || ""}
               category={(analysis as any)?.category || ""}
               analysisType={(analysis as any)?.analysis_type || "product"}
-              avgScore={(analysis as any)?.avg_revival_score ?? null}
+              avgScore={(analysis as any)?.avg_revival_score ?? (analysis as any)?.revivalScore ?? null}
             />
           </motion.div>
         ) : (
