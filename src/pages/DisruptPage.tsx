@@ -13,6 +13,8 @@ import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { ModeHeader } from "@/components/ModeHeader";
 import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
+import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
+import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
 
 export default function DisruptPage() {
   const analysis = useAnalysis();
@@ -67,6 +69,57 @@ export default function DisruptPage() {
         })()}
 
         <ActiveHypothesisBanner stepName="Disrupt" accentColor={theme.primary} />
+
+        {/* Structural Hypotheses Panel — moved here from Report */}
+        {(() => {
+          const governed = analysis.governedData;
+          const cm = governed?.constraint_map as Record<string, unknown> | undefined;
+          const rawHypotheses = (cm?.root_hypotheses || governed?.root_hypotheses) as StrategicHypothesis[] | undefined;
+          if (!rawHypotheses || rawHypotheses.length === 0) return null;
+          const ranking = rankWithProfile(rawHypotheses, analysis.strategicProfile);
+          return (
+            <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+              <StructuralInterpretationsPanel
+                ranking={ranking}
+                activeBranchId={analysis.activeBranchId}
+                analysisData={{ ...selectedProduct, governed: analysis.governedData }}
+                title={selectedProduct?.name || ""}
+                category={analysis.analysisParams?.category || ""}
+                onApplyRevision={(revision) => {
+                  const currentGoverned = analysis.governedData || {};
+                  if (revision.type === "new_hypothesis" && revision.payload) {
+                    const existing = (currentGoverned as any)?.root_hypotheses || [];
+                    const newH = { ...revision.payload, id: `user-hyp-${Date.now()}` };
+                    analysis.setGovernedData({ ...currentGoverned, root_hypotheses: [...existing, newH] });
+                    analysis.markStepOutdated("redesign");
+                    analysis.markStepOutdated("stressTest");
+                    analysis.markStepOutdated("pitch");
+                  }
+                }}
+                onSelectBranch={(id) => {
+                  const selected = rawHypotheses.find(h => h.id === id);
+                  if (selected) {
+                    const signals: { selected_high_capital?: boolean; selected_high_risk?: boolean; selected_long_horizon?: boolean } = {};
+                    if (selected.estimated_capital_required && selected.estimated_capital_required > 500_000) {
+                      signals.selected_high_capital = true;
+                    }
+                    if (selected.constraint_type === "risk" || selected.fragility_score > 6) {
+                      signals.selected_high_risk = true;
+                    }
+                    if (selected.estimated_time_to_impact_months && selected.estimated_time_to_impact_months > analysis.strategicProfile.time_horizon_months) {
+                      signals.selected_long_horizon = true;
+                    }
+                    if (Object.keys(signals).length > 0) {
+                      const evolved = adaptStrategicProfile(analysis.strategicProfile, signals);
+                      analysis.setStrategicProfile(evolved);
+                    }
+                  }
+                  analysis.setActiveBranchId(id);
+                }}
+              />
+            </div>
+          );
+        })()}
 
         <ModeHeader
           stepNumber={3}

@@ -114,7 +114,7 @@ export function ActiveHypothesisBanner({ stepName, accentColor }: ActiveHypothes
           </div>
 
           <button
-            onClick={() => navigate(`${baseUrl}/report`, { state: { openHypothesesTab: true } })}
+            onClick={() => navigate(`${baseUrl}/disrupt`)}
             className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all hover:scale-[1.03]"
             style={{
               color: isCombined ? "hsl(var(--foreground))" : color,
