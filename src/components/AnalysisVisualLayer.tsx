@@ -534,6 +534,7 @@ export function AnalysisVisualLayer({
   analysisId,
   onApplyRevision,
   branchingPanel,
+  defaultTab,
 }: {
   analysis: Record<string, unknown>;
   children: ReactNode;
@@ -543,10 +544,11 @@ export function AnalysisVisualLayer({
   analysisId?: string | null;
   onApplyRevision?: (revision: any) => void;
   branchingPanel?: React.ReactNode;
+  defaultTab?: "visual" | "reasoning" | "hypotheses";
 }) {
   const result = resolveAdaptiveVisuals(analysis);
   const stepConfig = getStepVisualConfig(step);
-  const [activeTab, setActiveTab] = useState<"visual" | "reasoning" | "hypotheses">("visual");
+  const [activeTab, setActiveTab] = useState<"visual" | "reasoning" | "hypotheses">(defaultTab || "visual");
 
   // Compile visual story — governed causal structure preferred, heuristic fallback
   const rankedSignals = useMemo(() => extractAndRankSignals(analysis), [analysis]);

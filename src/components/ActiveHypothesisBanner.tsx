@@ -5,7 +5,7 @@
  */
 
 import { motion } from "framer-motion";
-import { GitBranch, ArrowUpRight, Sparkles } from "lucide-react";
+import { GitBranch, ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
@@ -70,7 +70,7 @@ export function ActiveHypothesisBanner({ stepName, accentColor }: ActiveHypothes
           </div>
 
           <button
-            onClick={() => navigate(`${baseUrl}/report`, { state: { scrollToHypotheses: true } })}
+            onClick={() => navigate(`${baseUrl}/report`, { state: { openHypothesesTab: true } })}
             className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-all hover:scale-[1.03]"
             style={{
               color,
@@ -78,8 +78,7 @@ export function ActiveHypothesisBanner({ stepName, accentColor }: ActiveHypothes
               border: `1.5px solid ${color}20`,
             }}
           >
-            <Sparkles className="h-3 w-3" />
-            Try a different angle
+            Choose another hypothesis
             <ArrowUpRight className="h-3 w-3" />
           </button>
         </div>

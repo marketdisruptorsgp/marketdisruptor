@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -46,6 +46,7 @@ export default function ReportPage() {
   const analysis = useAnalysis();
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const [isSaving, setIsSaving] = React.useState(false);
@@ -185,6 +186,7 @@ export default function ReportPage() {
           step="report"
           governedOverride={analysis.governedData}
           analysisId={analysisId}
+          defaultTab={(location.state as any)?.openHypothesesTab ? "hypotheses" : undefined}
           branchingPanel={(() => {
             const governed = analysis.governedData;
             const cm = governed?.constraint_map as Record<string, unknown> | undefined;
@@ -195,6 +197,21 @@ export default function ReportPage() {
               <StructuralInterpretationsPanel
                 ranking={ranking}
                 activeBranchId={analysis.activeBranchId}
+                analysisData={{ ...selectedProduct, governed: analysis.governedData }}
+                title={selectedProduct?.name || ""}
+                category={analysis.analysisParams?.category || ""}
+                onApplyRevision={(revision) => {
+                  const currentGoverned = analysis.governedData || {};
+                  if (revision.type === "new_hypothesis" && revision.payload) {
+                    const existing = (currentGoverned as any)?.root_hypotheses || [];
+                    const newH = { ...revision.payload, id: `user-hyp-${Date.now()}` };
+                    analysis.setGovernedData({ ...currentGoverned, root_hypotheses: [...existing, newH] });
+                    analysis.markStepOutdated("disrupt");
+                    analysis.markStepOutdated("redesign");
+                    analysis.markStepOutdated("stressTest");
+                    analysis.markStepOutdated("pitch");
+                  }
+                }}
                 onSelectBranch={(id) => {
                   const selected = rawHypotheses.find(h => h.id === id);
                   if (selected) {
