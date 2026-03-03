@@ -169,6 +169,7 @@ interface FirstPrinciplesAnalysisProps {
   onPatentSave?: (patentData: unknown) => void;
   externalData?: unknown;
   onDataLoaded?: (data: unknown) => void;
+  onAnalysisStarted?: () => void;
   renderMode?: "disrupt" | "redesign";
   autoTrigger?: boolean;
 }
@@ -438,7 +439,7 @@ function NextSectionButton({ label, onClick }: { label: string; onClick: () => v
   );
 }
 
-export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, renderMode, autoTrigger, userScores, onScoreChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
+export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, onAnalysisStarted, renderMode, autoTrigger, userScores, onScoreChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
   const analysisCtx = useAnalysis();
@@ -477,6 +478,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
   const runAnalysis = async () => {
     setLoading(true);
+    onAnalysisStarted?.();
     try {
       // Build request body — enrich with user curation context for redesign mode
       const requestBody: Record<string, unknown> = { product, userSuggestions: rerunSuggestions || undefined };

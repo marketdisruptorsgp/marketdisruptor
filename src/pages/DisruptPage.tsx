@@ -92,6 +92,10 @@ export default function DisruptPage() {
             onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
             generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
             externalData={analysis.disruptData}
+            onAnalysisStarted={() => {
+              // Clear stale governed data so reasoning/hypotheses tabs hide during regeneration
+              analysis.setGovernedData(null);
+            }}
             onDataLoaded={(d) => {
               analysis.setDisruptData(d);
               analysis.saveStepData("disrupt", d);
