@@ -6,6 +6,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { HeroSection } from "@/components/HeroSection";
 import { StepNavigator } from "@/components/StepNavigator";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
+import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner, getDisruptTakeaway } from "@/components/KeyTakeawayBanner";
@@ -40,6 +41,8 @@ export default function DisruptPage() {
   }
 
   const baseUrl = `/analysis/${analysisId}`;
+  const governedData = analysis.governedData;
+  const synopsisData = governedData?.reasoning_synopsis ?? null;
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
@@ -70,11 +73,53 @@ export default function DisruptPage() {
 
         <ActiveHypothesisBanner stepName="Disrupt" accentColor={theme.primary} />
 
-        {/* Structural Hypotheses Panel — moved here from Report */}
+        <ModeHeader
+          stepNumber={3}
+          stepTitle="Disrupt"
+          subtitle={`Deconstructing <strong class="text-foreground">${selectedProduct.name}</strong>`}
+          accentColor={theme.primary}
+          explainerKey="step-disrupt"
+        />
+
+        {/* ── Reasoning Synopsis — interactive decision workspace ── */}
+        {synopsisData && (
+          <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <ReasoningSynopsis
+              data={synopsisData}
+              analysisData={{ ...selectedProduct, governed: governedData } as any}
+              products={undefined}
+              title={selectedProduct?.name || ""}
+              category={analysis.analysisParams?.category || ""}
+              analysisType={(analysis.analysisParams as any)?.analysisType || (analysis.analysisParams as any)?.analysis_type || "product"}
+              avgScore={(selectedProduct as any)?.revivalScore ?? null}
+              analysisId={analysisId}
+              onApplyRevision={(revision: any) => {
+                const currentGoverned = analysis.governedData || {};
+                if (revision.type === "re_rank" && revision.payload?.hypotheses) {
+                  analysis.setGovernedData({ ...currentGoverned, root_hypotheses: revision.payload.hypotheses });
+                } else if (revision.type === "update_assumption" && revision.payload) {
+                  const synopsis = (currentGoverned as any)?.reasoning_synopsis || {};
+                  const updatedAssumptions = synopsis.key_assumptions?.map((a: any) =>
+                    a.assumption === revision.payload.target ? { ...a, ...revision.payload.updates } : a
+                  ) || [];
+                  analysis.setGovernedData({
+                    ...currentGoverned,
+                    reasoning_synopsis: { ...synopsis, key_assumptions: updatedAssumptions },
+                  });
+                }
+                analysis.saveStepData("governed", analysis.governedData || currentGoverned);
+                analysis.markStepOutdated("redesign");
+                analysis.markStepOutdated("stressTest");
+                analysis.markStepOutdated("pitch");
+              }}
+            />
+          </div>
+        )}
+
+        {/* ── Structural Hypotheses Panel ── */}
         {(() => {
-          const governed = analysis.governedData;
-          const cm = governed?.constraint_map as Record<string, unknown> | undefined;
-          const rawHypotheses = (cm?.root_hypotheses || governed?.root_hypotheses) as StrategicHypothesis[] | undefined;
+          const cm = governedData?.constraint_map as Record<string, unknown> | undefined;
+          const rawHypotheses = (cm?.root_hypotheses || governedData?.root_hypotheses) as StrategicHypothesis[] | undefined;
           if (!rawHypotheses || rawHypotheses.length === 0) return null;
           const ranking = rankWithProfile(rawHypotheses, analysis.strategicProfile);
           return (
@@ -121,14 +166,7 @@ export default function DisruptPage() {
           );
         })()}
 
-        <ModeHeader
-          stepNumber={3}
-          stepTitle="Disrupt"
-          subtitle={`Deconstructing <strong class="text-foreground">${selectedProduct.name}</strong>`}
-          accentColor={theme.primary}
-          explainerKey="step-disrupt"
-        />
-
+        {/* ── First Principles Analysis ── */}
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <FirstPrinciplesAnalysis
             product={selectedProduct}

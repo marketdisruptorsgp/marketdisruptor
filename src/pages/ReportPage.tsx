@@ -183,25 +183,6 @@ export default function ReportPage() {
           analysis={selectedProduct as unknown as Record<string, unknown>}
           step="report"
           governedOverride={analysis.governedData}
-          analysisId={analysisId}
-          onApplyRevision={(revision) => {
-            // Apply revision to governed data (reasoning-level only — hypotheses moved to Disrupt)
-            const currentGoverned = analysis.governedData || {};
-            if (revision.type === "re_rank" && revision.payload?.hypotheses) {
-              analysis.setGovernedData({ ...currentGoverned, root_hypotheses: revision.payload.hypotheses });
-            } else if (revision.type === "update_assumption" && revision.payload) {
-              const synopsis = (currentGoverned as any)?.reasoning_synopsis || {};
-              const updatedAssumptions = synopsis.key_assumptions?.map((a: any) =>
-                a.assumption === revision.payload.target ? { ...a, ...revision.payload.updates } : a
-              ) || [];
-              analysis.setGovernedData({
-                ...currentGoverned,
-                reasoning_synopsis: { ...synopsis, key_assumptions: updatedAssumptions },
-              });
-            }
-            // Persist
-            analysis.saveStepData("governed", analysis.governedData || currentGoverned);
-          }}
         >
           {/* === ALL SECTIONS AS ACCORDIONS === */}
 

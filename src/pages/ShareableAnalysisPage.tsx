@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { StepNavigator, type StepConfig } from "@/components/StepNavigator";
 import { ProductCard } from "@/components/ProductCard";
 import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
+import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { BusinessModelAnalysis, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
@@ -532,6 +533,21 @@ export default function ShareableAnalysisPage() {
               subtitle={`Deconstructing <strong class="text-foreground">${product.name}</strong> — questioning every assumption and generating radical reinvention ideas.`}
               accentColor="hsl(271 81% 55%)"
             />
+
+            {/* Reasoning Synopsis — read-only in shared view */}
+            {governedData?.reasoning_synopsis && (
+              <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
+                <ReasoningSynopsis
+                  data={governedData.reasoning_synopsis}
+                  analysisData={{ ...product, governed: governedData } as any}
+                  products={undefined}
+                  title={product.name || ""}
+                  category={data.category || ""}
+                  analysisType={data.analysis_type || "product"}
+                  avgScore={data.avg_revival_score ?? null}
+                />
+              </div>
+            )}
 
             {hasDisrupt ? (
               <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">

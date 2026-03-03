@@ -1,6 +1,5 @@
 import React, { ReactNode, useMemo, useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ReasoningSynopsis } from "./ReasoningSynopsis";
 import { StructuralVisualList, StructuralVisual } from "./StructuralVisual";
 import { ActionPlanList } from "./ActionPlanCard";
 import { resolveAdaptiveVisuals } from "@/lib/adaptiveVisualEngine";
@@ -531,20 +530,15 @@ export function AnalysisVisualLayer({
   suppressText = true,
   step,
   governedOverride,
-  analysisId,
-  onApplyRevision,
 }: {
   analysis: Record<string, unknown>;
   children: ReactNode;
   suppressText?: boolean;
   step?: AnalysisStep;
   governedOverride?: Record<string, unknown> | null;
-  analysisId?: string | null;
-  onApplyRevision?: (revision: any) => void;
 }) {
   const result = resolveAdaptiveVisuals(analysis);
   const stepConfig = getStepVisualConfig(step);
-  const [activeTab, setActiveTab] = useState<"visual" | "reasoning">("visual");
 
   // Compile visual story — governed causal structure preferred, heuristic fallback
   const rankedSignals = useMemo(() => extractAndRankSignals(analysis), [analysis]);
@@ -563,136 +557,75 @@ export function AnalysisVisualLayer({
   const hasSurface = result.surfaceSpecs.length > 0;
   const hasVisuals = hasCanonical || hasOntologyPanels || hasSurface || hasStorySignals;
 
-  // Reasoning synopsis from governed data
-  const synopsisData = governedData?.reasoning_synopsis ?? null;
-  const hasSynopsis = !!synopsisData;
-
   return (
     <div className="space-y-4">
-      {/* Tab Switcher */}
-      {hasSynopsis && (
-        <div className="flex items-center gap-1 p-1 rounded-xl w-full sm:w-fit" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          {(
-            [
-              { key: "visual" as const, label: "Intel", show: true },
-              { key: "reasoning" as const, label: "Reasoning", show: hasSynopsis },
-            ].filter(t => t.show)
-          ).map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 ${
-                activeTab === key
-                  ? "bg-card text-foreground shadow-md ring-1 ring-border"
-                  : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      {/* Strategic Question */}
+      {hasStorySignals ? (
+        <StrategicQuestion question={story.strategicQuestion} />
+      ) : step && step !== "generic" ? (
+        <StrategicQuestion question={stepConfig.question} />
+      ) : null}
+
+      {hasStorySignals && <StoryIndicator story={story} />}
+
+      {/* 1️⃣ STORY-COMPILED VISUAL */}
+      {hasStorySignals && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+          <StoryVisual story={story} />
+        </motion.div>
       )}
 
-      <AnimatePresence mode="wait">
-        {activeTab === "reasoning" && hasSynopsis ? (
-          <motion.div
-            key="reasoning"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2 }}
+      {/* 2️⃣ STRUCTURAL MODEL */}
+      {hasCanonical && story.type !== "SURVIVAL_JUDGMENT" && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
+          <StructuralVisualList specs={[result.canonicalSpec!]} />
+        </motion.div>
+      )}
+
+      {/* 2b SURFACE fallback */}
+      {hasSurface && !hasCanonical && !hasStorySignals && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
+          <MultiPanelDashboard specs={result.surfaceSpecs} />
+        </motion.div>
+      )}
+
+      {/* 3️⃣ DOMAIN INTELLIGENCE PANELS */}
+      {hasOntologyPanels && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.1 }}>
+          <MultiPanelDashboard specs={result.ontologySpecs} />
+        </motion.div>
+      )}
+
+      {/* 4️⃣ ACTION LEVERS */}
+      {result.actionPlans.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.15 }}>
+          <ActionPlanList plans={result.actionPlans} />
+        </motion.div>
+      )}
+
+      {/* 5️⃣ COLLAPSED TEXT DEPTH */}
+      {suppressText && hasVisuals ? (
+        <details className="group mt-2">
+          <summary
+            className="cursor-pointer select-none inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-bold text-muted-foreground/70 transition-all hover:text-foreground hover:bg-muted/50"
+            style={{ border: "1px solid transparent" }}
           >
-            <ReasoningSynopsis
-              data={synopsisData}
-              analysisData={{ ...analysis, governed: governedData }}
-              products={(analysis as any)?.products || (analysis as any)?.data?.sources}
-              title={(analysis as any)?.title || (analysis as any)?.name || ""}
-              category={(analysis as any)?.category || ""}
-              analysisType={(analysis as any)?.analysis_type || "product"}
-              avgScore={(analysis as any)?.avg_revival_score ?? (analysis as any)?.revivalScore ?? null}
-              analysisId={analysisId}
-              onApplyRevision={onApplyRevision}
-              branchingPanel={undefined}
-            />
-          </motion.div>
-        ) : (
+            <ChevronRight size={11} className="transition-transform duration-200 group-open:rotate-90" />
+            Deep Insight
+            <span className="text-[9px] font-normal opacity-60">Full analysis text</span>
+          </summary>
           <motion.div
-            key="visual"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-3 space-y-4 pl-4"
+            style={{ borderLeft: "2px solid hsl(var(--border) / 0.4)" }}
           >
-            {/* Strategic Question */}
-            {hasStorySignals ? (
-              <StrategicQuestion question={story.strategicQuestion} />
-            ) : step && step !== "generic" ? (
-              <StrategicQuestion question={stepConfig.question} />
-            ) : null}
-
-            {hasStorySignals && <StoryIndicator story={story} />}
-
-            {/* 1️⃣ STORY-COMPILED VISUAL */}
-            {hasStorySignals && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-                <StoryVisual story={story} />
-              </motion.div>
-            )}
-
-            {/* 2️⃣ STRUCTURAL MODEL */}
-            {hasCanonical && story.type !== "SURVIVAL_JUDGMENT" && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
-                <StructuralVisualList specs={[result.canonicalSpec!]} />
-              </motion.div>
-            )}
-
-            {/* 2b SURFACE fallback */}
-            {hasSurface && !hasCanonical && !hasStorySignals && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
-                <MultiPanelDashboard specs={result.surfaceSpecs} />
-              </motion.div>
-            )}
-
-            {/* 3️⃣ DOMAIN INTELLIGENCE PANELS */}
-            {hasOntologyPanels && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.1 }}>
-                <MultiPanelDashboard specs={result.ontologySpecs} />
-              </motion.div>
-            )}
-
-            {/* 4️⃣ ACTION LEVERS */}
-            {result.actionPlans.length > 0 && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.15 }}>
-                <ActionPlanList plans={result.actionPlans} />
-              </motion.div>
-            )}
-
-            {/* 5️⃣ COLLAPSED TEXT DEPTH */}
-            {suppressText && hasVisuals ? (
-              <details className="group mt-2">
-                <summary
-                  className="cursor-pointer select-none inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-bold text-muted-foreground/70 transition-all hover:text-foreground hover:bg-muted/50"
-                  style={{ border: "1px solid transparent" }}
-                >
-                  <ChevronRight size={11} className="transition-transform duration-200 group-open:rotate-90" />
-                  Deep Insight
-                  <span className="text-[9px] font-normal opacity-60">Full analysis text</span>
-                </summary>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mt-3 space-y-4 pl-4"
-                  style={{ borderLeft: "2px solid hsl(var(--border) / 0.4)" }}
-                >
-                  {children}
-                </motion.div>
-              </details>
-            ) : (
-              children
-            )}
+            {children}
           </motion.div>
-        )}
-      </AnimatePresence>
+        </details>
+      ) : (
+        children
+      )}
     </div>
   );
 }
