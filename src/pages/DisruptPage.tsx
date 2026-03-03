@@ -11,6 +11,7 @@ import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner, getDisruptTakeaway } from "@/components/KeyTakeawayBanner";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { ModeHeader } from "@/components/ModeHeader";
+import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
 
 export default function DisruptPage() {
@@ -64,6 +65,8 @@ export default function DisruptPage() {
           const takeaway = getDisruptTakeaway(analysis.disruptData as Record<string, unknown> | null);
           return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} /> : null;
         })()}
+
+        <ActiveHypothesisBanner stepName="Disrupt" accentColor={theme.primary} />
 
         <ModeHeader
           stepNumber={3}

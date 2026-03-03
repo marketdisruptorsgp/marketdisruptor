@@ -13,6 +13,7 @@ import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ModeHeader } from "@/components/ModeHeader";
 import { InfoExplainer } from "@/components/InfoExplainer";
+import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
 
 export default function PitchPage() {
@@ -68,6 +69,8 @@ export default function PitchPage() {
           const takeaway = getPitchTakeaway(analysis.pitchDeckData as Record<string, unknown> | null);
           return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} /> : null;
         })()}
+
+        <ActiveHypothesisBanner stepName="Pitch Deck" accentColor={theme.primary} />
 
         <ModeHeader
           stepNumber={6}

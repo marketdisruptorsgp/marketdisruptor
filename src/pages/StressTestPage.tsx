@@ -12,6 +12,7 @@ import { KeyTakeawayBanner, getStressTestTakeaway } from "@/components/KeyTakeaw
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ModeHeader } from "@/components/ModeHeader";
+import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
 
 export default function StressTestPage() {
@@ -67,6 +68,8 @@ export default function StressTestPage() {
           const takeaway = getStressTestTakeaway(analysis.stressTestData as Record<string, unknown> | null);
           return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} /> : null;
         })()}
+
+        <ActiveHypothesisBanner stepName="Stress Test" accentColor={theme.primary} />
 
         <ModeHeader
           stepNumber={5}
