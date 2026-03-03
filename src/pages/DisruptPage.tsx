@@ -17,6 +17,7 @@ import { scrollToTop } from "@/utils/scrollToTop";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
 import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
 import { Brain, GitBranch, ChevronRight } from "lucide-react";
+import { ModeBadge } from "@/components/ModeBadge";
 
 export default function DisruptPage() {
   const [activeTab, setActiveTab] = useState<"reasoning" | "hypotheses">("reasoning");
@@ -50,6 +51,7 @@ export default function DisruptPage() {
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
       <HeroSection tier={tier} remainingAnalyses={null} />
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
+        <ModeBadge />
         <StepNavigator
           steps={getStepConfigs(theme.primary)}
           activeStep={3}

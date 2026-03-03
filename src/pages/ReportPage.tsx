@@ -17,6 +17,7 @@ import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { ObservedSignalMatrix } from "@/components/ObservedSignalMatrix";
+import { ModeBadge } from "@/components/ModeBadge";
 import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
@@ -143,6 +144,7 @@ export default function ReportPage() {
     <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+        <ModeBadge />
         <StepNavigator
           steps={getStepConfigs(modeAccent)}
           activeStep={2}

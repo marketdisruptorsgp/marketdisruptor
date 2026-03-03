@@ -14,6 +14,7 @@ import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ModeHeader } from "@/components/ModeHeader";
 import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
+import { ModeBadge } from "@/components/ModeBadge";
 
 export default function StressTestPage() {
   const analysis = useAnalysis();
@@ -45,6 +46,7 @@ export default function StressTestPage() {
     <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+        <ModeBadge />
         <StepNavigator
           steps={getStepConfigs(theme.primary)}
           activeStep={5}
