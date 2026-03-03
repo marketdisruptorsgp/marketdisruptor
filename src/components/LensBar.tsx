@@ -60,9 +60,9 @@ export function LensBar() {
   const params = getLensParams(lens);
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 relative">
       <div
-        className="rounded-xl border-2 bg-card overflow-hidden transition-shadow hover:shadow-md"
+        className="rounded-xl border-2 bg-card transition-shadow hover:shadow-md"
         style={{
           borderColor: lensType !== "default" ? "hsl(var(--primary) / 0.4)" : "hsl(var(--border))",
           borderLeftWidth: "4px",
@@ -117,7 +117,7 @@ export function LensBar() {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="overflow-hidden"
+              className="overflow-hidden border-t border-border/50"
             >
               <div
                 className="px-4 sm:px-5 pb-3 pt-1 grid gap-3"
