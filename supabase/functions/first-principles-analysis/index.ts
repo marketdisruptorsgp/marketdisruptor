@@ -20,7 +20,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch } = await req.json();
+    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch, governedContext } = await req.json();
     // Extract active branch context for isolated or combined downstream reasoning
     const isCombinedMode = !activeBranch?.active_branch_id || activeBranch?.active_branch_id === "combined";
     const branchCtx = (!isCombinedMode && activeBranch) ? extractActiveBranch(
@@ -474,6 +474,35 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       }
 
       parts.push("\nBuild the redesigned concept around the user's preferred directions. The concept should directly reflect their liked insights and adjusted scores.");
+
+      // Include governed reasoning context (reasoning revisions, causal chains, constraint maps)
+      if (governedContext) {
+        if (governedContext.reasoning_synopsis) {
+          const rs = governedContext.reasoning_synopsis;
+          if (rs.core_causal_logic?.dominant_mechanism) {
+            parts.push(`\nDOMINANT MECHANISM (from reasoning analysis): ${rs.core_causal_logic.dominant_mechanism}`);
+          }
+          if (rs.key_assumptions?.length > 0) {
+            parts.push(`\nKEY ASSUMPTIONS (user-reviewed): ${JSON.stringify(rs.key_assumptions).slice(0, 800)}`);
+          }
+          if (rs.decision_drivers?.length > 0) {
+            parts.push(`\nDECISION DRIVERS: ${JSON.stringify(rs.decision_drivers).slice(0, 600)}`);
+          }
+        }
+        if (governedContext.constraint_map) {
+          const cm = governedContext.constraint_map;
+          if (cm.binding_constraint_id) {
+            parts.push(`\nBINDING CONSTRAINT: ${cm.binding_constraint_id} — ${cm.dominance_proof || ""}`);
+          }
+          if (cm.causal_chains) {
+            parts.push(`\nCAUSAL CHAINS: ${JSON.stringify(cm.causal_chains).slice(0, 600)}`);
+          }
+        }
+        if (governedContext.root_hypotheses?.length > 0) {
+          parts.push(`\nACTIVE HYPOTHESES: ${JSON.stringify(governedContext.root_hypotheses.slice(0, 3).map((h: any) => ({ id: h.id, statement: h.hypothesis_statement, type: h.constraint_type }))).slice(0, 500)}`);
+        }
+      }
+
       curationPrompt = parts.join("\n");
     }
 
