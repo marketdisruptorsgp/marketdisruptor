@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
-import { type StrategicHypothesis, rankWithProfile } from "@/lib/strategicOS";
+import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 
 function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
@@ -190,7 +190,27 @@ export default function ReportPage() {
             <StructuralInterpretationsPanel
               ranking={ranking}
               activeBranchId={analysis.activeBranchId}
-              onSelectBranch={(id) => analysis.setActiveBranchId(id)}
+              onSelectBranch={(id) => {
+                // Adaptive drift: detect signals from the selected branch
+                const selected = rawHypotheses.find(h => h.id === id);
+                if (selected) {
+                  const signals: { selected_high_capital?: boolean; selected_high_risk?: boolean; selected_long_horizon?: boolean } = {};
+                  if (selected.estimated_capital_required && selected.estimated_capital_required > 500_000) {
+                    signals.selected_high_capital = true;
+                  }
+                  if (selected.constraint_type === "risk" || selected.fragility_score > 6) {
+                    signals.selected_high_risk = true;
+                  }
+                  if (selected.estimated_time_to_impact_months && selected.estimated_time_to_impact_months > analysis.strategicProfile.time_horizon_months) {
+                    signals.selected_long_horizon = true;
+                  }
+                  if (Object.keys(signals).length > 0) {
+                    const evolved = adaptStrategicProfile(analysis.strategicProfile, signals);
+                    analysis.setStrategicProfile(evolved);
+                  }
+                }
+                analysis.setActiveBranchId(id);
+              }}
             />
           );
         })()}
