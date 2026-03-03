@@ -490,11 +490,6 @@ export default function MethodologyPage() {
       </main>
 
       <footer className="max-w-3xl mx-auto px-4 sm:px-6 py-6 border-t border-border text-center">
-        <p className="text-xs">
-          <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:opacity-80 transition-opacity">
-            Built by SGP Capital
-          </a>
-        </p>
       </footer>
     </div>
   );

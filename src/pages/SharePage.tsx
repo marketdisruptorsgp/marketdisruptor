@@ -163,7 +163,7 @@ export default function SharePage() {
             Get Started Free <ArrowRight size={18} />
           </button>
         </div>
-        <p className="typo-card-meta text-center mt-6">Developed by SGP Capital · Privacy by design · TLS encrypted</p>
+        <p className="typo-card-meta text-center mt-6">Privacy by design · TLS encrypted</p>
       </section>
     </div>
   );

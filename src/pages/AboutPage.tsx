@@ -281,10 +281,6 @@ export default function AboutPage() {
 
         <footer className="mt-20 pt-6 border-t border-border text-center">
           <p className="text-xs">
-            <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:opacity-80 transition-opacity">
-              Built by SGP Capital
-            </a>
-            <span className="text-muted-foreground"> · </span>
           </p>
         </footer>
       </main>
