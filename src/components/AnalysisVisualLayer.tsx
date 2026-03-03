@@ -537,13 +537,33 @@ export function AnalysisVisualLayer({
   step?: AnalysisStep;
   governedOverride?: Record<string, unknown> | null;
 }) {
-  const result = resolveAdaptiveVisuals(analysis);
+  // Defensive: wrap all visual resolution in try-catch to prevent white screens
+  let result: AdaptiveVisualResult;
+  try {
+    result = resolveAdaptiveVisuals(analysis);
+  } catch (e) {
+    console.warn("[AnalysisVisualLayer] resolveAdaptiveVisuals failed:", e);
+    result = { tier: "INTELLIGENCE_SURFACE", canonicalSpec: null, ontologySpecs: [], surfaceSpecs: [], actionPlans: [] };
+  }
   const stepConfig = getStepVisualConfig(step);
 
   // Compile visual story — governed causal structure preferred, heuristic fallback
-  const rankedSignals = useMemo(() => extractAndRankSignals(analysis), [analysis]);
+  let rankedSignals: RankedSignal[];
+  try {
+    rankedSignals = extractAndRankSignals(analysis);
+  } catch (e) {
+    console.warn("[AnalysisVisualLayer] extractAndRankSignals failed:", e);
+    rankedSignals = [];
+  }
   const governedData = useMemo(() => governedOverride || (analysis?.governed as Record<string, unknown>) || null, [analysis, governedOverride]);
-  const story = useMemo(() => compileVisualStory(rankedSignals, step, governedData), [rankedSignals, step, governedData]);
+  const story = useMemo(() => {
+    try {
+      return compileVisualStory(rankedSignals, step, governedData);
+    } catch (e) {
+      console.warn("[AnalysisVisualLayer] compileVisualStory failed:", e);
+      return { type: "PRIORITIZED_SIGNAL_FIELD" as VisualStoryType, label: "", description: "", strategicQuestion: "", topSignals: [], drivers: [], constraints: [], mechanisms: [], assumptions: [], leverages: [], outcomes: [], relationships: [], verdict: { level: "weak" as const, summary: "" } };
+    }
+  }, [rankedSignals, step, governedData]);
   const validation = useMemo(() => validateVisualStory(story, rankedSignals), [story, rankedSignals]);
   
   // §9 VISUAL TRUTHFULNESS: Only render visuals when governed data provides structural basis

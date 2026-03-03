@@ -605,41 +605,44 @@ export default function InstantAnalysisPage() {
                   <p className="typo-card-body text-muted-foreground max-w-md mx-auto">
                     Continue into the full analysis pipeline — get disruption strategies, stress tests, redesign concepts, and an investor-ready pitch deck.
                   </p>
-                  <Button
-                    onClick={() => {
-                      try {
-                        const product = {
-                          id: `product-${savedId}-0`,
-                          name: result.name,
-                          category: result.category || "",
-                          image: previews[0] || "",
-                          description: result.description || "",
-                          specs: "",
-                          revivalScore: result.revivalScore ?? 0,
-                          era: "All Eras / Current",
-                          sources: [],
-                          reviews: [],
-                          socialSignals: [],
-                          competitors: [],
-                          assumptionsMap: [],
-                          flippedIdeas: [],
-                          confidenceScores: { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
-                          ...result,
-                        };
-                        analysis.setProducts([product as any]);
-                        analysis.setSelectedProduct(product as any);
-                        analysis.setAnalysisParams({ category: result.category || "General", era: "All Eras / Current", batchSize: 1 });
-                        analysis.setMainTab(mode === "service" ? "service" : "custom");
-                        analysis.setActiveMode(mode === "service" ? "service" : "custom");
-                        analysis.setStep("done");
-                        analysis.setAnalysisId(savedId);
-                        analysis.setLoadedFromSaved(true);
-                        navigate(`/analysis/${savedId}/report`);
-                      } catch (err) {
-                        console.error("Navigation error:", err);
-                        toast.error("Failed to load full analysis. Please try again.");
-                      }
-                    }}
+                    <Button
+                     onClick={() => {
+                       try {
+                         const product = {
+                           id: `product-${savedId}-0`,
+                           name: result.name,
+                           category: result.category || "",
+                           image: previews[0] || "",
+                           description: result.description || "",
+                           specs: "",
+                           revivalScore: result.revivalScore ?? 0,
+                           era: "All Eras / Current",
+                           sources: [],
+                           reviews: [],
+                           socialSignals: [],
+                           competitors: [],
+                           assumptionsMap: [],
+                           flippedIdeas: [],
+                           confidenceScores: { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
+                           ...result,
+                         };
+                         analysis.setProducts([product as any]);
+                         analysis.setSelectedProduct(product as any);
+                         analysis.setAnalysisParams({ category: result.category || "General", era: "All Eras / Current", batchSize: 1 });
+                         analysis.setMainTab(mode === "service" ? "service" : "custom");
+                         analysis.setActiveMode(mode === "service" ? "service" : "custom");
+                         analysis.setStep("done");
+                         analysis.setAnalysisId(savedId);
+                         analysis.setLoadedFromSaved(true);
+                         // Defer navigation to next frame so React commits all state updates first
+                         requestAnimationFrame(() => {
+                           navigate(`/analysis/${savedId}/report`);
+                         });
+                       } catch (err) {
+                         console.error("Navigation error:", err);
+                         toast.error("Failed to load full analysis. Please try again.");
+                       }
+                     }}
                     size="lg"
                     className="text-white font-bold px-8 py-3 text-base shadow-lg hover:shadow-xl transition-shadow gap-2"
                     style={{ background: `hsl(var(${modeColor}))` }}
