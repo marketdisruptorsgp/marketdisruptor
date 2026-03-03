@@ -106,4 +106,26 @@ export const EXPLAINERS: Record<string, string> = {
     "• <strong>ETA Acquisition Lens</strong>: Evaluates everything through an ownership perspective — value durability, operational leverage, defensibility, and realistic improvement pathways. Recommendations prioritize process improvements over technology. Ideal for investors and acquirers.\n\n" +
     "• <strong>Custom Lens</strong>: You define the priorities, risk tolerance, time horizon, and constraints. The AI weights all scoring and recommendations to match your specific goals.\n\n" +
     "The lens applies across all pipeline steps (<strong>Intel → Disrupt → Stress Test → Pitch</strong>) and changes <strong>interpretation, not data</strong>. Claims that can't be supported are labeled as limitations.",
+
+  // ── Strategic Archetype ────────────────────────────────
+  "strategic-archetype":
+    "The Strategic Archetype controls how results are <strong>ranked and weighted after generation</strong> — it applies mathematical weights to already-generated hypotheses without re-running the analysis.\n\n" +
+    "• <strong>Operator</strong>: Cost discipline, reliability focus, medium time horizon.\n" +
+    "• <strong>ETA Acquirer</strong>: Capital discipline, risk assessment, acquisition value creation.\n" +
+    "• <strong>Venture Growth</strong>: Speed & scale priority, higher risk tolerance.\n" +
+    "• <strong>Bootstrapped Founder</strong>: Capital-constrained, speed-to-revenue focus.\n" +
+    "• <strong>Enterprise Strategist</strong>: Defensibility & reliability, long time horizons.\n\n" +
+    "Unlike the Lens (which shapes what data the AI generates), the Archetype re-ranks hypotheses <strong>instantly</strong> using dominance scoring — no re-run required.",
+
+  // ── Reasoning Interrogation ────────────────────────────
+  "reasoning-interrogation":
+    "Challenge This Reasoning lets you <strong>interrogate the analysis</strong> — ask why a constraint ranked highest, what happens if a key assumption is wrong, or request a re-evaluation from a different perspective.\n\n" +
+    "This is not a generic chatbot. Every response references <strong>specific hypotheses, causal chains, evidence mixes, and scores</strong> from your analysis. The AI acts as a reasoning auditor — it can challenge its own conclusions, identify blind spots, and suggest structural revisions.\n\n" +
+    "Quick-action buttons are pre-loaded with the most relevant questions based on your analysis data. You can also ask free-form questions.",
+
+  // ── Root Hypotheses / Strategic OS ─────────────────────
+  "root-hypotheses":
+    "Root Hypotheses are the <strong>2-4 most fundamental structural constraints</strong> shaping this domain. They represent Tier 1 forces — the constraints that, if resolved, would create the most leverage.\n\n" +
+    "Each hypothesis includes a dominance score (combining leverage, impact, evidence quality, and fragility), a causal chain showing how the constraint propagates through the system, and downstream implications.\n\n" +
+    "The Strategic Archetype re-ranks these hypotheses based on your profile — an Operator sees different priorities than a Venture Growth strategist, even with identical data.",
 };

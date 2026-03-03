@@ -414,6 +414,58 @@ export default function MethodologyPage() {
           </div>
         </section>
 
+        {/* ── Section 7: Strategic Operating System ── */}
+        <section>
+          <h2 className="text-xl font-bold text-foreground mb-1">Strategic Operating System</h2>
+          <p className="text-sm text-muted-foreground mb-5">Profile-aware dominance modeling that re-ranks structural hypotheses based on your strategic archetype.</p>
+          <div className="space-y-3">
+            {[
+              { name: "Operator", color: "hsl(var(--primary))", desc: "Cost discipline, reliability focus, medium time horizons. Weights cost and reliability constraints highest.", details: "Capital tolerance: 5/10. Evidence threshold: 40% verified. Time horizon: 24 months." },
+              { name: "ETA Acquirer", color: "hsl(142 70% 40%)", desc: "Acquisition lens — capital discipline, risk assessment, value creation pathways.", details: "Penalizes solutions exceeding 36-month horizon. Requires higher evidence thresholds (50% verified). Weights cost and reliability at 1.3-1.4x." },
+              { name: "Venture Growth", color: "hsl(280 70% 55%)", desc: "Speed & scale priority, higher risk tolerance. Deprioritizes cost and reliability.", details: "Fastest time horizon (18 months). Lowest evidence threshold (30%). Scale weighted at 1.4x, speed at 1.3x." },
+              { name: "Bootstrapped Founder", color: "hsl(38 92% 50%)", desc: "Capital-constrained, speed-to-revenue focus. Lowest capital tolerance.", details: "Capital tolerance: 3/10. Highest capital discipline bias (0.8). Cost weighted at 1.4x." },
+              { name: "Enterprise Strategist", color: "hsl(var(--muted-foreground))", desc: "Defensibility & reliability, long time horizons. Highest evidence threshold.", details: "48-month time horizon. Evidence threshold: 60% verified. Defensibility weighted at 1.4x, reliability at 1.3x." },
+            ].map((arch) => (
+              <div key={arch.name} className="border border-border rounded-lg p-4 sm:p-5 bg-card" style={{ borderLeftWidth: "3px", borderLeftColor: arch.color }}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full" style={{ background: `${arch.color}15`, color: arch.color }}>{arch.name}</span>
+                </div>
+                <p className="text-sm font-semibold text-foreground mb-1">{arch.desc}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{arch.details}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+            <p className="text-xs text-foreground/70 leading-relaxed">
+              <strong className="text-foreground">Key principle:</strong> Archetypes change <em>ranking</em>, not data. The underlying analysis remains identical — only the dominance scores, penalties, and hypothesis ordering shift. Switch archetypes instantly without re-running. The Lens shapes what the AI reasons about; the Archetype shapes how you interpret the results.
+            </p>
+          </div>
+        </section>
+
+        {/* ── Section 8: Reasoning Interrogation ── */}
+        <section>
+          <h2 className="text-xl font-bold text-foreground mb-1">Reasoning Interrogation</h2>
+          <p className="text-sm text-muted-foreground mb-5">Every analysis includes an interactive panel to question, challenge, and stress-test the reasoning.</p>
+          <div className="border border-border rounded-lg bg-card p-4 sm:p-5">
+            <dl className="space-y-3 text-xs">
+              {[
+                ["Context-Aware", "The interrogation AI receives the full analysis context — governed data, root hypotheses, causal chains, evidence mixes, and scores. Every response references specific data from YOUR analysis."],
+                ["Challenge Patterns", "Quick-action buttons pre-load the most relevant questions: why did a constraint rank highest, what if a key assumption is wrong, what's missing, challenge the confidence score."],
+                ["Structural Revisions", "When the AI suggests a re-ranking or revised hypothesis, it produces structured output that can be applied back to the analysis — not just text."],
+                ["Not a Chatbot", "This is a reasoning auditor, not a generic assistant. It can disagree with its own conclusions, identify blind spots in the evidence base, and trace causal chain disruptions."],
+              ].map(([label, value]) => (
+                <div key={label as string} className="flex items-start gap-3">
+                  <ArrowRight size={12} className="text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <dt className="font-bold text-foreground inline">{label as string}: </dt>
+                    <dd className="text-muted-foreground inline">{value as string}</dd>
+                  </div>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
         {/* ── Output Philosophy ── */}
         <section>
           <h2 className="text-xl font-bold text-foreground mb-1">Output Philosophy</h2>
