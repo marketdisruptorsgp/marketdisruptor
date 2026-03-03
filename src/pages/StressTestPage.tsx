@@ -23,7 +23,7 @@ export default function StressTestPage() {
   const { selectedProduct, analysisId } = analysis;
 
   const [ready, setReady] = React.useState(false);
-  React.useEffect(() => { const t = setTimeout(() => setReady(true), 600); return () => clearTimeout(t); }, []);
+  React.useEffect(() => { const t = setTimeout(() => setReady(true), 1200); return () => clearTimeout(t); }, []);
 
   const shouldRedirectHome = ready && analysis.step === "idle";
   React.useEffect(() => {
