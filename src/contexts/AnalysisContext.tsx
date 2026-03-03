@@ -142,6 +142,9 @@ interface AnalysisContextType {
   activeLens: UserLens | null;
   setActiveLens: (lens: UserLens | null) => void;
 
+  // Governed data (reasoning synopsis, constraint maps, etc.)
+  governedData: Record<string, unknown> | null;
+
   // Geo market data
   geoData: unknown;
   setGeoData: (d: unknown) => void;
@@ -192,6 +195,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [visitedBusinessStressTestTabs, setVisitedBusinessStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
   const [savedRefreshTrigger, setSavedRefreshTrigger] = useState(0);
   const [loadedFromSaved, setLoadedFromSaved] = useState(false);
+  const [governedData, setGovernedData] = useState<Record<string, unknown> | null>(null);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
 
   // ── System Layer: Outdated Step Tracking ──
@@ -793,6 +797,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         console.error("saveStepData update failed:", updateError, "analysisId:", analysisId, "stepKey:", stepKey);
       } else {
         logStepExecution(stepKey, "save", { analysisId, success: true, governedByteSize: extraction.governedByteSize });
+        // Keep governedData state in sync
+        if (merged.governed) {
+          setGovernedData(merged.governed as Record<string, unknown>);
+        }
       }
     } catch (err) {
       console.error("Failed to persist step data:", err);
@@ -880,6 +888,9 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
     // Restore persisted step data
     const ad = analysis.analysis_data as Record<string, unknown> | null;
+    // Restore governed data (reasoning synopsis, constraint maps, etc.)
+    if (ad?.governed) setGovernedData(ad.governed as Record<string, unknown>);
+    else setGovernedData(null);
     if (ad?.disrupt) setDisruptData(ad.disrupt);
     if (ad?.stressTest) setStressTestData(ad.stressTest);
     if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
@@ -1002,6 +1013,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
       modeRouting, setModeRouting,
+      governedData,
     }}>
       {children}
     </AnalysisContext.Provider>

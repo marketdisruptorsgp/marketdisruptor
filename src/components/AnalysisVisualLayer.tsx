@@ -530,11 +530,13 @@ export function AnalysisVisualLayer({
   children,
   suppressText = true,
   step,
+  governedOverride,
 }: {
   analysis: Record<string, unknown>;
   children: ReactNode;
   suppressText?: boolean;
   step?: AnalysisStep;
+  governedOverride?: Record<string, unknown> | null;
 }) {
   const result = resolveAdaptiveVisuals(analysis);
   const stepConfig = getStepVisualConfig(step);
@@ -542,7 +544,7 @@ export function AnalysisVisualLayer({
 
   // Compile visual story — governed causal structure preferred, heuristic fallback
   const rankedSignals = useMemo(() => extractAndRankSignals(analysis), [analysis]);
-  const governedData = useMemo(() => (analysis?.governed as Record<string, unknown>) || null, [analysis]);
+  const governedData = useMemo(() => governedOverride || (analysis?.governed as Record<string, unknown>) || null, [analysis, governedOverride]);
   const story = useMemo(() => compileVisualStory(rankedSignals, step, governedData), [rankedSignals, step, governedData]);
   const validation = useMemo(() => validateVisualStory(story, rankedSignals), [story, rankedSignals]);
   

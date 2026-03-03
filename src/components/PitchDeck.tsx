@@ -735,7 +735,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         </div>
       </div>
 
-      <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="pitchDeck">
+      <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="pitchDeck" governedOverride={analysisCtx.governedData}>
       {/* Toolbar */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <p className="typo-card-meta text-muted-foreground">{TOTAL} slides · Click any to jump</p>
