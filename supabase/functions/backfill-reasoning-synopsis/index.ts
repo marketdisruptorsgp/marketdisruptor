@@ -45,7 +45,7 @@ async function generateSynopsis(apiKey: string, analysis: any): Promise<Reasonin
   const dataSnapshot = truncateJSON(analysis.analysis_data, 4000);
   const productsSnapshot = truncateJSON(analysis.products, 1500);
 
-  const prompt = `You are a reasoning auditor. Given an existing analysis, reconstruct the reasoning synopsis that explains HOW the conclusions were reached.
+  const prompt = `You are a reasoning auditor. Given an existing analysis, reconstruct a DETAILED reasoning synopsis that explains HOW the conclusions were reached. Be thorough and specific — users want depth, not brevity.
 
 ANALYSIS CONTEXT:
 - Title: ${title}
@@ -61,45 +61,69 @@ ${dataSnapshot}
 PRODUCTS (truncated):
 ${productsSnapshot}
 
-Generate a reasoning_synopsis object that reconstructs the analytical reasoning. Be specific to THIS analysis — reference actual data points, scores, and findings.
+Generate a reasoning_synopsis object that reconstructs the analytical reasoning. Be specific to THIS analysis — reference actual data points, scores, product names, and findings. Provide DEPTH: explain WHY each conclusion was reached, not just WHAT was concluded.
 
 Return ONLY valid JSON matching this exact structure:
 {
   "problem_framing": {
-    "objective_interpretation": "How the core objective was interpreted for this ${mode} analysis",
-    "success_criteria": ["criterion1", "criterion2", "criterion3"]
+    "objective_interpretation": "Detailed interpretation of the core objective for this ${mode} analysis — reference the specific domain, user need, and transformation sought",
+    "success_criteria": ["criterion1", "criterion2", "criterion3"],
+    "scope_boundaries": "What was included/excluded from analysis scope"
   },
   "lens_influence": {
     "lens_name": "Default",
-    "prioritized_factors": ["factor1", "factor2"],
-    "deprioritized_factors": ["factor1", "factor2"],
-    "alternative_lens_impact": "How conclusion might differ under a risk-averse or growth-focused lens"
+    "prioritized_factors": ["factor with explanation of WHY it was weighted higher"],
+    "deprioritized_factors": ["factor with explanation of the tradeoff"],
+    "alternative_lens_impact": "Detailed explanation of how conclusions would differ under a different lens"
   },
   "evaluation_path": {
-    "dimensions_examined": ["dimension1", "dimension2", "dimension3"],
-    "evaluation_logic": "Order and rationale for evaluation sequence"
+    "dimensions_examined": ["dimension1", "dimension2", "dimension3", "dimension4"],
+    "evaluation_logic": "Detailed order and rationale for evaluation sequence — why this order matters",
+    "eliminated_dimensions": "Dimensions considered but excluded, with rationale"
   },
+  "key_assumptions": [
+    {
+      "assumption": "Specific assumption made",
+      "evidence_status": "verified|modeled|speculative",
+      "impact_if_wrong": "What changes if this is wrong",
+      "validation_method": "How to test this"
+    }
+  ],
   "core_causal_logic": {
     "primary_relationships": [
-      {"cause": "observed factor", "effect": "resulting outcome", "mechanism": "how cause produces effect"}
+      {"cause": "observed factor", "effect": "resulting outcome", "mechanism": "detailed structural pathway explaining HOW cause produces effect"},
+      {"cause": "second factor", "effect": "second outcome", "mechanism": "second pathway"},
+      {"cause": "third factor", "effect": "third outcome", "mechanism": "third pathway"}
     ],
-    "dominant_mechanism": "The single most explanatory causal pathway"
+    "dominant_mechanism": "The single most explanatory causal pathway in 2-3 sentences with specific evidence",
+    "secondary_mechanisms": "Other important causal pathways that reinforce or complicate the dominant one"
   },
+  "counterfactual_scenarios": [
+    {
+      "scenario": "What if [key variable] changed?",
+      "outcome_shift": "How the conclusion would change",
+      "likelihood": "high|medium|low"
+    }
+  ],
   "decision_drivers": [
-    {"factor": "most influential observation", "weight": "high", "rationale": "why this outweighed alternatives"}
+    {"factor": "most influential observation", "weight": "high", "rationale": "detailed explanation citing specific evidence from the analysis"}
   ],
   "confidence_sensitivity": {
     "overall_confidence": "high|medium|low",
     "confidence_score": 65,
     "most_sensitive_variable": "assumption most likely to change outcome",
-    "sensitivity_explanation": "how conclusion changes if this variable differs"
+    "sensitivity_explanation": "detailed explanation including magnitude of potential shift",
+    "evidence_quality": "strong|moderate|weak — assessment of overall evidence base"
   }
 }
 
 RULES:
 - Be SPECIFIC to this analysis. Reference actual product names, scores, categories.
-- Keep concise — max 200 words total.
-- Decision drivers: 2-4 factors max.
+- Be THOROUGH — target 400-600 words total. Users want depth.
+- Decision drivers: 3-6 factors, each citing specific evidence.
+- Causal relationships: 3-5 chains minimum with detailed mechanisms.
+- Key assumptions: 2-4 with validation methods.
+- Counterfactual scenarios: 2-3 exploring how conclusions shift.
 - confidence_score: integer 0-100.`;
 
   const res = await fetch(AI_URL, {

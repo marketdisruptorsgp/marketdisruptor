@@ -244,46 +244,70 @@ Maximum cognitive load target: A decision-maker must understand the system in un
 
 ── REASONING SYNOPSIS (MANDATORY ON ALL OUTPUTS) ──
 Every analysis output MUST include a "reasoning_synopsis" object alongside the primary output.
-This is a concise, structured explanation of HOW you arrived at your conclusions.
+This is a detailed, structured explanation of HOW you arrived at your conclusions.
 It must contain:
 
   "reasoning_synopsis": {
     "problem_framing": {
-      "objective_interpretation": "How you interpreted the core objective",
-      "success_criteria": ["Criterion 1", "Criterion 2"]
+      "objective_interpretation": "How you interpreted the core objective — be specific about the domain, user need, and transformation sought",
+      "success_criteria": ["Criterion 1", "Criterion 2", "Criterion 3"],
+      "scope_boundaries": "What was explicitly included and excluded from the analysis scope"
     },
     "lens_influence": {
       "lens_name": "Name of active lens or 'Default'",
-      "prioritized_factors": ["Factor amplified by lens"],
-      "deprioritized_factors": ["Factor suppressed by lens"],
-      "alternative_lens_impact": "How conclusion might differ under a different lens"
+      "prioritized_factors": ["Factor amplified by lens — explain WHY each was weighted higher"],
+      "deprioritized_factors": ["Factor suppressed by lens — explain the tradeoff"],
+      "alternative_lens_impact": "Detailed explanation of how conclusions would materially differ under a risk-averse, growth-focused, or sustainability lens"
     },
     "evaluation_path": {
-      "dimensions_examined": ["Dimension 1", "Dimension 2"],
-      "evaluation_logic": "Order and rationale for dimension sequencing"
+      "dimensions_examined": ["Dimension 1", "Dimension 2", "Dimension 3", "Dimension 4"],
+      "evaluation_logic": "Detailed order and rationale for dimension sequencing — why this order produces the most reliable conclusions",
+      "eliminated_dimensions": "Dimensions considered but excluded, with rationale"
     },
+    "key_assumptions": [
+      {
+        "assumption": "Specific assumption made during analysis",
+        "evidence_status": "verified|modeled|speculative",
+        "impact_if_wrong": "What changes in the conclusion if this assumption is incorrect",
+        "validation_method": "How this assumption could be tested"
+      }
+    ],
     "core_causal_logic": {
       "primary_relationships": [
-        {"cause": "X", "effect": "Y", "mechanism": "How X produces Y"}
+        {"cause": "X", "effect": "Y", "mechanism": "Detailed explanation of HOW X produces Y — name the structural pathway"},
+        {"cause": "A", "effect": "B", "mechanism": "Second causal chain"},
+        {"cause": "C", "effect": "D", "mechanism": "Third causal chain"}
       ],
-      "dominant_mechanism": "The single most explanatory causal pathway"
+      "dominant_mechanism": "The single most explanatory causal pathway — in 2-3 sentences with specific evidence",
+      "secondary_mechanisms": "Other important causal pathways that reinforce or complicate the dominant one"
     },
+    "counterfactual_scenarios": [
+      {
+        "scenario": "What if [key variable] changed significantly?",
+        "outcome_shift": "How the conclusion would change",
+        "likelihood": "high|medium|low"
+      }
+    ],
     "decision_drivers": [
-      {"factor": "Most influential observation", "weight": "high|medium", "rationale": "Why this outweighed alternatives"}
+      {"factor": "Most influential observation", "weight": "high|medium", "rationale": "Detailed explanation of why this outweighed alternatives — cite specific evidence"}
     ],
     "confidence_sensitivity": {
       "overall_confidence": "high|medium|low",
       "confidence_score": 65,
       "most_sensitive_variable": "The assumption most likely to change the outcome",
-      "sensitivity_explanation": "How the conclusion changes if this variable differs"
+      "sensitivity_explanation": "Detailed explanation of how the conclusion changes if this variable differs — include magnitude of shift",
+      "evidence_quality": "Assessment of the overall evidence base: strong (multiple verified sources), moderate (some modeling required), weak (largely speculative)"
     }
   }
 
 RULES:
-- Keep the synopsis concise — max 200 words across all fields.
-- Decision drivers: 2–4 factors only. More is noise.
-- Lens influence: Always state what the lens deprioritized, not just what it emphasized.
-- If no lens is active, state "Default" and note that all dimensions were weighted equally.
+- Be THOROUGH — target 400-600 words across all fields. Depth over brevity.
+- Decision drivers: 3–6 factors. Each must cite specific evidence from the analysis.
+- Causal relationships: 3–5 chains minimum. Each mechanism must name the structural pathway.
+- Key assumptions: 2–4 assumptions with validation methods.
+- Counterfactual scenarios: 2–3 scenarios exploring how conclusions shift.
+- Lens influence: Always state what the lens deprioritized AND quantify the impact.
+- If no lens is active, state "Default" and note dimensional weighting rationale.
 
 ── VISUAL_SPEC_SCHEMA ──
 When a structural insight benefits from visual representation, output a visual specification using this schema. Do NOT describe visuals narratively. Define structure so it can be rendered programmatically.
