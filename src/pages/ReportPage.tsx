@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -32,8 +32,6 @@ import {
   Clock, ScrollText, StickyNote,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
-import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
-import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 
 function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
@@ -46,7 +44,7 @@ export default function ReportPage() {
   const analysis = useAnalysis();
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const [isSaving, setIsSaving] = React.useState(false);
@@ -186,57 +184,8 @@ export default function ReportPage() {
           step="report"
           governedOverride={analysis.governedData}
           analysisId={analysisId}
-          defaultTab={(location.state as any)?.openHypothesesTab ? "hypotheses" : undefined}
-          branchingPanel={(() => {
-            const governed = analysis.governedData;
-            const cm = governed?.constraint_map as Record<string, unknown> | undefined;
-            const rawHypotheses = (cm?.root_hypotheses || governed?.root_hypotheses) as StrategicHypothesis[] | undefined;
-            if (!rawHypotheses || rawHypotheses.length === 0) return null;
-            const ranking = rankWithProfile(rawHypotheses, analysis.strategicProfile);
-            return (
-              <StructuralInterpretationsPanel
-                ranking={ranking}
-                activeBranchId={analysis.activeBranchId}
-                analysisData={{ ...selectedProduct, governed: analysis.governedData }}
-                title={selectedProduct?.name || ""}
-                category={analysis.analysisParams?.category || ""}
-                onApplyRevision={(revision) => {
-                  const currentGoverned = analysis.governedData || {};
-                  if (revision.type === "new_hypothesis" && revision.payload) {
-                    const existing = (currentGoverned as any)?.root_hypotheses || [];
-                    const newH = { ...revision.payload, id: `user-hyp-${Date.now()}` };
-                    analysis.setGovernedData({ ...currentGoverned, root_hypotheses: [...existing, newH] });
-                    analysis.markStepOutdated("disrupt");
-                    analysis.markStepOutdated("redesign");
-                    analysis.markStepOutdated("stressTest");
-                    analysis.markStepOutdated("pitch");
-                  }
-                }}
-                onSelectBranch={(id) => {
-                  const selected = rawHypotheses.find(h => h.id === id);
-                  if (selected) {
-                    const signals: { selected_high_capital?: boolean; selected_high_risk?: boolean; selected_long_horizon?: boolean } = {};
-                    if (selected.estimated_capital_required && selected.estimated_capital_required > 500_000) {
-                      signals.selected_high_capital = true;
-                    }
-                    if (selected.constraint_type === "risk" || selected.fragility_score > 6) {
-                      signals.selected_high_risk = true;
-                    }
-                    if (selected.estimated_time_to_impact_months && selected.estimated_time_to_impact_months > analysis.strategicProfile.time_horizon_months) {
-                      signals.selected_long_horizon = true;
-                    }
-                    if (Object.keys(signals).length > 0) {
-                      const evolved = adaptStrategicProfile(analysis.strategicProfile, signals);
-                      analysis.setStrategicProfile(evolved);
-                    }
-                  }
-                  analysis.setActiveBranchId(id);
-                }}
-              />
-            );
-          })()}
           onApplyRevision={(revision) => {
-            // Apply revision to governed data
+            // Apply revision to governed data (reasoning-level only — hypotheses moved to Disrupt)
             const currentGoverned = analysis.governedData || {};
             if (revision.type === "re_rank" && revision.payload?.hypotheses) {
               analysis.setGovernedData({ ...currentGoverned, root_hypotheses: revision.payload.hypotheses });
@@ -249,9 +198,6 @@ export default function ReportPage() {
                 ...currentGoverned,
                 reasoning_synopsis: { ...synopsis, key_assumptions: updatedAssumptions },
               });
-            } else if (revision.type === "new_hypothesis" && revision.payload) {
-              const existing = (currentGoverned as any)?.root_hypotheses || [];
-              analysis.setGovernedData({ ...currentGoverned, root_hypotheses: [...existing, revision.payload] });
             }
             // Persist
             analysis.saveStepData("governed", analysis.governedData || currentGoverned);
