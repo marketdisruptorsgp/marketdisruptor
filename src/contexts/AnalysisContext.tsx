@@ -936,8 +936,24 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [strategicProfile, analysisId, saveStepData]);
 
-  const handleLoadSaved = useCallback(async (analysis: any) => {
+  const handleLoadSaved = useCallback(async (rawAnalysis: any) => {
     setLoadedFromSaved(true);
+
+    // If analysis_data is missing (e.g. workspace list query), fetch the full record first
+    let analysis = rawAnalysis;
+    if (!analysis.analysis_data && analysis.id) {
+      try {
+        const { data: fullRecord, error } = await (supabase.from("saved_analyses") as any)
+          .select("*")
+          .eq("id", analysis.id)
+          .single();
+        if (!error && fullRecord) {
+          analysis = fullRecord;
+        }
+      } catch (err) {
+        console.warn("[handleLoadSaved] Failed to fetch full record:", err);
+      }
+    }
 
     // Ensure all products have an id and required fields (photo analyses may omit them)
     const rawProducts = Array.isArray(analysis.products) ? analysis.products : [];
