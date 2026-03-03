@@ -101,9 +101,46 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const body = await req.json().catch(() => ({}));
+    const singleAnalysisId = body.singleAnalysisId;
     const batchSize = body.batchSize || 10;
     const offset = body.offset || 0;
     const dryRun = body.dryRun || false;
+
+    // Single-analysis mode: backfill one specific analysis and return hypotheses
+    if (singleAnalysisId) {
+      const { data: analysis, error: fetchErr } = await supabase
+        .from("saved_analyses")
+        .select("id, title, category, analysis_type, avg_revival_score, era, audience, analysis_data, products")
+        .eq("id", singleAnalysisId)
+        .single();
+
+      if (fetchErr || !analysis) {
+        return new Response(JSON.stringify({ error: "Analysis not found" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (hasRootHypotheses(analysis.analysis_data)) {
+        const gov = (analysis.analysis_data as any)?.governed || {};
+        const existing = gov.root_hypotheses || gov.constraint_map?.root_hypotheses || [];
+        return new Response(JSON.stringify({ hypotheses: existing, cached: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const hypotheses = await generateHypotheses(LOVABLE_API_KEY, analysis);
+      const existingData = (analysis.analysis_data as Record<string, any>) || {};
+      const governed = existingData.governed || {};
+      governed.root_hypotheses = hypotheses;
+      if (governed.constraint_map) governed.constraint_map.root_hypotheses = hypotheses;
+      existingData.governed = governed;
+
+      await supabase.from("saved_analyses").update({ analysis_data: existingData }).eq("id", singleAnalysisId);
+
+      return new Response(JSON.stringify({ hypotheses, backfilled: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data: analyses, error: fetchError } = await supabase
       .from("saved_analyses")

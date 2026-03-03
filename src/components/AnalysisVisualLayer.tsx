@@ -571,6 +571,9 @@ export function AnalysisVisualLayer({
 
   return (
     <div className="space-y-4">
+      {/* Branching panel — always visible above tabs */}
+      {branchingPanel}
+
       {/* Tab Switcher — only show if synopsis data exists */}
       {hasSynopsis && (
         <div className="flex items-center gap-1 p-1 rounded-xl w-full sm:w-fit" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
@@ -609,7 +612,7 @@ export function AnalysisVisualLayer({
               avgScore={(analysis as any)?.avg_revival_score ?? (analysis as any)?.revivalScore ?? null}
               analysisId={analysisId}
               onApplyRevision={onApplyRevision}
-              branchingPanel={branchingPanel}
+              branchingPanel={undefined}
             />
           </motion.div>
         ) : (
