@@ -38,8 +38,8 @@ const CONSTRAINT_ICONS: Record<string, typeof Zap> = {
 const ROOT_X = 80;
 const PRIMARY_X = 280;
 const SECONDARY_X = 520;
-const NODE_GAP_Y = 180;
-const SECONDARY_GAP_Y = 44;
+const NODE_GAP_Y = 200;
+const SECONDARY_GAP_Y = 52;
 
 function computeLayout(hypotheses: StrategicHypothesis[]) {
   const totalH = hypotheses.length * NODE_GAP_Y;
@@ -56,8 +56,8 @@ function computeLayout(hypotheses: StrategicHypothesis[]) {
     return { hypothesis: h, x: PRIMARY_X, y: py, secondaries };
   });
 
-  const svgH = Math.max(440, startY + totalH + 60);
-  const svgW = Math.max(720, SECONDARY_X + 220);
+  const svgH = Math.max(480, startY + totalH + 80);
+  const svgW = Math.max(900, SECONDARY_X + 380);
 
   return { rootX: ROOT_X, rootY, primaries, svgW, svgH };
 }
@@ -439,7 +439,7 @@ export default function BranchGravityMap({
                     transition={{ duration: 0.3, delay: 0.3 + j * 0.05 }}
                   >
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ background: isActive ? theme.primary : "hsl(var(--border))" }} />
-                    <span className={`text-xs truncate max-w-[140px] font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                    <span className={`text-xs max-w-[260px] font-medium leading-snug ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
                       {s.structural_constraint}
                     </span>
                     <Badge variant="outline" className="text-[9px] h-4 px-1.5 shrink-0 font-semibold">
