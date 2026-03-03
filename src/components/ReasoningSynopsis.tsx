@@ -118,14 +118,14 @@ function SynopsisCard({ title, icon: Icon, children, delay = 0 }: {
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay }}
-      className="rounded-xl p-4"
+      className="rounded-xl p-5"
       style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}
     >
       <div className="flex items-center gap-2 mb-3">
         <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: `${COLORS.mechanism}12` }}>
-          <Icon size={11} style={{ color: COLORS.mechanism }} />
+          <Icon size={12} style={{ color: COLORS.mechanism }} />
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: COLORS.muted }}>
+        <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: COLORS.muted }}>
           {title}
         </span>
       </div>
@@ -157,7 +157,7 @@ function LensInfluenceRadar({ synopsis }: { synopsis: SynopsisData }) {
   return (
     <SynopsisCard title="Lens Influence" icon={Eye} delay={0}>
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-[11px] font-bold text-foreground">
+        <span className="text-xs font-bold text-foreground">
           Active: {synopsis.lens_influence.lens_name}
         </span>
       </div>
@@ -167,7 +167,7 @@ function LensInfluenceRadar({ synopsis }: { synopsis: SynopsisData }) {
             <PolarGrid stroke="hsl(var(--border) / 0.4)" />
             <PolarAngleAxis
               dataKey="dimension"
-              tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
             />
             <Radar
               dataKey="value"
@@ -182,14 +182,14 @@ function LensInfluenceRadar({ synopsis }: { synopsis: SynopsisData }) {
       <div className="flex items-center gap-4 mt-1">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full" style={{ background: COLORS.prioritized }} />
-          <span className="text-[9px] font-semibold text-muted-foreground">Amplified</span>
+          <span className="text-[10px] font-semibold text-muted-foreground">Amplified</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full" style={{ background: COLORS.deprioritized }} />
-          <span className="text-[9px] font-semibold text-muted-foreground">Suppressed</span>
+          <span className="text-[10px] font-semibold text-muted-foreground">Suppressed</span>
         </div>
       </div>
-      <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed">
+      <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
         {synopsis.lens_influence.alternative_lens_impact}
       </p>
     </SynopsisCard>
@@ -214,22 +214,22 @@ function CausalFlowDiagram({ synopsis }: { synopsis: SynopsisData }) {
           >
             <div className="flex items-center gap-2 flex-wrap">
               <span
-                className="px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                className="px-2.5 py-1 rounded-lg text-[11px] font-bold"
                 style={{ background: `${COLORS.deprioritized}12`, color: COLORS.deprioritized, border: `1px solid ${COLORS.deprioritized}25` }}
               >
                 {rel.cause}
               </span>
               <div className="flex items-center gap-1">
-                <ArrowRight size={10} style={{ color: COLORS.mechanism }} />
+                <ArrowRight size={11} style={{ color: COLORS.mechanism }} />
               </div>
               <span
-                className="px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                className="px-2.5 py-1 rounded-lg text-[11px] font-bold"
                 style={{ background: `${COLORS.prioritized}12`, color: COLORS.prioritized, border: `1px solid ${COLORS.prioritized}25` }}
               >
                 {rel.effect}
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground pl-3 leading-relaxed italic" style={{ borderLeft: `2px solid ${COLORS.mechanism}30` }}>
+            <p className="text-[11px] text-muted-foreground pl-3 leading-relaxed italic" style={{ borderLeft: `2px solid ${COLORS.mechanism}30` }}>
               {rel.mechanism}
             </p>
           </motion.div>
@@ -237,15 +237,15 @@ function CausalFlowDiagram({ synopsis }: { synopsis: SynopsisData }) {
       </div>
       <div className="mt-3 pt-2 space-y-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Dominant Mechanism</p>
-          <p className="text-[11px] font-semibold text-foreground leading-snug">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Dominant Mechanism</p>
+          <p className="text-xs font-semibold text-foreground leading-snug">
             {synopsis.core_causal_logic.dominant_mechanism}
           </p>
         </div>
         {synopsis.core_causal_logic.secondary_mechanisms && (
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Secondary Mechanisms</p>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Secondary Mechanisms</p>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
               {synopsis.core_causal_logic.secondary_mechanisms}
             </p>
           </div>
@@ -280,14 +280,14 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
               type="category"
               dataKey="name"
               width={110}
-              tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
             />
             <Tooltip
               content={({ active, payload }) => {
                 if (!active || !payload?.[0]) return null;
                 const d = payload[0].payload;
                 return (
-                  <div className="rounded-lg px-3 py-2 text-[10px] max-w-[260px]"
+                  <div className="rounded-lg px-3 py-2 text-[11px] max-w-[260px]"
                     style={{ background: "hsl(var(--popover))", border: `1px solid ${COLORS.border}`, color: "hsl(var(--popover-foreground))" }}>
                     <p className="font-bold mb-1">{d.full}</p>
                     <p className="text-muted-foreground leading-relaxed">{d.rationale}</p>
@@ -310,8 +310,8 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
             <span className="w-2 h-2 rounded-sm mt-1 flex-shrink-0"
               style={{ background: d.weight === "high" ? COLORS.prioritized : COLORS.mechanism }} />
             <div>
-              <p className="text-[10px] font-bold text-foreground">{d.factor}</p>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">{d.rationale}</p>
+              <p className="text-[11px] font-bold text-foreground">{d.factor}</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{d.rationale}</p>
             </div>
           </div>
         ))}
@@ -319,11 +319,11 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
       <div className="flex items-center gap-4 mt-3 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-sm" style={{ background: COLORS.prioritized }} />
-          <span className="text-[9px] font-semibold text-muted-foreground">High influence</span>
+          <span className="text-[10px] font-semibold text-muted-foreground">High influence</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-sm" style={{ background: COLORS.mechanism }} />
-          <span className="text-[9px] font-semibold text-muted-foreground">Medium influence</span>
+          <span className="text-[10px] font-semibold text-muted-foreground">Medium influence</span>
         </div>
       </div>
     </SynopsisCard>
@@ -349,20 +349,20 @@ function KeyAssumptionsPanel({ assumptions }: { assumptions: KeyAssumption[] }) 
               style={{ background: `${ec}06`, border: `1px solid ${ec}15` }}
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-bold text-foreground leading-snug flex-1">{a.assumption}</p>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest flex-shrink-0"
+                <p className="text-xs font-bold text-foreground leading-snug flex-1">{a.assumption}</p>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex-shrink-0"
                   style={{ color: ec, background: `${ec}12`, border: `1px solid ${ec}25` }}>
                   {a.evidence_status}
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">If Wrong</p>
-                  <p className="text-[10px] text-foreground leading-relaxed">{a.impact_if_wrong}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">If Wrong</p>
+                  <p className="text-[11px] text-foreground leading-relaxed">{a.impact_if_wrong}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Validation</p>
-                  <p className="text-[10px] text-foreground leading-relaxed">{a.validation_method}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Validation</p>
+                  <p className="text-[11px] text-foreground leading-relaxed">{a.validation_method}</p>
                 </div>
               </div>
             </motion.div>
@@ -392,15 +392,15 @@ function CounterfactualPanel({ scenarios }: { scenarios: CounterfactualScenario[
               style={{ background: `${lc}06`, border: `1px solid ${lc}15` }}
             >
               <div className="flex items-start justify-between gap-2">
-                <p className="text-[11px] font-bold text-foreground leading-snug flex-1">{s.scenario}</p>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest flex-shrink-0"
+                <p className="text-xs font-bold text-foreground leading-snug flex-1">{s.scenario}</p>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex-shrink-0"
                   style={{ color: lc, background: `${lc}12`, border: `1px solid ${lc}25` }}>
                   {s.likelihood} likelihood
                 </span>
               </div>
               <div className="flex items-start gap-1.5 mt-1">
-                <ArrowRight size={10} className="mt-0.5 flex-shrink-0" style={{ color: lc }} />
-                <p className="text-[10px] text-muted-foreground leading-relaxed">{s.outcome_shift}</p>
+                <ArrowRight size={11} className="mt-0.5 flex-shrink-0" style={{ color: lc }} />
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{s.outcome_shift}</p>
               </div>
             </motion.div>
           );
@@ -420,12 +420,12 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
     <div className="space-y-4">
       {/* Problem Framing */}
       <SynopsisCard title="Problem Framing" icon={Target} delay={0}>
-        <p className="text-[12px] font-semibold text-foreground leading-snug mb-2">
+        <p className="text-[13px] font-semibold text-foreground leading-snug mb-2">
           {synopsis.problem_framing.objective_interpretation}
         </p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {synopsis.problem_framing.success_criteria.map((c, i) => (
-            <span key={i} className="px-2 py-0.5 rounded-md text-[9px] font-semibold"
+            <span key={i} className="px-2 py-0.5 rounded-md text-[10px] font-semibold"
               style={{ background: `${COLORS.mechanism}10`, color: COLORS.mechanism, border: `1px solid ${COLORS.mechanism}20` }}>
               {c}
             </span>
@@ -433,8 +433,8 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
         </div>
         {synopsis.problem_framing.scope_boundaries && (
           <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Scope Boundaries</p>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">{synopsis.problem_framing.scope_boundaries}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Scope Boundaries</p>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{synopsis.problem_framing.scope_boundaries}</p>
           </div>
         )}
       </SynopsisCard>
@@ -444,7 +444,7 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
         <div className="flex flex-wrap items-center gap-1.5 mb-2">
           {synopsis.evaluation_path.dimensions_examined.map((d, i) => (
             <React.Fragment key={i}>
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground">
+              <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-muted text-muted-foreground">
                 {d}
               </span>
               {i < synopsis.evaluation_path.dimensions_examined.length - 1 && (
@@ -453,13 +453,13 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
             </React.Fragment>
           ))}
         </div>
-        <p className="text-[10px] text-muted-foreground leading-relaxed">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
           {synopsis.evaluation_path.evaluation_logic}
         </p>
         {synopsis.evaluation_path.eliminated_dimensions && (
           <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Excluded Dimensions</p>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">{synopsis.evaluation_path.eliminated_dimensions}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Excluded Dimensions</p>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{synopsis.evaluation_path.eliminated_dimensions}</p>
           </div>
         )}
       </SynopsisCard>
@@ -471,18 +471,18 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
             <div className="w-12 h-12 rounded-full flex items-center justify-center"
               style={{ background: `conic-gradient(${cc} ${(synopsis.confidence_sensitivity.confidence_score / 100) * 360}deg, hsl(var(--border) / 0.3) 0deg)` }}>
               <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: COLORS.surface }}>
-                <span className="text-[11px] font-extrabold" style={{ color: cc }}>
+                <span className="text-xs font-extrabold" style={{ color: cc }}>
                   {synopsis.confidence_sensitivity.confidence_score}
                 </span>
               </div>
             </div>
             <div className="space-y-1">
-              <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest"
+               <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest"
                 style={{ color: cc, background: `${cc}12`, border: `1px solid ${cc}25` }}>
                 {synopsis.confidence_sensitivity.overall_confidence}
               </span>
               {eq && eqColor && (
-                <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest ml-1"
+                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest ml-1"
                   style={{ color: eqColor, background: `${eqColor}12`, border: `1px solid ${eqColor}25` }}>
                   {eq}
                 </span>
@@ -494,14 +494,14 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
           <div className="flex items-start gap-1.5">
             <AlertTriangle size={10} className="mt-0.5 flex-shrink-0" style={{ color: COLORS.deprioritized }} />
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Most Sensitive Variable</p>
-              <p className="text-[11px] font-semibold text-foreground">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Most Sensitive Variable</p>
+              <p className="text-xs font-semibold text-foreground">
                 {synopsis.confidence_sensitivity.most_sensitive_variable}
               </p>
             </div>
           </div>
           {synopsis.confidence_sensitivity.sensitivity_explanation && (
-            <p className="text-[10px] text-muted-foreground leading-relaxed pl-4">
+            <p className="text-[11px] text-muted-foreground leading-relaxed pl-4">
               {synopsis.confidence_sensitivity.sensitivity_explanation}
             </p>
           )}
@@ -545,10 +545,10 @@ export function ReasoningSynopsis({ data, analysisData, products, title, categor
         )}
         <div className="rounded-xl p-6 text-center" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
           <Brain size={20} className="mx-auto mb-2 text-muted-foreground/40" />
-          <p className="text-[11px] font-semibold text-muted-foreground">
+           <p className="text-xs font-semibold text-muted-foreground">
             Reasoning Synopsis not available for this analysis.
           </p>
-          <p className="text-[9px] text-muted-foreground/60 mt-1">
+          <p className="text-[10px] text-muted-foreground/60 mt-1">
             Run a new analysis to generate the reasoning trace.
           </p>
         </div>
