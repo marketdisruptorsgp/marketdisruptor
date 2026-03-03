@@ -11,6 +11,7 @@ import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner } from "@/components/KeyTakeawayBanner";
 import { ModeHeader } from "@/components/ModeHeader";
 import { InfoExplainer } from "@/components/InfoExplainer";
+import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
 
 export default function RedesignPage() {
@@ -68,6 +69,8 @@ export default function RedesignPage() {
         <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor={theme.primary} />
 
         {takeaway && !isOutdated && <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} />}
+
+        <ActiveHypothesisBanner stepName="Redesign" accentColor={theme.primary} />
 
         <ModeHeader
           stepNumber={4}
