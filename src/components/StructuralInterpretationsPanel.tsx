@@ -228,9 +228,7 @@ export default function StructuralInterpretationsPanel({
       </div>
 
       <p className="text-xs text-muted-foreground leading-relaxed">
-        {ranking.competing
-          ? "We've identified multiple plausible root constraints — each one reshapes how the entire analysis reads. The highest-weighted interpretation is selected by default, but you can click any alternative to shift the lens. When you do, every downstream step (Disrupt, Redesign, Stress Test, Pitch) will adapt to reflect that structural angle. You can always come back here to try a different path."
-          : "The primary structural driver is highlighted below. Click any branch to explore an alternative interpretation — when you do, all downstream steps will adapt to follow your chosen angle. You can switch back anytime to compare perspectives."}
+        By default, all hypotheses are combined — every angle shapes the analysis. You can focus on a single hypothesis to isolate that perspective across all downstream steps.
       </p>
 
       {/* Pose Another Hypothesis — interactive panel */}

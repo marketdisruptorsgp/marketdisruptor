@@ -6,7 +6,7 @@ import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { buildValidationObject } from "../_shared/governedSchema.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 import { extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
-import { extractActiveBranch, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
+import { extractActiveBranch, extractCombinedBranches, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,12 +23,14 @@ serve(async (req) => {
     const filterResult = filterInputData(mode, { ...product, ...analysisData });
     console.log(`[ModeEnforcement] critical-validation | ${mode} | ${missingDataWarning(mode)}`);
     const modeGuard = getModeGuardPrompt(mode);
-    // Extract active branch for isolated stress testing
-    const branchCtx = activeBranch ? extractActiveBranch(
+    // Extract active branch for isolated or combined stress testing
+    const isCombinedMode = !activeBranch?.active_branch_id || activeBranch?.active_branch_id === "combined";
+    const branchCtx = (!isCombinedMode && activeBranch) ? extractActiveBranch(
       { root_hypotheses: [activeBranch.hypothesis] },
       activeBranch.active_branch_id
     ) : null;
-    const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null);
+    const combinedCtx = (isCombinedMode && activeBranch?.allHypotheses) ? extractCombinedBranches({ root_hypotheses: activeBranch.allHypotheses }) : null;
+    const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null, combinedCtx);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");

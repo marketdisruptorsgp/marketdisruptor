@@ -3,7 +3,7 @@ import { resolveMode, filterInputData, missingDataWarning } from "../_shared/mod
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
-import { extractActiveBranch, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
+import { extractActiveBranch, extractCombinedBranches, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
 // Governed schema: constraint-driven flip linkage
 
 const corsHeaders = {
@@ -23,11 +23,13 @@ serve(async (req) => {
     const filteredProduct = filterResult.filtered as typeof product;
     console.log(`[ModeEnforcement] flip-ideas | ${mode} | ${missingDataWarning(mode)}`);
     // Extract active branch for constraint-driven flip generation
-    const branchCtx = activeBranch ? extractActiveBranch(
+    const isCombinedMode = !activeBranch?.active_branch_id || activeBranch?.active_branch_id === "combined";
+    const branchCtx = (!isCombinedMode && activeBranch) ? extractActiveBranch(
       { root_hypotheses: [activeBranch.hypothesis] },
       activeBranch.active_branch_id
     ) : null;
-    const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null);
+    const combinedCtx = (isCombinedMode && activeBranch?.allHypotheses) ? extractCombinedBranches({ root_hypotheses: activeBranch.allHypotheses }) : null;
+    const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null, combinedCtx);
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
