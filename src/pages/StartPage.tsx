@@ -134,10 +134,11 @@ export default function StartPage() {
         <ShowcaseGallery />
       </section>
 
-      {/* Cinematic Platform Film */}
+      {/* Cinematic Platform Film — hidden
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <PlatformCinematicExperience />
       </section>
+      */}
 
       {/* How It Works Pipeline */}
       {(() => {
