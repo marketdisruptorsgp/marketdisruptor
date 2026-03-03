@@ -8,6 +8,7 @@ import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
 import { extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
+import { extractActiveBranch, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,7 +20,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages } = await req.json();
+    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch } = await req.json();
+    // Extract active branch context for isolated downstream reasoning
+    const branchCtx = activeBranch ? extractActiveBranch(
+      { root_hypotheses: [activeBranch.hypothesis] },
+      activeBranch.active_branch_id
+    ) : null;
+    const branchPrompt = buildBranchIsolationPrompt(branchCtx);
     const mode = resolveMode(undefined, product.category);
     const isService = mode === "service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -33,7 +40,7 @@ serve(async (req) => {
 
     const OS_PREAMBLE = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFramework()}
-${modeGuard}
+${modeGuard}${branchPrompt}
 
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
