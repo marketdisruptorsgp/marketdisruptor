@@ -229,7 +229,7 @@ export default function ShareableAnalysisPage() {
 
             <ProductCard product={product} isSelected={true} onClick={() => {}} />
 
-            <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>} step="report">
+            <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>} step="report" governedOverride={(data.analysis_data?.governed as Record<string, unknown>) || null}>
             {/* Section nav */}
             <div ref={sectionTabsRef}>
               <SectionWorkflowNav

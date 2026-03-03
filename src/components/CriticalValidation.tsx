@@ -127,10 +127,12 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
   let geoData: unknown = undefined;
   let regulatoryData: unknown = undefined;
+  let governedData: Record<string, unknown> | null = null;
   try {
     const ctx = useAnalysis();
     geoData = ctx.geoData;
     regulatoryData = ctx.regulatoryData;
+    governedData = ctx.governedData;
   } catch { /* context may not be available in shared view */ }
 
   const runValidation = async () => {
@@ -207,7 +209,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
       <div className="space-y-4">
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
 
-        <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="stressTest">
+        <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="stressTest" governedOverride={governedData}>
         <PitchDeckToggle contentKey="stressTestDebate" label="Include in Pitch Deck" />
 
         {/* Re-run (collapsed) */}
