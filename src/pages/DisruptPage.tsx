@@ -83,7 +83,42 @@ export default function DisruptPage() {
           explainerKey="step-disrupt"
         />
 
-        {/* ── Tabbed Reasoning / Hypotheses workspace ── */}
+        {/* ── First Principles Analysis ── */}
+        <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+          <FirstPrinciplesAnalysis
+            product={selectedProduct}
+            onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
+            flippedIdeas={selectedProduct.flippedIdeas}
+            onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
+            generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
+            externalData={analysis.disruptData}
+            onDataLoaded={(d) => {
+              analysis.setDisruptData(d);
+              analysis.saveStepData("disrupt", d);
+              analysis.markStepOutdated("redesign");
+              analysis.markStepOutdated("stressTest");
+              analysis.markStepOutdated("pitch");
+            }}
+            onPatentSave={(patentData) => {
+              const updated = products.map(p =>
+                p.id === selectedProduct.id ? { ...p, patentData } : p
+              );
+              analysis.setProducts(updated);
+              analysis.setSelectedProduct({ ...selectedProduct, patentData });
+              if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
+            }}
+            userScores={analysis.userScores}
+            onScoreChange={(ideaId, scoreKey, value) => {
+              analysis.setUserScore(ideaId, scoreKey, value);
+              analysis.saveStepData("userScores", {
+                ...analysis.userScores,
+                [ideaId]: { ...(analysis.userScores[ideaId] || {}), [scoreKey]: value },
+              });
+            }}
+          />
+        </div>
+
+        {/* ── Tabbed Reasoning / Hypotheses workspace (appears after analysis runs) ── */}
         {(() => {
           const cm = governedData?.constraint_map as Record<string, unknown> | undefined;
           const rawHypotheses = (cm?.root_hypotheses || governedData?.root_hypotheses) as StrategicHypothesis[] | undefined;
@@ -96,6 +131,8 @@ export default function DisruptPage() {
 
           return (
             <div className="space-y-0">
+              <h2 className="text-lg font-bold text-foreground mb-2">Review the AI's Strategic Reasoning</h2>
+
               {/* Tab buttons */}
               <div className="flex gap-0 border-b-2 border-border">
                 {hasSynopsis && (
@@ -140,9 +177,7 @@ export default function DisruptPage() {
                 )}
               </div>
 
-              {/* Tab explainer + content */}
               <div className="rounded-b-xl overflow-hidden" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderTop: "none" }}>
-                {/* Explainer banner */}
                 <div className="px-4 sm:px-6 pt-4 pb-2">
                   {activeTab === "reasoning" && hasSynopsis && (
                     <div className="flex items-start gap-3 p-3 rounded-lg" style={{ background: `${theme.primary}08`, border: `1px solid ${theme.primary}20` }}>
@@ -174,7 +209,6 @@ export default function DisruptPage() {
                   )}
                 </div>
 
-                {/* Content */}
                 <div className="p-4 sm:p-6 pt-2">
                   {activeTab === "reasoning" && hasSynopsis && (
                     <ReasoningSynopsis
@@ -253,41 +287,6 @@ export default function DisruptPage() {
             </div>
           );
         })()}
-
-        {/* ── First Principles Analysis ── */}
-        <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <FirstPrinciplesAnalysis
-            product={selectedProduct}
-            onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
-            flippedIdeas={selectedProduct.flippedIdeas}
-            onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
-            generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
-            externalData={analysis.disruptData}
-            onDataLoaded={(d) => {
-              analysis.setDisruptData(d);
-              analysis.saveStepData("disrupt", d);
-              analysis.markStepOutdated("redesign");
-              analysis.markStepOutdated("stressTest");
-              analysis.markStepOutdated("pitch");
-            }}
-            onPatentSave={(patentData) => {
-              const updated = products.map(p =>
-                p.id === selectedProduct.id ? { ...p, patentData } : p
-              );
-              analysis.setProducts(updated);
-              analysis.setSelectedProduct({ ...selectedProduct, patentData });
-              if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
-            }}
-            userScores={analysis.userScores}
-            onScoreChange={(ideaId, scoreKey, value) => {
-              analysis.setUserScore(ideaId, scoreKey, value);
-              analysis.saveStepData("userScores", {
-                ...analysis.userScores,
-                [ideaId]: { ...(analysis.userScores[ideaId] || {}), [scoreKey]: value },
-              });
-            }}
-          />
-        </div>
 
         <NextStepButton
           stepNumber={4}
