@@ -1,50 +1,48 @@
-## Strategic Mind Map — Interactive Branching Tree
 
-### What We're Building
 
-Replace the current orbital gravity map with a **horizontal mind map / decision tree** that reads left-to-right. The product name sits as the root node on the left. Each root hypothesis branches out as a primary limb, and each hypothesis's **causal chain** entries fan out as child nodes. Clicking a branch activates it and all downstream analysis recomputes from that path.
+## Analysis: Where Do Hypotheses Belong?
 
-```text
-                    ┌─ Friction: supplier lock-in
-                    │
-    ┌─ Cost (8.1) ──┼─ Friction: margin compression
-    │   ● ACTIVE     │
-    │                └─ Friction: capital drag
-    │
- [Product] ─┼─ Adoption (6.2) ──┬─ Friction: onboarding drop-off
-    │                            └─ Friction: channel mismatch
-    │
-    └─ Scale (5.8) ──┬─ Friction: infrastructure ceiling
-                     └─ Friction: ops bottleneck
-```
+### Current State
+- **Report (Step 2):** Intel data + visual layer with 3 tabs: Intel, Reasoning, **Hypotheses** (mind map + "Pose Another Hypothesis")
+- **Disrupt (Step 3):** Assumptions, flip logic, flipped ideas — uses `FirstPrinciplesAnalysis` component
 
-### Key Interactions
+### The Problem
+Hypotheses are structural interpretations derived from first-principles decomposition. They represent "which constraint is the binding one?" — this is fundamentally a **deconstruction/disruption** concern, not an intelligence-gathering concern. The Report step is about collecting market intel, pricing, supply chain, patents. Hypotheses sitting there feels misplaced.
 
-1. **Root node** (left) = the product under analysis
-2. **Primary branches** = root hypotheses, sized/weighted by dominance score
-3. **Secondary branches** = causal chain entries (friction sources, structural constraints)
-4. **Click a primary branch** → it highlights as active, siblings dim, downstream steps mark outdated
-5. **Hover a secondary node** → tooltip shows system_impact and impact_dimension
-6. **Active path glows** with the mode accent color; inactive paths are muted
-7. **Animated transitions** when switching branches — the new path pulses, old one fades
-8. **Competing indicator** — when delta < 1.5, the two closest branches pulse with a tension line between them
+### Recommendation: Move Hypotheses to Disrupt (Step 3)
 
-### Technical Approach
+**Why this aligns better:**
+- The Disrupt step already does first-principles analysis — assumptions, constraint identification, flip logic
+- Hypotheses are the structural output of that decomposition ("here are the competing root constraints")
+- The Report step should remain pure intelligence: data, signals, market context
+- The Disrupt step is where the user makes interpretive choices about what matters most — that's exactly what hypothesis selection is
 
-1. **Replace `BranchGravityMap.tsx**` with a new tree/mind-map layout using Framer Motion (no external lib needed)
-  - Nodes positioned with a simple tree layout algorithm: root at left center, primary branches spaced vertically, secondary branches offset further right
-  - SVG paths (cubic bezier curves) connect parent → child nodes for organic tree feel
-  - Each primary node shows: constraint icon, type label, dominance score, confidence badge
-  - Each secondary node shows: friction label (truncated), impact dimension badge
-2. **Expanded detail** — clicking a primary branch shows a slim inline panel below it with leverage, evidence bar, fragility, and "Focus on this path" CTA (same data as current NodeExpanded)
-3. **Responsive** — on mobile, collapse to a vertical accordion tree (indented list with expand/collapse)
-4. **Integration** — same props interface (`hypotheses`, `activeBranchId`, `onSelectBranch`), drop-in replacement in `StructuralInterpretationsPanel`
-5. **Styling** — light background matching the museum-quality aesthetic, organic bezier connectors, mode-accent glow on active path, muted tones for inactive branches  
-  
-styling should have some substance, some neat design elements that a professioanl designer would be proud of.  but also consistent with our colors/fonts, no emojis. 
+### Plan
 
-### Scope
+1. **Move the Hypotheses tab from `AnalysisVisualLayer` (Report) to `DisruptPage`**
+   - Remove `branchingPanel` and `defaultTab="hypotheses"` props from `AnalysisVisualLayer`
+   - Remove the "Hypotheses" tab from the tab switcher in `AnalysisVisualLayer` (keep Intel + Reasoning only)
+   - Add the `StructuralInterpretationsPanel` (mind map + Pose Another Hypothesis) directly into `DisruptPage.tsx` as a prominent section above or alongside the existing assumptions/flip content
+   - Create a local tab system in DisruptPage: "Hypotheses" | "Assumptions" | "Flip" | "Ideas" (or integrate into existing section nav)
 
-- Rewrite `BranchGravityMap.tsx` (~250 lines)
-- No other file changes needed (same props contract)
-- No backend changes
+2. **Update navigation references**
+   - `ActiveHypothesisBanner.tsx`: Change "Choose another hypothesis" to navigate to the Disrupt step (`${baseUrl}/disrupt`) instead of Report with `openHypothesesTab`
+   - Remove `openHypothesesTab` location state handling from `ReportPage.tsx`
+
+3. **Move hypothesis-related logic from ReportPage to DisruptPage**
+   - The `onApplyRevision` handler for `new_hypothesis`
+   - The `onSelectBranch` handler with strategic profile adaptation
+   - The ranking/governed data extraction for hypotheses
+
+4. **Clean up AnalysisVisualLayer**
+   - Remove `branchingPanel` and `defaultTab` props
+   - Simplify tab switcher to just Intel + Reasoning (when synopsis exists)
+
+5. **No backend changes needed** — same edge functions, same data flow
+
+### Files to Change
+- `src/pages/DisruptPage.tsx` — add hypothesis panel + handlers
+- `src/pages/ReportPage.tsx` — remove hypothesis logic
+- `src/components/AnalysisVisualLayer.tsx` — remove hypotheses tab + props
+- `src/components/ActiveHypothesisBanner.tsx` — update navigation target to disrupt step
+
