@@ -16,7 +16,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 
 import { PatentIntelligence } from "@/components/PatentIntelligence";
-import { IntelDigest } from "@/components/IntelDigest";
+import { ObservedSignalMatrix } from "@/components/ObservedSignalMatrix";
 import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
@@ -179,8 +179,8 @@ export default function ReportPage() {
         {/* Product Card */}
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
-        {/* Intel Digest — structured signal summary */}
-        <IntelDigest
+        {/* Observed Signal Matrix — structured signal summary */}
+        <ObservedSignalMatrix
           product={selectedProduct}
           analysisId={analysisId || null}
           saveStepData={analysis.saveStepData}
