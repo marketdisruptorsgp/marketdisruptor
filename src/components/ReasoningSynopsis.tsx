@@ -522,9 +522,10 @@ interface ReasoningSynopsisProps {
   avgScore?: number | null;
   analysisId?: string | null;
   onApplyRevision?: (revision: any) => void;
+  branchingPanel?: React.ReactNode;
 }
 
-export function ReasoningSynopsis({ data, analysisData, products, title, category, analysisType, avgScore, analysisId, onApplyRevision }: ReasoningSynopsisProps) {
+export function ReasoningSynopsis({ data, analysisData, products, title, category, analysisType, avgScore, analysisId, onApplyRevision, branchingPanel }: ReasoningSynopsisProps) {
   const synopsis = data as SynopsisData | undefined;
 
   if (!synopsis || !synopsis.problem_framing) {
@@ -570,6 +571,8 @@ export function ReasoningSynopsis({ data, analysisData, products, title, categor
           onApplyRevision={onApplyRevision}
         />
       )}
+      {/* Branch selector */}
+      {branchingPanel}
       {/* Visual panels */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <LensInfluenceRadar synopsis={synopsis} />

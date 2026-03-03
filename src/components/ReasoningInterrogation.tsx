@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, Send, Loader2, ChevronDown, ChevronUp, Zap, X, Check, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -124,6 +124,86 @@ function RevisionCard({ revision, onApply, applied }: { revision: Revision; onAp
   );
 }
 
+/* ── Structured Assistant Message ── */
+function AssistantMessage({ content }: { content: string }) {
+  // Parse content into structured sections: detect bold labels like "Evidence:", "Implication:", etc.
+  const sections = useMemo(() => {
+    const lines = content.split("\n").filter(l => l.trim());
+    const result: { type: "heading" | "labeled" | "text" | "bullet"; label?: string; text: string }[] = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      // Detect **Label:** or **Label** patterns (bold headings)
+      const boldLabelMatch = trimmed.match(/^\*\*(.+?)[:]\*\*\s*(.*)/);
+      const headingMatch = trimmed.match(/^#{1,3}\s+(.*)/);
+      const bulletMatch = trimmed.match(/^[-•*]\s+(.*)/);
+
+      if (headingMatch) {
+        result.push({ type: "heading", text: headingMatch[1] });
+      } else if (boldLabelMatch) {
+        result.push({ type: "labeled", label: boldLabelMatch[1], text: boldLabelMatch[2] || "" });
+      } else if (bulletMatch) {
+        result.push({ type: "bullet", text: bulletMatch[1] });
+      } else {
+        result.push({ type: "text", text: trimmed });
+      }
+    }
+    return result;
+  }, [content]);
+
+  // If short/simple response, just render as markdown
+  if (sections.length <= 2 && !sections.some(s => s.type === "labeled")) {
+    return (
+      <div className="prose prose-sm max-w-none [&_p]:text-[12px] [&_p]:leading-relaxed [&_li]:text-[12px] [&_strong]:text-foreground [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_code]:text-[11px]">
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </div>
+    );
+  }
+
+  // Render structured cards
+  return (
+    <div className="space-y-2">
+      {sections.map((s, i) => {
+        if (s.type === "heading") {
+          return (
+            <p key={i} className="text-[12px] font-bold text-foreground leading-snug">
+              {s.text}
+            </p>
+          );
+        }
+        if (s.type === "labeled") {
+          return (
+            <div
+              key={i}
+              className="rounded-lg px-3 py-2"
+              style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border) / 0.5)" }}
+            >
+              <span
+                className="text-[9px] font-extrabold uppercase tracking-widest mr-2"
+                style={{ color: "hsl(var(--primary))" }}
+              >
+                {s.label}
+              </span>
+              <span className="text-[11px] text-foreground leading-relaxed">{s.text}</span>
+            </div>
+          );
+        }
+        if (s.type === "bullet") {
+          return (
+            <div key={i} className="flex items-start gap-2 pl-1">
+              <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.5)" }} />
+              <span className="text-[11px] text-foreground leading-relaxed">{s.text}</span>
+            </div>
+          );
+        }
+        return (
+          <p key={i} className="text-[11px] text-muted-foreground leading-relaxed">{s.text}</p>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ── Chat Messages ── */
 function ChatMessages({
   messages, isLoading, scrollRef, appliedRevisions, onApplyRevision,
@@ -142,7 +222,7 @@ function ChatMessages({
 
         return (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] ${msg.role === "user" ? "" : ""}`}>
+            <div className={`max-w-[85%]`}>
               <div
                 className={`rounded-xl px-3.5 py-2.5 text-[12px] leading-relaxed ${
                   msg.role === "user" ? "bg-primary text-primary-foreground" : ""
@@ -153,9 +233,7 @@ function ChatMessages({
                 } : undefined}
               >
                 {msg.role === "assistant" ? (
-                  <div className="prose prose-sm max-w-none [&_p]:text-[12px] [&_p]:leading-relaxed [&_li]:text-[12px] [&_strong]:text-foreground [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_code]:text-[11px]">
-                    <ReactMarkdown>{displayContent}</ReactMarkdown>
-                  </div>
+                  <AssistantMessage content={displayContent} />
                 ) : (
                   displayContent
                 )}
