@@ -218,10 +218,10 @@ export default function StructuralInterpretationsPanel({
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground leading-relaxed">
         {ranking.competing
-          ? "Multiple plausible root constraints identified. The system selects the highest-weighted interpretation by default. Select an alternative to shift the analytical lens across all downstream steps."
-          : "The primary structural driver is identified below. Click any branch to explore alternative interpretations — downstream analysis will follow your chosen path."}
+          ? "We've identified multiple plausible root constraints — each one reshapes how the entire analysis reads. The highest-weighted interpretation is selected by default, but you can click any alternative to shift the lens. When you do, every downstream step (Disrupt, Redesign, Stress Test, Pitch) will adapt to reflect that structural angle. You can always come back here to try a different path."
+          : "The primary structural driver is highlighted below. Click any branch to explore an alternative interpretation — when you do, all downstream steps will adapt to follow your chosen angle. You can switch back anytime to compare perspectives."}
       </p>
 
       {/* Gravity map on desktop, card list on mobile */}
