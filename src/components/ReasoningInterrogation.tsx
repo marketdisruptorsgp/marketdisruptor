@@ -201,16 +201,16 @@ export function ReasoningInterrogation({ analysisData, products, title, category
       >
         <button
           onClick={() => setIsOpen(true)}
-          className="w-full group rounded-xl p-4 flex items-center justify-between transition-all duration-200 hover:shadow-md"
+          className="w-full group rounded-xl p-4 flex items-center justify-between transition-all duration-200 hover:shadow-lg"
           style={{
-            background: "hsl(var(--vi-surface-elevated))",
-            border: "1px solid hsl(var(--primary) / 0.2)",
+            background: "hsl(var(--primary) / 0.06)",
+            border: "2px solid hsl(var(--primary) / 0.25)",
           }}
         >
           <div className="flex items-center gap-3">
             <div
               className="w-9 h-9 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105"
-              style={{ background: "hsl(var(--primary) / 0.1)" }}
+              style={{ background: "hsl(var(--primary) / 0.15)" }}
             >
               <MessageSquare size={16} style={{ color: "hsl(var(--primary))" }} />
             </div>
