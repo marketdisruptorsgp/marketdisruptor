@@ -35,15 +35,15 @@ const CONSTRAINT_ICONS: Record<string, typeof Zap> = {
 };
 
 /* ─── Layout constants ─── */
-const ROOT_X = 60;
-const PRIMARY_X = 240;
-const SECONDARY_X = 460;
-const NODE_GAP_Y = 140;
-const SECONDARY_GAP_Y = 38;
+const ROOT_X = 80;
+const PRIMARY_X = 280;
+const SECONDARY_X = 520;
+const NODE_GAP_Y = 180;
+const SECONDARY_GAP_Y = 44;
 
 function computeLayout(hypotheses: StrategicHypothesis[]) {
   const totalH = hypotheses.length * NODE_GAP_Y;
-  const startY = Math.max(60, 200 - totalH / 2);
+  const startY = Math.max(80, 220 - totalH / 2);
   const rootY = startY + (totalH - NODE_GAP_Y) / 2;
 
   const primaries = hypotheses.map((h, i) => {
@@ -56,8 +56,8 @@ function computeLayout(hypotheses: StrategicHypothesis[]) {
     return { hypothesis: h, x: PRIMARY_X, y: py, secondaries };
   });
 
-  const svgH = Math.max(380, startY + totalH + 40);
-  const svgW = Math.max(620, SECONDARY_X + 200);
+  const svgH = Math.max(440, startY + totalH + 60);
+  const svgW = Math.max(720, SECONDARY_X + 220);
 
   return { rootX: ROOT_X, rootY, primaries, svgW, svgH };
 }
@@ -92,52 +92,79 @@ function BranchDetail({
   theme: ReturnType<typeof useModeTheme>;
 }) {
   const fragilityColor =
-    hypothesis.fragility_score <= 3 ? "text-green-600" :
-    hypothesis.fragility_score <= 6 ? "text-amber-600" : "text-red-600";
+    hypothesis.fragility_score <= 3 ? "text-green-700" :
+    hypothesis.fragility_score <= 6 ? "text-amber-700" : "text-red-700";
+  const fragilityLabel =
+    hypothesis.fragility_score <= 3 ? "Resilient" :
+    hypothesis.fragility_score <= 6 ? "Moderate" : "Fragile";
 
   return (
     <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      className="overflow-hidden"
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -4 }}
+      transition={{ duration: 0.15 }}
+      className="relative z-30 mt-2"
+      style={{ minWidth: 280, maxWidth: 340 }}
     >
-      <div
-        className="mt-2 rounded-lg border border-border/40 bg-card/90 backdrop-blur-sm p-3 space-y-2 shadow-sm"
-        style={{ maxWidth: 220 }}
-      >
-        <p className="text-[11px] text-foreground leading-snug line-clamp-3">
+      <div className="rounded-xl border-2 border-border bg-card p-4 space-y-3 shadow-lg">
+        <p className="text-sm font-semibold text-foreground leading-snug">
           {hypothesis.hypothesis_statement}
         </p>
 
-        <div className="flex justify-between text-[10px] text-muted-foreground">
-          <span>Leverage: {hypothesis.leverage_score}/10</span>
-          <span>Conf: {hypothesis.confidence}%</span>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Leverage</span>
+            <span className="font-bold text-foreground">{hypothesis.leverage_score}/10</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Confidence</span>
+            <span className="font-bold text-foreground">{hypothesis.confidence}%</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Fragility</span>
+            <span className={`font-bold ${fragilityColor}`}>{fragilityLabel} ({hypothesis.fragility_score}/10)</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Dominance</span>
+            <span className="font-bold text-foreground font-mono">{hypothesis.dominance_score?.toFixed(1)}</span>
+          </div>
         </div>
 
         <EvidenceBar mix={hypothesis.evidence_mix} />
-
-        <div className="flex justify-between text-[10px]">
-          <span className={fragilityColor}>
-            Fragility: {hypothesis.fragility_score}/10
+        <div className="flex gap-3 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+            Verified {Math.round(hypothesis.evidence_mix.verified * 100)}%
           </span>
-          <span className="text-muted-foreground font-mono">
-            Dom: {hypothesis.dominance_score?.toFixed(1)}
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
+            Modeled {Math.round(hypothesis.evidence_mix.modeled * 100)}%
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
+            Assumed {Math.round(hypothesis.evidence_mix.assumption * 100)}%
           </span>
         </div>
+
+        {hypothesis.downstream_implications && (
+          <p className="text-xs text-muted-foreground border-t border-border pt-2">
+            → {hypothesis.downstream_implications}
+          </p>
+        )}
 
         {!isActive ? (
           <Button
             size="sm"
-            className="w-full text-[11px] h-7"
+            className="w-full text-xs font-bold h-8"
             style={{ background: theme.primary, color: "white" }}
             onClick={(e) => { e.stopPropagation(); onSelect(); }}
           >
             Focus on this path
           </Button>
         ) : (
-          <Badge className="w-full justify-center text-[10px] bg-primary/15 text-primary border-primary/30">
-            <CheckCircle2 className="h-3 w-3 mr-1" /> Active Path
+          <Badge className="w-full justify-center text-xs py-1.5 bg-primary/15 text-primary border-primary/30">
+            <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" /> Active Path
           </Badge>
         )}
       </div>
@@ -352,33 +379,33 @@ export default function BranchGravityMap({
 
               {/* Node button */}
               <motion.button
-                className={`relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-colors ${
+                className={`relative flex items-center gap-3 px-5 py-3 rounded-xl border-2 cursor-pointer transition-colors ${
                   isActive
-                    ? "border-primary/60 bg-card shadow-md"
-                    : "border-border/30 bg-card/80 hover:border-primary/30 hover:shadow-sm"
+                    ? "border-primary/60 bg-card shadow-lg"
+                    : "border-border/40 bg-card hover:border-primary/30 hover:shadow-md"
                 }`}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handlePrimaryClick(h.id)}
               >
-                <div className={`p-1.5 rounded-lg ${isActive ? "bg-primary/15" : "bg-muted/60"}`}>
-                  <Icon className={`h-4 w-4 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                <div className={`p-2 rounded-lg ${isActive ? "bg-primary/15" : "bg-muted"}`}>
+                  <Icon className={`h-5 w-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                 </div>
                 <div className="text-left">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-semibold text-foreground capitalize">{h.constraint_type}</span>
-                    <span className="text-[11px] font-mono text-muted-foreground">{domScore.toFixed(1)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-foreground capitalize">{h.constraint_type}</span>
+                    <span className="text-xs font-mono text-foreground/70">{domScore.toFixed(1)}</span>
                   </div>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <span className="text-[10px] text-muted-foreground">{h.confidence}%</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-xs text-muted-foreground font-medium">{h.confidence}%</span>
                     {isActive && (
-                      <span className="text-[9px] font-medium text-primary ml-1">ACTIVE</span>
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-wide">Active</span>
                     )}
                   </div>
                 </div>
               </motion.button>
 
-              {/* Expanded detail */}
+              {/* Expanded detail — below node, no overlap */}
               <AnimatePresence>
                 {isExpanded && (
                   <BranchDetail
@@ -401,21 +428,21 @@ export default function BranchGravityMap({
               <Tooltip key={s.friction_id}>
                 <TooltipTrigger asChild>
                   <motion.div
-                    className={`absolute flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border cursor-default transition-colors ${
+                    className={`absolute flex items-center gap-2 px-3 py-2 rounded-lg border cursor-default transition-colors ${
                       isActive
-                        ? "border-primary/25 bg-card/90"
-                        : "border-border/20 bg-card/50"
+                        ? "border-primary/30 bg-card shadow-sm"
+                        : "border-border/30 bg-card/70"
                     }`}
-                    style={{ left: s.x, top: s.y - 14 }}
+                    style={{ left: s.x, top: s.y - 16 }}
                     initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: isActive ? 1 : 0.45, x: 0 }}
+                    animate={{ opacity: isActive ? 1 : 0.5, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.3 + j * 0.05 }}
                   >
-                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: isActive ? theme.primary : "hsl(var(--border))" }} />
-                    <span className={`text-[10px] truncate max-w-[120px] ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: isActive ? theme.primary : "hsl(var(--border))" }} />
+                    <span className={`text-xs truncate max-w-[140px] font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
                       {s.structural_constraint}
                     </span>
-                    <Badge variant="outline" className="text-[8px] h-3.5 px-1 shrink-0 border-border/30">
+                    <Badge variant="outline" className="text-[9px] h-4 px-1.5 shrink-0 font-semibold">
                       {s.impact_dimension}
                     </Badge>
                   </motion.div>

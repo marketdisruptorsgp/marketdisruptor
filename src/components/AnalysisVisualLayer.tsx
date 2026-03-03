@@ -546,7 +546,7 @@ export function AnalysisVisualLayer({
 }) {
   const result = resolveAdaptiveVisuals(analysis);
   const stepConfig = getStepVisualConfig(step);
-  const [activeTab, setActiveTab] = useState<"visual" | "reasoning">("visual");
+  const [activeTab, setActiveTab] = useState<"visual" | "reasoning" | "hypotheses">("visual");
 
   // Compile visual story — governed causal structure preferred, heuristic fallback
   const rankedSignals = useMemo(() => extractAndRankSignals(analysis), [analysis]);
@@ -571,30 +571,43 @@ export function AnalysisVisualLayer({
 
   return (
     <div className="space-y-4">
-      {/* Branching panel — always visible above tabs */}
-      {branchingPanel}
-
-      {/* Tab Switcher — only show if synopsis data exists */}
-      {hasSynopsis && (
+      {/* Tab Switcher */}
+      {(hasSynopsis || branchingPanel) && (
         <div className="flex items-center gap-1 p-1 rounded-xl w-full sm:w-fit" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          {(["visual", "reasoning"] as const).map((tab) => (
+          {(
+            [
+              { key: "visual" as const, label: "Intel", show: true },
+              { key: "reasoning" as const, label: "Reasoning", show: hasSynopsis },
+              { key: "hypotheses" as const, label: "Hypotheses", show: !!branchingPanel },
+            ].filter(t => t.show)
+          ).map(({ key, label }) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={key}
+              onClick={() => setActiveTab(key)}
               className={`flex-1 sm:flex-none px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 ${
-                activeTab === tab
+                activeTab === key
                   ? "bg-card text-foreground shadow-md ring-1 ring-border"
                   : "text-muted-foreground hover:text-foreground hover:bg-card/50"
               }`}
             >
-              {tab === "visual" ? "Intel" : "Reasoning"}
+              {label}
             </button>
           ))}
         </div>
       )}
 
       <AnimatePresence mode="wait">
-        {activeTab === "reasoning" && hasSynopsis ? (
+        {activeTab === "hypotheses" && branchingPanel ? (
+          <motion.div
+            key="hypotheses"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2 }}
+          >
+            {branchingPanel}
+          </motion.div>
+        ) : activeTab === "reasoning" && hasSynopsis ? (
           <motion.div
             key="reasoning"
             initial={{ opacity: 0, y: 6 }}
