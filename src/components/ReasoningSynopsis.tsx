@@ -4,15 +4,17 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Cell, Tooltip,
 } from "recharts";
-import { ArrowRight, Brain, Eye, Scale, Target, TrendingUp, AlertTriangle, Gauge } from "lucide-react";
+import { ArrowRight, Brain, Eye, Scale, Target, TrendingUp, AlertTriangle, Gauge, ShieldQuestion, GitBranch, FileSearch } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════
    REASONING SYNOPSIS — Dedicated Tab Component
-   Renders 4 visual modes:
+   Renders visual modes:
    1. Lens Influence Radar
-   2. Causal Flow Diagram
+   2. Causal Flow Diagram (expanded)
    3. Decision Weight Bars
-   4. Structured Text
+   4. Key Assumptions Panel
+   5. Counterfactual Scenarios
+   6. Structured Text (Problem Framing + Evaluation + Confidence)
    ═══════════════════════════════════════════════════ */
 
 interface CausalRelationship {
@@ -27,10 +29,24 @@ interface DecisionDriver {
   rationale: string;
 }
 
+interface KeyAssumption {
+  assumption: string;
+  evidence_status: "verified" | "modeled" | "speculative";
+  impact_if_wrong: string;
+  validation_method: string;
+}
+
+interface CounterfactualScenario {
+  scenario: string;
+  outcome_shift: string;
+  likelihood: "high" | "medium" | "low";
+}
+
 interface SynopsisData {
   problem_framing: {
     objective_interpretation: string;
     success_criteria: string[];
+    scope_boundaries?: string;
   };
   lens_influence: {
     lens_name: string;
@@ -41,17 +57,22 @@ interface SynopsisData {
   evaluation_path: {
     dimensions_examined: string[];
     evaluation_logic: string;
+    eliminated_dimensions?: string;
   };
+  key_assumptions?: KeyAssumption[];
   core_causal_logic: {
     primary_relationships: CausalRelationship[];
     dominant_mechanism: string;
+    secondary_mechanisms?: string;
   };
+  counterfactual_scenarios?: CounterfactualScenario[];
   decision_drivers: DecisionDriver[];
   confidence_sensitivity: {
     overall_confidence: "high" | "medium" | "low";
     confidence_score: number;
     most_sensitive_variable: string;
     sensitivity_explanation?: string;
+    evidence_quality?: string;
   };
 }
 
@@ -70,6 +91,21 @@ const CONFIDENCE_COLOR: Record<string, string> = {
   high: "hsl(var(--vi-glow-outcome))",
   medium: "hsl(var(--vi-glow-mechanism))",
   low: "hsl(var(--vi-glow-system))",
+};
+
+const EVIDENCE_COLOR: Record<string, string> = {
+  verified: "hsl(var(--vi-glow-outcome))",
+  modeled: "hsl(var(--vi-glow-mechanism))",
+  speculative: "hsl(var(--vi-glow-system))",
+  strong: "hsl(var(--vi-glow-outcome))",
+  moderate: "hsl(var(--vi-glow-mechanism))",
+  weak: "hsl(var(--vi-glow-system))",
+};
+
+const LIKELIHOOD_COLOR: Record<string, string> = {
+  high: "hsl(var(--vi-glow-system))",
+  medium: "hsl(var(--vi-glow-mechanism))",
+  low: "hsl(var(--muted-foreground))",
 };
 
 /* ── Section wrapper ── */
@@ -159,7 +195,7 @@ function LensInfluenceRadar({ synopsis }: { synopsis: SynopsisData }) {
   );
 }
 
-/* ═══ 2. CAUSAL FLOW DIAGRAM ═══ */
+/* ═══ 2. CAUSAL FLOW DIAGRAM (expanded) ═══ */
 function CausalFlowDiagram({ synopsis }: { synopsis: SynopsisData }) {
   const relationships = synopsis.core_causal_logic.primary_relationships;
   if (!relationships || relationships.length === 0) return null;
@@ -173,38 +209,46 @@ function CausalFlowDiagram({ synopsis }: { synopsis: SynopsisData }) {
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 + i * 0.08 }}
-            className="flex items-center gap-2 flex-wrap"
+            className="space-y-1"
           >
-            {/* Cause */}
-            <span
-              className="px-2.5 py-1 rounded-lg text-[10px] font-bold"
-              style={{ background: `${COLORS.deprioritized}12`, color: COLORS.deprioritized, border: `1px solid ${COLORS.deprioritized}25` }}
-            >
-              {rel.cause}
-            </span>
-            {/* Arrow + mechanism */}
-            <div className="flex items-center gap-1">
-              <ArrowRight size={10} style={{ color: COLORS.mechanism }} />
-              <span className="text-[9px] font-medium italic" style={{ color: COLORS.mechanism }}>
-                {rel.mechanism.length > 35 ? rel.mechanism.slice(0, 33) + "…" : rel.mechanism}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className="px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                style={{ background: `${COLORS.deprioritized}12`, color: COLORS.deprioritized, border: `1px solid ${COLORS.deprioritized}25` }}
+              >
+                {rel.cause}
               </span>
-              <ArrowRight size={10} style={{ color: COLORS.mechanism }} />
+              <div className="flex items-center gap-1">
+                <ArrowRight size={10} style={{ color: COLORS.mechanism }} />
+              </div>
+              <span
+                className="px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                style={{ background: `${COLORS.prioritized}12`, color: COLORS.prioritized, border: `1px solid ${COLORS.prioritized}25` }}
+              >
+                {rel.effect}
+              </span>
             </div>
-            {/* Effect */}
-            <span
-              className="px-2.5 py-1 rounded-lg text-[10px] font-bold"
-              style={{ background: `${COLORS.prioritized}12`, color: COLORS.prioritized, border: `1px solid ${COLORS.prioritized}25` }}
-            >
-              {rel.effect}
-            </span>
+            <p className="text-[10px] text-muted-foreground pl-3 leading-relaxed italic" style={{ borderLeft: `2px solid ${COLORS.mechanism}30` }}>
+              {rel.mechanism}
+            </p>
           </motion.div>
         ))}
       </div>
-      <div className="mt-3 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-        <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Dominant Mechanism</p>
-        <p className="text-[11px] font-semibold text-foreground leading-snug">
-          {synopsis.core_causal_logic.dominant_mechanism}
-        </p>
+      <div className="mt-3 pt-2 space-y-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Dominant Mechanism</p>
+          <p className="text-[11px] font-semibold text-foreground leading-snug">
+            {synopsis.core_causal_logic.dominant_mechanism}
+          </p>
+        </div>
+        {synopsis.core_causal_logic.secondary_mechanisms && (
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Secondary Mechanisms</p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              {synopsis.core_causal_logic.secondary_mechanisms}
+            </p>
+          </div>
+        )}
       </div>
     </SynopsisCard>
   );
@@ -215,7 +259,7 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
   const drivers = synopsis.decision_drivers;
   if (!drivers || drivers.length === 0) return null;
 
-  const data = drivers.map((d, i) => ({
+  const data = drivers.map((d) => ({
     name: d.factor.length > 28 ? d.factor.slice(0, 26) + "…" : d.factor,
     full: d.factor,
     value: d.weight === "high" ? 90 : 55,
@@ -223,9 +267,11 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
     weight: d.weight,
   }));
 
+  const barHeight = Math.max(140, data.length * 32);
+
   return (
     <SynopsisCard title="Decision Drivers" icon={Scale} delay={0.1}>
-      <div className="h-[140px] -ml-2">
+      <div style={{ height: barHeight }} className="-ml-2">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" barSize={10}>
             <XAxis type="number" domain={[0, 100]} hide />
@@ -240,10 +286,10 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
                 if (!active || !payload?.[0]) return null;
                 const d = payload[0].payload;
                 return (
-                  <div className="rounded-lg px-3 py-2 text-[10px] max-w-[200px]"
+                  <div className="rounded-lg px-3 py-2 text-[10px] max-w-[260px]"
                     style={{ background: "hsl(var(--popover))", border: `1px solid ${COLORS.border}`, color: "hsl(var(--popover-foreground))" }}>
-                    <p className="font-bold mb-0.5">{d.full}</p>
-                    <p className="text-muted-foreground">{d.rationale}</p>
+                    <p className="font-bold mb-1">{d.full}</p>
+                    <p className="text-muted-foreground leading-relaxed">{d.rationale}</p>
                   </div>
                 );
               }}
@@ -256,7 +302,20 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="flex items-center gap-4 mt-1">
+      {/* Rationale list below chart */}
+      <div className="mt-3 space-y-2">
+        {drivers.map((d, i) => (
+          <div key={i} className="flex items-start gap-2">
+            <span className="w-2 h-2 rounded-sm mt-1 flex-shrink-0"
+              style={{ background: d.weight === "high" ? COLORS.prioritized : COLORS.mechanism }} />
+            <div>
+              <p className="text-[10px] font-bold text-foreground">{d.factor}</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{d.rationale}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-4 mt-3 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-sm" style={{ background: COLORS.prioritized }} />
           <span className="text-[9px] font-semibold text-muted-foreground">High influence</span>
@@ -270,9 +329,91 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
   );
 }
 
-/* ═══ 4. STRUCTURED TEXT — Problem Framing + Evaluation + Confidence ═══ */
+/* ═══ 4. KEY ASSUMPTIONS PANEL ═══ */
+function KeyAssumptionsPanel({ assumptions }: { assumptions: KeyAssumption[] }) {
+  if (!assumptions || assumptions.length === 0) return null;
+
+  return (
+    <SynopsisCard title="Key Assumptions" icon={ShieldQuestion} delay={0.12}>
+      <div className="space-y-3">
+        {assumptions.map((a, i) => {
+          const ec = EVIDENCE_COLOR[a.evidence_status] || COLORS.muted;
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + i * 0.06 }}
+              className="rounded-lg p-3 space-y-1.5"
+              style={{ background: `${ec}06`, border: `1px solid ${ec}15` }}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-bold text-foreground leading-snug flex-1">{a.assumption}</p>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest flex-shrink-0"
+                  style={{ color: ec, background: `${ec}12`, border: `1px solid ${ec}25` }}>
+                  {a.evidence_status}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">If Wrong</p>
+                  <p className="text-[10px] text-foreground leading-relaxed">{a.impact_if_wrong}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Validation</p>
+                  <p className="text-[10px] text-foreground leading-relaxed">{a.validation_method}</p>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </SynopsisCard>
+  );
+}
+
+/* ═══ 5. COUNTERFACTUAL SCENARIOS ═══ */
+function CounterfactualPanel({ scenarios }: { scenarios: CounterfactualScenario[] }) {
+  if (!scenarios || scenarios.length === 0) return null;
+
+  return (
+    <SynopsisCard title="Counterfactual Scenarios" icon={GitBranch} delay={0.15}>
+      <div className="space-y-3">
+        {scenarios.map((s, i) => {
+          const lc = LIKELIHOOD_COLOR[s.likelihood] || COLORS.muted;
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 + i * 0.06 }}
+              className="rounded-lg p-3 space-y-1.5"
+              style={{ background: `${lc}06`, border: `1px solid ${lc}15` }}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-[11px] font-bold text-foreground leading-snug flex-1">{s.scenario}</p>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest flex-shrink-0"
+                  style={{ color: lc, background: `${lc}12`, border: `1px solid ${lc}25` }}>
+                  {s.likelihood} likelihood
+                </span>
+              </div>
+              <div className="flex items-start gap-1.5 mt-1">
+                <ArrowRight size={10} className="mt-0.5 flex-shrink-0" style={{ color: lc }} />
+                <p className="text-[10px] text-muted-foreground leading-relaxed">{s.outcome_shift}</p>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </SynopsisCard>
+  );
+}
+
+/* ═══ 6. STRUCTURED TEXT — Problem Framing + Evaluation + Confidence ═══ */
 function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
   const cc = CONFIDENCE_COLOR[synopsis.confidence_sensitivity.overall_confidence] || COLORS.muted;
+  const eq = synopsis.confidence_sensitivity.evidence_quality;
+  const eqColor = eq ? (EVIDENCE_COLOR[eq.split(" ")[0]?.toLowerCase()] || COLORS.muted) : null;
 
   return (
     <div className="space-y-4">
@@ -281,7 +422,7 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
         <p className="text-[12px] font-semibold text-foreground leading-snug mb-2">
           {synopsis.problem_framing.objective_interpretation}
         </p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 mb-2">
           {synopsis.problem_framing.success_criteria.map((c, i) => (
             <span key={i} className="px-2 py-0.5 rounded-md text-[9px] font-semibold"
               style={{ background: `${COLORS.mechanism}10`, color: COLORS.mechanism, border: `1px solid ${COLORS.mechanism}20` }}>
@@ -289,6 +430,12 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
             </span>
           ))}
         </div>
+        {synopsis.problem_framing.scope_boundaries && (
+          <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Scope Boundaries</p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">{synopsis.problem_framing.scope_boundaries}</p>
+          </div>
+        )}
       </SynopsisCard>
 
       {/* Evaluation Path */}
@@ -308,6 +455,12 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
         <p className="text-[10px] text-muted-foreground leading-relaxed">
           {synopsis.evaluation_path.evaluation_logic}
         </p>
+        {synopsis.evaluation_path.eliminated_dimensions && (
+          <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Excluded Dimensions</p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">{synopsis.evaluation_path.eliminated_dimensions}</p>
+          </div>
+        )}
       </SynopsisCard>
 
       {/* Confidence + Sensitivity */}
@@ -322,15 +475,21 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
                 </span>
               </div>
             </div>
-            <div>
+            <div className="space-y-1">
               <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest"
                 style={{ color: cc, background: `${cc}12`, border: `1px solid ${cc}25` }}>
                 {synopsis.confidence_sensitivity.overall_confidence}
               </span>
+              {eq && eqColor && (
+                <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest ml-1"
+                  style={{ color: eqColor, background: `${eqColor}12`, border: `1px solid ${eqColor}25` }}>
+                  {eq}
+                </span>
+              )}
             </div>
           </div>
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex items-start gap-1.5">
             <AlertTriangle size={10} className="mt-0.5 flex-shrink-0" style={{ color: COLORS.deprioritized }} />
             <div>
@@ -377,6 +536,11 @@ export function ReasoningSynopsis({ data }: { data: unknown }) {
         <CausalFlowDiagram synopsis={synopsis} />
       </div>
       <DecisionWeightBars synopsis={synopsis} />
+      {/* New depth panels */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <KeyAssumptionsPanel assumptions={synopsis.key_assumptions || []} />
+        <CounterfactualPanel scenarios={synopsis.counterfactual_scenarios || []} />
+      </div>
       {/* Structured text sections */}
       <StructuredTextSynopsis synopsis={synopsis} />
     </div>

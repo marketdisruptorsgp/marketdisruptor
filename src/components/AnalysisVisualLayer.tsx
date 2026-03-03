@@ -293,7 +293,7 @@ function ForceColumn({ signals, label, icon: Icon, color, side }: {
         <Icon size={11} style={{ color }} />
         <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color }}>{label}</span>
       </div>
-      {signals.length > 0 ? signals.slice(0, 5).map((s, i) => (
+      {signals.length > 0 ? signals.slice(0, 7).map((s, i) => (
         <motion.div key={i} initial={{ opacity: 0, x: side === "left" ? -8 : 8 }} animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 + i * 0.05 }}>
           <SignalChip signal={s} compact />
@@ -317,7 +317,7 @@ function SystemTensionMap({ story }: { story: VisualStory }) {
         {/* Drivers */}
         <div className="p-4 space-y-2" style={{ borderRight: "1px solid hsl(var(--border) / 0.5)" }}>
           <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--vi-glow-outcome))" }}>Drivers</p>
-          {story.drivers.slice(0, 4).map((s, i) => (
+          {story.drivers.slice(0, 6).map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
               <SignalChip signal={s} />
             </motion.div>
@@ -327,12 +327,12 @@ function SystemTensionMap({ story }: { story: VisualStory }) {
         {/* Mechanisms — center column */}
         <div className="p-4 space-y-2 flex flex-col items-center" style={{ borderRight: "1px solid hsl(var(--border) / 0.5)" }}>
           <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--vi-glow-mechanism))" }}>Mechanisms</p>
-          {story.mechanisms.slice(0, 3).map((s, i) => (
+          {story.mechanisms.slice(0, 5).map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 + i * 0.05 }}>
               <SignalChip signal={s} />
             </motion.div>
           ))}
-          {story.leverages.slice(0, 2).map((s, i) => (
+          {story.leverages.slice(0, 3).map((s, i) => (
             <motion.div key={`l${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 + i * 0.05 }}>
               <SignalChip signal={s} />
             </motion.div>
@@ -342,7 +342,7 @@ function SystemTensionMap({ story }: { story: VisualStory }) {
         {/* Constraints */}
         <div className="p-4 space-y-2">
           <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--vi-glow-system))" }}>Constraints</p>
-          {story.constraints.slice(0, 4).map((s, i) => (
+          {story.constraints.slice(0, 6).map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
               <SignalChip signal={s} />
             </motion.div>
