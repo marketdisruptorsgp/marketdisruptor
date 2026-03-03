@@ -74,6 +74,25 @@ export interface ConstraintMap {
   dominance_proof: string;
   counterfactual_removal_result: string;
   next_binding_constraint: string;
+  /** Multi-hypothesis root branching — competing Tier 1 constraint interpretations */
+  root_hypotheses?: Array<{
+    id: string;
+    constraint_type: "cost" | "time" | "adoption" | "scale" | "reliability" | "risk" | "physical" | "structural" | "economic";
+    hypothesis_statement: string;
+    causal_chain: Array<{
+      friction_id: string;
+      structural_constraint: string;
+      system_impact: string;
+      impact_dimension: string;
+    }>;
+    friction_sources: string[];
+    leverage_score: number;
+    impact_score: number;
+    evidence_mix: { verified: number; modeled: number; assumption: number };
+    fragility_score: number;
+    confidence: number;
+    downstream_implications: string;
+  }>;
 }
 
 /* ── Step 7: Structural Analysis ── */
@@ -342,15 +361,43 @@ GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include thes
     "tier_2": [{"friction_id": "f2", "description": "optimization target", "optimization_target": "target"}],
     "tier_3": [{"friction_id": "f3", "description": "observational only"}]
   },
-  "constraint_map": {
-    "causal_chains": [
-      {"friction_id": "f1", "structural_constraint": "constraint", "system_impact": "impact", "impact_dimension": "cost|time|adoption|scale|reliability|risk"}
-    ],
-    "binding_constraint_id": "f1",
-    "dominance_proof": "why this constraint dominates over alternatives — MUST compare against at least 2 other constraints",
-    "counterfactual_removal_result": "what changes if this constraint is removed — be specific",
-    "next_binding_constraint": "what becomes limiting next"
-  },
+    "constraint_map": {
+      "causal_chains": [
+        {"friction_id": "f1", "structural_constraint": "constraint", "system_impact": "impact", "impact_dimension": "cost|time|adoption|scale|reliability|risk"}
+      ],
+      "binding_constraint_id": "f1",
+      "dominance_proof": "why this constraint dominates over alternatives — MUST compare against at least 2 other constraints",
+      "counterfactual_removal_result": "what changes if this constraint is removed — be specific",
+      "next_binding_constraint": "what becomes limiting next",
+      "root_hypotheses": [
+        {
+          "id": "rh1",
+          "constraint_type": "cost|time|adoption|scale|reliability|risk|physical|structural|economic",
+          "hypothesis_statement": "If THIS is the binding constraint, then the system is limited because...",
+          "causal_chain": [{"friction_id": "f1", "structural_constraint": "root", "system_impact": "effect", "impact_dimension": "cost"}],
+          "friction_sources": ["source1", "source2"],
+          "leverage_score": 7,
+          "impact_score": 8,
+          "evidence_mix": {"verified": 0.2, "modeled": 0.5, "assumption": 0.3},
+          "fragility_score": 4,
+          "confidence": 55,
+          "downstream_implications": "If this hypothesis holds, then redesign must target X and stress test must verify Y"
+        },
+        {
+          "id": "rh2",
+          "constraint_type": "different_type_from_rh1",
+          "hypothesis_statement": "Alternative interpretation: the system is actually limited by...",
+          "causal_chain": [{"friction_id": "f2", "structural_constraint": "alt root", "system_impact": "alt effect", "impact_dimension": "adoption"}],
+          "friction_sources": ["alt_source1"],
+          "leverage_score": 6,
+          "impact_score": 7,
+          "evidence_mix": {"verified": 0.1, "modeled": 0.4, "assumption": 0.5},
+          "fragility_score": 5,
+          "confidence": 45,
+          "downstream_implications": "If this alternative holds, redesign should focus on Z instead"
+        }
+      ]
+    },
   "structural_analysis": {
     "system_structure_model": "description of the system's structural architecture",
     "constraint_interaction_map": ["interaction1", "interaction2"],
@@ -380,7 +427,8 @@ EVIDENCE GOVERNANCE RULES:
 - Every viability_assumption MUST have evidence_status: "verified" (real data), "modeled" (inferred), or "speculative" (assumption)
 - confidence_score > 80 REQUIRES at least one "verified" evidence source
 - assumption-only chains CANNOT produce decision_grade "decision_grade" — use "conditional" or "blocked"
-- dominance_proof MUST compare the binding constraint against at least 2 alternatives`,
+- dominance_proof MUST compare the binding constraint against at least 2 alternatives
+- root_hypotheses: Generate 2-4 competing root hypotheses from Tier 1 friction clusters. Each must have a DISTINCT constraint_type. Minimum 2 if the top constraints are close in leverage (delta < 2). Maximum 4. Each hypothesis must include its own causal_chain, evidence_mix (ratios summing to ~1.0), leverage_score, impact_score, fragility_score, and confidence (bounded by evidence quality). No cosmetic duplicates of the same constraint.`,
 
     "critical-validation": `
 GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include these structured fields:
@@ -480,13 +528,17 @@ GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include a "g
     "tier_2": [{"friction_id": "f2", "description": "optimization", "optimization_target": "target"}],
     "tier_3": [{"friction_id": "f3", "description": "observational"}]
   },
-  "constraint_map": {
-    "causal_chains": [{"friction_id": "f1", "structural_constraint": "root", "system_impact": "effect", "impact_dimension": "cost|time|adoption|scale|reliability|risk"}],
-    "binding_constraint_id": "f1",
-    "dominance_proof": "comparative evidence",
-    "counterfactual_removal_result": "what changes",
-    "next_binding_constraint": "what becomes limiting"
-  },
+    "constraint_map": {
+      "causal_chains": [{"friction_id": "f1", "structural_constraint": "root", "system_impact": "effect", "impact_dimension": "cost|time|adoption|scale|reliability|risk"}],
+      "binding_constraint_id": "f1",
+      "dominance_proof": "comparative evidence",
+      "counterfactual_removal_result": "what changes",
+      "next_binding_constraint": "what becomes limiting",
+      "root_hypotheses": [
+        {"id": "rh1", "constraint_type": "cost", "hypothesis_statement": "If THIS constraint dominates...", "causal_chain": [{"friction_id": "f1", "structural_constraint": "root", "system_impact": "effect", "impact_dimension": "cost"}], "friction_sources": ["src1"], "leverage_score": 7, "impact_score": 8, "evidence_mix": {"verified": 0.2, "modeled": 0.5, "assumption": 0.3}, "fragility_score": 4, "confidence": 55, "downstream_implications": "redesign targets X"},
+        {"id": "rh2", "constraint_type": "adoption", "hypothesis_statement": "Alternative: adoption friction dominates...", "causal_chain": [{"friction_id": "f2", "structural_constraint": "alt", "system_impact": "alt effect", "impact_dimension": "adoption"}], "friction_sources": ["alt_src"], "leverage_score": 6, "impact_score": 7, "evidence_mix": {"verified": 0.1, "modeled": 0.4, "assumption": 0.5}, "fragility_score": 5, "confidence": 45, "downstream_implications": "redesign focuses on Z"}
+      ]
+    },
   "leverage_map": [
     {"lever_id": "l1", "target_constraint_id": "f1", "mechanism_of_relief": "how", "confidence_level": "high|medium|exploratory", "evidence_that_would_change_assessment": "what"}
   ],

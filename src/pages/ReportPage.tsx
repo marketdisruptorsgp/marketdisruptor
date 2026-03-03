@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
@@ -32,6 +32,8 @@ import {
   Clock, ScrollText, StickyNote,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
+import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
+import { rankHypotheses, type RootHypothesis } from "@/lib/hypothesisRanking";
 
 function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
   if (trend === "up") return <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-green-600"><TrendingUp size={9} /> Rising</span>;
@@ -171,6 +173,22 @@ export default function ReportPage() {
 
         {/* Product Card */}
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
+
+        {/* Root Hypothesis Branching Panel */}
+        {(() => {
+          const governed = analysis.governedData;
+          const cm = governed?.constraint_map as Record<string, unknown> | undefined;
+          const rawHypotheses = cm?.root_hypotheses as RootHypothesis[] | undefined;
+          if (!rawHypotheses || rawHypotheses.length === 0) return null;
+          const ranking = rankHypotheses(rawHypotheses);
+          return (
+            <StructuralInterpretationsPanel
+              ranking={ranking}
+              activeBranchId={analysis.activeBranchId}
+              onSelectBranch={(id) => analysis.setActiveBranchId(id)}
+            />
+          );
+        })()}
 
         {/* Adaptive Visual Layer — enforces visual primacy + text suppression */}
         <AnalysisVisualLayer analysis={selectedProduct as unknown as Record<string, unknown>} step="report" governedOverride={analysis.governedData}>
