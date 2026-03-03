@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
+import BranchGravityMap from "@/components/BranchGravityMap";
 import type { StrategicRankingResult, StrategicHypothesis } from "@/lib/strategicOS";
 
 interface StructuralInterpretationsPanelProps {
@@ -195,6 +197,8 @@ export default function StructuralInterpretationsPanel({
   onSelectBranch,
   loading,
 }: StructuralInterpretationsPanelProps) {
+  const isMobile = useIsMobile();
+
   if (!ranking || ranking.hypotheses.length === 0) return null;
 
   return (
@@ -220,19 +224,29 @@ export default function StructuralInterpretationsPanel({
           : "The primary structural driver is identified below. Alternative interpretations are available for exploration."}
       </p>
 
-      {/* Hypothesis cards */}
-      <AnimatePresence mode="popLayout">
-        {ranking.hypotheses.map((h, i) => (
-          <HypothesisCard
-            key={h.id}
-            hypothesis={h}
-            isActive={activeBranchId === h.id}
-            isPrimary={i === 0}
-            onSelect={() => onSelectBranch(h.id)}
-            loading={loading}
-          />
-        ))}
-      </AnimatePresence>
+      {/* Gravity map on desktop, card list on mobile */}
+      {!isMobile ? (
+        <BranchGravityMap
+          hypotheses={ranking.hypotheses}
+          activeBranchId={activeBranchId}
+          onSelectBranch={onSelectBranch}
+          competing={ranking.competing}
+          delta={ranking.delta}
+        />
+      ) : (
+        <AnimatePresence mode="popLayout">
+          {ranking.hypotheses.map((h, i) => (
+            <HypothesisCard
+              key={h.id}
+              hypothesis={h}
+              isActive={activeBranchId === h.id}
+              isPrimary={i === 0}
+              onSelect={() => onSelectBranch(h.id)}
+              loading={loading}
+            />
+          ))}
+        </AnimatePresence>
+      )}
     </div>
   );
 }
