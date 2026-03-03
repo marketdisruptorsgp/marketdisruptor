@@ -300,12 +300,7 @@ export default function StartPage() {
           </div>
         </div>
         <div className="border-t border-border py-5 text-center px-4">
-          <p className="text-xs">
-            <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:opacity-80 transition-opacity">
-              Built by SGP Capital
-            </a>
-            {profile && <span className="text-muted-foreground"> · Signed in as <strong className="text-foreground">{profile.first_name}</strong></span>}
-          </p>
+          {profile && <p className="text-xs text-muted-foreground">Signed in as <strong className="text-foreground">{profile.first_name}</strong></p>}
         </div>
       </footer>
     </div>

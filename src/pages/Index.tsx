@@ -1922,12 +1922,7 @@ export default function Index() {
       </main>
 
       <footer className="border-t mt-12 py-8 text-center" style={{ borderColor: "hsl(var(--border))" }}>
-        <p className="text-xs mt-2">
-          <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80" style={{ color: "hsl(var(--primary))" }}>
-            Built by SGP Capital
-          </a>
-          {profile && <span className="text-muted-foreground"> · Signed in as <strong className="text-foreground">{profile.first_name}</strong></span>}
-        </p>
+        {profile && <p className="text-xs mt-2 text-muted-foreground">Signed in as <strong className="text-foreground">{profile.first_name}</strong></p>}
       </footer>
     </div>
   );

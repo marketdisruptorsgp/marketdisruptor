@@ -170,12 +170,7 @@ export default function StartPageLayout({ mode }: StartPageLayoutProps) {
           </div>
         </div>
         <div className="border-t border-border py-5 sm:py-6 text-center px-4">
-          <p className="text-xs leading-relaxed">
-            <a href="https://sgpcapital.com" target="_blank" rel="noopener noreferrer" className="font-semibold transition-opacity hover:opacity-80 text-primary">
-              Built by SGP Capital
-            </a>
-            {profile && <span className="text-muted-foreground"> · Signed in as <strong className="text-foreground">{profile.first_name}</strong></span>}
-          </p>
+          {profile && <p className="text-xs leading-relaxed text-muted-foreground">Signed in as <strong className="text-foreground">{profile.first_name}</strong></p>}
         </div>
       </footer>
     </div>
