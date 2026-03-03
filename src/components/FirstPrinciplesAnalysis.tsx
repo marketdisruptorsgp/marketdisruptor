@@ -474,7 +474,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       // Wire active branch for isolated downstream reasoning
       if (analysisCtx.activeBranchId && analysisCtx.governedData) {
         const { getBranchPayload } = await import("@/lib/branchContext");
-        const branchPayload = getBranchPayload(analysisCtx.governedData, analysisCtx.activeBranchId);
+        const branchPayload = getBranchPayload(analysisCtx.governedData, analysisCtx.activeBranchId, analysisCtx.strategicProfile);
         if (branchPayload) {
           requestBody.activeBranch = branchPayload;
         }

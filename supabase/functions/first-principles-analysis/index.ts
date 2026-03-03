@@ -26,7 +26,7 @@ serve(async (req) => {
       { root_hypotheses: [activeBranch.hypothesis] },
       activeBranch.active_branch_id
     ) : null;
-    const branchPrompt = buildBranchIsolationPrompt(branchCtx);
+    const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null);
     const mode = resolveMode(undefined, product.category);
     const isService = mode === "service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");

@@ -3,6 +3,7 @@ import { type Product, type FlippedIdea } from "@/data/mockProducts";
 import { type AnalysisMode } from "@/components/AnalysisForm";
 import type { UserLens } from "@/components/LensToggle";
 import type { RoutingResult } from "@/lib/modeIntelligence";
+import { type StrategicProfile, DEFAULT_PROFILES } from "@/lib/strategicOS";
 import { type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -149,6 +150,10 @@ interface AnalysisContextType {
   activeBranchId: string | null;
   setActiveBranchId: (id: string | null) => void;
 
+  // Strategic profile
+  strategicProfile: StrategicProfile;
+  setStrategicProfile: (p: StrategicProfile) => void;
+
   // Geo market data
   geoData: unknown;
   setGeoData: (d: unknown) => void;
@@ -202,6 +207,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [governedData, setGovernedData] = useState<Record<string, unknown> | null>(null);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [activeBranchId, setActiveBranchIdState] = useState<string | null>(null);
+  const [strategicProfile, setStrategicProfileState] = useState<StrategicProfile>(DEFAULT_PROFILES.operator);
 
   // ── System Layer: Outdated Step Tracking ──
   const [outdatedSteps, setOutdatedSteps] = useState<Set<string>>(new Set());
@@ -246,6 +252,16 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       markStepOutdated("pitchDeck");
     }
     pendingBranchSaveRef.current = id;
+  }, [markStepOutdated]);
+  const pendingProfileSaveRef = useRef<StrategicProfile | undefined>(undefined);
+  const setStrategicProfile = useCallback((p: StrategicProfile) => {
+    setStrategicProfileState(p);
+    pendingProfileSaveRef.current = p;
+    // Re-ranking with new profile changes downstream
+    markStepOutdated("disrupt");
+    markStepOutdated("redesign");
+    markStepOutdated("stressTest");
+    markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
   const [redesignData, setRedesignData] = useState<unknown>(null);
 
@@ -661,7 +677,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       let activeBranch: unknown = undefined;
       if (activeBranchId && governedData) {
         const { getBranchPayload } = await import("@/lib/branchContext");
-        activeBranch = getBranchPayload(governedData, activeBranchId);
+        activeBranch = getBranchPayload(governedData, activeBranchId, strategicProfile);
       }
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: {
@@ -892,6 +908,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeBranchId, analysisId, saveStepData]);
 
+  // Auto-persist strategic profile when changed
+  useEffect(() => {
+    if (pendingProfileSaveRef.current !== undefined && analysisId) {
+      const prof = pendingProfileSaveRef.current;
+      pendingProfileSaveRef.current = undefined;
+      saveStepData("strategicProfile", prof);
+    }
+  }, [strategicProfile, analysisId, saveStepData]);
+
   const handleLoadSaved = useCallback(async (analysis: any) => {
     setLoadedFromSaved(true);
 
@@ -926,6 +951,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     else setGovernedData(null);
     if (ad?.activeBranchId) setActiveBranchIdState(ad.activeBranchId as string);
     else setActiveBranchIdState(null);
+    if (ad?.strategicProfile) setStrategicProfileState(ad.strategicProfile as StrategicProfile);
     if (ad?.disrupt) setDisruptData(ad.disrupt);
     if (ad?.stressTest) setStressTestData(ad.stressTest);
     if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
@@ -1050,6 +1076,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       modeRouting, setModeRouting,
       governedData,
       activeBranchId, setActiveBranchId,
+      strategicProfile, setStrategicProfile,
     }}>
       {children}
     </AnalysisContext.Provider>
