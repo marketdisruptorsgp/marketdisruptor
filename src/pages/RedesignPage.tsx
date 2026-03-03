@@ -6,11 +6,12 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { HeroSection } from "@/components/HeroSection";
 import { StepNavigator } from "@/components/StepNavigator";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
+import { RedesignVisualGenerator } from "@/components/RedesignVisualGenerator";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { KeyTakeawayBanner } from "@/components/KeyTakeawayBanner";
 import { ModeHeader } from "@/components/ModeHeader";
-import { InfoExplainer } from "@/components/InfoExplainer";
+import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
 
@@ -42,7 +43,7 @@ export default function RedesignPage() {
   const shouldAutoTrigger = isOutdated || !analysis.redesignData;
 
   const redesignOrDisrupt = (analysis.redesignData ?? analysis.disruptData) as Record<string, unknown> | null;
-  const concept = redesignOrDisrupt?.redesignedConcept as { conceptName?: string; tagline?: string } | undefined;
+  const concept = redesignOrDisrupt?.redesignedConcept as { conceptName?: string; tagline?: string; physicalDescription?: string; coreInsight?: string; radicalDifferences?: string[]; materials?: string[] } | undefined;
   const takeaway = concept?.tagline
     ? `Redesigned concept: "${concept.conceptName}" — ${concept.tagline}`
     : null;
@@ -68,6 +69,13 @@ export default function RedesignPage() {
 
         <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor={theme.primary} />
 
+        {isOutdated && (
+          <OutdatedBanner
+            stepName="Redesign"
+            accentColor={theme.primary}
+          />
+        )}
+
         {takeaway && !isOutdated && <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} />}
 
         <ActiveHypothesisBanner stepName="Redesign" accentColor={theme.primary} />
@@ -80,6 +88,24 @@ export default function RedesignPage() {
           explainerKey="step-redesign"
         />
 
+        {/* ── Concept Visuals — auto-populate at top ── */}
+        {concept?.conceptName && !isOutdated && (
+          <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <RedesignVisualGenerator
+              productName={selectedProduct.name}
+              concept={{
+                conceptName: concept.conceptName || "",
+                tagline: concept.tagline || "",
+                physicalDescription: concept.physicalDescription,
+                coreInsight: concept.coreInsight,
+                radicalDifferences: concept.radicalDifferences,
+                materials: concept.materials,
+              }}
+              accentColor={theme.primary}
+            />
+          </div>
+        )}
+
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <FirstPrinciplesAnalysis
             product={selectedProduct}
@@ -89,7 +115,7 @@ export default function RedesignPage() {
             generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
             renderMode="redesign"
             autoTrigger={shouldAutoTrigger}
-            externalData={analysis.redesignData ?? analysis.disruptData}
+            externalData={isOutdated ? null : (analysis.redesignData ?? analysis.disruptData)}
             onDataLoaded={(d) => {
               analysis.setRedesignData(d);
               analysis.saveStepData("redesign", d);
