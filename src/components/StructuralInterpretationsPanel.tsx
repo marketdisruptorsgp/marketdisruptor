@@ -228,7 +228,7 @@ export default function StructuralInterpretationsPanel({
       </div>
 
       <p className="text-xs text-muted-foreground leading-relaxed">
-        By default, all hypotheses are combined — every angle shapes the analysis. You can focus on a single hypothesis to isolate that perspective across all downstream steps.
+        By default, we're weighing all of these together — each one influences the analysis based on your lens and strategic profile. If you'd rather zero in on just one, select it below. You can also pose your own hypothesis and we'll run everything through that angle instead.
       </p>
 
       {/* Pose Another Hypothesis — interactive panel */}
