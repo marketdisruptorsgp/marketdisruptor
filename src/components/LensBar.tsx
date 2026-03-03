@@ -62,10 +62,14 @@ export function LensBar() {
   return (
     <div className="mb-6">
       <div
-        className="rounded-xl border bg-card overflow-hidden transition-shadow hover:shadow-md"
-        style={{ borderColor: lensType !== "default" ? "hsl(var(--primary) / 0.3)" : "hsl(var(--border))" }}
+        className="rounded-xl border-2 bg-card overflow-hidden transition-shadow hover:shadow-md"
+        style={{
+          borderColor: lensType !== "default" ? "hsl(var(--primary) / 0.4)" : "hsl(var(--border))",
+          borderLeftWidth: "4px",
+          borderLeftColor: lensType !== "default" ? "hsl(var(--primary))" : "hsl(var(--muted-foreground) / 0.4)",
+          background: lensType !== "default" ? "hsl(var(--primary) / 0.03)" : "hsl(var(--card))",
+        }}
       >
-        {/* Main row */}
         <div className="px-4 sm:px-5 py-3 flex items-center gap-3">
           {/* Icon */}
           <div
