@@ -11,10 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import type { RootHypothesis, HypothesisRankingResult } from "@/lib/hypothesisRanking";
+import type { StrategicRankingResult, StrategicHypothesis } from "@/lib/strategicOS";
 
 interface StructuralInterpretationsPanelProps {
-  ranking: HypothesisRankingResult;
+  ranking: StrategicRankingResult;
   activeBranchId: string | null;
   onSelectBranch: (hypothesisId: string) => void;
   loading?: boolean;
@@ -49,7 +49,7 @@ function HypothesisCard({
   onSelect,
   loading,
 }: {
-  hypothesis: RootHypothesis;
+  hypothesis: StrategicHypothesis;
   isActive: boolean;
   isPrimary: boolean;
   onSelect: () => void;

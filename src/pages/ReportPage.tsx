@@ -33,7 +33,8 @@ import {
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
-import { rankHypotheses, type RootHypothesis } from "@/lib/hypothesisRanking";
+import { type StrategicHypothesis, rankWithProfile } from "@/lib/strategicOS";
+import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 
 function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
   if (trend === "up") return <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-green-600"><TrendingUp size={9} /> Rising</span>;
@@ -160,6 +161,10 @@ export default function ReportPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
           <h2 className="typo-section-title">Intelligence Report</h2>
           <div className="flex items-center gap-2 flex-shrink-0">
+            <StrategicProfileSelector
+              profile={analysis.strategicProfile}
+              onChangeProfile={analysis.setStrategicProfile}
+            />
             <button onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct, gatherAllAnalysisData(analysis))} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
               <FileDown size={12} /> PDF
             </button>
@@ -178,9 +183,9 @@ export default function ReportPage() {
         {(() => {
           const governed = analysis.governedData;
           const cm = governed?.constraint_map as Record<string, unknown> | undefined;
-          const rawHypotheses = cm?.root_hypotheses as RootHypothesis[] | undefined;
+          const rawHypotheses = (cm?.root_hypotheses || governed?.root_hypotheses) as StrategicHypothesis[] | undefined;
           if (!rawHypotheses || rawHypotheses.length === 0) return null;
-          const ranking = rankHypotheses(rawHypotheses);
+          const ranking = rankWithProfile(rawHypotheses, analysis.strategicProfile);
           return (
             <StructuralInterpretationsPanel
               ranking={ranking}

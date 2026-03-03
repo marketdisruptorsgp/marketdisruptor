@@ -1,13 +1,15 @@
 /**
  * Client-side branch context extraction.
  * Builds the branch payload to send to downstream edge functions.
+ * Now includes strategic profile for profile-aware reasoning.
  */
 
-import type { RootHypothesis } from "@/lib/hypothesisRanking";
+import type { StrategicHypothesis, StrategicProfile } from "@/lib/strategicOS";
 
 export interface BranchPayload {
   active_branch_id: string;
-  hypothesis: RootHypothesis;
+  hypothesis: StrategicHypothesis;
+  strategicProfile?: StrategicProfile;
 }
 
 /**
@@ -16,19 +18,20 @@ export interface BranchPayload {
  */
 export function getBranchPayload(
   governedData: Record<string, unknown> | null,
-  activeBranchId: string | null
+  activeBranchId: string | null,
+  strategicProfile?: StrategicProfile
 ): BranchPayload | null {
   if (!governedData || !activeBranchId) return null;
 
   // Check promoted root_hypotheses first, then constraint_map
-  let hypotheses: RootHypothesis[] | undefined;
+  let hypotheses: StrategicHypothesis[] | undefined;
 
   if (Array.isArray(governedData.root_hypotheses)) {
-    hypotheses = governedData.root_hypotheses as RootHypothesis[];
+    hypotheses = governedData.root_hypotheses as StrategicHypothesis[];
   } else {
     const cm = governedData.constraint_map as Record<string, unknown> | undefined;
     if (cm && Array.isArray(cm.root_hypotheses)) {
-      hypotheses = cm.root_hypotheses as RootHypothesis[];
+      hypotheses = cm.root_hypotheses as StrategicHypothesis[];
     }
   }
 
@@ -40,5 +43,6 @@ export function getBranchPayload(
   return {
     active_branch_id: activeBranchId,
     hypothesis: match,
+    strategicProfile,
   };
 }

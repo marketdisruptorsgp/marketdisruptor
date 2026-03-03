@@ -28,7 +28,7 @@ serve(async (req) => {
       { root_hypotheses: [activeBranch.hypothesis] },
       activeBranch.active_branch_id
     ) : null;
-    const branchPrompt = buildBranchIsolationPrompt(branchCtx);
+    const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
