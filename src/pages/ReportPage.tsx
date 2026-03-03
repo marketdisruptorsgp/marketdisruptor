@@ -339,16 +339,16 @@ export default function ReportPage() {
             <DetailPanel title="Supply Chain" icon={Package}>
               <div className="space-y-3">
                 <SupplySection title="Suppliers" icon={<Factory size={12} className="text-primary" />}
-                  items={selectedProduct.supplyChain.suppliers.map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
+                  items={(selectedProduct.supplyChain.suppliers || []).map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
                   color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
                 <SupplySection title="Manufacturers" icon={<Package size={12} className="text-blue-500" />}
-                  items={selectedProduct.supplyChain.manufacturers.map((m: any) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
+                  items={(selectedProduct.supplyChain.manufacturers || []).map((m: any) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
                   color="hsl(217 91% 60% / 0.08)" borderColor="hsl(217 91% 60% / 0.3)" />
                 <SupplySection title="Vendors" icon={<Store size={12} className="text-purple-500" />}
-                  items={selectedProduct.supplyChain.vendors.map((v: any) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
+                  items={(selectedProduct.supplyChain.vendors || []).map((v: any) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
                   color="hsl(262 83% 58% / 0.08)" borderColor="hsl(262 83% 58% / 0.3)" />
                 <SupplySection title="Distributors" icon={<Truck size={12} className="text-orange-500" />}
-                  items={selectedProduct.supplyChain.distributors.map((d: any) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
+                  items={(selectedProduct.supplyChain.distributors || []).map((d: any) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
                   color="hsl(32 100% 50% / 0.08)" borderColor="hsl(32 100% 50% / 0.3)" />
                 {selectedProduct.supplyChain.retailers?.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
