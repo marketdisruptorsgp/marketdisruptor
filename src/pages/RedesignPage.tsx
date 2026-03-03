@@ -14,6 +14,7 @@ import { ModeHeader } from "@/components/ModeHeader";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
+import { ModeBadge } from "@/components/ModeBadge";
 
 export default function RedesignPage() {
   const analysis = useAnalysis();
@@ -52,6 +53,7 @@ export default function RedesignPage() {
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
       <HeroSection tier={tier} remainingAnalyses={null} />
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
+        <ModeBadge />
         <StepNavigator
           steps={getStepConfigs(theme.primary)}
           activeStep={4}
