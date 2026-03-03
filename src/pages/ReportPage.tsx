@@ -82,7 +82,7 @@ export default function ReportPage() {
   // Allow time for state to hydrate from handleLoadSaved before redirecting
   const [waitedForLoad, setWaitedForLoad] = React.useState(false);
   React.useEffect(() => {
-    const t = setTimeout(() => setWaitedForLoad(true), 600);
+    const t = setTimeout(() => setWaitedForLoad(true), 1200);
     return () => clearTimeout(t);
   }, []);
 

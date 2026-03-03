@@ -80,6 +80,23 @@ function ConfidenceBadge({ level }: {level: string;}) {
 
 }
 
+class ResultsErrorBoundary extends React.Component<{children: React.ReactNode; modeColor: string}, {hasError: boolean}> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error) { console.error("Results render error:", error); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-xl border border-border bg-card p-6 text-center space-y-2">
+          <p className="text-sm font-semibold text-foreground">Something went wrong displaying results.</p>
+          <p className="text-xs text-muted-foreground">Try re-analyzing your photo.</p>
+          <button onClick={() => this.setState({ hasError: false })} className="text-xs font-bold text-primary underline">Retry</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function InstantAnalysisPage() {
   const { tier } = useSubscription();
@@ -116,14 +133,15 @@ export default function InstantAnalysisPage() {
     runAnalysis(files);
   }, [mode, depth, user]);
 
-  const runAnalysis = async (files: File[]) => {
+  const runAnalysis = async (files: File[], overrideDepth?: AnalysisDepth) => {
+    const effectiveDepth = overrideDepth || depth;
     if (!user) {
       toast.error("Setting up your session...");
       return;
     }
 
     // Gate deep dive behind authentication
-    if (depth === "deep" && isAnonymous) {
+    if (effectiveDepth === "deep" && isAnonymous) {
       toast("Sign in required for Deep Dive", {
         description: "Create a free account to unlock full intelligence layers.",
         action: { label: "Sign In", onClick: () => setShowClaimForm(true) }
@@ -157,7 +175,7 @@ export default function InstantAnalysisPage() {
 
       // Call photo analysis edge function
       const { data: analysisData, error: analysisError } = await supabase.functions.invoke("photo-analysis", {
-        body: { imageUrls, mode, depth }
+        body: { imageUrls, mode, depth: effectiveDepth }
       });
 
       if (analysisError) {
@@ -187,7 +205,7 @@ export default function InstantAnalysisPage() {
           product_count: 1,
           avg_revival_score: analysisData.analysis.revivalScore || 0,
           analysis_type: mode === "service" ? "service" : "product",
-          analysis_depth: depth,
+          analysis_depth: effectiveDepth,
           is_anonymous: isAnonymous,
           analysis_data: analysisData.analysis
         }).select("id").single();
@@ -450,6 +468,7 @@ export default function InstantAnalysisPage() {
 
         {/* Results */}
         {result &&
+        <ResultsErrorBoundary modeColor={modeColor}>
         <div ref={resultsRef} className="mt-8 space-y-6">
             {/* Header Card */}
             <div className="rounded-xl border border-border bg-card p-5 sm:p-6" style={{ borderTop: `3px solid hsl(var(${modeColor}))` }}>
@@ -485,7 +504,7 @@ export default function InstantAnalysisPage() {
                     </div>
               )}
                 </div>
-                {result.userJourney.frictionPoints.length > 0 &&
+                {result.userJourney.frictionPoints?.length > 0 &&
             <div className="mt-4 space-y-2">
                     <p className="typo-card-eyebrow text-muted-foreground">Friction Points</p>
                     {result.userJourney.frictionPoints.map((fp, i) =>
@@ -551,7 +570,7 @@ export default function InstantAnalysisPage() {
                   <InfoItem label="Segment" value={result.marketPosition.segment} />
                   <InfoItem label="Price Range" value={result.marketPosition.priceRange} />
                   <InfoItem label="Differentiator" value={result.marketPosition.differentiator} />
-                  <InfoItem label="Competitors" value={result.marketPosition.competitors.join(", ")} />
+                  <InfoItem label="Competitors" value={Array.isArray(result.marketPosition.competitors) ? result.marketPosition.competitors.join(", ") : String(result.marketPosition.competitors || "")} />
                 </div>
               </ResultSection>
           }
@@ -573,7 +592,6 @@ export default function InstantAnalysisPage() {
             {/* Share CTA */}
             <ShareAnalysisCTA result={result} modeColor={modeColor} mode={mode} />
 
-            {/* Upgrade / Claim CTA */}
             {/* Continue to Full Analysis CTA — always shown for signed-in users */}
             {!isAnonymous && savedId && (
               <div
@@ -589,35 +607,38 @@ export default function InstantAnalysisPage() {
                   </p>
                   <Button
                     onClick={() => {
-                      // Convert photo result to product and load into pipeline
-                      const product = {
-                        id: `product-${savedId}-0`,
-                        name: result.name,
-                        category: result.category || "",
-                        image: previews[0] || "",
-                        description: result.description || "",
-                        specs: "",
-                        revivalScore: result.revivalScore ?? 0,
-                        era: "All Eras / Current",
-                        sources: [],
-                        reviews: [],
-                        socialSignals: [],
-                        competitors: [],
-                        assumptionsMap: [],
-                        flippedIdeas: [],
-                        confidenceScores: { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
-                        // Carry over photo analysis data as intel
-                        ...result,
-                      };
-                      analysis.setProducts([product as any]);
-                      analysis.setSelectedProduct(product as any);
-                      analysis.setAnalysisParams({ category: result.category || "General", era: "All Eras / Current", batchSize: 1 });
-                      analysis.setMainTab(mode === "service" ? "service" : "custom");
-                      analysis.setActiveMode(mode === "service" ? "service" : "custom");
-                      analysis.setStep("done");
-                      analysis.setAnalysisId(savedId);
-                      analysis.setLoadedFromSaved(true);
-                      navigate(`/analysis/${savedId}/report`);
+                      try {
+                        const product = {
+                          id: `product-${savedId}-0`,
+                          name: result.name,
+                          category: result.category || "",
+                          image: previews[0] || "",
+                          description: result.description || "",
+                          specs: "",
+                          revivalScore: result.revivalScore ?? 0,
+                          era: "All Eras / Current",
+                          sources: [],
+                          reviews: [],
+                          socialSignals: [],
+                          competitors: [],
+                          assumptionsMap: [],
+                          flippedIdeas: [],
+                          confidenceScores: { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
+                          ...result,
+                        };
+                        analysis.setProducts([product as any]);
+                        analysis.setSelectedProduct(product as any);
+                        analysis.setAnalysisParams({ category: result.category || "General", era: "All Eras / Current", batchSize: 1 });
+                        analysis.setMainTab(mode === "service" ? "service" : "custom");
+                        analysis.setActiveMode(mode === "service" ? "service" : "custom");
+                        analysis.setStep("done");
+                        analysis.setAnalysisId(savedId);
+                        analysis.setLoadedFromSaved(true);
+                        navigate(`/analysis/${savedId}/report`);
+                      } catch (err) {
+                        console.error("Navigation error:", err);
+                        toast.error("Failed to load full analysis. Please try again.");
+                      }
                     }}
                     size="lg"
                     className="text-white font-bold px-8 py-3 text-base shadow-lg hover:shadow-xl transition-shadow gap-2"
@@ -635,10 +656,9 @@ export default function InstantAnalysisPage() {
           depth === "quick" && !isAnonymous ?
           <div className="rounded-xl border border-border bg-card p-5 text-center">
                 <Button
-              onClick={() => {setDepth("deep");runAnalysis(selectedFiles);}}
+              onClick={() => {setDepth("deep");runAnalysis(selectedFiles, "deep");}}
               className="w-full sm:w-auto gap-2"
               style={{ background: `hsl(var(${modeColor}))` }}>
-
                   <ArrowRight size={16} /> Upgrade to Deep Dive
                 </Button>
               </div> :
@@ -651,6 +671,7 @@ export default function InstantAnalysisPage() {
               </div> :
           null}
           </div>
+        </ResultsErrorBoundary>
         }
       </main>
 
