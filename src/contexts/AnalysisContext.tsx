@@ -957,26 +957,43 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const cm = gov?.constraint_map as Record<string, unknown> | undefined;
       const hasRH = (Array.isArray(gov?.root_hypotheses) && (gov.root_hypotheses as unknown[]).length > 0) ||
         (Array.isArray(cm?.root_hypotheses) && (cm!.root_hypotheses as unknown[]).length > 0);
-      if (!hasRH && analysis.id) {
-        // Fire-and-forget backfill for this single analysis
+      const hasSynopsis = !!gov?.reasoning_synopsis;
+      if ((!hasRH || !hasSynopsis) && analysis.id) {
+        // Fire-and-forget backfill for this single analysis — generates both hypotheses + synopsis
         supabase.functions.invoke("backfill-strategic-os", {
           body: { singleAnalysisId: analysis.id },
         }).then(({ data }) => {
-          if (data?.hypotheses) {
-            setGovernedData((prev) => {
-              if (!prev) return prev;
-              const updated = { ...prev };
+          setGovernedData((prev) => {
+            if (!prev) return { root_hypotheses: data?.hypotheses || [], reasoning_synopsis: data?.synopsis || null };
+            const updated = { ...prev };
+            if (data?.hypotheses) {
               (updated as any).root_hypotheses = data.hypotheses;
               if (updated.constraint_map) {
                 (updated.constraint_map as Record<string, unknown>).root_hypotheses = data.hypotheses;
               }
-              return updated;
-            });
-          }
+            }
+            if (data?.synopsis) {
+              (updated as any).reasoning_synopsis = data.synopsis;
+            }
+            return updated;
+          });
         }).catch(() => { /* silent — non-critical */ });
       }
     } else {
       setGovernedData(null);
+      // No governed data at all — trigger full backfill
+      if (analysis.id) {
+        supabase.functions.invoke("backfill-strategic-os", {
+          body: { singleAnalysisId: analysis.id },
+        }).then(({ data }) => {
+          if (data?.hypotheses || data?.synopsis) {
+            setGovernedData({
+              root_hypotheses: data?.hypotheses || [],
+              reasoning_synopsis: data?.synopsis || null,
+            });
+          }
+        }).catch(() => { /* silent */ });
+      }
     }
     if (ad?.activeBranchId) setActiveBranchIdState(ad.activeBranchId as string);
     else setActiveBranchIdState(null);
