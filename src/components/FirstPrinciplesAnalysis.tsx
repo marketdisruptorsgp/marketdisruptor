@@ -23,7 +23,7 @@ import {
   Car, ShoppingCart, Search, Phone, CreditCard, MapPin, Clock, Truck,
   Home, Star, Settings, Send, Download, Upload, Camera, Mic,
   Globe, Heart, Bookmark, Share2, MessageSquare, Mail, Lock, Key,
-  Waves, Mountain, Sun, TreePine, Umbrella, Compass, Bike, Plane,
+  Bike, Plane,
   type LucideIcon,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
@@ -182,46 +182,60 @@ const REASON_COLORS: Record<string, { bg: string; text: string; label: string }>
 };
 
 /* ── Map step text to a contextual Lucide icon ──────────────────────── */
+/* Priority: action verbs & touchpoints first, then domain-specific fallbacks */
 const STEP_ICON_KEYWORDS: [string[], LucideIcon][] = [
-  [["drive", "car", "vehicle", "road", "travel", "commute", "transport"], Car],
-  [["beach", "ocean", "sea", "water", "surf", "swim", "wave"], Waves],
-  [["mountain", "hike", "climb", "trail", "outdoor"], Mountain],
-  [["sun", "weather", "forecast", "morning"], Sun],
-  [["tree", "forest", "nature", "park", "garden"], TreePine],
-  [["rain", "umbrella", "storm", "shelter"], Umbrella],
-  [["navigate", "direction", "compass", "map", "route", "find"], Compass],
-  [["bike", "cycle", "ride", "pedal"], Bike],
-  [["fly", "flight", "airplane", "airport", "plane"], Plane],
-  [["buy", "purchase", "shop", "cart", "checkout", "order"], ShoppingCart],
-  [["pay", "payment", "price", "cost", "charge", "bill", "credit"], CreditCard],
-  [["search", "browse", "look", "find", "discover", "research"], Search],
-  [["call", "phone", "contact", "dial", "ring"], Phone],
-  [["location", "place", "address", "where", "destination", "arrive", "go to"], MapPin],
-  [["wait", "time", "schedule", "book", "appointment", "reserve"], Clock],
-  [["deliver", "ship", "send", "package", "receive", "mail", "truck"], Truck],
-  [["home", "house", "return", "back"], Home],
-  [["review", "rate", "feedback", "star", "evaluate"], Star],
-  [["setup", "configure", "install", "assemble", "adjust", "setting"], Settings],
-  [["share", "post", "social", "recommend"], Share2],
-  [["message", "chat", "communicate", "ask", "support"], MessageSquare],
-  [["email", "inbox", "notification", "alert"], Mail],
-  [["lock", "secure", "login", "password", "auth", "sign in"], Lock],
-  [["key", "unlock", "access", "open"], Key],
-  [["photo", "picture", "image", "snap", "capture"], Camera],
-  [["record", "voice", "audio", "listen", "speak"], Mic],
-  [["online", "web", "internet", "website", "app", "digital"], Globe],
-  [["save", "favorite", "bookmark", "store", "keep"], Bookmark],
-  [["download", "get", "retrieve", "fetch", "grab", "pick up", "collect"], Download],
-  [["upload", "submit", "attach", "add"], Upload],
-  [["use", "operate", "engage", "interact", "experience", "enjoy"], Heart],
-  [["watch", "observe", "view", "see", "inspect", "check", "look at"], Eye],
-  [["build", "create", "make", "construct", "prepare", "cook"], Wrench],
-  [["learn", "understand", "study", "read", "train"], Lightbulb],
-  [["pack", "carry", "load", "bring", "haul", "lift", "storage", "store"], Package],
-  [["people", "user", "customer", "person", "group", "team", "friend"], Users],
-  [["protect", "safe", "guard", "defend"], Shield],
-  [["move", "transfer", "shift", "drag", "pull", "push"], Move],
-  [["send", "dispatch", "forward", "launch"], Send],
+  /* ── Discovery & awareness ── */
+  [["discover", "aware", "hear about", "learn about", "first encounter", "introduction"], Search],
+  [["search", "browse", "look for", "find", "explore", "research", "compare"], Search],
+  [["recommend", "referral", "word of mouth", "told about"], Users],
+
+  /* ── Evaluation & decision ── */
+  [["evaluate", "assess", "consider", "weigh", "decide", "choose", "select", "pick"], Lightbulb],
+  [["review", "rate", "feedback", "testimonial", "star", "reputation"], Star],
+  [["compare", "alternative", "option", "versus", "vs"], Eye],
+
+  /* ── Acquisition & onboarding ── */
+  [["sign up", "register", "create account", "onboard", "enroll", "join", "apply"], Lock],
+  [["buy", "purchase", "order", "checkout", "add to cart", "subscribe"], ShoppingCart],
+  [["pay", "payment", "price", "cost", "charge", "bill", "credit", "invoice", "fee"], CreditCard],
+  [["download", "install", "get", "retrieve", "grab"], Download],
+
+  /* ── Setup & configuration ── */
+  [["setup", "configure", "install", "customize", "personalize", "adjust", "setting", "preference"], Settings],
+  [["connect", "integrate", "link", "pair", "sync"], Globe],
+
+  /* ── Core usage & engagement ── */
+  [["use", "engage", "interact", "experience", "start using", "begin", "launch", "open"], ArrowRight],
+  [["book", "reserve", "schedule", "appointment", "session"], Clock],
+  [["call", "phone", "contact", "reach out", "speak", "consult"], Phone],
+  [["message", "chat", "communicate", "ask", "support", "help"], MessageSquare],
+  [["email", "inbox", "notification", "alert", "notify"], Mail],
+  [["upload", "submit", "attach", "send", "provide", "fill", "form"], Upload],
+  [["watch", "observe", "view", "see", "inspect", "check", "monitor"], Eye],
+  [["build", "create", "make", "prepare", "craft", "design", "produce"], Wrench],
+  [["learn", "understand", "study", "train", "educate", "teach", "course"], Lightbulb],
+
+  /* ── Fulfillment & delivery ── */
+  [["deliver", "ship", "receive", "package", "arrive", "pickup", "collect", "pick up"], Truck],
+  [["wait", "pending", "processing", "loading", "queue"], Clock],
+
+  /* ── Retention & loyalty ── */
+  [["return", "come back", "repeat", "renew", "reorder", "continue"], Home],
+  [["share", "post", "social", "tell", "spread", "refer"], Share2],
+  [["save", "favorite", "bookmark", "keep", "store", "remember"], Bookmark],
+  [["track", "follow", "progress", "status", "update"], Eye],
+
+  /* ── Travel/location (secondary — only for explicitly physical journeys) ── */
+  [["drive", "car", "vehicle", "commute", "transport", "ride"], Car],
+  [["navigate", "direction", "route", "location", "destination", "go to", "arrive at", "visit"], MapPin],
+  [["fly", "flight", "airplane", "airport", "plane", "travel"], Plane],
+  [["bike", "cycle", "pedal"], Bike],
+  [["pack", "carry", "load", "bring", "luggage"], Package],
+  [["photo", "picture", "image", "capture", "snap", "scan"], Camera],
+  [["record", "voice", "audio", "listen", "speak", "mic"], Mic],
+  [["protect", "safe", "secure", "guard", "verify", "authenticate"], Shield],
+  [["move", "transfer", "migrate", "switch", "transition"], Move],
+  [["launch", "deploy", "release", "go live", "publish"], Send],
 ];
 
 function getStepIcon(stepText: string): LucideIcon {
@@ -231,6 +245,7 @@ function getStepIcon(stepText: string): LucideIcon {
   }
   return ArrowRight; // default fallback
 }
+
 
 /* ── Interactive Workflow Timeline — polished, themed, contextual icons ──────────────────────── */
 export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; frictionPoints: WorkflowFriction[] }) {
