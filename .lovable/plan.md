@@ -1,60 +1,50 @@
+## Strategic Mind Map — Interactive Branching Tree
 
+### What We're Building
 
-## Visual Branch Selector — Interactive Hypothesis Map
-
-### The Problem
-The current `StructuralInterpretationsPanel` is a vertical list of cards — functional but flat. For a platform that leads with cinematic visuals (Arena, Constellation, Tension), the branch selection moment deserves the same spatial, interactive treatment. This is the moment the user commits to a strategic universe.
-
-### Concept: "Gravity Well" Branch Visualization
-
-A spatial, force-based layout where each hypothesis is a **weighted orbital node** arranged around a central gravity point. The active branch pulls to the center; alternatives orbit at distance proportional to their dominance delta.
+Replace the current orbital gravity map with a **horizontal mind map / decision tree** that reads left-to-right. The product name sits as the root node on the left. Each root hypothesis branches out as a primary limb, and each hypothesis's **causal chain** entries fan out as child nodes. Clicking a branch activates it and all downstream analysis recomputes from that path.
 
 ```text
-          ┌─────────────────────────────────┐
-          │                                 │
-          │     ○ Adoption (6.2)            │
-          │       ╲                         │
-          │        ╲                        │
-          │    ●════╪════ ACTIVE ════●      │
-          │   Cost (8.1)    ↕    Scale(5.8) │
-          │        center orb               │
-          │        dominance                │
-          │         scores                  │
-          │                                 │
-          │     ○ Reliability (4.9)         │
-          │                                 │
-          │   [ tap node → expand + select ]│
-          └─────────────────────────────────┘
+                    ┌─ Friction: supplier lock-in
+                    │
+    ┌─ Cost (8.1) ──┼─ Friction: margin compression
+    │   ● ACTIVE     │
+    │                └─ Friction: capital drag
+    │
+ [Product] ─┼─ Adoption (6.2) ──┬─ Friction: onboarding drop-off
+    │                            └─ Friction: channel mismatch
+    │
+    └─ Scale (5.8) ──┬─ Friction: infrastructure ceiling
+                     └─ Friction: ops bottleneck
 ```
 
 ### Key Interactions
-1. **Nodes sized by dominance score** — larger = stronger hypothesis
-2. **Active branch pulls to center** with a glow ring; alternatives orbit outward
-3. **Tap/click a node** → expands inline showing leverage, confidence, evidence mix, and a "Switch to this branch" button
-4. **Animated transition** when switching branches — the new selection animates to center, old one drifts outward
-5. **Connection lines** from each node to center show tension/relationship, with line opacity reflecting the dominance delta
-6. **Competing indicator** — when delta < 1.5, nodes cluster close together with a pulsing "close contest" indicator between them
+
+1. **Root node** (left) = the product under analysis
+2. **Primary branches** = root hypotheses, sized/weighted by dominance score
+3. **Secondary branches** = causal chain entries (friction sources, structural constraints)
+4. **Click a primary branch** → it highlights as active, siblings dim, downstream steps mark outdated
+5. **Hover a secondary node** → tooltip shows system_impact and impact_dimension
+6. **Active path glows** with the mode accent color; inactive paths are muted
+7. **Animated transitions** when switching branches — the new path pulses, old one fades
+8. **Competing indicator** — when delta < 1.5, the two closest branches pulse with a tension line between them
 
 ### Technical Approach
 
-1. **New component**: `src/components/BranchGravityMap.tsx`
-   - Uses Framer Motion for spatial positioning and animated transitions
-   - Nodes positioned using polar coordinates based on dominance rank
-   - Active branch at center (0,0); others at increasing radii
-   - Each node renders: constraint type icon, dominance score, hypothesis label (truncated)
-   - Expanded state shows evidence bar, fragility, leverage, and "Activate Branch" CTA
-
-2. **Replace card list in `StructuralInterpretationsPanel`**
-   - Keep the panel as the wrapper (header, description, competing badge)
-   - Swap the `AnimatePresence` card list for `<BranchGravityMap />` 
-   - Fall back to card list on very small screens (< 480px width)
-
-3. **Styling**: Dark field background (matching cinematic aesthetic from `CinematicArena`), glowing nodes with mode-accent color for the active branch, muted for alternatives. Follows the "museum-quality spatial storytelling" standard from the design system.
-
-4. **Data flow**: No changes — same `ranking.hypotheses`, `activeBranchId`, and `onSelectBranch` props. Pure visual upgrade.
+1. **Replace `BranchGravityMap.tsx**` with a new tree/mind-map layout using Framer Motion (no external lib needed)
+  - Nodes positioned with a simple tree layout algorithm: root at left center, primary branches spaced vertically, secondary branches offset further right
+  - SVG paths (cubic bezier curves) connect parent → child nodes for organic tree feel
+  - Each primary node shows: constraint icon, type label, dominance score, confidence badge
+  - Each secondary node shows: friction label (truncated), impact dimension badge
+2. **Expanded detail** — clicking a primary branch shows a slim inline panel below it with leverage, evidence bar, fragility, and "Focus on this path" CTA (same data as current NodeExpanded)
+3. **Responsive** — on mobile, collapse to a vertical accordion tree (indented list with expand/collapse)
+4. **Integration** — same props interface (`hypotheses`, `activeBranchId`, `onSelectBranch`), drop-in replacement in `StructuralInterpretationsPanel`
+5. **Styling** — light background matching the museum-quality aesthetic, organic bezier connectors, mode-accent glow on active path, muted tones for inactive branches  
+  
+styling should have some substance, some neat design elements that a professioanl designer would be proud of.  but also consistent with our colors/fonts, no emojis. 
 
 ### Scope
-- One new component (~200 lines)
-- One edit to `StructuralInterpretationsPanel` to swap the render
-- No backend changes, no data model changes
 
+- Rewrite `BranchGravityMap.tsx` (~250 lines)
+- No other file changes needed (same props contract)
+- No backend changes
