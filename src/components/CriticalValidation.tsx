@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,37 @@ import { InsightRating } from "./InsightRating";
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 import { StepLoadingTracker, STRESS_TEST_TASKS } from "@/components/StepLoadingTracker";
 import { useAnalysis } from "@/contexts/AnalysisContext";
+
+/**
+ * Error-safe wrapper for AnalysisVisualLayer in stress test context.
+ * Stress test data has a different shape than product data,
+ * so we catch rendering errors gracefully.
+ */
+class StressTestVisualWrapper extends React.Component<
+  { analysis: Record<string, unknown>; governedData: Record<string, unknown> | null; children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error) { console.warn("[StressTest] Visual layer error (non-fatal):", error.message); }
+  render() {
+    if (this.state.hasError) {
+      // Render children without visual layer on error
+      return <div className="space-y-4">{this.props.children}</div>;
+    }
+    // Lazy import to avoid circular deps
+    const { AnalysisVisualLayer } = require("./AnalysisVisualLayer");
+    return (
+      <AnalysisVisualLayer
+        analysis={this.props.analysis}
+        step="stressTest"
+        governedOverride={this.props.governedData}
+      >
+        {this.props.children}
+      </AnalysisVisualLayer>
+    );
+  }
+}
 
 interface RedTeamArg {
   title: string;
@@ -215,11 +246,20 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   const currentTabIdx = DEBATE_SECTIONS.findIndex(s => s.id === activeTab);
 
   if (activeTab === "debate") {
+    // Build a safe analysis object for the visual layer — stress test data shape differs from product data
+    const safeAnalysisForVisual: Record<string, unknown> = {
+      redTeam: data.redTeam,
+      blueTeam: data.blueTeam,
+      blindSpots: data.blindSpots,
+      strategicRecommendations: data.strategicRecommendations,
+      ...(data.visualSpecs ? { visualSpecs: data.visualSpecs } : {}),
+    };
+
     return (
       <div className="space-y-4">
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
 
-        <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="stressTest" governedOverride={governedData}>
+        <StressTestVisualWrapper analysis={safeAnalysisForVisual} governedData={governedData}>
         <PitchDeckToggle contentKey="stressTestDebate" label="Include in Pitch Deck" />
 
         {/* Re-run (collapsed) */}
@@ -450,7 +490,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             </div>
           </DetailPanel>
         )}
-        </AnalysisVisualLayer>
+        </StressTestVisualWrapper>
       </div>
     );
   }

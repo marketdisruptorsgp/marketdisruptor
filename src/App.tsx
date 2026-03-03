@@ -49,6 +49,16 @@ function AppRoutes() {
     import("@/lib/analyticsTracker").then(({ initAnalyticsTracker }) => initAnalyticsTracker());
   }, []);
 
+  // Global safety net: catch unhandled async rejections to prevent white screens
+  useEffect(() => {
+    const handler = (event: PromiseRejectionEvent) => {
+      console.error("[App] Unhandled rejection:", event.reason);
+      event.preventDefault();
+    };
+    window.addEventListener("unhandledrejection", handler);
+    return () => window.removeEventListener("unhandledrejection", handler);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
