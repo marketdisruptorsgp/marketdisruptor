@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, Send, Loader2, ChevronDown, ChevronUp, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { InfoExplainer } from "@/components/InfoExplainer";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
@@ -173,9 +174,10 @@ export function ReasoningInterrogation({ analysisData, products, title, category
           <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: "hsl(var(--vi-glow-mechanism) / 0.12)" }}>
             <MessageSquare size={11} style={{ color: "hsl(var(--vi-glow-mechanism))" }} />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">
             Challenge This Reasoning
           </span>
+          <InfoExplainer explainerKey="reasoning-interrogation" accentColor="hsl(var(--vi-glow-mechanism))" />
           {messages.length > 0 && (
             <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary">
               {messages.filter(m => m.role === "user").length}
