@@ -212,7 +212,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // ── System Layer: Outdated Step Tracking ──
   const [outdatedSteps, setOutdatedSteps] = useState<Set<string>>(new Set());
+
+  // Step-data lookup so we can guard against marking empty steps outdated
+  // We use a ref updated via effect (after all state vars are declared) to avoid declaration-order issues
+  const stepDataRef = useRef<Record<string, unknown>>({});
+
   const markStepOutdated = useCallback((step: string) => {
+    // Only mark a step outdated if it already has data — prevents
+    // upstream changes from flagging downstream steps that don't exist yet
+    if (!stepDataRef.current[step]) return;
     setOutdatedSteps(prev => new Set([...prev, step]));
   }, []);
   const clearStepOutdated = useCallback((step: string) => {
@@ -272,6 +280,16 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     markStepOutdated("pitchDeck");
   }, [markStepOutdated]);
   const [redesignData, setRedesignData] = useState<unknown>(null);
+
+  // Keep stepDataRef in sync so markStepOutdated can guard empty steps
+  useEffect(() => {
+    stepDataRef.current = {
+      disrupt: disruptData,
+      stressTest: stressTestData,
+      pitchDeck: pitchDeckData,
+      redesign: redesignData,
+    };
+  }, [disruptData, stressTestData, pitchDeckData, redesignData]);
 
   // ── Insight Preferences (liked/dismissed) ──
   const [insightPreferences, setInsightPreferences] = useState<Record<string, "liked" | "dismissed" | "neutral">>({});
