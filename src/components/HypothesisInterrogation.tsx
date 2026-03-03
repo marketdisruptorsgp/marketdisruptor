@@ -54,19 +54,30 @@ function getQuickActions(analysisData: any): { label: string; question: string }
 
 function extractRevisions(content: string): Revision[] {
   const revisions: Revision[] = [];
-  const regex = /```:::revision\s*\n([\s\S]*?)```/g;
-  let match;
-  while ((match = regex.exec(content)) !== null) {
-    try {
-      const parsed = JSON.parse(match[1].trim());
-      if (parsed.type && parsed.payload) revisions.push(parsed as Revision);
-    } catch { /* ignore */ }
+  // Match ```:::revision ... ``` OR :::revision ... (without backticks)
+  const patterns = [
+    /```:::revision\s*\n([\s\S]*?)```/g,
+    /:::revision\s*\n([\s\S]*?)(?=\n\n|\n[A-Z]|\n\*\*|$)/g,
+  ];
+  for (const regex of patterns) {
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      try {
+        const parsed = JSON.parse(match[1].trim());
+        if (parsed.type && parsed.payload) revisions.push(parsed as Revision);
+      } catch { /* ignore */ }
+    }
+    if (revisions.length > 0) break;
   }
   return revisions;
 }
 
 function stripRevisionBlocks(content: string): string {
-  return content.replace(/```:::revision\s*\n[\s\S]*?```/g, "").trim();
+  return content
+    .replace(/```:::revision\s*\n[\s\S]*?```/g, "")
+    .replace(/:::revision\s*\n\{[\s\S]*?\n\}/g, "")
+    .replace(/:::revision[\s\S]*$/g, "")
+    .trim();
 }
 
 function RevisionCard({ revision, onApply, applied }: { revision: Revision; onApply: () => void; applied: boolean }) {

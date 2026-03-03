@@ -53,6 +53,8 @@ CRITICAL RULES:
 - When proposing a new hypothesis, include a dominance estimate relative to existing ones.
 
 REVISION FORMAT (when the user's hypothesis should be added):
+IMPORTANT: The revision MUST be wrapped in triple backticks with :::revision marker. Do NOT output raw JSON outside of this block.
+
 \`\`\`:::revision
 {
   "type": "new_hypothesis",
@@ -67,7 +69,9 @@ REVISION FORMAT (when the user's hypothesis should be added):
     "downstream_implications": "How this changes the analysis"
   }
 }
-\`\`\``;
+\`\`\`
+
+NEVER output :::revision without the triple backtick wrapper. The revision block must ALWAYS appear AFTER the Assessment/Evidence/Structural Impact sections, never inline.`;
 }
 
 serve(async (req) => {
