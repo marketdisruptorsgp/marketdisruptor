@@ -277,6 +277,36 @@ export type Database = {
           },
         ]
       }
+      interrogation_conversations: {
+        Row: {
+          analysis_id: string
+          applied_revisions: Json
+          created_at: string
+          id: string
+          messages: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          applied_revisions?: Json
+          created_at?: string
+          id?: string
+          messages?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          applied_revisions?: Json
+          created_at?: string
+          id?: string
+          messages?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       market_intel: {
         Row: {
           created_at: string

@@ -531,12 +531,16 @@ export function AnalysisVisualLayer({
   suppressText = true,
   step,
   governedOverride,
+  analysisId,
+  onApplyRevision,
 }: {
   analysis: Record<string, unknown>;
   children: ReactNode;
   suppressText?: boolean;
   step?: AnalysisStep;
   governedOverride?: Record<string, unknown> | null;
+  analysisId?: string | null;
+  onApplyRevision?: (revision: any) => void;
 }) {
   const result = resolveAdaptiveVisuals(analysis);
   const stepConfig = getStepVisualConfig(step);
@@ -601,6 +605,8 @@ export function AnalysisVisualLayer({
               category={(analysis as any)?.category || ""}
               analysisType={(analysis as any)?.analysis_type || "product"}
               avgScore={(analysis as any)?.avg_revival_score ?? (analysis as any)?.revivalScore ?? null}
+              analysisId={analysisId}
+              onApplyRevision={onApplyRevision}
             />
           </motion.div>
         ) : (
