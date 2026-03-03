@@ -282,6 +282,165 @@ Deno.serve(async (req) => {
       return respond(data || []);
     }
 
+    if (action === "users") {
+      // Fetch all profiles
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, first_name, created_at, last_seen_at")
+        .order("created_at", { ascending: false });
+
+      // Fetch usage data
+      const { data: usage } = await supabase
+        .from("user_usage")
+        .select("user_id, analysis_count, bonus_analyses, period_start");
+
+      // Fetch saved analyses counts per user
+      const { data: analyses } = await supabase
+        .from("saved_analyses")
+        .select("user_id, id, title, created_at, analysis_type, is_favorite")
+        .not("user_id", "is", null)
+        .order("created_at", { ascending: false });
+
+      // Fetch streaks
+      const { data: streaks } = await supabase
+        .from("user_streaks")
+        .select("user_id, week_start, analysis_count")
+        .order("week_start", { ascending: false });
+
+      // Fetch lenses count per user
+      const { data: lenses } = await supabase
+        .from("user_lenses")
+        .select("user_id, id");
+
+      // Build user map
+      const usersMap: Record<string, any> = {};
+      (profiles || []).forEach(p => {
+        usersMap[p.user_id] = {
+          user_id: p.user_id,
+          first_name: p.first_name,
+          created_at: p.created_at,
+          last_seen_at: p.last_seen_at,
+          total_analyses: 0,
+          current_month_analyses: 0,
+          bonus_analyses: 0,
+          saved_analyses: [],
+          streak_weeks: 0,
+          lenses_count: 0,
+          is_active: false,
+        };
+      });
+
+      const now = new Date();
+      const currentMonth = now.toISOString().slice(0, 7);
+
+      (usage || []).forEach(u => {
+        if (usersMap[u.user_id]) {
+          const periodMonth = u.period_start.slice(0, 7);
+          if (periodMonth === currentMonth) {
+            usersMap[u.user_id].current_month_analyses = u.analysis_count;
+            usersMap[u.user_id].bonus_analyses = u.bonus_analyses;
+          }
+          usersMap[u.user_id].total_analyses += u.analysis_count;
+        }
+      });
+
+      (analyses || []).forEach(a => {
+        if (a.user_id && usersMap[a.user_id]) {
+          usersMap[a.user_id].saved_analyses.push({
+            id: a.id,
+            title: a.title,
+            created_at: a.created_at,
+            analysis_type: a.analysis_type,
+            is_favorite: a.is_favorite,
+          });
+        }
+      });
+
+      (streaks || []).forEach(s => {
+        if (usersMap[s.user_id]) {
+          usersMap[s.user_id].streak_weeks++;
+        }
+      });
+
+      (lenses || []).forEach(l => {
+        if (usersMap[l.user_id]) {
+          usersMap[l.user_id].lenses_count++;
+        }
+      });
+
+      // Determine active (seen in last 7 days)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
+      Object.values(usersMap).forEach((u: any) => {
+        u.is_active = u.last_seen_at && new Date(u.last_seen_at) > sevenDaysAgo;
+        // Cap saved_analyses to latest 10
+        u.saved_analyses = u.saved_analyses.slice(0, 10);
+      });
+
+      const users = Object.values(usersMap).sort((a: any, b: any) =>
+        new Date(b.last_seen_at || b.created_at).getTime() - new Date(a.last_seen_at || a.created_at).getTime()
+      );
+
+      return respond({
+        users,
+        totalUsers: users.length,
+        activeUsers: users.filter((u: any) => u.is_active).length,
+      });
+    }
+
+    if (action === "user_detail") {
+      const userId = url.searchParams.get("user_id");
+      if (!userId) return respond({ error: "user_id required" });
+
+      // Fetch user's sessions
+      const { data: userEvents } = await supabase
+        .from("analytics_events")
+        .select("event_type, page_path, section_id, timestamp, device_type")
+        .eq("metadata->>user_id", userId)
+        .gte("timestamp", since)
+        .order("timestamp", { ascending: false })
+        .limit(500);
+
+      // Fetch user's analyses
+      const { data: userAnalyses } = await supabase
+        .from("saved_analyses")
+        .select("id, title, created_at, analysis_type, category, era, audience, is_favorite, product_count, avg_revival_score")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      // Fetch user's lenses
+      const { data: userLenses } = await supabase
+        .from("user_lenses")
+        .select("id, name, primary_objective, risk_tolerance, time_horizon, is_default, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      // Fetch interrogation conversations
+      const { data: conversations } = await supabase
+        .from("interrogation_conversations")
+        .select("id, analysis_id, created_at, updated_at")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(20);
+
+      // Page visit breakdown
+      const pageVisits: Record<string, number> = {};
+      const eventTypes: Record<string, number> = {};
+      (userEvents || []).forEach(e => {
+        if (e.page_path) pageVisits[e.page_path] = (pageVisits[e.page_path] || 0) + 1;
+        eventTypes[e.event_type] = (eventTypes[e.event_type] || 0) + 1;
+      });
+
+      return respond({
+        events_count: (userEvents || []).length,
+        page_visits: pageVisits,
+        event_types: eventTypes,
+        analyses: userAnalyses || [],
+        lenses: userLenses || [],
+        conversations: conversations || [],
+      });
+    }
+
     if (action === "health") {
       const { data: errors } = await supabase
         .from("analytics_events")

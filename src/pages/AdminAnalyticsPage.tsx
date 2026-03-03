@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   BarChart3, Users, MousePointerClick, TrendingUp, AlertTriangle,
   Eye, Clock, Smartphone, Monitor, Tablet, ArrowRight, RefreshCw,
-  LogOut, Zap, Target, Activity, Route, Flame
+  LogOut, Zap, Target, Activity, Route, Flame, UserCircle, FileText,
+  Star, ArrowLeft, Layers, MessageSquare
 } from "lucide-react";
 import {
   ChartContainer, ChartTooltip, ChartTooltipContent
@@ -425,6 +426,242 @@ function InsightsPanel({ data, onCompute }: { data: any[] | null; onCompute: () 
   );
 }
 
+function UserDetailView({ user, detail, onBack }: { user: any; detail: any; onBack: () => void }) {
+  return (
+    <div className="space-y-4">
+      <Button variant="ghost" size="sm" onClick={onBack}>
+        <ArrowLeft className="w-3 h-3 mr-1" /> Back to users
+      </Button>
+
+      <div className="flex items-center gap-3">
+        <UserCircle className="w-8 h-8 text-primary" />
+        <div>
+          <h3 className="font-semibold text-lg">{user.first_name}</h3>
+          <p className="text-xs text-muted-foreground">
+            Joined {new Date(user.created_at).toLocaleDateString()} • Last seen {user.last_seen_at ? new Date(user.last_seen_at).toLocaleDateString() : "never"}
+          </p>
+        </div>
+        {user.is_active && <Badge className="text-xs">Active</Badge>}
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Total Analyses" value={user.total_analyses} icon={FileText} />
+        <StatCard label="This Month" value={user.current_month_analyses} icon={BarChart3} />
+        <StatCard label="Saved Analyses" value={user.saved_analyses?.length || 0} icon={Star} />
+        <StatCard label="Lenses" value={user.lenses_count} icon={Layers} />
+      </div>
+
+      {detail && (
+        <>
+          {/* Page visits */}
+          {Object.keys(detail.page_visits || {}).length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Page Visits</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {Object.entries(detail.page_visits)
+                    .sort((a: any, b: any) => b[1] - a[1])
+                    .map(([page, count]: any) => (
+                      <div key={page} className="flex justify-between items-center text-sm">
+                        <span className="font-mono text-xs text-muted-foreground truncate max-w-[250px]">{page}</span>
+                        <Badge variant="secondary">{count}</Badge>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Event types */}
+          {Object.keys(detail.event_types || {}).length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Event Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(detail.event_types)
+                    .sort((a: any, b: any) => b[1] - a[1])
+                    .map(([type, count]: any) => (
+                      <Badge key={type} variant="outline" className="text-xs">
+                        {type.replace("_", " ")}: {count}
+                      </Badge>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Analyses */}
+          {detail.analyses?.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <FileText className="w-4 h-4" /> Saved Analyses ({detail.analyses.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {detail.analyses.map((a: any) => (
+                    <div key={a.id} className="flex justify-between items-start border-b border-border/50 pb-2 last:border-0">
+                      <div>
+                        <p className="text-sm font-medium">{a.title}</p>
+                        <div className="flex gap-2 mt-0.5 text-xs text-muted-foreground">
+                          <span>{a.analysis_type}</span>
+                          <span>{a.category}</span>
+                          <span>{new Date(a.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        {a.is_favorite && <Star className="w-3 h-3 text-amber-500 fill-amber-500" />}
+                        {a.avg_revival_score != null && (
+                          <Badge variant="secondary" className="text-[10px]">{a.avg_revival_score}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Lenses */}
+          {detail.lenses?.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Layers className="w-4 h-4" /> Custom Lenses ({detail.lenses.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {detail.lenses.map((l: any) => (
+                    <div key={l.id} className="flex justify-between items-center text-sm">
+                      <div>
+                        <span className="font-medium">{l.name}</span>
+                        {l.is_default && <Badge variant="outline" className="ml-2 text-[10px]">Default</Badge>}
+                      </div>
+                      <span className="text-xs text-muted-foreground">{l.risk_tolerance || "—"} risk • {l.time_horizon || "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Interrogation conversations */}
+          {detail.conversations?.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" /> Reasoning Conversations ({detail.conversations.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1.5">
+                  {detail.conversations.map((c: any) => (
+                    <div key={c.id} className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span className="font-mono truncate max-w-[200px]">{c.analysis_id}</span>
+                      <span>{new Date(c.updated_at).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function UsersPanel({ fetchData }: { fetchData: (action: string, extra?: string) => Promise<any> }) {
+  const [usersData, setUsersData] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [userDetail, setUserDetail] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  useEffect(() => {
+    fetchData("users").then(setUsersData);
+  }, []);
+
+  const openUser = async (user: any) => {
+    setSelectedUser(user);
+    setLoadingDetail(true);
+    const detail = await fetchData("user_detail", `&user_id=${user.user_id}`);
+    setUserDetail(detail);
+    setLoadingDetail(false);
+  };
+
+  if (selectedUser) {
+    if (loadingDetail) return <p className="text-muted-foreground text-sm">Loading user details...</p>;
+    return <UserDetailView user={selectedUser} detail={userDetail} onBack={() => { setSelectedUser(null); setUserDetail(null); }} />;
+  }
+
+  if (!usersData) return <p className="text-muted-foreground text-sm">Loading users...</p>;
+
+  const filtered = search
+    ? usersData.users.filter((u: any) => u.first_name?.toLowerCase().includes(search.toLowerCase()))
+    : usersData.users;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <StatCard label="Total Users" value={usersData.totalUsers} icon={Users} />
+        <StatCard label="Active (7d)" value={usersData.activeUsers} icon={Activity} />
+        <StatCard
+          label="Activation Rate"
+          value={usersData.totalUsers ? `${Math.round((usersData.activeUsers / usersData.totalUsers) * 100)}%` : "0%"}
+          icon={TrendingUp}
+        />
+      </div>
+
+      <Input
+        placeholder="Search by name..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="max-w-xs h-8 text-sm"
+      />
+
+      <div className="space-y-2">
+        {filtered.length === 0 && (
+          <p className="text-muted-foreground text-sm text-center py-8">No users found</p>
+        )}
+        {filtered.map((u: any) => (
+          <Card key={u.user_id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => openUser(u)}>
+            <CardContent className="p-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <UserCircle className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">{u.first_name}</p>
+                    <div className="flex gap-2 mt-0.5 text-xs text-muted-foreground">
+                      <span>Joined {new Date(u.created_at).toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>Last seen {u.last_seen_at ? new Date(u.last_seen_at).toLocaleDateString() : "never"}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {u.is_active && <Badge className="text-[10px]">Active</Badge>}
+                  <Badge variant="secondary" className="text-xs">{u.total_analyses} analyses</Badge>
+                  {u.lenses_count > 0 && (
+                    <Badge variant="outline" className="text-[10px]">{u.lenses_count} lenses</Badge>
+                  )}
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminAnalyticsPage() {
   const { authenticated, login, logout, fetchData, computeInsights, loading, error, days, setDays } = useAnalyticsAdmin();
   const [tab, setTab] = useState("overview");
@@ -497,6 +734,7 @@ export default function AdminAnalyticsPage() {
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="flex-wrap h-auto gap-1 mb-4">
             <TabsTrigger value="overview" className="text-xs"><BarChart3 className="w-3 h-3 mr-1" />Overview</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs"><Users className="w-3 h-3 mr-1" />Users</TabsTrigger>
             <TabsTrigger value="sections" className="text-xs"><Eye className="w-3 h-3 mr-1" />Sections</TabsTrigger>
             <TabsTrigger value="funnel" className="text-xs"><Target className="w-3 h-3 mr-1" />Funnel</TabsTrigger>
             <TabsTrigger value="paths" className="text-xs"><Route className="w-3 h-3 mr-1" />Paths</TabsTrigger>
@@ -507,6 +745,7 @@ export default function AdminAnalyticsPage() {
           </TabsList>
 
           <TabsContent value="overview"><OverviewPanel data={overview} /></TabsContent>
+          <TabsContent value="users"><UsersPanel fetchData={fetchData} /></TabsContent>
           <TabsContent value="sections"><SectionsPanel data={sections} /></TabsContent>
           <TabsContent value="funnel"><FunnelPanel data={funnel} /></TabsContent>
           <TabsContent value="paths"><PathsPanel data={paths} /></TabsContent>
