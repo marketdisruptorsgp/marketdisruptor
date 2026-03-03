@@ -187,7 +187,7 @@ export default function ReportPage() {
           {/* === ALL SECTIONS AS ACCORDIONS === */}
 
           {/* 1. Overview — open by default */}
-          <DetailPanel title="Overview" icon={Target} defaultOpen>
+          <DetailPanel title="Overview" icon={Target}>
             {selectedProduct.keyInsight && (
               <div className="insight-callout mb-3">
                 <p className="typo-card-body font-semibold leading-snug">{selectedProduct.keyInsight}</p>
@@ -224,6 +224,41 @@ export default function ReportPage() {
           </DetailPanel>
 
           {/* Assumptions Map removed — belongs in Disrupt step (downstream) */}
+
+          {/* 2. User Journey */}
+          {uw?.stepByStep?.length > 0 && (
+            <DetailPanel title="User Journey" icon={Clock}>
+              <div className="space-y-3">
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleRefreshJourney}
+                    disabled={refreshingJourney}
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground disabled:opacity-50"
+                  >
+                    <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
+                    {refreshingJourney ? "Refreshing..." : "Refresh"}
+                  </button>
+                </div>
+                <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
+                {(uw.cognitiveLoad || uw.contextOfUse) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {uw.cognitiveLoad && (
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
+                        <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
+                      </div>
+                    )}
+                    {uw.contextOfUse && (
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <p className="typo-card-eyebrow mb-1">Context of Use</p>
+                        <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </DetailPanel>
+          )}
 
           {/* 3. Community Intel */}
           {ci && (
@@ -270,41 +305,6 @@ export default function ReportPage() {
                   </div>
                 );
               })()}
-            </DetailPanel>
-          )}
-
-          {/* 4. User Journey */}
-          {uw?.stepByStep?.length > 0 && (
-            <DetailPanel title="User Journey" icon={Clock}>
-              <div className="space-y-3">
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleRefreshJourney}
-                    disabled={refreshingJourney}
-                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground disabled:opacity-50"
-                  >
-                    <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
-                    {refreshingJourney ? "Refreshing..." : "Refresh"}
-                  </button>
-                </div>
-                <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
-                {(uw.cognitiveLoad || uw.contextOfUse) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {uw.cognitiveLoad && (
-                      <div className="p-3 rounded-lg bg-card border border-border">
-                        <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
-                        <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
-                      </div>
-                    )}
-                    {uw.contextOfUse && (
-                      <div className="p-3 rounded-lg bg-card border border-border">
-                        <p className="typo-card-eyebrow mb-1">Context of Use</p>
-                        <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
             </DetailPanel>
           )}
 
