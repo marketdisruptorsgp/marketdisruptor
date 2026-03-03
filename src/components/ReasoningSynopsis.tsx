@@ -528,15 +528,6 @@ export function ReasoningSynopsis({ data, analysisData, products, title, categor
   if (!synopsis || !synopsis.problem_framing) {
     return (
       <div className="space-y-4">
-        <div className="rounded-xl p-6 text-center" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
-          <Brain size={20} className="mx-auto mb-2 text-muted-foreground/40" />
-          <p className="text-[11px] font-semibold text-muted-foreground">
-            Reasoning Synopsis not available for this analysis.
-          </p>
-          <p className="text-[9px] text-muted-foreground/60 mt-1">
-            Run a new analysis to generate the reasoning trace.
-          </p>
-        </div>
         {analysisData && (
           <ReasoningInterrogation
             analysisData={analysisData}
@@ -547,12 +538,32 @@ export function ReasoningSynopsis({ data, analysisData, products, title, categor
             avgScore={avgScore ?? null}
           />
         )}
+        <div className="rounded-xl p-6 text-center" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+          <Brain size={20} className="mx-auto mb-2 text-muted-foreground/40" />
+          <p className="text-[11px] font-semibold text-muted-foreground">
+            Reasoning Synopsis not available for this analysis.
+          </p>
+          <p className="text-[9px] text-muted-foreground/60 mt-1">
+            Run a new analysis to generate the reasoning trace.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      {/* Interrogation panel — top position for discoverability */}
+      {analysisData && (
+        <ReasoningInterrogation
+          analysisData={analysisData}
+          products={products}
+          title={title || "Untitled"}
+          category={category || "Unknown"}
+          analysisType={analysisType || "product"}
+          avgScore={avgScore ?? null}
+        />
+      )}
       {/* Visual panels */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <LensInfluenceRadar synopsis={synopsis} />
@@ -566,17 +577,6 @@ export function ReasoningSynopsis({ data, analysisData, products, title, categor
       </div>
       {/* Structured text sections */}
       <StructuredTextSynopsis synopsis={synopsis} />
-      {/* Interrogation panel */}
-      {analysisData && (
-        <ReasoningInterrogation
-          analysisData={analysisData}
-          products={products}
-          title={title || "Untitled"}
-          category={category || "Unknown"}
-          analysisType={analysisType || "product"}
-          avgScore={avgScore ?? null}
-        />
-      )}
     </div>
   );
 }

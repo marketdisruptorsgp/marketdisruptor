@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Send, Loader2, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import { MessageSquare, Send, Loader2, ChevronDown, ChevronUp, Zap, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { InfoExplainer } from "@/components/InfoExplainer";
@@ -33,24 +33,60 @@ function getQuickActions(analysisData: any): { label: string; question: string }
 
   if (topHypothesis) {
     actions.push({
-      label: `Why does "${topHypothesis.constraint_type}" rank highest?`,
+      label: `Why "${topHypothesis.constraint_type}" ranks highest`,
       question: `Why did the "${topHypothesis.constraint_type}" constraint (${topHypothesis.id}) rank as the dominant hypothesis? Break down the dominance score components and explain what evidence supports this ranking over the alternatives.`,
     });
   }
 
   if (topAssumption) {
     actions.push({
-      label: `What if "${topAssumption.assumption?.slice(0, 30)}…" is wrong?`,
+      label: `What if "${topAssumption.assumption?.slice(0, 25)}…" is wrong?`,
       question: `What if this key assumption is wrong: "${topAssumption.assumption}"? Trace the causal chain disruption and identify which conclusions would collapse.`,
     });
   }
 
   actions.push(
-    { label: "What's missing from this analysis?", question: "What blind spots, unexamined constraints, or missing causal pathways exist in this analysis? Identify the most critical gaps in the evidence base." },
+    { label: "What's missing?", question: "What blind spots, unexamined constraints, or missing causal pathways exist in this analysis? Identify the most critical gaps in the evidence base." },
     { label: "Challenge the confidence score", question: "Is the confidence score justified? What specific evidence would need to change to shift it significantly? Are there any assumptions being treated as verified that shouldn't be?" },
   );
 
   return actions.slice(0, 4);
+}
+
+/* ── Chat Messages Sub-component ── */
+function ChatMessages({ messages, isLoading, scrollRef }: { messages: Message[]; isLoading: boolean; scrollRef: React.RefObject<HTMLDivElement> }) {
+  return (
+    <div ref={scrollRef} className="max-h-[420px] overflow-y-auto space-y-3 scroll-smooth">
+      {messages.map((msg, i) => (
+        <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            className={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-[12px] leading-relaxed ${
+              msg.role === "user" ? "bg-primary text-primary-foreground" : ""
+            }`}
+            style={msg.role === "assistant" ? {
+              background: "hsl(var(--muted))",
+              color: "hsl(var(--foreground))",
+            } : undefined}
+          >
+            {msg.role === "assistant" ? (
+              <div className="prose prose-sm max-w-none [&_p]:text-[12px] [&_p]:leading-relaxed [&_li]:text-[12px] [&_strong]:text-foreground [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_code]:text-[11px]">
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
+              </div>
+            ) : (
+              msg.content
+            )}
+          </div>
+        </div>
+      ))}
+      {isLoading && messages[messages.length - 1]?.role === "user" && (
+        <div className="flex justify-start">
+          <div className="rounded-xl px-3.5 py-2.5" style={{ background: "hsl(var(--muted))" }}>
+            <Loader2 size={14} className="animate-spin text-muted-foreground" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ReasoningInterrogation({ analysisData, products, title, category, analysisType, avgScore }: ReasoningInterrogationProps) {
@@ -143,8 +179,9 @@ export function ReasoningInterrogation({ analysisData, products, title, category
     if (!questionOverride) setInput("");
 
     const userMsg: Message = { role: "user", content: q };
+    const currentMessages = [...messages];
     setMessages(prev => [...prev, userMsg]);
-    await streamResponse(q, [...messages, userMsg].filter(m => m.role !== "user" || m.content !== q).concat([]));
+    await streamResponse(q, currentMessages);
   }, [input, isLoading, messages, streamResponse]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -154,152 +191,169 @@ export function ReasoningInterrogation({ analysisData, products, title, category
     }
   };
 
+  // Not open — show prominent CTA
+  if (!isOpen) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-full group rounded-xl p-4 flex items-center justify-between transition-all duration-200 hover:shadow-md"
+          style={{
+            background: "hsl(var(--vi-surface-elevated))",
+            border: "1px solid hsl(var(--primary) / 0.2)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105"
+              style={{ background: "hsl(var(--primary) / 0.1)" }}
+            >
+              <MessageSquare size={16} style={{ color: "hsl(var(--primary))" }} />
+            </div>
+            <div className="text-left">
+              <div className="flex items-center gap-2">
+                <span className="text-[13px] font-bold text-foreground">
+                  Challenge This Reasoning
+                </span>
+                <InfoExplainer explainerKey="reasoning-interrogation" accentColor="hsl(var(--primary))" />
+                {messages.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary">
+                    {messages.filter(m => m.role === "user").length} questions
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Ask questions, challenge assumptions, or request re-evaluation of this analysis
+              </p>
+            </div>
+          </div>
+          <div
+            className="px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
+            style={{
+              background: "hsl(var(--primary) / 0.08)",
+              color: "hsl(var(--primary))",
+              border: "1px solid hsl(var(--primary) / 0.15)",
+            }}
+          >
+            Start →
+          </div>
+        </button>
+      </motion.div>
+    );
+  }
+
+  // Open — full chat panel
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.2 }}
+      transition={{ duration: 0.3 }}
       className="rounded-xl overflow-hidden"
       style={{
         background: "hsl(var(--vi-surface-elevated))",
-        border: "1px solid hsl(var(--border))",
+        border: "1px solid hsl(var(--primary) / 0.2)",
       }}
     >
-      {/* Header toggle */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent/30 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: "hsl(var(--vi-glow-mechanism) / 0.12)" }}>
-            <MessageSquare size={11} style={{ color: "hsl(var(--vi-glow-mechanism))" }} />
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
+            <MessageSquare size={13} style={{ color: "hsl(var(--primary))" }} />
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+          <span className="text-[12px] font-bold uppercase tracking-widest text-foreground">
             Challenge This Reasoning
           </span>
-          <InfoExplainer explainerKey="reasoning-interrogation" accentColor="hsl(var(--vi-glow-mechanism))" />
+          <InfoExplainer explainerKey="reasoning-interrogation" accentColor="hsl(var(--primary))" />
           {messages.length > 0 && (
             <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary">
               {messages.filter(m => m.role === "user").length}
             </span>
           )}
         </div>
-        {isOpen ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
-      </button>
+        <button onClick={() => setIsOpen(false)} className="p-1 rounded-md hover:bg-accent/30 transition-colors">
+          <X size={14} className="text-muted-foreground" />
+        </button>
+      </div>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-4 space-y-3" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-              {/* Quick actions */}
-              {messages.length === 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-3">
-                  {quickActions.map((action, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSend(action.question)}
-                      disabled={isLoading}
-                      className="px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-colors hover:bg-accent/50 disabled:opacity-50"
-                      style={{
-                        background: "hsl(var(--vi-glow-mechanism) / 0.06)",
-                        color: "hsl(var(--vi-glow-mechanism))",
-                        border: "1px solid hsl(var(--vi-glow-mechanism) / 0.15)",
-                      }}
-                    >
-                      <Zap size={9} className="inline mr-1" />
-                      {action.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Chat history */}
-              {messages.length > 0 && (
-                <div ref={scrollRef} className="max-h-[400px] overflow-y-auto space-y-3 pt-3 scroll-smooth">
-                  {messages.map((msg, i) => (
-                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div
-                        className={`max-w-[85%] rounded-xl px-3 py-2 text-[11px] leading-relaxed ${
-                          msg.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : ""
-                        }`}
-                        style={msg.role === "assistant" ? {
-                          background: "hsl(var(--muted))",
-                          color: "hsl(var(--foreground))",
-                        } : undefined}
-                      >
-                        {msg.role === "assistant" ? (
-                          <div className="prose prose-sm max-w-none [&_p]:text-[11px] [&_p]:leading-relaxed [&_li]:text-[11px] [&_strong]:text-foreground [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_code]:text-[10px]">
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
-                          </div>
-                        ) : (
-                          msg.content
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {isLoading && messages[messages.length - 1]?.role === "user" && (
-                    <div className="flex justify-start">
-                      <div className="rounded-xl px-3 py-2" style={{ background: "hsl(var(--muted))" }}>
-                        <Loader2 size={12} className="animate-spin text-muted-foreground" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Quick actions after conversation started */}
-              {messages.length > 0 && !isLoading && (
-                <div className="flex flex-wrap gap-1.5">
-                  {quickActions.slice(0, 2).map((action, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSend(action.question)}
-                      className="px-2 py-1 rounded-md text-[9px] font-semibold transition-colors hover:bg-accent/50"
-                      style={{
-                        background: "hsl(var(--vi-glow-mechanism) / 0.04)",
-                        color: "hsl(var(--muted-foreground))",
-                        border: "1px solid hsl(var(--border))",
-                      }}
-                    >
-                      {action.label.length > 35 ? action.label.slice(0, 33) + "…" : action.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Input */}
-              <div className="flex items-end gap-2 pt-1">
-                <Textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask about the reasoning, challenge assumptions, or request re-evaluation…"
-                  className="min-h-[36px] max-h-[100px] text-[11px] resize-none bg-background"
-                  rows={1}
+      <div className="px-4 pb-4 space-y-3 pt-3">
+        {/* Quick actions — always visible when no messages */}
+        {messages.length === 0 && (
+          <div className="space-y-2">
+            <p className="text-[11px] text-muted-foreground">
+              Select a question below or type your own to interrogate this analysis:
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {quickActions.map((action, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSend(action.question)}
                   disabled={isLoading}
-                />
-                <Button
-                  size="icon"
-                  onClick={() => handleSend()}
-                  disabled={!input.trim() || isLoading}
-                  className="h-9 w-9 flex-shrink-0"
+                  className="px-3 py-2 rounded-lg text-[11px] font-semibold transition-all hover:shadow-sm disabled:opacity-50"
+                  style={{
+                    background: "hsl(var(--primary) / 0.05)",
+                    color: "hsl(var(--primary))",
+                    border: "1px solid hsl(var(--primary) / 0.12)",
+                  }}
                 >
-                  {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                </Button>
-              </div>
+                  <Zap size={10} className="inline mr-1.5 -mt-0.5" />
+                  {action.label}
+                </button>
+              ))}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+
+        {/* Chat history */}
+        {messages.length > 0 && (
+          <ChatMessages messages={messages} isLoading={isLoading} scrollRef={scrollRef} />
+        )}
+
+        {/* Quick actions after conversation started */}
+        {messages.length > 0 && !isLoading && (
+          <div className="flex flex-wrap gap-1.5">
+            {quickActions.slice(0, 2).map((action, i) => (
+              <button
+                key={i}
+                onClick={() => handleSend(action.question)}
+                className="px-2 py-1 rounded-md text-[10px] font-semibold transition-colors hover:bg-accent/50"
+                style={{
+                  background: "hsl(var(--muted) / 0.5)",
+                  color: "hsl(var(--muted-foreground))",
+                  border: "1px solid hsl(var(--border))",
+                }}
+              >
+                {action.label.length > 35 ? action.label.slice(0, 33) + "…" : action.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Input */}
+        <div className="flex items-end gap-2 pt-1">
+          <Textarea
+            ref={textareaRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask about the reasoning, challenge assumptions, or request re-evaluation…"
+            className="min-h-[40px] max-h-[100px] text-[12px] resize-none bg-background"
+            rows={1}
+            disabled={isLoading}
+          />
+          <Button
+            size="icon"
+            onClick={() => handleSend()}
+            disabled={!input.trim() || isLoading}
+            className="h-10 w-10 flex-shrink-0"
+          >
+            {isLoading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+          </Button>
+        </div>
+      </div>
     </motion.div>
   );
 }
