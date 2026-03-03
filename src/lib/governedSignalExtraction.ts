@@ -9,6 +9,32 @@
 
 import type { RankedSignal, SignalRole, SignalRelationship } from "./signalRanking";
 
+/**
+ * Convert internal IDs like "F_AWKWARD_EGRESS" into readable labels:
+ * "Awkward Egress". Also safely handles objects.
+ */
+function humanizeLabel(raw: unknown): string {
+  if (raw === null || raw === undefined) return "";
+  if (typeof raw === "object") {
+    // Extract the most meaningful string field from an object
+    const obj = raw as Record<string, unknown>;
+    const candidate = obj.description || obj.label || obj.text || obj.name || obj.summary || obj.title || obj.assumption || obj.root_cause || "";
+    if (typeof candidate === "string" && candidate.length > 3) return candidate.slice(0, 80);
+    // Last resort: try JSON but truncate
+    try { const j = JSON.stringify(raw); return j.length > 80 ? j.slice(0, 77) + "…" : j; } catch { return ""; }
+  }
+  const s = String(raw);
+  // Detect internal IDs like F_AWKWARD_EGRESS, C_RECONTAM
+  if (/^[A-Z]_[A-Z_]+$/.test(s)) {
+    return s
+      .replace(/^[A-Z]_/, "")                  // strip prefix
+      .split("_")
+      .map(w => w.charAt(0) + w.slice(1).toLowerCase())
+      .join(" ");
+  }
+  return s;
+}
+
 export interface GovernedCausalChain {
   from: string;
   to: string;
@@ -37,7 +63,7 @@ export function extractFromGoverned(
       const idx = signals.length;
       signalIndex.set(bindingId, idx);
       signals.push({
-        label: bindingId,
+        label: humanizeLabel(bindingId),
         role: "constraint",
         impact: 5,
         confidence: constraintMap.dominance_proof ? 5 : 3,
@@ -54,7 +80,7 @@ export function extractFromGoverned(
       const idx = signals.length;
       signalIndex.set(nextBinding, idx);
       signals.push({
-        label: nextBinding,
+        label: humanizeLabel(nextBinding),
         role: "constraint",
         impact: 4,
         confidence: 3,
@@ -66,7 +92,8 @@ export function extractFromGoverned(
     }
 
     // Counterfactual
-    const counterfactual = String(constraintMap.counterfactual_removal_result || "");
+    const rawCounterfactual = constraintMap.counterfactual_removal_result || "";
+    const counterfactual = humanizeLabel(rawCounterfactual);
     if (counterfactual && counterfactual.length > 10) {
       const idx = signals.length;
       signalIndex.set("counterfactual", idx);
@@ -95,7 +122,7 @@ export function extractFromGoverned(
   // 2. Extract from first_principles
   const fp = governed.first_principles as Record<string, unknown> | undefined;
   if (fp) {
-    const causalModel = String(fp.causal_model || "");
+    const causalModel = humanizeLabel(fp.causal_model);
     if (causalModel && causalModel.length > 10) {
       signals.push({
         label: causalModel.slice(0, 80),
@@ -109,7 +136,7 @@ export function extractFromGoverned(
       });
     }
 
-    const mvs = String(fp.minimum_viable_system || "");
+    const mvs = humanizeLabel(fp.minimum_viable_system);
     if (mvs && mvs.length > 10) {
       signals.push({
         label: mvs.slice(0, 80),
@@ -127,7 +154,7 @@ export function extractFromGoverned(
     const assumptions = fp.viability_assumptions as Array<Record<string, unknown>> | undefined;
     if (assumptions && Array.isArray(assumptions)) {
       for (const a of assumptions.slice(0, 4)) {
-        const label = String(a.assumption || "");
+        const label = humanizeLabel(a.assumption);
         if (label.length > 5) {
           const status = String(a.evidence_status || "speculative");
           const confidence = status === "verified" ? 5 : status === "modeled" ? 3 : 1;
@@ -151,7 +178,7 @@ export function extractFromGoverned(
   // 3. Extract from leverage_map
   const leverageMap = governed.leverage_map as Record<string, unknown> | undefined;
   if (leverageMap) {
-    const leverId = String(leverageMap.lever_id || leverageMap.highest_leverage_point || "");
+    const leverId = humanizeLabel(leverageMap.lever_id || leverageMap.highest_leverage_point);
     if (leverId && leverId.length > 5) {
       const idx = signals.length;
       signalIndex.set("leverage", idx);
@@ -185,7 +212,7 @@ export function extractFromGoverned(
     if (tier1) {
       const items = Array.isArray(tier1) ? tier1 : [tier1];
       for (const item of items.slice(0, 2)) {
-        const label = String(item.friction_id || item.description || item.root_cause || "");
+        const label = humanizeLabel(item.description || item.root_cause || item.friction_id || "");
         if (label.length > 5) {
           signals.push({
             label: label.slice(0, 80),

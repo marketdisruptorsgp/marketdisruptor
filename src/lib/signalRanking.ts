@@ -94,17 +94,21 @@ export function extractAndRankSignals(data: Record<string, unknown>): RankedSign
         if (typeof item === "string" && item.trim().length > 5) {
           items.push(item.trim());
         } else if (item && typeof item === "object") {
-          // Extract signals from nested objects (e.g., competitorAnalysis, pricingIntel)
           const nested = item as Record<string, unknown>;
-          for (const nVal of Object.values(nested)) {
-            if (typeof nVal === "string" && nVal.trim().length > 5) {
-              items.push(nVal.trim());
+          // Prefer descriptive fields over IDs
+          const desc = nested.description || nested.label || nested.text || nested.name || nested.summary || nested.assumption || nested.root_cause;
+          if (typeof desc === "string" && desc.trim().length > 5) {
+            items.push(desc.trim());
+          } else {
+            for (const nVal of Object.values(nested)) {
+              if (typeof nVal === "string" && nVal.trim().length > 5) {
+                items.push(nVal.trim());
+              }
             }
           }
         }
       }
     } else if (value && typeof value === "object" && !Array.isArray(value)) {
-      // Extract from nested objects like competitorAnalysis, pricingIntel, governed
       const obj = value as Record<string, unknown>;
       for (const [nKey, nVal] of Object.entries(obj)) {
         if (typeof nVal === "string" && nVal.trim().length > 5) {
