@@ -5,6 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Cell, Tooltip,
 } from "recharts";
 import { ArrowRight, Brain, Eye, Scale, Target, TrendingUp, AlertTriangle, Gauge, ShieldQuestion, GitBranch, FileSearch } from "lucide-react";
+import { ReasoningInterrogation } from "./ReasoningInterrogation";
 
 /* ═══════════════════════════════════════════════════
    REASONING SYNOPSIS — Dedicated Tab Component
@@ -511,19 +512,41 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
 }
 
 /* ═══ MAIN EXPORT ═══ */
-export function ReasoningSynopsis({ data }: { data: unknown }) {
+interface ReasoningSynopsisProps {
+  data: unknown;
+  analysisData?: any;
+  products?: any;
+  title?: string;
+  category?: string;
+  analysisType?: string;
+  avgScore?: number | null;
+}
+
+export function ReasoningSynopsis({ data, analysisData, products, title, category, analysisType, avgScore }: ReasoningSynopsisProps) {
   const synopsis = data as SynopsisData | undefined;
 
   if (!synopsis || !synopsis.problem_framing) {
     return (
-      <div className="rounded-xl p-6 text-center" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
-        <Brain size={20} className="mx-auto mb-2 text-muted-foreground/40" />
-        <p className="text-[11px] font-semibold text-muted-foreground">
-          Reasoning Synopsis not available for this analysis.
-        </p>
-        <p className="text-[9px] text-muted-foreground/60 mt-1">
-          Run a new analysis to generate the reasoning trace.
-        </p>
+      <div className="space-y-4">
+        <div className="rounded-xl p-6 text-center" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+          <Brain size={20} className="mx-auto mb-2 text-muted-foreground/40" />
+          <p className="text-[11px] font-semibold text-muted-foreground">
+            Reasoning Synopsis not available for this analysis.
+          </p>
+          <p className="text-[9px] text-muted-foreground/60 mt-1">
+            Run a new analysis to generate the reasoning trace.
+          </p>
+        </div>
+        {analysisData && (
+          <ReasoningInterrogation
+            analysisData={analysisData}
+            products={products}
+            title={title || "Untitled"}
+            category={category || "Unknown"}
+            analysisType={analysisType || "product"}
+            avgScore={avgScore ?? null}
+          />
+        )}
       </div>
     );
   }
@@ -543,6 +566,17 @@ export function ReasoningSynopsis({ data }: { data: unknown }) {
       </div>
       {/* Structured text sections */}
       <StructuredTextSynopsis synopsis={synopsis} />
+      {/* Interrogation panel */}
+      {analysisData && (
+        <ReasoningInterrogation
+          analysisData={analysisData}
+          products={products}
+          title={title || "Untitled"}
+          category={category || "Unknown"}
+          analysisType={analysisType || "product"}
+          avgScore={avgScore ?? null}
+        />
+      )}
     </div>
   );
 }

@@ -593,7 +593,15 @@ export function AnalysisVisualLayer({
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
           >
-            <ReasoningSynopsis data={synopsisData} />
+            <ReasoningSynopsis
+              data={synopsisData}
+              analysisData={analysis}
+              products={(analysis as any)?.products}
+              title={(analysis as any)?.title || ""}
+              category={(analysis as any)?.category || ""}
+              analysisType={(analysis as any)?.analysis_type || "product"}
+              avgScore={(analysis as any)?.avg_revival_score ?? null}
+            />
           </motion.div>
         ) : (
           <motion.div
