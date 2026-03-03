@@ -220,8 +220,8 @@ export default function StructuralInterpretationsPanel({
 
       <p className="text-xs text-muted-foreground">
         {ranking.competing
-          ? "Multiple plausible root constraints identified. Select the interpretation to explore — all downstream analysis will recompute from your chosen branch."
-          : "The primary structural driver is identified below. Alternative interpretations are available for exploration."}
+          ? "Multiple plausible root constraints identified. The system selects the highest-weighted interpretation by default. Select an alternative to shift the analytical lens across all downstream steps."
+          : "The primary structural driver is identified below. Click any branch to explore alternative interpretations — downstream analysis will follow your chosen path."}
       </p>
 
       {/* Gravity map on desktop, card list on mobile */}
