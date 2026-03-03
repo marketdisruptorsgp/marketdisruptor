@@ -246,7 +246,14 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const pendingBranchSaveRef = useRef<string | null | undefined>(undefined);
   const setActiveBranchId = useCallback((id: string | null) => {
     setActiveBranchIdState(id);
-    if (id) {
+    // "combined" or null means all hypotheses — only mark outdated when switching to/from isolated
+    if (id && id !== "combined") {
+      markStepOutdated("disrupt");
+      markStepOutdated("redesign");
+      markStepOutdated("stressTest");
+      markStepOutdated("pitchDeck");
+    } else if (id === "combined") {
+      // Switching back to combined also invalidates
       markStepOutdated("disrupt");
       markStepOutdated("redesign");
       markStepOutdated("stressTest");

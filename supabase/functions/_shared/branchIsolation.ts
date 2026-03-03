@@ -1,9 +1,9 @@
 /**
- * BRANCH ISOLATION ENGINE (with Strategic Profile support)
+ * BRANCH ISOLATION ENGINE (with Strategic Profile + Combined Mode support)
  * 
- * Extracts the active root hypothesis and builds an isolated
- * constraint context for downstream reasoning, including
- * archetype-specific weights and thresholds.
+ * Extracts the active root hypothesis (or all hypotheses in combined mode)
+ * and builds an isolated constraint context for downstream reasoning,
+ * including archetype-specific weights and thresholds.
  */
 
 export interface ActiveBranchContext {
@@ -24,6 +24,12 @@ export interface ActiveBranchContext {
   confidence: number;
   downstream_implications: string;
   dominance_score?: number;
+}
+
+export interface CombinedBranchContext {
+  mode: "combined";
+  hypotheses: ActiveBranchContext[];
+  tensions: string[];
 }
 
 export interface StrategicProfilePayload {
@@ -48,31 +54,7 @@ const ARCHETYPE_WEIGHTS: Record<string, Record<string, number>> = {
   enterprise_strategist: { defensibility: 1.4, reliability: 1.3 },
 };
 
-/**
- * Extract the active branch hypothesis from governed constraint_map.
- */
-export function extractActiveBranch(
-  governed: Record<string, unknown> | null | undefined,
-  activeBranchId: string | null | undefined
-): ActiveBranchContext | null {
-  if (!governed || !activeBranchId) return null;
-
-  let hypotheses: unknown[] | undefined;
-  
-  if (Array.isArray((governed as any).root_hypotheses)) {
-    hypotheses = (governed as any).root_hypotheses;
-  } else {
-    const cm = governed.constraint_map as Record<string, unknown> | undefined;
-    if (cm && Array.isArray(cm.root_hypotheses)) {
-      hypotheses = cm.root_hypotheses as unknown[];
-    }
-  }
-
-  if (!hypotheses || hypotheses.length === 0) return null;
-
-  const match = hypotheses.find((h: any) => h.id === activeBranchId) as any;
-  if (!match) return null;
-
+function parseHypothesis(match: any): ActiveBranchContext {
   return {
     branch_id: match.id,
     constraint_type: match.constraint_type || "unknown",
@@ -90,13 +72,135 @@ export function extractActiveBranch(
 }
 
 /**
- * Build a prompt injection section that isolates downstream reasoning
- * to the selected branch's constraint universe, with strategic profile context.
+ * Extract the active branch hypothesis from governed constraint_map.
+ * Returns null for combined mode (use extractCombinedBranches instead).
+ */
+export function extractActiveBranch(
+  governed: Record<string, unknown> | null | undefined,
+  activeBranchId: string | null | undefined
+): ActiveBranchContext | null {
+  if (!governed || !activeBranchId || activeBranchId === "combined") return null;
+
+  let hypotheses: unknown[] | undefined;
+  
+  if (Array.isArray((governed as any).root_hypotheses)) {
+    hypotheses = (governed as any).root_hypotheses;
+  } else {
+    const cm = governed.constraint_map as Record<string, unknown> | undefined;
+    if (cm && Array.isArray(cm.root_hypotheses)) {
+      hypotheses = cm.root_hypotheses as unknown[];
+    }
+  }
+
+  if (!hypotheses || hypotheses.length === 0) return null;
+
+  const match = hypotheses.find((h: any) => h.id === activeBranchId) as any;
+  if (!match) return null;
+
+  return parseHypothesis(match);
+}
+
+/**
+ * Extract ALL hypotheses for combined mode reasoning.
+ */
+export function extractCombinedBranches(
+  governed: Record<string, unknown> | null | undefined
+): CombinedBranchContext | null {
+  if (!governed) return null;
+
+  let hypotheses: unknown[] | undefined;
+  if (Array.isArray((governed as any).root_hypotheses)) {
+    hypotheses = (governed as any).root_hypotheses;
+  } else {
+    const cm = governed.constraint_map as Record<string, unknown> | undefined;
+    if (cm && Array.isArray(cm.root_hypotheses)) {
+      hypotheses = cm.root_hypotheses as unknown[];
+    }
+  }
+
+  if (!hypotheses || hypotheses.length === 0) return null;
+
+  const branches = hypotheses.map((h: any) => parseHypothesis(h));
+  
+  // Detect tensions
+  const tensions: string[] = [];
+  for (let i = 0; i < branches.length; i++) {
+    for (let j = i + 1; j < branches.length; j++) {
+      const a = branches[i];
+      const b = branches[j];
+      if (Math.abs((a.dominance_score ?? 0) - (b.dominance_score ?? 0)) < 2) {
+        tensions.push(`"${a.constraint_type}" and "${b.constraint_type}" are nearly equal in weight — a genuine tradeoff.`);
+      }
+    }
+  }
+
+  return { mode: "combined", hypotheses: branches, tensions };
+}
+
+/**
+ * Build a prompt injection section for combined or isolated mode.
  */
 export function buildBranchIsolationPrompt(
   branch: ActiveBranchContext | null,
-  profile?: StrategicProfilePayload | null
+  profile?: StrategicProfilePayload | null,
+  combined?: CombinedBranchContext | null
 ): string {
+  // Combined mode: all hypotheses
+  if (combined && combined.hypotheses.length > 0) {
+    const hypothesesStr = combined.hypotheses.map((h, i) => {
+      const evidenceStr = `Verified: ${Math.round(h.evidence_mix.verified * 100)}%, Modeled: ${Math.round(h.evidence_mix.modeled * 100)}%, Assumed: ${Math.round(h.evidence_mix.assumption * 100)}%`;
+      const causalStr = h.causal_chain.map((c, j) =>
+        `    ${j + 1}. [${c.friction_id}] ${c.structural_constraint} → ${c.system_impact} (${c.impact_dimension})`
+      ).join("\n");
+      return `
+  HYPOTHESIS #${i + 1}: ${h.hypothesis_statement}
+    Constraint Type: ${h.constraint_type}
+    Leverage: ${h.leverage_score}/10 | Impact: ${h.impact_score}/10 | Fragility: ${h.fragility_score}/10
+    Confidence: ${h.confidence}% | Evidence: ${evidenceStr}
+    Dominance Score: ${h.dominance_score?.toFixed(2) ?? "N/A"}
+    Causal Chain:
+${causalStr || "      None"}
+    Downstream: ${h.downstream_implications}`;
+    }).join("\n");
+
+    const tensionStr = combined.tensions.length > 0
+      ? `\nTENSIONS TO ADDRESS:\n${combined.tensions.map((t, i) => `  ${i + 1}. ${t}`).join("\n")}`
+      : "";
+
+    let profileSection = "";
+    if (profile) {
+      profileSection = `
+STRATEGIC PROFILE:
+  Archetype: ${profile.archetype}
+  Risk Tolerance: ${profile.risk_tolerance}
+  Time Horizon: ${profile.time_horizon_months} months
+`;
+    }
+
+    return `
+
+══════════════════════════════════════════════
+COMBINED STRUCTURAL ANALYSIS (ALL HYPOTHESES)
+══════════════════════════════════════════════
+
+CRITICAL: You are reasoning across ALL structural hypotheses simultaneously.
+Weight each hypothesis by its dominance score. Where hypotheses conflict,
+EXPLICITLY call out the tension and present it as a decision point.
+
+${hypothesesStr}
+${tensionStr}
+${profileSection}
+RULES FOR COMBINED REASONING:
+1. Weight recommendations by each hypothesis's dominance score
+2. Where hypotheses CONFLICT, surface the tension explicitly as a tradeoff
+3. Solutions should address the highest-leverage constraints first
+4. Confidence scores reflect the WEAKEST evidence across relevant hypotheses
+5. Flag areas where focusing on one constraint worsens another
+══════════════════════════════════════════════
+`;
+  }
+
+  // Isolated mode (existing behavior)
   if (!branch) return "";
 
   const evidenceStr = `Verified: ${Math.round(branch.evidence_mix.verified * 100)}%, Modeled: ${Math.round(branch.evidence_mix.modeled * 100)}%, Assumed: ${Math.round(branch.evidence_mix.assumption * 100)}%`;

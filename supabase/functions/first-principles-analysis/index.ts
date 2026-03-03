@@ -8,7 +8,7 @@ import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
 import { extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
-import { extractActiveBranch, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
+import { extractActiveBranch, extractCombinedBranches, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,12 +21,14 @@ serve(async (req) => {
 
   try {
     const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch } = await req.json();
-    // Extract active branch context for isolated downstream reasoning
-    const branchCtx = activeBranch ? extractActiveBranch(
+    // Extract active branch context for isolated or combined downstream reasoning
+    const isCombinedMode = !activeBranch?.active_branch_id || activeBranch?.active_branch_id === "combined";
+    const branchCtx = (!isCombinedMode && activeBranch) ? extractActiveBranch(
       { root_hypotheses: [activeBranch.hypothesis] },
       activeBranch.active_branch_id
     ) : null;
-    const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null);
+    const combinedCtx = (isCombinedMode && activeBranch?.allHypotheses) ? extractCombinedBranches({ root_hypotheses: activeBranch.allHypotheses }) : null;
+    const branchPrompt = buildBranchIsolationPrompt(branchCtx, activeBranch?.strategicProfile || null, combinedCtx);
     const mode = resolveMode(undefined, product.category);
     const isService = mode === "service";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
