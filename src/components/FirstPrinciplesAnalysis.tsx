@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import type { Product, FlippedIdea } from "@/data/mockProducts";
 import { FlippedIdeaCard } from "@/components/FlippedIdeaCard";
+import { RedesignVisualGenerator } from "@/components/RedesignVisualGenerator";
 
 import { LeverageScore } from "@/components/LeverageScore";
 import { RiskBadge } from "@/components/RiskBadge";
@@ -470,6 +471,14 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         requestBody.steeringText = analysisCtx.steeringText;
         requestBody.disruptContext = analysisCtx.disruptData;
         requestBody.selectedImages = analysisCtx.pitchDeckImages;
+        // Pass governed reasoning data (causal chains, reasoning revisions, constraint maps)
+        if (analysisCtx.governedData) {
+          requestBody.governedContext = {
+            reasoning_synopsis: analysisCtx.governedData.reasoning_synopsis,
+            constraint_map: analysisCtx.governedData.constraint_map,
+            root_hypotheses: analysisCtx.governedData.root_hypotheses,
+          };
+        }
       }
       // Wire active branch for isolated downstream reasoning
       if (analysisCtx.activeBranchId && analysisCtx.governedData) {
@@ -777,23 +786,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </div>
         </DetailPanel>
 
-        {/* User-selected concept images from Flipped Ideas */}
-        {analysisCtx.pitchDeckImages.length > 0 && (
-          <div>
-            <p className="typo-card-eyebrow text-muted-foreground mb-2">Your Selected Concepts</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {analysisCtx.pitchDeckImages.map((img, i) => (
-                <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-                  <img src={img.url} alt={img.ideaName} className="w-full object-cover" style={{ maxHeight: 220 }} />
-                  <div className="px-3 py-2" style={{ background: "hsl(var(--muted))" }}>
-                    <p className="text-xs font-semibold text-foreground">{img.ideaName}</p>
-                    <p className="typo-status-label text-muted-foreground">Selected from Flipped Ideas</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* AI-Generated Redesign Visuals */}
+        <RedesignVisualGenerator
+          productName={product.name}
+          concept={concept}
+          accentColor="hsl(38 92% 50%)"
+        />
       </div>
     );
   }
