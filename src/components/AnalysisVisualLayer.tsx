@@ -565,18 +565,18 @@ export function AnalysisVisualLayer({
     <div className="space-y-4">
       {/* Tab Switcher — only show if synopsis data exists */}
       {hasSynopsis && (
-        <div className="flex items-center gap-1 p-0.5 rounded-lg w-fit" style={{ background: "hsl(var(--muted) / 0.5)" }}>
+        <div className="flex items-center gap-1 p-1 rounded-xl w-full sm:w-fit" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
           {(["visual", "reasoning"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all duration-150 ${
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 ${
                 activeTab === tab
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-card text-foreground shadow-md ring-1 ring-border"
+                  : "text-muted-foreground hover:text-foreground hover:bg-card/50"
               }`}
             >
-              {tab === "visual" ? "Visual" : "Reasoning"}
+              {tab === "visual" ? "📊 Visual" : "🧠 Reasoning"}
             </button>
           ))}
         </div>
