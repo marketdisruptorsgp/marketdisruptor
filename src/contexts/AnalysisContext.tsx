@@ -145,6 +145,7 @@ interface AnalysisContextType {
 
   // Governed data (reasoning synopsis, constraint maps, etc.)
   governedData: Record<string, unknown> | null;
+  setGovernedData: (data: Record<string, unknown> | null) => void;
 
   // Multi-hypothesis branching
   activeBranchId: string | null;
@@ -1076,7 +1077,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
       modeRouting, setModeRouting,
-      governedData,
+      governedData, setGovernedData,
       activeBranchId, setActiveBranchId,
       strategicProfile, setStrategicProfile,
     }}>

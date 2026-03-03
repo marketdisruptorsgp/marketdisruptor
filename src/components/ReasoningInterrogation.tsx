@@ -1,14 +1,21 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Send, Loader2, ChevronDown, ChevronUp, Zap, X } from "lucide-react";
+import { MessageSquare, Send, Loader2, ChevronDown, ChevronUp, Zap, X, Check, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { InfoExplainer } from "@/components/InfoExplainer";
+import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+}
+
+interface Revision {
+  type: "re_rank" | "update_assumption" | "new_hypothesis";
+  payload: Record<string, unknown>;
 }
 
 interface ReasoningInterrogationProps {
@@ -18,6 +25,8 @@ interface ReasoningInterrogationProps {
   category: string;
   analysisType: string;
   avgScore: number | null;
+  analysisId?: string | null;
+  onApplyRevision?: (revision: Revision) => void;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reasoning-interrogation`;
@@ -53,31 +62,120 @@ function getQuickActions(analysisData: any): { label: string; question: string }
   return actions.slice(0, 4);
 }
 
-/* ── Chat Messages Sub-component ── */
-function ChatMessages({ messages, isLoading, scrollRef }: { messages: Message[]; isLoading: boolean; scrollRef: React.RefObject<HTMLDivElement> }) {
+/** Extract :::revision code blocks from AI response */
+function extractRevisions(content: string): Revision[] {
+  const revisions: Revision[] = [];
+  const regex = /```:::revision\s*\n([\s\S]*?)```/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    try {
+      const parsed = JSON.parse(match[1].trim());
+      if (parsed.type && parsed.payload) {
+        revisions.push(parsed as Revision);
+      }
+    } catch { /* ignore malformed */ }
+  }
+  return revisions;
+}
+
+/** Strip revision blocks from display content */
+function stripRevisionBlocks(content: string): string {
+  return content.replace(/```:::revision\s*\n[\s\S]*?```/g, "").trim();
+}
+
+/* ── Revision Card ── */
+function RevisionCard({ revision, onApply, applied }: { revision: Revision; onApply: () => void; applied: boolean }) {
+  const typeLabel = {
+    re_rank: "Re-rank Hypotheses",
+    update_assumption: "Update Assumption",
+    new_hypothesis: "New Hypothesis",
+  }[revision.type] || revision.type;
+
+  return (
+    <div
+      className="rounded-lg p-3 mt-2"
+      style={{
+        background: applied ? "hsl(var(--vi-glow-outcome) / 0.06)" : "hsl(var(--primary) / 0.06)",
+        border: `1px solid ${applied ? "hsl(var(--vi-glow-outcome) / 0.2)" : "hsl(var(--primary) / 0.2)"}`,
+      }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <RotateCcw size={11} style={{ color: applied ? "hsl(var(--vi-glow-outcome))" : "hsl(var(--primary))" }} />
+          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: applied ? "hsl(var(--vi-glow-outcome))" : "hsl(var(--primary))" }}>
+            {typeLabel}
+          </span>
+        </div>
+        {applied ? (
+          <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: "hsl(var(--vi-glow-outcome))" }}>
+            <Check size={10} /> Applied
+          </span>
+        ) : (
+          <Button
+            size="sm"
+            onClick={onApply}
+            className="h-7 px-3 text-[10px] font-bold"
+          >
+            Apply This
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Chat Messages ── */
+function ChatMessages({
+  messages, isLoading, scrollRef, appliedRevisions, onApplyRevision,
+}: {
+  messages: Message[];
+  isLoading: boolean;
+  scrollRef: React.RefObject<HTMLDivElement>;
+  appliedRevisions: Set<string>;
+  onApplyRevision: (revision: Revision, msgIndex: number) => void;
+}) {
   return (
     <div ref={scrollRef} className="max-h-[420px] overflow-y-auto space-y-3 scroll-smooth">
-      {messages.map((msg, i) => (
-        <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-          <div
-            className={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-[12px] leading-relaxed ${
-              msg.role === "user" ? "bg-primary text-primary-foreground" : ""
-            }`}
-            style={msg.role === "assistant" ? {
-              background: "hsl(var(--muted))",
-              color: "hsl(var(--foreground))",
-            } : undefined}
-          >
-            {msg.role === "assistant" ? (
-              <div className="prose prose-sm max-w-none [&_p]:text-[12px] [&_p]:leading-relaxed [&_li]:text-[12px] [&_strong]:text-foreground [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_code]:text-[11px]">
-                <ReactMarkdown>{msg.content}</ReactMarkdown>
+      {messages.map((msg, i) => {
+        const revisions = msg.role === "assistant" ? extractRevisions(msg.content) : [];
+        const displayContent = msg.role === "assistant" ? stripRevisionBlocks(msg.content) : msg.content;
+
+        return (
+          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[85%] ${msg.role === "user" ? "" : ""}`}>
+              <div
+                className={`rounded-xl px-3.5 py-2.5 text-[12px] leading-relaxed ${
+                  msg.role === "user" ? "bg-primary text-primary-foreground" : ""
+                }`}
+                style={msg.role === "assistant" ? {
+                  background: "hsl(var(--muted))",
+                  color: "hsl(var(--foreground))",
+                } : undefined}
+              >
+                {msg.role === "assistant" ? (
+                  <div className="prose prose-sm max-w-none [&_p]:text-[12px] [&_p]:leading-relaxed [&_li]:text-[12px] [&_strong]:text-foreground [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_code]:text-[11px]">
+                    <ReactMarkdown>{displayContent}</ReactMarkdown>
+                  </div>
+                ) : (
+                  displayContent
+                )}
               </div>
-            ) : (
-              msg.content
-            )}
+              {/* Revision cards */}
+              {revisions.map((rev, ri) => {
+                const revKey = `${i}-${ri}`;
+                return (
+                  <RevisionCard
+                    key={revKey}
+                    revision={rev}
+                    applied={appliedRevisions.has(revKey)}
+                    onApply={() => onApplyRevision(rev, i)}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       {isLoading && messages[messages.length - 1]?.role === "user" && (
         <div className="flex justify-start">
           <div className="rounded-xl px-3.5 py-2.5" style={{ background: "hsl(var(--muted))" }}>
@@ -89,15 +187,57 @@ function ChatMessages({ messages, isLoading, scrollRef }: { messages: Message[];
   );
 }
 
-export function ReasoningInterrogation({ analysisData, products, title, category, analysisType, avgScore }: ReasoningInterrogationProps) {
+export function ReasoningInterrogation({ analysisData, products, title, category, analysisType, avgScore, analysisId, onApplyRevision }: ReasoningInterrogationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [appliedRevisions, setAppliedRevisions] = useState<Set<string>>(new Set());
+  const [conversationLoaded, setConversationLoaded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const quickActions = getQuickActions(analysisData);
+
+  // Load persisted conversation
+  useEffect(() => {
+    if (!analysisId || conversationLoaded) return;
+    (async () => {
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (!session?.session?.user?.id) return;
+        const { data } = await (supabase.from("interrogation_conversations") as any)
+          .select("messages, applied_revisions")
+          .eq("analysis_id", analysisId)
+          .eq("user_id", session.session.user.id)
+          .maybeSingle();
+        if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages);
+          if (data.applied_revisions && Array.isArray(data.applied_revisions)) {
+            setAppliedRevisions(new Set(data.applied_revisions));
+          }
+        }
+      } catch { /* silent */ }
+      setConversationLoaded(true);
+    })();
+  }, [analysisId, conversationLoaded]);
+
+  // Persist conversation on change
+  const persistConversation = useCallback(async (msgs: Message[], applied: Set<string>) => {
+    if (!analysisId || msgs.length === 0) return;
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user?.id) return;
+      await (supabase.from("interrogation_conversations") as any)
+        .upsert({
+          analysis_id: analysisId,
+          user_id: session.session.user.id,
+          messages: msgs,
+          applied_revisions: Array.from(applied),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "user_id,analysis_id" });
+    } catch { /* silent */ }
+  }, [analysisId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -180,9 +320,33 @@ export function ReasoningInterrogation({ analysisData, products, title, category
 
     const userMsg: Message = { role: "user", content: q };
     const currentMessages = [...messages];
-    setMessages(prev => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     await streamResponse(q, currentMessages);
-  }, [input, isLoading, messages, streamResponse]);
+
+    // Persist after response completes (get latest messages from state)
+    setMessages(prev => {
+      persistConversation(prev, appliedRevisions);
+      return prev;
+    });
+  }, [input, isLoading, messages, streamResponse, persistConversation, appliedRevisions]);
+
+  const handleApplyRevision = useCallback((revision: Revision, msgIndex: number) => {
+    const revKey = `${msgIndex}-0`;
+    setAppliedRevisions(prev => {
+      const next = new Set(prev);
+      next.add(revKey);
+      persistConversation(messages, next);
+      return next;
+    });
+
+    if (onApplyRevision) {
+      onApplyRevision(revision);
+      toast.success("Revision applied — downstream steps will be recomputed");
+    } else {
+      toast.info("Revision noted — apply manually in the analysis");
+    }
+  }, [messages, onApplyRevision, persistConversation]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -239,7 +403,7 @@ export function ReasoningInterrogation({ analysisData, products, title, category
               border: "1px solid hsl(var(--primary) / 0.15)",
             }}
           >
-            Start →
+            {messages.length > 0 ? "Resume →" : "Start →"}
           </div>
         </button>
       </motion.div>
@@ -255,7 +419,7 @@ export function ReasoningInterrogation({ analysisData, products, title, category
       className="rounded-xl overflow-hidden"
       style={{
         background: "hsl(var(--vi-surface-elevated))",
-        border: "1px solid hsl(var(--primary) / 0.2)",
+        border: "2px solid hsl(var(--primary) / 0.25)",
       }}
     >
       {/* Header */}
@@ -309,7 +473,13 @@ export function ReasoningInterrogation({ analysisData, products, title, category
 
         {/* Chat history */}
         {messages.length > 0 && (
-          <ChatMessages messages={messages} isLoading={isLoading} scrollRef={scrollRef} />
+          <ChatMessages
+            messages={messages}
+            isLoading={isLoading}
+            scrollRef={scrollRef}
+            appliedRevisions={appliedRevisions}
+            onApplyRevision={handleApplyRevision}
+          />
         )}
 
         {/* Quick actions after conversation started */}

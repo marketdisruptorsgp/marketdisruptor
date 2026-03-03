@@ -216,7 +216,33 @@ export default function ReportPage() {
         })()}
 
         {/* Adaptive Visual Layer — enforces visual primacy + text suppression */}
-        <AnalysisVisualLayer analysis={selectedProduct as unknown as Record<string, unknown>} step="report" governedOverride={analysis.governedData}>
+        <AnalysisVisualLayer
+          analysis={selectedProduct as unknown as Record<string, unknown>}
+          step="report"
+          governedOverride={analysis.governedData}
+          analysisId={analysisId}
+          onApplyRevision={(revision) => {
+            // Apply revision to governed data
+            const currentGoverned = analysis.governedData || {};
+            if (revision.type === "re_rank" && revision.payload?.hypotheses) {
+              analysis.setGovernedData({ ...currentGoverned, root_hypotheses: revision.payload.hypotheses });
+            } else if (revision.type === "update_assumption" && revision.payload) {
+              const synopsis = (currentGoverned as any)?.reasoning_synopsis || {};
+              const updatedAssumptions = synopsis.key_assumptions?.map((a: any) =>
+                a.assumption === revision.payload.target ? { ...a, ...revision.payload.updates } : a
+              ) || [];
+              analysis.setGovernedData({
+                ...currentGoverned,
+                reasoning_synopsis: { ...synopsis, key_assumptions: updatedAssumptions },
+              });
+            } else if (revision.type === "new_hypothesis" && revision.payload) {
+              const existing = (currentGoverned as any)?.root_hypotheses || [];
+              analysis.setGovernedData({ ...currentGoverned, root_hypotheses: [...existing, revision.payload] });
+            }
+            // Persist
+            analysis.saveStepData("governed", analysis.governedData || currentGoverned);
+          }}
+        >
           {/* === ALL SECTIONS AS ACCORDIONS === */}
 
           {/* 1. Overview — open by default */}

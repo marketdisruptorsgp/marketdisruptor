@@ -520,9 +520,11 @@ interface ReasoningSynopsisProps {
   category?: string;
   analysisType?: string;
   avgScore?: number | null;
+  analysisId?: string | null;
+  onApplyRevision?: (revision: any) => void;
 }
 
-export function ReasoningSynopsis({ data, analysisData, products, title, category, analysisType, avgScore }: ReasoningSynopsisProps) {
+export function ReasoningSynopsis({ data, analysisData, products, title, category, analysisType, avgScore, analysisId, onApplyRevision }: ReasoningSynopsisProps) {
   const synopsis = data as SynopsisData | undefined;
 
   if (!synopsis || !synopsis.problem_framing) {
@@ -536,6 +538,8 @@ export function ReasoningSynopsis({ data, analysisData, products, title, categor
             category={category || "Unknown"}
             analysisType={analysisType || "product"}
             avgScore={avgScore ?? null}
+            analysisId={analysisId}
+            onApplyRevision={onApplyRevision}
           />
         )}
         <div className="rounded-xl p-6 text-center" style={{ background: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
@@ -562,6 +566,8 @@ export function ReasoningSynopsis({ data, analysisData, products, title, categor
           category={category || "Unknown"}
           analysisType={analysisType || "product"}
           avgScore={avgScore ?? null}
+          analysisId={analysisId}
+          onApplyRevision={onApplyRevision}
         />
       )}
       {/* Visual panels */}
