@@ -14,7 +14,7 @@ import { StepNavigator } from "@/components/StepNavigator";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { ProductCard } from "@/components/ProductCard";
 import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
-import { AssumptionsMap } from "@/components/AssumptionsMap";
+
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
 import { ScoreBar } from "@/components/ScoreBar";
@@ -223,10 +223,7 @@ export default function ReportPage() {
             )}
           </DetailPanel>
 
-          {/* 2. Assumptions */}
-          <DetailPanel title="Assumptions Map" icon={Brain}>
-            <AssumptionsMap product={selectedProduct} />
-          </DetailPanel>
+          {/* Assumptions Map removed — belongs in Disrupt step (downstream) */}
 
           {/* 3. Community Intel */}
           {ci && (
