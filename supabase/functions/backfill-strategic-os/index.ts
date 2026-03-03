@@ -13,6 +13,44 @@ function truncateJSON(obj: unknown, maxLen = 3000): string {
   return s.length > maxLen ? s.slice(0, maxLen) + "…" : s;
 }
 
+function hasSynopsis(analysisData: any): boolean {
+  return !!analysisData?.governed?.reasoning_synopsis;
+}
+
+async function generateSynopsis(apiKey: string, analysis: any): Promise<any> {
+  const dataSnapshot = truncateJSON(analysis.analysis_data, 4000);
+  const productsSnapshot = truncateJSON(analysis.products, 1500);
+  const prompt = `You are a reasoning auditor. Given an existing analysis, reconstruct a DETAILED reasoning synopsis.
+
+ANALYSIS: ${analysis.title} | Mode: ${analysis.analysis_type} | Category: ${analysis.category} | Score: ${analysis.avg_revival_score ?? "N/A"}
+
+DATA: ${dataSnapshot}
+PRODUCTS: ${productsSnapshot}
+
+Return ONLY valid JSON:
+{
+  "problem_framing": { "objective_interpretation": "...", "success_criteria": ["..."], "scope_boundaries": "..." },
+  "lens_influence": { "lens_name": "Default", "prioritized_factors": ["..."], "deprioritized_factors": ["..."], "alternative_lens_impact": "..." },
+  "evaluation_path": { "dimensions_examined": ["..."], "evaluation_logic": "...", "eliminated_dimensions": "..." },
+  "key_assumptions": [{ "assumption": "...", "evidence_status": "verified|modeled|speculative", "impact_if_wrong": "...", "validation_method": "..." }],
+  "core_causal_logic": { "primary_relationships": [{"cause":"...","effect":"...","mechanism":"..."}], "dominant_mechanism": "...", "secondary_mechanisms": "..." },
+  "counterfactual_scenarios": [{"scenario":"...","outcome_shift":"...","likelihood":"high|medium|low"}],
+  "decision_drivers": [{"factor":"...","weight":"high|medium|low","rationale":"..."}],
+  "confidence_sensitivity": { "overall_confidence": "high|medium|low", "confidence_score": 65, "most_sensitive_variable": "...", "sensitivity_explanation": "...", "evidence_quality": "strong|moderate|weak" }
+}
+Be SPECIFIC to this analysis — 400-600 words. Reference actual data. 3-5 causal chains, 3-6 decision drivers, 2-4 assumptions.`;
+
+  const res = await fetch(AI_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [{ role: "user", content: prompt }], temperature: 0.3, max_tokens: 2000 }),
+  });
+  if (!res.ok) throw new Error(`AI synopsis call failed [${res.status}]`);
+  const json = await res.json();
+  const raw = json.choices?.[0]?.message?.content || "";
+  return JSON.parse(raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
+}
+
 function hasRootHypotheses(analysisData: any): boolean {
   if (!analysisData || typeof analysisData !== "object") return false;
   const governed = analysisData.governed;
@@ -120,24 +158,41 @@ serve(async (req) => {
         });
       }
 
-      if (hasRootHypotheses(analysis.analysis_data)) {
-        const gov = (analysis.analysis_data as any)?.governed || {};
-        const existing = gov.root_hypotheses || gov.constraint_map?.root_hypotheses || [];
-        return new Response(JSON.stringify({ hypotheses: existing, cached: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const hypotheses = await generateHypotheses(LOVABLE_API_KEY, analysis);
       const existingData = (analysis.analysis_data as Record<string, any>) || {};
       const governed = existingData.governed || {};
-      governed.root_hypotheses = hypotheses;
-      if (governed.constraint_map) governed.constraint_map.root_hypotheses = hypotheses;
-      existingData.governed = governed;
+      let didChange = false;
 
-      await supabase.from("saved_analyses").update({ analysis_data: existingData }).eq("id", singleAnalysisId);
+      // Backfill root_hypotheses if missing
+      const alreadyHasRH = hasRootHypotheses(analysis.analysis_data);
+      let hypotheses = alreadyHasRH
+        ? (governed.root_hypotheses || governed.constraint_map?.root_hypotheses || [])
+        : null;
 
-      return new Response(JSON.stringify({ hypotheses, backfilled: true }), {
+      if (!alreadyHasRH) {
+        hypotheses = await generateHypotheses(LOVABLE_API_KEY, analysis);
+        governed.root_hypotheses = hypotheses;
+        if (governed.constraint_map) governed.constraint_map.root_hypotheses = hypotheses;
+        didChange = true;
+      }
+
+      // Backfill reasoning_synopsis if missing
+      let synopsis = governed.reasoning_synopsis || null;
+      if (!hasSynopsis(analysis.analysis_data)) {
+        try {
+          synopsis = await generateSynopsis(LOVABLE_API_KEY, analysis);
+          governed.reasoning_synopsis = synopsis;
+          didChange = true;
+        } catch (e) {
+          console.error("Synopsis generation failed:", e);
+        }
+      }
+
+      if (didChange) {
+        existingData.governed = governed;
+        await supabase.from("saved_analyses").update({ analysis_data: existingData }).eq("id", singleAnalysisId);
+      }
+
+      return new Response(JSON.stringify({ hypotheses, synopsis, backfilled: didChange, cached: !didChange }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

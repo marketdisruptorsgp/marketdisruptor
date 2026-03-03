@@ -71,6 +71,7 @@ function DataLabel({ children }: { children: React.ReactNode }) {
 export default function ShareableAnalysisPage() {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<SharedData | null>(null);
+  const [governedData, setGovernedData] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeStep, setActiveStep] = useState(2);
@@ -88,6 +89,26 @@ export default function ShareableAnalysisPage() {
         });
         if (fnError || !result?.success) throw new Error(result?.error || "Not found");
         setData(result.analysis);
+        const ad = result.analysis.analysis_data;
+        const gov = ad?.governed as Record<string, unknown> | null;
+        setGovernedData(gov || null);
+
+        // On-demand backfill if governed data is missing
+        const hasRH = !!(gov?.root_hypotheses || (gov?.constraint_map as any)?.root_hypotheses);
+        const hasSynopsis = !!gov?.reasoning_synopsis;
+        if ((!hasRH || !hasSynopsis) && id) {
+          supabase.functions.invoke("backfill-strategic-os", {
+            body: { singleAnalysisId: id },
+          }).then(({ data: bfData }) => {
+            if (bfData?.hypotheses || bfData?.synopsis) {
+              setGovernedData(prev => ({
+                ...(prev || {}),
+                ...(bfData.hypotheses ? { root_hypotheses: bfData.hypotheses } : {}),
+                ...(bfData.synopsis ? { reasoning_synopsis: bfData.synopsis } : {}),
+              }));
+            }
+          }).catch(() => { /* silent */ });
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not load analysis");
       } finally {
@@ -229,7 +250,7 @@ export default function ShareableAnalysisPage() {
 
             <ProductCard product={product} isSelected={true} onClick={() => {}} />
 
-            <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>} step="report" governedOverride={(data.analysis_data?.governed as Record<string, unknown>) || null}>
+            <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>} step="report" governedOverride={governedData}>
             {/* Section nav */}
             <div ref={sectionTabsRef}>
               <SectionWorkflowNav
