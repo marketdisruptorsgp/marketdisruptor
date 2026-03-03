@@ -145,6 +145,10 @@ interface AnalysisContextType {
   // Governed data (reasoning synopsis, constraint maps, etc.)
   governedData: Record<string, unknown> | null;
 
+  // Multi-hypothesis branching
+  activeBranchId: string | null;
+  setActiveBranchId: (id: string | null) => void;
+
   // Geo market data
   geoData: unknown;
   setGeoData: (d: unknown) => void;
@@ -197,6 +201,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [loadedFromSaved, setLoadedFromSaved] = useState(false);
   const [governedData, setGovernedData] = useState<Record<string, unknown> | null>(null);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const [activeBranchId, setActiveBranchIdState] = useState<string | null>(null);
 
   // ── System Layer: Outdated Step Tracking ──
   const [outdatedSteps, setOutdatedSteps] = useState<Set<string>>(new Set());
@@ -230,6 +235,18 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [markStepOutdated]);
 
   // ── Redesign Data (isolated from Disrupt) ──
+  // ── Multi-Hypothesis Branch Selection ──
+  const pendingBranchSaveRef = useRef<string | null | undefined>(undefined);
+  const setActiveBranchId = useCallback((id: string | null) => {
+    setActiveBranchIdState(id);
+    if (id) {
+      markStepOutdated("disrupt");
+      markStepOutdated("redesign");
+      markStepOutdated("stressTest");
+      markStepOutdated("pitchDeck");
+    }
+    pendingBranchSaveRef.current = id;
+  }, [markStepOutdated]);
   const [redesignData, setRedesignData] = useState<unknown>(null);
 
   // ── Insight Preferences (liked/dismissed) ──
@@ -859,6 +876,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeLens, analysisId, saveStepData]);
 
+  // Auto-persist active branch ID when changed
+  useEffect(() => {
+    if (pendingBranchSaveRef.current !== undefined && analysisId) {
+      const branchId = pendingBranchSaveRef.current;
+      pendingBranchSaveRef.current = undefined;
+      saveStepData("activeBranchId", branchId);
+    }
+  }, [activeBranchId, analysisId, saveStepData]);
+
   const handleLoadSaved = useCallback(async (analysis: any) => {
     setLoadedFromSaved(true);
 
@@ -891,6 +917,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     // Restore governed data (reasoning synopsis, constraint maps, etc.)
     if (ad?.governed) setGovernedData(ad.governed as Record<string, unknown>);
     else setGovernedData(null);
+    if (ad?.activeBranchId) setActiveBranchIdState(ad.activeBranchId as string);
+    else setActiveBranchIdState(null);
     if (ad?.disrupt) setDisruptData(ad.disrupt);
     if (ad?.stressTest) setStressTestData(ad.stressTest);
     if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
@@ -1014,6 +1042,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       regulatoryData, setRegulatoryData,
       modeRouting, setModeRouting,
       governedData,
+      activeBranchId, setActiveBranchId,
     }}>
       {children}
     </AnalysisContext.Provider>

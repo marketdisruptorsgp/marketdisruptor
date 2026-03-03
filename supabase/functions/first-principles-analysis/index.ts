@@ -574,6 +574,21 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       ds._evidence_distribution = confidenceResult.evidence_distribution;
     }
 
+    // ── Multi-Hypothesis Ranking: score and validate root_hypotheses ──
+    const { rankAndValidateHypotheses } = await import("../_shared/hypothesisRanking.ts");
+    const hypothesisResult = rankAndValidateHypotheses(governed);
+    if (hypothesisResult.ranked.length > 0) {
+      const cm = governed.constraint_map as Record<string, unknown>;
+      cm.root_hypotheses = hypothesisResult.ranked;
+      (governed as Record<string, unknown>)._hypothesis_ranking = {
+        primary_id: hypothesisResult.primary_id,
+        competing: hypothesisResult.competing,
+        delta: hypothesisResult.delta,
+        trace: hypothesisResult.trace,
+      };
+      console.log(`[HypothesisRanking] ${hypothesisResult.trace}`);
+    }
+
     // ── Output Validation: check for cross-mode drift ──
     const validationResult = validateOutput(mode, analysis);
     const trace = buildTrace(mode, filterResult, validationResult);

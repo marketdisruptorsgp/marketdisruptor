@@ -126,6 +126,7 @@ export function extractGovernedArtifacts(
 /**
  * Merge extracted governed artifacts into the top-level analysis_data.governed.
  * Preserves existing artifacts from other steps (additive merge).
+ * Also promotes constraint_map.root_hypotheses to governed.root_hypotheses for easy access.
  */
 export function mergeGovernedIntoAnalysisData(
   existingAnalysisData: Record<string, unknown>,
@@ -138,12 +139,18 @@ export function mergeGovernedIntoAnalysisData(
   const existingGoverned = (existingAnalysisData.governed as Record<string, unknown>) || {};
 
   // Additive merge: new artifacts overwrite existing ones
-  const mergedGoverned = {
+  const mergedGoverned: Record<string, unknown> = {
     ...existingGoverned,
     ...extraction.governed,
     _lastUpdated: new Date().toISOString(),
     _totalByteSize: new Blob([JSON.stringify({ ...existingGoverned, ...extraction.governed })]).size,
   };
+
+  // Promote root_hypotheses from constraint_map to top-level for easy access
+  const cm = mergedGoverned.constraint_map as Record<string, unknown> | undefined;
+  if (cm?.root_hypotheses && Array.isArray(cm.root_hypotheses) && (cm.root_hypotheses as unknown[]).length > 0) {
+    mergedGoverned.root_hypotheses = cm.root_hypotheses;
+  }
 
   return {
     ...existingAnalysisData,
