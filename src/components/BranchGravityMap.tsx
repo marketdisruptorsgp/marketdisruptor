@@ -250,7 +250,7 @@ export default function BranchGravityMap({
   }
 
   return (
-    <div className="relative w-full rounded-xl overflow-x-auto overflow-y-hidden border border-border/20 bg-card/40">
+    <div className="relative w-full rounded-xl overflow-x-auto overflow-y-visible border border-border/20 bg-card/40">
       <div style={{ minWidth: layout.svgW, minHeight: layout.svgH, position: "relative" }}>
 
         {/* SVG layer — connection lines */}
