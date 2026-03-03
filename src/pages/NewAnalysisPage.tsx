@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { LensToggle } from "@/components/LensToggle";
+import { LensBar } from "@/components/LensBar";
 import { InfoExplainer } from "@/components/InfoExplainer";
 import {
   routeInnovationMode, explainRouting, toCardId,
@@ -364,9 +365,12 @@ export default function NewAnalysisPage() {
         <h1 className="typo-page-title text-2xl sm:text-3xl tracking-tight mb-1">
           Select Analysis Mode
         </h1>
-        <p className="typo-page-meta text-sm sm:text-base max-w-3xl leading-relaxed mb-6">
+        <p className="typo-page-meta text-sm sm:text-base max-w-3xl leading-relaxed mb-5">
           Pick a mode if you already know your focus — or describe your challenge below for auto-detection.
         </p>
+
+        {/* ── Lens Bar (top-level) ── */}
+        <LensBar />
 
         {/* ── Mode Cards (top) ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -490,12 +494,6 @@ export default function NewAnalysisPage() {
                     skip straight to analysis — no extra configuration needed.
                   </p>
                 </div>
-              </div>
-              {/* Lens selector */}
-              <div className="flex items-center gap-1.5 flex-shrink-0 mt-1">
-                <span className="text-[10px] font-medium uppercase tracking-wider hidden sm:inline" style={{ color: "hsl(var(--mode-multi))" }}>Lens</span>
-                <LensToggle />
-                <InfoExplainer explainerKey="lens-selector" accentColor="hsl(var(--mode-multi))" />
               </div>
             </div>
 
@@ -980,11 +978,6 @@ export default function NewAnalysisPage() {
                     <h2 className="typo-section-title text-lg">Configure {modeLabel} Analysis</h2>
                     <p className="text-sm text-muted-foreground mt-0.5">Add details to sharpen your analysis — or skip straight to results.</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <span className="text-[10px] font-medium uppercase tracking-wider hidden sm:inline" style={{ color: `hsl(var(${cssVar}))` }}>Lens</span>
-                  <LensToggle />
-                  <InfoExplainer explainerKey="lens-selector" accentColor={`hsl(var(${cssVar}))`} />
                 </div>
               </div>
 
