@@ -1105,6 +1105,114 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [navigate]);
 
+  // ── AUTO-HYDRATION: Load analysis from URL when context is empty ──
+  // This handles direct navigation (bookmarks, shared links, page refresh)
+  const autoHydratedRef = useRef(false);
+  useEffect(() => {
+    if (autoHydratedRef.current) return;
+    if (step !== "idle" || products.length > 0) return;
+
+    // Extract analysis ID from URL path: /analysis/:id/report, /analysis/:id/disrupt, etc.
+    const match = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})\//);
+    if (!match) return;
+    const urlAnalysisId = match[1];
+    if (!urlAnalysisId || !user?.id) return;
+
+    autoHydratedRef.current = true;
+    console.log("[AutoHydrate] Loading analysis from URL:", urlAnalysisId);
+
+    (async () => {
+      try {
+        const { data, error } = await (supabase.from("saved_analyses") as any)
+          .select("*")
+          .eq("id", urlAnalysisId)
+          .single();
+
+        if (error || !data) {
+          console.warn("[AutoHydrate] Analysis not found:", urlAnalysisId, error?.message);
+          return;
+        }
+
+        // Verify ownership
+        if (data.user_id !== user.id) {
+          console.warn("[AutoHydrate] User does not own this analysis");
+          return;
+        }
+
+        // Use handleLoadSaved but suppress its navigation — we're already on the right page
+        const rawProducts = Array.isArray(data.products) ? data.products : [];
+        const sanitizedProducts = rawProducts.map((p: any, idx: number) => {
+          const base = {
+            id: p.id || `product-${data.id}-${idx}`,
+            name: p.name || "Untitled Product",
+            category: p.category || data.category || "",
+            image: p.image || "",
+            description: p.description || "",
+            specs: p.specs || "",
+            revivalScore: p.revivalScore ?? 0,
+            era: p.era || "All Eras / Current",
+            sources: Array.isArray(p.sources) ? p.sources : [],
+            reviews: Array.isArray(p.reviews) ? p.reviews : [],
+            socialSignals: Array.isArray(p.socialSignals) ? p.socialSignals : [],
+            competitors: Array.isArray(p.competitors) ? p.competitors : [],
+            assumptionsMap: Array.isArray(p.assumptionsMap) ? p.assumptionsMap : [],
+            flippedIdeas: Array.isArray(p.flippedIdeas) ? p.flippedIdeas : [],
+            confidenceScores: p.confidenceScores || { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
+          };
+          return { ...p, ...base };
+        });
+
+        if (sanitizedProducts.length === 0) {
+          console.warn("[AutoHydrate] Analysis has no products");
+          return;
+        }
+
+        const ad = data.analysis_data as Record<string, unknown> | null;
+
+        // Restore all state
+        setLoadedFromSaved(true);
+        setProducts(sanitizedProducts);
+        setSelectedProduct(sanitizedProducts[0]);
+        setAnalysisParams({ category: data.category, era: data.era || "All Eras / Current", batchSize: data.batch_size ?? 5 });
+        const isService = data.analysis_type === "service";
+        setMainTab(isService ? "service" : data.analysis_type === "business_model" ? "business" : "custom");
+        setActiveMode(isService ? "service" : data.analysis_type === "business_model" ? "business" : "custom");
+        setStep("done");
+        setAnalysisId(data.id);
+
+        // Restore persisted data
+        if (ad?.governed) setGovernedData(ad.governed as Record<string, unknown>);
+        if (ad?.activeBranchId) setActiveBranchIdState(ad.activeBranchId as string);
+        if (ad?.strategicProfile) setStrategicProfileState(ad.strategicProfile as StrategicProfile);
+        if (ad?.disrupt) setDisruptData(ad.disrupt);
+        if (ad?.stressTest) setStressTestData(ad.stressTest);
+        if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
+        if (ad?.businessStressTest) setBusinessStressTestData(ad.businessStressTest);
+        if (ad?.redesign) setRedesignData(ad.redesign);
+        if (ad?.geoOpportunity) setGeoData(ad.geoOpportunity);
+        if (ad?.regulatoryContext) setRegulatoryData(ad.regulatoryContext);
+        if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
+        if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
+        if (ad?.steeringText) setSteeringText(ad.steeringText as string);
+        if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
+        if (ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)) setPitchDeckExclusions(new Set(ad.pitchDeckExclusions as string[]));
+        if (!ad?.activeLensId) setActiveLensState(null);
+        if (ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)) setOutdatedSteps(new Set(ad.outdatedSteps as string[]));
+        else setOutdatedSteps(new Set());
+
+        // Business model routing
+        if (data.analysis_type === "business_model" && ad?.businessPitchDeck) {
+          setPitchDeckData(ad.businessPitchDeck);
+          setBusinessAnalysisData(data.analysis_data as BusinessModelAnalysisData);
+        }
+
+        console.log("[AutoHydrate] Analysis loaded successfully:", data.title);
+      } catch (err) {
+        console.error("[AutoHydrate] Failed:", err);
+      }
+    })();
+  }, [step, products.length, user?.id]);
+
   return (
     <AnalysisContext.Provider value={{
       step, setStep, products, setProducts, selectedProduct, setSelectedProduct,
