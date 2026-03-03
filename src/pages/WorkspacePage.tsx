@@ -103,9 +103,10 @@ export default function WorkspacePage() {
   }, [analyses, didPreselect]);
 
   const fetchAll = async () => {
+    // Only select columns needed for the workspace list — skip the heavy analysis_data blob
     const { data } = await supabase
       .from("saved_analyses")
-      .select("*")
+      .select("id, title, category, avg_revival_score, created_at, analysis_type, products, era, audience, batch_size, is_favorite")
       .eq("user_id", user!.id)
       .order("created_at", { ascending: false })
       .limit(100);
