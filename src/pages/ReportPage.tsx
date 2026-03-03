@@ -179,48 +179,45 @@ export default function ReportPage() {
         {/* Product Card */}
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
-        {/* Root Hypothesis Branching Panel */}
-        {(() => {
-          const governed = analysis.governedData;
-          const cm = governed?.constraint_map as Record<string, unknown> | undefined;
-          const rawHypotheses = (cm?.root_hypotheses || governed?.root_hypotheses) as StrategicHypothesis[] | undefined;
-          if (!rawHypotheses || rawHypotheses.length === 0) return null;
-          const ranking = rankWithProfile(rawHypotheses, analysis.strategicProfile);
-          return (
-            <StructuralInterpretationsPanel
-              ranking={ranking}
-              activeBranchId={analysis.activeBranchId}
-              onSelectBranch={(id) => {
-                // Adaptive drift: detect signals from the selected branch
-                const selected = rawHypotheses.find(h => h.id === id);
-                if (selected) {
-                  const signals: { selected_high_capital?: boolean; selected_high_risk?: boolean; selected_long_horizon?: boolean } = {};
-                  if (selected.estimated_capital_required && selected.estimated_capital_required > 500_000) {
-                    signals.selected_high_capital = true;
-                  }
-                  if (selected.constraint_type === "risk" || selected.fragility_score > 6) {
-                    signals.selected_high_risk = true;
-                  }
-                  if (selected.estimated_time_to_impact_months && selected.estimated_time_to_impact_months > analysis.strategicProfile.time_horizon_months) {
-                    signals.selected_long_horizon = true;
-                  }
-                  if (Object.keys(signals).length > 0) {
-                    const evolved = adaptStrategicProfile(analysis.strategicProfile, signals);
-                    analysis.setStrategicProfile(evolved);
-                  }
-                }
-                analysis.setActiveBranchId(id);
-              }}
-            />
-          );
-        })()}
-
         {/* Adaptive Visual Layer — enforces visual primacy + text suppression */}
         <AnalysisVisualLayer
           analysis={selectedProduct as unknown as Record<string, unknown>}
           step="report"
           governedOverride={analysis.governedData}
           analysisId={analysisId}
+          branchingPanel={(() => {
+            const governed = analysis.governedData;
+            const cm = governed?.constraint_map as Record<string, unknown> | undefined;
+            const rawHypotheses = (cm?.root_hypotheses || governed?.root_hypotheses) as StrategicHypothesis[] | undefined;
+            if (!rawHypotheses || rawHypotheses.length === 0) return null;
+            const ranking = rankWithProfile(rawHypotheses, analysis.strategicProfile);
+            return (
+              <StructuralInterpretationsPanel
+                ranking={ranking}
+                activeBranchId={analysis.activeBranchId}
+                onSelectBranch={(id) => {
+                  const selected = rawHypotheses.find(h => h.id === id);
+                  if (selected) {
+                    const signals: { selected_high_capital?: boolean; selected_high_risk?: boolean; selected_long_horizon?: boolean } = {};
+                    if (selected.estimated_capital_required && selected.estimated_capital_required > 500_000) {
+                      signals.selected_high_capital = true;
+                    }
+                    if (selected.constraint_type === "risk" || selected.fragility_score > 6) {
+                      signals.selected_high_risk = true;
+                    }
+                    if (selected.estimated_time_to_impact_months && selected.estimated_time_to_impact_months > analysis.strategicProfile.time_horizon_months) {
+                      signals.selected_long_horizon = true;
+                    }
+                    if (Object.keys(signals).length > 0) {
+                      const evolved = adaptStrategicProfile(analysis.strategicProfile, signals);
+                      analysis.setStrategicProfile(evolved);
+                    }
+                  }
+                  analysis.setActiveBranchId(id);
+                }}
+              />
+            );
+          })()}
           onApplyRevision={(revision) => {
             // Apply revision to governed data
             const currentGoverned = analysis.governedData || {};

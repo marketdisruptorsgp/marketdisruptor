@@ -533,6 +533,7 @@ export function AnalysisVisualLayer({
   governedOverride,
   analysisId,
   onApplyRevision,
+  branchingPanel,
 }: {
   analysis: Record<string, unknown>;
   children: ReactNode;
@@ -541,6 +542,7 @@ export function AnalysisVisualLayer({
   governedOverride?: Record<string, unknown> | null;
   analysisId?: string | null;
   onApplyRevision?: (revision: any) => void;
+  branchingPanel?: React.ReactNode;
 }) {
   const result = resolveAdaptiveVisuals(analysis);
   const stepConfig = getStepVisualConfig(step);
@@ -582,7 +584,7 @@ export function AnalysisVisualLayer({
                   : "text-muted-foreground hover:text-foreground hover:bg-card/50"
               }`}
             >
-              {tab === "visual" ? "Visual" : "Reasoning"}
+              {tab === "visual" ? "Intel" : "Reasoning"}
             </button>
           ))}
         </div>
@@ -607,6 +609,7 @@ export function AnalysisVisualLayer({
               avgScore={(analysis as any)?.avg_revival_score ?? (analysis as any)?.revivalScore ?? null}
               analysisId={analysisId}
               onApplyRevision={onApplyRevision}
+              branchingPanel={branchingPanel}
             />
           </motion.div>
         ) : (
