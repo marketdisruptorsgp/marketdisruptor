@@ -73,7 +73,7 @@ export default function DisruptPage() {
           return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} /> : null;
         })()}
 
-        <ActiveHypothesisBanner stepName="Disrupt" accentColor={theme.primary} />
+        {/* ActiveHypothesisBanner hidden on Disrupt — shown on Redesign and downstream */}
 
         <ModeHeader
           stepNumber={3}
