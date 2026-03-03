@@ -128,18 +128,26 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   let geoData: unknown = undefined;
   let regulatoryData: unknown = undefined;
   let governedData: Record<string, unknown> | null = null;
+  let activeBranchId: string | null = null;
   try {
     const ctx = useAnalysis();
     geoData = ctx.geoData;
     regulatoryData = ctx.regulatoryData;
     governedData = ctx.governedData;
+    activeBranchId = ctx.activeBranchId;
   } catch { /* context may not be available in shared view */ }
 
   const runValidation = async () => {
     setLoading(true);
     try {
+      // Build branch-isolated payload if active
+      let activeBranch: unknown = undefined;
+      if (governedData && activeBranchId) {
+        const { getBranchPayload } = await import("@/lib/branchContext");
+        activeBranch = getBranchPayload(governedData, activeBranchId);
+      }
       const { data: result, error } = await supabase.functions.invoke("critical-validation", {
-        body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined },
+        body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined, activeBranch },
       });
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Validation failed";

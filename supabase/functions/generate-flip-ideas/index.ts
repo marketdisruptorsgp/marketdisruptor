@@ -3,6 +3,7 @@ import { resolveMode, filterInputData, missingDataWarning } from "../_shared/mod
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
+import { extractActiveBranch, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
 // Governed schema: constraint-driven flip linkage
 
 const corsHeaders = {
@@ -15,19 +16,24 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count } = await req.json();
+    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count, activeBranch } = await req.json();
     const ideaCount = count || 2;
     const mode = resolveMode(undefined, product.category);
     const filterResult = filterInputData(mode, product);
     const filteredProduct = filterResult.filtered as typeof product;
     console.log(`[ModeEnforcement] flip-ideas | ${mode} | ${missingDataWarning(mode)}`);
-
+    // Extract active branch for constraint-driven flip generation
+    const branchCtx = activeBranch ? extractActiveBranch(
+      { root_hypotheses: [activeBranch.hypothesis] },
+      activeBranch.active_branch_id
+    ) : null;
+    const branchPrompt = buildBranchIsolationPrompt(branchCtx);
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const systemPrompt = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFramework()}
-
+${branchPrompt}
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
 - Decompose every system into at least 3 layers of depth

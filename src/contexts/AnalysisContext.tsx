@@ -657,12 +657,19 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     try {
       const baseContext = `Focus on ${analysisParams.category} market trends.`;
       const fullContext = userContext ? `${baseContext}\n\nUser's additional guidance: ${userContext}` : baseContext;
+      // Wire active branch for isolated flip generation
+      let activeBranch: unknown = undefined;
+      if (activeBranchId && governedData) {
+        const { getBranchPayload } = await import("@/lib/branchContext");
+        activeBranch = getBranchPayload(governedData, activeBranchId);
+      }
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: {
           product,
           additionalContext: fullContext,
           insightPreferences: Object.keys(insightPreferences).length > 0 ? insightPreferences : undefined,
           steeringText: steeringText || undefined,
+          activeBranch,
         },
       });
 

@@ -6,6 +6,7 @@ import { enforceVisualContract } from "../_shared/visualFallback.ts";
 import { buildValidationObject } from "../_shared/governedSchema.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 import { extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
+import { extractActiveBranch, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,18 +18,24 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData } = await req.json();
+    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData, activeBranch } = await req.json();
     const mode = resolveMode(product.analysisType, product.category);
     const filterResult = filterInputData(mode, { ...product, ...analysisData });
     console.log(`[ModeEnforcement] critical-validation | ${mode} | ${missingDataWarning(mode)}`);
     const modeGuard = getModeGuardPrompt(mode);
+    // Extract active branch for isolated stress testing
+    const branchCtx = activeBranch ? extractActiveBranch(
+      { root_hypotheses: [activeBranch.hypothesis] },
+      activeBranch.active_branch_id
+    ) : null;
+    const branchPrompt = buildBranchIsolationPrompt(branchCtx);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const systemPrompt = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFramework()}
-
+${branchPrompt}
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
 - Decompose every system into at least 3 layers of depth

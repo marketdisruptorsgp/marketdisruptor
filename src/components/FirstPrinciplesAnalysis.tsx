@@ -471,6 +471,14 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         requestBody.disruptContext = analysisCtx.disruptData;
         requestBody.selectedImages = analysisCtx.pitchDeckImages;
       }
+      // Wire active branch for isolated downstream reasoning
+      if (analysisCtx.activeBranchId && analysisCtx.governedData) {
+        const { getBranchPayload } = await import("@/lib/branchContext");
+        const branchPayload = getBranchPayload(analysisCtx.governedData, analysisCtx.activeBranchId);
+        if (branchPayload) {
+          requestBody.activeBranch = branchPayload;
+        }
+      }
       const { data: result, error } = await supabase.functions.invoke("first-principles-analysis", {
         body: requestBody,
       });
