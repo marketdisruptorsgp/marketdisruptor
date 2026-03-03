@@ -6,7 +6,7 @@ import { AnalysisStepIndicator } from "@/components/AnalysisStepIndicator";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   Upload, Briefcase, Building2, ArrowRight, CheckCircle2, Camera,
-  AlertCircle, Zap, Layers, Coffee, ShoppingBag, Headphones,
+  AlertCircle, Zap, Layers, Coffee, ShoppingBag, Headphones, Target,
   Link as LinkIcon, Image, Loader2, Sparkles, FileText, Plus, X, Globe,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -117,6 +117,18 @@ export default function NewAnalysisPage() {
   const { extract, extracting, extraction } = useBIExtraction();
   const extractionTriggered = useRef(false);
 
+  // AI Problem Analysis
+  type AIChallenge = { id: string; question: string; context: string; priority: string; related_mode: string };
+  type AIProblemAnalysis = {
+    modes: { mode: string; confidence: number; reason: string }[];
+    entity: { name: string; type: string };
+    challenges: AIChallenge[];
+    summary: string;
+  };
+  const [aiAnalysis, setAiAnalysis] = useState<AIProblemAnalysis | null>(null);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [selectedChallenges, setSelectedChallenges] = useState<Set<string>>(new Set());
+
   const runRouting = useCallback((text: string) => {
     if (text.trim().length < 15) {
       setRouting(null);
@@ -129,6 +141,9 @@ export default function NewAnalysisPage() {
   const handleTextChange = useCallback((value: string) => {
     setProblemText(value);
     sessionStorage.setItem("deconstruct-problem-text", value);
+    // Reset AI analysis when text changes significantly
+    setAiAnalysis(null);
+    setSelectedChallenges(new Set());
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => runRouting(value), 500);
   }, [runRouting]);
@@ -144,11 +159,70 @@ export default function NewAnalysisPage() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, []);
 
+  // AI-powered deep problem analysis
+  const runAIAnalysis = useCallback(async (text: string) => {
+    if (text.trim().length < 15) return;
+    setAiAnalyzing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-problem", {
+        body: { problemText: text },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setAiAnalysis(data as AIProblemAnalysis);
+
+      // Auto-select high-priority challenges
+      const highPriority = (data as AIProblemAnalysis).challenges
+        .filter((c: AIChallenge) => c.priority === "high")
+        .map((c: AIChallenge) => c.id);
+      setSelectedChallenges(new Set(highPriority));
+
+      // Auto-populate entity name
+      if (!clarifierName && data.entity?.name) {
+        setClarifierName(data.entity.name);
+      }
+
+      // Upgrade routing with AI-detected modes
+      if (data.modes?.length > 0) {
+        const sorted = [...data.modes].sort((a: any, b: any) => b.confidence - a.confidence);
+        const primaryEngine = sorted[0].mode === "business" ? "business_model" as const
+          : sorted[0].mode === "service" ? "service" as const : "product" as const;
+        const secondaryEngines = sorted.slice(1)
+          .filter((m: any) => m.confidence >= 20)
+          .map((m: any) => m.mode === "business" ? "business_model" as const
+            : m.mode === "service" ? "service" as const : "product" as const);
+
+        const aiRouting: RoutingResult = {
+          primaryMode: primaryEngine,
+          secondaryModes: secondaryEngines,
+          scores: {
+            product: (sorted.find((m: any) => m.mode === "product")?.confidence || 0) / 100,
+            service: (sorted.find((m: any) => m.mode === "service")?.confidence || 0) / 100,
+            business_model: (sorted.find((m: any) => m.mode === "business")?.confidence || 0) / 100,
+          },
+          confidence: sorted[0].confidence / 100,
+          reasoning: data.summary || "",
+        };
+        setRouting(aiRouting);
+      }
+    } catch (err) {
+      console.error("AI problem analysis failed:", err);
+      toast.error("Could not analyze problem — using keyword detection instead.");
+    } finally {
+      setAiAnalyzing(false);
+    }
+  }, [clarifierName]);
+
   const handleDeconstruct = () => {
     if (problemText.trim().length < 15) return;
     if (!routing) runRouting(problemText);
     setUseDeconstruct(true);
     setSelectedMode(null);
+    // Fire AI analysis
+    if (!aiAnalysis && !aiAnalyzing) {
+      runAIAnalysis(problemText);
+    }
     // Scroll to clarifier after render
     setTimeout(() => {
       clarifierRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -278,10 +352,18 @@ export default function NewAnalysisPage() {
     setModeRouting(routing);
 
     const primaryCard = toCardId(routing.primaryMode);
-    const name = clarifierName.trim() || "Deconstruct Analysis";
+    const name = clarifierName.trim() || (aiAnalysis?.entity?.name || "Deconstruct Analysis");
     const notes = problemText;
     const urls = clarifierUrls.map(u => u.trim()).filter(Boolean);
     const primaryUrl = urls[0] || "";
+
+    // Build challenge focus context
+    const challengeContext = aiAnalysis?.challenges
+      ? aiAnalysis.challenges
+          .filter(c => selectedChallenges.has(c.id))
+          .map(c => `• ${c.question} (${c.context})`)
+          .join("\n")
+      : "";
 
     // Build extracted context if available
     const extractedContext = extraction ? extractionToContext(extraction) : "";
@@ -295,7 +377,7 @@ export default function NewAnalysisPage() {
           body: {
             businessModel: {
               type: name,
-              description: notes,
+              description: challengeContext ? `${notes}\n\n--- FOCUS AREAS ---\n${challengeContext}` : notes,
               revenueModel: extraction?.revenue_engine?.revenue_sources?.join(", ") || "",
               size: "",
               geography: "",
@@ -322,9 +404,9 @@ export default function NewAnalysisPage() {
         analysis.setMainTab(isService ? "service" : "custom");
         analysis.setActiveMode(isService ? "service" : "custom");
 
-        const enrichedNotes = extractedContext
-          ? `${isService ? "[SERVICE ANALYSIS] " : ""}${notes}\n\n--- EXTRACTED INTELLIGENCE ---\n${extractedContext}`
-          : `${isService ? "[SERVICE ANALYSIS] " : ""}${notes}`;
+        let enrichedNotes = `${isService ? "[SERVICE ANALYSIS] " : ""}${notes}`;
+        if (challengeContext) enrichedNotes += `\n\n--- FOCUS AREAS ---\n${challengeContext}`;
+        if (extractedContext) enrichedNotes += `\n\n--- EXTRACTED INTELLIGENCE ---\n${extractedContext}`;
 
         const customProducts = [{
           productName: name,
@@ -522,33 +604,53 @@ export default function NewAnalysisPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
                       <span className="text-xs font-medium text-muted-foreground">Modes we'll apply:</span>
-                      {detectedModes.map((modeId) => (
-                        <span
-                          key={modeId}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold"
-                          style={{
-                            background: `hsl(var(${MODE_CSS_VAR[modeId]}) / 0.15)`,
-                            color: `hsl(var(${MODE_CSS_VAR[modeId]}))`,
-                          }}
-                        >
+                      {detectedModes.map((modeId) => {
+                        const aiMode = aiAnalysis?.modes?.find(m => m.mode === modeId);
+                        return (
                           <span
-                            className="w-2 h-2 rounded-full"
-                            style={{ background: `hsl(var(${MODE_CSS_VAR[modeId]}))` }}
-                          />
-                          {MODE_LABELS[modeId]}
-                          {modeId === toCardId(routing!.primaryMode) && (
-                            <span className="opacity-60">· {userExplanation.confidence}%</span>
-                          )}
-                        </span>
-                      ))}
+                            key={modeId}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                            style={{
+                              background: `hsl(var(${MODE_CSS_VAR[modeId]}) / 0.15)`,
+                              color: `hsl(var(${MODE_CSS_VAR[modeId]}))`,
+                            }}
+                            title={aiMode?.reason}
+                          >
+                            <span
+                              className="w-2 h-2 rounded-full"
+                              style={{ background: `hsl(var(${MODE_CSS_VAR[modeId]}))` }}
+                            />
+                            {MODE_LABELS[modeId]}
+                            {aiMode ? (
+                              <span className="opacity-60">· {aiMode.confidence}%</span>
+                            ) : modeId === toCardId(routing!.primaryMode) ? (
+                              <span className="opacity-60">· {userExplanation.confidence}%</span>
+                            ) : null}
+                          </span>
+                        );
+                      })}
                     </div>
-                    <p
-                      className="text-foreground/70 text-xs leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: userExplanation.explanation.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>'),
-                      }}
-                    />
-                    {userExplanation.confidence < 45 && (
+                    {/* AI mode reasons */}
+                    {aiAnalysis?.modes && aiAnalysis.modes.length > 0 ? (
+                      <div className="space-y-1">
+                        {aiAnalysis.modes.filter(m => m.confidence >= 20).map(m => (
+                          <p key={m.mode} className="text-xs text-foreground/70 leading-relaxed">
+                            <span className="font-semibold" style={{ color: `hsl(var(${MODE_CSS_VAR[m.mode]}))` }}>
+                              {MODE_LABELS[m.mode]}:
+                            </span>{" "}
+                            {m.reason}
+                          </p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p
+                        className="text-foreground/70 text-xs leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: userExplanation.explanation.replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>'),
+                        }}
+                      />
+                    )}
+                    {!aiAnalysis && userExplanation.confidence < 45 && (
                       <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                         <AlertCircle size={12} />
                         Low confidence — add more detail for a stronger match.
@@ -559,25 +661,112 @@ export default function NewAnalysisPage() {
               </div>
             )}
 
+            {/* AI analyzing indicator */}
+            {aiAnalyzing && (
+              <div
+                className="mt-3 flex items-center gap-2 px-4 py-2.5 rounded-lg border text-xs"
+                style={{
+                  borderColor: "hsl(var(--mode-multi) / 0.2)",
+                  background: "hsl(var(--mode-multi) / 0.04)",
+                  color: "hsl(var(--mode-multi))",
+                }}
+              >
+                <Loader2 size={14} className="animate-spin" />
+                Analyzing your problem to extract specific challenges…
+              </div>
+            )}
+
+            {/* AI-extracted challenges */}
+            {aiAnalysis?.challenges && aiAnalysis.challenges.length > 0 && !useDeconstruct && (
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={13} style={{ color: "hsl(var(--mode-multi))" }} />
+                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "hsl(var(--mode-multi))" }}>
+                    We identified these challenges
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Select which ones to focus on. High-priority items are pre-selected.
+                </p>
+                <div className="space-y-1.5">
+                  {aiAnalysis.challenges.map((c) => {
+                    const isSelected = selectedChallenges.has(c.id);
+                    const modeVar = MODE_CSS_VAR[c.related_mode] || "--mode-product";
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          const next = new Set(selectedChallenges);
+                          if (isSelected) next.delete(c.id);
+                          else next.add(c.id);
+                          setSelectedChallenges(next);
+                        }}
+                        className="w-full text-left rounded-lg border px-3.5 py-2.5 transition-all"
+                        style={{
+                          borderColor: isSelected ? `hsl(var(${modeVar}) / 0.5)` : "hsl(var(--border))",
+                          background: isSelected ? `hsl(var(${modeVar}) / 0.06)` : "transparent",
+                        }}
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <div
+                            className="w-4 h-4 rounded border flex-shrink-0 mt-0.5 flex items-center justify-center transition-colors"
+                            style={{
+                              borderColor: isSelected ? `hsl(var(${modeVar}))` : "hsl(var(--border))",
+                              background: isSelected ? `hsl(var(${modeVar}))` : "transparent",
+                            }}
+                          >
+                            {isSelected && <CheckCircle2 size={10} className="text-white" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground leading-snug">{c.question}</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{c.context}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span
+                              className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                              style={{
+                                background: c.priority === "high" ? "hsl(var(--destructive) / 0.1)" : c.priority === "medium" ? "hsl(var(--warning) / 0.1)" : "hsl(var(--muted))",
+                                color: c.priority === "high" ? "hsl(var(--destructive))" : c.priority === "medium" ? "hsl(var(--warning))" : "hsl(var(--muted-foreground))",
+                              }}
+                            >
+                              {c.priority}
+                            </span>
+                            <span
+                              className="w-2 h-2 rounded-full"
+                              style={{ background: `hsl(var(${modeVar}))` }}
+                              title={MODE_LABELS[c.related_mode]}
+                            />
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* CTA */}
             {!useDeconstruct && (
               <div className="mt-4 flex items-center justify-between gap-4">
                 <p className="text-xs text-muted-foreground">
-                  {routing
-                    ? "Click below to lock in detected modes."
-                    : "Type at least 15 characters to auto-detect."}
+                  {aiAnalyzing
+                    ? "Analyzing your problem…"
+                    : routing
+                      ? "Click below to lock in detected modes."
+                      : "Type at least 15 characters to auto-detect."}
                 </p>
                 <button
                   onClick={handleDeconstruct}
-                  disabled={problemText.trim().length < 15}
+                  disabled={problemText.trim().length < 15 || aiAnalyzing}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
                   style={{
                     background: "hsl(var(--mode-multi))",
                     color: "white",
                   }}
                 >
-                  <Zap size={14} />
-                  Save
+                  {aiAnalyzing ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+                  {aiAnalysis ? "Continue" : "Analyze"}
                 </button>
               </div>
             )}
@@ -609,6 +798,100 @@ export default function NewAnalysisPage() {
               >
                 💡 <strong>These are optional.</strong> The more you share, the sharper the analysis. Leave blank to proceed with what you've described.
               </p>
+
+              {/* AI Summary */}
+              {aiAnalysis?.summary && (
+                <div
+                  className="rounded-lg border px-3.5 py-2.5 text-sm"
+                  style={{
+                    borderColor: "hsl(142 70% 40% / 0.3)",
+                    background: "hsl(142 70% 40% / 0.04)",
+                  }}
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <CheckCircle2 size={12} style={{ color: "hsl(142 70% 40%)" }} />
+                    <span className="text-xs font-semibold" style={{ color: "hsl(142 70% 40%)" }}>Here's what we understand</span>
+                  </div>
+                  <p className="text-foreground text-sm leading-relaxed">{aiAnalysis.summary}</p>
+                  {aiAnalysis.entity?.type && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Identified as: <strong className="text-foreground">{aiAnalysis.entity.type}</strong>
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* AI Challenges in clarifier */}
+              {aiAnalysis?.challenges && aiAnalysis.challenges.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Target size={12} style={{ color: "hsl(var(--mode-multi))" }} />
+                    <span className="typo-card-eyebrow text-xs">Focus areas</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground -mt-1">
+                    Select which challenges the analysis should prioritize.
+                  </p>
+                  <div className="space-y-1.5">
+                    {aiAnalysis.challenges.map((c) => {
+                      const isSelected = selectedChallenges.has(c.id);
+                      const modeVar = MODE_CSS_VAR[c.related_mode] || "--mode-product";
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => {
+                            const next = new Set(selectedChallenges);
+                            if (isSelected) next.delete(c.id);
+                            else next.add(c.id);
+                            setSelectedChallenges(next);
+                          }}
+                          className="w-full text-left rounded-lg border px-3 py-2 transition-all"
+                          style={{
+                            borderColor: isSelected ? `hsl(var(${modeVar}) / 0.5)` : "hsl(var(--border))",
+                            background: isSelected ? `hsl(var(${modeVar}) / 0.06)` : "transparent",
+                          }}
+                        >
+                          <div className="flex items-start gap-2.5">
+                            <div
+                              className="w-4 h-4 rounded border flex-shrink-0 mt-0.5 flex items-center justify-center"
+                              style={{
+                                borderColor: isSelected ? `hsl(var(${modeVar}))` : "hsl(var(--border))",
+                                background: isSelected ? `hsl(var(${modeVar}))` : "transparent",
+                              }}
+                            >
+                              {isSelected && <CheckCircle2 size={10} className="text-white" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-foreground">{c.question}</p>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">{c.context}</p>
+                            </div>
+                            <span
+                              className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                              style={{ background: `hsl(var(${modeVar}))` }}
+                              title={MODE_LABELS[c.related_mode]}
+                            />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* AI loading in clarifier */}
+              {aiAnalyzing && (
+                <div
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg border text-xs"
+                  style={{
+                    borderColor: "hsl(var(--mode-multi) / 0.2)",
+                    background: "hsl(var(--mode-multi) / 0.04)",
+                    color: "hsl(var(--mode-multi))",
+                  }}
+                >
+                  <Loader2 size={14} className="animate-spin" />
+                  Analyzing your problem…
+                </div>
+              )}
 
               {/* Name */}
               <div className="space-y-1.5">

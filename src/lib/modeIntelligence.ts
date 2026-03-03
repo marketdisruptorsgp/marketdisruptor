@@ -45,21 +45,34 @@ const PRODUCT_SIGNALS = [
   "product", "design", "feature", "hardware", "software architecture",
   "materials", "manufacturing", "technology", "performance", "component",
   "device", "build", "physical", "form factor", "too complex",
-  "too expensive to produce", "technical limitation",
+  "too expensive to produce", "technical limitation", "packaging",
+  "formulation", "recipe", "ingredient", "quality", "durability",
+  "usability", "app", "platform", "tool", "drink", "food", "beverage",
+  "selling", "sell", "our product", "we make", "we produce", "we sell",
+  "white label", "private label", "brand", "sku", "catalog",
 ];
 
 const SERVICE_SIGNALS = [
   "process", "workflow", "experience", "onboarding", "delivery",
   "operations", "efficiency", "slow", "manual", "scaling",
   "support", "journey", "handoff", "coordination",
-  "takes too long", "bottleneck",
+  "takes too long", "bottleneck", "customer service", "logistics",
+  "fulfillment", "shipping", "distribution", "distributor",
+  "distributing", "supply chain", "warehouse",
 ];
 
 const BUSINESS_MODEL_SIGNALS = [
   "pricing", "revenue", "margin", "profit", "cost structure",
   "monetization", "subscription", "who pays", "growth model",
   "unit economics", "lifetime value", "acquisition cost",
-  "financial", "economics",
+  "financial", "economics", "competition", "competitor", "saturated",
+  "market", "expand", "expansion", "new market", "grow", "growth",
+  "white label", "franchise", "scale", "profitability", "profitable",
+  "cash flow", "investment", "funding", "roi", "break even",
+  "business model", "distribution", "distributor", "wholesale",
+  "retail", "b2b", "b2c", "saas", "recurring revenue",
+  "market share", "differentiation", "competitive advantage",
+  "florida", "missouri", "state", "region", "territory",
 ];
 
 // ── Scoring Engine ──
