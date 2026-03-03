@@ -255,26 +255,17 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const setActiveBranchId = useCallback((id: string | null) => {
     setActiveBranchIdState(id);
     // "combined" or null means all hypotheses — only mark outdated when switching to/from isolated
-    if (id && id !== "combined") {
-      markStepOutdated("disrupt");
-      markStepOutdated("redesign");
-      markStepOutdated("stressTest");
-      markStepOutdated("pitchDeck");
-    } else if (id === "combined") {
-      // Switching back to combined also invalidates
-      markStepOutdated("disrupt");
-      markStepOutdated("redesign");
-      markStepOutdated("stressTest");
-      markStepOutdated("pitchDeck");
-    }
+    // Branch changes invalidate downstream steps — but NOT the current Disrupt step itself
+    markStepOutdated("redesign");
+    markStepOutdated("stressTest");
+    markStepOutdated("pitchDeck");
     pendingBranchSaveRef.current = id;
   }, [markStepOutdated]);
   const pendingProfileSaveRef = useRef<StrategicProfile | undefined>(undefined);
   const setStrategicProfile = useCallback((p: StrategicProfile) => {
     setStrategicProfileState(p);
     pendingProfileSaveRef.current = p;
-    // Re-ranking with new profile changes downstream
-    markStepOutdated("disrupt");
+    // Re-ranking with new profile changes downstream — not Disrupt itself
     markStepOutdated("redesign");
     markStepOutdated("stressTest");
     markStepOutdated("pitchDeck");
