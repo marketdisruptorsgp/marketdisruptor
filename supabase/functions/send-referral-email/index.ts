@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: `${BRAND.name} <hello@marketdisruptor.sgpcapital.com>`,
+        from: `${BRAND.name} <info@marketdisruptor.org>`,
         to: [recipientEmail.trim()],
         subject: `${senderName} invited you to ${BRAND.name}`,
         html,
