@@ -5,6 +5,7 @@ import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { downloadPitchDeckPDF } from "@/lib/pdfExport";
+import { downloadSlidesPDF } from "@/lib/slidesPdfExport";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { ReferralCTA } from "@/components/ReferralCTA";
@@ -16,7 +17,7 @@ import {
   Globe, Target, Zap, CheckCircle2, ArrowRight, BarChart3,
   ShieldAlert, Lightbulb, Clock,
   AlertTriangle, Rocket, Sparkles,
-  Layers, Shield,
+  Layers, Shield, FileDown,
 } from "lucide-react";
 import { NextSectionButton, SectionWorkflowNav, AllExploredBadge } from "@/components/SectionNav";
 import {
@@ -197,6 +198,23 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   const accentColor = modeAccent || "hsl(var(--primary))";
 
   const handleDownloadPDF = () => { if (!data) return; downloadPitchDeckPDF(product, data); };
+  const [downloadingSlides, setDownloadingSlides] = useState(false);
+  const slidesContainerRef = React.useRef<HTMLDivElement>(null);
+  const handleDownloadSlidesPDF = async () => {
+    if (!data) return;
+    setDownloadingSlides(true);
+    toast.loading("Rendering slides to PDF…", { id: "slides-pdf" });
+    try {
+      await downloadSlidesPDF(allRawSlides, product.name);
+      toast.dismiss("slides-pdf");
+      toast.success("Presentation PDF downloaded!");
+    } catch (err) {
+      toast.dismiss("slides-pdf");
+      toast.error("Failed to export slides: " + String(err));
+    } finally {
+      setDownloadingSlides(false);
+    }
+  };
 
   const currentIdx = SLIDE_TABS.findIndex(t => t.id === activeSlide);
   const nextSlide = currentIdx < TOTAL - 1 ? SLIDE_TABS[currentIdx + 1] : null;
@@ -709,7 +727,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       accentColor={accentColor}
       totalSlides={TOTAL + 1}
       coverImages={validCoverImages.length > 0 ? validCoverImages : undefined}
-      userName={profile?.first_name || user?.email?.split("@")[0] || undefined}
+      userName="Eric Lieb"
     />
   );
   const allRawSlides = [rawCover, ...SLIDE_TABS.map(tab => rawSlide(tab.id, slideContent[tab.id]))];
@@ -749,6 +767,14 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
               <Presentation size={18} /> Present Full Deck
             </button>
             <div className="flex items-center gap-2">
+              <button
+                onClick={handleDownloadSlidesPDF}
+                disabled={downloadingSlides}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                style={{ background: "white", color: accentColor, boxShadow: `0 2px 8px ${accentColor}22` }}
+              >
+                <FileDown size={14} /> {downloadingSlides ? "Exporting…" : "Download Slides PDF"}
+              </button>
               <ExportPanel product={product} pitchDeckData={data} analysisData={{ disrupt: analysisCtx.disruptData, stressTest: analysisCtx.stressTestData, pitchDeck: data, redesign: analysisCtx.redesignData, geoOpportunity: analysisCtx.geoData, regulatoryContext: analysisCtx.regulatoryData, ...(product.patentData ? { patentData: product.patentData } : {}), ...(analysisCtx.businessAnalysisData ? (analysisCtx.businessAnalysisData as unknown as Record<string, unknown>) : {}), ...(analysisCtx.businessStressTestData ? { stressTest: analysisCtx.businessStressTestData } : {}) } as Record<string, unknown>} analysisId={analysisId} userId={user?.id} accentColor="white" />
               <button onClick={runAnalysis} disabled={loading}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
