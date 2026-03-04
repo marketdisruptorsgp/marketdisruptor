@@ -31,8 +31,12 @@ import { SectionWorkflowNav } from "@/components/SectionNav";
 
 const DISRUPT_SECTION_DESCRIPTIONS: Record<string, string> = {
   assumptions: "Hidden assumptions & challenge ideas",
+};
+
+const REDESIGN_SECTION_DESCRIPTIONS_NAV: Record<string, string> = {
   flip: "Inverted logic & bold alternatives",
   ideas: "Flipped product ideas & innovations",
+  concept: "Redesigned concept & radical differences",
 };
 
 // ── Exported section descriptions for Intel Report tabs ──
@@ -44,6 +48,8 @@ export const INTEL_SECTION_DESCRIPTIONS: Record<string, string> = {
 
 // ── Exported section descriptions for Redesign step ──
 export const REDESIGN_SECTION_DESCRIPTIONS: Record<string, string> = {
+  flip: "Inverted logic & bold alternatives",
+  ideas: "Flipped product ideas & innovations",
   concept: "Redesigned concept & radical differences",
 };
 
@@ -603,8 +609,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [data, setData] = useState<FirstPrinciplesData | null>((externalData as FirstPrinciplesData) || null);
   const [loading, setLoading] = useState(false);
   const isService = product.category === "Service";
-  const [activeStep, setActiveStep] = useState<"assumptions" | "flip" | "ideas">("assumptions");
-  const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set(["assumptions"]));
+  const [activeStep, setActiveStep] = useState<"assumptions" | "flip" | "ideas" | "concept">(renderMode === "redesign" ? "flip" : "assumptions");
+  const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set([renderMode === "redesign" ? "flip" : "assumptions"]));
   const [userContext, setUserContext] = useState("");
   const [rerunSuggestions, setRerunSuggestions] = useState("");
   const autoTriggered = useRef(false);
@@ -696,7 +702,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
       setData(result.analysis);
       onDataLoaded?.(result.analysis);
-      setActiveStep("assumptions");
+      setActiveStep(renderMode === "redesign" ? "flip" : "assumptions");
       toast.success("Disrupt analysis complete!");
       await saveToWorkspace(result.analysis);
     } catch (err) {
@@ -715,11 +721,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     }
   }, [autoTrigger, renderMode, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const allSteps = [
-    { id: "assumptions" as const, label: "Assumptions", icon: Brain },
-    { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal },
-    { id: "ideas" as const, label: "Flipped Ideas", icon: Zap },
-  ];
+  const allSteps = renderMode === "redesign"
+    ? [
+        { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal },
+        { id: "ideas" as const, label: "Flipped Ideas", icon: Zap },
+        { id: "concept" as const, label: "Redesigned Concept", icon: Sparkles },
+      ]
+    : [
+        { id: "assumptions" as const, label: "Assumptions", icon: Brain },
+      ];
   const totalSections = allSteps.length;
   const currentSectionIdx = allSteps.findIndex(s => s.id === activeStep);
   const currentSectionNum = currentSectionIdx + 1;
@@ -781,14 +791,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <div>
           <h3 className="text-xl font-bold text-foreground mb-2">Disrupt Analysis</h3>
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-            Deep analysis of <strong>{product.name}</strong> — questioning every assumption and generating radical reinvention ideas.
+            Deep analysis of <strong>{product.name}</strong> — questioning every assumption holding the current product together.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-sm">
+        <div className="grid grid-cols-1 gap-3 max-w-[160px]">
           {[
             { icon: Brain, label: "Assumptions" },
-            { icon: FlipHorizontal, label: "Flip Logic" },
-            { icon: Zap, label: "Flipped Ideas" },
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="p-3 rounded text-center" style={{ background: "hsl(var(--muted))" }}>
               <Icon size={18} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
@@ -814,53 +822,20 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   // ── REDESIGN MODE ──
   if (renderMode === "redesign") {
     const concept = data.redesignedConcept;
+    const flips = data.flippedLogic || [];
+    const assumptions = data.hiddenAssumptions || [];
 
-    if (!concept) {
-      if (loading) {
-        return (
-          <StepLoadingTracker
-            title="Generating Redesign Concept"
-            tasks={DISRUPT_TASKS}
-            estimatedSeconds={50}
-            accentColor="hsl(38 92% 50%)"
-          />
-        );
-      }
-      return (
-        <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
-          <div className="w-20 h-20 rounded flex items-center justify-center" style={{ background: "hsl(38 92% 50% / 0.12)" }}>
-            <Sparkles size={36} style={{ color: "hsl(38 92% 50%)" }} />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Redesign Concept</h3>
-            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-              Generate a radical reinvention of <strong>{product.name}</strong> — combining all flipped ideas into a cohesive redesigned concept.
-            </p>
-          </div>
-          <button
-            onClick={runAnalysis}
-            disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm transition-colors"
-            style={{ background: "hsl(38 92% 50%)", color: "white", opacity: loading ? 0.7 : 1 }}
-          >
-            <Sparkles size={15} /> Generate Redesign
-          </button>
-          <p className="typo-card-meta text-muted-foreground">
-            Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
-          </p>
-        </div>
-      );
-    }
     return (
-      <div className="space-y-4">
+      <div className="space-y-4" data-fp-steps>
+        {/* Header + re-run */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50%)" }}>
               <Sparkles size={14} style={{ color: "white" }} />
             </div>
             <div>
-              <h3 className="font-bold text-foreground text-sm leading-tight">{concept.conceptName}</h3>
-              <p className="typo-card-meta text-muted-foreground">{concept.tagline}</p>
+              <h3 className="font-bold text-foreground text-sm leading-tight">Redesign: {product.name}</h3>
+              <p className="typo-card-meta text-muted-foreground">{totalSections} sections · Click any to jump</p>
             </div>
           </div>
           <button
@@ -870,118 +845,269 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
           >
             {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
-            Regenerate
+            Re-run
           </button>
         </div>
 
-        {/* Core insight */}
-        <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          <p className="typo-card-eyebrow mb-1 text-muted-foreground">Core Insight</p>
-          <p className="text-sm leading-relaxed text-foreground/85">{concept.coreInsight}</p>
-        </div>
-
-        {/* Radical Differences */}
-        <div>
-          <p className="typo-card-eyebrow text-muted-foreground mb-2">Radical Differences</p>
-          <div className="space-y-1.5">
-            {(concept.radicalDifferences || []).map((diff, i) => (
-              <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <Zap size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                <span className="text-foreground/80">{diff}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Physical Description */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="typo-card-eyebrow text-muted-foreground mb-1">Physical Form</p>
-            <p className="typo-card-body text-foreground/80">{concept.physicalDescription}</p>
-            {concept.sizeAndWeight && <p className="typo-card-meta text-muted-foreground mt-1">Size: {concept.sizeAndWeight}</p>}
-          </div>
-          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="typo-card-eyebrow text-muted-foreground mb-1">Materials</p>
-            <div className="flex flex-wrap gap-1">
-              {(concept.materials || []).map((m, i) => (
-                <span key={i} className="px-2 py-0.5 rounded-full typo-card-meta font-medium" style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>{m}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Smart Features */}
-        {concept.smartFeatures?.length > 0 && (
-          <div>
-            <p className="typo-card-eyebrow text-muted-foreground mb-2">Smart Features</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {concept.smartFeatures.map((f, i) => (
-                <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <Cpu size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                  <span className="text-foreground/80">{f}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* UX Transformation & Friction Eliminated */}
-        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          <p className="typo-card-eyebrow text-muted-foreground mb-1">User Experience Transformation</p>
-          <p className="text-xs text-foreground/80 leading-relaxed">{concept.userExperienceTransformation}</p>
-        </div>
-        {concept.frictionEliminated?.length > 0 && (
-          <div>
-            <p className="typo-card-eyebrow text-muted-foreground mb-2">Friction Eliminated</p>
-            <div className="space-y-1">
-              {concept.frictionEliminated.map((f, i) => (
-                <div key={i} className="flex items-start gap-2 text-xs">
-                  <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
-                  <span className="text-foreground/80">{f}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Business details */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {[
-            { label: "Price Point", value: concept.pricePoint },
-            { label: "Target User", value: concept.targetUser },
-            { label: "Capital Required", value: concept.capitalRequired || "—" },
-            { label: "Risk Level", value: concept.riskLevel || "—" },
-          ].map((item) => (
-            <div key={item.label} className="p-2 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="typo-status-label text-muted-foreground">{item.label}</p>
-              <p className="text-xs font-bold text-foreground mt-0.5">{item.value}</p>
-            </div>
-          ))}
-        </div>
-
-        <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert} defaultOpen>
-          <div className="space-y-2 mb-2">
-            <div>
-              <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Why Not Already Done</p>
-              <p className="text-xs text-foreground/80">{concept.whyItHasntBeenDone}</p>
-            </div>
-            <div>
-              <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Biggest Risk</p>
-              <p className="text-xs text-foreground/80">{concept.biggestRisk}</p>
-            </div>
-            <div>
-              <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Manufacturing Path</p>
-              <p className="text-xs text-foreground/80">{concept.manufacturingPath}</p>
-            </div>
-          </div>
-        </DetailPanel>
-
-        {/* AI-Generated Redesign Visuals */}
-        <RedesignVisualGenerator
-          productName={product.name}
-          concept={concept}
-          accentColor="hsl(38 92% 50%)"
+        {/* Section Navigator */}
+        <SectionWorkflowNav
+          tabs={allSteps}
+          activeId={activeStep}
+          visitedIds={visitedFPSteps}
+          onSelect={(id) => { setActiveStep(id as typeof activeStep); setVisitedFPSteps(prev => new Set([...prev, id])); scrollToSteps(); }}
+          descriptions={REDESIGN_SECTION_DESCRIPTIONS_NAV}
+          journeyLabel="Redesign Sections"
         />
+
+        {/* ── Section: Flip the Logic ── */}
+        {activeStep === "flip" && (() => {
+          const reasonCounts: Record<string, number> = {};
+          assumptions.forEach(a => { reasonCounts[a.reason] = (reasonCounts[a.reason] || 0) + 1; });
+          const highLeverageCount = assumptions.filter(a => (a.leverageScore || 0) >= 7).length;
+          const SHOW_LIMIT = 10;
+
+          if (flips.length === 0) {
+            return (
+              <div className="space-y-4">
+                <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
+                <div className="text-center py-10 space-y-3">
+                  <FlipHorizontal size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
+                  <p className="text-sm font-bold text-foreground">No inversion data available</p>
+                  <p className="text-xs text-muted-foreground max-w-md mx-auto">Run the Disrupt step first to generate assumption inversions.</p>
+                </div>
+                {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
+              </div>
+            );
+          }
+
+          return (
+            <div className="space-y-4">
+              <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
+              <div className="flex flex-wrap gap-2 mb-2">
+                <span className="px-2 py-1 rounded-md text-xs font-bold" style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))" }}>
+                  {flips.length} inversions
+                </span>
+                {highLeverageCount > 0 && (
+                  <span className="px-2 py-1 rounded-md text-xs font-bold" style={{ background: "hsl(0 70% 50% / 0.12)", color: "hsl(0 70% 50%)" }}>
+                    {highLeverageCount} high leverage
+                  </span>
+                )}
+              </div>
+              <FlipCardList flips={flips} assumptions={assumptions} showLimit={SHOW_LIMIT} />
+              {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
+            </div>
+          );
+        })()}
+
+        {/* ── Section: Flipped Ideas ── */}
+        {activeStep === "ideas" && (
+          <div className="space-y-4">
+            <SectionHeader current={currentSectionNum} total={totalSections} label="Flipped Ideas" icon={Zap} />
+
+            <DetailPanel title="Steer ideas — add your goals, then regenerate" icon={Lightbulb}>
+              <textarea
+                value={userContext}
+                onChange={(e) => setUserContext(e.target.value)}
+                placeholder="e.g. Focus on eco-friendly materials, target Gen Z, keep under $30…"
+                className="w-full rounded px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
+                rows={2}
+                style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
+              />
+            </DetailPanel>
+
+            {flippedIdeas && flippedIdeas.length > 0 ? (
+              <>
+                <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--primary) / 0.06)", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
+                  <p className="text-sm font-bold text-foreground">
+                    We generated <span style={{ color: "hsl(var(--primary))" }}>{flippedIdeas.length} bold reinvention ideas</span> based on the assumptions and flipped logic from Disrupt.
+                  </p>
+                  <ul className="text-xs text-foreground/70 space-y-1 ml-4 list-disc">
+                    <li><strong>Love an idea?</strong> Save it or add its visual to your pitch deck.</li>
+                    <li><strong>Want to change just one?</strong> Click <strong>Regenerate This Idea</strong> on the specific card.</li>
+                    <li><strong>Want all new ideas?</strong> Use the <strong>Regenerate All</strong> button below.</li>
+                  </ul>
+                </div>
+
+                <div className="flex items-center justify-end">
+                  {onRegenerateIdeas && (
+                    <button
+                      onClick={() => onRegenerateIdeas(userContext || undefined)}
+                      disabled={generatingIdeas}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                      style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.3)" }}
+                    >
+                      {generatingIdeas ? <><RefreshCw size={11} className="animate-spin" /> Generating…</> : <><Sparkles size={11} /> Regenerate All</>}
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-4">
+                  {flippedIdeas.map((idea, i) => (
+                    <FlippedIdeaCard
+                      key={`${idea.name}-${i}`}
+                      idea={idea}
+                      rank={i + 1}
+                      productName={product.name}
+                      userScores={userScores?.[idea.name || `idea-${i}`]}
+                      onScoreChange={onScoreChange ? (scoreKey, value) => onScoreChange(idea.name || `idea-${i}`, scoreKey, value) : undefined}
+                      pitchDeckImages={analysisCtx.pitchDeckImages}
+                      onSelectForPitch={analysisCtx.setPitchDeckImage}
+                      onRemoveFromPitch={analysisCtx.removePitchDeckImage}
+                      onRegenerateSingle={onRegenerateIdeas ? () => onRegenerateIdeas(`REGENERATE_SINGLE:${i}:${userContext || ""}`) : undefined}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                No flipped ideas yet. Run the Disrupt analysis first.
+              </div>
+            )}
+            {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
+          </div>
+        )}
+
+        {/* ── Section: Redesigned Concept ── */}
+        {activeStep === "concept" && (() => {
+          if (!concept) {
+            return (
+              <div className="space-y-4">
+                <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
+                <div className="text-center py-10 space-y-3">
+                  <Sparkles size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
+                  <p className="text-sm font-bold text-foreground">No redesign concept yet</p>
+                  <p className="text-xs text-muted-foreground max-w-md mx-auto">Click <strong>Re-run</strong> above to generate a redesigned concept.</p>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="space-y-4">
+              <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
+
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-bold text-foreground text-sm">{concept.conceptName}</h4>
+                <span className="text-xs text-muted-foreground">— {concept.tagline}</span>
+              </div>
+
+              {/* Core insight */}
+              <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="typo-card-eyebrow mb-1 text-muted-foreground">Core Insight</p>
+                <p className="text-sm leading-relaxed text-foreground/85">{concept.coreInsight}</p>
+              </div>
+
+              {/* Radical Differences */}
+              <div>
+                <p className="typo-card-eyebrow text-muted-foreground mb-2">Radical Differences</p>
+                <div className="space-y-1.5">
+                  {(concept.radicalDifferences || []).map((diff: string, i: number) => (
+                    <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <Zap size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
+                      <span className="text-foreground/80">{diff}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Physical Description */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="typo-card-eyebrow text-muted-foreground mb-1">Physical Form</p>
+                  <p className="typo-card-body text-foreground/80">{concept.physicalDescription}</p>
+                  {concept.sizeAndWeight && <p className="typo-card-meta text-muted-foreground mt-1">Size: {concept.sizeAndWeight}</p>}
+                </div>
+                <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="typo-card-eyebrow text-muted-foreground mb-1">Materials</p>
+                  <div className="flex flex-wrap gap-1">
+                    {(concept.materials || []).map((m: string, i: number) => (
+                      <span key={i} className="px-2 py-0.5 rounded-full typo-card-meta font-medium" style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>{m}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Smart Features */}
+              {concept.smartFeatures?.length > 0 && (
+                <div>
+                  <p className="typo-card-eyebrow text-muted-foreground mb-2">Smart Features</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {concept.smartFeatures.map((f: string, i: number) => (
+                      <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                        <Cpu size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
+                        <span className="text-foreground/80">{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* UX Transformation & Friction Eliminated */}
+              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="typo-card-eyebrow text-muted-foreground mb-1">User Experience Transformation</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{concept.userExperienceTransformation}</p>
+              </div>
+              {concept.frictionEliminated?.length > 0 && (
+                <div>
+                  <p className="typo-card-eyebrow text-muted-foreground mb-2">Friction Eliminated</p>
+                  <div className="space-y-1">
+                    {concept.frictionEliminated.map((f: string, i: number) => (
+                      <div key={i} className="flex items-start gap-2 text-xs">
+                        <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
+                        <span className="text-foreground/80">{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Business details */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { label: "Price Point", value: concept.pricePoint },
+                  { label: "Target User", value: concept.targetUser },
+                  { label: "Capital Required", value: concept.capitalRequired || "—" },
+                  { label: "Risk Level", value: concept.riskLevel || "—" },
+                ].map((item) => (
+                  <div key={item.label} className="p-2 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                    <p className="typo-status-label text-muted-foreground">{item.label}</p>
+                    <p className="text-xs font-bold text-foreground mt-0.5">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert} defaultOpen>
+                <div className="space-y-2 mb-2">
+                  <div>
+                    <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Why Not Already Done</p>
+                    <p className="text-xs text-foreground/80">{concept.whyItHasntBeenDone}</p>
+                  </div>
+                  <div>
+                    <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Biggest Risk</p>
+                    <p className="text-xs text-foreground/80">{concept.biggestRisk}</p>
+                  </div>
+                  <div>
+                    <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Manufacturing Path</p>
+                    <p className="text-xs text-foreground/80">{concept.manufacturingPath}</p>
+                  </div>
+                </div>
+              </DetailPanel>
+
+              {/* AI-Generated Redesign Visuals */}
+              <RedesignVisualGenerator
+                productName={product.name}
+                concept={concept}
+                accentColor="hsl(38 92% 50%)"
+              />
+
+              {/* All sections done */}
+              <div className="text-center py-4">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
+                  <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} /> All sections explored
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   }
@@ -996,7 +1122,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </div>
           <div>
             <h3 className="font-bold text-foreground text-sm leading-tight">Disrupt: {product.name}</h3>
-            <p className="typo-card-meta text-muted-foreground">{totalSections} sections · Click any to jump</p>
+            <p className="typo-card-meta text-muted-foreground">Hidden assumptions & leverage analysis</p>
           </div>
         </div>
         <button
@@ -1026,15 +1152,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         />
       </DetailPanel>
 
-      {/* ── Section Workflow Navigator (grid) ── */}
-      <SectionWorkflowNav
-        tabs={allSteps}
-        activeId={activeStep}
-        visitedIds={visitedFPSteps}
-        onSelect={(id) => { setActiveStep(id as typeof activeStep); setVisitedFPSteps(prev => new Set([...prev, id])); scrollToSteps(); }}
-        descriptions={DISRUPT_SECTION_DESCRIPTIONS}
-        journeyLabel="Disrupt Sections"
-      />
+      {/* Single section — no nav needed */}
 
       {/* ═══════ SECTION CONTENT ═══════ */}
 
@@ -1114,139 +1232,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         );
       })()}
 
-      {/* Section 2: Flip the Logic */}
-      {activeStep === "flip" && (() => {
-        const flips = data.flippedLogic || [];
-        const assumptions = data.hiddenAssumptions || [];
-        const reasonCounts: Record<string, number> = {};
-        assumptions.forEach(a => { reasonCounts[a.reason] = (reasonCounts[a.reason] || 0) + 1; });
-        const topCategory = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0];
-        const highLeverageCount = assumptions.filter(a => (a.leverageScore || 0) >= 7).length;
-        const SHOW_LIMIT = 10;
-
-        if (flips.length === 0) {
-          return (
-            <div className="space-y-4">
-              <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
-              <div className="text-center py-10 space-y-3">
-                <FlipHorizontal size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
-                <p className="text-sm font-bold text-foreground">No inversion data available</p>
-                <p className="text-xs text-muted-foreground max-w-md mx-auto">This analysis was saved before flip data was captured. Click <strong>Re-run</strong> above to regenerate with enriched inversions.</p>
-              </div>
-              {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-            </div>
-          );
-        }
-
-        return (
-        <div className="space-y-4">
-          <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
-
-          {/* ── Stats Strip ── */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {[
-              `${flips.length} Inversions`,
-              `${highLeverageCount} High-leverage`,
-              ...(topCategory ? [`Top category: ${REASON_COLORS[topCategory[0]]?.label || topCategory[0]}`] : []),
-            ].map((label, ci) => (
-              <span key={ci} className="px-2.5 py-1 rounded-lg text-[11px] font-bold tabular-nums"
-                style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
-                {label}
-              </span>
-            ))}
+      {/* "All sections explored" for single-section Disrupt mode */}
+      {activeStep === "assumptions" && !nextStep && (
+        <div className="text-center py-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
+            <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} /> Assumptions mapped — continue to Redesign for inversions &amp; ideas
           </div>
-
-          {/* ── Approach Banner ── */}
-          <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--card))", borderLeft: "4px solid hsl(var(--primary))", border: "1.5px solid hsl(var(--border))", borderLeftWidth: "4px", borderLeftColor: "hsl(var(--primary))" }}>
-            <p className="text-[13px] font-bold text-foreground">Inversion Approach</p>
-            <ul className="text-xs text-foreground/80 leading-relaxed space-y-1.5 ml-4 list-disc">
-              <li>Each of the {assumptions.length} assumptions above was <strong>deliberately inverted</strong> — asking "what if the opposite were true?"</li>
-              <li>This generated <strong>{flips.length} structural inversions</strong>, each exploring a non-obvious opportunity competitors miss because they never question the status quo.</li>
-              <li>For each inversion, we analyzed <strong>why it creates value</strong> (market rationale) and <strong>how it works</strong> (physical or operational mechanism).</li>
-              {topCategory && <li>The most inverted category: <strong>{REASON_COLORS[topCategory[0]]?.label || topCategory[0]}</strong> ({topCategory[1]} assumptions targeted).</li>}
-              <li>This is not contrarianism — it's a systematic technique to surface the highest-leverage opportunities hidden inside conventional thinking.</li>
-            </ul>
-          </div>
-
-          {/* ── Flip Cards ── */}
-          <FlipCardList flips={flips} assumptions={assumptions} showLimit={SHOW_LIMIT} />
-
-          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-        </div>
-        );
-      })()}
-
-      {/* Section 3: Flipped Ideas */}
-      {activeStep === "ideas" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentSectionNum} total={totalSections} label="Flipped Ideas" icon={Zap} />
-
-          <DetailPanel title="Steer ideas — add your goals, then regenerate" icon={Lightbulb}>
-            <textarea
-              value={userContext}
-              onChange={(e) => setUserContext(e.target.value)}
-              placeholder="e.g. Focus on eco-friendly materials, target Gen Z, keep under $30…"
-              className="w-full rounded px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
-              rows={2}
-              style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
-            />
-          </DetailPanel>
-
-          {flippedIdeas && flippedIdeas.length > 0 ? (
-            <>
-              {/* Explanatory banner */}
-              <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--primary) / 0.06)", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
-                <p className="text-sm font-bold text-foreground">
-                  We generated <span style={{ color: "hsl(var(--primary))" }}>{flippedIdeas.length} bold reinvention ideas</span> based on the assumptions and flipped logic above.
-                </p>
-                <ul className="text-xs text-foreground/70 space-y-1 ml-4 list-disc">
-                  <li><strong>Love an idea?</strong> Save it or add its visual to your pitch deck.</li>
-                  <li><strong>Want to change just one?</strong> Click <strong>Regenerate This Idea</strong> on the specific card — the other stays.</li>
-                  <li><strong>Want all new ideas?</strong> Use the <strong>Regenerate All</strong> button below.</li>
-                </ul>
-              </div>
-
-              <div className="flex items-center justify-end">
-                {onRegenerateIdeas && (
-                  <button
-                    onClick={() => onRegenerateIdeas(userContext || undefined)}
-                    disabled={generatingIdeas}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                    style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.3)" }}
-                  >
-                    {generatingIdeas ? <><RefreshCw size={11} className="animate-spin" /> Generating…</> : <><Sparkles size={11} /> Regenerate All</>}
-                  </button>
-                )}
-              </div>
-              <div className="space-y-4">
-                {flippedIdeas.map((idea, i) => (
-                    <FlippedIdeaCard
-                      key={`${idea.name}-${i}`}
-                      idea={idea}
-                      rank={i + 1}
-                      productName={product.name}
-                      userScores={userScores?.[idea.name || `idea-${i}`]}
-                      onScoreChange={onScoreChange ? (scoreKey, value) => onScoreChange(idea.name || `idea-${i}`, scoreKey, value) : undefined}
-                      pitchDeckImages={analysisCtx.pitchDeckImages}
-                      onSelectForPitch={analysisCtx.setPitchDeckImage}
-                      onRemoveFromPitch={analysisCtx.removePitchDeckImage}
-                      onRegenerateSingle={onRegenerateIdeas ? () => onRegenerateIdeas(`REGENERATE_SINGLE:${i}:${userContext || ""}`) : undefined}
-                    />
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-8 text-sm text-muted-foreground">
-              No flipped ideas yet. Run the intelligence report first.
-            </div>
-          )}
-          {!nextStep && (
-            <div className="text-center py-4">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
-                <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} /> All sections explored
-              </div>
-            </div>
-          )}
         </div>
       )}
 

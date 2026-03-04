@@ -82,23 +82,7 @@ export default function RedesignPage() {
           explainerKey="step-redesign"
         />
 
-        {/* ── Concept Visuals — auto-populate at top ── */}
-        {concept?.conceptName && !isOutdated && (
-          <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-            <RedesignVisualGenerator
-              productName={selectedProduct.name}
-              concept={{
-                conceptName: concept.conceptName || "",
-                tagline: concept.tagline || "",
-                physicalDescription: concept.physicalDescription,
-                coreInsight: concept.coreInsight,
-                radicalDifferences: concept.radicalDifferences,
-                materials: concept.materials,
-              }}
-              accentColor={theme.primary}
-            />
-          </div>
-        )}
+        {/* Concept visuals are now rendered inside FirstPrinciplesAnalysis redesign mode */}
 
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <FirstPrinciplesAnalysis
