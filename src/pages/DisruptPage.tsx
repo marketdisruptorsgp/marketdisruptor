@@ -11,13 +11,12 @@ import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { type StrategicHypothesis, rankWithProfile } from "@/lib/strategicOS";
-import { Target, Layers, Wrench, FileDown, Save, RefreshCw, Atom, Lightbulb, GitBranch } from "lucide-react";
+import { Target, Wrench, FileDown, Save, RefreshCw, Atom, Lightbulb, GitBranch } from "lucide-react";
 import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { toast } from "sonner";
-import { SignalTab } from "@/components/strategic/SignalTab";
 import { StructureTab } from "@/components/strategic/StructureTab";
 import { RedesignTab } from "@/components/strategic/RedesignTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
@@ -29,8 +28,6 @@ const TABS = [
   { id: "structure" as const, label: "First Principles", icon: Atom },
   { id: "reasoning" as const, label: "Reasoning", icon: Lightbulb },
   { id: "hypotheses" as const, label: "Hypotheses", icon: GitBranch },
-  { id: "signal" as const, label: "Signal", icon: Target },
-  { id: "redesign" as const, label: "Redesign", icon: Wrench },
 ];
 
 type TabId = typeof TABS[number]["id"];
@@ -63,7 +60,7 @@ export default function DisruptPage() {
   const ranking = hasHypotheses ? rankWithProfile(rawHypotheses!, analysis.strategicProfile) : null;
 
   // If no disrupt data yet, default to First Principles tab; gate reasoning/hypotheses on data
-  const gatedTabs: TabId[] = ["reasoning", "hypotheses", "signal", "redesign"];
+  const gatedTabs: TabId[] = ["reasoning", "hypotheses"];
   const effectiveTab = !hasDisruptData && gatedTabs.includes(activeTab) ? "structure" : activeTab;
 
   return (
@@ -286,25 +283,14 @@ export default function DisruptPage() {
                   }}
                 />
               </div>
-              </div>
-            )}
 
-            {effectiveTab === "signal" && (
-              <SignalTab
-                disruptData={analysis.disruptData as Record<string, unknown> | null}
-                governedData={governedData as Record<string, unknown> | null}
-                hypotheses={hasHypotheses ? rawHypotheses! : null}
-                analysisType={(analysis.analysisParams as any)?.analysisType || "product"}
-                lastUpdated={new Date().toISOString()}
-              />
-            )}
-
-            {effectiveTab === "redesign" && (
+              {/* Strategic Responses — derived from constraints & hypotheses */}
               <RedesignTab
                 disruptData={analysis.disruptData as Record<string, unknown> | null}
                 hypotheses={hasHypotheses ? rawHypotheses! : null}
                 governedData={governedData as Record<string, unknown> | null}
               />
+              </div>
             )}
           </div>
         )}
