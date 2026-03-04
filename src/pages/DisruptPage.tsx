@@ -243,7 +243,7 @@ export default function DisruptPage() {
                       {pf.success_criteria && pf.success_criteria.length > 0 && (
                         <div className="flex flex-wrap gap-1.5">
                           {pf.success_criteria.map((c: string, i: number) => (
-                            <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(38 92% 50% / 0.08)", color: "hsl(38 82% 42%)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
+                            <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(142 70% 45% / 0.08)", color: "hsl(142 60% 32%)", border: "1px solid hsl(142 70% 45% / 0.15)" }}>
                               {c}
                             </span>
                           ))}
