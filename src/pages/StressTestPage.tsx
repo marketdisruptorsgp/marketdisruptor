@@ -109,7 +109,7 @@ export default function StressTestPage() {
           </div>
         </div>
 
-        {/* Loading Tracker (front and center) */}
+        {/* Loading Tracker */}
         {analysisLoading && (
           <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
             <StepLoadingTracker
@@ -121,8 +121,8 @@ export default function StressTestPage() {
           </div>
         )}
 
-        {/* Content */}
-        {!analysisLoading && (
+        {/* Content — always mounted so loading lifecycle completes */}
+        <div style={{ display: analysisLoading ? "none" : undefined }}>
           <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
             <CriticalValidation
               product={selectedProduct}
@@ -139,7 +139,7 @@ export default function StressTestPage() {
               }}
             />
           </div>
-        )}
+        </div>
 
         {/* No gating */}
         <NextStepButton

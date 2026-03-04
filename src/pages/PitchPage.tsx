@@ -5,7 +5,7 @@ import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { HeroSection } from "@/components/HeroSection";
-import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
+import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker"; // kept for type ref
 import { StepNavigator } from "@/components/StepNavigator";
 import { PitchDeck } from "@/components/PitchDeck";
 import { getStepConfigs } from "@/lib/stepConfigs";
@@ -109,21 +109,8 @@ export default function PitchPage() {
           </div>
         </div>
 
-        {/* Loading Tracker (front and center) */}
-        {analysisLoading && (
-          <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-            <StepLoadingTracker
-              title="Building Pitch Deck"
-              tasks={PITCH_DECK_TASKS}
-              estimatedSeconds={35}
-              accentColor={theme.primary}
-            />
-          </div>
-        )}
-
-        {/* Content */}
-        {!analysisLoading && (
-          <PitchDeck
+        {/* Content — always mounted so loading lifecycle completes */}
+        <PitchDeck
             product={selectedProduct}
             analysisId={analysisId}
             externalData={analysis.pitchDeckData}
@@ -142,7 +129,6 @@ export default function PitchPage() {
               analysis.clearStepOutdated("pitch");
             }}
           />
-        )}
       </main>
     </div>
   );

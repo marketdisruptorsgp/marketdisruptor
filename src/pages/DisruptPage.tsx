@@ -171,9 +171,8 @@ export default function DisruptPage() {
           </div>
         )}
 
-        {/* ── Tab Content ── */}
-        {!analysisLoading && (
-          <div className="min-h-[400px]">
+        {/* ── Tab Content — always mounted so loading lifecycle completes ── */}
+        <div style={{ display: analysisLoading ? "none" : undefined }} className="min-h-[400px]">
             {effectiveTab === "structure" && (
               <StructureTab
                 selectedProduct={selectedProduct}
@@ -295,8 +294,7 @@ export default function DisruptPage() {
               />
               </div>
             )}
-          </div>
-        )}
+        </div>
 
         <NextStepButton
           stepNumber={4}
