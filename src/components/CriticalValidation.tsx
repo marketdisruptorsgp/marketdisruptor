@@ -301,7 +301,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           <p className="typo-card-body font-semibold text-foreground leading-relaxed">{data.redTeam.verdict}</p>
         </div>
 
-        {data.redTeam.arguments.slice(0, 2).map((arg, i) => {
+        {(data.redTeam?.arguments || []).slice(0, 2).map((arg, i) => {
           const s = SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor;
           return (
             <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
@@ -315,10 +315,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           );
         })}
 
-        {data.redTeam.arguments.length > 2 && (
-          <DetailPanel title={`${data.redTeam.arguments.length - 2} more Red Team arguments`} icon={XCircle}>
+        {(data.redTeam?.arguments || []).length > 2 && (
+          <DetailPanel title={`${(data.redTeam?.arguments || []).length - 2} more Red Team arguments`} icon={XCircle}>
             <div className="space-y-3 mb-2">
-              {data.redTeam.arguments.slice(2).map((arg, i) => {
+              {(data.redTeam?.arguments || []).slice(2).map((arg, i) => {
                 const s = SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor;
                 return (
                   <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
@@ -365,7 +365,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           <p className="typo-card-body font-semibold text-foreground leading-relaxed">{data.blueTeam.verdict}</p>
         </div>
 
-        {data.blueTeam.arguments.slice(0, 2).map((arg, i) => {
+        {(data.blueTeam?.arguments || []).slice(0, 2).map((arg, i) => {
           const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;
           return (
             <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
@@ -379,10 +379,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           );
         })}
 
-        {data.blueTeam.arguments.length > 2 && (
-          <DetailPanel title={`${data.blueTeam.arguments.length - 2} more Green Team arguments`} icon={CheckCircle2}>
+        {(data.blueTeam?.arguments || []).length > 2 && (
+          <DetailPanel title={`${(data.blueTeam?.arguments || []).length - 2} more Green Team arguments`} icon={CheckCircle2}>
             <div className="space-y-3 mb-2">
-              {data.blueTeam.arguments.slice(2).map((arg, i) => {
+              {(data.blueTeam?.arguments || []).slice(2).map((arg, i) => {
                 const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;
                 return (
                   <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
@@ -408,9 +408,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
         {/* Counter Examples — collapsed */}
         {data.counterExamples?.length > 0 && (
-          <DetailPanel title={`Real-World Precedents (${data.counterExamples.length})`} icon={BookOpen}>
+          <DetailPanel title={`Real-World Precedents (${(data.counterExamples || []).length})`} icon={BookOpen}>
             <div className="space-y-2 mb-2">
-              {data.counterExamples.map((ex, i) => {
+              {(data.counterExamples || []).map((ex, i) => {
                 const os = OUTCOME_STYLES[ex.outcome] || OUTCOME_STYLES.pivoted;
                 const OutcomeIcon = os.icon;
                 return (
@@ -431,9 +431,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
         {/* Strategic Recommendations — collapsed */}
         {data.strategicRecommendations?.length ? (
-          <DetailPanel title={`Strategic Recommendations (${data.strategicRecommendations.length})`} icon={ArrowRight}>
+          <DetailPanel title={`Strategic Recommendations (${(data.strategicRecommendations || []).length})`} icon={ArrowRight}>
             <div className="space-y-1.5 mb-2">
-              {data.strategicRecommendations.map((rec, i) => (
+              {(data.strategicRecommendations || []).map((rec, i) => (
                 <div key={i} className="flex gap-2 items-start p-2 rounded-lg typo-card-body"
                   style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                   <span className="w-5 h-5 rounded-full flex items-center justify-center typo-status-label flex-shrink-0"
@@ -452,7 +452,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               {data.currentApproachAssessment.keepAsIs?.length > 0 && (
                 <div>
                   <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 35%)" }}><CheckCircle2 size={10} /> Keep As-Is</p>
-                  {data.currentApproachAssessment.keepAsIs.map((item, i) => (
+                  {(data.currentApproachAssessment?.keepAsIs || []).map((item, i) => (
                     <div key={i} className="flex gap-2 items-start typo-card-body mb-1">
                       <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{item}</span>
@@ -463,7 +463,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               {data.currentApproachAssessment.fullyReinvent?.length > 0 && (
                 <div>
                   <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}><RefreshCw size={10} /> Fully Reinvent</p>
-                  {data.currentApproachAssessment.fullyReinvent.map((item, i) => (
+                  {(data.currentApproachAssessment?.fullyReinvent || []).map((item, i) => (
                     <div key={i} className="flex gap-2 items-start typo-card-body mb-1">
                       <Flame size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{item}</span>
@@ -481,9 +481,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
         {/* Blind Spots — collapsed */}
         {data.blindSpots?.length > 0 && (
-          <DetailPanel title={`Blind Spots (${data.blindSpots.length})`} icon={Eye}>
+          <DetailPanel title={`Blind Spots (${(data.blindSpots || []).length})`} icon={Eye}>
             <div className="space-y-1.5 mb-2">
-              {data.blindSpots.map((bs, i) => (
+              {(data.blindSpots || []).map((bs, i) => (
                 <div key={i} className="flex gap-2 items-start typo-card-body">
                   <AlertTriangle size={10} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 2 }} />
                   <span className="text-foreground/80 leading-relaxed">{bs}</span>

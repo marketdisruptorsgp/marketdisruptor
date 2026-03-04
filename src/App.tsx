@@ -5,7 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ScrollToTopProvider } from "@/components/ScrollToTopProvider";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, Component } from "react";
+import type { ReactNode, ErrorInfo } from "react";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
 import AuthPage from "./pages/AuthPage";
@@ -43,8 +44,58 @@ const RouteFallback = () => (
   <div className="min-h-screen bg-background" />
 );
 
-function LazyRoute({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
+// ── ErrorBoundary to prevent white screens from render crashes ──
+class RouteErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[RouteErrorBoundary] Caught render error:", error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center max-w-md px-6 space-y-4">
+            <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-destructive/10">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--destructive))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-foreground">Something went wrong</h2>
+            <p className="text-sm text-muted-foreground">{this.state.error?.message || "An unexpected error occurred."}</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => this.setState({ hasError: false, error: null })}
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-primary-foreground"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => window.location.href = "/"}
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-muted text-foreground border border-border"
+              >
+                Go Home
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function LazyRoute({ children }: { children: ReactNode }) {
+  return (
+    <RouteErrorBoundary>
+      <Suspense fallback={<RouteFallback />}>{children}</Suspense>
+    </RouteErrorBoundary>
+  );
 }
 
 function AppRoutes() {
