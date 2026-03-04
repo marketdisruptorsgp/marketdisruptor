@@ -511,24 +511,35 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
 
 
     const structuredTools = buildStructuredOutputTools("first-principles");
+    const aiMessages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt + curationPrompt },
+    ];
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt + curationPrompt },
-        ],
-        ...(structuredTools || {}),
+    // Helper: make AI gateway call with optional tool calling
+    async function callAI(useTools: boolean, model: string) {
+      const body: Record<string, unknown> = {
+        model,
+        messages: aiMessages,
         temperature: 0.5,
         max_tokens: 24000,
-      }),
-    });
+      };
+      if (useTools && structuredTools) {
+        Object.assign(body, structuredTools);
+      }
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      return r;
+    }
+
+    // Attempt 1: Pro model with tool calling
+    let response = await callAI(true, "google/gemini-2.5-pro");
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -547,15 +558,27 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       throw new Error(`AI gateway error ${response.status}: ${txt}`);
     }
 
-    const aiData = await response.json();
+    let aiData = await response.json();
     
-    // §2: Structured output extraction — replaces heuristic JSON salvage
+    // §2: Structured output extraction with retry fallback
     let analysis;
     try {
       analysis = extractStructuredResponse(aiData);
     } catch (parseErr) {
-      console.error("[StructuredOutput] Extraction failed:", parseErr);
-      throw new Error("AI returned invalid output. Please retry.");
+      console.warn("[StructuredOutput] Attempt 1 failed, retrying without tool calling:", parseErr);
+      // Retry: same model, no tool calling (content-based fallback)
+      response = await callAI(false, "google/gemini-2.5-pro");
+      if (!response.ok) {
+        const txt = await response.text();
+        throw new Error(`AI gateway retry error ${response.status}: ${txt}`);
+      }
+      aiData = await response.json();
+      try {
+        analysis = extractStructuredResponse(aiData);
+      } catch (retryErr) {
+        console.error("[StructuredOutput] Retry also failed:", retryErr);
+        throw new Error("AI returned invalid output after retry. Please try again.");
+      }
     }
 
     // §2: Validate governed fields are present
