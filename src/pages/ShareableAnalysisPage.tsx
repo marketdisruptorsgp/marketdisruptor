@@ -173,7 +173,7 @@ export default function ShareableAnalysisPage() {
   if (hasStressTest) visitedSteps.add(5);
   if (hasPitch) visitedSteps.add(6);
 
-  const isService = product.category === "Service";
+  const isService = product?.category === "Service";
 
   const DETAIL_TABS = [
     { id: "overview", label: "Overview", icon: Target },
