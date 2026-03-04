@@ -1184,16 +1184,26 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
   return (
     <div className="space-y-4" data-fp-steps>
+      {/* ── First Principles Methodology Banner ── */}
+      <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--primary) / 0.04)", border: "1.5px solid hsl(var(--primary) / 0.15)" }}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+            <Brain size={16} style={{ color: "white" }} />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-foreground text-sm leading-tight">First Principles Analysis</h3>
+            <p className="typo-card-meta text-muted-foreground mt-0.5">{product.name}</p>
+          </div>
+        </div>
+        <p className="text-xs text-foreground/70 leading-relaxed pl-[42px]">
+          Strip away convention, analogy, and industry norms. Every assumption is decomposed to its root cause — <strong className="text-foreground">tradition, cost, physics, manufacturing limits, or habit</strong> — then stress-tested for leverage. High-leverage assumptions are where structural reinvention begins.
+        </p>
+      </div>
+
       {/* Header + re-run (compact) */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-            <Brain size={14} style={{ color: "white" }} />
-          </div>
-          <div>
-            <h3 className="font-bold text-foreground text-sm leading-tight">Disrupt: {product.name}</h3>
-            <p className="typo-card-meta text-muted-foreground">Hidden assumptions & leverage analysis</p>
-          </div>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Hidden Assumptions & Leverage Analysis</p>
         </div>
         <button
           onClick={runAnalysis}
