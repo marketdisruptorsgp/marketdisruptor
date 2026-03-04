@@ -5,6 +5,7 @@ import type { FlippedIdea } from "@/data/mockProducts";
 import { ScoreBar } from "./ScoreBar";
 import { RiskBadge } from "./RiskBadge";
 import { StructuralVisual, type VisualSpec } from "./StructuralVisual";
+import { CompetitorScoutPanel } from "./CompetitorScoutPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -287,6 +288,13 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
           </button>
         </div>
       )}
+
+      {/* Competitor Scout */}
+      <CompetitorScoutPanel
+        ideaName={idea.name}
+        ideaDescription={idea.description}
+        category={productName}
+      />
 
       {/* Action Plan */}
       {idea.actionPlan && (
