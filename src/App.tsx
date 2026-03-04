@@ -8,40 +8,44 @@ import { ScrollToTopProvider } from "@/components/ScrollToTopProvider";
 import { lazy, Suspense, useEffect } from "react";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
-import DashboardPage from "./pages/DashboardPage";
-import ReportPage from "./pages/ReportPage";
-import DisruptPage from "./pages/DisruptPage";
-import RedesignPage from "./pages/RedesignPage";
-import StressTestPage from "./pages/StressTestPage";
-import PitchPage from "./pages/PitchPage";
-import BusinessResultsPage from "./pages/BusinessResultsPage";
 import AuthPage from "./pages/AuthPage";
-import PricingPage from "./pages/PricingPage";
-import SharePage from "./pages/SharePage";
-import AboutPage from "./pages/AboutPage";
-import ResourcesPage from "./pages/ResourcesPage";
-import MethodologyPage from "./pages/MethodologyPage";
-import FaqsPage from "./pages/FaqsPage";
-import ApiPage from "./pages/ApiPage";
-import ShareableAnalysisPage from "./pages/ShareableAnalysisPage";
-import StartProductPage from "./pages/StartProductPage";
-import StartServicePage from "./pages/StartServicePage";
-import StartBusinessPage from "./pages/StartBusinessPage";
-import NotFound from "./pages/NotFound";
-import InstantAnalysisPage from "./pages/InstantAnalysisPage";
-import WorkspacePage from "./pages/WorkspacePage";
-import NewAnalysisPage from "./pages/NewAnalysisPage";
-import IntelligencePage from "./pages/IntelligencePage";
-import StartPage from "./pages/StartPage";
 import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
 
+// ── Lazy-loaded route pages ──
+const StartPage = lazy(() => import("./pages/StartPage"));
+const WorkspacePage = lazy(() => import("./pages/WorkspacePage"));
+const NewAnalysisPage = lazy(() => import("./pages/NewAnalysisPage"));
+const IntelligencePage = lazy(() => import("./pages/IntelligencePage"));
+const ReportPage = lazy(() => import("./pages/ReportPage"));
+const DisruptPage = lazy(() => import("./pages/DisruptPage"));
+const RedesignPage = lazy(() => import("./pages/RedesignPage"));
+const StressTestPage = lazy(() => import("./pages/StressTestPage"));
+const PitchPage = lazy(() => import("./pages/PitchPage"));
+const BusinessResultsPage = lazy(() => import("./pages/BusinessResultsPage"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+const SharePage = lazy(() => import("./pages/SharePage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const ResourcesPage = lazy(() => import("./pages/ResourcesPage"));
+const MethodologyPage = lazy(() => import("./pages/MethodologyPage"));
+const FaqsPage = lazy(() => import("./pages/FaqsPage"));
+const ApiPage = lazy(() => import("./pages/ApiPage"));
+const ShareableAnalysisPage = lazy(() => import("./pages/ShareableAnalysisPage"));
+const InstantAnalysisPage = lazy(() => import("./pages/InstantAnalysisPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
 const AdminHealthPage = lazy(() => import("./pages/AdminHealthPage"));
 const GovernanceAuditPage = lazy(() => import("./pages/GovernanceAuditPage"));
 const DemoPage = lazy(() => import("./pages/DemoPage"));
 
 const queryClient = new QueryClient();
+
+const RouteFallback = () => (
+  <div className="min-h-screen bg-background" />
+);
+
+function LazyRoute({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
+}
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -77,40 +81,38 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/admin/analytics" element={<Suspense fallback={<div className="min-h-screen bg-background" />}><AdminAnalyticsPage /></Suspense>} />
-      <Route path="/admin/health" element={<Suspense fallback={<div className="min-h-screen bg-background" />}><AdminHealthPage /></Suspense>} />
-      <Route path="/admin/governance" element={<Suspense fallback={<div className="min-h-screen bg-background" />}><GovernanceAuditPage /></Suspense>} />
-      <Route path="/demo" element={<Suspense fallback={<div className="min-h-screen bg-background" />}><DemoPage /></Suspense>} />
-      <Route path="/instant-analysis" element={<InstantAnalysisPage />} />
-      <Route path="/share" element={<SharePage />} />
-      <Route path="/analysis/share/:id" element={<ShareableAnalysisPage />} />
+      <Route path="/admin/analytics" element={<LazyRoute><AdminAnalyticsPage /></LazyRoute>} />
+      <Route path="/admin/health" element={<LazyRoute><AdminHealthPage /></LazyRoute>} />
+      <Route path="/admin/governance" element={<LazyRoute><GovernanceAuditPage /></LazyRoute>} />
+      <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
+      <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
+      <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
+      <Route path="/analysis/share/:id" element={<LazyRoute><ShareableAnalysisPage /></LazyRoute>} />
       {user ? (
         <>
-          {/* Default landing → Workspace */}
-          <Route path="/" element={<StartPage />} />
-          <Route path="/workspace" element={<WorkspacePage />} />
-          <Route path="/analysis/new" element={<NewAnalysisPage />} />
-          <Route path="/intelligence" element={<IntelligencePage />} />
+          <Route path="/" element={<LazyRoute><StartPage /></LazyRoute>} />
+          <Route path="/workspace" element={<LazyRoute><WorkspacePage /></LazyRoute>} />
+          <Route path="/analysis/new" element={<LazyRoute><NewAnalysisPage /></LazyRoute>} />
+          <Route path="/intelligence" element={<LazyRoute><IntelligencePage /></LazyRoute>} />
           {/* Legacy redirects */}
           <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
           <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
-          {/* Legacy redirects for start pages */}
           <Route path="/start/product" element={<Navigate to="/analysis/new" replace />} />
           <Route path="/start/service" element={<Navigate to="/analysis/new" replace />} />
           <Route path="/start/business" element={<Navigate to="/analysis/new" replace />} />
-          <Route path="/analysis/:id/report" element={<ReportPage />} />
-          <Route path="/analysis/:id/disrupt" element={<DisruptPage />} />
-          <Route path="/analysis/:id/redesign" element={<RedesignPage />} />
-          <Route path="/analysis/:id/stress-test" element={<StressTestPage />} />
-          <Route path="/analysis/:id/pitch" element={<PitchPage />} />
-          <Route path="/business/:id" element={<BusinessResultsPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/resources" element={<ResourcesPage />} />
-          <Route path="/methodology" element={<MethodologyPage />} />
-          <Route path="/faqs" element={<FaqsPage />} />
-          <Route path="/api" element={<ApiPage />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
+          <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
+          <Route path="/analysis/:id/redesign" element={<LazyRoute><RedesignPage /></LazyRoute>} />
+          <Route path="/analysis/:id/stress-test" element={<LazyRoute><StressTestPage /></LazyRoute>} />
+          <Route path="/analysis/:id/pitch" element={<LazyRoute><PitchPage /></LazyRoute>} />
+          <Route path="/business/:id" element={<LazyRoute><BusinessResultsPage /></LazyRoute>} />
+          <Route path="/pricing" element={<LazyRoute><PricingPage /></LazyRoute>} />
+          <Route path="/about" element={<LazyRoute><AboutPage /></LazyRoute>} />
+          <Route path="/resources" element={<LazyRoute><ResourcesPage /></LazyRoute>} />
+          <Route path="/methodology" element={<LazyRoute><MethodologyPage /></LazyRoute>} />
+          <Route path="/faqs" element={<LazyRoute><FaqsPage /></LazyRoute>} />
+          <Route path="/api" element={<LazyRoute><ApiPage /></LazyRoute>} />
+          <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
         </>
       ) : (
         <>

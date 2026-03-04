@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { HeroSection } from "@/components/HeroSection";
 import { StepNavigator } from "@/components/StepNavigator";
 import { PitchDeck } from "@/components/PitchDeck";
@@ -22,18 +23,9 @@ export default function PitchPage() {
   const navigate = useNavigate();
   const theme = useModeTheme();
   const { tier } = useSubscription();
+  const { shouldRedirectHome } = useHydrationGuard();
 
   const { selectedProduct, analysisId } = analysis;
-
-  const [ready, setReady] = React.useState(false);
-  React.useEffect(() => { const t = setTimeout(() => setReady(true), 1200); return () => clearTimeout(t); }, []);
-
-  const shouldRedirectHome = ready && !analysis.isHydrating && analysis.step === "idle";
-  React.useEffect(() => {
-    if (shouldRedirectHome) {
-      navigate("/", { replace: true });
-    }
-  }, [shouldRedirectHome, navigate]);
 
   if (analysis.step !== "done" || !selectedProduct) {
     if (shouldRedirectHome) return null;

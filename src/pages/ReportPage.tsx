@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
 import { useNavigate } from "react-router-dom";
+import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -81,19 +82,7 @@ export default function ReportPage() {
 
   const { products, selectedProduct, analysisParams, analysisId } = analysis;
 
-  // Allow time for state to hydrate from handleLoadSaved before redirecting
-  const [waitedForLoad, setWaitedForLoad] = React.useState(false);
-  React.useEffect(() => {
-    const t = setTimeout(() => setWaitedForLoad(true), 1200);
-    return () => clearTimeout(t);
-  }, []);
-
-  const shouldRedirectHome = waitedForLoad && !analysis.isHydrating && analysis.step === "idle" && products.length === 0;
-  React.useEffect(() => {
-    if (shouldRedirectHome) {
-      navigate("/", { replace: true });
-    }
-  }, [shouldRedirectHome, navigate]);
+  const { shouldRedirectHome } = useHydrationGuard();
 
   const isRunning = analysis.step === "scraping" || analysis.step === "analyzing";
 
