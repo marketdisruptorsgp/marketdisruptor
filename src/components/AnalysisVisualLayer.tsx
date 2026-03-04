@@ -379,37 +379,75 @@ function ValueFlowVisual({ story }: { story: VisualStory }) {
   );
 }
 
-/* ── Fragility Map ── */
+/* ── Fragility Map — Text-based expandable list ── */
 function FragilityMap({ story }: { story: VisualStory }) {
   const sorted = [...story.assumptions, ...story.constraints].sort((a, b) => b.score - a.score);
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-      className="rounded-xl p-5"
+      className="rounded-xl overflow-hidden"
       style={{ background: "hsl(var(--vi-surface-elevated))", border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-vi-panel)" }}
     >
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Fragility Structure</p>
-      <p className="text-[10px] text-muted-foreground mb-3">{story.verdict.summary}</p>
-      <div className="space-y-2">
-        {sorted.slice(0, 6).map((s, i) => {
-          const barWidth = Math.min(100, (s.score / (sorted[0]?.score || 1)) * 100);
+      <div className="px-5 pt-4 pb-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Fragility Structure</p>
+        <p className="text-xs text-foreground/80 leading-relaxed">{story.verdict.summary}</p>
+      </div>
+      <div className="px-5 pb-4 space-y-1.5">
+        {sorted.slice(0, 8).map((s, i) => {
+          const isExpanded = expandedIdx === i;
+          const roleColor = ROLE_CHIP_COLORS[s.role] || "hsl(var(--muted-foreground))";
+          const roleLabel = ROLE_LABELS[s.role] || s.role;
+          const normalizedLabel = normalizeSignalLabel(s.label);
+          const shortLabel = normalizedLabel.length > 60 ? normalizedLabel.slice(0, 58) + "…" : normalizedLabel;
+
           return (
-            <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.06 }} className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-foreground">
-                  {s.label.length > 45 ? s.label.slice(0, 43) + "…" : s.label}
+            <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.04 }}
+              className="rounded-lg overflow-hidden transition-all"
+              style={{ border: `1px solid ${isExpanded ? `${roleColor}30` : "hsl(var(--border))"}` }}
+            >
+              <button
+                onClick={() => setExpandedIdx(isExpanded ? null : i)}
+                className="w-full text-left px-3.5 py-2.5 flex items-center gap-2.5 transition-colors"
+                style={{ background: isExpanded ? `${roleColor}06` : "transparent" }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: roleColor }} />
+                <span className="text-[12px] font-semibold text-foreground flex-1 leading-snug">{shortLabel}</span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold flex-shrink-0" style={{ background: `${roleColor}12`, color: roleColor }}>
+                  {roleLabel}
                 </span>
-                <span className="text-[9px] font-bold text-muted-foreground">{s.score}</span>
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--border) / 0.3)" }}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${barWidth}%` }}
-                  transition={{ delay: 0.2 + i * 0.06, duration: 0.4 }}
-                  className="h-full rounded-full"
-                  style={{ background: `linear-gradient(90deg, hsl(var(--vi-glow-system)), hsl(var(--vi-glow-mechanism)))` }}
-                />
-              </div>
+                <span className="text-[10px] font-bold tabular-nums text-muted-foreground flex-shrink-0 w-5 text-right">{s.score}</span>
+                <ChevronRight size={12} className="text-muted-foreground transition-transform flex-shrink-0" style={{ transform: isExpanded ? "rotate(90deg)" : "none" }} />
+              </button>
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-3.5 pb-3 pt-1 space-y-2" style={{ borderTop: `1px solid hsl(var(--border) / 0.5)` }}>
+                      <p className="text-[11px] text-foreground/80 leading-relaxed">{normalizedLabel}</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <MetricBlock label="Impact" value={s.impact} max={5} color={roleColor} />
+                        <MetricBlock label="Confidence" value={s.confidence} max={5} color={roleColor} />
+                        <MetricBlock label="Recurrence" value={s.recurrence} max={5} color={roleColor} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Polarity</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                          s.polarity === "positive" ? "bg-green-500/10 text-green-600" :
+                          s.polarity === "negative" ? "bg-red-500/10 text-red-600" :
+                          "bg-muted text-muted-foreground"
+                        }`}>{s.polarity}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           );
         })}
@@ -471,11 +509,7 @@ function StoryVisual({ story }: { story: VisualStory }) {
         </Suspense>
       );
     case "FRAGILITY_STRUCTURE":
-      return (
-        <Suspense fallback={<CinematicFallback />}>
-          <CinematicFragility story={story} />
-        </Suspense>
-      );
+      return <FragilityMap story={story} />;
     case "CLUSTERED_INTELLIGENCE":
       return (
         <Suspense fallback={<CinematicFallback />}>
@@ -623,22 +657,24 @@ export function AnalysisVisualLayer({
         </motion.div>
       )}
 
-      {/* 5️⃣ COLLAPSED TEXT DEPTH */}
+      {/* 5️⃣ DEEP INSIGHT — auto-expanded, prominent title */}
       {suppressText && hasVisuals ? (
-        <details className="group mt-2">
+        <details className="group mt-2" open>
           <summary
-            className="cursor-pointer select-none inline-flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-bold text-muted-foreground/70 transition-all hover:text-foreground hover:bg-muted/50"
-            style={{ border: "1px solid transparent" }}
+            className="cursor-pointer select-none inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold text-foreground transition-all hover:bg-muted/50"
+            style={{ background: "hsl(var(--primary) / 0.08)", border: "1.5px solid hsl(var(--primary) / 0.2)" }}
           >
-            <ChevronRight size={11} className="transition-transform duration-200 group-open:rotate-90" />
+            <span className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary))" }}>
+              <Eye size={12} style={{ color: "white" }} />
+            </span>
             Deep Insight
-            <span className="text-[9px] font-normal opacity-60">Full analysis text</span>
+            <ChevronRight size={12} className="transition-transform duration-200 group-open:rotate-90 text-muted-foreground ml-auto" />
           </summary>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="mt-3 space-y-4 pl-4"
-            style={{ borderLeft: "2px solid hsl(var(--border) / 0.4)" }}
+            style={{ borderLeft: "2px solid hsl(var(--primary) / 0.2)" }}
           >
             {children}
           </motion.div>
