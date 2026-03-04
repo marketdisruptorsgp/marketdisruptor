@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { StepNavigator, type StepConfig } from "@/components/StepNavigator";
@@ -9,11 +9,7 @@ import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { BusinessModelAnalysis, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
-import { ModeHeader } from "@/components/ModeHeader";
-import { SectionWorkflowNav } from "@/components/SectionNav";
-import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 import { ScoreBar } from "@/components/ScoreBar";
-import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway, getDisruptTakeaway, getStressTestTakeaway, getPitchTakeaway } from "@/components/KeyTakeawayBanner";
 import { AdaptiveJourneyMap } from "@/components/AdaptiveJourneyMap";
@@ -22,10 +18,12 @@ import {
   TrendingUp, TrendingDown, Minus, DollarSign, Package, MessageSquare,
   ExternalLink, ShieldAlert, Lightbulb, ThumbsDown, Clock, CheckCircle2,
   Store, Truck, Factory, Users, Globe, Wrench, Heart, Rocket,
+  XCircle, BarChart3, ScrollText,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 import { PlatformNav } from "@/components/PlatformNav";
 import { useSubscription } from "@/hooks/useSubscription";
+import { PatentIntelligence } from "@/components/PatentIntelligence";
 
 interface SharedData {
   title: string;
@@ -50,23 +48,55 @@ function getSharedStepConfigs(): StepConfig[] {
   ];
 }
 
-const SECTION_DESCRIPTIONS: Record<string, string> = {
-  overview: "Key insights, scores & market sizing at a glance",
-  community: "Community sentiment, complaints & improvement signals",
-  workflow: "Step-by-step journey & friction points",
-  pricing: "Market prices, margins & resale intelligence",
-  supply: "Suppliers, manufacturers & distribution channels",
-};
-
-function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
-  if (trend === "up") return <span className="inline-flex items-center gap-0.5 text-[13px] font-bold" style={{ color: "hsl(142 70% 40%)" }}><TrendingUp size={11} /> Rising</span>;
-  if (trend === "down") return <span className="inline-flex items-center gap-0.5 text-[13px] font-bold" style={{ color: "hsl(var(--destructive))" }}><TrendingDown size={11} /> Falling</span>;
-  return <span className="inline-flex items-center gap-0.5 text-[13px] font-bold" style={{ color: "hsl(38 92% 50%)" }}><Minus size={11} /> Stable</span>;
+/* ── Section Card — matches authenticated layout ── */
+function SectionCard({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl p-5 space-y-3" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
+      <div className="flex items-center gap-3 mb-1">
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.08)" }}>
+          <Icon size={14} style={{ color: "hsl(var(--primary))" }} />
+        </div>
+        <h3 className="typo-card-title">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
 }
 
-/* Shared label component — enforces 13px minimum */
-function DataLabel({ children }: { children: React.ReactNode }) {
-  return <p className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">{children}</p>;
+/* ── Supply Chain sub-section ── */
+function SupplySection({
+  title, icon, items, color, borderColor,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  items: { name: string; badge: string; detail: string; url?: string }[];
+  color: string;
+  borderColor: string;
+}) {
+  if (!items.length) return null;
+  return (
+    <div>
+      <p className="typo-card-eyebrow mb-1.5 flex items-center gap-2">{icon} {title}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {items.map((item) => (
+          <div key={item.name} className="p-2.5 rounded-lg flex items-start justify-between gap-2" style={{ background: color, border: `1px solid ${borderColor}` }}>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-foreground truncate">{item.name}</p>
+              <p className="text-[11px] text-muted-foreground">{item.detail}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-background/80 text-foreground/70">{item.badge}</span>
+              {item.url && (
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[10px] text-primary">
+                  <ExternalLink size={9} /> Visit
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function ShareableAnalysisPage() {
@@ -76,9 +106,8 @@ export default function ShareableAnalysisPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeStep, setActiveStep] = useState(2);
-  const [detailTab, setDetailTab] = useState("overview");
+  const [activeSection, setActiveSection] = useState("overview");
   const [stressTestTab, setStressTestTab] = useState<"debate" | "validate">("debate");
-  const sectionTabsRef = useRef<HTMLDivElement>(null);
   const { tier } = useSubscription();
 
   useEffect(() => {
@@ -153,7 +182,6 @@ export default function ShareableAnalysisPage() {
   const isBusinessModel = data.analysis_type === "business_model";
   const product = data.products?.[0] as Product | undefined;
 
-  // Business Model analyses store data in analysis_data, not products
   if (!isBusinessModel && !product) {
     return renderState(<p className="typo-card-body text-muted-foreground">No product data available</p>);
   }
@@ -175,40 +203,23 @@ export default function ShareableAnalysisPage() {
 
   const isService = product?.category === "Service";
 
-  const DETAIL_TABS = [
-    { id: "overview", label: "Overview", icon: Target },
-    { id: "community", label: "Community Intel", icon: MessageSquare },
-    { id: "workflow", label: "User Journey", icon: Clock },
-    { id: "pricing", label: "Pricing Intel", icon: DollarSign },
-    { id: "supply", label: "Supply Chain", icon: Package },
-  ];
-
-  const goToTab = (tabId: string) => {
-    setDetailTab(tabId);
-    setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  };
-
-  const currentIdx = DETAIL_TABS.findIndex(t => t.id === detailTab);
-  const nextTab = currentIdx < DETAIL_TABS.length - 1 ? DETAIL_TABS[currentIdx + 1] : null;
+  // Section tabs for Intelligence Report — matches authenticated ReportPage
+  const sectionTabs: { id: string; label: string; icon: React.ElementType }[] = [];
+  sectionTabs.push({ id: "overview", label: "Overview", icon: Target });
+  const uw = (product as any)?.userWorkflow || (product as any)?.userJourney;
+  const uwSteps = uw?.stepByStep || uw?.steps;
+  if (uwSteps?.length > 0) sectionTabs.push({ id: "journey", label: "User Journey", icon: Clock });
+  const ci = (product as any)?.communityInsights;
+  if (ci) sectionTabs.push({ id: "community", label: "Community Intel", icon: MessageSquare });
+  if (product?.pricingIntel) sectionTabs.push({ id: "pricing", label: "Pricing Intel", icon: DollarSign });
+  if (!isService && (product as any)?.supplyChain) sectionTabs.push({ id: "supply", label: "Supply Chain", icon: Package });
+  if (!isService) sectionTabs.push({ id: "patents", label: "Patent Intel", icon: ScrollText });
 
   return (
     <div className="min-h-screen bg-background">
       <PlatformNav tier={tier} />
 
-      <div className="border-b border-border bg-card">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
-          <p className="typo-card-eyebrow">Market Disruptor · Shared Analysis</p>
-          <h1 className="typo-page-title text-2xl sm:text-3xl mt-1">{data.title}</h1>
-          <div className="flex items-center gap-3 mt-1.5">
-            <span className="typo-page-meta">{data.category}</span>
-            {data.avg_revival_score && (
-              <span className="typo-card-meta font-bold bg-muted border border-border px-2 py-0.5 rounded">{data.avg_revival_score}/10</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
+      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
         {/* Step Navigator */}
         {!isBusinessModel && (
           <StepNavigator
@@ -222,321 +233,290 @@ export default function ShareableAnalysisPage() {
           />
         )}
 
+        {/* Analysis title */}
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground px-1">{data.title}</h1>
+        <div className="flex items-center gap-3 px-1">
+          <span className="typo-page-meta">{data.category}</span>
+          {data.avg_revival_score && (
+            <span className="typo-card-meta font-bold bg-muted border border-border px-2 py-0.5 rounded">{data.avg_revival_score}/10</span>
+          )}
+        </div>
+
         {/* ────────── BUSINESS MODEL VIEW ────────── */}
         {isBusinessModel && (
           <div className="space-y-4">
-            <ModeHeader
-              stepNumber={2}
-              stepTitle="Business Model Analysis"
-              subtitle={`First-principles deconstruction of <strong class="text-foreground">${data.title}</strong>`}
-              accentColor={ACCENT}
-            />
+            <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: ACCENT }}>
+                  <Target size={18} style={{ color: "white" }} />
+                </div>
+                <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Business Model Analysis</h3>
+              </div>
+              <p className="text-sm leading-relaxed pl-[48px]" style={{ color: "hsl(0 0% 100% / 0.85)" }}>
+                First-principles deconstruction of {data.title}
+              </p>
+            </div>
             <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
-              <BusinessModelAnalysis
-                initialData={ad as unknown as BusinessModelAnalysisData}
-              />
+              <BusinessModelAnalysis initialData={ad as unknown as BusinessModelAnalysisData} />
             </div>
           </div>
         )}
 
-        {/* ────────── STEP 2: Intelligence Report (Product/Service) ────────── */}
+        {/* ────────── STEP 2: Intelligence Report ────────── */}
         {!isBusinessModel && activeStep === 2 && (
           <div className="space-y-4">
-            <ModeHeader
-              stepNumber={2}
-              stepTitle="Intelligence Report"
-              subtitle={`Deep market intelligence for <strong class="text-foreground">${product.name}</strong>`}
-              accentColor={ACCENT}
-            />
+            {/* Section title */}
+            <h2 className="typo-section-title px-1">Intelligence Report</h2>
 
-            <ProductCard product={product} isSelected={true} onClick={() => {}} />
-
-            <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>} step="report" governedOverride={governedData}>
-            {/* Section nav */}
-            <div ref={sectionTabsRef}>
-              <SectionWorkflowNav
-                tabs={DETAIL_TABS}
-                activeId={detailTab}
-                visitedIds={new Set(DETAIL_TABS.map(t => t.id))}
-                onSelect={goToTab}
-                descriptions={SECTION_DESCRIPTIONS}
-                journeyLabel="Analysis Sections"
-              />
+            {/* Context Banner — matches authenticated */}
+            <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: ACCENT }}>
+                  <Target size={18} style={{ color: "white" }} />
+                </div>
+                <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Intelligence Report</h3>
+              </div>
+              <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
+                A consolidated view of pricing, supply chain, community sentiment, and competitive positioning — each finding tagged by confidence level.
+              </p>
             </div>
 
+            {/* Tab buttons — pill style matching authenticated */}
+            <div className="flex flex-wrap items-center gap-2">
+              {sectionTabs.map((tab) => {
+                const isActive = activeSection === tab.id;
+                const TabIcon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveSection(tab.id)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
+                    style={{
+                      background: isActive ? ACCENT : "hsl(var(--muted))",
+                      color: isActive ? "white" : "hsl(var(--foreground))",
+                      border: isActive ? "none" : "1px solid hsl(var(--border))",
+                    }}
+                  >
+                    <TabIcon size={14} />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Divider */}
+            <div className="h-px w-full" style={{ background: "hsl(var(--border))" }} />
+
             {/* Overview */}
-            {detailTab === "overview" && (
-              <div className="space-y-4">
-                <SectionHeader current={1} total={DETAIL_TABS.length} label="Overview" description={SECTION_DESCRIPTIONS.overview} icon={Target} />
-                {product.keyInsight && (
-                  <KeyTakeawayBanner takeaway={product.keyInsight} accentColor={ACCENT} badges={getVerdictBadges(product as any)} />
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    {product.keyInsight && (
-                      <div className="p-3 rounded-lg bg-muted border border-border">
-                        <DataLabel>Key Insight</DataLabel>
-                        <p className="typo-card-body mt-1" style={{ color: "hsl(var(--foreground) / 0.85)" }}>{product.keyInsight}</p>
-                      </div>
-                    )}
-                    {product.description && (
-                      <div className="p-3 rounded-lg bg-muted border border-border">
-                        <DataLabel>Description</DataLabel>
-                        <p className="typo-card-meta mt-1" style={{ color: "hsl(var(--foreground) / 0.8)" }}>{product.description}</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-3">
-                    {product.marketSizeEstimate && (
-                      <div className="p-3 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-                        <p className="typo-card-meta font-semibold" style={{ color: "hsl(142 70% 28%)" }}>TAM: {product.marketSizeEstimate}</p>
-                      </div>
-                    )}
-                    <div className="p-3 rounded-lg bg-muted border border-border">
-                      <DataLabel>Confidence Scores</DataLabel>
-                      <div className="grid grid-cols-1 gap-2 mt-2">
-                        <ScoreBar label="Adoption Likelihood" score={product.confidenceScores?.adoptionLikelihood ?? 7} />
-                        <ScoreBar label="Feasibility" score={product.confidenceScores?.feasibility ?? 7} />
-                        <ScoreBar label="Emotional Resonance" score={product.confidenceScores?.emotionalResonance ?? 8} />
-                      </div>
+            {activeSection === "overview" && (
+              <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>} step="report" governedOverride={governedData}>
+                <SectionCard icon={Target} title="Overview">
+                  {product!.keyInsight && (
+                    <div className="insight-callout mb-3">
+                      <p className="typo-card-body font-semibold leading-snug">{product!.keyInsight}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-3">
+                      {product!.description && (
+                        <p className="typo-card-body text-foreground/80 leading-relaxed">{product!.description}</p>
+                      )}
+                      {product!.marketSizeEstimate && (
+                        <p className="typo-card-body font-semibold text-green-700">TAM: {product!.marketSizeEstimate}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <ScoreBar label="Adoption" score={product!.confidenceScores?.adoptionLikelihood ?? 7} />
+                      <ScoreBar label="Feasibility" score={product!.confidenceScores?.feasibility ?? 7} />
+                      <ScoreBar label="Resonance" score={product!.confidenceScores?.emotionalResonance ?? 8} />
                     </div>
                   </div>
-                </div>
+                  {product!.trendAnalysis && (
+                    <p className="typo-card-body text-foreground/70 leading-relaxed mt-3">{product!.trendAnalysis}</p>
+                  )}
+                  {product!.sources?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {product!.sources.map((src: any) => (
+                        <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium bg-primary/5 text-primary">
+                          <ExternalLink size={9} /> {src.label?.slice(0, 30)}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </SectionCard>
+              </AnalysisVisualLayer>
+            )}
 
-                <DetailPanel title="Sources & Trend Analysis" icon={TrendingUp} defaultOpen>
-                  {product.trendAnalysis && <p className="typo-card-meta text-foreground/80 leading-relaxed mb-2">{product.trendAnalysis}</p>}
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {product.sources?.map((src) => (
-                      <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium"
-                        style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
-                        <ExternalLink size={9} /> {src.label?.slice(0, 30)}
-                      </a>
-                    ))}
-                  </div>
-                </DetailPanel>
-
-                <DetailPanel title="Assumptions Map" icon={Brain}>
-                  <div className="mb-2"><AssumptionsMap product={product} /></div>
-                </DetailPanel>
-
-                {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-              </div>
+            {/* User Journey */}
+            {activeSection === "journey" && uwSteps?.length > 0 && (
+              <SectionCard icon={Clock} title="User Journey">
+                <AdaptiveJourneyMap
+                  steps={uwSteps}
+                  frictionPoints={uw?.frictionPoints || []}
+                  cognitiveLoad={uw?.cognitiveLoad}
+                  contextOfUse={uw?.contextOfUse}
+                  category={product?.category}
+                  productName={product?.name}
+                />
+              </SectionCard>
             )}
 
             {/* Community Intel */}
-            {detailTab === "community" && (
-              <div className="space-y-4">
-                <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Community Intel" description={SECTION_DESCRIPTIONS.community} icon={MessageSquare} />
+            {activeSection === "community" && ci && (
+              <SectionCard icon={MessageSquare} title="Community Intel">
                 {(() => {
-                  const ci = (product as any).communityInsights;
-                  const takeaway = ci ? getCommunityTakeaway(ci) : null;
-                  return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(25 90% 40%)" /> : null;
-                })()}
-                {(() => {
-                  const ci = (product as any).communityInsights;
-                  if (!ci) return <p className="typo-card-body text-muted-foreground py-8 text-center">No community data available</p>;
                   const sentiment = ci.communitySentiment || ci.redditSentiment;
-                  const hasRealSentiment = sentiment && !/no direct.*found|not found/i.test(sentiment);
+                  const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
                   return (
-                    <>
-                      {hasRealSentiment && (
-                        <div className="p-4 rounded-lg bg-muted border border-border">
-                          <DataLabel>Community Sentiment</DataLabel>
-                          <p className="typo-card-meta mt-1" style={{ color: "hsl(25 90% 30%)" }}>{sentiment}</p>
+                    <div className="space-y-3">
+                      {hasReal && <p className="typo-card-body text-foreground/80">{sentiment}</p>}
+                      {ci.topComplaints?.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="typo-card-eyebrow">Complaints</p>
+                          {ci.topComplaints.map((c: string, i: number) => (
+                            <div key={i} className="flex gap-2 items-start typo-card-body">
+                              <ShieldAlert size={10} className="text-destructive flex-shrink-0 mt-0.5" />
+                              <span className="text-foreground/80">{c}</span>
+                            </div>
+                          ))}
                         </div>
                       )}
-                      <DetailPanel title={`Complaints & Requests (${(ci.topComplaints?.length || 0) + (ci.improvementRequests?.length || 0)})`} icon={ThumbsDown} defaultOpen>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
-                          {ci.topComplaints?.length > 0 && (
-                            <div className="space-y-1.5">
-                              <DataLabel>Top Complaints</DataLabel>
-                              {ci.topComplaints.map((c: string, i: number) => (
-                                <div key={i} className="flex gap-2 items-start typo-card-meta"><ShieldAlert size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{c}</span></div>
-                              ))}
+                      {ci.improvementRequests?.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="typo-card-eyebrow">Requests</p>
+                          {ci.improvementRequests.map((r: string, i: number) => (
+                            <div key={i} className="flex gap-2 items-start typo-card-body">
+                              <Lightbulb size={10} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                              <span className="text-foreground/80">{r}</span>
                             </div>
-                          )}
-                          {ci.improvementRequests?.length > 0 && (
-                            <div className="space-y-1.5">
-                              <DataLabel>Improvement Requests</DataLabel>
-                              {ci.improvementRequests.map((r: string, i: number) => (
-                                <div key={i} className="flex gap-2 items-start typo-card-meta"><Lightbulb size={10} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 2 }} /><span className="text-foreground/80">{r}</span></div>
-                              ))}
-                            </div>
-                          )}
+                          ))}
                         </div>
-                      </DetailPanel>
-                    </>
+                      )}
+                      {(product as any)?.reviews?.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="typo-card-eyebrow">Reviews</p>
+                          {(product as any).reviews.map((review: any, i: number) => (
+                            <div key={i} className="flex gap-2 items-start text-xs">
+                              <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
+                              <span className="text-foreground/80">{review.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   );
                 })()}
-                {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-              </div>
-            )}
-
-            {/* User Journey / Workflow */}
-            {detailTab === "workflow" && (
-              <div className="space-y-4">
-                <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="User Journey" description={SECTION_DESCRIPTIONS.workflow} icon={Clock} />
-                {(() => {
-                  const wf = (product as any).userWorkflow || (product as any).workflow;
-                  if (!wf) return <p className="typo-card-body text-muted-foreground py-8 text-center">No workflow data available</p>;
-                  return (
-                    <>
-                      <AdaptiveJourneyMap
-                        steps={wf.stepByStep || []}
-                        frictionPoints={wf.frictionPoints || []}
-                        cognitiveLoad={wf.cognitiveLoad}
-                        contextOfUse={wf.contextOfUse}
-                        category={(product as any)?.category}
-                        productName={(product as any)?.name}
-                      />
-                    </>
-                  );
-                })()}
-                {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-              </div>
+              </SectionCard>
             )}
 
             {/* Pricing Intel */}
-            {detailTab === "pricing" && (
-              <div className="space-y-4">
-                <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Pricing Intel" description={SECTION_DESCRIPTIONS.pricing} icon={DollarSign} />
-                {(() => {
-                  const pi = product.pricingIntel as any;
-                  if (!pi) return <p className="typo-card-body text-muted-foreground py-8 text-center">No pricing data available</p>;
-                  return (
-                    <>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {pi.currentMarketPrice && (
-                          <div className="p-3 rounded-lg text-center bg-muted border border-border">
-                            <DataLabel>Market Price</DataLabel>
-                            <p className="typo-card-body font-bold text-foreground mt-1">{pi.currentMarketPrice}</p>
-                          </div>
-                        )}
-                        {pi.margins && (
-                          <div className="p-3 rounded-lg text-center bg-muted border border-border">
-                            <DataLabel>Margins</DataLabel>
-                            <p className="typo-card-body font-bold text-foreground mt-1">{pi.margins}</p>
-                          </div>
-                        )}
-                        {pi.priceRange && (
-                          <div className="p-3 rounded-lg text-center bg-muted border border-border">
-                            <DataLabel>Price Range</DataLabel>
-                            <p className="typo-card-body font-bold text-foreground mt-1">{pi.priceRange}</p>
-                          </div>
-                        )}
-                        {pi.collectorPremium && (
-                          <div className="p-3 rounded-lg text-center bg-muted border border-border">
-                            <DataLabel>Collector Premium</DataLabel>
-                            <p className="typo-card-body font-bold text-foreground mt-1">{pi.collectorPremium}</p>
-                          </div>
-                        )}
-                      </div>
-                      {((pi as any).resaleAvgSold || pi.ebayAvgSold || (pi as any).vintageAvgSold || pi.etsyAvgSold) && (
-                        <div className="grid grid-cols-2 gap-3">
-                          {((pi as any).resaleAvgSold || pi.ebayAvgSold) && (
-                            <div className="p-3 rounded-lg text-center bg-muted border border-border">
-                              <DataLabel>Resale Avg Sold</DataLabel>
-                              <p className="typo-card-body font-bold text-foreground mt-1">{(pi as any).resaleAvgSold || pi.ebayAvgSold}</p>
-                            </div>
-                          )}
-                          {((pi as any).vintageAvgSold || pi.etsyAvgSold) && (
-                            <div className="p-3 rounded-lg text-center bg-muted border border-border">
-                              <DataLabel>Vintage Avg Sold</DataLabel>
-                              <p className="typo-card-body font-bold text-foreground mt-1">{(pi as any).vintageAvgSold || pi.etsyAvgSold}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-                {nextTab && <NextSectionButton label={nextTab.label} onClick={() => goToTab(nextTab.id)} />}
-              </div>
+            {activeSection === "pricing" && product?.pricingIntel && (
+              <SectionCard icon={DollarSign} title="Pricing Intel">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { label: "Market Price", value: product.pricingIntel.currentMarketPrice },
+                    { label: "Original Price", value: (product.pricingIntel as any).originalRetailPrice },
+                    { label: "Price Direction", value: product.pricingIntel.priceDirection },
+                    { label: "Margin Estimate", value: (product.pricingIntel as any).marginEstimate },
+                    { label: "Price Range", value: product.pricingIntel.priceRange },
+                  ].filter(m => m.value).map(m => (
+                    <div key={m.label} className="p-2.5 rounded-lg bg-muted border border-border">
+                      <p className="typo-card-eyebrow">{m.label}</p>
+                      <p className="typo-card-body font-bold text-foreground mt-0.5">{m.value}</p>
+                    </div>
+                  ))}
+                </div>
+                {(product.pricingIntel as any).pricingNotes && (
+                  <p className="typo-card-body text-foreground/70 mt-2">{(product.pricingIntel as any).pricingNotes}</p>
+                )}
+              </SectionCard>
             )}
 
             {/* Supply Chain */}
-            {detailTab === "supply" && (
-              <div className="space-y-4">
-                <SectionHeader current={currentIdx + 1} total={DETAIL_TABS.length} label="Supply Chain" description={SECTION_DESCRIPTIONS.supply} icon={Package} />
-                {(() => {
-                  const sc = (product as any).supplyChainIntel || (product as any).supplyChain;
-                  if (!sc) return <p className="typo-card-body text-muted-foreground py-8 text-center">No supply chain data available</p>;
-                  return (
-                    <>
-                      {sc.suppliers?.length > 0 && (
-                        <DetailPanel title={`Suppliers (${sc.suppliers.length})`} icon={Factory} defaultOpen>
-                          <div className="space-y-2 mb-2">
-                            {sc.suppliers.map((s: any, i: number) => (
-                              <div key={i} className="p-2.5 rounded-lg bg-muted border border-border">
-                                <p className="typo-card-meta font-bold text-foreground">{s.name || s.supplier}</p>
-                                {s.role && <p className="typo-card-meta text-muted-foreground mt-0.5">{s.role}</p>}
-                                {s.region && <p className="typo-card-meta text-muted-foreground">{s.region}</p>}
-                              </div>
-                            ))}
-                          </div>
-                        </DetailPanel>
-                      )}
-                      {sc.distributors?.length > 0 && (
-                        <DetailPanel title={`Distributors (${sc.distributors.length})`} icon={Truck}>
-                          <div className="space-y-2 mb-2">
-                            {sc.distributors.map((d: any, i: number) => (
-                              <div key={i} className="p-2.5 rounded-lg bg-muted border border-border">
-                                <p className="typo-card-meta font-bold text-foreground">{d.name || d.distributor}</p>
-                                {d.role && <p className="typo-card-meta text-muted-foreground mt-0.5">{d.role}</p>}
-                              </div>
-                            ))}
-                          </div>
-                        </DetailPanel>
-                      )}
-                      {sc.manufacturingInsight && (
-                        <div className="p-3 rounded-lg bg-muted border border-border">
-                          <DataLabel>Manufacturing Insight</DataLabel>
-                          <p className="typo-card-meta text-foreground/80 mt-1">{sc.manufacturingInsight}</p>
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
+            {activeSection === "supply" && !isService && (product as any)?.supplyChain && (
+              <SectionCard icon={Package} title="Supply Chain">
+                <SupplySection
+                  title="Manufacturers"
+                  icon={<Factory size={11} />}
+                  items={((product as any).supplyChain.manufacturers || []).map((m: any) => ({
+                    name: m.name, badge: m.region || "—", detail: m.specialty || m.notes || "", url: m.url,
+                  }))}
+                  color="hsl(var(--muted))"
+                  borderColor="hsl(var(--border))"
+                />
+                <SupplySection
+                  title="Distributors"
+                  icon={<Truck size={11} />}
+                  items={((product as any).supplyChain.distributors || []).map((d: any) => ({
+                    name: d.name, badge: d.region || "—", detail: d.specialty || d.notes || "", url: d.url,
+                  }))}
+                  color="hsl(var(--muted))"
+                  borderColor="hsl(var(--border))"
+                />
+                <SupplySection
+                  title="Retailers"
+                  icon={<Store size={11} />}
+                  items={((product as any).supplyChain.retailers || []).map((r: any) => ({
+                    name: r.name, badge: r.type || "—", detail: r.notes || "", url: r.url,
+                  }))}
+                  color="hsl(var(--muted))"
+                  borderColor="hsl(var(--border))"
+                />
+              </SectionCard>
             )}
 
-            {/* Next step button */}
+            {/* Patent Intel */}
+            {activeSection === "patents" && !isService && (
+              <SectionCard icon={ScrollText} title="Patent Intelligence">
+                <PatentIntelligence product={product!} />
+              </SectionCard>
+            )}
+
+            {/* Next step */}
             {hasDisrupt && (
               <button
                 onClick={() => { setActiveStep(3); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-colors"
+                style={{ background: ACCENT, color: "white" }}
               >
                 <Brain size={14} /> Continue to Disrupt →
               </button>
             )}
-            </AnalysisVisualLayer>
           </div>
         )}
 
         {/* ────────── STEP 3: Disrupt ────────── */}
         {!isBusinessModel && activeStep === 3 && (
           <div className="space-y-4">
+            <h2 className="typo-section-title px-1">Strategic Intelligence</h2>
+
+            {/* Context Banner */}
+            <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(271 81% 55%)" }}>
+                  <Brain size={18} style={{ color: "white" }} />
+                </div>
+                <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Deconstruct</h3>
+              </div>
+              <p className="text-sm leading-relaxed pl-[48px]" style={{ color: "hsl(0 0% 100% / 0.85)" }}>
+                Questioning every assumption and generating radical reinvention ideas for {product!.name}.
+              </p>
+            </div>
+
             {(() => {
               const takeaway = getDisruptTakeaway(disruptData as Record<string, unknown> | null);
               return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(271 81% 55%)" /> : null;
             })()}
 
-            <ModeHeader
-              stepNumber={3}
-              stepTitle="Disrupt"
-              subtitle={`Deconstructing <strong class="text-foreground">${product.name}</strong> — questioning every assumption and generating radical reinvention ideas.`}
-              accentColor="hsl(271 81% 55%)"
-            />
-
-            {/* Reasoning Synopsis — read-only in shared view */}
+            {/* Reasoning Synopsis */}
             {governedData?.reasoning_synopsis && (
-              <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
+              <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                 <ReasoningSynopsis
                   data={governedData.reasoning_synopsis}
                   analysisData={{ ...product, governed: governedData } as any}
                   products={undefined}
-                  title={product.name || ""}
+                  title={product!.name || ""}
                   category={data.category || ""}
                   analysisType={data.analysis_type || "product"}
                   avgScore={data.avg_revival_score ?? null}
@@ -545,10 +525,10 @@ export default function ShareableAnalysisPage() {
             )}
 
             {hasDisrupt ? (
-              <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
+              <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                 <FirstPrinciplesAnalysis
-                  product={product}
-                  flippedIdeas={product.flippedIdeas}
+                  product={product!}
+                  flippedIdeas={product!.flippedIdeas}
                   externalData={disruptData}
                   userScores={userScores}
                   renderMode="disrupt"
@@ -564,7 +544,8 @@ export default function ShareableAnalysisPage() {
             {hasDisrupt && (
               <button
                 onClick={() => { setActiveStep(4); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-colors"
+                style={{ background: ACCENT, color: "white" }}
               >
                 <Sparkles size={14} /> Continue to Redesign →
               </button>
@@ -575,18 +556,26 @@ export default function ShareableAnalysisPage() {
         {/* ────────── STEP 4: Redesign ────────── */}
         {!isBusinessModel && activeStep === 4 && (
           <div className="space-y-4">
-            <ModeHeader
-              stepNumber={4}
-              stepTitle="Redesign"
-              subtitle={`Interactive concept illustrations for <strong class="text-foreground">${product.name}</strong> — visualizing the reinvented model.`}
-              accentColor="hsl(38 92% 50%)"
-            />
+            <h2 className="typo-section-title px-1">Redesign</h2>
+
+            {/* Context Banner */}
+            <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50%)" }}>
+                  <Sparkles size={18} style={{ color: "white" }} />
+                </div>
+                <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Redesign</h3>
+              </div>
+              <p className="text-sm leading-relaxed pl-[48px]" style={{ color: "hsl(0 0% 100% / 0.85)" }}>
+                Interactive concept illustrations for {product!.name} — visualizing the reinvented model.
+              </p>
+            </div>
 
             {hasDisrupt ? (
-              <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
+              <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                 <FirstPrinciplesAnalysis
-                  product={product}
-                  flippedIdeas={product.flippedIdeas}
+                  product={product!}
+                  flippedIdeas={product!.flippedIdeas}
                   externalData={disruptData}
                   renderMode="redesign"
                 />
@@ -601,7 +590,8 @@ export default function ShareableAnalysisPage() {
             {hasStressTest && (
               <button
                 onClick={() => { setActiveStep(5); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-colors"
+                style={{ background: ACCENT, color: "white" }}
               >
                 <Swords size={14} /> Continue to Stress Test →
               </button>
@@ -612,38 +602,66 @@ export default function ShareableAnalysisPage() {
         {/* ────────── STEP 5: Stress Test ────────── */}
         {!isBusinessModel && activeStep === 5 && (
           <div className="space-y-4">
+            <h2 className="typo-section-title px-1">Stress Test</h2>
+
+            {/* Context Banner */}
+            <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(350 80% 55%)" }}>
+                  <Swords size={18} style={{ color: "white" }} />
+                </div>
+                <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Stress Test</h3>
+              </div>
+              <p className="text-sm leading-relaxed pl-[48px]" style={{ color: "hsl(0 0% 100% / 0.85)" }}>
+                Red Team vs Green Team adversarial debate — your idea is attacked and defended to expose blind spots, validate strengths, and deliver a clear survival judgment.
+              </p>
+            </div>
+
             {(() => {
               const takeaway = getStressTestTakeaway(stressTestData as Record<string, unknown> | null);
               return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(350 80% 55%)" /> : null;
             })()}
 
-            <ModeHeader
-              stepNumber={5}
-              stepTitle="Stress Test"
-              subtitle={`Red Team vs Green Team critical validation for <strong class="text-foreground">${product.name}</strong>`}
-              accentColor="hsl(350 80% 55%)"
-            />
-
             {hasStressTest ? (
-              <div className="rounded-xl overflow-hidden p-3 sm:p-5 space-y-4 border border-border bg-card shadow-sm">
-                <SectionWorkflowNav
-                  tabs={[
-                    { id: "debate" as const, label: "Red vs Green Debate", icon: Swords },
-                    { id: "validate" as const, label: "Validate & Score", icon: CheckCircle2 },
-                  ]}
-                  activeId={stressTestTab}
-                  visitedIds={new Set(["debate", "validate"])}
-                  onSelect={(id) => setStressTestTab(id as "debate" | "validate")}
-                  descriptions={{ debate: "Red Team attacks vs Green Team defenses", validate: "Feasibility checklist & confidence scores" }}
-                  journeyLabel="Stress Test Journey"
-                />
-                <CriticalValidation
-                  product={product}
-                  analysisData={product}
-                  activeTab={stressTestTab}
-                  externalData={stressTestData}
-                />
-              </div>
+              <>
+                {/* Tab buttons — pill style matching authenticated */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {([
+                    { id: "debate" as const, label: "Red Team", icon: XCircle, color: "hsl(0 72% 48%)" },
+                    { id: "validate" as const, label: "Validate & Score", icon: BarChart3, color: ACCENT },
+                  ] as const).map(tab => {
+                    const isActive = stressTestTab === tab.id;
+                    const TabIcon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setStressTestTab(tab.id)}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
+                        style={{
+                          background: isActive ? tab.color : "hsl(var(--muted))",
+                          color: isActive ? "white" : "hsl(var(--foreground))",
+                          border: isActive ? "none" : "1px solid hsl(var(--border))",
+                        }}
+                      >
+                        <TabIcon size={14} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Divider */}
+                <div className="h-px w-full" style={{ background: "hsl(var(--border))" }} />
+
+                <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                  <CriticalValidation
+                    product={product!}
+                    analysisData={product!}
+                    activeTab={stressTestTab}
+                    externalData={stressTestData}
+                  />
+                </div>
+              </>
             ) : (
               <div className="py-12 text-center">
                 <Swords size={32} className="mx-auto text-muted-foreground opacity-40 mb-2" />
@@ -654,7 +672,8 @@ export default function ShareableAnalysisPage() {
             {hasPitch && (
               <button
                 onClick={() => { setActiveStep(6); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-colors"
+                style={{ background: ACCENT, color: "white" }}
               >
                 <Presentation size={14} /> Continue to Pitch Deck →
               </button>
@@ -665,22 +684,30 @@ export default function ShareableAnalysisPage() {
         {/* ────────── STEP 6: Pitch Deck ────────── */}
         {!isBusinessModel && activeStep === 6 && (
           <div className="space-y-4">
+            <h2 className="typo-section-title px-1">Investor Pitch Deck</h2>
+
+            {/* Context Banner */}
+            <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: ACCENT }}>
+                  <Presentation size={18} style={{ color: "white" }} />
+                </div>
+                <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Pitch Deck</h3>
+              </div>
+              <p className="text-sm leading-relaxed pl-[48px]" style={{ color: "hsl(0 0% 100% / 0.85)" }}>
+                Professional 10-slide presentation for {product!.name}.
+              </p>
+            </div>
+
             {(() => {
               const takeaway = getPitchTakeaway(pitchDeckData as Record<string, unknown> | null);
               return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={ACCENT} /> : null;
             })()}
 
-            <ModeHeader
-              stepNumber={6}
-              stepTitle="Investor Pitch Deck"
-              subtitle={`Professional pitch deck for <strong class="text-foreground">${product.name}</strong> — 10 slides`}
-              accentColor={ACCENT}
-            />
-
             {hasPitch ? (
-              <div className="rounded-xl overflow-hidden p-3 sm:p-5 border border-border bg-card shadow-sm">
+              <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                 <PitchDeck
-                  product={product}
+                  product={product!}
                   externalData={pitchDeckData}
                   disruptData={disruptData}
                   stressTestData={stressTestData}
@@ -704,7 +731,8 @@ export default function ShareableAnalysisPage() {
           </p>
           <a
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl typo-button-primary bg-primary text-primary-foreground transition-colors hover:bg-primary-dark"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-colors"
+            style={{ background: ACCENT, color: "white" }}
           >
             <Rocket size={12} /> Run Your Own Analysis
           </a>
