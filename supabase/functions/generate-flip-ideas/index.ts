@@ -17,7 +17,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count, activeBranch, adaptiveContext: rawAdaptiveCtx } = await req.json();
+    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count, activeBranch, adaptiveContext: rawAdaptiveCtx, upstreamIntel, disruptContext } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const ideaCount = count || 2;
@@ -155,6 +155,35 @@ ${steeringText ? `\nUSER STEERING GUIDANCE: ${steeringText}` : ""}
 ${insightPreferences ? `\nUSER INSIGHT PREFERENCES (prioritize liked, exclude dismissed):
 ${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "liked").map(([id]) => `✓ LIKED: ${id}`).join("\n")}
 ${Object.entries(insightPreferences as Record<string, string>).filter(([, s]) => s === "dismissed").map(([id]) => `✗ DISMISSED: ${id}`).join("\n")}` : ""}
+
+${upstreamIntel ? `UPSTREAM INTELLIGENCE (use to ground ideas in real market data):
+${upstreamIntel.supplyChain ? `SUPPLY CHAIN:
+- Suppliers: ${JSON.stringify((upstreamIntel.supplyChain as any).suppliers || [])}
+- Manufacturers: ${JSON.stringify((upstreamIntel.supplyChain as any).manufacturers || [])}
+- Distributors: ${JSON.stringify((upstreamIntel.supplyChain as any).distributors || [])}` : ""}
+${upstreamIntel.communityInsights ? `COMMUNITY INSIGHTS:
+- Sentiment: ${(upstreamIntel.communityInsights as any).communitySentiment || "N/A"}
+- Top Complaints: ${((upstreamIntel.communityInsights as any).topComplaints || []).map((c: string) => `• ${c}`).join("\n  ")}
+- Improvement Requests: ${((upstreamIntel.communityInsights as any).improvementRequests || []).map((r: string) => `• ${r}`).join("\n  ")}` : ""}
+${upstreamIntel.pricingIntel ? `PRICING INTEL: ${JSON.stringify(upstreamIntel.pricingIntel)}` : ""}
+${upstreamIntel.patentLandscape ? `PATENT LANDSCAPE:
+- Total Patents: ${(upstreamIntel.patentLandscape as any).totalPatents || "unknown"}
+- Expired: ${(upstreamIntel.patentLandscape as any).expiredPatents || "unknown"}
+- Key Players: ${JSON.stringify((upstreamIntel.patentLandscape as any).keyPlayers || [])}
+- Gap Analysis: ${(upstreamIntel.patentLandscape as any).gapAnalysis || "N/A"}` : ""}
+${upstreamIntel.userWorkflow ? `USER WORKFLOW FRICTION:
+- Steps: ${((upstreamIntel.userWorkflow as any).stepByStep || []).join(" → ")}
+- Key Friction: ${((upstreamIntel.userWorkflow as any).frictionPoints || []).map((f: any) => `${f.friction} (${f.severity})`).join("; ")}
+- Cognitive Load: ${(upstreamIntel.userWorkflow as any).cognitiveLoad || "N/A"}` : ""}` : ""}
+
+${disruptContext ? `DISRUPT ANALYSIS (hidden assumptions + flipped logic from upstream — use these as the foundation for product ideas):
+HIDDEN ASSUMPTIONS:
+${(disruptContext.hiddenAssumptions || []).map((a: any, i: number) => `${i + 1}. "${a.assumption}" — Reason: ${a.reason}, Leverage: ${a.leverageScore || "?"}/10${a.challengeIdea ? `, Challenge: ${a.challengeIdea}` : ""}${a.impactScenario ? `, Impact: ${a.impactScenario}` : ""}`).join("\n")}
+
+FLIPPED LOGIC:
+${(disruptContext.flippedLogic || []).map((f: any, i: number) => `${i + 1}. "${f.originalAssumption}" → "${f.boldAlternative}" — ${f.rationale}`).join("\n")}
+
+CRITICAL: Each flipped idea MUST trace back to at least one hidden assumption or flipped logic item above. Do NOT generate ideas disconnected from these upstream findings.` : ""}
 
 GROUNDING RULES — make ideas SPECIFIC, not generic:
 1. If a real analogous product/company exists that validates this model, cite it — it strengthens the case. But don't force-fit irrelevant comparisons.
