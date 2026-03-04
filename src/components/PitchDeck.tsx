@@ -699,13 +699,17 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   };
 
   // ── Build slides ────────────────────────────────────────────
+  // Filter out broken/empty image URLs (base64 that was stripped)
+  const validCoverImages = analysisCtx.pitchDeckImages.filter(img => img.url && img.url.length > 10 && !img.url.startsWith("data:image/") === false || img.url.startsWith("http"));
+
   const rawCover = (
     <PitchCoverSlide
       productName={product.name}
       subtitle={data.tagline || data.elevatorPitch?.split(".")?.[0]}
       accentColor={accentColor}
       totalSlides={TOTAL + 1}
-      coverImages={analysisCtx.pitchDeckImages.length > 0 ? analysisCtx.pitchDeckImages : undefined}
+      coverImages={validCoverImages.length > 0 ? validCoverImages : undefined}
+      userName={profile?.first_name || user?.email?.split("@")[0] || undefined}
     />
   );
   const allRawSlides = [rawCover, ...SLIDE_TABS.map(tab => rawSlide(tab.id, slideContent[tab.id]))];
