@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Image, RefreshCw, CheckCircle2, Sparkles, ArrowRight, X, Layers } from "lucide-react";
+import { Image, RefreshCw, CheckCircle2, Sparkles, ArrowRight, X, Layers, Maximize2 } from "lucide-react";
 
 interface RedesignVisual {
   url: string;
@@ -38,6 +38,7 @@ export function RedesignVisualGenerator({ productName, concept, accentColor = "h
   const [generating, setGenerating] = useState(false);
   const [generatingIdx, setGeneratingIdx] = useState<number | null>(null);
   const [showDisruptPicker, setShowDisruptPicker] = useState(false);
+  const [fullscreenUrl, setFullscreenUrl] = useState<string | null>(null);
 
   // Restore from persisted data
   useEffect(() => {
@@ -288,8 +289,8 @@ export function RedesignVisualGenerator({ productName, concept, accentColor = "h
         </div>
       </div>
 
-      {/* Visual grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Visual grid — larger cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <AnimatePresence mode="popLayout">
           {visuals.map((visual, i) => {
             const isSelected = analysis.pitchDeckImages.some(img => img.url === visual.url);
@@ -301,71 +302,90 @@ export function RedesignVisualGenerator({ productName, concept, accentColor = "h
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="rounded-lg overflow-hidden relative group"
+                className="rounded-xl overflow-hidden relative group"
                 style={{
-                  border: isSelected ? `2px solid ${accentColor}` : "1px solid hsl(var(--border))",
-                  boxShadow: isSelected ? `0 0 12px ${accentColor}30` : "none",
+                  border: isSelected ? `2.5px solid ${accentColor}` : "1px solid hsl(var(--border))",
+                  boxShadow: isSelected ? `0 0 20px ${accentColor}25` : "0 2px 8px -2px hsl(var(--foreground) / 0.08)",
                 }}
               >
-                {/* Remove button */}
-                <button
-                  onClick={() => removeVisual(i)}
-                  className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: "hsl(var(--background) / 0.9)", border: "1px solid hsl(var(--border))" }}
-                >
-                  <X size={11} className="text-muted-foreground" />
-                </button>
+                {/* Action buttons overlay */}
+                <div className="absolute top-3 right-3 z-10 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => setFullscreenUrl(visual.url)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center backdrop-blur-sm"
+                    style={{ background: "hsl(var(--background) / 0.85)", border: "1px solid hsl(var(--border))" }}
+                    title="View fullscreen"
+                  >
+                    <Maximize2 size={14} className="text-foreground" />
+                  </button>
+                  <button
+                    onClick={() => regenerateVisual(i)}
+                    disabled={generating}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center backdrop-blur-sm"
+                    style={{ background: "hsl(var(--background) / 0.85)", border: "1px solid hsl(var(--border))" }}
+                    title="Regenerate"
+                  >
+                    <RefreshCw size={13} className={`text-foreground ${generatingIdx === i ? "animate-spin" : ""}`} />
+                  </button>
+                  <button
+                    onClick={() => removeVisual(i)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center backdrop-blur-sm"
+                    style={{ background: "hsl(var(--background) / 0.85)", border: "1px solid hsl(var(--border))" }}
+                    title="Remove"
+                  >
+                    <X size={13} className="text-foreground" />
+                  </button>
+                </div>
 
                 {generatingIdx === i ? (
-                  <div className="w-full h-48 flex flex-col items-center justify-center gap-2" style={{ background: "hsl(var(--muted))" }}>
-                    <RefreshCw size={18} className="animate-spin text-muted-foreground" />
-                    <p className="text-[10px] text-muted-foreground font-medium">Generating {visual.label}...</p>
+                  <div className="w-full h-64 sm:h-72 flex flex-col items-center justify-center gap-2" style={{ background: "hsl(var(--muted))" }}>
+                    <RefreshCw size={22} className="animate-spin text-foreground/40" />
+                    <p className="text-sm text-foreground/60 font-semibold">Generating {visual.label}...</p>
                   </div>
                 ) : (
-                  <img src={visual.url} alt={visual.label} className="w-full h-48 object-cover" />
+                  <img
+                    src={visual.url}
+                    alt={visual.label}
+                    className="w-full h-64 sm:h-72 object-cover cursor-pointer"
+                    onClick={() => setFullscreenUrl(visual.url)}
+                  />
                 )}
 
-                <div className="p-2.5 space-y-1.5" style={{ background: "hsl(var(--card))" }}>
+                <div className="p-3.5 space-y-2" style={{ background: "hsl(var(--card))" }}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-foreground">{visual.label}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-sm font-bold text-foreground">{visual.label}</p>
+                      <p className="text-xs text-foreground/60 font-medium">
                         {visual.source === "disrupt" ? "From Disrupt" : "AI Generated"}
                       </p>
                     </div>
-                    <button
-                      onClick={() => regenerateVisual(i)}
-                      disabled={generating}
-                      className="p-1 rounded hover:bg-muted transition-colors"
-                      title="Regenerate"
-                    >
-                      <RefreshCw size={11} className="text-muted-foreground" />
-                    </button>
                   </div>
 
                   {/* Pitch deck selection */}
                   <button
                     onClick={() => isSelected ? removeFromPitch(visual.url) : selectForPitch(visual)}
                     disabled={pitchFull}
-                    className={`w-full flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                    className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                       isSelected
                         ? "text-white"
                         : pitchFull
-                          ? "bg-muted text-muted-foreground cursor-not-allowed"
-                          : "bg-secondary text-foreground border border-border hover:border-primary/40"
+                          ? "text-foreground/40 cursor-not-allowed"
+                          : "text-foreground border hover:border-primary/40"
                     }`}
-                    style={isSelected ? { background: accentColor } : undefined}
+                    style={
+                      isSelected
+                        ? { background: accentColor }
+                        : pitchFull
+                          ? { background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }
+                          : { background: "hsl(var(--secondary))", border: "1px solid hsl(var(--border))" }
+                    }
                   >
                     {isSelected ? (
-                      <>
-                        <CheckCircle2 size={11} /> Selected for Pitch Deck
-                      </>
+                      <><CheckCircle2 size={13} /> Selected for Pitch Deck</>
                     ) : pitchFull ? (
                       "Max 2 selected"
                     ) : (
-                      <>
-                        <ArrowRight size={11} /> Use in Pitch Deck
-                      </>
+                      <><ArrowRight size={13} /> Use in Pitch Deck</>
                     )}
                   </button>
                 </div>
@@ -374,22 +394,22 @@ export function RedesignVisualGenerator({ productName, concept, accentColor = "h
           })}
 
           {/* Generating placeholders */}
-          {generating && visuals.length < 3 && Array.from({ length: 3 - visuals.length }).map((_, i) => (
+          {generating && visuals.length < 3 && Array.from({ length: Math.min(2, 3 - visuals.length) }).map((_, i) => (
             <motion.div
               key={`placeholder-${i}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="rounded-lg overflow-hidden"
+              className="rounded-xl overflow-hidden"
               style={{ border: "1px dashed hsl(var(--border))" }}
             >
-              <div className="w-full h-48 flex flex-col items-center justify-center gap-2" style={{ background: "hsl(var(--muted))" }}>
-                <RefreshCw size={18} className="animate-spin text-muted-foreground/40" />
-                <p className="text-[10px] text-muted-foreground/60 font-medium">
+              <div className="w-full h-64 sm:h-72 flex flex-col items-center justify-center gap-3" style={{ background: "hsl(var(--muted))" }}>
+                <RefreshCw size={22} className="animate-spin text-foreground/30" />
+                <p className="text-sm text-foreground/50 font-semibold">
                   {VISUAL_PROMPTS[visuals.length + i]?.label || "Generating..."}
                 </p>
               </div>
-              <div className="p-2.5" style={{ background: "hsl(var(--card))" }}>
-                <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+              <div className="p-3.5" style={{ background: "hsl(var(--card))" }}>
+                <div className="h-5 w-28 rounded bg-muted animate-pulse" />
               </div>
             </motion.div>
           ))}
@@ -398,6 +418,38 @@ export function RedesignVisualGenerator({ productName, concept, accentColor = "h
 
       {/* Disrupt visual picker overlay */}
       {showDisruptPicker && <DisruptVisualPicker images={disruptVisuals} onSelect={addDisruptVisual} onClose={() => setShowDisruptPicker(false)} />}
+
+      {/* Fullscreen lightbox */}
+      <AnimatePresence>
+        {fullscreenUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-8"
+            style={{ background: "hsl(var(--foreground) / 0.85)" }}
+            onClick={() => setFullscreenUrl(null)}
+          >
+            <button
+              onClick={() => setFullscreenUrl(null)}
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full flex items-center justify-center z-10"
+              style={{ background: "hsl(var(--background) / 0.9)", border: "1px solid hsl(var(--border))" }}
+            >
+              <X size={18} className="text-foreground" />
+            </button>
+            <motion.img
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              src={fullscreenUrl}
+              alt="Concept visual"
+              className="max-w-full max-h-full rounded-xl object-contain"
+              style={{ boxShadow: "0 20px 60px -10px hsl(var(--foreground) / 0.5)" }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
