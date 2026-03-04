@@ -274,7 +274,6 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
       <div className="space-y-4">
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
 
-        <StressTestVisualWrapper analysis={safeAnalysisForVisual} governedData={governedData}>
         <PitchDeckToggle contentKey="stressTestDebate" label="Include in Pitch Deck" />
 
         {/* Re-run (collapsed) */}
@@ -505,7 +504,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
             </div>
           </DetailPanel>
         )}
-        </StressTestVisualWrapper>
+        
       </div>
     );
   }
