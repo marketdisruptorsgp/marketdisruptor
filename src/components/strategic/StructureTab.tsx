@@ -421,6 +421,23 @@ export function StructureTab({
         </p>
       </div>
 
+      {/* ── Evaluation Path ── */}
+      <div className="rounded-xl px-5 py-4 flex items-center gap-4" style={{ background: "hsl(var(--muted))", border: "1.5px solid hsl(var(--border))" }}>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.12)" }}>
+          <Atom size={15} style={{ color: "hsl(var(--primary))" }} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Evaluating</p>
+          <p className="text-sm font-bold text-foreground leading-snug truncate">
+            {selectedProduct.name}
+            {analysis.analysisParams?.category ? <span className="font-medium text-muted-foreground"> · {analysis.analysisParams.category}</span> : null}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+            What are the irreducible truths that govern this system, independent of convention?
+          </p>
+        </div>
+      </div>
+
       {/* Fundamental Constraints & System Structure */}
       <StructureSection
         title="Fundamental Constraints"
