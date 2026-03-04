@@ -19,7 +19,7 @@ type Signal = {
   why?: string; // plain-english reason this signal matters
 };
 
-type QuadrantKey = "strengths" | "complaints" | "friction" | "opportunities";
+type QuadrantKey = string;
 type MatrixData = Record<QuadrantKey, Signal[]>;
 
 type UserSignalState = {
@@ -28,10 +28,10 @@ type UserSignalState = {
 };
 type PersistedState = Record<string, UserSignalState>;
 
-/* ── Config ── */
+/* ── Quadrant Definition ── */
 
-const QUADRANTS: {
-  key: QuadrantKey;
+interface QuadrantDef {
+  key: string;
   title: string;
   subtitle: string;
   icon: React.ElementType;
@@ -39,7 +39,15 @@ const QUADRANTS: {
   barColor: string;
   bgTint: string;
   explanation: string;
-}[] = [
+  /** Priority for slot selection — higher = more likely to be shown */
+  priority: number;
+  /** Extract signals from product data */
+  extract: (product: Product, mkId: () => string) => Signal[];
+}
+
+/* ── All possible quadrant types ── */
+
+const QUADRANT_POOL: QuadrantDef[] = [
   {
     key: "strengths",
     title: "What's Working",
@@ -49,6 +57,36 @@ const QUADRANTS: {
     barColor: "bg-green-500",
     bgTint: "bg-green-50/60 dark:bg-green-950/20",
     explanation: "These are the things people genuinely like. High scores mean more people mentioned it positively or it showed up as a clear advantage.",
+    priority: 100, // always try to show
+    extract: (product, mkId) => {
+      const signals: Signal[] = [];
+      const ci = (product as any).communityInsights;
+      const cs = product.confidenceScores;
+      if (product.keyInsight) {
+        const text = humanize(product.keyInsight);
+        if (text) signals.push({ id: mkId(), label: text, score: 8, frequency: 1, why: "This is the single most important positive finding from the analysis." });
+      }
+      if (product.reviews?.length) {
+        product.reviews.filter((r: any) => r.sentiment === "positive").forEach((r: any) => {
+          const text = humanize(r.text || "");
+          if (text) signals.push({ id: mkId(), label: text, score: 7, frequency: 1, why: "Found in positive user reviews — real people said this." });
+        });
+      }
+      if (cs) {
+        if ((cs.adoptionLikelihood ?? 0) >= 8)
+          signals.push({ id: mkId(), label: `High adoption likelihood (${cs.adoptionLikelihood}/10)`, score: cs.adoptionLikelihood ?? 8, frequency: 1, why: "Based on how likely people are to start using this product." });
+        if ((cs.emotionalResonance ?? 0) >= 8)
+          signals.push({ id: mkId(), label: `Strong emotional connection (${cs.emotionalResonance}/10)`, score: cs.emotionalResonance ?? 8, frequency: 1, why: "Measures how much this product resonates emotionally with its audience." });
+      }
+      // Nostalgia triggers as strengths
+      if (ci?.nostalgiaTriggers?.length) {
+        ci.nostalgiaTriggers.forEach((t: string) => {
+          const text = humanize(t);
+          if (text) signals.push({ id: mkId(), label: text, score: 6, frequency: 1, why: "An emotional hook or loyalty driver from the community." });
+        });
+      }
+      return signals;
+    },
   },
   {
     key: "complaints",
@@ -59,6 +97,32 @@ const QUADRANTS: {
     barColor: "bg-red-500",
     bgTint: "bg-red-50/60 dark:bg-red-950/20",
     explanation: "These are the most frequently mentioned frustrations from real users. Higher scores indicate more people raised this same issue.",
+    priority: 90, // always try to show
+    extract: (product, mkId) => {
+      const signals: Signal[] = [];
+      const ci = (product as any).communityInsights;
+      if (ci?.topComplaints?.length) {
+        ci.topComplaints.forEach((c: string) => {
+          const text = humanize(c);
+          if (text) signals.push({ id: mkId(), label: text, score: 6, frequency: 1, why: "Surfaced from community discussions and user feedback." });
+        });
+      }
+      if (ci?.competitorComplaints?.length) {
+        ci.competitorComplaints.forEach((c: string) => {
+          const text = humanize(c);
+          if (text && !signals.some(s => s.label === text))
+            signals.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "What users say is wrong with competing alternatives." });
+        });
+      }
+      if (product.reviews?.length) {
+        product.reviews.filter((r: any) => r.sentiment === "negative").forEach((r: any) => {
+          const text = humanize(r.text || "");
+          if (text && !signals.some(s => s.label === text))
+            signals.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "From negative user reviews — a real frustration people expressed." });
+        });
+      }
+      return signals;
+    },
   },
   {
     key: "friction",
@@ -69,6 +133,85 @@ const QUADRANTS: {
     barColor: "bg-amber-500",
     bgTint: "bg-amber-50/60 dark:bg-amber-950/20",
     explanation: "These are moments in the user experience where people slow down, get confused, or leave. Pulled from the user journey analysis and workflow data.",
+    priority: 80,
+    extract: (product, mkId) => {
+      const signals: Signal[] = [];
+      const seen = new Set<string>();
+      const uw = (product as any).userWorkflow;
+      const oi = (product as any).operationalIntel;
+      const ci = (product as any).communityInsights;
+
+      // userWorkflow.frictionPoints
+      if (uw?.frictionPoints?.length) {
+        uw.frictionPoints.forEach((fp: any) => {
+          const raw = typeof fp === "string" ? fp : fp.friction || fp.description || fp.label || fp.point || "";
+          const text = humanize(raw);
+          if (text && !seen.has(text.toLowerCase())) {
+            seen.add(text.toLowerCase());
+            const severity = typeof fp === "object" ? fp.severity : undefined;
+            const severityScore = severity === "high" ? 8 : severity === "medium" ? 6 : 5;
+            signals.push({
+              id: mkId(), label: text, score: severityScore, frequency: 1,
+              journey_stage: typeof fp === "object" ? (fp.stage || (fp.stepIndex !== undefined ? `Step ${fp.stepIndex + 1}` : undefined)) : undefined,
+              why: typeof fp === "object" && fp.rootCause ? `Root cause: ${humanize(fp.rootCause)}` : "Identified as a point where users slow down or get stuck in their journey.",
+            });
+          }
+        });
+      }
+
+      // userWorkflow.steps with friction
+      if (uw?.steps?.length) {
+        uw.steps.forEach((step: any) => {
+          if (step.friction) {
+            const text = humanize(step.friction);
+            if (text && !seen.has(text.toLowerCase())) {
+              seen.add(text.toLowerCase());
+              signals.push({
+                id: mkId(), label: text, score: 5, frequency: 1,
+                journey_stage: step.label || step.name,
+                why: step.rootCause ? `Root cause: ${humanize(step.rootCause)}` : "Friction detected at this step in the user journey.",
+              });
+            }
+          }
+        });
+      }
+
+      // communityInsights.painPoints
+      if (ci?.painPoints?.length) {
+        ci.painPoints.forEach((p: string) => {
+          const text = humanize(p);
+          if (text && !seen.has(text.toLowerCase())) {
+            seen.add(text.toLowerCase());
+            signals.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "Mentioned as a pain point by the community." });
+          }
+        });
+      }
+
+      // operationalIntel.customerJourneyFriction (service mode)
+      if (oi?.customerJourneyFriction?.length) {
+        oi.customerJourneyFriction.forEach((f: string) => {
+          const text = humanize(f);
+          if (text && !seen.has(text.toLowerCase())) {
+            seen.add(text.toLowerCase());
+            signals.push({ id: mkId(), label: text, score: 6, frequency: 1, why: "Customer journey friction point from service analysis." });
+          }
+        });
+      }
+
+      // Fallback: negative reviews with UX keywords
+      if (signals.length === 0 && product.reviews?.length) {
+        const uxKeywords = /confus|difficult|slow|complicated|hard to|frustrat|broken|bug|crash|stuck|wait|load/i;
+        product.reviews.filter((r: any) => r.sentiment === "negative" && uxKeywords.test(r.text || "")).slice(0, 3).forEach((r: any) => {
+          const text = humanize(r.text || "");
+          if (text && !seen.has(text.toLowerCase())) {
+            seen.add(text.toLowerCase());
+            signals.push({ id: mkId(), label: text, score: 4, frequency: 1, why: "Derived from user review describing a frustrating experience." });
+          }
+        });
+      }
+
+      return signals;
+    },
   },
   {
     key: "opportunities",
@@ -79,9 +222,207 @@ const QUADRANTS: {
     barColor: "bg-blue-500",
     bgTint: "bg-blue-50/60 dark:bg-blue-950/20",
     explanation: "These are improvement requests, unmet needs, or growing trends that could become opportunities. They're not yet problems — they're openings.",
+    priority: 70,
+    extract: (product, mkId) => {
+      const signals: Signal[] = [];
+      const ci = (product as any).communityInsights;
+      if (ci?.improvementRequests?.length) {
+        ci.improvementRequests.forEach((r: string) => {
+          const text = humanize(r);
+          if (text) signals.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "Users specifically requested this improvement." });
+        });
+      }
+      // Social signals with upward trends
+      const ss = (product as any).socialSignals;
+      if (Array.isArray(ss)) {
+        ss.filter((s: any) => s.trend === "up").forEach((s: any) => {
+          const text = humanize(`${s.platform}: ${s.signal} (${s.volume})`);
+          if (text) signals.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "Social signal showing upward momentum." });
+        });
+      }
+      return signals;
+    },
+  },
+  {
+    key: "competitive_gaps",
+    title: "Competitive Gaps",
+    subtitle: "Where rivals fall short",
+    icon: AlertTriangle,
+    dotColor: "bg-purple-500",
+    barColor: "bg-purple-500",
+    bgTint: "bg-purple-50/60 dark:bg-purple-950/20",
+    explanation: "Market gaps and weaknesses in current competitors. These are openings that could be exploited for differentiation.",
+    priority: 60,
+    extract: (product, mkId) => {
+      const signals: Signal[] = [];
+      const ca = (product as any).competitorAnalysis;
+      if (ca?.gaps?.length) {
+        ca.gaps.forEach((g: string) => {
+          const text = humanize(g);
+          if (text) signals.push({ id: mkId(), label: text, score: 6, frequency: 1, why: "A specific gap in the current competitive landscape." });
+        });
+      }
+      if (ca?.differentiationOpportunity) {
+        const text = humanize(ca.differentiationOpportunity);
+        if (text) signals.push({ id: mkId(), label: text, score: 7, frequency: 1, why: "The strongest angle to differentiate from existing competitors." });
+      }
+      return signals;
+    },
+  },
+  {
+    key: "operational_bottlenecks",
+    title: "Operational Bottlenecks",
+    subtitle: "What limits scale and efficiency",
+    icon: Eye,
+    dotColor: "bg-orange-500",
+    barColor: "bg-orange-500",
+    bgTint: "bg-orange-50/60 dark:bg-orange-950/20",
+    explanation: "Structural bottlenecks in how the service or business operates. These constrain growth and create inefficiency.",
+    priority: 65,
+    extract: (product, mkId) => {
+      const signals: Signal[] = [];
+      const oi = (product as any).operationalIntel;
+      if (oi?.operationalBottlenecks?.length) {
+        oi.operationalBottlenecks.forEach((b: string) => {
+          const text = humanize(b);
+          if (text) signals.push({ id: mkId(), label: text, score: 7, frequency: 1, why: "An operational bottleneck that limits scale." });
+        });
+      }
+      if (oi?.scalingChallenges) {
+        const text = humanize(oi.scalingChallenges);
+        if (text) signals.push({ id: mkId(), label: text, score: 6, frequency: 1, why: "The primary challenge preventing 10x growth." });
+      }
+      if (oi?.automationOpportunities?.length) {
+        oi.automationOpportunities.forEach((a: string) => {
+          const text = humanize(a);
+          if (text) signals.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "An area where automation could remove manual overhead." });
+        });
+      }
+      return signals;
+    },
+  },
+  {
+    key: "pricing_signals",
+    title: "Pricing Intelligence",
+    subtitle: "Market price dynamics and margins",
+    icon: TrendingUp,
+    dotColor: "bg-emerald-500",
+    barColor: "bg-emerald-500",
+    bgTint: "bg-emerald-50/60 dark:bg-emerald-950/20",
+    explanation: "Key pricing signals including market rates, margin data, and price direction trends from verified and modeled sources.",
+    priority: 50,
+    extract: (product, mkId) => {
+      const signals: Signal[] = [];
+      const pi = (product as any).pricingIntel;
+      if (!pi) return signals;
+      if (pi.currentMarketPrice) {
+        const label = `Market price: ${pi.currentMarketPrice}`;
+        if (label.length >= 5) signals.push({ id: mkId(), label, score: 7, frequency: 1, why: `Current market pricing ${pi.currentMarketPriceDataLabel || ""}`.trim() });
+      }
+      if (pi.margins) {
+        const text = humanize(pi.margins);
+        if (text) signals.push({ id: mkId(), label: `Margins: ${text}`, score: 6, frequency: 1, why: `Margin estimate ${pi.marginsDataLabel || ""}`.trim() });
+      }
+      if (pi.priceDirection) {
+        const dir = pi.priceDirection === "rising" ? "↑ Prices rising" : pi.priceDirection === "falling" ? "↓ Prices falling" : "→ Prices stable";
+        signals.push({ id: mkId(), label: dir, score: 5, frequency: 1, why: "Price direction trend in this market." });
+      }
+      if (pi.collectorPremium) {
+        const text = humanize(pi.collectorPremium);
+        if (text) signals.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "Premium tier pricing data." });
+      }
+      return signals;
+    },
+  },
+  {
+    key: "supply_chain",
+    title: "Supply Chain Intel",
+    subtitle: "Sourcing, manufacturing, distribution",
+    icon: ShieldCheck,
+    dotColor: "bg-teal-500",
+    barColor: "bg-teal-500",
+    bgTint: "bg-teal-50/60 dark:bg-teal-950/20",
+    explanation: "Intelligence on suppliers, manufacturers, distributors and retailers. Shows the supply network structure.",
+    priority: 40,
+    extract: (product, mkId) => {
+      const signals: Signal[] = [];
+      const sc = (product as any).supplyChain;
+      if (!sc) return signals;
+      const categories = [
+        { key: "suppliers", label: "Supplier", why: "Identified supplier in the supply chain." },
+        { key: "manufacturers", label: "Manufacturer", why: "Known manufacturer for this product category." },
+        { key: "distributors", label: "Distributor", why: "Distribution channel identified." },
+      ];
+      for (const cat of categories) {
+        const items = sc[cat.key];
+        if (Array.isArray(items)) {
+          items.forEach((item: any) => {
+            const name = item.name || item.label || "";
+            const region = item.region ? ` (${item.region})` : "";
+            const text = `${cat.label}: ${name}${region}`;
+            if (name) signals.push({ id: mkId(), label: text, score: 5, frequency: 1, why: cat.why });
+          });
+        }
+      }
+      return signals;
+    },
   },
 ];
 
+/* ── Adaptive Quadrant Selection ── */
+
+interface ActiveQuadrant {
+  key: string;
+  title: string;
+  subtitle: string;
+  icon: React.ElementType;
+  dotColor: string;
+  barColor: string;
+  bgTint: string;
+  explanation: string;
+}
+
+function selectQuadrants(product: Product): { quadrants: ActiveQuadrant[]; data: MatrixData } {
+  let idCounter = 0;
+  const mkId = () => `sig-${idCounter++}`;
+
+  // Run all extractors
+  const results: Array<{ def: QuadrantDef; signals: Signal[] }> = [];
+  for (const def of QUADRANT_POOL) {
+    const signals = def.extract(product, mkId).filter(s => s.label.length >= 5);
+    results.push({ def, signals });
+  }
+
+  // Sort by: has signals first, then by priority, then by signal count
+  results.sort((a, b) => {
+    const aHas = a.signals.length > 0 ? 1 : 0;
+    const bHas = b.signals.length > 0 ? 1 : 0;
+    if (bHas !== aHas) return bHas - aHas;
+    if (b.def.priority !== a.def.priority) return b.def.priority - a.def.priority;
+    return b.signals.length - a.signals.length;
+  });
+
+  // Pick top 4
+  const selected = results.slice(0, 4);
+
+  const quadrants: ActiveQuadrant[] = selected.map(s => ({
+    key: s.def.key,
+    title: s.def.title,
+    subtitle: s.def.subtitle,
+    icon: s.def.icon,
+    dotColor: s.def.dotColor,
+    barColor: s.def.barColor,
+    bgTint: s.def.bgTint,
+    explanation: s.def.explanation,
+  }));
+
+  const data: MatrixData = {};
+  for (const s of selected) {
+    data[s.def.key] = s.signals;
+  }
+
+  return { quadrants, data };
+}
 const ATTENTION_LEVELS = [
   {
     value: "high_concentration" as const,
@@ -127,151 +468,6 @@ function humanize(raw: string): string {
   return text;
 }
 
-/* ── Signal extraction with richer friction sourcing ── */
-
-function extractMatrixData(product: Product): MatrixData {
-  const ci = (product as any).communityInsights;
-  const uw = (product as any).userWorkflow;
-  const cs = product.confidenceScores;
-
-  let idCounter = 0;
-  const mkId = () => `sig-${idCounter++}`;
-
-  // ── Strengths ──
-  const strengths: Signal[] = [];
-  if (product.keyInsight) {
-    strengths.push({ id: mkId(), label: humanize(product.keyInsight), score: 8, frequency: 1, why: "This is the single most important positive finding from the analysis." });
-  }
-  if (product.reviews?.length) {
-    product.reviews
-      .filter((r: any) => r.sentiment === "positive")
-      .forEach((r: any) => {
-        const text = humanize(r.text || "");
-        if (text) strengths.push({ id: mkId(), label: text, score: 7, frequency: 1, why: "Found in positive user reviews — real people said this." });
-      });
-  }
-  if (cs) {
-    if ((cs.adoptionLikelihood ?? 0) >= 8)
-      strengths.push({ id: mkId(), label: `High adoption likelihood (${cs.adoptionLikelihood}/10)`, score: cs.adoptionLikelihood ?? 8, frequency: 1, why: "Based on how likely people are to start using this product." });
-    if ((cs.emotionalResonance ?? 0) >= 8)
-      strengths.push({ id: mkId(), label: `Strong emotional connection (${cs.emotionalResonance}/10)`, score: cs.emotionalResonance ?? 8, frequency: 1, why: "Measures how much this product resonates emotionally with its audience." });
-  }
-
-  // ── Complaints ──
-  const complaints: Signal[] = [];
-  if (ci?.topComplaints?.length) {
-    ci.topComplaints.forEach((c: string) => {
-      const text = humanize(c);
-      if (text) complaints.push({ id: mkId(), label: text, score: 6, frequency: 1, why: "Surfaced from community discussions and user feedback." });
-    });
-  }
-  if (product.reviews?.length) {
-    product.reviews
-      .filter((r: any) => r.sentiment === "negative")
-      .forEach((r: any) => {
-        const text = humanize(r.text || "");
-        if (text && !complaints.some((x) => x.label === text))
-          complaints.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "From negative user reviews — a real frustration people expressed." });
-      });
-  }
-
-  // ── Friction — pull from multiple sources ──
-  const friction: Signal[] = [];
-  const seenFriction = new Set<string>();
-
-  // Source 1: userWorkflow.frictionPoints
-  if (uw?.frictionPoints?.length) {
-    uw.frictionPoints.forEach((fp: any) => {
-      const raw = typeof fp === "string" ? fp : fp.friction || fp.description || fp.label || fp.point || "";
-      const text = humanize(raw);
-      if (text && !seenFriction.has(text.toLowerCase())) {
-        seenFriction.add(text.toLowerCase());
-        const severity = typeof fp === "object" ? fp.severity : undefined;
-        const severityScore = severity === "high" ? 8 : severity === "medium" ? 6 : 5;
-        friction.push({
-          id: mkId(), label: text, score: severityScore, frequency: 1,
-          journey_stage: typeof fp === "object" ? (fp.stage || (fp.stepIndex !== undefined ? `Step ${fp.stepIndex + 1}` : undefined)) : undefined,
-          why: typeof fp === "object" && fp.rootCause ? `Root cause: ${humanize(fp.rootCause)}` : "Identified as a point where users slow down or get stuck in their journey.",
-        });
-      }
-    });
-  }
-
-  // Source 2: userWorkflow.steps — look for steps with friction/rootCause
-  if (uw?.steps?.length) {
-    uw.steps.forEach((step: any) => {
-      if (step.friction) {
-        const text = humanize(step.friction);
-        if (text && !seenFriction.has(text.toLowerCase())) {
-          seenFriction.add(text.toLowerCase());
-          friction.push({
-            id: mkId(), label: text, score: 5, frequency: 1,
-            journey_stage: step.label || step.name,
-            why: step.rootCause ? `Root cause: ${humanize(step.rootCause)}` : "Friction detected at this step in the user journey.",
-          });
-        }
-      }
-    });
-  }
-
-  // Source 3: communityInsights pain points or barriers
-  if (ci?.painPoints?.length) {
-    ci.painPoints.forEach((p: string) => {
-      const text = humanize(p);
-      if (text && !seenFriction.has(text.toLowerCase())) {
-        seenFriction.add(text.toLowerCase());
-        friction.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "Mentioned as a pain point by the community." });
-      }
-    });
-  }
-
-  // Source 4: serviceAnalysis.customerJourneyFriction (service mode)
-  const sa = (product as any).serviceAnalysis;
-  if (sa?.customerJourneyFriction?.length) {
-    sa.customerJourneyFriction.forEach((f: string) => {
-      const text = humanize(f);
-      if (text && !seenFriction.has(text.toLowerCase())) {
-        seenFriction.add(text.toLowerCase());
-        friction.push({ id: mkId(), label: text, score: 6, frequency: 1, why: "Customer journey friction point from service analysis." });
-      }
-    });
-  }
-
-  // Source 5: If still empty, derive from negative reviews mentioning UX/process words
-  if (friction.length === 0 && product.reviews?.length) {
-    const uxKeywords = /confus|difficult|slow|complicated|hard to|frustrat|broken|bug|crash|stuck|wait|load/i;
-    product.reviews
-      .filter((r: any) => r.sentiment === "negative" && uxKeywords.test(r.text || ""))
-      .slice(0, 3)
-      .forEach((r: any) => {
-        const text = humanize(r.text || "");
-        if (text && !seenFriction.has(text.toLowerCase())) {
-          seenFriction.add(text.toLowerCase());
-          friction.push({ id: mkId(), label: text, score: 4, frequency: 1, why: "Derived from user review describing a frustrating experience." });
-        }
-      });
-  }
-
-  // ── Opportunities ──
-  const opportunities: Signal[] = [];
-  if (ci?.improvementRequests?.length) {
-    ci.improvementRequests.forEach((r: string) => {
-      const text = humanize(r);
-      if (text) opportunities.push({ id: mkId(), label: text, score: 5, frequency: 1, why: "Users specifically requested this improvement." });
-    });
-  }
-
-  // Filter out any signals with empty labels
-  const clean = (arr: Signal[]) => arr.filter(s => s.label.length >= 5);
-
-  return {
-    strengths: clean(strengths),
-    complaints: clean(complaints),
-    friction: clean(friction),
-    opportunities: clean(opportunities),
-  };
-}
-
 /* ── Main Component ── */
 
 export function ObservedSignalMatrix({
@@ -283,7 +479,7 @@ export function ObservedSignalMatrix({
   analysisId: string | null;
   saveStepData: (key: string, data: unknown) => Promise<void>;
 }) {
-  const data = useMemo(() => extractMatrixData(product), [product]);
+  const { quadrants, data } = useMemo(() => selectQuadrants(product), [product]);
   const totalSignals = Object.values(data).reduce((s, arr) => s + arr.length, 0);
 
   const [userStates, setUserStates] = useState<PersistedState>({});
@@ -346,7 +542,7 @@ export function ObservedSignalMatrix({
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-[280px] text-xs leading-relaxed">
-                This panel distills the most important findings from the full analysis into four categories. 
+                This panel distills the most important findings from the analysis into adaptive categories based on available data. 
                 Scores (0–10) reflect how strongly a signal appeared across reviews, community data, and journey analysis. 
                 Use the priority tags to mark what matters most to you.
               </TooltipContent>
@@ -362,8 +558,8 @@ export function ObservedSignalMatrix({
 
         {/* Visual summary strip */}
         <div className="px-5 py-3 border-b border-border bg-muted/30 flex items-center gap-4 flex-wrap">
-          {QUADRANTS.map((q) => {
-            const count = data[q.key].length;
+          {quadrants.map((q) => {
+            const count = (data[q.key] || []).length;
             return (
               <div key={q.key} className="flex items-center gap-2">
                 <div className={`w-2.5 h-2.5 rounded-full ${q.dotColor}`} />
@@ -376,11 +572,11 @@ export function ObservedSignalMatrix({
 
         {/* Quadrant cards — each with its own tinted background */}
         <div className="grid grid-cols-1 md:grid-cols-2">
-          {QUADRANTS.map((q) => (
+          {quadrants.map((q) => (
             <QuadrantCard
               key={q.key}
               config={q}
-              signals={data[q.key]}
+              signals={data[q.key] || []}
               userStates={userStates}
               onUpdateState={updateSignalState}
             />
@@ -399,7 +595,7 @@ function QuadrantCard({
   userStates,
   onUpdateState,
 }: {
-  config: (typeof QUADRANTS)[number];
+  config: ActiveQuadrant;
   signals: Signal[];
   userStates: PersistedState;
   onUpdateState: (id: string, patch: Partial<UserSignalState>) => void;
@@ -483,7 +679,7 @@ function SignalRow({
   onUpdate,
 }: {
   signal: Signal;
-  config: (typeof QUADRANTS)[number];
+  config: ActiveQuadrant;
   state: UserSignalState;
   onUpdate: (patch: Partial<UserSignalState>) => void;
 }) {
