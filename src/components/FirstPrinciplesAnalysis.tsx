@@ -1141,14 +1141,17 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
         {/* ── Section: Redesigned Concept ── */}
         {activeStep === "concept" && (() => {
-          if (!concept) {
+          const conceptIsEmpty = !concept || (!concept.conceptName && !concept.coreInsight && !concept.physicalDescription);
+          if (conceptIsEmpty) {
             return (
               <div className="space-y-4">
                 <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
-                <div className="text-center py-10 space-y-3">
-                  <Sparkles size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
-                  <p className="text-sm font-bold text-foreground">No redesign concept yet</p>
-                  <p className="text-xs text-muted-foreground max-w-md mx-auto">Click <strong>Re-run</strong> above to generate a redesigned concept.</p>
+                <div className="text-center py-10 space-y-4">
+                  <Sparkles size={36} className="mx-auto" style={{ color: "hsl(38 92% 50%)" }} />
+                  <p className="text-lg font-extrabold text-foreground">No redesign concept generated yet</p>
+                  <p className="text-sm text-foreground/70 max-w-md mx-auto leading-relaxed">
+                    Click <strong>Re-run Analysis</strong> above to generate a full redesigned concept with radical differences, materials, pricing, and more.
+                  </p>
                 </div>
               </div>
             );
