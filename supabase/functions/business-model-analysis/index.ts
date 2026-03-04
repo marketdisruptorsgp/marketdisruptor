@@ -4,11 +4,11 @@ import { buildAdaptiveContextPrompt } from "../_shared/adaptiveContext.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { resolveMode, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
-import { getGovernedSchemaPrompt, buildValidationObject, deepValidateGoverned } from "../_shared/governedSchema.ts";
+import { buildValidationObject, deepValidateGoverned } from "../_shared/governedSchema.ts";
 import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
-import { extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
+import { buildStructuredOutputTools, extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -262,9 +262,16 @@ The JSON must follow this EXACT structure:
   }` : ""}
 }`;
 
+    const normalizedExtractedContext = typeof extractedContext === "string"
+      ? extractedContext.slice(0, 12000)
+      : "";
+    if (typeof extractedContext === "string" && extractedContext.length > normalizedExtractedContext.length) {
+      console.log(`[business-model-analysis] Truncated extractedContext from ${extractedContext.length} to ${normalizedExtractedContext.length} chars`);
+    }
+
     let extractedSection = "";
-    if (extractedContext) {
-      extractedSection = `\n\nDOCUMENT-EXTRACTED INTELLIGENCE (use this as primary evidence — it was extracted from uploaded business documents):\n${extractedContext}\n`;
+    if (normalizedExtractedContext) {
+      extractedSection = `\n\nDOCUMENT-EXTRACTED INTELLIGENCE (use this as primary evidence — it was extracted from uploaded business documents):\n${normalizedExtractedContext}\n`;
     }
 
     const userPrompt = `Apply radical first-principles deconstruction to this business model.
@@ -291,7 +298,7 @@ CRITICAL INSTRUCTIONS:
 11. UNIT ECONOMICS: Include specific margin math for the reinvented model.
 12. COMPETITIVE MOAT: Explain specifically what prevents a competitor from copying the reinvented model within 12 months.
 13. SCORING CALIBRATION: leverageScores default to 4-6. Scores ≥8 require cited evidence. 9-10 almost never justified. Apply friction penalties for behavior change, infrastructure requirements, and capital intensity. Label every opportunity as "Near-term viable", "Conditional opportunity", or "Long-horizon concept".
-${extractedContext ? "14. DOCUMENT EVIDENCE: Heavily weight the extracted intelligence from uploaded documents. Reference specific findings when making claims." : ""}
+${normalizedExtractedContext ? "14. DOCUMENT EVIDENCE: Heavily weight the extracted intelligence from uploaded documents. Reference specific findings when making claims." : ""}
 ${isETA ? `
 ETA ACQUISITION LENS ACTIVE — ADDITIONAL REQUIREMENTS:
 15. OWNER DEPENDENCY: Produce a detailed owner dependency assessment. Score transition risk 1-10. Identify every area where the owner is critical — customer relationships, vendor relationships, operational knowledge, pricing decisions, sales pipeline.
@@ -308,27 +315,36 @@ VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 2-3 action plans for highest-leverage interventions. Each must connect to a specific constraint.
 - Only generate visuals when structural causality is clear. Do not force visuals.
 
-GOVERNED OUTPUT REQUIREMENT — In addition to your primary output, include a "governed" object:
-${getGovernedSchemaPrompt("first-principles")}
+GOVERNED OUTPUT REQUIREMENT:
+- Include a complete "governed" object with all required artifacts.
+- The exact governed structure is enforced by tool-calling schema.
 
 Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(lens)}${buildModeWeightingPrompt(mode)}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.5,
-        max_tokens: 16000,
-      }),
-    });
+    const structuredTools = buildStructuredOutputTools("business-model-analysis");
+    const aiMessages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ];
+
+    async function callAI(model: string) {
+      return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: aiMessages,
+          ...(structuredTools || {}),
+          temperature: 0.5,
+          max_tokens: 24000,
+        }),
+      });
+    }
+
+    let response = await callAI("google/gemini-2.5-flash");
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -347,15 +363,40 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       throw new Error(`AI gateway error ${response.status}: ${txt}`);
     }
 
-    const aiData = await response.json();
+    let aiData = await response.json();
 
-    // §2: Structured output extraction
+    // Structured output extraction with retry fallback
     let analysis;
     try {
       analysis = extractStructuredResponse(aiData);
     } catch (parseErr) {
-      console.error("[StructuredOutput] Extraction failed:", parseErr);
-      throw new Error("AI returned invalid output. Please retry.");
+      console.warn("[StructuredOutput] Flash attempt failed, retrying with Pro:", parseErr);
+      response = await callAI("google/gemini-2.5-pro");
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: "AI usage credits exhausted. Please add credits in Settings → Workspace → Usage." }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const txt = await response.text();
+        throw new Error(`AI gateway retry error ${response.status}: ${txt}`);
+      }
+
+      aiData = await response.json();
+      try {
+        analysis = extractStructuredResponse(aiData);
+      } catch (retryErr) {
+        console.error("[StructuredOutput] Retry failed:", retryErr);
+        throw new Error("AI returned invalid output after retry. Please try again.");
+      }
     }
 
     const structuredValidation = validateStructuredResponse(analysis, "business-model-analysis");

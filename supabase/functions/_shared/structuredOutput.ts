@@ -401,11 +401,12 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
         properties: {
           domain_confirmation: GOVERNED_CORE_PROPERTIES.domain_confirmation,
           first_principles: GOVERNED_CORE_PROPERTIES.first_principles,
+          friction_tiers: GOVERNED_CORE_PROPERTIES.friction_tiers,
           constraint_map: GOVERNED_CORE_PROPERTIES.constraint_map,
           decision_synthesis: GOVERNED_CORE_PROPERTIES.decision_synthesis,
           reasoning_synopsis: GOVERNED_CORE_PROPERTIES.reasoning_synopsis,
         },
-        required: ["domain_confirmation", "first_principles", "constraint_map", "decision_synthesis", "reasoning_synopsis"],
+        required: ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis", "reasoning_synopsis"],
         additionalProperties: true,
       },
     },
