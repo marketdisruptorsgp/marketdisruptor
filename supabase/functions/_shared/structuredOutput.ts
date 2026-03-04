@@ -353,12 +353,46 @@ const GOVERNED_CORE_PROPERTIES = {
 
 const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
   // Note: These schemas define the `governed` sub-object structure.
-  // The full tool schema wraps the primary analysis output + governed.
-  // Since the primary output varies too much per step, we keep governed
-  // as the enforced schema and let the primary output remain flexible.
+  // Primary analysis fields are listed explicitly so the AI generates them.
   "first-principles": {
     type: "object",
     properties: {
+      currentStrengths: { type: "object", additionalProperties: true },
+      coreReality: { type: "object", additionalProperties: true },
+      frictionDimensions: { type: "object", additionalProperties: true },
+      userWorkflow: { type: "object", additionalProperties: true },
+      smartTechAnalysis: { type: "object", additionalProperties: true },
+      hiddenAssumptions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            assumption: { type: "string" },
+            currentAnswer: { type: "string" },
+            reason: { type: "string" },
+            isChallengeable: { type: "boolean" },
+            challengeIdea: { type: "string" },
+            leverageScore: { type: "number" },
+          },
+          required: ["assumption", "currentAnswer", "reason", "isChallengeable", "challengeIdea", "leverageScore"],
+          additionalProperties: false,
+        },
+      },
+      flippedLogic: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            originalAssumption: { type: "string" },
+            boldAlternative: { type: "string" },
+            rationale: { type: "string" },
+            physicalMechanism: { type: "string" },
+          },
+          required: ["originalAssumption", "boldAlternative", "rationale", "physicalMechanism"],
+          additionalProperties: false,
+        },
+      },
+      redesignedConcept: { type: "object", additionalProperties: true },
       governed: {
         type: "object",
         properties: {
@@ -373,7 +407,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
         additionalProperties: true,
       },
     },
-    required: ["governed"],
+    required: ["hiddenAssumptions", "flippedLogic", "redesignedConcept", "governed"],
     additionalProperties: true,
   },
   "critical-validation": {
