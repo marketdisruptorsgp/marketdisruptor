@@ -323,7 +323,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const saveSteeringText = useCallback((text: string) => {
     setSteeringText(text);
     // Update adaptive context with ongoing user guidance
-    setAdaptiveContext(prev => prev ? { ...prev, userGuidance: text || undefined } : null);
+    setAdaptiveContextState(prev => prev ? { ...prev, userGuidance: text || undefined } : null);
     if (analysisId) {
       saveStepData("steeringText", text);
     }
@@ -359,7 +359,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   // ── Mode Routing ──
   const [modeRouting, setModeRouting] = useState<RoutingResult | null>(null);
   // ── Adaptive Context ──
-  const [adaptiveContext, setAdaptiveContext] = useState<AdaptiveContextData | null>(null);
+  const [adaptiveContext, setAdaptiveContextState] = useState<AdaptiveContextData | null>(null);
+  const pendingAdaptiveCtxSaveRef = useRef<AdaptiveContextData | null | undefined>(undefined);
+  const setAdaptiveContext = useCallback((ctx: AdaptiveContextData | null) => {
+    setAdaptiveContextState(ctx);
+  }, []);
   const pendingLensSaveRef = useRef<string | null | undefined>(undefined);
   const setActiveLens = useCallback((lens: UserLens | null) => {
     setActiveLensState(lens);
@@ -675,6 +679,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const customName = customProducts?.find(cp => cp.productName)?.productName;
       await saveAnalysis(liveProducts, baseParams, customName);
 
+      // Mark adaptive context for deferred persistence
+      if (adaptiveContext) {
+        pendingAdaptiveCtxSaveRef.current = adaptiveContext;
+      }
+
       // Fire webhooks (best effort)
       try {
         await supabase.functions.invoke("fire-webhook", {
@@ -701,7 +710,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       stopLoadingTimer();
       toast.error("Analysis failed: " + msg);
     }
-  }, [canAnalyze, startLoadingTimer, stopLoadingTimer, pushLog, user?.id, checkSubscription, saveAnalysis, navigate, analysisId]);
+  }, [canAnalyze, startLoadingTimer, stopLoadingTimer, pushLog, user?.id, checkSubscription, saveAnalysis, navigate, analysisId, adaptiveContext]);
 
   const handleRegenerateIdeas = useCallback(async (product: Product, userContext?: string) => {
     if (!analysisParams) return;
@@ -955,6 +964,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
   }, [strategicProfile, analysisId, saveStepData]);
 
+  // Auto-persist adaptive context when set after analysis
+  useEffect(() => {
+    if (pendingAdaptiveCtxSaveRef.current !== undefined && analysisId) {
+      const ctx = pendingAdaptiveCtxSaveRef.current;
+      pendingAdaptiveCtxSaveRef.current = undefined;
+      if (ctx) saveStepData("adaptiveContext", ctx);
+    }
+  }, [adaptiveContext, analysisId, saveStepData]);
+
   const handleLoadSaved = useCallback(async (rawAnalysis: any) => {
     setLoadedFromSaved(true);
 
@@ -1062,6 +1080,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
     if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
     if (ad?.steeringText) setSteeringText(ad.steeringText as string);
+    if (ad?.adaptiveContext) setAdaptiveContext(ad.adaptiveContext as AdaptiveContextData);
     if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
     if (ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)) setPitchDeckExclusions(new Set(ad.pitchDeckExclusions as string[]));
     // projectNotes is loaded on-demand in portfolio/report, no context state needed
@@ -1230,6 +1249,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
         if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
         if (ad?.steeringText) setSteeringText(ad.steeringText as string);
+        if (ad?.adaptiveContext) setAdaptiveContext(ad.adaptiveContext as AdaptiveContextData);
         if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
         if (ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)) setPitchDeckExclusions(new Set(ad.pitchDeckExclusions as string[]));
         if (!ad?.activeLensId) setActiveLensState(null);
