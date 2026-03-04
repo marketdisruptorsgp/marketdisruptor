@@ -120,7 +120,15 @@ export function PresentationMode({ slides, onExit }: PresentationModeProps) {
       {/* Scaled slide with animation */}
       <div
         ref={slideRef}
-        style={{ width: 1920, height: 1080, transform: `scale(${scale})`, transformOrigin: "center center", overflow: "hidden", position: "relative" }}
+        style={{
+          width: 1920, height: 1080,
+          position: "absolute",
+          left: "50%", top: "50%",
+          marginLeft: -960, marginTop: -540,
+          transform: `scale(${scale})`,
+          transformOrigin: "center center",
+          overflow: "hidden",
+        }}
       >
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
