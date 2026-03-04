@@ -44,8 +44,12 @@ function getAvailableSections(selectedProduct: any, isService: boolean): Section
   const tabs: SectionTab[] = [
     { id: "overview", label: "Overview", icon: Target },
   ];
+  // Diagnostic: log all top-level keys on the product to find journey data
+  console.log("[ReportPage] Product keys:", Object.keys(selectedProduct || {}));
   const uw = (selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney;
+  console.log("[ReportPage] userWorkflow/userJourney found:", !!uw, uw ? Object.keys(uw) : "none");
   const uwSteps = uw?.stepByStep || uw?.steps;
+  console.log("[ReportPage] uwSteps length:", uwSteps?.length);
   if (uwSteps?.length > 0) tabs.push({ id: "journey", label: "User Journey", icon: Clock });
   const ci = (selectedProduct as any).communityInsights;
   if (ci) tabs.push({ id: "community", label: "Community Intel", icon: MessageSquare });
