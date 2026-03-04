@@ -1,7 +1,7 @@
 import React from "react";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, ChevronDown, Atom, ArrowRight } from "lucide-react";
+import { Brain, ChevronDown, Atom, ArrowRight, Route } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
 
@@ -419,22 +419,43 @@ export function StructureTab({
         </p>
       </div>
 
-      {/* ── Evaluation Path ── */}
-      <div className="rounded-xl px-5 py-4 flex items-center gap-4" style={{ background: "hsl(var(--muted))", border: "1.5px solid hsl(var(--border))" }}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.12)" }}>
-          <Atom size={15} style={{ color: "hsl(var(--primary))" }} />
-        </div>
-        <div className="min-w-0">
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Evaluating</p>
-          <p className="text-sm font-bold text-foreground leading-snug truncate">
-            {selectedProduct.name}
-            {analysis.analysisParams?.category ? <span className="font-medium text-muted-foreground"> · {analysis.analysisParams.category}</span> : null}
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-            What are the irreducible truths that govern this system, independent of convention?
-          </p>
-        </div>
-      </div>
+      {/* ── Evaluation Path (from reasoning synopsis) ── */}
+      {(() => {
+        const ep = (synopsisData as any)?.evaluation_path;
+        if (!ep) return null;
+        const dims: string[] = ep.dimensions_examined || [];
+        const logic: string = ep.evaluation_logic || "";
+        const excluded: string = ep.eliminated_dimensions || "";
+        return (
+          <div className="rounded-xl px-5 py-4 space-y-3" style={{ background: "hsl(var(--muted))", border: "1.5px solid hsl(var(--border))" }}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.12)" }}>
+                <Route size={15} style={{ color: "hsl(var(--primary))" }} />
+              </div>
+              <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Evaluation Path</p>
+            </div>
+            {dims.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {dims.map((d, i) => (
+                  <React.Fragment key={i}>
+                    <span className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(var(--background))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
+                      {d}
+                    </span>
+                    {i < dims.length - 1 && <ArrowRight size={10} className="text-muted-foreground/40 flex-shrink-0" />}
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
+            {logic && <p className="text-sm text-foreground leading-relaxed">{logic}</p>}
+            {excluded && (
+              <div className="pt-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Excluded Dimensions</p>
+                <p className="text-sm text-foreground leading-relaxed">{excluded}</p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Fundamental Constraints & System Structure */}
       <StructureSection
