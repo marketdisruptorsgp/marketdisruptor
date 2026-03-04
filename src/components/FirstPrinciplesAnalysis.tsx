@@ -601,6 +601,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const { user } = useAuth();
   const analysisCtx = useAnalysis();
   const [data, setData] = useState<FirstPrinciplesData | null>((externalData as FirstPrinciplesData) || null);
+  console.log("[FPA] data keys:", data ? Object.keys(data) : "null", "hiddenAssumptions:", (data as any)?.hiddenAssumptions?.length, "externalData keys:", externalData ? Object.keys(externalData as any) : "null");
   const [loading, setLoading] = useState(false);
   const isService = product.category === "Service";
   const [activeStep, setActiveStep] = useState<"assumptions" | "flip" | "ideas">("assumptions");
