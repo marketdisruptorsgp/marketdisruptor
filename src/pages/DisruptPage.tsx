@@ -11,7 +11,7 @@ import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { type StrategicHypothesis, rankWithProfile } from "@/lib/strategicOS";
-import { Target, Layers, Wrench, FileDown, Save } from "lucide-react";
+import { Target, Layers, Wrench, FileDown, Save, RefreshCw } from "lucide-react";
 import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
@@ -31,6 +31,8 @@ type TabId = typeof TABS[number]["id"];
 
 export default function DisruptPage() {
   const [activeTab, setActiveTab] = useState<TabId>("signal");
+  const [runTrigger, setRunTrigger] = useState(0);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
@@ -87,6 +89,19 @@ export default function DisruptPage() {
               profile={analysis.strategicProfile}
               onChangeProfile={analysis.setStrategicProfile}
             />
+            <button
+              onClick={() => { setRunTrigger(t => t + 1); setActiveTab("structure"); }}
+              disabled={analysisLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all"
+              style={{
+                background: analysisLoading ? "hsl(var(--primary) / 0.6)" : "hsl(var(--primary))",
+                color: "hsl(var(--primary-foreground))",
+                opacity: analysisLoading ? 0.7 : 1,
+              }}
+            >
+              {analysisLoading ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+              {hasDisruptData ? "Re-run Analysis" : "Run Analysis"}
+            </button>
             <button onClick={() => {
               if (!selectedProduct) return;
               const data = gatherAllAnalysisData(analysis);
@@ -158,6 +173,8 @@ export default function DisruptPage() {
               hasHypotheses={hasHypotheses}
               ranking={ranking}
               products={products}
+              runTrigger={runTrigger}
+              onLoadingChange={setAnalysisLoading}
             />
           )}
 
