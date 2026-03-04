@@ -133,7 +133,7 @@ const App = () => (
               <AnalysisProvider>
                 <AppRoutes />
                 <HelpAssistantPanel />
-                <MobileBottomNav />
+                
               </AnalysisProvider>
             </SubscriptionProvider>
           </AuthProvider>
