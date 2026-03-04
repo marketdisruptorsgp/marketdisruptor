@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
@@ -135,6 +135,8 @@ interface PitchDeckProps {
   accentColor?: string;
   insightPreferences?: Record<string, "liked" | "dismissed" | "neutral">;
   steeringText?: string;
+  runTrigger?: number;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
 // ── Slide structure ───────────────────────────────────────────
@@ -168,12 +170,24 @@ const SLIDE_CATEGORY_LABELS: Record<string, string> = {
 };
 
 // ── Component ─────────────────────────────────────────────────
-export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptData, stressTestData, redesignData, userScores, accentColor: modeAccent, insightPreferences, steeringText }: PitchDeckProps) => {
+export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptData, stressTestData, redesignData, userScores, accentColor: modeAccent, insightPreferences, steeringText, runTrigger, onLoadingChange }: PitchDeckProps) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const analysisCtx = useAnalysis();
   const [data, setData] = useState<PitchDeckData | null>((externalData as PitchDeckData) || null);
   const [loading, setLoading] = useState(false);
+
+  // Expose loading to parent
+  React.useEffect(() => { onLoadingChange?.(loading); }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Parent-triggered re-run via runTrigger counter
+  const runTriggerRef = React.useRef(runTrigger ?? 0);
+  React.useEffect(() => {
+    if (runTrigger !== undefined && runTrigger > runTriggerRef.current && !loading) {
+      runTriggerRef.current = runTrigger;
+      runAnalysis();
+    }
+  }, [runTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
   const [activeSlide, setActiveSlide] = useState<SlideTab>("problem");
   const [visitedSlides, setVisitedSlides] = useState<Set<string>>(new Set(["problem"]));
   const [userScore, setUserScore] = useState<number>(product.revivalScore || 7);
