@@ -1,52 +1,65 @@
 
 
-## Better User Journey Visualization
+## Plan: Integrate Competitive Landscape Intelligence into Stress Test
 
-### Problem
-The current `WorkflowTimeline` is a simple vertical list of steps with expandable friction details. It looks the same regardless of what's being analyzed (SaaS product vs physical product vs service). It doesn't feel like a real process/workflow diagram.
+### What Changes
 
-### Approach: Adaptive Journey Layout
+The Stress Test currently runs Red/Green team debates without awareness of real competitors. This plan adds two capabilities:
 
-**1. New `AdaptiveJourneyMap` component** (replaces `WorkflowTimeline` in journey tab)
+1. **Pass competitor data into the stress test AI prompt** — any competitors already scouted during the Disrupt step (plus the product's existing competitor data) get injected into the `critical-validation` edge function so the AI can reference real businesses in its attacks/defenses.
 
-Detects the type of journey from step content and `contextOfUse`/category, then renders an appropriate layout:
+2. **Add a new "Competitive Landscape" section to the Stress Test UI** — a dedicated panel (between the Red/Green arena and the existing Counter Examples) that shows a structured comparison of the original product vs. the redesigned concept against discovered competitors.
 
-- **Digital/SaaS journeys** (keywords: sign up, download, configure, dashboard) → Horizontal swimlane-style flow with phase groupings (Discovery → Onboarding → Core Usage → Retention)
-- **Physical/Service journeys** (keywords: visit, drive, arrive, wait, appointment) → Location-based vertical timeline with environment context
-- **E-commerce journeys** (keywords: browse, cart, checkout, deliver) → Funnel-style visualization showing conversion stages
-- **Default** → Enhanced horizontal process flow with connected nodes
+### Technical Approach
 
-**2. Visual improvements across all layouts:**
-- Steps rendered as connected **process nodes** (rounded cards with directional arrows/connectors between them)
-- Friction points shown **inline** as red warning badges on the connector lines (not hidden behind expand)
-- High-severity friction steps get a red/amber border glow — severity is visible at a glance
-- Phase grouping headers (e.g., "DISCOVERY", "ONBOARDING", "CORE USAGE") auto-derived from step content
-- Cognitive Load and Context of Use rendered as a summary bar at the top, not buried at the bottom
+**1. Data Flow: Persist scouted competitors in analysis context**
 
-**3. Horizontal flow for desktop, vertical for mobile:**
-- On desktop (sm+): steps flow left-to-right in a scrollable horizontal track with curved SVG connectors
-- On mobile: collapses to the current vertical layout but with the new styling
+- Add a `scoutedCompetitors` field to `AnalysisContext` (similar to how `stressTestData` or `geoData` are stored) so that competitors discovered on FlippedIdeaCard are available to downstream steps.
+- When `CompetitorScoutPanel` successfully fetches competitors, bubble them up to the context via a callback.
 
-### Technical Plan
+**2. Edge Function: Enrich `critical-validation` prompt**
 
-| Task | Detail |
+- Accept a new `competitorIntel` field in the request body containing scouted competitor profiles (name, url, strengths, weaknesses, differentiator_gap).
+- Add a `COMPETITIVE INTELLIGENCE` section to the user prompt that lists each competitor with their profile data.
+- Expand the JSON schema to include a new `competitiveLandscape` object:
+```text
+"competitiveLandscape": {
+  "originalVsCompetitors": [
+    { "competitor": "Name", "url": "...", 
+      "originalAdvantage": "where original beats them",
+      "originalVulnerability": "where they beat the original",
+      "redesignAdvantage": "where redesign wins",
+      "redesignGap": "remaining weakness vs this competitor" }
+  ],
+  "positioningRecommendation": "one-line positioning strategy",
+  "pricingInsight": "competitive pricing takeaway",
+  "biggestCompetitiveThreat": "name + why",
+  "categoryDynamics": "is this winner-take-all, fragmented, or consolidating"
+}
+```
+
+**3. UI: New "Competitive Landscape" panel in CriticalValidation**
+
+- Add the `competitiveLandscape` field to the `ValidationData` interface.
+- Render a new section on the "debate" tab (after the Red/Green arena, before Counter Examples) with:
+  - A competitor comparison table/cards showing original vs. redesign against each competitor.
+  - Positioning recommendation, pricing insight, and biggest threat highlighted.
+  - Cherry-pick `PitchDeckToggle` on each competitor comparison.
+- If no competitor data was provided (user didn't scout), show a subtle prompt: "Scout competitors in the Disrupt step for deeper competitive analysis here."
+
+**4. Context wiring**
+
+- In `FlippedIdeaCard` / `CompetitorScoutPanel`, call `analysis.setScoutedCompetitors(data)` when scouting completes.
+- In `StressTestPage`, pass `scoutedCompetitors` through to `CriticalValidation`.
+- `CriticalValidation.runValidation()` includes `competitorIntel: scoutedCompetitors` in the edge function body.
+
+### Files to Change
+
+| File | Change |
 |------|--------|
-| Create `src/components/AdaptiveJourneyMap.tsx` | New component with phase detection, horizontal flow layout, friction overlays |
-| Phase detection logic | Categorize steps into phases (Discovery/Evaluation/Acquisition/Usage/Retention) based on keyword matching from existing `STEP_ICON_KEYWORDS` |
-| Journey type detection | Use `contextOfUse`, category, and step keywords to pick layout variant |
-| Friction severity visualization | Red/amber/green connector segments between nodes; high-severity steps get prominent callout |
-| Update `ReportPage.tsx` | Replace `WorkflowTimeline` with `AdaptiveJourneyMap` in the journey tab |
-| Update `ShareableAnalysisPage.tsx` | Same replacement for shared view |
-| Keep `WorkflowTimeline` export | Other pages (Index, PrintableReport) still use it — don't break them |
-
-### Data available for adaptation
-From `userWorkflow`:
-- `stepByStep: string[]` — step names
-- `frictionPoints: { stepIndex, friction, severity, rootCause }[]`
-- `cognitiveLoad: string`
-- `contextOfUse: string`
-
-From parent product:
-- `category` — product/service/business type
-- `name`, `description` — what's being analyzed
+| `src/contexts/AnalysisContext.tsx` | Add `scoutedCompetitors` state + setter + persistence |
+| `src/components/FlippedIdeaCard.tsx` | Bubble scouted competitors to context |
+| `supabase/functions/critical-validation/index.ts` | Accept `competitorIntel`, add to prompt, expand JSON schema |
+| `src/components/CriticalValidation.tsx` | Add `competitiveLandscape` to interface, render new section with comparison cards |
+| `src/pages/StressTestPage.tsx` | Pass `scoutedCompetitors` prop to CriticalValidation |
 
