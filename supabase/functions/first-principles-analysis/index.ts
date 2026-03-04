@@ -21,7 +21,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch, governedContext, adaptiveContext: rawAdaptiveCtx } = await req.json();
+    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch, governedContext, adaptiveContext: rawAdaptiveCtx, upstreamIntel } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     // Extract active branch context for isolated or combined downstream reasoning
@@ -475,10 +475,66 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     }
 
 
+    // ── UPSTREAM INTELLIGENCE REPORT DATA ──
+    let upstreamPrompt = "";
+    if (upstreamIntel && Object.keys(upstreamIntel).length > 0) {
+      const parts: string[] = [];
+      parts.push("\n\n--- UPSTREAM INTELLIGENCE (from Report step) ---");
+      parts.push("Use this verified market intelligence to ground your assumptions, flips, and redesign in real data. Reference specific findings below when identifying constraints and leverage points.\n");
+
+      if (upstreamIntel.pricingIntel) {
+        const pi = upstreamIntel.pricingIntel;
+        parts.push("PRICING INTELLIGENCE:");
+        if (pi.currentMarketPrice) parts.push(`  Market Price: ${pi.currentMarketPrice}`);
+        if (pi.msrpOriginal) parts.push(`  Original MSRP: ${pi.msrpOriginal}`);
+        if (pi.margins) parts.push(`  Margins: ${pi.margins}`);
+        if (pi.collectorPremium) parts.push(`  Collector Premium: ${pi.collectorPremium}`);
+        if (pi.priceDirection) parts.push(`  Price Trend: ${pi.priceDirection}`);
+        const resale = pi.resaleAvgSold || pi.ebayAvgSold;
+        if (resale) parts.push(`  Resale Average: ${resale}`);
+      }
+
+      if (upstreamIntel.supplyChain) {
+        const sc = upstreamIntel.supplyChain;
+        parts.push("\nSUPPLY CHAIN INTELLIGENCE:");
+        if (sc.suppliers?.length > 0) parts.push(`  Key Suppliers: ${sc.suppliers.map((s: any) => `${s.name} (${s.region}, ${s.role || ""})`).join("; ")}`);
+        if (sc.manufacturers?.length > 0) parts.push(`  Manufacturers: ${sc.manufacturers.map((m: any) => `${m.name} (${m.region}, MOQ: ${m.moq || "?"})`).join("; ")}`);
+        if (sc.distributors?.length > 0) parts.push(`  Distributors: ${sc.distributors.map((d: any) => `${d.name} (${d.region})`).join("; ")}`);
+      }
+
+      if (upstreamIntel.communityInsights) {
+        const ci = upstreamIntel.communityInsights;
+        parts.push("\nCOMMUNITY INTELLIGENCE (verified signals):");
+        if (ci.communitySentiment) parts.push(`  Overall Sentiment: ${ci.communitySentiment}`);
+        if (ci.topComplaints?.length > 0) parts.push(`  Top Complaints:\n${ci.topComplaints.map((c: string) => `    • ${c}`).join("\n")}`);
+        if (ci.improvementRequests?.length > 0) parts.push(`  Improvement Requests:\n${ci.improvementRequests.map((r: string) => `    • ${r}`).join("\n")}`);
+      }
+
+      if (upstreamIntel.userWorkflow) {
+        const uw = upstreamIntel.userWorkflow;
+        parts.push("\nCURRENT USER WORKFLOW (mapped in Report):");
+        if (uw.stepByStep?.length > 0) parts.push(`  Steps: ${uw.stepByStep.map((s: string, i: number) => `${i + 1}. ${s}`).join(" → ")}`);
+        if (uw.frictionPoints?.length > 0) parts.push(`  Known Friction:\n${uw.frictionPoints.map((f: any) => `    • Step ${(f.stepIndex || 0) + 1}: ${f.friction} [${f.severity}] — Root: ${f.rootCause || "unknown"}`).join("\n")}`);
+        if (uw.cognitiveLoad) parts.push(`  Cognitive Load: ${uw.cognitiveLoad}`);
+      }
+
+      if (upstreamIntel.patentLandscape) {
+        const pl = upstreamIntel.patentLandscape;
+        parts.push("\nPATENT LANDSCAPE:");
+        if (pl.totalPatents) parts.push(`  Total Patents: ${pl.totalPatents}`);
+        if (pl.expiredPatents) parts.push(`  Expired Patents: ${pl.expiredPatents}`);
+        if (pl.keyPlayers?.length > 0) parts.push(`  Key Players: ${pl.keyPlayers.join(", ")}`);
+        if (pl.gapAnalysis) parts.push(`  IP Gap Analysis: ${typeof pl.gapAnalysis === "string" ? pl.gapAnalysis : JSON.stringify(pl.gapAnalysis).slice(0, 400)}`);
+      }
+
+      parts.push("\nINSTRUCTION: Ground your hidden assumptions and flipped logic in this upstream intelligence. If pricing data reveals margin compression, that's a structural constraint. If community complaints cluster around a specific friction, that should dominate your friction analysis. If supply chain is concentrated, that's a vulnerability to exploit in redesign.");
+      upstreamPrompt = parts.join("\n");
+    }
+
     const structuredTools = buildStructuredOutputTools("first-principles");
     const aiMessages = [
       { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt + curationPrompt },
+      { role: "user", content: userPrompt + curationPrompt + upstreamPrompt },
     ];
 
     // Helper: make AI gateway call with optional tool calling
