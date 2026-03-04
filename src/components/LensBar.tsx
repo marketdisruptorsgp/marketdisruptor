@@ -34,9 +34,7 @@ function getLensParams(lens: UserLens | null): LensParam[] {
   if (lensType === "eta") {
     params.push({ icon: Scale, label: "Focus", value: "Value durability & operational leverage" });
   } else if (lensType === "custom" && lens?.primary_objective) {
-    const shortObj = lens.primary_objective.length > 40
-      ? lens.primary_objective.slice(0, 40) + "…"
-      : lens.primary_objective;
+    const shortObj = lens.primary_objective;
     params.push({ icon: Scale, label: "Focus", value: shortObj });
   }
 

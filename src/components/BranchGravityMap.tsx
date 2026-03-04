@@ -152,8 +152,7 @@ function SecondaryBubble({
 }) {
   const [expanded, setExpanded] = useState(false);
   const status = isActive ? STATUS.active : STATUS.alternative;
-  const needsTruncation = constraint.length > 70;
-  const displayText = !expanded && needsTruncation ? constraint.slice(0, 67) + "…" : constraint;
+  const displayText = constraint;
 
   return (
     <motion.div
@@ -194,7 +193,7 @@ function SecondaryBubble({
             </motion.p>
           )}
         </AnimatePresence>
-        {needsTruncation && (
+        {constraint.length > 70 && (
           <span className="text-[10px] font-bold mt-1 inline-block" style={{ color: isActive ? STATUS.active.text : "hsl(var(--primary))" }}>
             {expanded ? "Show less" : "Read more"}
           </span>
