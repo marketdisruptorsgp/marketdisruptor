@@ -31,7 +31,7 @@ export default function DisruptPage() {
   const [ready, setReady] = React.useState(false);
   React.useEffect(() => { const t = setTimeout(() => setReady(true), 1200); return () => clearTimeout(t); }, []);
 
-  const shouldRedirectHome = ready && analysis.step === "idle";
+  const shouldRedirectHome = ready && !analysis.isHydrating && analysis.step === "idle";
   React.useEffect(() => {
     if (shouldRedirectHome) {
       navigate("/", { replace: true });
