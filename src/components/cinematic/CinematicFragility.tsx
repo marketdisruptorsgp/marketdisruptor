@@ -76,7 +76,7 @@ function FractureOrb({
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.12 }}
             className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-[9px] font-bold pointer-events-none z-30"
-            style={{ top: size + 6, background: "hsl(var(--cin-depth-mid))", color: "hsl(var(--cin-label))", border: `1px solid ${color}20` }}
+            style={{ top: size + 6, background: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))", border: `1px solid ${color}20` }}
           >
             {ROLE_LABELS[signal.role]} · {signal.score}
           </motion.div>
@@ -99,7 +99,7 @@ function DepthPanel({ signal, onClose }: { signal: RankedSignal; onClose: () => 
       className="absolute z-30 rounded-xl p-4 max-w-[240px]"
       style={{
         right: "6%", bottom: "8%",
-        background: "hsl(var(--cin-depth-mid) / 0.95)",
+        background: "hsl(var(--popover) / 0.97)",
         border: `1px solid ${color}20`,
         boxShadow: `0 8px 40px ${color}15`,
         backdropFilter: "blur(16px)",
@@ -110,7 +110,7 @@ function DepthPanel({ signal, onClose }: { signal: RankedSignal; onClose: () => 
         <div className="w-2.5 h-2.5 rounded-full mt-0.5 flex-shrink-0"
           style={{ background: color, boxShadow: `0 0 8px ${color}50` }} />
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold leading-snug" style={{ color: "hsl(0 0% 90%)" }}>{signal.label}</p>
+          <p className="text-xs font-bold leading-snug" style={{ color: "hsl(var(--foreground))" }}>{signal.label}</p>
           <p className="text-[10px] font-semibold mt-0.5" style={{ color }}>{ROLE_LABELS[signal.role]}</p>
         </div>
       </div>
@@ -153,8 +153,8 @@ export function CinematicFragility({ story }: { story: VisualStory }) {
       style={{
         height: "clamp(320px, 45vh, 440px)",
         background: "radial-gradient(ellipse 70% 55% at 50% 50%, hsl(var(--cin-depth-mid)), hsl(var(--cin-depth-bg)))",
-        border: "1px solid hsl(var(--cin-depth-fg) / 0.5)",
-        boxShadow: "0 12px 60px -12px hsl(0 0% 0% / 0.5)",
+        border: "1px solid hsl(var(--cin-depth-fg))",
+        boxShadow: "0 4px 24px -8px hsl(220 20% 80% / 0.3)",
       }}
       onClick={() => setSelected(null)}
     >

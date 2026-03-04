@@ -125,7 +125,7 @@ function NodeDetail({ node, role, onClose }: { node: VisualNode; role: NodeRole;
       className="absolute z-30 rounded-xl p-4 max-w-[220px]"
       style={{
         right: "6%", bottom: "8%",
-        background: "hsl(var(--cin-depth-mid) / 0.95)",
+        background: "hsl(var(--popover) / 0.97)",
         border: `1px solid ${color}20`,
         backdropFilter: "blur(16px)",
       }}
@@ -134,7 +134,7 @@ function NodeDetail({ node, role, onClose }: { node: VisualNode; role: NodeRole;
       <div className="flex items-start gap-2 mb-2">
         <div className="w-2 h-2 rounded-full mt-1" style={{ background: color }} />
         <div>
-          <p className="text-xs font-bold" style={{ color: "hsl(0 0% 90%)" }}>{node.label}</p>
+          <p className="text-xs font-bold" style={{ color: "hsl(var(--foreground))" }}>{node.label}</p>
           <p className="text-[10px] font-semibold" style={{ color }}>{ROLE_LABELS[role]}</p>
         </div>
       </div>
@@ -168,8 +168,8 @@ export function StructuralVisual({ spec }: { spec: VisualSpec }) {
       style={{
         height,
         background: "radial-gradient(ellipse 75% 55% at 50% 50%, hsl(var(--cin-depth-mid)), hsl(var(--cin-depth-bg)))",
-        border: "1px solid hsl(var(--cin-depth-fg) / 0.5)",
-        boxShadow: "0 12px 60px -12px hsl(0 0% 0% / 0.5)",
+        border: "1px solid hsl(var(--cin-depth-fg))",
+        boxShadow: "0 4px 24px -8px hsl(220 20% 80% / 0.3)",
       }}
       onClick={() => setSelected(null)}
     >

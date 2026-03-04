@@ -111,17 +111,17 @@
     --shadow-vi-node-hover: 0 8px 32px -8px hsl(220 20% 80% / 0.25), 0 0 0 1px hsl(var(--primary) / 0.15);
     --shadow-vi-glow: 0 0 20px -4px;
 
-    /* Cinematic Visual Engine */
-    --cin-depth-bg: 220 20% 4%;
-    --cin-depth-mid: 220 18% 8%;
-    --cin-depth-fg: 220 16% 14%;
-    --cin-red: 0 72% 52%;
-    --cin-red-glow: 0 72% 62%;
-    --cin-green: 152 60% 44%;
-    --cin-green-glow: 152 60% 54%;
-    --cin-verdict-ring: 220 14% 20%;
-    --cin-label: 220 10% 70%;
-    --cin-surface: 220 18% 6%;
+    /* Cinematic Visual Engine — Light theme (museum-quality, editorial) */
+    --cin-depth-bg: 220 14% 96%;
+    --cin-depth-mid: 220 14% 98%;
+    --cin-depth-fg: 220 13% 88%;
+    --cin-red: 0 72% 50%;
+    --cin-red-glow: 0 72% 58%;
+    --cin-green: 152 60% 38%;
+    --cin-green-glow: 152 60% 48%;
+    --cin-verdict-ring: 220 14% 85%;
+    --cin-label: 220 15% 30%;
+    --cin-surface: 0 0% 100%;
     --shadow-cin-orb: 0 0 40px -8px;
     --shadow-cin-signal: 0 4px 20px -6px;
   }

@@ -444,8 +444,8 @@ function SignalField({ story, title }: { story: VisualStory; title: string }) {
 function CinematicFallback() {
   return (
     <div className="rounded-2xl flex items-center justify-center"
-      style={{ height: 300, background: "hsl(var(--cin-depth-bg))", border: "1px solid hsl(var(--cin-depth-fg) / 0.3)" }}>
-      <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--cin-label) / 0.3)", borderTopColor: "transparent" }} />
+      style={{ height: 300, background: "hsl(var(--cin-depth-bg))", border: "1px solid hsl(var(--cin-depth-fg))" }}>
+      <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--cin-label) / 0.4)", borderTopColor: "transparent" }} />
     </div>
   );
 }
