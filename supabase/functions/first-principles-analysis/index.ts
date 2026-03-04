@@ -523,7 +523,7 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
           { role: "user", content: userPrompt + curationPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 16000,
+        max_tokens: 24000,
       }),
     });
 
