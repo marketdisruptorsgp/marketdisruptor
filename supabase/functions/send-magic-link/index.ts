@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: `${BRAND.name} <hello@marketdisruptor.sgpcapital.com>`,
+        from: `${BRAND.name} <info@marketdisruptor.org>`,
         to: [email.trim()],
         subject: "Your Magic Link",
         html,
