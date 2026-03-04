@@ -172,6 +172,9 @@ interface AnalysisContextType {
   // Adaptive context (problem analysis, challenges, entity)
   adaptiveContext: AdaptiveContextData | null;
   setAdaptiveContext: (ctx: AdaptiveContextData | null) => void;
+
+  // Hydration state — true while auto-hydration DB fetch is in progress
+  isHydrating: boolean;
 }
 
 export interface AdaptiveContextData {
@@ -197,6 +200,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   const [step, setStep] = useState<AnalysisStep>("idle");
+  const [isHydrating, setIsHydrating] = useState(false);
   const [mainTab, setMainTab] = useState<"custom" | "service" | "business">("custom");
   const [activeMode, setActiveMode] = useState<AnalysisMode>("custom");
   const [stepMessage, setStepMessage] = useState("");
@@ -1174,6 +1178,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (!urlAnalysisId || !user?.id) return;
 
     autoHydratedRef.current = true;
+    setIsHydrating(true);
     console.log("[AutoHydrate] Loading analysis from URL:", urlAnalysisId);
 
     (async () => {
@@ -1265,6 +1270,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         console.log("[AutoHydrate] Analysis loaded successfully:", data.title);
       } catch (err) {
         console.error("[AutoHydrate] Failed:", err);
+      } finally {
+        setIsHydrating(false);
       }
     })();
   }, [step, products.length, user?.id]);
@@ -1304,6 +1311,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       governedData, setGovernedData,
       activeBranchId, setActiveBranchId,
       strategicProfile, setStrategicProfile,
+      isHydrating,
     }}>
       {children}
     </AnalysisContext.Provider>

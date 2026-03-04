@@ -88,7 +88,7 @@ export default function ReportPage() {
     return () => clearTimeout(t);
   }, []);
 
-  const shouldRedirectHome = waitedForLoad && analysis.step === "idle" && products.length === 0;
+  const shouldRedirectHome = waitedForLoad && !analysis.isHydrating && analysis.step === "idle" && products.length === 0;
   React.useEffect(() => {
     if (shouldRedirectHome) {
       navigate("/", { replace: true });
