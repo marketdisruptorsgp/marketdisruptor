@@ -1246,8 +1246,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 {[
                   { label: "Price Point", value: concept.pricePoint, color: "hsl(217 91% 45%)" },
                   { label: "Target User", value: concept.targetUser, color: "hsl(271 70% 45%)" },
-                  { label: "Capital Required", value: concept.capitalRequired || "—", color: "hsl(38 92% 45%)" },
-                  { label: "Risk Level", value: concept.riskLevel || "—", color: "hsl(0 72% 48%)" },
+                  { label: "Capital Required", value: concept.capitalRequired || "—", color: "hsl(152 60% 38%)" },
+                  { label: "Risk Level", value: concept.riskLevel || "—", color: "hsl(200 80% 42%)" },
                 ].map((item) => (
                   <div key={item.label} className="p-4 rounded-xl text-center" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                     <p className="text-[10px] font-extrabold uppercase tracking-[0.12em]" style={{ color: item.color }}>{item.label}</p>
@@ -1259,12 +1259,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               {/* Why not done + Risk — deep contrast panel */}
               <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert} defaultOpen>
                 <div className="space-y-4 mb-2">
-                  <div className="p-4 rounded-xl" style={{ background: "hsl(0 72% 52% / 0.05)", borderLeft: "3px solid hsl(0 72% 48%)" }}>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5" style={{ color: "hsl(0 72% 42%)" }}>Why Not Already Done</p>
+                  <div className="p-4 rounded-xl" style={{ background: "hsl(217 91% 45% / 0.05)", borderLeft: "3px solid hsl(217 91% 45%)" }}>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5" style={{ color: "hsl(217 91% 38%)" }}>Why Not Already Done</p>
                     <p className="text-sm font-semibold text-foreground leading-relaxed">{concept.whyItHasntBeenDone}</p>
                   </div>
-                  <div className="p-4 rounded-xl" style={{ background: "hsl(36 80% 52% / 0.05)", borderLeft: "3px solid hsl(36 80% 45%)" }}>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5" style={{ color: "hsl(36 80% 38%)" }}>Biggest Risk</p>
+                  <div className="p-4 rounded-xl" style={{ background: "hsl(271 70% 45% / 0.05)", borderLeft: "3px solid hsl(271 70% 45%)" }}>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5" style={{ color: "hsl(271 70% 38%)" }}>Biggest Risk</p>
                     <p className="text-sm font-semibold text-foreground leading-relaxed">{concept.biggestRisk}</p>
                   </div>
                   <div className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
