@@ -527,3 +527,14 @@
 .pitch-scaled svg text {
   font-size: 200%;
 }
+
+/* ── Mobile Utilities ────────────────────────────────────────────── */
+.touch-target-min {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Safe area bottom padding for fixed elements */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

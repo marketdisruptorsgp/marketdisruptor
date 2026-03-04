@@ -489,7 +489,7 @@ export default function NewAnalysisPage() {
         <LensBar />
 
         {/* ── Mode Cards (top) ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 pb-2 md:pb-0 md:grid md:grid-cols-3 mb-6">
           {MODES.map((mode) => {
             const Icon = mode.icon;
             const isSelected = !useDeconstruct && selectedMode === mode.id;
@@ -498,7 +498,7 @@ export default function NewAnalysisPage() {
               <button
                 key={mode.id}
                 onClick={() => handleCardClick(mode.id)}
-                className="rounded-2xl border bg-card flex flex-col overflow-hidden transition-all hover:shadow-lg text-left"
+                className="rounded-2xl border bg-card flex flex-col overflow-hidden transition-all hover:shadow-lg text-left min-w-[280px] md:min-w-0 snap-center flex-shrink-0"
                 style={{
                   borderWidth: isSelected ? "2px" : "1px",
                   borderColor: isSelected
@@ -511,7 +511,7 @@ export default function NewAnalysisPage() {
                   opacity: useDeconstruct && !isDetected ? 0.5 : 1,
                 }}
               >
-                <div className="p-5 sm:p-6 flex-1 flex flex-col">
+                <div className="p-4 sm:p-5 md:p-6 flex-1 flex flex-col">
                   <div className="flex items-center justify-between mb-4">
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center"

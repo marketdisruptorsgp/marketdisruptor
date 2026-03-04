@@ -52,7 +52,9 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
   const accent = accentColor || "hsl(var(--primary))";
   return (
     <div className="sticky top-0 z-20 -mx-4 px-3 sm:px-4 py-3 sm:py-3.5 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide">
+      <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide relative">
+        {/* Right fade hint for scrollability */}
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background/95 to-transparent pointer-events-none z-10 sm:hidden" />
         {/* Progress bar + Lens badge */}
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5">
@@ -74,7 +76,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
         </div>
 
         {/* Step cards */}
-        <div className="flex items-stretch gap-1.5 sm:gap-2 min-w-max">
+        <div className="flex items-stretch gap-1.5 sm:gap-2 min-w-max snap-x snap-mandatory">
           {steps.map((s, i, arr) => {
             const isCurrent = activeStep === s.step;
             const isPast = visitedSteps.has(s.step) && !isCurrent;
@@ -86,7 +88,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
               <React.Fragment key={s.step}>
                 <button
                   onClick={() => { onStepChange(s.step); scrollToTop(); }}
-                  className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-left transition-all flex-shrink-0 min-w-[110px] sm:min-w-0 sm:flex-1 relative"
+                  className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 sm:py-3 rounded-xl text-left transition-all flex-shrink-0 min-w-[120px] min-h-[48px] sm:min-w-0 sm:flex-1 relative snap-center"
                   style={{
                     background: isCurrent ? accent : isPast ? "hsl(var(--muted))" : "transparent",
                     color: isCurrent ? "white" : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
