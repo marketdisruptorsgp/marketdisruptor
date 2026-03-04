@@ -352,7 +352,7 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
 
           {userName && (
             <p style={{
-              fontSize: 112, fontWeight: 800,
+              fontSize: 56, fontWeight: 800,
               color: "#0f0f12",
               fontFamily: "'Space Grotesk', sans-serif",
               marginTop: 24,
