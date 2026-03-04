@@ -98,53 +98,7 @@ function FirstPrinciplesSection({ governedData }: { governedData: Record<string,
 
   return (
     <div className="space-y-5">
-      {/* Minimum Viable System */}
-      {fp.minimum_viable_system && (
-        <div className="space-y-1.5">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Minimum Viable System</p>
-          <p className="text-sm leading-relaxed text-foreground">{fp.minimum_viable_system}</p>
-        </div>
-      )}
-
-      {/* Causal Model */}
-      {fp.causal_model && (
-        <div className="space-y-2">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Causal Model</p>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
-            {/* Inputs */}
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Inputs</p>
-              <div className="flex flex-wrap gap-1.5">
-                {(fp.causal_model.inputs || []).map((inp, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
-                    {inp}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <ArrowRight size={16} className="text-muted-foreground hidden sm:block flex-shrink-0" />
-            {/* Mechanism */}
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Mechanism</p>
-              <p className="text-xs leading-relaxed text-foreground font-medium">{fp.causal_model.mechanism}</p>
-            </div>
-            <ArrowRight size={16} className="text-muted-foreground hidden sm:block flex-shrink-0" />
-            {/* Outputs */}
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Outputs</p>
-              <div className="flex flex-wrap gap-1.5">
-                {(fp.causal_model.outputs || []).map((out, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-                    {out}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Fundamental Constraints */}
+      {/* ── 1. Fundamental Constraints (what holds the system back) ── */}
       {fp.fundamental_constraints && fp.fundamental_constraints.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Fundamental Constraints</p>
@@ -204,38 +158,232 @@ function FirstPrinciplesSection({ governedData }: { governedData: Record<string,
         </div>
       )}
 
-      {/* Viability Assumptions */}
-      {fp.viability_assumptions && fp.viability_assumptions.length > 0 && (
+      {/* ── 2. Causal Model (system structure — moved to end) ── */}
+      {fp.minimum_viable_system && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Minimum Viable System</p>
+          <p className="text-sm leading-relaxed text-foreground">{fp.minimum_viable_system}</p>
+        </div>
+      )}
+
+      {fp.causal_model && (
         <div className="space-y-2">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Viability Assumptions</p>
-          <div className="space-y-2">
-            {fp.viability_assumptions
-              .sort((a, b) => b.leverage_if_wrong - a.leverage_if_wrong)
-              .map((va, i) => {
-                const status = STATUS_COLORS[va.evidence_status] || STATUS_COLORS.speculative;
-                return (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 p-3 rounded-lg"
-                    style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground leading-relaxed font-medium">{va.assumption}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: status.bg, color: status.text }}>
-                          {status.label}
-                        </span>
-                        <span className="text-[10px] font-bold tabular-nums text-muted-foreground">
-                          Leverage if wrong: {va.leverage_if_wrong}/10
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Causal Model</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Inputs */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Inputs</p>
+              <div className="flex flex-wrap gap-1.5">
+                {(fp.causal_model.inputs || []).map((inp, i) => (
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
+                    {inp}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <ArrowRight size={16} className="text-muted-foreground hidden sm:block flex-shrink-0" />
+            {/* Mechanism */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Mechanism</p>
+              <p className="text-xs leading-relaxed text-foreground font-medium">{fp.causal_model.mechanism}</p>
+            </div>
+            <ArrowRight size={16} className="text-muted-foreground hidden sm:block flex-shrink-0" />
+            {/* Outputs */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Outputs</p>
+              <div className="flex flex-wrap gap-1.5">
+                {(fp.causal_model.outputs || []).map((out, i) => (
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
+                    {out}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── Unified Assumptions & Leverage Section ── */
+function UnifiedAssumptionsSection({
+  governedData,
+  hiddenAssumptions,
+}: {
+  governedData: Record<string, unknown> | null;
+  hiddenAssumptions: any[];
+}) {
+  const fp = governedData?.first_principles as {
+    viability_assumptions?: Array<{ assumption: string; evidence_status: string; leverage_if_wrong: number }>;
+  } | undefined;
+
+  const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
+    verified: { bg: "hsl(142 70% 40% / 0.12)", text: "hsl(142 70% 40%)", label: "Verified" },
+    modeled: { bg: "hsl(38 92% 50% / 0.12)", text: "hsl(38 92% 50%)", label: "Modeled" },
+    speculative: { bg: "hsl(0 70% 50% / 0.12)", text: "hsl(0 70% 50%)", label: "Speculative" },
+  };
+
+  const REASON_COLORS: Record<string, string> = {
+    tradition: "hsl(38 92% 45%)",
+    manufacturing: "hsl(220 10% 45%)",
+    cost: "hsl(142 70% 35%)",
+    physics: "hsl(0 70% 50%)",
+    habit: "hsl(271 81% 50%)",
+  };
+
+  // Merge viability assumptions + hidden assumptions into a single list
+  type UnifiedAssumption = {
+    assumption: string;
+    source: "viability" | "hidden";
+    evidence_status?: string;
+    leverage: number;
+    isChallengeable?: boolean;
+    challengeIdea?: string;
+    currentAnswer?: string;
+    reason?: string;
+    impactScenario?: string;
+    competitiveBlindSpot?: string;
+    urgencySignal?: string;
+    urgencyReason?: string;
+  };
+
+  const unified: UnifiedAssumption[] = [];
+
+  // Add viability assumptions
+  if (fp?.viability_assumptions) {
+    for (const va of fp.viability_assumptions) {
+      unified.push({
+        assumption: va.assumption,
+        source: "viability",
+        evidence_status: va.evidence_status,
+        leverage: va.leverage_if_wrong,
+      });
+    }
+  }
+
+  // Add hidden assumptions (deduplicate by text similarity)
+  for (const ha of hiddenAssumptions) {
+    const isDuplicate = unified.some(
+      (u) => u.assumption.toLowerCase().trim() === ha.assumption?.toLowerCase().trim()
+    );
+    if (!isDuplicate) {
+      unified.push({
+        assumption: ha.assumption,
+        source: "hidden",
+        leverage: ha.leverageScore || 0,
+        isChallengeable: ha.isChallengeable,
+        challengeIdea: ha.challengeIdea,
+        currentAnswer: ha.currentAnswer,
+        reason: ha.reason,
+        impactScenario: ha.impactScenario,
+        competitiveBlindSpot: ha.competitiveBlindSpot,
+        urgencySignal: ha.urgencySignal,
+        urgencyReason: ha.urgencyReason,
+      });
+    }
+  }
+
+  // Sort by leverage score descending
+  unified.sort((a, b) => b.leverage - a.leverage);
+
+  if (unified.length === 0) {
+    return (
+      <div className="text-center py-8 space-y-2">
+        <Brain size={28} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
+        <p className="text-sm font-bold text-foreground">No assumptions identified yet</p>
+        <p className="text-xs text-muted-foreground">Run the analysis to uncover hidden assumptions and their leverage potential.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {unified.map((item, i) => {
+        const leverageColor = item.leverage >= 8 ? "hsl(0 70% 50%)" : item.leverage >= 5 ? "hsl(38 92% 50%)" : "hsl(220 10% 55%)";
+        const reasonColor = item.reason ? REASON_COLORS[item.reason] || "hsl(220 10% 55%)" : undefined;
+        const status = item.evidence_status ? STATUS_COLORS[item.evidence_status] || STATUS_COLORS.speculative : undefined;
+        const hasInsight = item.impactScenario || item.competitiveBlindSpot;
+
+        return (
+          <div
+            key={i}
+            className="rounded-lg overflow-hidden"
+            style={{
+              background: "hsl(var(--muted))",
+              border: "1px solid hsl(var(--border))",
+              borderLeft: reasonColor ? `3px solid ${reasonColor}` : undefined,
+            }}
+          >
+            <div className="p-3">
+              <p className="text-sm text-foreground leading-relaxed font-medium">{item.assumption}</p>
+
+              {item.currentAnswer && (
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.currentAnswer}</p>
+              )}
+
+              {/* Tags row */}
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                {/* Leverage score */}
+                <span className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-full" style={{ background: leverageColor + "18", color: leverageColor }}>
+                  Leverage: {item.leverage}/10
+                </span>
+                {/* Evidence status */}
+                {status && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: status.bg, color: status.text }}>
+                    {status.label}
+                  </span>
+                )}
+                {/* Reason category */}
+                {item.reason && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: (reasonColor || "hsl(220 10% 55%)") + "18", color: reasonColor }}>
+                    {item.reason.charAt(0).toUpperCase() + item.reason.slice(1)}
+                  </span>
+                )}
+                {item.isChallengeable && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(271 81% 55% / 0.12)", color: "hsl(271 81% 55%)" }}>
+                    Challengeable
+                  </span>
+                )}
+                {item.urgencySignal && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{
+                    background: item.urgencySignal === "eroding" ? "hsl(0 70% 50% / 0.12)" : item.urgencySignal === "emerging" ? "hsl(142 70% 40% / 0.12)" : "hsl(220 10% 55% / 0.12)",
+                    color: item.urgencySignal === "eroding" ? "hsl(0 70% 50%)" : item.urgencySignal === "emerging" ? "hsl(142 70% 40%)" : "hsl(220 10% 55%)",
+                  }}>
+                    {item.urgencySignal.charAt(0).toUpperCase() + item.urgencySignal.slice(1)}
+                  </span>
+                )}
+              </div>
+
+              {/* Challenge approach */}
+              {item.challengeIdea && (
+                <div className="mt-2 p-2 rounded-md text-xs leading-relaxed" style={{ background: "hsl(271 81% 55% / 0.06)", border: "1px solid hsl(271 81% 55% / 0.15)" }}>
+                  <span className="font-bold" style={{ color: "hsl(271 81% 55%)" }}>Challenge approach: </span>
+                  <span className="text-foreground">{item.challengeIdea}</span>
+                </div>
+              )}
+
+              {/* Strategic Insight annotations (folded deep insights) */}
+              {hasInsight && (
+                <div className="mt-2 space-y-1">
+                  {item.impactScenario && (
+                    <div className="p-2 rounded-md text-xs leading-relaxed" style={{ background: "hsl(var(--primary) / 0.05)", border: "1px solid hsl(var(--primary) / 0.12)" }}>
+                      <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>Impact scenario: </span>
+                      <span className="text-foreground">{item.impactScenario}</span>
+                    </div>
+                  )}
+                  {item.competitiveBlindSpot && (
+                    <div className="p-2 rounded-md text-xs leading-relaxed" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
+                      <span className="font-bold" style={{ color: "hsl(38 92% 45%)" }}>Competitive blind spot: </span>
+                      <span className="text-foreground">{item.competitiveBlindSpot}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -274,9 +422,9 @@ export function StructureTab({
         </p>
       </div>
 
-      {/* Fundamental Truths & Decomposition */}
+      {/* Fundamental Constraints & System Structure */}
       <StructureSection
-        title="Fundamental Truths"
+        title="Fundamental Constraints"
         icon={Atom}
         defaultOpen={true}
         badge={hasDisruptData ? "Decomposed" : undefined}
@@ -284,13 +432,26 @@ export function StructureTab({
         <FirstPrinciplesSection governedData={governedData} />
       </StructureSection>
 
-      {/* A. Assumptions */}
+      {/* Unified Assumptions & Leverage */}
       <StructureSection
-        title="Assumptions"
+        title="Assumptions & Leverage"
         icon={Brain}
         defaultOpen={hasDisruptData}
-        badge={assumptions.length > 0 ? `${assumptions.length} found` : undefined}
+        badge={(() => {
+          const hiddenCount = assumptions.length;
+          const viabilityCount = ((governedData?.first_principles as any)?.viability_assumptions || []).length;
+          const total = hiddenCount + viabilityCount;
+          return total > 0 ? `${total} identified` : undefined;
+        })()}
       >
+        <UnifiedAssumptionsSection
+          governedData={governedData}
+          hiddenAssumptions={assumptions}
+        />
+      </StructureSection>
+
+      {/* Analysis Engine (still needed for running/re-running the core analysis) */}
+      <div className="hidden">
         <FirstPrinciplesAnalysis
           product={selectedProduct}
           onSaved={() => analysis.setSavedRefreshTrigger((n: number) => n + 1)}
@@ -325,7 +486,7 @@ export function StructureTab({
             });
           }}
         />
-      </StructureSection>
+      </div>
 
       {/* B. Reasoning */}
       {hasSynopsis && (
