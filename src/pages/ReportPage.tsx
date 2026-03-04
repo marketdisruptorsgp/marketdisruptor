@@ -178,6 +178,19 @@ export default function ReportPage() {
           </div>
         </div>
 
+        {/* ── Intelligence Report Context Banner ── */}
+        <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: modeAccent }}>
+              <Target size={18} style={{ color: "white" }} />
+            </div>
+            <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Intelligence Report</h3>
+          </div>
+          <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
+            A consolidated view of pricing, supply chain, community sentiment, and competitive positioning — each finding tagged by confidence level.
+          </p>
+        </div>
+
         {/* Product Card */}
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
