@@ -776,7 +776,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   if (!data && loading) {
     return (
       <StepLoadingTracker
-        title={renderMode === "redesign" ? "Generating Redesign Concept" : "Building Disrupt Analysis"}
+        title={renderMode === "redesign" ? "Generating Redesign Concept" : "Building First Principles Analysis"}
         tasks={renderMode === "redesign" ? REDESIGN_TASKS : DISRUPT_TASKS}
         estimatedSeconds={50}
         accentColor={renderMode === "redesign" ? "hsl(38 92% 50%)" : "hsl(271 81% 55%)"}
