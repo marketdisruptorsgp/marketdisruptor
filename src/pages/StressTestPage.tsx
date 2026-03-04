@@ -17,10 +17,12 @@ import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save } from "lucide-react";
+import { FileDown, Save, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function StressTestPage() {
+  const [runTrigger, setRunTrigger] = React.useState(0);
+  const [analysisLoading, setAnalysisLoading] = React.useState(false);
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
@@ -71,6 +73,19 @@ export default function StressTestPage() {
               profile={analysis.strategicProfile}
               onChangeProfile={analysis.setStrategicProfile}
             />
+            <button
+              onClick={() => setRunTrigger(t => t + 1)}
+              disabled={analysisLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all"
+              style={{
+                background: analysisLoading ? "hsl(var(--primary) / 0.6)" : "hsl(var(--primary))",
+                color: "hsl(var(--primary-foreground))",
+                opacity: analysisLoading ? 0.7 : 1,
+              }}
+            >
+              {analysisLoading ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+              {analysis.stressTestData ? "Re-run Analysis" : "Run Analysis"}
+            </button>
             <button onClick={() => {
               if (!selectedProduct) return;
               const data = gatherAllAnalysisData(analysis);
@@ -97,6 +112,8 @@ export default function StressTestPage() {
             analysisData={selectedProduct}
             activeTab="debate"
             externalData={analysis.stressTestData}
+            runTrigger={runTrigger}
+            onLoadingChange={setAnalysisLoading}
             onDataLoaded={(d) => {
               analysis.setStressTestData(d);
               analysis.saveStepData("stressTest", d);

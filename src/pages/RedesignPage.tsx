@@ -18,10 +18,14 @@ import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save } from "lucide-react";
+import { FileDown, Save, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
+const { useState } = React;
+
 export default function RedesignPage() {
+  const [runTrigger, setRunTrigger] = useState(0);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
@@ -79,6 +83,19 @@ export default function RedesignPage() {
               profile={analysis.strategicProfile}
               onChangeProfile={analysis.setStrategicProfile}
             />
+            <button
+              onClick={() => setRunTrigger(t => t + 1)}
+              disabled={analysisLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all"
+              style={{
+                background: analysisLoading ? "hsl(var(--primary) / 0.6)" : "hsl(var(--primary))",
+                color: "hsl(var(--primary-foreground))",
+                opacity: analysisLoading ? 0.7 : 1,
+              }}
+            >
+              {analysisLoading ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+              {analysis.redesignData ? "Re-run Analysis" : "Run Analysis"}
+            </button>
             <button onClick={() => {
               if (!selectedProduct) return;
               const data = gatherAllAnalysisData(analysis);
@@ -110,6 +127,8 @@ export default function RedesignPage() {
             renderMode="redesign"
             autoTrigger={shouldAutoTrigger}
             externalData={isOutdated ? null : (analysis.redesignData ?? analysis.disruptData)}
+            runTrigger={runTrigger}
+            onLoadingChange={setAnalysisLoading}
             onDataLoaded={(d) => {
               analysis.setRedesignData(d);
               analysis.saveStepData("redesign", d);

@@ -112,6 +112,8 @@ interface CriticalValidationProps {
   activeTab: "debate" | "validate";
   externalData?: unknown;
   onDataLoaded?: (data: unknown) => void;
+  runTrigger?: number;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
 const SEVERITY_STYLES = {
@@ -151,10 +153,22 @@ const DEBATE_SECTIONS = [
   { id: "validate", label: "Validate & Score", icon: CheckCircle2 },
 ];
 
-export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded }: CriticalValidationProps) => {
+export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
   const [userSuggestions, setUserSuggestions] = useState("");
+
+  // Expose loading to parent
+  React.useEffect(() => { onLoadingChange?.(loading); }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Parent-triggered re-run via runTrigger counter
+  const runTriggerRef = React.useRef(runTrigger ?? 0);
+  React.useEffect(() => {
+    if (runTrigger !== undefined && runTrigger > runTriggerRef.current && !loading) {
+      runTriggerRef.current = runTrigger;
+      runValidation();
+    }
+  }, [runTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   let geoData: unknown = undefined;
   let regulatoryData: unknown = undefined;
