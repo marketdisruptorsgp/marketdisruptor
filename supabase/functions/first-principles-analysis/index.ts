@@ -637,9 +637,10 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       return next;
     }
 
-    // Attempt 1: Flash model with tool calling (cheaper/faster)
-    // Falls back to Pro if Flash fails to produce valid output
-    let response = await callAI(true, "google/gemini-2.5-flash");
+    // ── PRIMARY AI CALL ──
+    // Use Pro directly — Flash consistently fails with tool calling on this complex schema,
+    // wasting 40-60s before the inevitable Pro retry. Going straight to Pro saves ~45s.
+    const response = await callAI(true, "google/gemini-2.5-pro");
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -658,25 +659,26 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       throw new Error(`AI gateway error ${response.status}: ${txt}`);
     }
 
-    let aiData = await response.json();
+    const aiData = await response.json();
 
-    // §2: Structured output extraction with retry fallback
+    // §2: Structured output extraction
     let analysis: Record<string, unknown>;
     try {
       analysis = extractStructuredResponse(aiData);
     } catch (parseErr) {
-      console.warn("[StructuredOutput] Flash attempt failed, retrying with Pro model:", parseErr);
-      response = await callAI(true, "google/gemini-2.5-pro");
-      if (!response.ok) {
-        const txt = await response.text();
-        throw new Error(`AI gateway retry error ${response.status}: ${txt}`);
+      // Fallback: try raw content parse
+      const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
+      let cleaned = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+      const firstBrace = cleaned.indexOf("{");
+      const lastBrace = cleaned.lastIndexOf("}");
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        cleaned = cleaned.slice(firstBrace, lastBrace + 1);
       }
-      aiData = await response.json();
       try {
-        analysis = extractStructuredResponse(aiData);
-      } catch (retryErr) {
-        console.error("[StructuredOutput] Retry also failed:", retryErr);
-        throw new Error("AI returned invalid output after retry. Please try again.");
+        analysis = JSON.parse(cleaned);
+      } catch (jsonErr) {
+        console.error("[StructuredOutput] All parse attempts failed:", parseErr, jsonErr);
+        throw new Error("AI returned invalid output. Please try again.");
       }
     }
 
@@ -685,33 +687,12 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     if (!minimumValidation.valid) {
       console.warn(`[StructuredOutput] Underfilled arrays detected: ${minimumValidation.underfilled.map((u) => `${u.field}:${u.actual}/${u.min}`).join(", ")}`);
 
-      // Repair pass with explicit minimum constraints and prior output context
-      const repairMessages = [
-        ...aiMessages,
-        { role: "assistant", content: JSON.stringify(analysis).slice(0, 10000) },
-        {
-          role: "user",
-          content:
-            "REPAIR PASS REQUIRED. Your prior output failed hard minimums. Return a complete JSON object that satisfies ALL schema fields, with at least 5 hiddenAssumptions and at least 4 flippedLogic items. Each flippedLogic must map to a specific hidden assumption. Cover diverse friction dimensions (cost, workflow, skill, ecosystem, delivery/physical). Ground each item in the provided upstream intelligence and user friction evidence.",
-        },
-      ];
-
-      const repairResponse = await callAI(true, "google/gemini-2.5-pro", repairMessages);
-      if (repairResponse.ok) {
-        try {
-          const repairData = await repairResponse.json();
-          analysis = extractStructuredResponse(repairData);
-        } catch (repairErr) {
-          console.warn("[StructuredOutput] Repair parse failed, applying deterministic fallback:", repairErr);
-        }
-      }
-
+      // Skip expensive repair pass — go straight to deterministic expansion
+      // The repair pass adds another 30-60s for marginal quality improvement
+      // Deterministic fallback is faster and produces acceptable results
+      console.warn("[StructuredOutput] Applying deterministic expansion fallback (skipping repair pass for speed).");
+      analysis = enforceMinimumArtifacts(analysis);
       minimumValidation = validateArrayMinimums(analysis, "first-principles");
-      if (!minimumValidation.valid) {
-        console.warn("[StructuredOutput] Repair still underfilled, applying deterministic expansion fallback.");
-        analysis = enforceMinimumArtifacts(analysis);
-        minimumValidation = validateArrayMinimums(analysis, "first-principles");
-      }
     }
 
     console.log(
