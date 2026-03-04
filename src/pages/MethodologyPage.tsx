@@ -7,15 +7,15 @@ import {
 
 /* ── Reasoning Engine ── */
 const ENGINE_STEPS = [
-  "Domain Confirmation",
-  "Objective Definition",
-  "First-Principles Decomposition",
-  "Friction Discovery",
-  "Friction Relevance Qualification (Tier 1/2/3)",
-  "Constraint Mapping → cost, time, adoption, scale, reliability, risk",
-  "Mode-Specific Structural Analysis",
-  "Leverage Identification",
-  "Constraint-Driven Solution Generation",
+  { step: "Domain Confirmation", color: "bg-blue-500" },
+  { step: "Objective Definition", color: "bg-blue-500" },
+  { step: "First-Principles Decomposition", color: "bg-indigo-500" },
+  { step: "Friction Discovery", color: "bg-violet-500" },
+  { step: "Friction Relevance Qualification (Tier 1/2/3)", color: "bg-violet-500" },
+  { step: "Constraint Mapping — cost, time, adoption, scale, reliability, risk", color: "bg-amber-500" },
+  { step: "Mode-Specific Structural Analysis", color: "bg-emerald-500" },
+  { step: "Leverage Identification", color: "bg-rose-500" },
+  { step: "Constraint-Driven Solution Generation", color: "bg-rose-500" },
 ];
 
 /* ── Frameworks ── */
@@ -26,6 +26,9 @@ const FRAMEWORKS = [
     status: "core" as const,
     where: "Disrupt step, reasoning engine",
     how: "Decomposes every product, service, or model to fundamental truths. Strips assumptions. Rebuilds from constraints upward. Powers the entire 9-step reasoning protocol.",
+    accent: "border-l-indigo-500",
+    bg: "bg-indigo-500/8",
+    iconColor: "text-indigo-600",
   },
   {
     name: "SCAMPER",
@@ -33,6 +36,9 @@ const FRAMEWORKS = [
     status: "embedded" as const,
     where: "Flip the Logic, Flipped Ideas",
     how: "Each assumption is reversed, substituted, combined, or eliminated to generate non-obvious alternatives. The method is structural — every flip must causally connect to a mapped constraint.",
+    accent: "border-l-emerald-500",
+    bg: "bg-emerald-500/8",
+    iconColor: "text-emerald-600",
   },
   {
     name: "Jobs-to-Be-Done",
@@ -40,6 +46,9 @@ const FRAMEWORKS = [
     status: "embedded" as const,
     where: "Intel report, friction discovery",
     how: "Maps the functional, emotional, and social jobs customers hire a product or service to do. Friction discovery asks where value is lost in that job — exposing non-obvious competitors.",
+    accent: "border-l-cyan-500",
+    bg: "bg-cyan-500/8",
+    iconColor: "text-cyan-600",
   },
   {
     name: "Value Proposition Canvas",
@@ -47,6 +56,9 @@ const FRAMEWORKS = [
     status: "partial" as const,
     where: "Stress Test, constraint mapping",
     how: "Red vs. Green Team debate stress-tests whether proposed value maps to real customer pains and gains. Constraint mapping (cost, time, adoption, scale, reliability, risk) replaces the visual canvas with structured logic.",
+    accent: "border-l-amber-500",
+    bg: "bg-amber-500/8",
+    iconColor: "text-amber-600",
   },
   {
     name: "Design Thinking",
@@ -54,6 +66,9 @@ const FRAMEWORKS = [
     status: "parallel" as const,
     where: "Overall pipeline structure",
     how: "The 6-step pipeline (Intel → Disrupt → Redesign → Stress Test → Pitch) mirrors Empathize → Define → Ideate → Prototype → Test. Diverges from IDEO by using data-driven decomposition instead of ethnographic observation.",
+    accent: "border-l-gray-400",
+    bg: "bg-gray-500/8",
+    iconColor: "text-gray-500",
   },
 ];
 
@@ -69,6 +84,10 @@ const PIPELINE_STEPS = [
   {
     title: "Data Collection",
     icon: Search,
+    accent: "border-l-blue-500",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-600",
+    dotColor: "bg-blue-500",
     desc: "Deep analysis across real-world sources — pricing databases, wholesale directories, forums, search trends, patent filings, and virality signals.",
     details: [
       "Historical & current market pricing",
@@ -82,6 +101,10 @@ const PIPELINE_STEPS = [
   {
     title: "3-Layer Deconstruction",
     icon: Layers,
+    accent: "border-l-violet-500",
+    iconBg: "bg-violet-500/10",
+    iconColor: "text-violet-600",
+    dotColor: "bg-violet-500",
     desc: "Every market analyzed across Supply (sourcing, manufacturing, logistics), Demand (audience segments, willingness to pay, growth), and Positioning (competitive landscape, differentiation).",
     details: [
       "Supply: sourcing costs, lead times, MOQs, quality",
@@ -92,6 +115,10 @@ const PIPELINE_STEPS = [
   {
     title: "Claim Tagging & Leverage Scoring",
     icon: Tag,
+    accent: "border-l-amber-500",
+    iconBg: "bg-amber-500/10",
+    iconColor: "text-amber-600",
+    dotColor: "bg-amber-500",
     desc: "All insights tagged as Verified, Modeled, or Assumption. High-leverage assumptions scored 1–10 — these are worth validating first.",
     details: [
       "Verified: traceable data (pricing records, patents, listings)",
@@ -102,6 +129,10 @@ const PIPELINE_STEPS = [
   {
     title: "Adversarial Red Teaming",
     icon: Swords,
+    accent: "border-l-rose-500",
+    iconBg: "bg-rose-500/10",
+    iconColor: "text-rose-600",
+    dotColor: "bg-rose-500",
     desc: "Simulated adversary attacks key assumptions, identifies blind spots, and pressure-tests positioning.",
     details: [
       "Red Team challenges every strategic claim",
@@ -154,40 +185,37 @@ export default function MethodologyPage() {
 
       {/* Hero */}
       <div className="border-b border-border bg-card">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-4">Methodology</p>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight mb-3">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-7 sm:py-9">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Methodology</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight mb-1.5">
             How the Engine Works
           </h1>
-          <p className="text-base text-muted-foreground max-w-2xl leading-relaxed">
+          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
             A 9-step reasoning protocol powered by established strategic frameworks — adapted for decision-grade output.
           </p>
         </div>
       </div>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-14">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10">
 
         {/* ── Section 1: Reasoning Engine ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">Decision-Grade Output Engine</h2>
-          <p className="text-sm text-muted-foreground mb-5">Every analysis runs through this sequential protocol. No step is skipped.</p>
-          <div className="border border-border rounded-lg bg-card p-4 sm:p-5">
-            <ol className="space-y-2">
-              {ENGINE_STEPS.map((step, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm">
-                  <span
-                    className="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold mt-0.5"
-                    style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}
-                  >
+          <h2 className="text-lg font-bold text-foreground mb-0.5">Decision-Grade Output Engine</h2>
+          <p className="text-[13px] text-muted-foreground mb-3">Every analysis runs through this sequential protocol. No step is skipped.</p>
+          <div className="border border-border rounded-md bg-card p-3 sm:p-4">
+            <ol className="space-y-0">
+              {ENGINE_STEPS.map((s, i) => (
+                <li key={i} className="flex items-center gap-3 py-1.5 text-[13px] border-b border-border/50 last:border-b-0">
+                  <span className={`flex-shrink-0 w-5 h-5 rounded ${s.color} text-white flex items-center justify-center text-[10px] font-bold`}>
                     {i + 1}
                   </span>
-                  <span className="text-foreground">{step}</span>
+                  <span className="text-foreground">{s.step}</span>
                 </li>
               ))}
             </ol>
-            <div className="mt-4 pt-3 border-t border-border">
-              <p className="text-xs text-muted-foreground">
-                <strong className="text-foreground">Anti-Default Safeguard:</strong> Technology is only introduced when non-technical solutions (process → pricing → structural → operational) fail to remove a Tier 1 constraint.
+            <div className="mt-3 pt-2.5 border-t border-border">
+              <p className="text-[11px] text-muted-foreground">
+                <strong className="text-foreground">Anti-Default Safeguard:</strong> Technology is only introduced when non-technical solutions (process, pricing, structural, operational) fail to remove a Tier 1 constraint.
               </p>
             </div>
           </div>
@@ -195,21 +223,21 @@ export default function MethodologyPage() {
 
         {/* ── Section 2: Frameworks ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">Embedded Frameworks</h2>
-          <p className="text-sm text-muted-foreground mb-5">Established methodologies integrated into the reasoning engine.</p>
-          <div className="space-y-3">
+          <h2 className="text-lg font-bold text-foreground mb-0.5">Embedded Frameworks</h2>
+          <p className="text-[13px] text-muted-foreground mb-3">Established methodologies integrated into the reasoning engine.</p>
+          <div className="space-y-1.5">
             {FRAMEWORKS.map((fw) => {
               const Icon = fw.icon;
               const status = STATUS_LABELS[fw.status];
               return (
-                <div key={fw.name} className="border border-border rounded-lg p-4 sm:p-5 bg-card">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10">
-                      <Icon size={16} className="text-primary" />
+                <div key={fw.name} className={`border border-border border-l-[3px] ${fw.accent} rounded-md p-3 sm:p-3.5 bg-card`}>
+                  <div className="flex items-start gap-2.5">
+                    <div className={`flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center ${fw.bg}`}>
+                      <Icon size={14} className={fw.iconColor} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <p className="text-sm font-bold text-foreground">{fw.name}</p>
+                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                        <p className="text-[13px] font-bold text-foreground">{fw.name}</p>
                         <span
                           className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
                           style={{ background: `${status.color}15`, color: status.color }}
@@ -217,10 +245,10 @@ export default function MethodologyPage() {
                           {status.label}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mb-2">
+                      <p className="text-[11px] text-muted-foreground mb-1">
                         <strong className="text-foreground">Where:</strong> {fw.where}
                       </p>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{fw.how}</p>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">{fw.how}</p>
                     </div>
                   </div>
                 </div>
@@ -229,29 +257,29 @@ export default function MethodologyPage() {
           </div>
         </section>
 
-        {/* ── Section 3: Mode-Specific Application ── */}
+        {/* ── Section 3: Mode-Specific ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">Mode-Specific Application</h2>
-          <p className="text-sm text-muted-foreground mb-5">Each mode applies frameworks through a different leverage domain.</p>
-          <div className="grid grid-cols-1 gap-3">
+          <h2 className="text-lg font-bold text-foreground mb-0.5">Mode-Specific Application</h2>
+          <p className="text-[13px] text-muted-foreground mb-3">Each mode applies frameworks through a different leverage domain.</p>
+          <div className="grid grid-cols-1 gap-1.5">
             {MODES.map((mode) => {
               const Icon = mode.icon;
               return (
                 <div
                   key={mode.id}
-                  className="border border-border rounded-lg p-4 sm:p-5 bg-card"
+                  className="border border-border rounded-md p-3 sm:p-3.5 bg-card"
                   style={{ borderTopWidth: "3px", borderTopColor: `hsl(var(${mode.cssVar}))` }}
                 >
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-2">
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center"
+                      className="w-6 h-6 rounded-md flex items-center justify-center"
                       style={{ background: `hsl(var(${mode.cssVar}) / 0.12)` }}
                     >
-                      <Icon size={15} style={{ color: `hsl(var(${mode.cssVar}))` }} />
+                      <Icon size={13} style={{ color: `hsl(var(${mode.cssVar}))` }} />
                     </div>
-                    <h3 className="text-sm font-bold text-foreground">{mode.label} Mode</h3>
+                    <h3 className="text-[13px] font-bold text-foreground">{mode.label} Mode</h3>
                   </div>
-                  <dl className="space-y-2 text-xs">
+                  <dl className="space-y-1 text-[11px]">
                     {[
                       ["Leverage Domain", mode.leverage],
                       ["Unique Intel", mode.uniqueIntel],
@@ -259,7 +287,7 @@ export default function MethodologyPage() {
                       ["Redesign", mode.redesign],
                     ].map(([label, value]) => (
                       <div key={label} className="flex items-start gap-2">
-                        <dt className="font-semibold text-foreground flex-shrink-0 w-24">{label}</dt>
+                        <dt className="font-semibold text-foreground flex-shrink-0 w-20">{label}</dt>
                         <dd className="text-muted-foreground">{value}</dd>
                       </div>
                     ))}
@@ -272,27 +300,27 @@ export default function MethodologyPage() {
 
         {/* ── Section 4: Analysis Pipeline ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">Analysis Pipeline</h2>
-          <p className="text-sm text-muted-foreground mb-5">The 4-stage execution layer that operationalizes the reasoning engine.</p>
-          <div className="space-y-3">
+          <h2 className="text-lg font-bold text-foreground mb-0.5">Analysis Pipeline</h2>
+          <p className="text-[13px] text-muted-foreground mb-3">The 4-stage execution layer that operationalizes the reasoning engine.</p>
+          <div className="space-y-1.5">
             {PIPELINE_STEPS.map((step, i) => {
               const Icon = step.icon;
               return (
-                <div key={i} className="border border-border rounded-lg p-4 sm:p-5 bg-card">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 flex flex-col items-center gap-1">
-                      <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 border border-primary/20">
-                        <Icon size={16} className="text-primary" />
+                <div key={i} className={`border border-border border-l-[3px] ${step.accent} rounded-md p-3 sm:p-3.5 bg-card`}>
+                  <div className="flex items-start gap-2.5">
+                    <div className="flex-shrink-0 flex flex-col items-center gap-0.5">
+                      <div className={`w-7 h-7 rounded-md flex items-center justify-center ${step.iconBg}`}>
+                        <Icon size={14} className={step.iconColor} />
                       </div>
-                      <span className="text-[10px] font-bold text-muted-foreground">Stage {i + 1}</span>
+                      <span className="text-[9px] font-bold text-muted-foreground">S{i + 1}</span>
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-foreground mb-1">{step.title}</p>
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-3">{step.desc}</p>
-                      <ul className="space-y-1">
+                      <p className="text-[13px] font-bold text-foreground mb-0.5">{step.title}</p>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">{step.desc}</p>
+                      <ul className="space-y-0.5">
                         {step.details.map((d, j) => (
-                          <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
-                            <span className="w-1 h-1 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+                          <li key={j} className="text-[11px] text-muted-foreground flex items-start gap-2">
+                            <span className={`w-1 h-1 rounded-full ${step.dotColor} flex-shrink-0 mt-1.5`} />
                             {d}
                           </li>
                         ))}
@@ -307,29 +335,28 @@ export default function MethodologyPage() {
 
         {/* ── Section 5: Adaptive Market Intelligence ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">Adaptive Market Intelligence</h2>
-          <p className="text-sm text-muted-foreground mb-5">Context-aware data enrichment layers that activate based on the category and geography of each analysis.</p>
-          <div className="space-y-3">
-            {/* Geographic & Demographic */}
-            <div className="border border-border rounded-lg p-4 sm:p-5 bg-card">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 border border-primary/20">
-                  <BarChart3 size={16} className="text-primary" />
+          <h2 className="text-lg font-bold text-foreground mb-0.5">Adaptive Market Intelligence</h2>
+          <p className="text-[13px] text-muted-foreground mb-3">Context-aware data enrichment layers that activate based on category and geography.</p>
+          <div className="space-y-1.5">
+            <div className="border border-border border-l-[3px] border-l-cyan-500 rounded-md p-3 sm:p-3.5 bg-card">
+              <div className="flex items-start gap-2.5">
+                <div className="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center bg-cyan-500/10">
+                  <BarChart3 size={14} className="text-cyan-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground mb-1">Geographic &amp; Demographic Enrichment</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                    Real-world population, income, business density, and regional growth data are pulled automatically to ground market sizing and go-to-market recommendations in actual numbers — not top-down estimates.
+                  <p className="text-[13px] font-bold text-foreground mb-0.5">Geographic & Demographic Enrichment</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
+                    Real-world population, income, business density, and regional growth data ground market sizing in actual numbers.
                   </p>
-                  <ul className="space-y-1">
+                  <ul className="space-y-0.5">
                     {[
                       "Population and median household income by region",
                       "Business density and establishment counts",
                       "Year-over-year growth rates for market sizing",
-                      "Applied in Stress Tests (TAM/SAM/SOM validation) and Pitch Decks (GTM strategy)",
+                      "Applied in Stress Tests (TAM/SAM/SOM) and Pitch Decks (GTM strategy)",
                     ].map((d, j) => (
-                      <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
-                        <span className="w-1 h-1 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+                      <li key={j} className="text-[11px] text-muted-foreground flex items-start gap-2">
+                        <span className="w-1 h-1 rounded-full bg-cyan-500 flex-shrink-0 mt-1.5" />
                         {d}
                       </li>
                     ))}
@@ -338,26 +365,25 @@ export default function MethodologyPage() {
               </div>
             </div>
 
-            {/* Regulatory & Legal */}
-            <div className="border border-border rounded-lg p-4 sm:p-5 bg-card">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 border border-primary/20">
-                  <Swords size={16} className="text-primary" />
+            <div className="border border-border border-l-[3px] border-l-rose-500 rounded-md p-3 sm:p-3.5 bg-card">
+              <div className="flex items-start gap-2.5">
+                <div className="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center bg-rose-500/10">
+                  <Swords size={14} className="text-rose-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground mb-1">Regulatory &amp; Legal Context</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                    Category-aware detection identifies industries with legal complexity — cannabis, healthcare, fintech, food &amp; beverage, alcohol, firearms, and more — then fetches real-world regulatory data automatically. Non-regulated categories skip this entirely with zero overhead.
+                  <p className="text-[13px] font-bold text-foreground mb-0.5">Regulatory & Legal Context</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
+                    Category-aware detection identifies industries with legal complexity — cannabis, healthcare, fintech, and more — then fetches real-world regulatory data automatically.
                   </p>
-                  <ul className="space-y-1">
+                  <ul className="space-y-0.5">
                     {[
                       "State-by-state legal variance and licensing requirements",
                       "Active federal rulemaking and proposed regulations",
-                      "Adaptive: only triggered when the category has meaningful regulatory complexity",
-                      "Applied in Red Team arguments (citing real legal barriers) and GTM feasibility assessments",
+                      "Adaptive: only triggered when meaningful regulatory complexity exists",
+                      "Applied in Red Team arguments and GTM feasibility assessments",
                     ].map((d, j) => (
-                      <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
-                        <span className="w-1 h-1 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+                      <li key={j} className="text-[11px] text-muted-foreground flex items-start gap-2">
+                        <span className="w-1 h-1 rounded-full bg-rose-500 flex-shrink-0 mt-1.5" />
                         {d}
                       </li>
                     ))}
@@ -366,152 +392,151 @@ export default function MethodologyPage() {
               </div>
             </div>
           </div>
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-            <p className="text-xs text-foreground/70 leading-relaxed">
-              <strong className="text-foreground">Key principle:</strong> These layers are <em>adaptive, not blanket</em>. A SaaS analysis skips regulatory fetches entirely. A cannabis analysis in Missouri vs. Florida surfaces state-specific legal differences, active federal bills, and licensing requirements — all automatically.
+          <div className="mt-2 p-2.5 rounded-md bg-muted/50 border border-border/50">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">Key principle:</strong> These layers are <em>adaptive, not blanket</em>. A SaaS analysis skips regulatory fetches entirely. A cannabis analysis surfaces state-specific legal differences automatically.
             </p>
           </div>
         </section>
 
-        {/* ── Section 6: Analysis Lenses ── */}
+        {/* ── Section 6: Lenses ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">Analysis Lenses</h2>
-          <p className="text-sm text-muted-foreground mb-5">Lenses control <em>how</em> results are interpreted — the same data, scored through different strategic perspectives.</p>
-          <div className="space-y-3">
+          <h2 className="text-lg font-bold text-foreground mb-0.5">Analysis Lenses</h2>
+          <p className="text-[13px] text-muted-foreground mb-3">Lenses control <em>how</em> results are interpreted — same data, different strategic perspective.</p>
+          <div className="space-y-1.5">
             {[
               {
                 name: "Default",
                 color: "hsl(var(--primary))",
-                desc: "Explores disruption potential and innovation opportunities. Best for brainstorming and discovering what's possible.",
-                details: "Scores favor novelty, market white-space, and radical re-imagination. Ideal for early-stage exploration."
+                accent: "border-l-primary",
+                desc: "Explores disruption potential and innovation opportunities. Best for brainstorming.",
+                details: "Scores favor novelty, market white-space, and radical re-imagination."
               },
               {
                 name: "ETA Acquisition",
                 color: "hsl(142 70% 40%)",
-                desc: "Evaluates from an ownership & acquisition perspective — value durability, operational leverage, defensibility.",
-                details: "Recommendations prioritize process improvements over technology. Scores favor cash-flow stability, operational simplicity, and realistic improvement pathways. Built for search fund operators and acquirers."
+                accent: "border-l-emerald-600",
+                desc: "Evaluates from an ownership & acquisition perspective — value durability, operational leverage.",
+                details: "Prioritizes process improvements over technology. Scores favor cash-flow stability and realistic improvement pathways."
               },
               {
                 name: "Custom",
                 color: "hsl(38 92% 50%)",
-                desc: "You define the priorities, risk tolerance, time horizon, and constraints. The AI reweights all scoring to match.",
-                details: "Set a primary objective (e.g. 'maximize margin'), time horizon, budget constraints, and evaluation weights. Every pipeline step adapts. Claims unsupported by your constraints are labeled as limitations."
+                accent: "border-l-amber-500",
+                desc: "You define the priorities, risk tolerance, time horizon, and constraints.",
+                details: "Set a primary objective, time horizon, budget constraints, and evaluation weights. Every pipeline step adapts."
               },
             ].map((lens) => (
-              <div key={lens.name} className="border border-border rounded-lg p-4 sm:p-5 bg-card" style={{ borderLeftWidth: "3px", borderLeftColor: lens.color }}>
-                <div className="flex items-center gap-2 mb-1.5">
+              <div key={lens.name} className={`border border-border border-l-[3px] ${lens.accent} rounded-md p-3 sm:p-3.5 bg-card`}>
+                <div className="flex items-center gap-2 mb-1">
                   <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full" style={{ background: `${lens.color}15`, color: lens.color }}>{lens.name}</span>
                 </div>
-                <p className="text-sm font-semibold text-foreground mb-1">{lens.desc}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{lens.details}</p>
+                <p className="text-[13px] font-semibold text-foreground mb-0.5">{lens.desc}</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{lens.details}</p>
               </div>
             ))}
           </div>
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-            <p className="text-xs text-foreground/70 leading-relaxed">
-              <strong className="text-foreground">Key principle:</strong> Lenses change <em>interpretation</em>, not data. The underlying intelligence remains identical — only the scoring, ranking, and strategic recommendations shift. Switch lenses anytime from your Workspace.
+          <div className="mt-2 p-2.5 rounded-md bg-muted/50 border border-border/50">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">Key principle:</strong> Lenses change <em>interpretation</em>, not data. Switch lenses anytime from your Workspace.
             </p>
           </div>
         </section>
 
-        {/* ── Section 6b: ETA Acquisition Deep Dive ── */}
+        {/* ── Section 6b: ETA Deep Dive ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">ETA Acquisition Methodology</h2>
-          <p className="text-sm text-muted-foreground mb-5">Purpose-built for Entrepreneurs Through Acquisition (ETA) — evaluating, buying, and growing small businesses ($500K–$5M).</p>
+          <h2 className="text-lg font-bold text-foreground mb-0.5">ETA Acquisition Methodology</h2>
+          <p className="text-[13px] text-muted-foreground mb-3">Purpose-built for Entrepreneurs Through Acquisition — evaluating, buying, and growing small businesses ($500K–$5M).</p>
 
           {/* Buyer Journey */}
-          <div className="border border-border rounded-lg bg-card p-4 sm:p-5 mb-4" style={{ borderLeftWidth: "3px", borderLeftColor: "hsl(142 70% 40%)" }}>
-            <p className="typo-card-eyebrow mb-3" style={{ color: "hsl(142 70% 30%)" }}>The ETA Buyer Journey — Where the Platform Plays</p>
-            <div className="grid grid-cols-5 gap-1.5 text-center">
+          <div className="border border-border border-l-[3px] border-l-emerald-500 rounded-md bg-card p-3 sm:p-3.5 mb-2" >
+            <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 mb-2">The ETA Buyer Journey</p>
+            <div className="grid grid-cols-5 gap-1 text-center">
               {[
-                { phase: "Search & Screen", desc: "Upload CIMs, quick viability checks", active: true },
-                { phase: "Due Diligence", desc: "Deep-dive operations, owner risk, addback scrutiny", active: true },
-                { phase: "Deal Structure", desc: "SBA math, DSCR, valuation sanity, LOI prep", active: true },
-                { phase: "Day 1–90", desc: "100-day playbook, quick wins, transition planning", active: true },
-                { phase: "Ongoing", desc: "Re-analysis, improvement tracking, quarterly pulse", active: true },
+                { phase: "Search", desc: "Upload CIMs, viability checks" },
+                { phase: "Due Diligence", desc: "Operations, owner risk, addbacks" },
+                { phase: "Deal Structure", desc: "SBA math, DSCR, LOI prep" },
+                { phase: "Day 1–90", desc: "100-day playbook, quick wins" },
+                { phase: "Ongoing", desc: "Re-analysis, quarterly pulse" },
               ].map((p, i) => (
-                <div key={i} className="p-2 rounded-lg" style={{
-                  background: p.active ? "hsl(142 70% 45% / 0.06)" : "hsl(var(--muted))",
-                  border: p.active ? "1px solid hsl(142 70% 45% / 0.2)" : "1px solid hsl(var(--border))",
-                }}>
-                  <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: p.active ? "hsl(142 70% 30%)" : "hsl(var(--muted-foreground))" }}>{p.phase}</p>
+                <div key={i} className="p-1.5 rounded bg-emerald-50 border border-emerald-200/50">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-700">{p.phase}</p>
                   <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">{p.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ETA-Specific Modules */}
-          <div className="space-y-3">
+          {/* ETA Modules */}
+          <div className="space-y-1.5">
             {[
               {
                 title: "CIM Intelligence Extraction",
-                color: "hsl(142 70% 40%)",
+                accent: "border-l-emerald-500", dotColor: "bg-emerald-500",
                 points: [
                   "Automatically extracts SDE, revenue, addbacks, and margin data from uploaded CIM documents",
-                  "Identifies owner involvement patterns, staffing structure, and customer concentration from document text",
-                  "Flags missing information — what the CIM should tell you but didn't — and generates specific follow-up questions for the broker",
+                  "Identifies owner involvement patterns, staffing structure, and customer concentration",
+                  "Flags missing information and generates follow-up questions for the broker",
                   "Cross-references CIM claims against AI's independent operational assessment",
                 ],
               },
               {
                 title: "Deal Economics Calculator",
-                color: "hsl(217 91% 45%)",
+                accent: "border-l-blue-500", dotColor: "bg-blue-500",
                 points: [
-                  "SBA 7(a) loan modeling — adjustable down payment (10–25%), interest rate (9.5–12%), and term (7–25 years)",
-                  "DSCR (Debt Service Coverage Ratio) computation — SBA lenders require ≥1.25x; flags when deals are tight",
-                  "Valuation sanity check — compares asking price to SDE multiple against industry norms",
-                  "Downside sensitivity table — shows DSCR at -30%, -20%, -10% revenue scenarios",
-                  "Owner take-home after debt service — monthly and annual, before taxes",
+                  "SBA 7(a) loan modeling — adjustable down payment, interest rate, and term",
+                  "DSCR computation — flags when deals are tight (SBA requires ≥1.25x)",
+                  "Valuation sanity check — asking price vs. SDE multiple against industry norms",
+                  "Downside sensitivity at -30%, -20%, -10% revenue scenarios",
+                  "Owner take-home after debt service — monthly and annual",
                 ],
               },
               {
                 title: "Owner Dependency Assessment",
-                color: "hsl(var(--destructive))",
+                accent: "border-l-rose-500", dotColor: "bg-rose-500",
                 points: [
-                  "Transition Risk Score (1–10) — quantifies likelihood of value destruction when ownership changes",
-                  "Dependency mapping across 6 domains: Customer Relationships, Vendor Relationships, Operational Knowledge, Pricing Decisions, Sales Pipeline, Strategic Direction",
-                  "Key-person risk identification — employees or relationships that could leave with the owner",
-                  "Mitigation playbook — specific actions to de-risk each dependency before or during transition",
+                  "Transition Risk Score (1–10) — quantifies value destruction risk on ownership change",
+                  "Dependency mapping: Customer, Vendor, Operational, Pricing, Sales, Strategic",
+                  "Key-person risk identification — who could leave with the owner?",
+                  "Mitigation playbook — specific de-risking actions for each dependency",
                 ],
               },
               {
                 title: "Addback Scrutiny",
-                color: "hsl(38 92% 50%)",
+                accent: "border-l-amber-500", dotColor: "bg-amber-500",
                 points: [
-                  "Evaluates every seller-claimed addback with a confidence rating: Legitimate, Questionable, or Suspicious",
-                  "Identifies common broker inflation patterns — family payroll, personal expenses, 'one-time' costs that recur",
-                  "Computes Adjusted SDE after removing questionable addbacks — a more conservative valuation basis",
-                  "Estimates the real multiple you'd be paying based on scrutinized financials",
+                  "Confidence rating per addback: Legitimate, Questionable, or Suspicious",
+                  "Identifies common broker inflation patterns — family payroll, 'one-time' costs that recur",
+                  "Computes Adjusted SDE — a more conservative valuation basis",
+                  "Estimates real multiple based on scrutinized financials",
                 ],
               },
               {
                 title: "Stagnation Diagnostic",
-                color: "hsl(271 81% 45%)",
+                accent: "border-l-violet-500", dotColor: "bg-violet-500",
                 points: [
-                  "Identifies root causes of business decline or stagnation — often the real reason the owner is selling",
-                  "Classifies causes: owner fatigue, competitive erosion, structural decay, market shift, or pricing compression",
-                  "Each factor includes a Reversibility Score — can a new owner fix this, or is it structural?",
-                  "Directly informs the 100-Day Playbook by prioritizing which stagnation causes to address first",
+                  "Root causes: owner fatigue, competitive erosion, structural decay, market shift, pricing compression",
+                  "Reversibility Score per factor — can a new owner fix this?",
+                  "Directly informs the 100-Day Playbook priorities",
                 ],
               },
               {
                 title: "100-Day Ownership Playbook",
-                color: "hsl(var(--primary))",
+                accent: "border-l-indigo-500", dotColor: "bg-indigo-500",
                 points: [
-                  "5-phase post-acquisition action plan: Listen & Learn → Quick Wins → Process Optimization → Structural Changes → Scale & Optimize",
-                  "Derived from analysis findings — not a generic template. Each action connects to a specific friction point or opportunity",
-                  "Includes success milestones and risk warnings for each phase",
-                  "Quick Wins section highlights low-effort, high-impact actions for the first 30 days",
+                  "5-phase plan: Listen & Learn → Quick Wins → Process Optimization → Structural Changes → Scale",
+                  "Derived from analysis findings — not a generic template",
+                  "Success milestones and risk warnings per phase",
+                  "Quick Wins section highlights low-effort, high-impact first-30-day actions",
                 ],
               },
             ].map((mod) => (
-              <div key={mod.title} className="border border-border rounded-lg p-4 sm:p-5 bg-card" style={{ borderLeftWidth: "3px", borderLeftColor: mod.color }}>
-                <p className="text-sm font-bold text-foreground mb-2">{mod.title}</p>
-                <ul className="space-y-1.5">
+              <div key={mod.title} className={`border border-border border-l-[3px] ${mod.accent} rounded-md p-3 sm:p-3.5 bg-card`}>
+                <p className="text-[13px] font-bold text-foreground mb-1.5">{mod.title}</p>
+                <ul className="space-y-0.5">
                   {mod.points.map((p, j) => (
-                    <li key={j} className="text-xs text-muted-foreground flex items-start gap-2 leading-relaxed">
-                      <span className="w-1 h-1 rounded-full flex-shrink-0 mt-1.5" style={{ background: mod.color }} />
+                    <li key={j} className="text-[11px] text-muted-foreground flex items-start gap-2 leading-relaxed">
+                      <span className={`w-1 h-1 rounded-full flex-shrink-0 mt-1.5 ${mod.dotColor}`} />
                       {p}
                     </li>
                   ))}
@@ -520,55 +545,55 @@ export default function MethodologyPage() {
             ))}
           </div>
 
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-            <p className="text-xs text-foreground/70 leading-relaxed">
-              <strong className="text-foreground">Key principle:</strong> ETA modules only appear when the ETA Acquisition Lens is active. Non-acquisition users never see them. The underlying first-principles engine is identical — the ETA lens reshapes interpretation, adds acquisition-specific output layers, and reframes all recommendations for a buyer's perspective.
+          <div className="mt-2 p-2.5 rounded-md bg-muted/50 border border-border/50">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">Key principle:</strong> ETA modules only appear when the ETA Acquisition Lens is active. The underlying first-principles engine is identical — the ETA lens reshapes interpretation and adds acquisition-specific output layers.
             </p>
           </div>
         </section>
 
         {/* ── Section 7: Strategic Operating System ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">Strategic Operating System</h2>
-          <p className="text-sm text-muted-foreground mb-5">Profile-aware dominance modeling that re-ranks structural hypotheses based on your strategic archetype.</p>
-          <div className="space-y-3">
+          <h2 className="text-lg font-bold text-foreground mb-0.5">Strategic Operating System</h2>
+          <p className="text-[13px] text-muted-foreground mb-3">Profile-aware dominance modeling that re-ranks hypotheses based on your strategic archetype.</p>
+          <div className="space-y-1.5">
             {[
-              { name: "Operator", color: "hsl(var(--primary))", desc: "Cost discipline, reliability focus, medium time horizons. Weights cost and reliability constraints highest.", details: "Capital tolerance: 5/10. Evidence threshold: 40% verified. Time horizon: 24 months." },
-              { name: "ETA Acquirer", color: "hsl(142 70% 40%)", desc: "Acquisition lens — capital discipline, risk assessment, value creation pathways.", details: "Penalizes solutions exceeding 36-month horizon. Requires higher evidence thresholds (50% verified). Weights cost and reliability at 1.3-1.4x." },
-              { name: "Venture Growth", color: "hsl(280 70% 55%)", desc: "Speed & scale priority, higher risk tolerance. Deprioritizes cost and reliability.", details: "Fastest time horizon (18 months). Lowest evidence threshold (30%). Scale weighted at 1.4x, speed at 1.3x." },
-              { name: "Bootstrapped Founder", color: "hsl(38 92% 50%)", desc: "Capital-constrained, speed-to-revenue focus. Lowest capital tolerance.", details: "Capital tolerance: 3/10. Highest capital discipline bias (0.8). Cost weighted at 1.4x." },
-              { name: "Enterprise Strategist", color: "hsl(var(--muted-foreground))", desc: "Defensibility & reliability, long time horizons. Highest evidence threshold.", details: "48-month time horizon. Evidence threshold: 60% verified. Defensibility weighted at 1.4x, reliability at 1.3x." },
+              { name: "Operator", accent: "border-l-blue-500", color: "hsl(var(--primary))", desc: "Cost discipline, reliability focus, medium time horizons.", details: "Capital tolerance: 5/10. Evidence: 40% verified. Horizon: 24 months." },
+              { name: "ETA Acquirer", accent: "border-l-emerald-600", color: "hsl(142 70% 40%)", desc: "Capital discipline, risk assessment, value creation pathways.", details: "Penalizes >36-month horizons. Evidence: 50% verified. Cost & reliability at 1.3-1.4x." },
+              { name: "Venture Growth", accent: "border-l-violet-500", color: "hsl(280 70% 55%)", desc: "Speed & scale priority, higher risk tolerance.", details: "18-month horizon. Evidence: 30%. Scale at 1.4x, speed at 1.3x." },
+              { name: "Bootstrapped Founder", accent: "border-l-amber-500", color: "hsl(38 92% 50%)", desc: "Capital-constrained, speed-to-revenue focus.", details: "Capital: 3/10. Highest capital discipline bias (0.8). Cost at 1.4x." },
+              { name: "Enterprise Strategist", accent: "border-l-gray-400", color: "hsl(var(--muted-foreground))", desc: "Defensibility & reliability, long time horizons.", details: "48-month horizon. Evidence: 60%. Defensibility at 1.4x, reliability at 1.3x." },
             ].map((arch) => (
-              <div key={arch.name} className="border border-border rounded-lg p-4 sm:p-5 bg-card" style={{ borderLeftWidth: "3px", borderLeftColor: arch.color }}>
-                <div className="flex items-center gap-2 mb-1.5">
+              <div key={arch.name} className={`border border-border border-l-[3px] ${arch.accent} rounded-md p-3 sm:p-3.5 bg-card`}>
+                <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full" style={{ background: `${arch.color}15`, color: arch.color }}>{arch.name}</span>
                 </div>
-                <p className="text-sm font-semibold text-foreground mb-1">{arch.desc}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{arch.details}</p>
+                <p className="text-[13px] font-semibold text-foreground mb-0.5">{arch.desc}</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{arch.details}</p>
               </div>
             ))}
           </div>
-          <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-            <p className="text-xs text-foreground/70 leading-relaxed">
-              <strong className="text-foreground">Key principle:</strong> Archetypes change <em>ranking</em>, not data. The underlying analysis remains identical — only the dominance scores, penalties, and hypothesis ordering shift. Switch archetypes instantly without re-running. The Lens shapes what the AI reasons about; the Archetype shapes how you interpret the results.
+          <div className="mt-2 p-2.5 rounded-md bg-muted/50 border border-border/50">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">Key principle:</strong> Archetypes change <em>ranking</em>, not data. Switch archetypes instantly without re-running. The Lens shapes what the AI reasons about; the Archetype shapes how you interpret results.
             </p>
           </div>
         </section>
 
         {/* ── Section 8: Reasoning Interrogation ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">Reasoning Interrogation</h2>
-          <p className="text-sm text-muted-foreground mb-5">Every analysis includes an interactive panel to question, challenge, and stress-test the reasoning.</p>
-          <div className="border border-border rounded-lg bg-card p-4 sm:p-5">
-            <dl className="space-y-3 text-xs">
+          <h2 className="text-lg font-bold text-foreground mb-0.5">Reasoning Interrogation</h2>
+          <p className="text-[13px] text-muted-foreground mb-3">Every analysis includes an interactive panel to question, challenge, and stress-test the reasoning.</p>
+          <div className="border border-border border-l-[3px] border-l-indigo-500 rounded-md bg-card p-3 sm:p-3.5">
+            <dl className="space-y-2 text-[11px]">
               {[
-                ["Context-Aware", "The interrogation AI receives the full analysis context — governed data, root hypotheses, causal chains, evidence mixes, and scores. Every response references specific data from YOUR analysis."],
-                ["Challenge Patterns", "Quick-action buttons pre-load the most relevant questions: why did a constraint rank highest, what if a key assumption is wrong, what's missing, challenge the confidence score."],
-                ["Structural Revisions", "When the AI suggests a re-ranking or revised hypothesis, it produces structured output that can be applied back to the analysis — not just text."],
-                ["Not a Chatbot", "This is a reasoning auditor, not a generic assistant. It can disagree with its own conclusions, identify blind spots in the evidence base, and trace causal chain disruptions."],
+                ["Context-Aware", "Receives the full analysis context — governed data, root hypotheses, causal chains, evidence mixes. Every response references YOUR analysis."],
+                ["Challenge Patterns", "Quick-action buttons pre-load relevant questions: why did a constraint rank highest, what if a key assumption is wrong, what's missing."],
+                ["Structural Revisions", "Produces structured output that can be applied back to the analysis — not just text."],
+                ["Not a Chatbot", "A reasoning auditor that can disagree with its own conclusions, identify blind spots, and trace causal chain disruptions."],
               ].map(([label, value]) => (
-                <div key={label as string} className="flex items-start gap-3">
-                  <ArrowRight size={12} className="text-primary flex-shrink-0 mt-0.5" />
+                <div key={label as string} className="flex items-start gap-2.5">
+                  <ArrowRight size={11} className="text-indigo-500 flex-shrink-0 mt-0.5" />
                   <div>
                     <dt className="font-bold text-foreground inline">{label as string}: </dt>
                     <dd className="text-muted-foreground inline">{value as string}</dd>
@@ -581,16 +606,16 @@ export default function MethodologyPage() {
 
         {/* ── Output Philosophy ── */}
         <section>
-          <h2 className="text-xl font-bold text-foreground mb-1">Output Philosophy</h2>
-          <div className="border border-border rounded-lg bg-card p-4 sm:p-5">
-            <dl className="space-y-3 text-xs">
+          <h2 className="text-lg font-bold text-foreground mb-0.5">Output Philosophy</h2>
+          <div className="border border-border border-l-[3px] border-l-primary rounded-md bg-card p-3 sm:p-3.5">
+            <dl className="space-y-2 text-[11px]">
               {[
                 ["Progressive Disclosure", "Executive signal → structural explanation → evidence deep-dive. Information density scales with user intent."],
                 ["Visual-First", "Structural diagrams before narrative. When visuals are present, text collapses into expandable panels."],
                 ["Decision-First", "Every output answers \"what do I do?\" — not just \"here's what we found.\""],
               ].map(([label, value]) => (
-                <div key={label as string} className="flex items-start gap-3">
-                  <ArrowRight size={12} className="text-primary flex-shrink-0 mt-0.5" />
+                <div key={label as string} className="flex items-start gap-2.5">
+                  <ArrowRight size={11} className="text-primary flex-shrink-0 mt-0.5" />
                   <div>
                     <dt className="font-bold text-foreground inline">{label as string}: </dt>
                     <dd className="text-muted-foreground inline">{value as string}</dd>
@@ -602,8 +627,7 @@ export default function MethodologyPage() {
         </section>
       </main>
 
-      <footer className="max-w-3xl mx-auto px-4 sm:px-6 py-6 border-t border-border text-center">
-      </footer>
+      <footer className="max-w-3xl mx-auto px-4 sm:px-6 py-4 border-t border-border text-center" />
     </div>
   );
 }
