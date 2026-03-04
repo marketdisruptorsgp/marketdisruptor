@@ -128,37 +128,35 @@ export default function RedesignPage() {
           </div>
         )}
 
-        {/* Content */}
-        {!analysisLoading && (
-          <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-            <FirstPrinciplesAnalysis
-              product={selectedProduct}
-              onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
-              flippedIdeas={selectedProduct.flippedIdeas}
-              onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
-              generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
-              renderMode="redesign"
-              autoTrigger={shouldAutoTrigger}
-              externalData={isOutdated ? null : (analysis.redesignData ?? analysis.disruptData)}
-              runTrigger={runTrigger}
-              onLoadingChange={setAnalysisLoading}
-              onDataLoaded={(d) => {
-                analysis.setRedesignData(d);
-                analysis.saveStepData("redesign", d);
-                analysis.clearStepOutdated("redesign");
-                analysis.markStepOutdated("pitch");
-              }}
-              onPatentSave={(patentData) => {
-                const updated = products.map(p =>
-                  p.id === selectedProduct.id ? { ...p, patentData } : p
-                );
-                analysis.setProducts(updated);
-                analysis.setSelectedProduct({ ...selectedProduct, patentData });
-                if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
-              }}
-            />
-          </div>
-        )}
+        {/* Content — always mounted so loading callbacks work */}
+        <div className={analysisLoading ? "hidden" : "rounded overflow-hidden p-4 sm:p-6"} style={analysisLoading ? undefined : { background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+          <FirstPrinciplesAnalysis
+            product={selectedProduct}
+            onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
+            flippedIdeas={selectedProduct.flippedIdeas}
+            onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
+            generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
+            renderMode="redesign"
+            autoTrigger={shouldAutoTrigger}
+            externalData={isOutdated ? null : (analysis.redesignData ?? analysis.disruptData)}
+            runTrigger={runTrigger}
+            onLoadingChange={setAnalysisLoading}
+            onDataLoaded={(d) => {
+              analysis.setRedesignData(d);
+              analysis.saveStepData("redesign", d);
+              analysis.clearStepOutdated("redesign");
+              analysis.markStepOutdated("pitch");
+            }}
+            onPatentSave={(patentData) => {
+              const updated = products.map(p =>
+                p.id === selectedProduct.id ? { ...p, patentData } : p
+              );
+              analysis.setProducts(updated);
+              analysis.setSelectedProduct({ ...selectedProduct, patentData });
+              if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
+            }}
+          />
+        </div>
 
         <NextStepButton
           stepNumber={5}
