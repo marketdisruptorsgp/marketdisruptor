@@ -55,7 +55,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: ShieldCheck,
     dotColor: "bg-green-600",
     barColor: "bg-green-600",
-    bgTint: "bg-green-100/80 dark:bg-green-950/30",
+    bgTint: "bg-green-200/60 dark:bg-green-950/40",
     explanation: "These are the things people genuinely like. High scores mean more people mentioned it positively or it showed up as a clear advantage.",
     priority: 100, // always try to show
     extract: (product, mkId) => {
@@ -95,7 +95,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: AlertTriangle,
     dotColor: "bg-red-600",
     barColor: "bg-red-600",
-    bgTint: "bg-red-100/80 dark:bg-red-950/30",
+    bgTint: "bg-red-200/50 dark:bg-red-950/40",
     explanation: "These are the most frequently mentioned frustrations from real users. Higher scores indicate more people raised this same issue.",
     priority: 90, // always try to show
     extract: (product, mkId) => {
@@ -131,7 +131,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: Eye,
     dotColor: "bg-amber-600",
     barColor: "bg-amber-600",
-    bgTint: "bg-amber-100/80 dark:bg-amber-950/30",
+    bgTint: "bg-amber-200/50 dark:bg-amber-950/40",
     explanation: "These are moments in the user experience where people slow down, get confused, or leave. Pulled from the user journey analysis and workflow data.",
     priority: 80,
     extract: (product, mkId) => {
@@ -220,7 +220,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: TrendingUp,
     dotColor: "bg-blue-600",
     barColor: "bg-blue-600",
-    bgTint: "bg-blue-100/80 dark:bg-blue-950/30",
+    bgTint: "bg-blue-200/50 dark:bg-blue-950/40",
     explanation: "These are improvement requests, unmet needs, or growing trends that could become opportunities. They're not yet problems — they're openings.",
     priority: 70,
     extract: (product, mkId) => {
@@ -250,7 +250,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: AlertTriangle,
     dotColor: "bg-purple-600",
     barColor: "bg-purple-600",
-    bgTint: "bg-purple-100/80 dark:bg-purple-950/30",
+    bgTint: "bg-purple-200/50 dark:bg-purple-950/40",
     explanation: "Market gaps and weaknesses in current competitors. These are openings that could be exploited for differentiation.",
     priority: 60,
     extract: (product, mkId) => {
@@ -276,7 +276,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: Eye,
     dotColor: "bg-orange-600",
     barColor: "bg-orange-600",
-    bgTint: "bg-orange-100/80 dark:bg-orange-950/30",
+    bgTint: "bg-orange-200/50 dark:bg-orange-950/40",
     explanation: "Structural bottlenecks in how the service or business operates. These constrain growth and create inefficiency.",
     priority: 65,
     extract: (product, mkId) => {
@@ -308,7 +308,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: TrendingUp,
     dotColor: "bg-emerald-600",
     barColor: "bg-emerald-600",
-    bgTint: "bg-emerald-100/80 dark:bg-emerald-950/30",
+    bgTint: "bg-emerald-200/50 dark:bg-emerald-950/40",
     explanation: "Key pricing signals including market rates, margin data, and price direction trends from verified and modeled sources.",
     priority: 50,
     extract: (product, mkId) => {
@@ -341,7 +341,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: ShieldCheck,
     dotColor: "bg-teal-600",
     barColor: "bg-teal-600",
-    bgTint: "bg-teal-100/80 dark:bg-teal-950/30",
+    bgTint: "bg-teal-200/50 dark:bg-teal-950/40",
     explanation: "Intelligence on suppliers, manufacturers, distributors and retailers. Shows the supply network structure.",
     priority: 40,
     extract: (product, mkId) => {
@@ -603,15 +603,15 @@ function QuadrantCard({
   const Icon = config.icon;
 
   return (
-    <div className={`border-b border-r border-border last:border-r-0 p-5 ${config.bgTint}`}>
+    <div className={`border-b border-r border-border/60 last:border-r-0 p-6 ${config.bgTint}`}>
       {/* Quadrant header */}
-      <div className="flex items-center gap-2.5 mb-1">
-        <div className="w-8 h-8 rounded-lg bg-background/80 flex items-center justify-center">
-          <Icon size={16} className="text-foreground" />
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm border border-white/60`} style={{ background: "hsl(var(--background) / 0.9)" }}>
+          <Icon size={17} className="text-foreground" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-1.5">
-            <h3 className="text-[13px] font-bold text-foreground">{config.title}</h3>
+            <h3 className="text-sm font-extrabold text-foreground tracking-tight">{config.title}</h3>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button className="text-muted-foreground/60 hover:text-foreground transition-colors">
@@ -623,15 +623,15 @@ function QuadrantCard({
               </TooltipContent>
             </Tooltip>
           </div>
-          <p className="text-[11px] text-muted-foreground">{config.subtitle}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{config.subtitle}</p>
         </div>
-        <span className="text-lg font-extrabold text-foreground tabular-nums">{signals.length}</span>
+        <span className="text-xl font-black text-foreground tabular-nums">{signals.length}</span>
       </div>
 
       {signals.length === 0 ? (
         <p className="text-xs text-muted-foreground py-4 text-center italic">No signals detected in this category</p>
       ) : (
-        <div className="mt-3 space-y-0.5">
+        <div className="mt-4 divide-y divide-foreground/8">
           {signals.slice(0, 3).map((signal) => (
             <SignalRow
               key={signal.id}
@@ -645,7 +645,7 @@ function QuadrantCard({
           {signals.length > 3 && (
             <Collapsible>
               <CollapsibleContent>
-                <div className="space-y-0.5">
+                <div className="divide-y divide-foreground/8">
                   {signals.slice(3).map((signal) => (
                     <SignalRow
                       key={signal.id}
@@ -692,15 +692,15 @@ function SignalRow({
     <div className={`rounded-lg transition-colors ${expanded ? "bg-background/60" : "hover:bg-background/40"}`}>
       {/* Summary row */}
       <div
-        className="flex items-center gap-3 px-3 py-2.5 cursor-pointer"
+        className="flex items-center gap-3 px-3 py-3.5 cursor-pointer"
         onClick={() => setExpanded(!expanded)}
         role="button"
         aria-expanded={expanded}
       >
-        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${config.dotColor}`} />
+        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${config.dotColor}`} />
 
         <div className="flex-1 min-w-0">
-          <p className={`text-[13px] leading-snug text-foreground ${!textExpanded && isLong ? "line-clamp-2" : ""}`}>
+          <p className={`text-sm leading-relaxed text-foreground font-medium ${!textExpanded && isLong ? "line-clamp-2" : ""}`}>
             {signal.label}
           </p>
           {isLong && !textExpanded && (
@@ -718,13 +718,13 @@ function SignalRow({
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 cursor-help">
-                <div className="h-1.5 w-12 bg-background rounded-full overflow-hidden border border-border/50">
+                <div className="h-2 w-14 bg-background rounded-full overflow-hidden border border-border/50">
                   <div
                     className={`h-full rounded-full ${config.barColor}`}
                     style={{ width: `${(signal.score / 10) * 100}%` }}
                   />
                 </div>
-                <span className="text-[10px] font-semibold text-muted-foreground tabular-nums w-6 text-right">
+                <span className="text-xs font-bold text-muted-foreground tabular-nums w-7 text-right">
                   {signal.score}/10
                 </span>
               </div>
