@@ -41,47 +41,54 @@ export interface UserFacingRouting {
 
 // ── Signal Dictionaries ──
 
-const PRODUCT_SIGNALS = [
-  "product", "design", "feature", "hardware", "software architecture",
-  "materials", "manufacturing", "technology", "performance", "component",
-  "device", "build", "physical", "form factor", "too complex",
-  "too expensive to produce", "technical limitation", "packaging",
-  "formulation", "recipe", "ingredient", "quality", "durability",
-  "usability", "app", "platform", "tool", "drink", "food", "beverage",
-  "selling", "sell", "our product", "we make", "we produce", "we sell",
-  "white label", "private label", "brand", "sku", "catalog",
+const PRODUCT_SIGNALS: [string, number][] = [
+  ["product", 1], ["design", 1], ["feature", 1], ["hardware", 2], ["software architecture", 2],
+  ["materials", 1], ["manufacturing", 2], ["technology", 1], ["performance", 1], ["component", 1],
+  ["device", 2], ["build", 1], ["physical", 1], ["form factor", 2], ["too complex", 1],
+  ["too expensive to produce", 2], ["technical limitation", 2], ["packaging", 1],
+  ["formulation", 2], ["recipe", 2], ["ingredient", 1], ["quality", 1], ["durability", 1],
+  ["usability", 1], ["app", 1], ["platform", 1], ["tool", 1], ["drink", 2], ["food", 2], ["beverage", 2],
+  ["selling", 1], ["sell", 1], ["our product", 2], ["we make", 2], ["we produce", 2], ["we sell", 2],
+  ["white label", 1], ["private label", 2], ["brand", 1], ["sku", 2], ["catalog", 1],
+  ["item", 1], ["merchandise", 2], ["goods", 1], ["inventory", 1],
 ];
 
-const SERVICE_SIGNALS = [
-  "process", "workflow", "experience", "onboarding", "delivery",
-  "operations", "efficiency", "slow", "manual", "scaling",
-  "support", "journey", "handoff", "coordination",
-  "takes too long", "bottleneck", "customer service", "logistics",
-  "fulfillment", "shipping", "distribution", "distributor",
-  "distributing", "supply chain", "warehouse",
+const SERVICE_SIGNALS: [string, number][] = [
+  ["process", 1], ["workflow", 2], ["experience", 1], ["onboarding", 2], ["delivery", 1],
+  ["operations", 2], ["efficiency", 1], ["slow", 1], ["manual", 1], ["scaling", 1],
+  ["support", 1], ["journey", 1], ["handoff", 2], ["coordination", 1],
+  ["takes too long", 2], ["bottleneck", 2], ["customer service", 2], ["logistics", 1],
+  ["fulfillment", 2], ["shipping", 1], ["distribution", 1], ["distributor", 1],
+  ["distributing", 1], ["supply chain", 1], ["warehouse", 1],
+  ["repair", 2], ["mechanic", 2], ["appointment", 2], ["scheduling", 2],
+  ["wait time", 2], ["convenience", 1], ["staffing", 2], ["employee", 1],
+  ["customer experience", 2], ["service quality", 2], ["turnaround", 2],
+  ["mobile service", 2], ["on-site", 2], ["pickup", 1], ["drop-off", 1],
 ];
 
-const BUSINESS_MODEL_SIGNALS = [
-  "pricing", "revenue", "margin", "profit", "cost structure",
-  "monetization", "subscription", "who pays", "growth model",
-  "unit economics", "lifetime value", "acquisition cost",
-  "financial", "economics", "competition", "competitor", "saturated",
-  "market", "expand", "expansion", "new market", "grow", "growth",
-  "white label", "franchise", "scale", "profitability", "profitable",
-  "cash flow", "investment", "funding", "roi", "break even",
-  "business model", "distribution", "distributor", "wholesale",
-  "retail", "b2b", "b2c", "saas", "recurring revenue",
-  "market share", "differentiation", "competitive advantage",
-  "florida", "missouri", "state", "region", "territory",
+const BUSINESS_MODEL_SIGNALS: [string, number][] = [
+  ["pricing", 2], ["revenue", 2], ["margin", 2], ["profit", 2], ["cost structure", 2],
+  ["monetization", 2], ["subscription", 2], ["who pays", 2], ["growth model", 2],
+  ["unit economics", 2], ["lifetime value", 2], ["acquisition cost", 2],
+  ["financial", 1], ["economics", 1], ["competition", 2], ["competitor", 2], ["saturated", 2],
+  ["market", 1], ["expand", 2], ["expansion", 2], ["new market", 2], ["grow", 1], ["growth", 1],
+  ["white label", 2], ["franchise", 2], ["scale", 1], ["profitability", 2], ["profitable", 2],
+  ["cash flow", 2], ["investment", 2], ["funding", 2], ["roi", 2], ["break even", 2],
+  ["business model", 3], ["distribution", 1], ["distributor", 1], ["wholesale", 2],
+  ["retail", 1], ["b2b", 2], ["b2c", 2], ["saas", 1], ["recurring revenue", 2],
+  ["market share", 2], ["differentiation", 2], ["competitive advantage", 2],
+  ["florida", 1], ["missouri", 1], ["state", 1], ["region", 1], ["territory", 1],
+  ["beat", 1], ["stand out", 2], ["how to compete", 3], ["too many competitors", 3],
+  ["market entry", 2], ["go-to-market", 2], ["channel", 1], ["partnership", 1],
 ];
 
 // ── Scoring Engine ──
 
-function scoreText(text: string, signals: string[]): number {
+function scoreText(text: string, signals: [string, number][]): number {
   const lower = text.toLowerCase();
   let score = 0;
-  for (const signal of signals) {
-    if (lower.includes(signal)) score += 1;
+  for (const [signal, weight] of signals) {
+    if (lower.includes(signal)) score += weight;
   }
   return score;
 }

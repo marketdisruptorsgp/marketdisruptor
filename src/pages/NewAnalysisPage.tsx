@@ -102,6 +102,7 @@ export default function NewAnalysisPage() {
   const [routing, setRouting] = useState<RoutingResult | null>(null);
   const [useDeconstruct, setUseDeconstruct] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Inline clarifier state
   const [clarifierName, setClarifierName] = useState("");
@@ -138,6 +139,8 @@ export default function NewAnalysisPage() {
     setRouting(result);
   }, []);
 
+  const runAIAnalysisRef = useRef<(text: string) => void>(() => {});
+
   const handleTextChange = useCallback((value: string) => {
     setProblemText(value);
     sessionStorage.setItem("deconstruct-problem-text", value);
@@ -146,17 +149,32 @@ export default function NewAnalysisPage() {
     setSelectedChallenges(new Set());
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => runRouting(value), 500);
+    // Auto-trigger AI analysis after longer debounce (1.5s of no typing)
+    if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current);
+    if (value.trim().length >= 20) {
+      aiDebounceRef.current = setTimeout(() => {
+        runAIAnalysisRef.current(value);
+      }, 1500);
+    }
   }, [runRouting]);
 
-  // Re-run routing on mount if text was restored from session
+  // Re-run routing + AI analysis on mount if text was restored from session
   useEffect(() => {
     if (problemText.trim().length >= 15) {
       runRouting(problemText);
     }
+    if (problemText.trim().length >= 20) {
+      // Delay AI analysis slightly to let UI render first
+      const t = setTimeout(() => runAIAnalysisRef.current(problemText), 800);
+      return () => clearTimeout(t);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current);
+    };
   }, []);
 
   // AI-powered deep problem analysis
@@ -213,6 +231,9 @@ export default function NewAnalysisPage() {
       setAiAnalyzing(false);
     }
   }, [clarifierName]);
+
+  // Keep ref in sync for debounced calls
+  useEffect(() => { runAIAnalysisRef.current = runAIAnalysis; }, [runAIAnalysis]);
 
   const handleDeconstruct = () => {
     if (problemText.trim().length < 15) return;
