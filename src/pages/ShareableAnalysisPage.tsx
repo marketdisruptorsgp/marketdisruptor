@@ -16,7 +16,7 @@ import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway, getDisruptTakeaway, getStressTestTakeaway, getPitchTakeaway } from "@/components/KeyTakeawayBanner";
-import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
+import { AdaptiveJourneyMap } from "@/components/AdaptiveJourneyMap";
 import {
   Zap, AlertTriangle, Target, Brain, Swords, Presentation, Sparkles,
   TrendingUp, TrendingDown, Minus, DollarSign, Package, MessageSquare,
@@ -382,19 +382,14 @@ export default function ShareableAnalysisPage() {
                   if (!wf) return <p className="typo-card-body text-muted-foreground py-8 text-center">No workflow data available</p>;
                   return (
                     <>
-                      {wf.stepByStep && <WorkflowTimeline steps={wf.stepByStep} frictionPoints={wf.frictionPoints || []} />}
-                      {wf.contextOfUse && (
-                        <div className="p-3 rounded-lg bg-muted border border-border">
-                          <DataLabel>Context of Use</DataLabel>
-                          <p className="typo-card-meta text-foreground/80 mt-1">{wf.contextOfUse}</p>
-                        </div>
-                      )}
-                      {wf.cognitiveLoad && (
-                        <div className="p-3 rounded-lg bg-muted border border-border">
-                          <DataLabel>Cognitive Load</DataLabel>
-                          <p className="typo-card-meta text-foreground/80 mt-1">{wf.cognitiveLoad}</p>
-                        </div>
-                      )}
+                      <AdaptiveJourneyMap
+                        steps={wf.stepByStep || []}
+                        frictionPoints={wf.frictionPoints || []}
+                        cognitiveLoad={wf.cognitiveLoad}
+                        contextOfUse={wf.contextOfUse}
+                        category={(product as any)?.category}
+                        productName={(product as any)?.name}
+                      />
                     </>
                   );
                 })()}
