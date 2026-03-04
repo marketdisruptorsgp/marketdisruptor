@@ -187,6 +187,7 @@ export default function ReportPage() {
           product={selectedProduct}
           analysisId={analysisId || null}
           saveStepData={analysis.saveStepData}
+          governedData={analysis.governedData}
         />
 
         {/* Adaptive Visual Layer — enforces visual primacy + text suppression */}
