@@ -634,6 +634,77 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
 
       next.hiddenAssumptions = existingAssumptions;
       next.flippedLogic = existingFlips;
+
+      // ── Enforce redesignedConcept is never empty ──
+      const concept = next.redesignedConcept as Record<string, unknown> | undefined;
+      const conceptIsEmpty = !concept || (!concept.conceptName && !concept.coreInsight);
+
+      if (conceptIsEmpty) {
+        console.warn("[EnforceMinimum] redesignedConcept is empty — synthesizing from flippedLogic & assumptions");
+
+        // Synthesize a unified concept from the top flipped logic entries
+        const topFlips = existingFlips.slice(0, 3);
+        const topAssumptions = existingAssumptions.slice(0, 3);
+
+        const productName = String((base as any)?.product?.name || filteredProduct?.name || "this product");
+        const productCategory = String((base as any)?.product?.category || filteredProduct?.category || "Product");
+
+        // Build concept name from the boldest flip
+        const primaryFlip = topFlips[0] || {};
+        const secondaryFlip = topFlips[1] || {};
+        const primaryAssumption = topAssumptions[0] || {};
+
+        // Derive radical differences from all flips
+        const radicalDiffs = topFlips
+          .map((f: Record<string, unknown>) => String(f.boldAlternative || f.rationale || ""))
+          .filter(Boolean);
+
+        // Derive materials/capabilities from physical mechanisms
+        const materials = topFlips
+          .map((f: Record<string, unknown>) => String(f.physicalMechanism || ""))
+          .filter(Boolean)
+          .slice(0, 3);
+
+        // Build friction eliminated from challenged assumptions
+        const frictionEliminated = topAssumptions
+          .filter((a: Record<string, unknown>) => a.isChallengeable)
+          .map((a: Record<string, unknown>) => `Eliminated: ${String(a.assumption || "legacy constraint")}`)
+          .slice(0, 3);
+
+        const frictionDims = (next.frictionDimensions as Record<string, unknown> | undefined) || {};
+
+        next.redesignedConcept = {
+          conceptName: String(primaryFlip.boldAlternative || `Reimagined ${productName}`).slice(0, 60),
+          tagline: `A ground-up reinvention that challenges ${topFlips.length} core assumptions`,
+          coreInsight: [
+            String(primaryFlip.rationale || ""),
+            String(secondaryFlip?.rationale || ""),
+            String(primaryAssumption.impactScenario || ""),
+          ].filter(Boolean).join(" ").slice(0, 500) || `This concept inverts the dominant constraints holding ${productName} back.`,
+          radicalDifferences: radicalDiffs.length > 0 ? radicalDiffs : [
+            "Structural inversion of the primary operating constraint",
+            "Removal of legacy friction patterns",
+            "Technology-enabled delivery model",
+          ],
+          physicalDescription: String(frictionDims.primaryFriction || primaryFlip.physicalMechanism || `A fundamentally restructured approach to ${productCategory.toLowerCase()} delivery`),
+          sizeAndWeight: isService ? "Scalable digital-first model" : "Optimized for the core use case",
+          materials: materials.length > 0 ? materials : ["Primary mechanism from constraint inversion", "Supporting technology layer", "User experience framework"],
+          smartFeatures: topFlips
+            .map((f: Record<string, unknown>) => String(f.physicalMechanism || ""))
+            .filter(Boolean)
+            .slice(0, 3),
+          userExperienceTransformation: `Before: users face ${topAssumptions.length} structural constraints. After: each constraint is inverted into a value-creating feature, reducing friction and unlocking new capability.`,
+          frictionEliminated: frictionEliminated.length > 0 ? frictionEliminated : ["Primary friction source addressed through structural redesign"],
+          whyItHasntBeenDone: String(primaryAssumption.urgencyReason || "Incumbent economics and organizational inertia have prevented this inversion"),
+          biggestRisk: `Adoption risk — the ${topFlips.length} inversions require users to change established behavior patterns`,
+          manufacturingPath: isService ? "Phased rollout: pilot with early adopters, instrument outcomes, scale validated model" : "Prototype → small-batch validation → scale manufacturing",
+          pricePoint: "Positioned at market-competitive pricing with improved unit economics from constraint removal",
+          targetUser: "Users who actively experience the friction identified in the assumption analysis — early adopters willing to try a fundamentally different approach",
+          riskLevel: "Medium",
+          capitalRequired: "Medium",
+        };
+      }
+
       return next;
     }
 
@@ -682,14 +753,21 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       }
     }
 
-    // Enforce minimum analytical depth: assumptions + flips
+    // Enforce minimum analytical depth: assumptions + flips + concept
     let minimumValidation = validateArrayMinimums(analysis, "first-principles");
-    if (!minimumValidation.valid) {
-      console.warn(`[StructuredOutput] Underfilled arrays detected: ${minimumValidation.underfilled.map((u) => `${u.field}:${u.actual}/${u.min}`).join(", ")}`);
+    
+    // Also check if redesignedConcept is empty (AI sometimes returns {})
+    const conceptObj = analysis.redesignedConcept as Record<string, unknown> | undefined;
+    const conceptEmpty = !conceptObj || (!conceptObj.conceptName && !conceptObj.coreInsight);
+    
+    if (!minimumValidation.valid || conceptEmpty) {
+      if (conceptEmpty) {
+        console.warn("[StructuredOutput] redesignedConcept is empty — will be synthesized from flips/assumptions");
+      }
+      if (!minimumValidation.valid) {
+        console.warn(`[StructuredOutput] Underfilled arrays detected: ${minimumValidation.underfilled.map((u) => `${u.field}:${u.actual}/${u.min}`).join(", ")}`);
+      }
 
-      // Skip expensive repair pass — go straight to deterministic expansion
-      // The repair pass adds another 30-60s for marginal quality improvement
-      // Deterministic fallback is faster and produces acceptable results
       console.warn("[StructuredOutput] Applying deterministic expansion fallback (skipping repair pass for speed).");
       analysis = enforceMinimumArtifacts(analysis);
       minimumValidation = validateArrayMinimums(analysis, "first-principles");
