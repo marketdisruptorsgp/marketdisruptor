@@ -35,14 +35,28 @@ export default function BusinessResultsPage() {
 
   const { businessAnalysisData, businessModelInput } = analysis;
 
+  // Grace period to allow context to populate before redirecting
+  const [ready, setReady] = React.useState(false);
   React.useEffect(() => {
-    if (!businessAnalysisData) {
+    const t = setTimeout(() => setReady(true), 1500);
+    return () => clearTimeout(t);
+  }, []);
+
+  React.useEffect(() => {
+    if (ready && !businessAnalysisData) {
       navigate("/", { replace: true });
     }
-  }, [businessAnalysisData, navigate]);
+  }, [ready, businessAnalysisData, navigate]);
 
   if (!businessAnalysisData) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: theme.primary }} />
+          <p className="text-sm text-muted-foreground">Loading analysis…</p>
+        </div>
+      </div>
+    );
   }
 
   const bizName = businessModelInput?.type || "Business Model";

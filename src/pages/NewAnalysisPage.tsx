@@ -20,6 +20,15 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useBIExtraction, fileToDocumentText, extractionToContext, type BIExtraction } from "@/hooks/useBIExtraction";
+import { StepLoadingTracker, type StepTask } from "@/components/StepLoadingTracker";
+
+const BIZ_LOADING_TASKS: StepTask[] = [
+  { label: "Revenue Decomposition", detail: "Breaking down revenue streams" },
+  { label: "Cost Structure Audit", detail: "Analyzing cost layers & margins" },
+  { label: "Value Chain Mapping", detail: "Tracing value creation flow" },
+  { label: "Disruption Scanning", detail: "Identifying vulnerability vectors" },
+  { label: "Reinvention Engine", detail: "Generating alternative models" },
+];
 
 const DOC_ACCEPT = ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt";
 const DOC_EXTENSIONS = ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "csv", "txt"];
@@ -429,6 +438,12 @@ export default function NewAnalysisPage() {
         }
 
         analysis.setBusinessAnalysisData(result.analysis);
+        analysis.setBusinessModelInput({
+          type: name,
+          description: notes,
+          revenueModel: extraction?.revenue_engine?.revenue_sources?.join(", ") || "",
+          painPoints: notes,
+        });
         const id = crypto.randomUUID();
         analysis.setAnalysisId(id);
         toast.success("Business model analysis complete!");
@@ -1161,6 +1176,16 @@ export default function NewAnalysisPage() {
                 </div>
               )}
 
+              {/* Loading tracker */}
+              {launching && (
+                <StepLoadingTracker
+                  title="Building Business Model Intelligence"
+                  tasks={BIZ_LOADING_TASKS}
+                  estimatedSeconds={50}
+                  accentColor="hsl(var(--mode-business))"
+                />
+              )}
+
               {/* Launch button */}
               <button
                 onClick={handleLaunchAnalysis}
@@ -1168,10 +1193,10 @@ export default function NewAnalysisPage() {
                 className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{ background: "hsl(var(--mode-multi))" }}
               >
-                {launching || isLoading ? (
+              {launching || isLoading ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    Analyzing…
+                    Running deep analysis…
                   </>
                 ) : extracting ? (
                   <>
@@ -1442,6 +1467,21 @@ export default function NewAnalysisPage() {
                   </div>
                 )}
 
+                {/* Loading tracker */}
+                {launching && (
+                  <StepLoadingTracker
+                    title={`Building ${selectedMode === "business" ? "Business Model" : selectedMode === "service" ? "Service" : "Product"} Intelligence`}
+                    tasks={selectedMode === "business" ? BIZ_LOADING_TASKS : [
+                      { label: "Market Research", detail: "Scanning data sources" },
+                      { label: "Competitive Analysis", detail: "Positioning & gaps" },
+                      { label: "Friction Discovery", detail: "Pain points & bottlenecks" },
+                      { label: "Opportunity Scoring", detail: "Ranking interventions" },
+                    ]}
+                    estimatedSeconds={selectedMode === "business" ? 50 : 60}
+                    accentColor={`hsl(var(${cssVar}))`}
+                  />
+                )}
+
                 {/* Launch button */}
                 <button
                   onClick={handleLaunchAnalysis}
@@ -1449,8 +1489,8 @@ export default function NewAnalysisPage() {
                   className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   style={{ background: `hsl(var(${cssVar}))` }}
                 >
-                  {launching || isLoading ? (
-                    <><Loader2 size={16} className="animate-spin" /> Analyzing…</>
+              {launching || isLoading ? (
+                    <><Loader2 size={16} className="animate-spin" /> Running deep analysis…</>
                   ) : extracting ? (
                     <><Loader2 size={16} className="animate-spin" /> Extracting…</>
                   ) : (
