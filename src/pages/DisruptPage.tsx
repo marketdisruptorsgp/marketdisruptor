@@ -15,6 +15,7 @@ import { Target, Layers, Wrench, FileDown, Save } from "lucide-react";
 import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
+import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { toast } from "sonner";
 import { SignalTab } from "@/components/strategic/SignalTab";
 import { StructureTab } from "@/components/strategic/StructureTab";
@@ -88,8 +89,7 @@ export default function DisruptPage() {
             />
             <button onClick={() => {
               if (!selectedProduct) return;
-              const data: Record<string, unknown> = {};
-              if (analysis.disruptData) data.disrupt = analysis.disruptData;
+              const data = gatherAllAnalysisData(analysis);
               downloadReportAsPDF(selectedProduct, data, {
                 title: selectedProduct.name,
                 mode: (analysis.analysisParams as any)?.analysisType,

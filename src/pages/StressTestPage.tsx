@@ -16,6 +16,7 @@ import { scrollToTop } from "@/utils/scrollToTop";
 import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
+import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { FileDown, Save } from "lucide-react";
 import { toast } from "sonner";
 
@@ -72,8 +73,7 @@ export default function StressTestPage() {
             />
             <button onClick={() => {
               if (!selectedProduct) return;
-              const data: Record<string, unknown> = {};
-              if (analysis.stressTestData) data.stressTest = analysis.stressTestData;
+              const data = gatherAllAnalysisData(analysis);
               downloadReportAsPDF(selectedProduct, data, {
                 title: selectedProduct.name,
                 mode: (analysis.analysisParams as any)?.analysisType,
