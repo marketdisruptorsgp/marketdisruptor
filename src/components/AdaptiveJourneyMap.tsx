@@ -6,7 +6,7 @@ import {
   ArrowRight, Clock, Phone, MessageSquare, Mail, Upload, Eye, Wrench,
   Lightbulb, Truck, Home, Share2, Bookmark, Star, Users, Car, MapPin,
   Plane, Bike, Package, Camera, Mic, Shield, Move, Send,
-  AlertTriangle, Brain, MapPinned, ShoppingBag, Monitor,
+  AlertTriangle, Brain, MapPinned, ShoppingBag, Monitor, ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 
@@ -154,6 +154,12 @@ function getSeverityColor(severity?: number): string {
   return "0 72% 52%";
 }
 
+function getSeverityLabel(severity?: number): string {
+  if (!severity || severity <= 2) return "low";
+  if (severity <= 4) return "medium";
+  return "high";
+}
+
 interface StepNode {
   text: string;
   index: number;
@@ -181,26 +187,20 @@ function PhaseRibbon({ nodes }: { nodes: StepNode[] }) {
   }, [nodes]);
 
   return (
-    <div className="flex items-stretch overflow-x-auto gap-0 mb-2">
-      {phases.map((phase, i) => {
+    <div className="flex items-center gap-1.5 flex-wrap mb-1">
+      {phases.map((phase) => {
         const color = PHASE_COLORS[phase];
         return (
-          <div key={phase} className="flex items-center flex-shrink-0">
-            <div
-              className="px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.1em] whitespace-nowrap"
-              style={{
-                background: `hsl(${color} / 0.1)`,
-                color: `hsl(${color})`,
-                borderRadius: i === 0 ? "6px 0 0 6px" : i === phases.length - 1 ? "0 6px 6px 0" : "0",
-              }}
-            >
-              {phase}
-            </div>
-            {i < phases.length - 1 && (
-              <svg width="12" height="24" viewBox="0 0 12 24" className="flex-shrink-0 -mx-px">
-                <path d="M0 0 L10 12 L0 24" fill={`hsl(${color} / 0.1)`} />
-              </svg>
-            )}
+          <div
+            key={phase}
+            className="px-3 py-1.5 rounded-md text-[10px] font-extrabold uppercase tracking-[0.08em]"
+            style={{
+              background: `hsl(${color} / 0.08)`,
+              color: `hsl(${color})`,
+              border: `1px solid hsl(${color} / 0.15)`,
+            }}
+          >
+            {phase}
           </div>
         );
       })}
@@ -227,19 +227,19 @@ export function AdaptiveJourneyMap({
           <JourneyIcon size={12} />
           {JOURNEY_TYPE_LABELS[journeyType]}
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
           style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
           {steps.length} steps
         </span>
         {highFrictionCount > 0 && (
-          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
-            style={{ background: "hsl(0 72% 52% / 0.1)", color: "hsl(0 72% 42%)" }}>
+          <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full"
+            style={{ background: "hsl(0 72% 52% / 0.08)", color: "hsl(0 72% 42%)" }}>
             <AlertTriangle size={10} />
             {highFrictionCount} high friction
           </span>
         )}
         {cognitiveLoad && (
-          <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+          <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
             style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
             <Brain size={10} />
             {cognitiveLoad}
@@ -247,26 +247,74 @@ export function AdaptiveJourneyMap({
         )}
       </div>
       {contextOfUse && (
-        <p className="text-[11px] text-muted-foreground px-1">
-          <span className="font-bold">Context:</span> {contextOfUse}
+        <p className="text-sm text-foreground/80 px-1 leading-relaxed">
+          <span className="font-bold text-foreground">Context:</span> {contextOfUse}
         </p>
       )}
 
       <PhaseRibbon nodes={nodes} />
 
-      {isMobile ? <MobileRoadFlow nodes={nodes} /> : <DesktopRoadFlow nodes={nodes} />}
+      {isMobile ? <MobileTimeline nodes={nodes} /> : <DesktopSerpentine nodes={nodes} />}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   DESKTOP: Serpentine road — 3 per row, alternating direction
-   Uses CSS Grid for reliable layout + SVG road overlay
+   DESKTOP: Refined serpentine — 3 per row with connecting arrows
    ═══════════════════════════════════════════════════════════════ */
 const COLS = 3;
 
-function DesktopRoadFlow({ nodes }: { nodes: StepNode[] }) {
-  // Split into rows of COLS, reverse odd rows for serpentine effect
+/* Horizontal connector arrow between cards */
+function HorizontalConnector({ reversed }: { reversed?: boolean }) {
+  return (
+    <div className="flex items-center justify-center" style={{ width: 32, flexShrink: 0 }}>
+      <svg width="32" height="20" viewBox="0 0 32 20" fill="none">
+        <line
+          x1={reversed ? 28 : 4} y1="10"
+          x2={reversed ? 4 : 28} y2="10"
+          stroke="hsl(var(--foreground) / 0.12)"
+          strokeWidth="2"
+          strokeDasharray="4 3"
+          strokeLinecap="round"
+        />
+        <polygon
+          points={reversed ? "7,6 2,10 7,14" : "25,6 30,10 25,14"}
+          fill="hsl(var(--foreground) / 0.18)"
+        />
+      </svg>
+    </div>
+  );
+}
+
+/* U-turn connector between rows */
+function UTurnConnector({ side }: { side: "right" | "left" }) {
+  const isRight = side === "right";
+  return (
+    <div className="flex w-full py-1" style={{ justifyContent: isRight ? "flex-end" : "flex-start" }}>
+      <div className="flex flex-col items-center" style={{ paddingRight: isRight ? 40 : 0, paddingLeft: isRight ? 0 : 40 }}>
+        <svg width="40" height="48" viewBox="0 0 40 48" fill="none">
+          <path
+            d={isRight
+              ? "M20 2 C38 2 38 24 38 24 C38 24 38 46 20 46"
+              : "M20 2 C2 2 2 24 2 24 C2 24 2 46 20 46"
+            }
+            stroke="hsl(var(--foreground) / 0.12)"
+            strokeWidth="2"
+            strokeDasharray="4 3"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <polygon
+            points={isRight ? "16,42 20,48 24,42" : "16,42 20,48 24,42"}
+            fill="hsl(var(--foreground) / 0.18)"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function DesktopSerpentine({ nodes }: { nodes: StepNode[] }) {
   const rows: StepNode[][] = [];
   for (let i = 0; i < nodes.length; i += COLS) {
     const row = nodes.slice(i, i + COLS);
@@ -275,49 +323,36 @@ function DesktopRoadFlow({ nodes }: { nodes: StepNode[] }) {
 
   return (
     <ScrollArea className="w-full">
-      <div className="space-y-2 pb-2 min-w-[600px]">
+      <div className="space-y-0 pb-2 min-w-[640px]">
         {rows.map((row, ri) => {
           const isReversed = ri % 2 === 1;
           const isLastRow = ri === rows.length - 1;
 
           return (
             <React.Fragment key={ri}>
-              {/* Row of step nodes */}
-              <div
-                className="grid gap-3"
-                style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}
-              >
+              <div className="flex items-stretch">
                 {row.map((node, ci) => (
-                  <RoadNode key={node.index} node={node} />
+                  <React.Fragment key={node.index}>
+                    <div className="flex-1 min-w-0">
+                      <StepCard node={node} stepNumber={node.index + 1} />
+                    </div>
+                    {ci < row.length - 1 && (
+                      <div className="flex items-center">
+                        <HorizontalConnector reversed={isReversed} />
+                      </div>
+                    )}
+                  </React.Fragment>
                 ))}
-                {/* Fill empty cells in last row */}
                 {row.length < COLS && Array.from({ length: COLS - row.length }).map((_, fi) => (
-                  <div key={`empty-${fi}`} />
+                  <React.Fragment key={`empty-${fi}`}>
+                    <div className="flex items-center"><div style={{ width: 32 }} /></div>
+                    <div className="flex-1 min-w-0" />
+                  </React.Fragment>
                 ))}
               </div>
 
-              {/* U-turn connector between rows */}
               {!isLastRow && (
-                <div className="flex" style={{ justifyContent: isReversed ? "flex-start" : "flex-end" }}>
-                  <svg width="48" height="32" viewBox="0 0 48 32" className="mx-4">
-                    <path
-                      d={isReversed
-                        ? "M24 0 Q0 0 0 16 Q0 32 24 32"
-                        : "M24 0 Q48 0 48 16 Q48 32 24 32"
-                      }
-                      fill="none"
-                      stroke="hsl(var(--foreground) / 0.12)"
-                      strokeWidth="3"
-                      strokeDasharray="6 4"
-                      strokeLinecap="round"
-                    />
-                    {/* Arrow */}
-                    <polygon
-                      points={isReversed ? "24,28 20,32 28,32" : "24,28 20,32 28,32"}
-                      fill="hsl(var(--foreground) / 0.15)"
-                    />
-                  </svg>
-                </div>
+                <UTurnConnector side={isReversed ? "left" : "right"} />
               )}
             </React.Fragment>
           );
@@ -328,87 +363,103 @@ function DesktopRoadFlow({ nodes }: { nodes: StepNode[] }) {
   );
 }
 
-/* ── Road node card ── */
-function RoadNode({ node }: { node: StepNode }) {
+/* ── Refined step card ── */
+function StepCard({ node, stepNumber }: { node: StepNode; stepNumber: number }) {
   const StepIcon = node.icon;
   const phaseColor = PHASE_COLORS[node.phase];
   const hasFriction = !!node.friction;
   const severity = node.friction?.severity || 0;
   const sevColor = getSeverityColor(severity);
+  const sevLabel = getSeverityLabel(severity);
   const isHigh = severity >= 4;
 
   return (
-    <div className="flex items-start gap-3">
-      {/* Road connector dot + line */}
-      <div className="flex flex-col items-center flex-shrink-0">
-        {/* Icon circle */}
+    <div
+      className="relative rounded-xl p-4 h-full flex flex-col transition-shadow"
+      style={{
+        background: "hsl(var(--card))",
+        border: isHigh
+          ? `1.5px solid hsl(${sevColor} / 0.35)`
+          : "1px solid hsl(var(--border))",
+        boxShadow: isHigh
+          ? `0 2px 16px -4px hsl(${sevColor} / 0.15)`
+          : "0 1px 4px -1px hsl(var(--foreground) / 0.04)",
+      }}
+    >
+      {/* Header row: icon + step number */}
+      <div className="flex items-start gap-3 mb-2.5">
         <div
-          className="w-11 h-11 rounded-full flex items-center justify-center relative"
+          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 relative"
           style={{
-            background: `hsl(var(--card))`,
+            background: `hsl(${phaseColor} / 0.08)`,
             color: `hsl(${phaseColor})`,
-            border: isHigh
-              ? `2.5px solid hsl(${sevColor})`
-              : `2px solid hsl(${phaseColor} / 0.35)`,
-            boxShadow: isHigh
-              ? `0 0 14px -2px hsl(${sevColor} / 0.4)`
-              : `0 2px 8px -2px hsl(${phaseColor} / 0.2)`,
+            border: `1.5px solid hsl(${phaseColor} / 0.2)`,
           }}
         >
           <StepIcon size={18} strokeWidth={1.8} />
           {hasFriction && (
             <div
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
-              style={{ background: `hsl(${sevColor})`, color: "white" }}
+              className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full flex items-center justify-center"
+              style={{
+                background: `hsl(${sevColor})`,
+                color: "white",
+                width: 18, height: 18,
+                boxShadow: `0 0 8px -1px hsl(${sevColor} / 0.5)`,
+              }}
             >
-              <AlertTriangle size={8} />
+              <AlertTriangle size={9} />
             </div>
           )}
         </div>
-        {/* Vertical road segment */}
-        <div className="w-[2px] h-3 rounded-full" style={{ background: "hsl(var(--foreground) / 0.08)" }} />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-foreground leading-snug">
+            Step {stepNumber}: {node.text}
+          </p>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0 pt-1">
-        <p className="text-[12px] font-bold text-foreground leading-snug">{node.text}</p>
-        {hasFriction && (
-          <div className="mt-1.5 rounded-lg px-2 py-1.5" style={{
-            background: `hsl(${sevColor} / 0.06)`,
-            border: `1px solid hsl(${sevColor} / 0.15)`,
-          }}>
-            <div className="flex items-center gap-1 mb-0.5">
-              <AlertTriangle size={9} style={{ color: `hsl(${sevColor})` }} />
-              <span className="text-[10px] font-bold" style={{ color: `hsl(${sevColor})` }}>
-                Friction {severity ? `(${severity}/5)` : ""}
-              </span>
-            </div>
-            <p className="text-[10px] text-muted-foreground leading-snug">{node.friction!.friction}</p>
-            {node.friction!.rootCause && (
-              <p className="text-[9px] text-muted-foreground/70 italic mt-0.5">Root: {node.friction!.rootCause}</p>
-            )}
+      {/* Friction detail */}
+      {hasFriction && (
+        <div
+          className="rounded-lg px-3 py-2.5 mt-auto"
+          style={{
+            background: `hsl(${sevColor} / 0.05)`,
+            border: `1px solid hsl(${sevColor} / 0.12)`,
+          }}
+        >
+          <div className="flex items-center gap-1.5 mb-1">
+            <AlertTriangle size={11} style={{ color: `hsl(${sevColor})` }} />
+            <span className="text-[11px] font-bold" style={{ color: `hsl(${sevColor})` }}>
+              Friction ({sevLabel}/{severity}/5)
+            </span>
           </div>
-        )}
-      </div>
+          <p className="text-[12px] text-foreground/75 leading-relaxed">{node.friction!.friction}</p>
+          {node.friction!.rootCause && (
+            <p className="text-[11px] text-muted-foreground italic mt-1">
+              Root: {node.friction!.rootCause}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MOBILE: Vertical road flow with phase markers
+   MOBILE: Vertical timeline with connecting line + step cards
    ═══════════════════════════════════════════════════════════════ */
-function MobileRoadFlow({ nodes }: { nodes: StepNode[] }) {
+function MobileTimeline({ nodes }: { nodes: StepNode[] }) {
   let currentPhase: Phase | null = null;
 
   return (
-    <div className="relative pl-7">
-      {/* Vertical road */}
-      <div className="absolute left-[18px] top-0 bottom-0 w-[3px] rounded-full"
-        style={{ background: "hsl(var(--foreground) / 0.08)" }} />
-      <div className="absolute left-[19px] top-0 bottom-0 w-[1px]"
+    <div className="relative pl-10">
+      {/* Continuous vertical line */}
+      <div
+        className="absolute left-[19px] top-4 bottom-4 w-[2px]"
         style={{
-          backgroundImage: "repeating-linear-gradient(to bottom, hsl(var(--foreground) / 0.15) 0px, hsl(var(--foreground) / 0.15) 6px, transparent 6px, transparent 12px)",
-        }} />
+          background: "linear-gradient(to bottom, hsl(var(--foreground) / 0.06), hsl(var(--foreground) / 0.12), hsl(var(--foreground) / 0.06))",
+        }}
+      />
 
       {nodes.map((node, i) => {
         const StepIcon = node.icon;
@@ -416,51 +467,103 @@ function MobileRoadFlow({ nodes }: { nodes: StepNode[] }) {
         const hasFriction = !!node.friction;
         const severity = node.friction?.severity || 0;
         const sevColor = getSeverityColor(severity);
+        const sevLabel = getSeverityLabel(severity);
         const isHigh = severity >= 4;
         const showPhase = node.phase !== currentPhase;
         if (showPhase) currentPhase = node.phase;
+        const isLast = i === nodes.length - 1;
 
         return (
           <React.Fragment key={i}>
+            {/* Phase marker */}
             {showPhase && (
-              <div className="relative flex items-center gap-2 mb-2 mt-3 first:mt-0 -ml-7 pl-11">
-                <div className="absolute left-[15px] w-2.5 h-2.5 rounded-full z-10"
-                  style={{ background: `hsl(${phaseColor})` }} />
-                <span className="text-[9px] font-extrabold uppercase tracking-[0.12em]"
-                  style={{ color: `hsl(${phaseColor})` }}>
+              <div className="relative flex items-center gap-2 mb-2 mt-3 first:mt-0 -ml-10 pl-12">
+                <div
+                  className="absolute left-[16px] w-[8px] h-[8px] rounded-full z-10"
+                  style={{ background: `hsl(${phaseColor})`, boxShadow: `0 0 6px hsl(${phaseColor} / 0.3)` }}
+                />
+                <span
+                  className="text-[10px] font-extrabold uppercase tracking-[0.1em]"
+                  style={{ color: `hsl(${phaseColor})` }}
+                >
                   {node.phase}
                 </span>
               </div>
             )}
 
-            <div className="relative flex items-start gap-3 mb-3">
-              <div className="absolute -left-7 w-9 h-9 rounded-full flex items-center justify-center z-10"
+            {/* Step node */}
+            <div className="relative flex items-start gap-3 mb-4">
+              {/* Timeline dot */}
+              <div
+                className="absolute -left-10 w-[40px] h-[40px] rounded-xl flex items-center justify-center z-10"
                 style={{
                   background: "hsl(var(--card))",
                   color: `hsl(${phaseColor})`,
-                  border: isHigh ? `2px solid hsl(${sevColor})` : `2px solid hsl(${phaseColor} / 0.3)`,
-                  boxShadow: isHigh ? `0 0 10px -2px hsl(${sevColor} / 0.35)` : "0 1px 4px -1px hsl(var(--border) / 0.3)",
-                }}>
-                <StepIcon size={14} strokeWidth={1.8} />
+                  border: isHigh
+                    ? `2px solid hsl(${sevColor})`
+                    : `1.5px solid hsl(${phaseColor} / 0.25)`,
+                  boxShadow: isHigh
+                    ? `0 0 12px -2px hsl(${sevColor} / 0.3)`
+                    : `0 1px 6px -1px hsl(var(--foreground) / 0.06)`,
+                }}
+              >
+                <StepIcon size={16} strokeWidth={1.8} />
                 {hasFriction && (
-                  <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
-                    style={{ background: `hsl(${sevColor})`, color: "white" }}>
-                    <AlertTriangle size={7} />
+                  <div
+                    className="absolute -top-1 -right-1 rounded-full flex items-center justify-center"
+                    style={{
+                      width: 16, height: 16,
+                      background: `hsl(${sevColor})`,
+                      color: "white",
+                      boxShadow: `0 0 6px -1px hsl(${sevColor} / 0.4)`,
+                    }}
+                  >
+                    <AlertTriangle size={8} />
                   </div>
                 )}
               </div>
-              <div className="flex-1 min-w-0 ml-5">
-                <p className="text-[12px] font-bold text-foreground leading-snug">{node.text}</p>
+
+              {/* Card */}
+              <div
+                className="flex-1 min-w-0 ml-3 rounded-xl p-3.5"
+                style={{
+                  background: "hsl(var(--card))",
+                  border: isHigh
+                    ? `1.5px solid hsl(${sevColor} / 0.3)`
+                    : "1px solid hsl(var(--border))",
+                  boxShadow: isHigh
+                    ? `0 2px 12px -3px hsl(${sevColor} / 0.12)`
+                    : "0 1px 3px -1px hsl(var(--foreground) / 0.04)",
+                }}
+              >
+                <p className="text-sm font-bold text-foreground leading-snug mb-1">
+                  Step {node.index + 1}: {node.text}
+                </p>
                 {hasFriction && (
-                  <div className="mt-1 space-y-0.5">
-                    <span className="text-[9px] font-bold" style={{ color: `hsl(${sevColor})` }}>
-                      Friction ({severity}/5)
-                    </span>
-                    <p className="text-[10px] text-muted-foreground leading-snug">{node.friction!.friction}</p>
+                  <div
+                    className="rounded-lg px-2.5 py-2 mt-1.5"
+                    style={{
+                      background: `hsl(${sevColor} / 0.05)`,
+                      border: `1px solid hsl(${sevColor} / 0.1)`,
+                    }}
+                  >
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <AlertTriangle size={10} style={{ color: `hsl(${sevColor})` }} />
+                      <span className="text-[10px] font-bold" style={{ color: `hsl(${sevColor})` }}>
+                        Friction ({sevLabel}/{severity}/5)
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-foreground/75 leading-relaxed">{node.friction!.friction}</p>
+                    {node.friction!.rootCause && (
+                      <p className="text-[11px] text-muted-foreground italic mt-0.5">Root: {node.friction!.rootCause}</p>
+                    )}
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Arrow between steps */}
+            {!isLast && !nodes[i + 1] ? null : null}
           </React.Fragment>
         );
       })}
