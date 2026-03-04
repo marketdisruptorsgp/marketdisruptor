@@ -364,6 +364,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
       smartTechAnalysis: { type: "object", additionalProperties: true },
       hiddenAssumptions: {
         type: "array",
+        minItems: 5,
         items: {
           type: "object",
           properties: {
@@ -384,6 +385,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
       },
       flippedLogic: {
         type: "array",
+        minItems: 4,
         items: {
           type: "object",
           properties: {

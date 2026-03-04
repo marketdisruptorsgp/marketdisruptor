@@ -148,10 +148,22 @@ The JSON must follow this EXACT structure:
   ],
   "flippedLogic": [
     {
-      "originalAssumption": "The assumption being flipped",
+      "originalAssumption": "The assumption being flipped — must correspond to a hiddenAssumption above",
       "boldAlternative": "The radical structural alternative",
       "rationale": "Why this flip creates real value",
       "physicalMechanism": "How it would actually work operationally/technically"
+    },
+    {
+      "originalAssumption": "Second assumption being flipped",
+      "boldAlternative": "Second radical alternative",
+      "rationale": "Why this matters",
+      "physicalMechanism": "Implementation mechanism"
+    },
+    {
+      "originalAssumption": "Third assumption being flipped",
+      "boldAlternative": "Third bold alternative",
+      "rationale": "Value creation rationale",
+      "physicalMechanism": "Operational mechanism"
     }
   ],
   "redesignedConcept": {
@@ -358,6 +370,7 @@ CRITICAL INSTRUCTIONS:
 10. VALIDATION: If a real analogous service proved a similar model works, reference it (name, revenue/growth, structural parallel). If this is genuinely novel, explain why the timing is right and what adjacent signals support it.
 11. DEMAND SIGNAL: Reference community complaints, review patterns, behavioral trends, or market gaps as evidence of demand.
 12. UNIT ECONOMICS: Include specific pricing math — customer acquisition cost estimate, lifetime value estimate, and margin structure.
+13. MINIMUM COUNTS: Generate at least 5 hiddenAssumptions and at least 4 flippedLogic items. Each flipped logic MUST correspond to a specific hidden assumption. Cover different friction dimensions — pricing, delivery, skill, ecosystem, operational model. Do NOT generate just 1 flip.
 
 VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 1-2 visual specs for the dominant constraint structure. Use constraint_map for showing how constraints connect, causal_chain for cause-effect flows, leverage_hierarchy for ranked interventions.
@@ -397,6 +410,7 @@ CRITICAL INSTRUCTIONS:
 10. VALIDATION: If a real analogous product proved a similar approach works, reference it (name, revenue/growth, structural parallel). If this is genuinely novel, explain why the timing is right and what adjacent signals support it.
 11. DEMAND SIGNAL: Reference community complaints, behavioral trends, or adjacent market data as evidence of demand for this redesign direction.
 12. UNIT ECONOMICS: Include BOM estimate, target retail price, margin calculation, and breakeven volume.
+13. MINIMUM COUNTS: Generate at least 5 hiddenAssumptions and at least 4 flippedLogic items. Each flipped logic MUST correspond to a specific hidden assumption. Cover different friction dimensions — physical, cost, skill, ecosystem, workflow. Do NOT generate just 1 or 2 flips.
 
 VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 1-2 visual specs for the dominant constraint structure. Use constraint_map for showing how constraints connect, causal_chain for cause-effect flows, leverage_hierarchy for ranked interventions.
