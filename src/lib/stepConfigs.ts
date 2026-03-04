@@ -5,8 +5,8 @@ import type { StepConfig } from "@/components/StepNavigator";
 export function getStepConfigs(modeAccent: string): StepConfig[] {
   return [
     { step: 2, label: "Intelligence Report", description: "Deep market data, pricing & supply chain intel", icon: Target, color: modeAccent },
-    { step: 3, label: "Disrupt", description: "Assumptions, flip the logic & flipped ideas", icon: Brain, color: modeAccent },
-    { step: 4, label: "Redesign", description: "Interactive redesigned concept with illustrations", icon: Sparkles, color: modeAccent },
+    { step: 3, label: "Disrupt", description: "Hidden assumptions & leverage analysis", icon: Brain, color: modeAccent },
+    { step: 4, label: "Redesign", description: "Flipped logic, reinvention ideas & redesigned concept", icon: Sparkles, color: modeAccent },
     { step: 5, label: "Stress Test", description: "Red vs Green team critical validation", icon: Swords, color: modeAccent },
     { step: 6, label: "Pitch Deck", description: "Investor-ready presentation builder", icon: Presentation, color: modeAccent },
   ];
