@@ -1,38 +1,45 @@
 
 
-## Problem
+## Plan: Global Font Color + Size Upgrade
 
-Each step page only passes **its own data** to the PDF generator. For example, the Disrupt page only passes `{ disrupt: ... }`, so the PDF only contains the disrupt section — missing the intel report data that's already on `selectedProduct`. The `gatherAllAnalysisData` utility already exists and collects everything, but no page uses it.
+### Problem
+Gray/muted text throughout the platform reduces readability. Font sizes need a ~10% bump across all modes, steps, and sections.
 
-## Plan
+### Approach — Two CSS-level changes (no component edits needed)
 
-### 1. Create a shared helper for cumulative PDF download
+**1. Kill gray text globally** — Change `--muted-foreground` CSS variable from `220 10% 40%` (gray) to match `--foreground` (`224 20% 10%`, near-black). This single change propagates to every `text-muted-foreground` usage across all 117+ files without touching any component code.
 
-Create a single reusable function (or just inline `gatherAllAnalysisData`) that every page calls instead of manually building partial `data` objects.
+**2. Bump all font sizes ~10%** — Increase the base `body` font-size from `0.875rem` to `0.9625rem`, and scale each typography role class proportionally:
 
-**Edit each page's PDF button** to use `gatherAllAnalysisData(analysis)` instead of the manual per-step data object:
+| Role | Current | New (~+10%) |
+|------|---------|-------------|
+| body | 0.875rem (14px) | 0.9625rem (15.4px) |
+| typo-nav-primary | 0.9375rem | 1.03rem |
+| typo-step-title-active/inactive | 0.875rem | 0.9625rem |
+| typo-step-subtitle | 0.8125rem | 0.894rem |
+| typo-page-title | 2rem | 2.2rem |
+| typo-page-meta | 0.875rem | 0.9625rem |
+| typo-card-eyebrow | 0.8125rem | 0.894rem |
+| typo-card-title | 1rem | 1.1rem |
+| typo-card-body | 0.875rem | 0.9625rem |
+| typo-card-meta | 0.8125rem | 0.894rem |
+| typo-section-title | 1.125rem | 1.2375rem |
+| typo-section-description | 0.875rem | 0.9625rem |
+| typo-status-label | 0.8125rem | 0.894rem |
+| typo-button-primary | 0.875rem | 0.9625rem |
+| typo-button-secondary | 0.8125rem | 0.894rem |
 
-- **`DisruptPage.tsx`** (line 91-92): Replace `const data = {}; if (analysis.disruptData) data.disrupt = ...` with `import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData"` and call `gatherAllAnalysisData(analysis)`.
-- **`RedesignPage.tsx`** (line 83-84): Same change.
-- **`StressTestPage.tsx`** (line 75-76): Same change.
-- **`PitchPage.tsx`** (line 75-76): Same change.
-- **`ReportPage.tsx`** (lines 162-167): Already gathers most data manually — replace with `gatherAllAnalysisData(analysis)` for consistency.
+### Files to edit
+- **`src/index.css`** — The only file that needs changes. Both the CSS variable and all typography class sizes live here.
 
-This ensures that **any page's PDF button always includes all completed steps up to that point**, since `gatherAllAnalysisData` checks each data field and only includes it if it exists.
+### What this covers
+- All modes (Product, Service, Business Model)
+- All steps (Intel, Disrupt, Redesign, Stress Test, Pitch)
+- All sections, cards, panels, navigation, badges, buttons
+- Existing and new analyses
 
-### 2. No changes needed to PrintableReport
-
-`PrintableReport.tsx` already renders sections conditionally based on what's in `analysisData` — it handles disrupt, stressTest, pitchDeck, redesign, and patent data. The intel report data comes from the `product` object itself, which is always passed. So once we pass all available data, the PDF will include everything.
-
-### Summary of files to edit
-
-| File | Change |
-|---|---|
-| `src/pages/DisruptPage.tsx` | Import + use `gatherAllAnalysisData(analysis)` |
-| `src/pages/RedesignPage.tsx` | Import + use `gatherAllAnalysisData(analysis)` |
-| `src/pages/StressTestPage.tsx` | Import + use `gatherAllAnalysisData(analysis)` |
-| `src/pages/PitchPage.tsx` | Import + use `gatherAllAnalysisData(analysis)` |
-| `src/pages/ReportPage.tsx` | Import + use `gatherAllAnalysisData(analysis)` |
-
-Each change is ~3 lines: add import, replace manual data object with `gatherAllAnalysisData(analysis)`.
+### What stays unchanged
+- No component files touched
+- Color accents, borders, spacing unaffected
+- Heading font family (Space Grotesk) unchanged
 
