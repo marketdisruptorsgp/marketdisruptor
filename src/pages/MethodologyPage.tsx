@@ -414,6 +414,119 @@ export default function MethodologyPage() {
           </div>
         </section>
 
+        {/* ── Section 6b: ETA Acquisition Deep Dive ── */}
+        <section>
+          <h2 className="text-xl font-bold text-foreground mb-1">ETA Acquisition Methodology</h2>
+          <p className="text-sm text-muted-foreground mb-5">Purpose-built for Entrepreneurs Through Acquisition (ETA) — evaluating, buying, and growing small businesses ($500K–$5M).</p>
+
+          {/* Buyer Journey */}
+          <div className="border border-border rounded-lg bg-card p-4 sm:p-5 mb-4" style={{ borderLeftWidth: "3px", borderLeftColor: "hsl(142 70% 40%)" }}>
+            <p className="typo-card-eyebrow mb-3" style={{ color: "hsl(142 70% 30%)" }}>The ETA Buyer Journey — Where the Platform Plays</p>
+            <div className="grid grid-cols-5 gap-1.5 text-center">
+              {[
+                { phase: "Search & Screen", desc: "Upload CIMs, quick viability checks", active: true },
+                { phase: "Due Diligence", desc: "Deep-dive operations, owner risk, addback scrutiny", active: true },
+                { phase: "Deal Structure", desc: "SBA math, DSCR, valuation sanity, LOI prep", active: true },
+                { phase: "Day 1–90", desc: "100-day playbook, quick wins, transition planning", active: true },
+                { phase: "Ongoing", desc: "Re-analysis, improvement tracking, quarterly pulse", active: true },
+              ].map((p, i) => (
+                <div key={i} className="p-2 rounded-lg" style={{
+                  background: p.active ? "hsl(142 70% 45% / 0.06)" : "hsl(var(--muted))",
+                  border: p.active ? "1px solid hsl(142 70% 45% / 0.2)" : "1px solid hsl(var(--border))",
+                }}>
+                  <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: p.active ? "hsl(142 70% 30%)" : "hsl(var(--muted-foreground))" }}>{p.phase}</p>
+                  <p className="text-[9px] text-muted-foreground mt-0.5 leading-tight">{p.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ETA-Specific Modules */}
+          <div className="space-y-3">
+            {[
+              {
+                title: "CIM Intelligence Extraction",
+                color: "hsl(142 70% 40%)",
+                points: [
+                  "Automatically extracts SDE, revenue, addbacks, and margin data from uploaded CIM documents",
+                  "Identifies owner involvement patterns, staffing structure, and customer concentration from document text",
+                  "Flags missing information — what the CIM should tell you but didn't — and generates specific follow-up questions for the broker",
+                  "Cross-references CIM claims against AI's independent operational assessment",
+                ],
+              },
+              {
+                title: "Deal Economics Calculator",
+                color: "hsl(217 91% 45%)",
+                points: [
+                  "SBA 7(a) loan modeling — adjustable down payment (10–25%), interest rate (9.5–12%), and term (7–25 years)",
+                  "DSCR (Debt Service Coverage Ratio) computation — SBA lenders require ≥1.25x; flags when deals are tight",
+                  "Valuation sanity check — compares asking price to SDE multiple against industry norms",
+                  "Downside sensitivity table — shows DSCR at -30%, -20%, -10% revenue scenarios",
+                  "Owner take-home after debt service — monthly and annual, before taxes",
+                ],
+              },
+              {
+                title: "Owner Dependency Assessment",
+                color: "hsl(var(--destructive))",
+                points: [
+                  "Transition Risk Score (1–10) — quantifies likelihood of value destruction when ownership changes",
+                  "Dependency mapping across 6 domains: Customer Relationships, Vendor Relationships, Operational Knowledge, Pricing Decisions, Sales Pipeline, Strategic Direction",
+                  "Key-person risk identification — employees or relationships that could leave with the owner",
+                  "Mitigation playbook — specific actions to de-risk each dependency before or during transition",
+                ],
+              },
+              {
+                title: "Addback Scrutiny",
+                color: "hsl(38 92% 50%)",
+                points: [
+                  "Evaluates every seller-claimed addback with a confidence rating: Legitimate, Questionable, or Suspicious",
+                  "Identifies common broker inflation patterns — family payroll, personal expenses, 'one-time' costs that recur",
+                  "Computes Adjusted SDE after removing questionable addbacks — a more conservative valuation basis",
+                  "Estimates the real multiple you'd be paying based on scrutinized financials",
+                ],
+              },
+              {
+                title: "Stagnation Diagnostic",
+                color: "hsl(271 81% 45%)",
+                points: [
+                  "Identifies root causes of business decline or stagnation — often the real reason the owner is selling",
+                  "Classifies causes: owner fatigue, competitive erosion, structural decay, market shift, or pricing compression",
+                  "Each factor includes a Reversibility Score — can a new owner fix this, or is it structural?",
+                  "Directly informs the 100-Day Playbook by prioritizing which stagnation causes to address first",
+                ],
+              },
+              {
+                title: "100-Day Ownership Playbook",
+                color: "hsl(var(--primary))",
+                points: [
+                  "5-phase post-acquisition action plan: Listen & Learn → Quick Wins → Process Optimization → Structural Changes → Scale & Optimize",
+                  "Derived from analysis findings — not a generic template. Each action connects to a specific friction point or opportunity",
+                  "Includes success milestones and risk warnings for each phase",
+                  "Quick Wins section highlights low-effort, high-impact actions for the first 30 days",
+                ],
+              },
+            ].map((mod) => (
+              <div key={mod.title} className="border border-border rounded-lg p-4 sm:p-5 bg-card" style={{ borderLeftWidth: "3px", borderLeftColor: mod.color }}>
+                <p className="text-sm font-bold text-foreground mb-2">{mod.title}</p>
+                <ul className="space-y-1.5">
+                  {mod.points.map((p, j) => (
+                    <li key={j} className="text-xs text-muted-foreground flex items-start gap-2 leading-relaxed">
+                      <span className="w-1 h-1 rounded-full flex-shrink-0 mt-1.5" style={{ background: mod.color }} />
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+            <p className="text-xs text-foreground/70 leading-relaxed">
+              <strong className="text-foreground">Key principle:</strong> ETA modules only appear when the ETA Acquisition Lens is active. Non-acquisition users never see them. The underlying first-principles engine is identical — the ETA lens reshapes interpretation, adds acquisition-specific output layers, and reframes all recommendations for a buyer's perspective.
+            </p>
+          </div>
+        </section>
+
         {/* ── Section 7: Strategic Operating System ── */}
         <section>
           <h2 className="text-xl font-bold text-foreground mb-1">Strategic Operating System</h2>
