@@ -139,7 +139,11 @@ The JSON must follow this EXACT structure:
       "reason": "tradition | manufacturing | cost | physics | habit",
       "isChallengeable": true,
       "challengeIdea": "How you'd challenge or invert this assumption",
-      "leverageScore": 8
+      "leverageScore": 8,
+      "impactScenario": "What happens if this assumption is successfully challenged — the specific upside, market shift, or value unlocked (1-2 sentences)",
+      "competitiveBlindSpot": "Which competitors or incumbents rely on this same assumption and would be vulnerable if it were broken (name specific players or categories)",
+      "urgencySignal": "eroding | stable | emerging",
+      "urgencyReason": "Why this assumption is eroding NOW due to tech/market shifts, OR why it remains stable, OR why it's an emerging opportunity (1 sentence)"
     }
   ],
   "flippedLogic": [
@@ -246,7 +250,11 @@ The JSON must follow this EXACT structure:
       "reason": "tradition | manufacturing | cost | physics | habit",
       "isChallengeable": true,
       "challengeIdea": "How you'd challenge or invert this assumption",
-      "leverageScore": 8
+      "leverageScore": 8,
+      "impactScenario": "What happens if this assumption is successfully challenged — the specific upside, market shift, or value unlocked (1-2 sentences)",
+      "competitiveBlindSpot": "Which competitors or incumbents rely on this same assumption and would be vulnerable if it were broken (name specific players or categories)",
+      "urgencySignal": "eroding | stable | emerging",
+      "urgencyReason": "Why this assumption is eroding NOW due to tech/market shifts, OR why it remains stable, OR why it's an emerging opportunity (1 sentence)"
     }
   ],
   "flippedLogic": [

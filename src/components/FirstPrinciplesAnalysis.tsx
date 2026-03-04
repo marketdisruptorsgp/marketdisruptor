@@ -118,6 +118,10 @@ interface HiddenAssumption {
   challengeIdea?: string;
   leverageScore?: number;
   dataLabel?: string;
+  impactScenario?: string;
+  competitiveBlindSpot?: string;
+  urgencySignal?: "eroding" | "stable" | "emerging";
+  urgencyReason?: string;
 }
 
 interface FlippedLogicItem {
@@ -472,6 +476,12 @@ function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumpti
                 <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>{i + 1}</span>
                 <span className="text-[13px] font-bold text-foreground flex-1 leading-snug">{a.assumption}</span>
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {a.urgencySignal === "eroding" && (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "hsl(0 70% 50% / 0.1)", color: "hsl(0 70% 50%)" }}>↓ Eroding</span>
+                  )}
+                  {a.urgencySignal === "emerging" && (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "hsl(142 70% 40% / 0.1)", color: "hsl(142 70% 35%)" }}>↑ Emerging</span>
+                  )}
                   <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>
                     {reasonStyle.label}
                   </span>
@@ -485,9 +495,22 @@ function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumpti
                 </div>
               </button>
 
-              {/* ── Expanded: full detail ── */}
               {isExpanded && (
                 <div className="px-4 pb-4 pt-0 space-y-3" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                  {/* Urgency signal badge */}
+                  {a.urgencySignal && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{
+                        background: a.urgencySignal === "eroding" ? "hsl(0 70% 50% / 0.1)" : a.urgencySignal === "emerging" ? "hsl(142 70% 40% / 0.1)" : "hsl(var(--muted))",
+                        color: a.urgencySignal === "eroding" ? "hsl(0 70% 50%)" : a.urgencySignal === "emerging" ? "hsl(142 70% 35%)" : "hsl(var(--muted-foreground))",
+                        border: `1px solid ${a.urgencySignal === "eroding" ? "hsl(0 70% 50% / 0.2)" : a.urgencySignal === "emerging" ? "hsl(142 70% 40% / 0.2)" : "hsl(var(--border))"}`,
+                      }}>
+                        {a.urgencySignal === "eroding" ? "↓ Eroding Now" : a.urgencySignal === "emerging" ? "↑ Emerging Opportunity" : "→ Stable"}
+                      </span>
+                      {a.urgencyReason && <span className="text-[11px] text-muted-foreground">{a.urgencyReason}</span>}
+                    </div>
+                  )}
+
                   {/* Leverage bar */}
                   {a.leverageScore != null && (
                     <div className="flex items-center gap-2">
@@ -504,6 +527,22 @@ function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumpti
                     <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Why this exists</p>
                     <p className="text-xs text-foreground/80 leading-relaxed">{a.currentAnswer}</p>
                   </div>
+
+                  {/* Impact scenario */}
+                  {a.impactScenario && (
+                    <div className="p-3 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 40% / 0.15)" }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 35%)" }}>If challenged successfully</p>
+                      <p className="text-xs text-foreground/80 leading-relaxed">{a.impactScenario}</p>
+                    </div>
+                  )}
+
+                  {/* Competitive blind spot */}
+                  {a.competitiveBlindSpot && (
+                    <div className="p-3 rounded-lg" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(38 92% 35%)" }}>Who's vulnerable</p>
+                      <p className="text-xs text-foreground/80 leading-relaxed">{a.competitiveBlindSpot}</p>
+                    </div>
+                  )}
 
                   {/* Challenge approach */}
                   {a.challengeIdea && (
@@ -1227,9 +1266,53 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
           <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="firstPrinciples" governedOverride={analysisCtx.governedData}>
 
+          {/* ── Highest-Leverage Move Banner ── */}
+          {(() => {
+            const topMove = assumptions
+              .filter(a => a.isChallengeable && (a.leverageScore || 0) >= 7)
+              .sort((a, b) => (b.leverageScore || 0) - (a.leverageScore || 0))[0];
+            if (!topMove) return null;
+            const erodingCount = assumptions.filter(a => a.urgencySignal === "eroding").length;
+            return (
+              <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--foreground))", border: "none" }}>
+                <div className="flex items-center gap-2">
+                  <Flame size={14} style={{ color: "hsl(var(--background))" }} />
+                  <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--background) / 0.7)" }}>Highest-Leverage Move</p>
+                  {erodingCount > 0 && (
+                    <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "hsl(0 70% 50% / 0.2)", color: "hsl(0 70% 65%)" }}>
+                      {erodingCount} eroding now
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm font-bold leading-snug" style={{ color: "hsl(var(--background))" }}>
+                  Challenge: "{topMove.assumption}"
+                </p>
+                {topMove.impactScenario && (
+                  <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--background) / 0.7)" }}>
+                    {topMove.impactScenario}
+                  </p>
+                )}
+                <div className="flex items-center gap-3 pt-1">
+                  <span className="text-[10px] font-bold tabular-nums" style={{ color: "hsl(var(--background) / 0.5)" }}>
+                    Leverage: {topMove.leverageScore}/10
+                  </span>
+                  {topMove.urgencySignal === "eroding" && (
+                    <span className="text-[10px] font-bold" style={{ color: "hsl(0 70% 65%)" }}>↓ Eroding</span>
+                  )}
+                  {topMove.competitiveBlindSpot && (
+                    <span className="text-[10px]" style={{ color: "hsl(var(--background) / 0.5)" }}>
+                      Vulnerable: {topMove.competitiveBlindSpot.length > 60 ? topMove.competitiveBlindSpot.slice(0, 58) + "…" : topMove.competitiveBlindSpot}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* ── Summary line ── */}
           <p className="text-xs text-muted-foreground leading-relaxed">
             {assumptions.length} assumptions deconstructed · {challengeableCount} challengeable ({assumptions.length > 0 ? Math.round(challengeableCount / assumptions.length * 100) : 0}%) · avg leverage {avgLeverage}/10{topReason ? ` · top root cause: ${REASON_COLORS[topReason[0]]?.label || topReason[0]}` : ""}
+            {(() => { const eroding = assumptions.filter(a => a.urgencySignal === "eroding").length; return eroding > 0 ? ` · ${eroding} eroding now` : ""; })()}
           </p>
 
           {/* ── Assumption Cards ── */}
