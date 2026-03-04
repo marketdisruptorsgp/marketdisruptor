@@ -11,7 +11,7 @@ import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { type StrategicHypothesis, rankWithProfile } from "@/lib/strategicOS";
-import { Target, Layers, Wrench, FileDown, Save, RefreshCw } from "lucide-react";
+import { Target, Layers, Wrench, FileDown, Save, RefreshCw, Atom } from "lucide-react";
 import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
@@ -23,15 +23,15 @@ import { RedesignTab } from "@/components/strategic/RedesignTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 
 const TABS = [
+  { id: "structure" as const, label: "First Principles", icon: Atom, description: "Fundamental truths & decomposition" },
   { id: "signal" as const, label: "Signal", icon: Target, description: "Executive decision layer" },
-  { id: "structure" as const, label: "Structure", icon: Layers, description: "System mechanics" },
   { id: "redesign" as const, label: "Redesign", icon: Wrench, description: "Action strategies" },
 ];
 
 type TabId = typeof TABS[number]["id"];
 
 export default function DisruptPage() {
-  const [activeTab, setActiveTab] = useState<TabId>("signal");
+  const [activeTab, setActiveTab] = useState<TabId>("structure");
   const [runTrigger, setRunTrigger] = useState(0);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const analysis = useAnalysis();
@@ -57,7 +57,7 @@ export default function DisruptPage() {
   const hasSynopsis = hasDisruptData && !!synopsisData;
   const ranking = hasHypotheses ? rankWithProfile(rawHypotheses!, analysis.strategicProfile) : null;
 
-  // If no disrupt data yet, default to Structure tab (where the run button lives)
+  // If no disrupt data yet, default to First Principles tab
   const effectiveTab = !hasDisruptData && activeTab !== "structure" ? "structure" : activeTab;
 
   return (
