@@ -154,9 +154,14 @@ export function StepLoadingTracker({
 
 export const DISRUPT_TASKS: StepTask[] = [
   { label: "Assumption Mining", detail: "Hidden assumptions & biases" },
+  { label: "Leverage Scoring", detail: "Ranking disruption potential" },
+  { label: "Constraint Mapping", detail: "Structural dependencies" },
+];
+
+export const REDESIGN_TASKS: StepTask[] = [
   { label: "Logic Inversion", detail: "Flipping core paradigms" },
   { label: "Idea Generation", detail: "Radical reinvention concepts" },
-  { label: "Disrupt Concept", detail: "Core disruption vision" },
+  { label: "Concept Synthesis", detail: "Redesigned concept vision" },
 ];
 
 export const STRESS_TEST_TASKS: StepTask[] = [

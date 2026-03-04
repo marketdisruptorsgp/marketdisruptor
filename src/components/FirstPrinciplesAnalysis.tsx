@@ -13,7 +13,7 @@ import { LeverageScore } from "@/components/LeverageScore";
 import { RiskBadge } from "@/components/RiskBadge";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { downloadPatentPDF } from "@/lib/pdfExport";
-import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
+import { StepLoadingTracker, DISRUPT_TASKS, REDESIGN_TASKS } from "@/components/StepLoadingTracker";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import {
   Brain, Flame, Zap, ChevronRight, ChevronDown, RefreshCw, AlertTriangle, CheckCircle2,
@@ -746,7 +746,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     return (
       <StepLoadingTracker
         title={renderMode === "redesign" ? "Generating Redesign Concept" : "Building Disrupt Analysis"}
-        tasks={DISRUPT_TASKS}
+        tasks={renderMode === "redesign" ? REDESIGN_TASKS : DISRUPT_TASKS}
         estimatedSeconds={50}
         accentColor={renderMode === "redesign" ? "hsl(38 92% 50%)" : "hsl(271 81% 55%)"}
       />
