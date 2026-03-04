@@ -288,7 +288,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   } : null);
 
   // ── Inline styles for 1920×1080 canvas ──────────────────────
-  const panel: React.CSSProperties = { padding: 28, borderRadius: 10, background: "#fafafa", border: "1px solid #e8e8ec" };
+  const panel: React.CSSProperties = { padding: 28, borderRadius: 10, background: "linear-gradient(135deg, #ffffff, #f8f9fc)", border: "1px solid #e8e8ec" };
   const lbl: React.CSSProperties = { fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 14 };
   const txt: React.CSSProperties = { fontSize: 21, color: "#0f0f12", opacity: 0.85, lineHeight: 1.55 };
   const heading: React.CSSProperties = { fontSize: 28, fontWeight: 700, color: "#0f0f12", lineHeight: 1.3 };
@@ -586,7 +586,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
               </p>
               <RiskSeverityBar severity={r.severity} />
             </div>
-            <div style={{ padding: "14px 24px", borderLeft: `4px solid ${r.severity === "high" ? "#ef4444" : r.severity === "medium" ? "#f59e0b" : "#22c55e"}` }}>
+            <div style={{ padding: "14px 24px", borderLeft: `4px solid transparent`, backgroundImage: `linear-gradient(#fff, #fff), linear-gradient(180deg, ${r.severity === "high" ? "#ef4444" : r.severity === "medium" ? "#f59e0b" : "#22c55e"}, ${r.severity === "high" ? "#ef444444" : r.severity === "medium" ? "#f59e0b44" : "#22c55e44"})`, backgroundOrigin: "padding-box, border-box", backgroundClip: "padding-box, border-box", borderLeftWidth: 4, borderLeftStyle: "solid" }}>
               <p style={{ ...lbl, fontSize: 11, marginBottom: 4 }}>Mitigation Strategy</p>
               <p style={{ ...txt, fontSize: 19 }}>{r.mitigation}</p>
             </div>
