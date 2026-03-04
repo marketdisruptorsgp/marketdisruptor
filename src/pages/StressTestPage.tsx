@@ -176,6 +176,7 @@ export default function StressTestPage() {
               externalData={analysis.stressTestData}
               runTrigger={runTrigger}
               onLoadingChange={setAnalysisLoading}
+              competitorIntel={analysis.scoutedCompetitors}
               onDataLoaded={(d) => {
                 analysis.setStressTestData(d);
                 analysis.saveStepData("stressTest", d);

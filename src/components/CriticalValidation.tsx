@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
   Shield, Swords, Target, CheckCircle2, XCircle, AlertTriangle,
   ArrowRight, RefreshCw, Brain, TrendingUp, TrendingDown,
-  BookOpen, ClipboardCheck, Eye, Zap, Flame, BarChart3,
+  BookOpen, ClipboardCheck, Eye, Zap, Flame, BarChart3, Crosshair,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 
@@ -103,6 +103,24 @@ interface ValidationData {
   blindSpots: string[];
   visualSpecs?: import("@/lib/visualContract").VisualSpec[];
   actionPlans?: import("@/lib/visualContract").ActionPlan[];
+  competitiveLandscape?: CompetitiveLandscape;
+}
+
+interface CompetitorComparison {
+  competitor: string;
+  url?: string;
+  originalAdvantage: string;
+  originalVulnerability: string;
+  redesignAdvantage: string;
+  redesignGap: string;
+}
+
+interface CompetitiveLandscape {
+  originalVsCompetitors: CompetitorComparison[];
+  positioningRecommendation: string;
+  pricingInsight?: string;
+  biggestCompetitiveThreat: string;
+  categoryDynamics?: string;
 }
 
 interface CriticalValidationProps {
@@ -113,6 +131,7 @@ interface CriticalValidationProps {
   onDataLoaded?: (data: unknown) => void;
   runTrigger?: number;
   onLoadingChange?: (loading: boolean) => void;
+  competitorIntel?: unknown[];
 }
 
 const SEVERITY_STYLES = {
@@ -152,7 +171,7 @@ const DEBATE_SECTIONS = [
   { id: "validate", label: "Validate & Score", icon: CheckCircle2 },
 ];
 
-export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange }: CriticalValidationProps) => {
+export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
   const [userSuggestions, setUserSuggestions] = useState("");
@@ -195,7 +214,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         activeBranch = getBranchPayload(governedData, activeBranchId, strategicProfileRef);
       }
       const { data: result, error } = await supabase.functions.invoke("critical-validation", {
-        body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined, activeBranch, adaptiveContext: adaptiveContextRef || undefined },
+        body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined, activeBranch, adaptiveContext: adaptiveContextRef || undefined, competitorIntel: competitorIntel?.length ? competitorIntel : undefined },
       });
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Validation failed";
@@ -417,6 +436,103 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         </div>
 
         {/* ═══ BELOW THE ARENA: shared sections ═══ */}
+
+        {/* ── Competitive Landscape Panel ── */}
+        {data.competitiveLandscape?.originalVsCompetitors?.length ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.12)" }}>
+                <Crosshair size={14} style={{ color: "hsl(var(--primary))" }} />
+              </div>
+              <p className="text-sm font-extrabold text-foreground tracking-tight">Competitive Landscape</p>
+            </div>
+
+            {/* Positioning + Threat */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="p-3 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--primary))" }}>Positioning Strategy</p>
+                <p className="text-sm text-foreground/85 leading-relaxed">{data.competitiveLandscape.positioningRecommendation}</p>
+              </div>
+              <div className="p-3 rounded-xl" style={{ background: "hsl(0 72% 52% / 0.04)", border: "1px solid hsl(0 72% 52% / 0.15)" }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(0 72% 48%)" }}>Biggest Threat</p>
+                <p className="text-sm text-foreground/85 leading-relaxed">{data.competitiveLandscape.biggestCompetitiveThreat}</p>
+              </div>
+            </div>
+
+            {data.competitiveLandscape.categoryDynamics && (
+              <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Category Dynamics</p>
+                <p className="text-xs text-foreground/80">{data.competitiveLandscape.categoryDynamics}</p>
+              </div>
+            )}
+
+            {/* Competitor comparison cards */}
+            <DetailPanel title={`Competitor Comparisons (${data.competitiveLandscape.originalVsCompetitors.length})`} icon={Crosshair} defaultOpen>
+              <div className="space-y-2 mb-2">
+                {data.competitiveLandscape.originalVsCompetitors.map((comp, i) => (
+                  <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+                    <div className="px-3 py-2 flex items-center justify-between" style={{ background: "hsl(var(--muted))" }}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-foreground">{comp.competitor}</span>
+                        {comp.url && (
+                          <a href={comp.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
+                            <ArrowRight size={8} /> Visit
+                          </a>
+                        )}
+                      </div>
+                      <PitchDeckToggle contentKey={`comp-landscape-${i}`} label="Include in Pitch" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-0">
+                      {/* Original column */}
+                      <div className="p-3 space-y-2" style={{ borderRight: "1px solid hsl(var(--border))" }}>
+                        <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Original Product</p>
+                        <div>
+                          <p className="text-[10px] font-semibold" style={{ color: "hsl(142 70% 35%)" }}>Advantage</p>
+                          <p className="text-xs text-foreground/75 leading-relaxed">{comp.originalAdvantage}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-semibold" style={{ color: "hsl(0 72% 48%)" }}>Vulnerability</p>
+                          <p className="text-xs text-foreground/75 leading-relaxed">{comp.originalVulnerability}</p>
+                        </div>
+                      </div>
+                      {/* Redesign column */}
+                      <div className="p-3 space-y-2">
+                        <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Redesigned Concept</p>
+                        <div>
+                          <p className="text-[10px] font-semibold" style={{ color: "hsl(142 70% 35%)" }}>Advantage</p>
+                          <p className="text-xs text-foreground/75 leading-relaxed">{comp.redesignAdvantage}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-semibold" style={{ color: "hsl(38 92% 45%)" }}>Remaining Gap</p>
+                          <p className="text-xs text-foreground/75 leading-relaxed">{comp.redesignGap}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DetailPanel>
+
+            {data.competitiveLandscape.pricingInsight && (
+              <div className="p-3 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(38 92% 45%)" }}>Pricing Insight</p>
+                <p className="text-sm text-foreground/85 leading-relaxed">{data.competitiveLandscape.pricingInsight}</p>
+                <div className="flex justify-end mt-2">
+                  <PitchDeckToggle contentKey="comp-pricing-insight" label="Include in Pitch" />
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          !competitorIntel?.length && (
+            <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted) / 0.5)", border: "1px dashed hsl(var(--border))" }}>
+              <p className="text-xs text-muted-foreground">
+                <Crosshair size={10} className="inline mr-1" />
+                Scout competitors in the Disrupt step for deeper competitive landscape analysis here.
+              </p>
+            </div>
+          )
+        )}
 
         {/* Counter Examples — collapsed */}
         {data.counterExamples?.length > 0 && (

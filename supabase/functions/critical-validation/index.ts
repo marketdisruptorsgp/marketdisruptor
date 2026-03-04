@@ -19,7 +19,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData, activeBranch, adaptiveContext: rawAdaptiveCtx } = await req.json();
+    const { product, analysisData, userSuggestions, lens, geoData, regulatoryData, activeBranch, adaptiveContext: rawAdaptiveCtx, competitorIntel } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const mode = resolveMode(product.analysisType, product.category);
@@ -166,6 +166,15 @@ The JSON must follow this EXACT structure:
       "confidence": "high | medium | exploratory"
     }
   ],
+  "competitiveLandscape": {
+    "originalVsCompetitors": [
+      { "competitor": "Competitor name", "url": "url if known", "originalAdvantage": "where original beats them", "originalVulnerability": "where they beat original", "redesignAdvantage": "where redesign wins", "redesignGap": "remaining weakness" }
+    ],
+    "positioningRecommendation": "one-line positioning strategy vs competitors",
+    "pricingInsight": "competitive pricing takeaway",
+    "biggestCompetitiveThreat": "name + why they are the biggest threat",
+    "categoryDynamics": "winner-take-all, fragmented, or consolidating"
+  },
   "governed": {
     "falsification": {
       "falsification_conditions": ["specific condition that would prove this model wrong"],
@@ -264,6 +273,20 @@ IMPORTANT: Use this REAL regulatory data to:
 - Green Team: Identify states/jurisdictions with favorable regulatory environments as strategic entry points
 - Feasibility Checklist: Include specific regulatory compliance items with real agency names and requirements
 - Blind Spots: Flag missing regulatory data (e.g., pending state legislation, enforcement patterns)
+` : ""}
+${competitorIntel?.length ? `
+COMPETITIVE INTELLIGENCE (real competitors discovered via web research — use these in your analysis):
+${(competitorIntel as Array<{name: string; url: string; description: string; strengths: string[]; weaknesses: string[]; differentiator_gap: string}>).map((c: any) => `- ${c.name} (${c.url}): ${c.description}
+  Strengths: ${(c.strengths || []).join(", ")}
+  Weaknesses: ${(c.weaknesses || []).join(", ")}
+  Differentiator gap: ${c.differentiator_gap}`).join("\n")}
+
+IMPORTANT: Use this REAL competitor data to:
+- Red Team: Reference specific competitors by name — cite their strengths as direct threats
+- Green Team: Identify specific competitor weaknesses as strategic openings
+- Competitive Landscape: Build detailed originalVsCompetitors comparisons for EACH competitor above
+- Counter Examples: Use these as real precedents where applicable
+- Positioning: Recommend specific positioning AGAINST these named competitors
 ` : ""}
 Return ONLY the JSON object.${buildLensPrompt(lens)}`;
 
