@@ -22,7 +22,7 @@ import { ModeBadge } from "@/components/ModeBadge";
 import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
 import { ScoreBar } from "@/components/ScoreBar";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
-import { downloadPatentPDF } from "@/lib/pdfExport";
+
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
@@ -219,33 +219,37 @@ export default function ReportPage() {
         {/* ── Divider ── */}
         <div className="h-px w-full" style={{ background: "hsl(var(--border))" }} />
 
-        {/* ── Intelligence Report Context Banner ── */}
-        <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: modeAccent }}>
-              <Target size={18} style={{ color: "white" }} />
+        {/* ── Intelligence Report Context Banner — overview only ── */}
+        {activeSection === "overview" && (
+          <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: modeAccent }}>
+                <Target size={18} style={{ color: "white" }} />
+              </div>
+              <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Intelligence Report</h3>
             </div>
-            <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Intelligence Report</h3>
+            <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
+              A consolidated view of pricing, supply chain, community sentiment, and competitive positioning — each finding tagged by confidence level.
+            </p>
           </div>
-          <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
-            A consolidated view of pricing, supply chain, community sentiment, and competitive positioning — each finding tagged by confidence level.
-          </p>
-        </div>
+        )}
 
-        {/* Observed Signal Matrix — structured signal summary */}
-        <ObservedSignalMatrix
-          product={selectedProduct}
-          analysisId={analysisId || null}
-          saveStepData={analysis.saveStepData}
-        />
+        {/* Observed Signal Matrix — overview only */}
+        {activeSection === "overview" && (
+          <ObservedSignalMatrix
+            product={selectedProduct}
+            analysisId={analysisId || null}
+            saveStepData={analysis.saveStepData}
+          />
+        )}
 
         {/* ── Active Section Content ── */}
-        <AnalysisVisualLayer
-          analysis={selectedProduct as unknown as Record<string, unknown>}
-          step="report"
-          governedOverride={analysis.governedData}
-        >
-          {activeSection === "overview" && (
+        {activeSection === "overview" && (
+          <AnalysisVisualLayer
+            analysis={selectedProduct as unknown as Record<string, unknown>}
+            step="report"
+            governedOverride={analysis.governedData}
+          >
             <SectionCard icon={Target} title="Overview">
               {selectedProduct.keyInsight && (
                 <div className="insight-callout mb-3">
@@ -281,171 +285,150 @@ export default function ReportPage() {
                 </div>
               )}
             </SectionCard>
-          )}
+          </AnalysisVisualLayer>
+        )}
 
-          {activeSection === "journey" && uw?.stepByStep?.length > 0 && (
-            <SectionCard icon={Clock} title="User Journey"
-              action={
-                <button
-                  onClick={handleRefreshJourney}
-                  disabled={refreshingJourney}
-                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground disabled:opacity-50"
-                >
-                  <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
-                  {refreshingJourney ? "Refreshing..." : "Refresh"}
-                </button>
-              }
-            >
-              <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
-              {(uw.cognitiveLoad || uw.contextOfUse) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                  {uw.cognitiveLoad && (
-                    <div className="p-3 rounded-lg bg-card border border-border">
-                      <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
-                      <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
-                    </div>
-                  )}
-                  {uw.contextOfUse && (
-                    <div className="p-3 rounded-lg bg-card border border-border">
-                      <p className="typo-card-eyebrow mb-1">Context of Use</p>
-                      <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </SectionCard>
-          )}
-
-          {activeSection === "community" && ci && (
-            <SectionCard icon={MessageSquare} title="Community Intel">
-              {(() => {
-                const sentiment = ci.communitySentiment || ci.redditSentiment;
-                const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
-                return (
-                  <div className="space-y-3">
-                    {hasReal && <p className="typo-card-body text-foreground/80">{sentiment}</p>}
-                    {ci.topComplaints?.length > 0 && (
-                      <div className="space-y-1">
-                        <p className="typo-card-eyebrow">Complaints</p>
-                        {ci.topComplaints.map((c: string, i: number) => (
-                          <div key={i} className="flex gap-2 items-start typo-card-body">
-                            <ShieldAlert size={10} className="text-destructive flex-shrink-0 mt-0.5" />
-                            <span className="text-foreground/80">{c}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {ci.improvementRequests?.length > 0 && (
-                      <div className="space-y-1">
-                        <p className="typo-card-eyebrow">Requests</p>
-                        {ci.improvementRequests.map((r: string, i: number) => (
-                          <div key={i} className="flex gap-2 items-start typo-card-body">
-                            <Lightbulb size={10} className="text-blue-500 flex-shrink-0 mt-0.5" />
-                            <span className="text-foreground/80">{r}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {selectedProduct.reviews?.length > 0 && (
-                      <div className="space-y-1">
-                        <p className="typo-card-eyebrow">Reviews</p>
-                        {selectedProduct.reviews.map((review: any, i: number) => (
-                          <div key={i} className="flex gap-2 items-start text-xs">
-                            <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
-                            <span className="text-foreground/80">{review.text}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+        {activeSection === "journey" && uw?.stepByStep?.length > 0 && (
+          <SectionCard icon={Clock} title="User Journey"
+            action={
+              <button
+                onClick={handleRefreshJourney}
+                disabled={refreshingJourney}
+                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground disabled:opacity-50"
+              >
+                <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
+                {refreshingJourney ? "Refreshing..." : "Refresh"}
+              </button>
+            }
+          >
+            <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
+            {(uw.cognitiveLoad || uw.contextOfUse) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                {uw.cognitiveLoad && (
+                  <div className="p-3 rounded-lg bg-card border border-border">
+                    <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
+                    <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
                   </div>
-                );
-              })()}
-            </SectionCard>
-          )}
-
-          {activeSection === "pricing" && selectedProduct.pricingIntel && (
-            <SectionCard icon={DollarSign} title="Pricing Intel">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {[
-                  { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice },
-                  { label: "Resale Avg", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold },
-                  { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal },
-                  { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium },
-                  { label: "Margins", value: selectedProduct.pricingIntel.margins },
-                  { label: "Trend", value: selectedProduct.pricingIntel.priceDirection?.toUpperCase() },
-                ].filter(x => x.value).map((item) => (
-                  <div key={item.label} className="p-2.5 rounded-lg bg-muted border border-border">
-                    <p className="typo-card-eyebrow mb-0.5">{item.label}</p>
-                    <p className="typo-card-body font-bold text-foreground">{item.value}</p>
+                )}
+                {uw.contextOfUse && (
+                  <div className="p-3 rounded-lg bg-card border border-border">
+                    <p className="typo-card-eyebrow mb-1">Context of Use</p>
+                    <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
                   </div>
-                ))}
+                )}
               </div>
-            </SectionCard>
-          )}
+            )}
+          </SectionCard>
+        )}
 
-          {activeSection === "supply" && !isService && selectedProduct.supplyChain && (
-            <SectionCard icon={Package} title="Supply Chain">
-              <SupplySection title="Suppliers" icon={<Factory size={12} className="text-primary" />}
-                items={(selectedProduct.supplyChain.suppliers || []).map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
-                color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
-              <SupplySection title="Manufacturers" icon={<Package size={12} className="text-blue-500" />}
-                items={(selectedProduct.supplyChain.manufacturers || []).map((m: any) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
-                color="hsl(217 91% 60% / 0.08)" borderColor="hsl(217 91% 60% / 0.3)" />
-              <SupplySection title="Vendors" icon={<Store size={12} className="text-purple-500" />}
-                items={(selectedProduct.supplyChain.vendors || []).map((v: any) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
-                color="hsl(262 83% 58% / 0.08)" borderColor="hsl(262 83% 58% / 0.3)" />
-              <SupplySection title="Distributors" icon={<Truck size={12} className="text-orange-500" />}
-                items={(selectedProduct.supplyChain.distributors || []).map((d: any) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
-                color="hsl(32 100% 50% / 0.08)" borderColor="hsl(32 100% 50% / 0.3)" />
-              {selectedProduct.supplyChain.retailers?.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
-                  {selectedProduct.supplyChain.retailers.map((r: any) => (
-                    <div key={r.name} className="p-2.5 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-                      <p className="text-xs font-bold text-foreground">{r.name}</p>
-                      <p className="text-sm font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
+        {activeSection === "community" && ci && (
+          <SectionCard icon={MessageSquare} title="Community Intel">
+            {(() => {
+              const sentiment = ci.communitySentiment || ci.redditSentiment;
+              const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
+              return (
+                <div className="space-y-3">
+                  {hasReal && <p className="typo-card-body text-foreground/80">{sentiment}</p>}
+                  {ci.topComplaints?.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="typo-card-eyebrow">Complaints</p>
+                      {ci.topComplaints.map((c: string, i: number) => (
+                        <div key={i} className="flex gap-2 items-start typo-card-body">
+                          <ShieldAlert size={10} className="text-destructive flex-shrink-0 mt-0.5" />
+                          <span className="text-foreground/80">{c}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                  {ci.improvementRequests?.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="typo-card-eyebrow">Requests</p>
+                      {ci.improvementRequests.map((r: string, i: number) => (
+                        <div key={i} className="flex gap-2 items-start typo-card-body">
+                          <Lightbulb size={10} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-foreground/80">{r}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {selectedProduct.reviews?.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="typo-card-eyebrow">Reviews</p>
+                      {selectedProduct.reviews.map((review: any, i: number) => (
+                        <div key={i} className="flex gap-2 items-start text-xs">
+                          <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
+                          <span className="text-foreground/80">{review.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </SectionCard>
-          )}
+              );
+            })()}
+          </SectionCard>
+        )}
 
-          {activeSection === "patents" && !isService && (
-            <SectionCard icon={ScrollText} title="Patent Intel"
-              action={selectedProduct.patentData ? (
-                <button
-                  onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary text-white text-xs"
-                  style={{ background: modeAccent }}
-                >
-                  <FileDown size={12} /> Patent PDF
-                </button>
-              ) : undefined}
-            >
-              <PatentIntelligence
-                product={selectedProduct}
-                onSave={(patentData) => {
-                  const updated = products.map(p =>
-                    p.id === selectedProduct.id ? { ...p, patentData } : p
-                  );
-                  analysis.setProducts(updated);
-                  analysis.setSelectedProduct({ ...selectedProduct, patentData });
-                  if (analysisId) {
-                    (async () => {
-                      try {
-                        await (supabase.from("saved_analyses") as any)
-                          .update({ products: JSON.parse(JSON.stringify(updated)) })
-                          .eq("id", analysisId);
-                      } catch (err) { console.error("Failed to persist patent data:", err); }
-                    })();
-                  }
-                }}
-              />
-            </SectionCard>
-          )}
-        </AnalysisVisualLayer>
+        {activeSection === "pricing" && selectedProduct.pricingIntel && (
+          <SectionCard icon={DollarSign} title="Pricing Intel">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[
+                { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice },
+                { label: "Original Price", value: (selectedProduct.pricingIntel as any).originalRetailPrice },
+                { label: "Price Direction", value: selectedProduct.pricingIntel.priceDirection },
+                { label: "Margin Estimate", value: (selectedProduct.pricingIntel as any).marginEstimate },
+                { label: "Price Range", value: selectedProduct.pricingIntel.priceRange },
+              ].filter(m => m.value).map(m => (
+                <div key={m.label} className="p-2.5 rounded-lg bg-muted border border-border">
+                  <p className="typo-card-eyebrow">{m.label}</p>
+                  <p className="typo-card-body font-bold text-foreground mt-0.5">{m.value}</p>
+                </div>
+              ))}
+            </div>
+            {(selectedProduct.pricingIntel as any).pricingNotes && (
+              <p className="typo-card-body text-foreground/70 mt-2">{(selectedProduct.pricingIntel as any).pricingNotes}</p>
+            )}
+          </SectionCard>
+        )}
 
-        {/* Project Notes */}
+        {activeSection === "supply" && !isService && selectedProduct.supplyChain && (
+          <SectionCard icon={Package} title="Supply Chain">
+            <SupplySection
+              title="Manufacturers"
+              icon={<Factory size={11} />}
+              items={(selectedProduct.supplyChain.manufacturers || []).map((m: any) => ({
+                name: m.name, badge: m.region || "—", detail: m.specialty || m.notes || "", url: m.url,
+              }))}
+              color="hsl(var(--muted))"
+              borderColor="hsl(var(--border))"
+            />
+            <SupplySection
+              title="Distributors"
+              icon={<Truck size={11} />}
+              items={(selectedProduct.supplyChain.distributors || []).map((d: any) => ({
+                name: d.name, badge: d.region || "—", detail: d.specialty || d.notes || "", url: d.url,
+              }))}
+              color="hsl(var(--muted))"
+              borderColor="hsl(var(--border))"
+            />
+            <SupplySection
+              title="Retailers"
+              icon={<Store size={11} />}
+              items={(selectedProduct.supplyChain.retailers || []).map((r: any) => ({
+                name: r.name, badge: r.type || "—", detail: r.notes || "", url: r.url,
+              }))}
+              color="hsl(var(--muted))"
+              borderColor="hsl(var(--border))"
+            />
+          </SectionCard>
+        )}
+
+        {activeSection === "patents" && !isService && (
+          <SectionCard icon={ScrollText} title="Patent Intelligence">
+            <PatentIntelligence product={selectedProduct} />
+          </SectionCard>
+        )}
+
+
         <ProjectNotesSection analysisId={analysisId} saveStepData={analysis.saveStepData} />
 
         {/* Next Step — no gating */}
