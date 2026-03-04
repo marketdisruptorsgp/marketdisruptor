@@ -63,7 +63,7 @@ function FlowOrb({
           border: `1.5px solid ${color}${hovered || isSelected ? '55' : '25'}`,
         }}
       >
-        <span className="text-[9px] font-bold text-center leading-tight px-1 select-none"
+        <span className="text-xs font-bold text-center leading-tight px-1 select-none"
           style={{ color }}>{label.length > 18 ? label.slice(0, 16) + "…" : label}</span>
       </motion.div>
 
@@ -71,7 +71,7 @@ function FlowOrb({
         {hovered && !isSelected && (
           <motion.div
             initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
-            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-[9px] font-bold pointer-events-none z-30"
+            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-xs font-bold pointer-events-none z-30"
             style={{ top: size + 6, background: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))", border: `1px solid ${color}20` }}
           >
             {ROLE_LABELS[signal.role]} · {signal.score}
@@ -105,14 +105,14 @@ function DepthPanel({ signal, onClose }: { signal: RankedSignal; onClose: () => 
       <div className="flex items-start gap-2 mb-2">
         <div className="w-2 h-2 rounded-full mt-1" style={{ background: color }} />
         <div>
-          <p className="text-xs font-bold" style={{ color: "hsl(var(--foreground))" }}>{signal.label}</p>
-          <p className="text-[10px] font-semibold" style={{ color }}>{ROLE_LABELS[signal.role]}</p>
+          <p className="text-sm font-bold" style={{ color: "hsl(var(--foreground))" }}>{signal.label}</p>
+          <p className="text-xs font-semibold" style={{ color }}>{ROLE_LABELS[signal.role]}</p>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {(["impact", "confidence", "recurrence"] as const).map((key) => (
           <div key={key} className="space-y-1">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--cin-label) / 0.5)" }}>{key}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--foreground) / 0.7)" }}>{key}</p>
             <div className="flex items-center justify-center gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <span key={i} className="w-1.5 h-3 rounded-sm"
@@ -161,8 +161,8 @@ export function CinematicValueFlow({ story }: { story: VisualStory }) {
       onClick={() => setSelected(null)}
     >
       <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] font-extrabold uppercase tracking-[0.25em] z-10"
-        style={{ color: "hsl(var(--cin-label) / 0.4)" }}>Value Flow</motion.p>
+        className="absolute top-4 left-1/2 -translate-x-1/2 text-sm font-extrabold uppercase tracking-[0.2em] z-10"
+        style={{ color: "hsl(var(--foreground) / 0.5)" }}>Value Flow</motion.p>
 
       {/* Flow stream lines */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
@@ -197,8 +197,8 @@ export function CinematicValueFlow({ story }: { story: VisualStory }) {
       </AnimatePresence>
 
       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
-        className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-semibold uppercase tracking-widest z-10"
-        style={{ color: "hsl(var(--cin-label) / 0.25)" }}>Tap signal to explore</motion.p>
+        className="absolute bottom-3 left-1/2 -translate-x-1/2 text-xs font-semibold uppercase tracking-widest z-10"
+        style={{ color: "hsl(var(--foreground) / 0.35)" }}>Tap signal to explore</motion.p>
     </motion.div>
   );
 }

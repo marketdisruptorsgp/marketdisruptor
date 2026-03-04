@@ -64,7 +64,7 @@ function FractureOrb({
           border: `1.5px ${isAssumption ? 'dashed' : 'solid'} ${color}${hovered || isSelected ? '55' : '25'}`,
         }}
       >
-        <span className="text-[9px] font-bold text-center leading-tight px-1 select-none"
+        <span className="text-xs font-bold text-center leading-tight px-1 select-none"
           style={{ color }}>
           {label.length > 18 ? label.slice(0, 16) + "…" : label}
         </span>
@@ -75,7 +75,7 @@ function FractureOrb({
           <motion.div
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.12 }}
-            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-[9px] font-bold pointer-events-none z-30"
+            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-xs font-bold pointer-events-none z-30"
             style={{ top: size + 6, background: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))", border: `1px solid ${color}20` }}
           >
             {ROLE_LABELS[signal.role]} · {signal.score}
@@ -111,13 +111,13 @@ function DepthPanel({ signal, onClose }: { signal: RankedSignal; onClose: () => 
           style={{ background: color, boxShadow: `0 0 8px ${color}50` }} />
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold leading-snug" style={{ color: "hsl(var(--foreground))" }}>{signal.label}</p>
-          <p className="text-[10px] font-semibold mt-0.5" style={{ color }}>{ROLE_LABELS[signal.role]}</p>
+          <p className="text-xs font-semibold mt-0.5" style={{ color }}>{ROLE_LABELS[signal.role]}</p>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-3 mb-3">
         {(["impact", "confidence", "recurrence"] as const).map((key) => (
           <div key={key} className="space-y-1">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--cin-label) / 0.5)" }}>{key}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--foreground) / 0.7)" }}>{key}</p>
             <div className="flex items-center justify-center gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <span key={i} className="w-1.5 h-3 rounded-sm"
@@ -128,8 +128,8 @@ function DepthPanel({ signal, onClose }: { signal: RankedSignal; onClose: () => 
         ))}
       </div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--cin-label) / 0.4)" }}>Score</span>
-        <span className="text-[11px] font-extrabold" style={{ color }}>{signal.score}</span>
+        <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "hsl(var(--foreground) / 0.5)" }}>Score</span>
+        <span className="text-sm font-extrabold" style={{ color }}>{signal.score}</span>
       </div>
       <button onClick={onClose}
         className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
@@ -159,8 +159,8 @@ export function CinematicFragility({ story }: { story: VisualStory }) {
       onClick={() => setSelected(null)}
     >
       <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] font-extrabold uppercase tracking-[0.25em] z-10"
-        style={{ color: "hsl(var(--cin-label) / 0.4)" }}>
+        className="absolute top-4 left-1/2 -translate-x-1/2 text-sm font-extrabold uppercase tracking-[0.2em] z-10"
+        style={{ color: "hsl(var(--foreground) / 0.5)" }}>
         Fragility Field
       </motion.p>
 
@@ -177,8 +177,8 @@ export function CinematicFragility({ story }: { story: VisualStory }) {
           }}>
           <span className="text-lg font-extrabold" style={{ color: "hsl(var(--cin-red) / 0.4)" }}>{signals.length}</span>
         </div>
-        <span className="text-[8px] font-bold uppercase tracking-widest mt-1"
-          style={{ color: "hsl(var(--cin-label) / 0.3)" }}>Risk Points</span>
+        <span className="text-xs font-bold uppercase tracking-widest mt-1"
+          style={{ color: "hsl(var(--foreground) / 0.4)" }}>Risk Points</span>
       </motion.div>
 
       {signals.map((s, i) => (
@@ -191,8 +191,8 @@ export function CinematicFragility({ story }: { story: VisualStory }) {
       </AnimatePresence>
 
       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
-        className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-semibold uppercase tracking-widest z-10"
-        style={{ color: "hsl(var(--cin-label) / 0.25)" }}>
+        className="absolute bottom-3 left-1/2 -translate-x-1/2 text-xs font-semibold uppercase tracking-widest z-10"
+        style={{ color: "hsl(var(--foreground) / 0.35)" }}>
         Tap to explore risk
       </motion.p>
     </motion.div>

@@ -13,11 +13,11 @@ const ROLE_TIER: Record<NodeRole, number> = {
 };
 
 const ROLE_META: Record<NodeRole, { label: string; color: string; bg: string; border: string }> = {
-  system:    { label: "System",   color: "hsl(var(--destructive))",        bg: "hsl(var(--destructive) / 0.06)", border: "hsl(var(--destructive) / 0.15)" },
-  force:     { label: "Driver",   color: "hsl(var(--foreground) / 0.7)",   bg: "hsl(var(--muted) / 0.5)",        border: "hsl(var(--border))" },
-  mechanism: { label: "Mechanism",color: "hsl(38 92% 45%)",               bg: "hsl(38 92% 50% / 0.06)",        border: "hsl(38 92% 50% / 0.15)" },
-  leverage:  { label: "Leverage", color: "hsl(229 89% 58%)",              bg: "hsl(229 89% 63% / 0.06)",       border: "hsl(229 89% 63% / 0.15)" },
-  outcome:   { label: "Outcome",  color: "hsl(142 60% 40%)",              bg: "hsl(142 60% 40% / 0.06)",       border: "hsl(142 60% 40% / 0.15)" },
+  system:    { label: "System",    color: "hsl(0 72% 42%)",     bg: "hsl(0 72% 42% / 0.12)",   border: "hsl(0 72% 42% / 0.25)" },
+  force:     { label: "Driver",    color: "hsl(var(--foreground))", bg: "hsl(var(--muted))",     border: "hsl(var(--border))" },
+  mechanism: { label: "Mechanism", color: "hsl(28 80% 38%)",    bg: "hsl(38 80% 50% / 0.12)",  border: "hsl(38 80% 50% / 0.25)" },
+  leverage:  { label: "Leverage",  color: "hsl(229 75% 45%)",   bg: "hsl(229 75% 55% / 0.12)", border: "hsl(229 75% 55% / 0.25)" },
+  outcome:   { label: "Outcome",   color: "hsl(142 55% 32%)",   bg: "hsl(142 55% 40% / 0.12)", border: "hsl(142 55% 40% / 0.25)" },
 };
 
 interface TierGroup {
@@ -40,7 +40,6 @@ function groupByTier(spec: VisualSpec): TierGroup[] {
 }
 
 function cleanLabel(label: string): string {
-  // Strip prefixes like "Constraint: ", "Friction: ", "Outcome: ", "Intervention: ", "Leverage: ", "Value: "
   return label.replace(/^(Constraint|Friction|Outcome|Intervention|Leverage|Value|Pain|Driver|Mechanism|System):\s*/i, "").trim();
 }
 
@@ -56,35 +55,35 @@ function FlowCard({ node, role, index }: { node: VisualNode; role: NodeRole; ind
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 + index * 0.06, duration: 0.3 }}
-      className="rounded-lg px-4 py-3"
+      className="rounded-lg px-5 py-4"
       style={{
         background: meta.bg,
-        border: `1px solid ${meta.border}`,
+        border: `1.5px solid ${meta.border}`,
       }}
     >
-      <div className="flex items-start gap-2.5">
-        <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: meta.color }} />
+      <div className="flex items-start gap-3">
+        <div className="w-2.5 h-2.5 rounded-full mt-2 shrink-0" style={{ background: meta.color }} />
         <div className="min-w-0 flex-1">
           <span
-            className="text-[9px] font-bold uppercase tracking-[0.08em] block mb-0.5"
+            className="text-xs font-extrabold uppercase tracking-[0.1em] block mb-1"
             style={{ color: meta.color }}
           >
             {meta.label}
           </span>
-          <p className="text-sm font-semibold leading-snug" style={{ color: "hsl(var(--foreground))" }}>
+          <p className="text-base font-bold leading-snug text-foreground">
             {label}
           </p>
           {attrs && (
-            <p className="text-xs leading-relaxed mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
+            <p className="text-sm leading-relaxed mt-1.5 text-foreground/80">
               {attrs}
             </p>
           )}
           {node.certainty && node.certainty !== "verified" && (
             <span
-              className="inline-block mt-1.5 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded"
+              className="inline-block mt-2 text-[10px] font-bold uppercase px-2 py-1 rounded"
               style={{
-                background: "hsl(var(--muted) / 0.5)",
-                color: "hsl(var(--muted-foreground))",
+                background: "hsl(var(--muted))",
+                color: "hsl(var(--foreground))",
               }}
             >
               {node.certainty}
@@ -102,11 +101,11 @@ function FlowArrow({ label, index }: { label?: string; index: number }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.1 + index * 0.06 }}
-      className="flex flex-col items-center py-1"
+      className="flex flex-col items-center py-2"
     >
-      <ArrowDown className="w-3.5 h-3.5" style={{ color: "hsl(var(--muted-foreground) / 0.4)" }} />
+      <ArrowDown className="w-5 h-5 text-foreground/50" />
       {label && (
-        <span className="text-[9px] font-semibold mt-0.5" style={{ color: "hsl(var(--muted-foreground) / 0.5)" }}>
+        <span className="text-sm font-bold mt-1 text-foreground/70">
           {label}
         </span>
       )}
@@ -117,7 +116,6 @@ function FlowArrow({ label, index }: { label?: string; index: number }) {
 export function StructuralVisual({ spec }: { spec: VisualSpec }) {
   const tiers = useMemo(() => groupByTier(spec), [spec]);
 
-  // Build edge label lookup: from tier → to tier → label
   const edgeLabels = useMemo(() => {
     const nodeRoleTier = new Map<string, number>();
     for (const n of spec.nodes) {
@@ -141,17 +139,16 @@ export function StructuralVisual({ spec }: { spec: VisualSpec }) {
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
-      className="rounded-xl p-4 space-y-0"
+      className="rounded-xl p-5 space-y-0"
       style={{
         background: "hsl(var(--card))",
-        border: "1px solid hsl(var(--border))",
+        border: "1.5px solid hsl(var(--border))",
       }}
     >
       {spec.title && (
         <motion.p
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}
-          className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-center mb-3"
-          style={{ color: "hsl(var(--muted-foreground) / 0.5)" }}
+          className="text-sm font-extrabold uppercase tracking-[0.15em] text-center mb-4 text-foreground/70"
         >
           {spec.title}
         </motion.p>
@@ -179,10 +176,9 @@ export function StructuralVisual({ spec }: { spec: VisualSpec }) {
       {spec.interpretation && (
         <motion.p
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-          className="text-xs leading-relaxed text-center pt-3 mt-2"
+          className="text-sm font-semibold leading-relaxed text-center pt-4 mt-3 text-foreground/80"
           style={{
-            color: "hsl(var(--muted-foreground) / 0.6)",
-            borderTop: "1px solid hsl(var(--border) / 0.5)",
+            borderTop: "1px solid hsl(var(--border))",
           }}
         >
           {spec.interpretation}
