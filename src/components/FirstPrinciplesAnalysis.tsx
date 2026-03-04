@@ -601,7 +601,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const { user } = useAuth();
   const analysisCtx = useAnalysis();
   const [data, setData] = useState<FirstPrinciplesData | null>((externalData as FirstPrinciplesData) || null);
-  console.log("[FPA] data keys:", data ? Object.keys(data) : "null", "hiddenAssumptions:", (data as any)?.hiddenAssumptions?.length, "externalData keys:", externalData ? Object.keys(externalData as any) : "null");
   const [loading, setLoading] = useState(false);
   const isService = product.category === "Service";
   const [activeStep, setActiveStep] = useState<"assumptions" | "flip" | "ideas">("assumptions");
@@ -1059,6 +1058,20 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           habit: "hsl(330 80% 50%)",
         };
 
+        if (assumptions.length === 0) {
+          return (
+            <div className="space-y-4">
+              <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
+              <div className="text-center py-10 space-y-3">
+                <Brain size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
+                <p className="text-sm font-bold text-foreground">No assumption data available</p>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">This analysis was saved before assumption data was captured. Click <strong>Re-run</strong> above to regenerate the full Disrupt analysis with enriched assumptions and flipped logic.</p>
+              </div>
+              {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
+            </div>
+          );
+        }
+
         return (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
@@ -1110,6 +1123,20 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         const topCategory = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0];
         const highLeverageCount = assumptions.filter(a => (a.leverageScore || 0) >= 7).length;
         const SHOW_LIMIT = 10;
+
+        if (flips.length === 0) {
+          return (
+            <div className="space-y-4">
+              <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
+              <div className="text-center py-10 space-y-3">
+                <FlipHorizontal size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
+                <p className="text-sm font-bold text-foreground">No inversion data available</p>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">This analysis was saved before flip data was captured. Click <strong>Re-run</strong> above to regenerate with enriched inversions.</p>
+              </div>
+              {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
+            </div>
+          );
+        }
 
         return (
         <div className="space-y-4">
