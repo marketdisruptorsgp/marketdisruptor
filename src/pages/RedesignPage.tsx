@@ -83,7 +83,7 @@ export default function RedesignPage() {
           />
         )}
 
-        <ActiveHypothesisBanner stepName="Redesign" accentColor={theme.primary} />
+        {/* ActiveHypothesisBanner hidden on Redesign — not actionable here */}
 
         {/* Analysis title — persistent across all steps */}
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground px-1">{selectedProduct.name}</h1>
