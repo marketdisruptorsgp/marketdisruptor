@@ -8,6 +8,7 @@ import {
   AlertTriangle, CheckCircle2, Lightbulb, Users, BarChart3, Cpu,
   TrendingUp, Target, Rocket, Clock, ChevronRight, FlipHorizontal,
   Wrench, Eye, Package, Factory, Layers, FileDown, Calculator, Calendar,
+  Search, TrendingDown, FileQuestion,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 import { BundleDeepDive } from "./BundleDeepDive";
@@ -247,13 +248,15 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
   // ETA-specific tabs injected when lens is active
   const etaTabs = isETA ? [
     { id: "dealEconomics" as const, label: "Deal Economics", icon: Calculator },
+    { id: "addbackScrutiny" as const, label: "Addback Scrutiny", icon: Search },
+    { id: "stagnation" as const, label: "Stagnation Dx", icon: TrendingDown },
     { id: "ownerDependency" as const, label: "Owner Risk", icon: AlertTriangle },
     { id: "playbook" as const, label: "100-Day Playbook", icon: Calendar },
   ] : [];
 
   const allTabs = [...baseTabs.slice(0, 5), ...etaTabs, ...baseTabs.slice(5)];
 
-  const REPORT_TAB_IDS = ["summary", "operations", "assumptions", "tech", "revenue", ...(isETA ? ["dealEconomics", "ownerDependency", "playbook"] : [])];
+  const REPORT_TAB_IDS = ["summary", "operations", "assumptions", "tech", "revenue", ...(isETA ? ["dealEconomics", "addbackScrutiny", "stagnation", "ownerDependency", "playbook"] : [])];
   const DISRUPT_TAB_IDS = ["disruption", "reinvented"];
 
   const tabs = renderMode === "report"
@@ -806,6 +809,173 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             sde={(data as any)?.ownerDependencyAssessment ? undefined : undefined}
             analysisData={data}
           />
+          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
+        </div>
+      )}
+
+      {/* TAB: ADDBACK SCRUTINY (ETA only) */}
+      {activeTab === "addbackScrutiny" && isETA && (
+        <div className="space-y-4">
+          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Addback Scrutiny" icon={Search} />
+          {(() => {
+            const addbacks = (data as any)?.addbackScrutiny;
+            if (!addbacks) return (
+              <div className="p-6 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <FileQuestion size={24} className="mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Addback data not available. Re-run with ETA Lens to generate.</p>
+              </div>
+            );
+            const CONF_COLORS = {
+              legitimate: { bg: "hsl(142 70% 45% / 0.06)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)", label: "Legitimate" },
+              questionable: { bg: "hsl(38 92% 50% / 0.06)", border: "hsl(38 92% 50% / 0.25)", text: "hsl(38 92% 35%)", label: "Questionable" },
+              suspicious: { bg: "hsl(var(--destructive) / 0.06)", border: "hsl(var(--destructive) / 0.25)", text: "hsl(var(--destructive))", label: "Suspicious" },
+            };
+            return (
+              <>
+                {/* Summary cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-3 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                    <p className="typo-status-label text-muted-foreground mb-1">Total Claimed Addbacks</p>
+                    <p className="text-xl font-black tabular-nums">{addbacks.totalClaimedAddbacks || "—"}</p>
+                  </div>
+                  <div className="p-3 rounded-xl" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.25)" }}>
+                    <p className="typo-status-label" style={{ color: "hsl(38 92% 35%)" }}>Adjusted SDE</p>
+                    <p className="text-xl font-black tabular-nums" style={{ color: "hsl(38 92% 35%)" }}>{addbacks.adjustedSDE || "—"}</p>
+                    <p className="typo-card-meta text-muted-foreground mt-0.5">After removing questionable items</p>
+                  </div>
+                  <div className="p-3 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                    <p className="typo-status-label text-muted-foreground mb-1">Adjusted Multiple</p>
+                    <p className="text-xl font-black tabular-nums">{addbacks.adjustedMultiple || "—"}</p>
+                    <p className="typo-card-meta text-muted-foreground mt-0.5">Inflation est: {addbacks.brokerInflationEstimate || "—"}</p>
+                  </div>
+                </div>
+
+                {/* Individual addbacks */}
+                {addbacks.claimedAddbacks?.map((ab: any, i: number) => {
+                  const col = CONF_COLORS[ab.confidence as keyof typeof CONF_COLORS] || CONF_COLORS.questionable;
+                  return (
+                    <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-bold" style={{ color: col.text }}>{ab.item}</p>
+                        <div className="flex items-center gap-2">
+                          {ab.amount && <span className="text-xs font-bold tabular-nums">{ab.amount}</span>}
+                          <span className="px-2 py-0.5 rounded-full typo-status-label uppercase" style={{ color: col.text }}>{col.label}</span>
+                        </div>
+                      </div>
+                      <p className="typo-card-body text-foreground/80">{ab.reasoning}</p>
+                      <div className="flex items-start gap-1.5 mt-1.5">
+                        <Target size={10} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
+                        <p className="typo-card-meta" style={{ color: "hsl(var(--primary))" }}>Verify: {ab.verificationStep}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Red flags */}
+                {addbacks.redFlags?.length > 0 && (
+                  <div className="p-3 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.04)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+                    <p className="typo-card-eyebrow mb-2" style={{ color: "hsl(var(--destructive))" }}>Red Flags</p>
+                    {addbacks.redFlags.map((rf: string, i: number) => (
+                      <div key={i} className="flex items-start gap-2 text-xs mb-1">
+                        <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
+                        <span className="text-foreground/80">{rf}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
+        </div>
+      )}
+
+      {/* TAB: STAGNATION DIAGNOSTIC (ETA only) */}
+      {activeTab === "stagnation" && isETA && (
+        <div className="space-y-4">
+          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Stagnation Diagnostic" icon={TrendingDown} />
+          {(() => {
+            const diag = (data as any)?.stagnationDiagnostic;
+            if (!diag) return (
+              <div className="p-6 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <FileQuestion size={24} className="mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Stagnation data not available. Re-run with ETA Lens to generate.</p>
+              </div>
+            );
+            const trajectoryColors: Record<string, { color: string; label: string }> = {
+              growing: { color: "hsl(142 70% 30%)", label: "Growing" },
+              flat: { color: "hsl(38 92% 35%)", label: "Flat / Stagnant" },
+              declining: { color: "hsl(var(--destructive))", label: "Declining" },
+              accelerating_decline: { color: "hsl(var(--destructive))", label: "Accelerating Decline" },
+            };
+            const traj = trajectoryColors[diag.overallTrajectory] || trajectoryColors.flat;
+            const turnColor = (diag.turnaroundPotential || 0) >= 7 ? "hsl(142 70% 30%)" : (diag.turnaroundPotential || 0) >= 4 ? "hsl(38 92% 35%)" : "hsl(var(--destructive))";
+            const catLabels: Record<string, string> = {
+              owner_fatigue: "Owner Fatigue", competitive_erosion: "Competitive Erosion", structural_decay: "Structural Decay",
+              market_shift: "Market Shift", pricing_compression: "Pricing Compression", talent_loss: "Talent Loss",
+            };
+            const revLabels: Record<string, { color: string; label: string }> = {
+              easily_reversible: { color: "hsl(142 70% 30%)", label: "Easily Reversible" },
+              moderately_reversible: { color: "hsl(38 92% 35%)", label: "Moderately Reversible" },
+              difficult_to_reverse: { color: "hsl(var(--destructive))", label: "Difficult to Reverse" },
+              structural: { color: "hsl(var(--destructive))", label: "Structural / Permanent" },
+            };
+            return (
+              <>
+                {/* Overview cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="p-3 rounded-xl" style={{ background: `${traj.color}08`, border: `1px solid ${traj.color}30` }}>
+                    <p className="typo-status-label text-muted-foreground mb-1">Trajectory</p>
+                    <p className="text-sm font-black" style={{ color: traj.color }}>{traj.label}</p>
+                  </div>
+                  <div className="p-3 rounded-xl" style={{ background: `${turnColor}08`, border: `1px solid ${turnColor}30` }}>
+                    <p className="typo-status-label text-muted-foreground mb-1">Turnaround Potential</p>
+                    <p className="text-2xl font-black tabular-nums" style={{ color: turnColor }}>{diag.turnaroundPotential}/10</p>
+                  </div>
+                  <div className="p-3 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                    <p className="typo-status-label text-muted-foreground mb-1">Time to Turnaround</p>
+                    <p className="text-sm font-bold">{diag.timeToTurnaround || "—"}</p>
+                  </div>
+                  <div className="p-3 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                    <p className="typo-status-label text-muted-foreground mb-1">Capital Required</p>
+                    <p className="text-sm font-bold">{diag.capitalRequired || "—"}</p>
+                  </div>
+                </div>
+
+                {/* Why selling */}
+                <div className="p-4 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.04)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
+                  <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--destructive))" }}>Why Are They Really Selling?</p>
+                  <p className="text-sm text-foreground/85 leading-relaxed">{diag.whySellingAssessment}</p>
+                </div>
+
+                {/* Root causes */}
+                {diag.rootCauses?.map((rc: any, i: number) => {
+                  const rev = revLabels[rc.reversibility] || revLabels.moderately_reversible;
+                  return (
+                    <div key={i} className="p-3 rounded-lg" style={{ background: `${rev.color}06`, border: `1px solid ${rev.color}25` }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-full typo-status-label uppercase font-bold" style={{ background: `${rev.color}12`, color: rev.color }}>
+                            {catLabels[rc.category] || rc.category}
+                          </span>
+                          <span className="typo-card-meta font-bold tabular-nums" style={{ color: rev.color }}>
+                            Reversibility: {rc.reversibilityScore}/10
+                          </span>
+                        </div>
+                        <span className="typo-status-label" style={{ color: rev.color }}>{rev.label}</span>
+                      </div>
+                      <p className="text-xs font-semibold text-foreground mb-0.5">{rc.cause}</p>
+                      <p className="typo-card-body text-foreground/70 mb-1">{rc.evidence}</p>
+                      <div className="flex items-start gap-1.5">
+                        <CheckCircle2 size={10} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
+                        <p className="typo-card-meta" style={{ color: "hsl(var(--primary))" }}>{rc.newOwnerAction}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            );
+          })()}
           {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
         </div>
       )}

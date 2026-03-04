@@ -181,6 +181,39 @@ The JSON must follow this EXACT structure:
     },
     "keyPersonRisks": ["Specific key-person dependency and its impact"]
   },
+  "addbackScrutiny": {
+    "claimedAddbacks": [
+      {
+        "item": "Name of the claimed addback (e.g. Owner Salary, Vehicle Expense, Family Payroll, One-Time Legal Fees)",
+        "amount": "Stated dollar amount or 'undisclosed' if CIM doesn't specify",
+        "confidence": "legitimate | questionable | suspicious",
+        "reasoning": "Why this confidence level — cite common broker inflation patterns if applicable",
+        "verificationStep": "What to request from seller to verify this addback"
+      }
+    ],
+    "totalClaimedAddbacks": "Total dollar amount of all claimed addbacks",
+    "adjustedSDE": "SDE after removing questionable and suspicious addbacks",
+    "adjustedMultiple": "What multiple buyer would actually pay based on adjusted SDE",
+    "redFlags": ["Red flag pattern found in addback claims"],
+    "brokerInflationEstimate": "Estimated percentage by which addbacks may be inflated"
+  },
+  "stagnationDiagnostic": {
+    "overallTrajectory": "growing | flat | declining | accelerating_decline",
+    "rootCauses": [
+      {
+        "cause": "Specific root cause of stagnation or decline",
+        "category": "owner_fatigue | competitive_erosion | structural_decay | market_shift | pricing_compression | talent_loss",
+        "evidence": "What evidence supports this diagnosis",
+        "reversibility": "easily_reversible | moderately_reversible | difficult_to_reverse | structural",
+        "reversibilityScore": "number 1-10 (10 = new owner can easily fix)",
+        "newOwnerAction": "Specific action a new owner should take"
+      }
+    ],
+    "whySellingAssessment": "Honest assessment of likely real reason for selling",
+    "turnaroundPotential": "number 1-10",
+    "timeToTurnaround": "Estimated months to measurable improvement",
+    "capitalRequired": "Estimated capital beyond purchase price for turnaround"
+  },
   "ownershipPlaybook": {
     "quickWins": ["Low-effort, high-impact action for first 30 days"],
     "phases": [
@@ -266,6 +299,8 @@ ETA ACQUISITION LENS ACTIVE — ADDITIONAL REQUIREMENTS:
 17. DUE DILIGENCE QUESTIONS: Generate 5-8 specific questions to ask the broker/seller that CIMs typically don't answer or answer evasively.
 18. ACQUISITION FRAMING: Throughout the entire analysis, frame insights through the lens of "should I buy this business and how do I improve it" rather than "how to disrupt this industry."
 19. DO NOT default to technology solutions. Prioritize: process improvement > pricing/positioning change > structural model change > operational optimization > technology enablement (only if clearly justified).
+20. ADDBACK SCRUTINY: Analyze every likely addback a CIM would claim for this type of business. For each, assign a confidence rating: "legitimate" (clearly personal/one-time), "questionable" (needs verification — e.g. consulting fees to family, excessive travel), or "suspicious" (common broker inflation pattern). Compute an adjusted SDE after removing questionable/suspicious items. Flag specific red flags. Estimate the broker inflation percentage. If a CIM was uploaded, use the actual claimed addbacks. If not, model the most common addbacks for this business type and size.
+21. STAGNATION DIAGNOSTIC: Diagnose WHY this business may be stagnant or declining — this is often the real reason the owner is selling. Classify root causes as: owner_fatigue (stopped investing/innovating), competitive_erosion (new entrants/substitutes), structural_decay (deferred maintenance, outdated systems, lost key staff), market_shift (demand/demographics changed), pricing_compression (margin squeeze), or talent_loss (key people left). For each cause, provide a reversibility score (1-10, 10 = easily fixed by new owner). Estimate overall turnaround potential and time/capital required. Be brutally honest about the "why selling" assessment.
 ` : ""}
 
 VISUAL & ACTION PLAN INSTRUCTIONS:
