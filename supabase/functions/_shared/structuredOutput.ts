@@ -125,6 +125,33 @@ export function validateStructuredResponse(
   };
 }
 
+const MIN_ARRAY_ITEMS_BY_STEP: Record<string, Record<string, number>> = {
+  "first-principles": {
+    hiddenAssumptions: 5,
+    flippedLogic: 4,
+  },
+};
+
+export function validateArrayMinimums(
+  response: Record<string, unknown>,
+  stepId: string
+): { valid: boolean; underfilled: Array<{ field: string; min: number; actual: number }> } {
+  const minimums = MIN_ARRAY_ITEMS_BY_STEP[stepId];
+  if (!minimums) return { valid: true, underfilled: [] };
+
+  const underfilled: Array<{ field: string; min: number; actual: number }> = [];
+
+  for (const [field, min] of Object.entries(minimums)) {
+    const raw = response[field];
+    const actual = Array.isArray(raw) ? raw.length : 0;
+    if (actual < min) {
+      underfilled.push({ field, min, actual });
+    }
+  }
+
+  return { valid: underfilled.length === 0, underfilled };
+}
+
 // ── Governed output schemas for tool calling ──
 
 const GOVERNED_CORE_PROPERTIES = {
