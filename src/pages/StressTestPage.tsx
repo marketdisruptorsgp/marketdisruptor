@@ -18,12 +18,13 @@ import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save, RefreshCw, Swords } from "lucide-react";
+import { FileDown, Save, RefreshCw, Swords, XCircle, CheckCircle2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function StressTestPage() {
   const [runTrigger, setRunTrigger] = React.useState(0);
   const [analysisLoading, setAnalysisLoading] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"debate" | "validate">("debate");
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
@@ -121,6 +122,39 @@ export default function StressTestPage() {
           </div>
         </div>
 
+        {/* ── Tab buttons: Red Team / Green Team / Validate ── */}
+        {analysis.stressTestData && !analysisLoading && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {([
+              { id: "debate" as const, label: "Red Team", icon: XCircle, color: "hsl(0 72% 48%)" },
+              { id: "validate" as const, label: "Validate & Score", icon: BarChart3, color: theme.primary },
+            ] as const).map(tab => {
+              const isActive = activeTab === tab.id;
+              const TabIcon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
+                  style={{
+                    background: isActive ? tab.color : "hsl(var(--muted))",
+                    color: isActive ? "white" : "hsl(var(--foreground))",
+                    border: isActive ? "none" : "1px solid hsl(var(--border))",
+                  }}
+                >
+                  <TabIcon size={14} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── Divider ── */}
+        {analysis.stressTestData && !analysisLoading && (
+          <div className="h-px w-full" style={{ background: "hsl(var(--border))" }} />
+        )}
+
         {/* Loading Tracker */}
         {analysisLoading && (
           <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
@@ -139,7 +173,7 @@ export default function StressTestPage() {
             <CriticalValidation
               product={selectedProduct}
               analysisData={selectedProduct}
-              activeTab="debate"
+              activeTab={activeTab}
               externalData={analysis.stressTestData}
               runTrigger={runTrigger}
               onLoadingChange={setAnalysisLoading}
