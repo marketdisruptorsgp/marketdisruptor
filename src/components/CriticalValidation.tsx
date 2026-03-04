@@ -274,8 +274,6 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
       <div className="space-y-4">
         <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
 
-        <PitchDeckToggle contentKey="stressTestDebate" label="Include in Pitch Deck" />
-
         {/* Re-run (collapsed) */}
         <DetailPanel title="Refine your analysis — add direction, then Re-run" icon={Eye} defaultOpen>
           <div className="flex items-center justify-between gap-2 mb-2">
@@ -334,7 +332,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     {arg.biasExposed && (
                       <p className="text-[11px] mt-1.5 font-medium" style={{ color: "hsl(271 81% 45%)" }}>Bias: {arg.biasExposed}</p>
                     )}
-                    <InsightRating sectionId={`red-${i}`} compact />
+                    <div className="flex items-center justify-between mt-2">
+                      <InsightRating sectionId={`red-${i}`} compact />
+                      <PitchDeckToggle contentKey={`stress-red-${i}`} label="Include in Pitch" />
+                    </div>
                   </div>
                 );
               })}
@@ -345,6 +346,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                   <Flame size={11} /> Kill Shot
                 </p>
                 <p className="text-sm font-semibold text-foreground leading-relaxed">{data.redTeam.killShot}</p>
+                <div className="flex justify-end mt-2">
+                  <PitchDeckToggle contentKey="stress-killshot" label="Include in Pitch" />
+                </div>
               </div>
             </div>
           </div>
@@ -385,7 +389,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                     {arg.enabler && (
                       <p className="text-[11px] mt-1.5 font-medium" style={{ color: "hsl(142 60% 35%)" }}>Enabler: {arg.enabler}</p>
                     )}
-                    <InsightRating sectionId={`blue-${i}`} compact />
+                    <div className="flex items-center justify-between mt-2">
+                      <InsightRating sectionId={`blue-${i}`} compact />
+                      <PitchDeckToggle contentKey={`stress-green-${i}`} label="Include in Pitch" />
+                    </div>
                   </div>
                 );
               })}
@@ -396,6 +403,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                   <Target size={11} /> Moonshot Potential
                 </p>
                 <p className="text-sm font-semibold text-foreground leading-relaxed">{data.blueTeam.moonshot}</p>
+                <div className="flex justify-end mt-2">
+                  <PitchDeckToggle contentKey="stress-moonshot" label="Include in Pitch" />
+                </div>
               </div>
             </div>
           </div>
@@ -506,7 +516,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   return (
     <div className="space-y-4">
       <SectionHeader current={2} total={2} label="Validate & Score" icon={CheckCircle2} />
-      <PitchDeckToggle contentKey="stressTestValidation" label="Include in Pitch Deck" />
+      {/* Per-item pitch toggles on scores and checklist items below */}
 
       {/* Confidence Scores — show top 3, rest in detail */}
       {data.confidenceScores && (() => {
