@@ -93,7 +93,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight text-foreground leading-[1.05] mb-6"
+            className="text-7xl sm:text-6xl md:text-8xl font-extrabold tracking-tight text-foreground leading-[1.05] mb-6"
           >
             Rethink The
             <br />
