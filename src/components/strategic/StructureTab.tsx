@@ -413,12 +413,12 @@ export function StructureTab({
             <Brain size={18} style={{ color: "white" }} />
           </div>
           <div>
-            <h3 className="font-extrabold text-base leading-tight" style={{ color: "hsl(var(--background))" }}>First Principles Decomposition</h3>
-            <p className="text-xs font-semibold mt-0.5" style={{ color: "hsl(var(--background) / 0.6)" }}>{selectedProduct.name}</p>
+            <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>First Principles Decomposition</h3>
+            <p className="text-xs font-bold mt-0.5" style={{ color: "white" }}>{selectedProduct.name}</p>
           </div>
         </div>
-        <p className="text-sm leading-relaxed pl-[48px]" style={{ color: "hsl(var(--background) / 0.7)" }}>
-          Strip away convention, analogy, and industry norms. Every assumption is decomposed to its root cause — <strong style={{ color: "hsl(var(--background) / 0.95)" }}>tradition, cost, physics, manufacturing limits, or habit</strong> — then stress-tested for leverage.
+        <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
+          Strip away convention, analogy, and industry norms. Every assumption is decomposed to its root cause — tradition, cost, physics, manufacturing limits, or habit.
         </p>
       </div>
 
