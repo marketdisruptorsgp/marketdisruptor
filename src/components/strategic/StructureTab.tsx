@@ -415,7 +415,7 @@ export function StructureTab({
           </div>
         </div>
         <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
-          Strip away convention, analogy, and industry norms. Every assumption is decomposed to its root cause — tradition, cost, physics, manufacturing limits, or habit.
+          Below, we've broken down every structural constraint, hidden assumption, and leverage point governing this market. You'll find the root forces that actually shape pricing, competition, and buyer behavior — stripped of industry jargon and conventional wisdom. Each constraint is ranked by how much strategic leverage it offers for disruption.
         </p>
       </div>
 
