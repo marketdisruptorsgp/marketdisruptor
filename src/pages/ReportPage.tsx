@@ -44,8 +44,9 @@ function getAvailableSections(selectedProduct: any, isService: boolean): Section
   const tabs: SectionTab[] = [
     { id: "overview", label: "Overview", icon: Target },
   ];
-  const uw = (selectedProduct as any).userWorkflow;
-  if (uw?.stepByStep?.length > 0) tabs.push({ id: "journey", label: "User Journey", icon: Clock });
+  const uw = (selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney;
+  const uwSteps = uw?.stepByStep || uw?.steps;
+  if (uwSteps?.length > 0) tabs.push({ id: "journey", label: "User Journey", icon: Clock });
   const ci = (selectedProduct as any).communityInsights;
   if (ci) tabs.push({ id: "community", label: "Community Intel", icon: MessageSquare });
   if (selectedProduct.pricingIntel) tabs.push({ id: "pricing", label: "Pricing Intel", icon: DollarSign });
@@ -138,8 +139,9 @@ export default function ReportPage() {
   const baseUrl = `/analysis/${analysisId}`;
 
   // Cast for typed access
-  const ci = (selectedProduct as any).communityInsights;
-  const uw = (selectedProduct as any).userWorkflow;
+  const ci = (selectedProduct as any).communityInsights || (selectedProduct as any).customerSentiment;
+  const uw = (selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney;
+  const uwSteps = uw?.stepByStep || uw?.steps;
 
   const sectionTabs = getAvailableSections(selectedProduct, isService);
 
@@ -288,7 +290,7 @@ export default function ReportPage() {
           </AnalysisVisualLayer>
         )}
 
-        {activeSection === "journey" && uw?.stepByStep?.length > 0 && (
+        {activeSection === "journey" && uwSteps?.length > 0 && (
           <SectionCard icon={Clock} title="User Journey"
             action={
               <button
@@ -302,7 +304,7 @@ export default function ReportPage() {
             }
           >
             <AdaptiveJourneyMap
-              steps={uw.stepByStep}
+              steps={uwSteps}
               frictionPoints={uw.frictionPoints || []}
               cognitiveLoad={uw.cognitiveLoad}
               contextOfUse={uw.contextOfUse}
