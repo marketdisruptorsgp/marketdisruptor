@@ -168,6 +168,19 @@ interface AnalysisContextType {
   // Mode routing
   modeRouting: RoutingResult | null;
   setModeRouting: (r: RoutingResult | null) => void;
+
+  // Adaptive context (problem analysis, challenges, entity)
+  adaptiveContext: AdaptiveContextData | null;
+  setAdaptiveContext: (ctx: AdaptiveContextData | null) => void;
+}
+
+export interface AdaptiveContextData {
+  problemStatement?: string;
+  entity?: { name: string; type: string };
+  detectedModes?: { mode: string; confidence: number; reason: string }[];
+  selectedChallenges?: { id: string; question: string; context: string; priority: string; related_mode: string }[];
+  summary?: string;
+  userGuidance?: string;
 }
 
 const AnalysisContext = createContext<AnalysisContextType | null>(null);
@@ -309,6 +322,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [steeringText, setSteeringText] = useState<string>("");
   const saveSteeringText = useCallback((text: string) => {
     setSteeringText(text);
+    // Update adaptive context with ongoing user guidance
+    setAdaptiveContext(prev => prev ? { ...prev, userGuidance: text || undefined } : null);
     if (analysisId) {
       saveStepData("steeringText", text);
     }
@@ -343,6 +358,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [activeLens, setActiveLensState] = useState<UserLens | null>(null);
   // ── Mode Routing ──
   const [modeRouting, setModeRouting] = useState<RoutingResult | null>(null);
+  // ── Adaptive Context ──
+  const [adaptiveContext, setAdaptiveContext] = useState<AdaptiveContextData | null>(null);
   const pendingLensSaveRef = useRef<string | null | undefined>(undefined);
   const setActiveLens = useCallback((lens: UserLens | null) => {
     setActiveLensState(lens);
@@ -706,6 +723,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           insightPreferences: Object.keys(insightPreferences).length > 0 ? insightPreferences : undefined,
           steeringText: steeringText || undefined,
           activeBranch,
+          adaptiveContext: adaptiveContext || undefined,
         },
       });
 
@@ -1262,6 +1280,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
       modeRouting, setModeRouting,
+      adaptiveContext, setAdaptiveContext,
       governedData, setGovernedData,
       activeBranchId, setActiveBranchId,
       strategicProfile, setStrategicProfile,

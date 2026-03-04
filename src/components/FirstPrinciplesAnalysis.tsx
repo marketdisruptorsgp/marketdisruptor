@@ -481,7 +481,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     onAnalysisStarted?.();
     try {
       // Build request body — enrich with user curation context for redesign mode
-      const requestBody: Record<string, unknown> = { product, userSuggestions: rerunSuggestions || undefined };
+      const requestBody: Record<string, unknown> = { product, userSuggestions: rerunSuggestions || undefined, adaptiveContext: analysisCtx.adaptiveContext || undefined };
       if (renderMode === "redesign") {
         requestBody.insightPreferences = analysisCtx.insightPreferences;
         requestBody.userScores = analysisCtx.userScores;
