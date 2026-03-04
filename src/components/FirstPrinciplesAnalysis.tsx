@@ -1193,21 +1193,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
   return (
     <div className="space-y-4" data-fp-steps>
-      {/* ── First Principles Methodology Banner ── */}
-      <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-            <Brain size={18} style={{ color: "white" }} />
-          </div>
-          <div>
-            <h3 className="font-extrabold text-base leading-tight" style={{ color: "hsl(var(--background))" }}>First Principles Analysis</h3>
-            <p className="text-xs font-semibold mt-0.5" style={{ color: "hsl(var(--background) / 0.6)" }}>{product.name}</p>
-          </div>
-        </div>
-        <p className="text-sm leading-relaxed pl-[48px]" style={{ color: "hsl(var(--background) / 0.7)" }}>
-          Strip away convention, analogy, and industry norms. Every assumption is decomposed to its root cause — <strong style={{ color: "hsl(var(--background) / 0.95)" }}>tradition, cost, physics, manufacturing limits, or habit</strong> — then stress-tested for leverage.
-        </p>
-      </div>
 
       {/* Header + re-run (compact) */}
       <div className="flex items-center justify-between gap-3">
