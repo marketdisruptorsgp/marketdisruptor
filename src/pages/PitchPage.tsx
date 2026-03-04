@@ -9,14 +9,15 @@ import { StepNavigator } from "@/components/StepNavigator";
 import { PitchDeck } from "@/components/PitchDeck";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { StepNavBar } from "@/components/SectionNav";
-import { KeyTakeawayBanner, getPitchTakeaway } from "@/components/KeyTakeawayBanner";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
-import { ModeHeader } from "@/components/ModeHeader";
-import { InfoExplainer } from "@/components/InfoExplainer";
 import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { ModeBadge } from "@/components/ModeBadge";
+import StrategicProfileSelector from "@/components/StrategicProfileSelector";
+import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
+import { FileDown, Save } from "lucide-react";
+import { toast } from "sonner";
 
 export default function PitchPage() {
   const analysis = useAnalysis();
@@ -56,23 +57,38 @@ export default function PitchPage() {
         />
 
         <StepNavBar backLabel="Stress Test" backPath={`${baseUrl}/stress-test`} accentColor={theme.primary} />
-        <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={theme.primary} /></div>
 
         {isOutdated && <OutdatedBanner stepName="Pitch Deck" accentColor={theme.primary} />}
-        {!isOutdated && (() => {
-          const takeaway = getPitchTakeaway(analysis.pitchDeckData as Record<string, unknown> | null);
-          return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} /> : null;
-        })()}
 
         <ActiveHypothesisBanner stepName="Pitch Deck" accentColor={theme.primary} />
 
-        <ModeHeader
-          stepNumber={6}
-          stepTitle="Pitch Deck"
-          subtitle={`10-slide deck for <strong class="text-foreground">${selectedProduct.name}</strong>`}
-          accentColor={theme.primary}
-          explainerKey="step-pitch"
-        />
+        {/* Compact header with archetype + actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+          <h2 className="typo-section-title">Pitch Deck</h2>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <StrategicProfileSelector
+              profile={analysis.strategicProfile}
+              onChangeProfile={analysis.setStrategicProfile}
+            />
+            <button onClick={() => {
+              if (!selectedProduct) return;
+              const data: Record<string, unknown> = {};
+              if (analysis.pitchDeckData) data.pitchDeck = analysis.pitchDeckData;
+              downloadReportAsPDF(selectedProduct, data, {
+                title: selectedProduct.name,
+                mode: (analysis.analysisParams as any)?.analysisType,
+                onProgress: (msg) => toast.loading(msg, { id: "pdf-progress" }),
+              }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
+                .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
+            }} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
+              <FileDown size={12} /> PDF
+            </button>
+            <button onClick={() => analysis.handleManualSave()} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-primary text-primary-foreground">
+              <Save size={12} /> Save
+            </button>
+            <ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={theme.primary} />
+          </div>
+        </div>
 
         <PitchDeck
           product={selectedProduct}

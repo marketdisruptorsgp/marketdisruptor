@@ -10,12 +10,15 @@ import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { RedesignVisualGenerator } from "@/components/RedesignVisualGenerator";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
-import { KeyTakeawayBanner } from "@/components/KeyTakeawayBanner";
-import { ModeHeader } from "@/components/ModeHeader";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
 import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
+import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { ModeBadge } from "@/components/ModeBadge";
+import StrategicProfileSelector from "@/components/StrategicProfileSelector";
+import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
+import { FileDown, Save } from "lucide-react";
+import { toast } from "sonner";
 
 export default function RedesignPage() {
   const analysis = useAnalysis();
@@ -35,11 +38,6 @@ export default function RedesignPage() {
   const isOutdated = analysis.outdatedSteps.has("redesign");
   const shouldAutoTrigger = isOutdated || !analysis.redesignData;
 
-  const redesignOrDisrupt = (analysis.redesignData ?? analysis.disruptData) as Record<string, unknown> | null;
-  const concept = redesignOrDisrupt?.redesignedConcept as { conceptName?: string; tagline?: string; physicalDescription?: string; coreInsight?: string; radicalDifferences?: string[]; materials?: string[] } | undefined;
-  const takeaway = concept?.tagline
-    ? `Redesigned concept: "${concept.conceptName}" — ${concept.tagline}`
-    : null;
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
@@ -70,17 +68,35 @@ export default function RedesignPage() {
           />
         )}
 
-        {takeaway && !isOutdated && <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} />}
-
         <ActiveHypothesisBanner stepName="Redesign" accentColor={theme.primary} />
 
-        <ModeHeader
-          stepNumber={4}
-          stepTitle="Redesign"
-          subtitle={`Concept illustrations for <strong class="text-foreground">${selectedProduct.name}</strong>`}
-          accentColor={theme.primary}
-          explainerKey="step-redesign"
-        />
+        {/* Compact header with archetype + actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+          <h2 className="typo-section-title">Redesign</h2>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <StrategicProfileSelector
+              profile={analysis.strategicProfile}
+              onChangeProfile={analysis.setStrategicProfile}
+            />
+            <button onClick={() => {
+              if (!selectedProduct) return;
+              const data: Record<string, unknown> = {};
+              if (analysis.redesignData) data.redesign = analysis.redesignData;
+              downloadReportAsPDF(selectedProduct, data, {
+                title: selectedProduct.name,
+                mode: (analysis.analysisParams as any)?.analysisType,
+                onProgress: (msg) => toast.loading(msg, { id: "pdf-progress" }),
+              }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
+                .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
+            }} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
+              <FileDown size={12} /> PDF
+            </button>
+            <button onClick={() => analysis.handleManualSave()} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-primary text-primary-foreground">
+              <Save size={12} /> Save
+            </button>
+            <ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={theme.primary} />
+          </div>
+        </div>
 
         {/* Concept visuals are now rendered inside FirstPrinciplesAnalysis redesign mode */}
 
