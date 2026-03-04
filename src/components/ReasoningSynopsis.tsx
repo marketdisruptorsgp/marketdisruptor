@@ -134,64 +134,67 @@ function SynopsisCard({ title, icon: Icon, children, delay = 0 }: {
   );
 }
 
-/* ═══ 1. LENS INFLUENCE RADAR ═══ */
+/* ═══ 1. LENS INFLUENCE ═══ */
 function LensInfluenceRadar({ synopsis }: { synopsis: SynopsisData }) {
-  const allFactors = useMemo(() => {
-    const prioritized = synopsis.lens_influence.prioritized_factors.map(f => ({
-      dimension: f.length > 18 ? f.slice(0, 16) + "…" : f,
-      full: f,
-      value: 85,
-      type: "prioritized",
-    }));
-    const deprioritized = synopsis.lens_influence.deprioritized_factors.map(f => ({
-      dimension: f.length > 18 ? f.slice(0, 16) + "…" : f,
-      full: f,
-      value: 30,
-      type: "deprioritized",
-    }));
-    return [...prioritized, ...deprioritized];
-  }, [synopsis]);
+  const prioritized = synopsis.lens_influence.prioritized_factors;
+  const deprioritized = synopsis.lens_influence.deprioritized_factors;
 
-  if (allFactors.length < 3) return null;
+  if (prioritized.length === 0 && deprioritized.length === 0) return null;
 
   return (
-    <SynopsisCard title="Lens Influence" icon={Eye} delay={0}>
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-bold text-foreground">
-          Active: {synopsis.lens_influence.lens_name}
-        </span>
-      </div>
-      <div className="h-[200px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={allFactors} cx="50%" cy="50%" outerRadius="72%">
-            <PolarGrid stroke="hsl(var(--border) / 0.4)" />
-            <PolarAngleAxis
-              dataKey="dimension"
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-            />
-            <Radar
-              dataKey="value"
-              stroke={COLORS.prioritized}
-              fill={COLORS.prioritized}
-              fillOpacity={0.15}
-              strokeWidth={1.5}
-            />
-          </RadarChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="flex items-center gap-4 mt-1">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full" style={{ background: COLORS.prioritized }} />
-          <span className="text-[10px] font-semibold text-muted-foreground">Amplified</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full" style={{ background: COLORS.deprioritized }} />
-          <span className="text-[10px] font-semibold text-muted-foreground">Suppressed</span>
-        </div>
-      </div>
-      <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
-        {synopsis.lens_influence.alternative_lens_impact}
+    <SynopsisCard title="How Your Lens Shapes This Analysis" icon={Eye} delay={0}>
+      <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+        Your <span className="font-bold text-foreground">{synopsis.lens_influence.lens_name}</span> lens
+        amplifies certain factors and suppresses others. This directly affects which insights surface and which stay hidden.
       </p>
+
+      {/* Amplified factors */}
+      {prioritized.length > 0 && (
+        <div className="mb-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
+            Amplified — weighted higher in this analysis
+          </p>
+          <div className="space-y-1.5">
+            {prioritized.map((f, i) => (
+              <div key={i} className="flex items-center gap-2.5 rounded-lg px-3 py-2"
+                style={{ background: "hsl(var(--primary) / 0.05)", border: "1px solid hsl(var(--primary) / 0.12)" }}>
+                <div className="w-1.5 h-6 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} />
+                <span className="text-sm font-medium text-foreground">{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Suppressed factors */}
+      {deprioritized.length > 0 && (
+        <div className="mb-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
+            Suppressed — weighted lower or excluded
+          </p>
+          <div className="space-y-1.5">
+            {deprioritized.map((f, i) => (
+              <div key={i} className="flex items-center gap-2.5 rounded-lg px-3 py-2"
+                style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <div className="w-1.5 h-6 rounded-full flex-shrink-0" style={{ background: "hsl(var(--muted-foreground) / 0.3)" }} />
+                <span className="text-sm font-medium text-foreground/70">{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* What would change */}
+      {synopsis.lens_influence.alternative_lens_impact && (
+        <div className="rounded-xl p-4 mt-1" style={{ background: "hsl(var(--foreground))" }}>
+          <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--background) / 0.5)" }}>
+            With a Different Lens
+          </p>
+          <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--background))" }}>
+            {synopsis.lens_influence.alternative_lens_impact}
+          </p>
+        </div>
+      )}
     </SynopsisCard>
   );
 }
