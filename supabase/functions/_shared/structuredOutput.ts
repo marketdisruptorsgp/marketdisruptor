@@ -268,6 +268,87 @@ const GOVERNED_CORE_PROPERTIES = {
     required: ["falsification_conditions", "model_fragility_score"],
     additionalProperties: false,
   },
+  reasoning_synopsis: {
+    type: "object",
+    properties: {
+      problem_framing: {
+        type: "object",
+        properties: {
+          objective_interpretation: { type: "string" },
+          success_criteria: { type: "array", items: { type: "string" } },
+        },
+        required: ["objective_interpretation", "success_criteria"],
+        additionalProperties: false,
+      },
+      lens_influence: {
+        type: "object",
+        properties: {
+          lens_name: { type: "string" },
+          prioritized_factors: { type: "array", items: { type: "string" } },
+          deprioritized_factors: { type: "array", items: { type: "string" } },
+          alternative_lens_impact: { type: "string" },
+        },
+        required: ["lens_name", "prioritized_factors", "deprioritized_factors", "alternative_lens_impact"],
+        additionalProperties: false,
+      },
+      evaluation_path: {
+        type: "object",
+        properties: {
+          dimensions_examined: { type: "array", items: { type: "string" } },
+          evaluation_logic: { type: "string" },
+        },
+        required: ["dimensions_examined", "evaluation_logic"],
+        additionalProperties: false,
+      },
+      core_causal_logic: {
+        type: "object",
+        properties: {
+          primary_relationships: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                cause: { type: "string" },
+                effect: { type: "string" },
+                mechanism: { type: "string" },
+              },
+              required: ["cause", "effect", "mechanism"],
+              additionalProperties: false,
+            },
+          },
+          dominant_mechanism: { type: "string" },
+        },
+        required: ["primary_relationships", "dominant_mechanism"],
+        additionalProperties: false,
+      },
+      decision_drivers: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            factor: { type: "string" },
+            weight: { type: "string", enum: ["high", "medium"] },
+            rationale: { type: "string" },
+          },
+          required: ["factor", "weight", "rationale"],
+          additionalProperties: false,
+        },
+      },
+      confidence_sensitivity: {
+        type: "object",
+        properties: {
+          overall_confidence: { type: "string", enum: ["high", "medium", "low"] },
+          confidence_score: { type: "number" },
+          most_sensitive_variable: { type: "string" },
+          sensitivity_explanation: { type: "string" },
+        },
+        required: ["overall_confidence", "confidence_score", "most_sensitive_variable"],
+        additionalProperties: false,
+      },
+    },
+    required: ["problem_framing", "lens_influence", "evaluation_path", "core_causal_logic", "decision_drivers", "confidence_sensitivity"],
+    additionalProperties: false,
+  },
 };
 
 const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
