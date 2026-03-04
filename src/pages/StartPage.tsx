@@ -215,53 +215,66 @@ export default function StartPage() {
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-        <div className="rounded-2xl bg-card border border-border p-8 sm:p-10 text-center shadow-sm">
-          <p className="text-lg sm:text-xl font-extrabold text-foreground mb-2">
+      {/* CTA Banner — bold dark section */}
+      <section className="bg-foreground">
+        <div className="max-w-4xl mx-auto px-6 sm:px-8 py-16 sm:py-20 text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-background leading-tight tracking-tight mb-3"
+          >
             Apply a level of scrutiny that exceeds normal bandwidth.
-          </p>
-          <p className="text-sm text-muted-foreground mb-6">
+          </motion.p>
+          <p className="text-sm sm:text-base text-background/60 mb-8 max-w-lg mx-auto">
             See what a deep deconstruction reveals about your market.
           </p>
           <button
             onClick={() => navigate("/analysis/new")}
-            className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-background text-foreground text-sm font-bold hover:bg-background/90 transition-colors shadow-lg"
           >
-            Start Analysis <ArrowRight size={14} />
+            Start Analysis <ArrowRight size={15} />
           </button>
         </div>
       </section>
 
-      {/* What to expect */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-4">
-        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 flex items-start gap-4">
-          <Target size={20} className="flex-shrink-0 mt-0.5 text-primary" />
-          <div>
-            <p className="text-sm font-bold text-foreground mb-1">What to expect</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              The goal isn't to promise a "better" answer every time. The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
+      {/* Bottom cards row */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+        <div className="grid sm:grid-cols-2 gap-5">
+          {/* What to expect */}
+          <div className="rounded-2xl border border-border bg-card p-6 sm:p-7 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-primary rounded-l-2xl" />
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Target size={18} className="text-primary" />
+              </div>
+              <p className="text-base font-extrabold text-foreground">What to expect</p>
+            </div>
+            <p className="text-[13px] text-foreground/70 leading-relaxed">
+              The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* Photo Analysis */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
-        <div
-          onClick={() => navigate("/instant-analysis")}
-          className="rounded-2xl border border-border bg-card p-5 sm:p-6 flex items-center gap-4 cursor-pointer transition-all hover:shadow-md group"
-        >
-          <Camera size={22} className="text-primary flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-bold text-foreground mb-0.5">Instant Photo Analysis</p>
-            <p className="text-xs text-muted-foreground">
+          {/* Photo Analysis */}
+          <div
+            onClick={() => navigate("/instant-analysis")}
+            className="rounded-2xl border border-border bg-card p-6 sm:p-7 relative overflow-hidden cursor-pointer group hover:shadow-lg transition-all duration-300"
+          >
+            <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 rounded-l-2xl" />
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Camera size={18} className="text-amber-600" />
+              </div>
+              <p className="text-base font-extrabold text-foreground">Instant Photo Analysis</p>
+            </div>
+            <p className="text-[13px] text-foreground/70 leading-relaxed mb-4">
               Snap a photo of any product and get an AI-powered competitive teardown in seconds.
             </p>
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 group-hover:gap-2.5 transition-all">
+              Try It <ArrowRight size={13} />
+            </span>
           </div>
-          <button className="flex-shrink-0 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors">
-            Try It <ArrowRight size={12} className="inline ml-1" />
-          </button>
         </div>
       </section>
 
