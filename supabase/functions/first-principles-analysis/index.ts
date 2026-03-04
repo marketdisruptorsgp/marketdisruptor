@@ -8,7 +8,7 @@ import { getGovernedSchemaPrompt, buildValidationObject } from "../_shared/gover
 import { buildLensWeightingPrompt } from "../_shared/lensWeighting.ts";
 import { computeGovernedConfidence } from "../_shared/confidenceComputation.ts";
 import { buildModeWeightingPrompt } from "../_shared/modeWeighting.ts";
-import { extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
+import { buildStructuredOutputTools, extractStructuredResponse, validateStructuredResponse } from "../_shared/structuredOutput.ts";
 import { extractActiveBranch, extractCombinedBranches, buildBranchIsolationPrompt } from "../_shared/branchIsolation.ts";
 
 const corsHeaders = {
@@ -510,6 +510,8 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     }
 
 
+    const structuredTools = buildStructuredOutputTools("first-principles");
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -522,7 +524,8 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt + curationPrompt },
         ],
-        temperature: 0.7,
+        ...(structuredTools || {}),
+        temperature: 0.5,
         max_tokens: 24000,
       }),
     });

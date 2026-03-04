@@ -174,6 +174,51 @@ const GOVERNED_CORE_PROPERTIES = {
     required: ["minimum_viable_system", "causal_model", "fundamental_constraints", "viability_assumptions"],
     additionalProperties: false,
   },
+  friction_tiers: {
+    type: "object",
+    properties: {
+      tier_1: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            friction_id: { type: "string" },
+            description: { type: "string" },
+            system_impact: { type: "string" },
+          },
+          required: ["friction_id", "description", "system_impact"],
+          additionalProperties: false,
+        },
+      },
+      tier_2: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            friction_id: { type: "string" },
+            description: { type: "string" },
+            optimization_target: { type: "string" },
+          },
+          required: ["friction_id", "description", "optimization_target"],
+          additionalProperties: false,
+        },
+      },
+      tier_3: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            friction_id: { type: "string" },
+            description: { type: "string" },
+          },
+          required: ["friction_id", "description"],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ["tier_1", "tier_2", "tier_3"],
+    additionalProperties: false,
+  },
   constraint_map: {
     type: "object",
     properties: {
@@ -238,11 +283,12 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
         properties: {
           domain_confirmation: GOVERNED_CORE_PROPERTIES.domain_confirmation,
           first_principles: GOVERNED_CORE_PROPERTIES.first_principles,
+          friction_tiers: GOVERNED_CORE_PROPERTIES.friction_tiers,
           constraint_map: GOVERNED_CORE_PROPERTIES.constraint_map,
           decision_synthesis: GOVERNED_CORE_PROPERTIES.decision_synthesis,
           reasoning_synopsis: GOVERNED_CORE_PROPERTIES.reasoning_synopsis,
         },
-        required: ["domain_confirmation", "first_principles", "constraint_map", "decision_synthesis", "reasoning_synopsis"],
+        required: ["domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis", "reasoning_synopsis"],
         additionalProperties: true,
       },
     },
