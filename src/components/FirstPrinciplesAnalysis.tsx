@@ -1268,12 +1268,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 </div>
               </DetailPanel>
 
-              {/* AI-Generated Redesign Visuals */}
-              <RedesignVisualGenerator
-                productName={product.name}
-                concept={concept}
-                accentColor="hsl(38 92% 50%)"
-              />
+              {/* Concept Visuals moved to RedesignPage top-level */}
 
               {/* All sections done */}
               <div className="text-center py-4">

@@ -167,6 +167,20 @@ export default function RedesignPage() {
           </p>
         </div>
 
+        {/* ── Concept Visuals — auto-generate right after banner ── */}
+        {activeTab === "concept" && hasData && (() => {
+          const rd = analysis.redesignData as any;
+          const concept = rd?.redesignedConcept || rd?.concept;
+          if (!concept?.conceptName) return null;
+          return (
+            <RedesignVisualGenerator
+              productName={selectedProduct.name}
+              concept={concept}
+              accentColor="hsl(38 92% 50%)"
+            />
+          );
+        })()}
+
         {/* Loading Tracker (front and center) */}
         {analysisLoading && (
           <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
