@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isServiceCategory } from "@/utils/normalizeProduct";
 import { toast } from "sonner";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
-import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
+import { AdaptiveJourneyMap } from "@/components/AdaptiveJourneyMap";
 import { useNavigate } from "react-router-dom";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -301,23 +301,14 @@ export default function ReportPage() {
               </button>
             }
           >
-            <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
-            {(uw.cognitiveLoad || uw.contextOfUse) && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                {uw.cognitiveLoad && (
-                  <div className="p-3 rounded-lg bg-card border border-border">
-                    <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
-                    <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
-                  </div>
-                )}
-                {uw.contextOfUse && (
-                  <div className="p-3 rounded-lg bg-card border border-border">
-                    <p className="typo-card-eyebrow mb-1">Context of Use</p>
-                    <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
-                  </div>
-                )}
-              </div>
-            )}
+            <AdaptiveJourneyMap
+              steps={uw.stepByStep}
+              frictionPoints={uw.frictionPoints || []}
+              cognitiveLoad={uw.cognitiveLoad}
+              contextOfUse={uw.contextOfUse}
+              category={selectedProduct?.category}
+              productName={selectedProduct?.name}
+            />
           </SectionCard>
         )}
 
