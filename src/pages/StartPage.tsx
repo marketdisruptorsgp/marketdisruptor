@@ -4,17 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { ShowcaseGallery } from "@/components/ShowcaseGallery";
 import { PlatformNav } from "@/components/PlatformNav";
 import { motion } from "framer-motion";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { AppFooter } from "@/components/AppFooter";
 import {
   Upload, Briefcase, Building2, ArrowRight,
   ShieldCheck, BookOpen, Camera, Target,
   Search, Radar, Sparkles, Crosshair, Swords, Presentation,
-  ChevronRight,
 } from "lucide-react";
-import PlatformCinematicExperience from "@/components/cinematic/PlatformCinematicExperience";
-
-const DemoSection = lazy(() => import("@/components/DemoSection"));
 
 const ROTATING_WORDS = [
   { word: "product", color: "hsl(var(--mode-product))" },
@@ -25,51 +21,33 @@ const ROTATING_WORDS = [
 const PIPELINE_STEPS = [
   {
     icon: Search, label: "Analyze", step: 1,
-    desc: {
-      product: "Select a product and run a deep competitive teardown",
-      service: "Define your service and map the competitive landscape",
-      business: "Specify your business model for a structural audit",
-    },
+    desc: "Define your target and run a deep competitive teardown",
+    color: "#2563eb",
   },
   {
     icon: Radar, label: "Deconstruct", step: 2,
-    desc: {
-      product: "Map pricing, supply chains, and comparative positioning",
-      service: "Analyze delivery workflows, pricing tiers, and friction points",
-      business: "Audit revenue streams, cost structures, and value chains",
-    },
+    desc: "Map pricing, supply chains, workflows, and positioning",
+    color: "#7c3aed",
   },
   {
     icon: Sparkles, label: "Flip", step: 3,
-    desc: {
-      product: "Challenge every assumption and generate radical alternatives",
-      service: "Invert delivery models and reimagine the customer journey",
-      business: "Question the value engine and explore adjacent opportunities",
-    },
+    desc: "Challenge every assumption and generate radical alternatives",
+    color: "#db2777",
   },
   {
     icon: Crosshair, label: "Redesign", step: 4,
-    desc: {
-      product: "Interactive redesigned concept with detailed illustrations",
-      service: "Redesigned service blueprint with implementation roadmap",
-      business: "Restructured model with new revenue and growth levers",
-    },
+    desc: "Interactive redesigned concept with detailed illustrations",
+    color: "#059669",
   },
   {
     icon: Swords, label: "Stress Test", step: 5,
-    desc: {
-      product: "Red vs Green team adversarial validation & critical debate",
-      service: "Adversarial review of scalability, churn risk, and operations",
-      business: "Stress-test unit economics, moat durability, and market fit",
-    },
+    desc: "Red vs Green team adversarial validation and critical debate",
+    color: "#dc2626",
   },
   {
     icon: Presentation, label: "Pitch Deck", step: 6,
-    desc: {
-      product: "Investor-ready presentation with data-backed slides",
-      service: "Scalability-focused pitch with implementation partnerships",
-      business: "Capital-ready deck with financial projections and strategy",
-    },
+    desc: "Investor-ready presentation with data-backed slides",
+    color: "#d97706",
   },
 ];
 
@@ -135,153 +113,107 @@ export default function StartPage() {
         <ShowcaseGallery />
       </section>
 
-      {/* Cinematic Platform Film — hidden
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <PlatformCinematicExperience />
-      </section>
-      */}
-
       {/* How It Works Pipeline */}
-      {(() => {
-        const activeColor = ROTATING_WORDS[wordIndex].color;
-        const modeKey = ROTATING_WORDS[wordIndex].word as "product" | "service" | "business";
-        const modeLabel = modeKey.charAt(0).toUpperCase() + modeKey.slice(1);
-        return (
-          <section
-            className="border-t border-border overflow-hidden transition-colors duration-1000"
-            style={{ background: `color-mix(in srgb, ${activeColor} 4%, hsl(var(--background)))` }}
-          >
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
-              <div className="text-center mb-8">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] mb-2 flex items-center justify-center gap-1.5 transition-colors duration-1000" style={{ color: activeColor }}>
-                  <Sparkles size={12} /> How It Works
-                </p>
-                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-                  From raw data to investor-ready output
-                </h2>
-                <p className="text-sm text-foreground/60 mt-1.5 mb-3">
-                  Six stages of structured analysis, each building on the last
-                </p>
-                {/* Mode pill */}
-                <motion.span
-                  key={modeKey}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6 }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-all duration-1000"
-                  style={{
-                    color: activeColor,
-                    borderColor: `color-mix(in srgb, ${activeColor} 35%, transparent)`,
-                    background: `color-mix(in srgb, ${activeColor} 10%, transparent)`,
-                  }}
+      <section className="border-t border-border bg-card">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] mb-2 text-primary flex items-center justify-center gap-1.5">
+              <Sparkles size={12} /> How It Works
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              Six stages of structured analysis
+            </h2>
+            <p className="text-sm text-foreground/60 mt-1.5">
+              Each step builds on the last — from raw data to investor-ready output
+            </p>
+          </div>
+
+          {/* Desktop: 3x2 grid */}
+          <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {PIPELINE_STEPS.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={item.step}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.4, delay: i * 0.07 }}
+                  className="rounded-xl border border-border bg-background p-5 hover:shadow-lg transition-shadow duration-300"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: activeColor }} />
-                  {modeLabel} Mode
-                </motion.span>
-              </div>
-
-              {/* Desktop: 6-col grid */}
-              <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-6 gap-4 relative">
-                {PIPELINE_STEPS.map((item, i) => {
-                  const Icon = item.icon;
-                  return (
-                    <div key={item.step} className="relative">
-                      {i > 0 && (
-                        <div className="hidden lg:flex absolute -left-2 top-8 z-10 items-center justify-center">
-                          <ChevronRight
-                            size={12}
-                            className="transition-colors duration-1000 opacity-35"
-                            style={{ color: activeColor }}
-                          />
-                        </div>
-                      )}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-40px" }}
-                        transition={{ duration: 0.4, delay: i * 0.08 }}
-                        className="text-center rounded-xl border p-3 transition-all duration-1000 h-full"
-                        style={{
-                          borderColor: `color-mix(in srgb, ${activeColor} 18%, hsl(var(--border)))`,
-                          background: `color-mix(in srgb, ${activeColor} 4%, hsl(var(--card)))`,
-                        }}
-                      >
-                        <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-1000"
-                          style={{
-                            background: `color-mix(in srgb, ${activeColor} 16%, transparent)`,
-                            boxShadow: `0 3px 10px color-mix(in srgb, ${activeColor} 12%, transparent)`,
-                          }}
-                        >
-                          <Icon size={20} className="transition-colors duration-1000" style={{ color: activeColor }} />
-                        </div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/50 mb-0.5">
-                          Step {item.step}
-                        </p>
-                        <p className="text-sm font-bold text-foreground mb-0.5">{item.label}</p>
-                        <motion.p
-                          key={modeKey}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.8 }}
-                          className="text-xs text-foreground/60 leading-relaxed"
-                        >
-                          {item.desc[modeKey]}
-                        </motion.p>
-                      </motion.div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Mobile: compact vertical list */}
-              <div className="sm:hidden space-y-2">
-                {PIPELINE_STEPS.map((item, i) => {
-                  const Icon = item.icon;
-                  return (
-                    <motion.div
-                      key={item.step}
-                      initial={{ opacity: 0, x: -12 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.3, delay: i * 0.05 }}
-                      className="flex items-start gap-3 rounded-lg border p-3 transition-all duration-1000"
-                      style={{
-                        borderColor: `color-mix(in srgb, ${activeColor} 18%, hsl(var(--border)))`,
-                        background: `color-mix(in srgb, ${activeColor} 4%, hsl(var(--card)))`,
-                      }}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: `${item.color}14` }}
                     >
-                      <div
-                        className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-1000"
-                        style={{
-                          background: `color-mix(in srgb, ${activeColor} 16%, transparent)`,
-                        }}
+                      <Icon size={20} style={{ color: item.color }} />
+                    </div>
+                    <div>
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-widest block"
+                        style={{ color: item.color }}
                       >
-                        <Icon size={18} className="transition-colors duration-1000" style={{ color: activeColor }} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-foreground/40">Step {item.step}</span>
-                          <span className="text-[13px] font-bold text-foreground">{item.label}</span>
-                        </div>
-                        <motion.p
-                          key={modeKey}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.8 }}
-                          className="text-[11px] text-foreground/55 leading-relaxed"
+                        Step {item.step}
+                      </span>
+                      <span className="text-base font-extrabold text-foreground">{item.label}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-foreground/65 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Mobile: vertical timeline */}
+          <div className="sm:hidden relative pl-8">
+            <div className="absolute left-[13px] top-2 bottom-2 w-px bg-border" />
+            <div className="space-y-4">
+              {PIPELINE_STEPS.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <motion.div
+                    key={item.step}
+                    initial={{ opacity: 0, x: -16 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.35, delay: i * 0.06 }}
+                    className="relative"
+                  >
+                    <div
+                      className="absolute -left-8 top-4 w-[10px] h-[10px] rounded-full border-2 border-card z-10"
+                      style={{ background: item.color }}
+                    />
+                    <div className="rounded-xl border border-border bg-background p-4">
+                      <div className="flex items-center gap-3 mb-1.5">
+                        <div
+                          className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ background: `${item.color}14` }}
                         >
-                          {item.desc[modeKey]}
-                        </motion.p>
+                          <Icon size={17} style={{ color: item.color }} />
+                        </div>
+                        <div>
+                          <span
+                            className="text-[9px] font-bold uppercase tracking-widest block"
+                            style={{ color: item.color }}
+                          >
+                            Step {item.step}
+                          </span>
+                          <span className="text-[15px] font-extrabold text-foreground">{item.label}</span>
+                        </div>
                       </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                      <p className="text-[12px] text-foreground/60 leading-relaxed pl-12">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
-          </section>
-        );
-      })()}
+          </div>
+        </div>
+      </section>
 
       {/* CTA Banner */}
       <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
