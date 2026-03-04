@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, Brain, Sparkles, Swords, Presentation, ChevronRight, X } from "lucide-react";
+import { Zap, Brain, Sparkles, Swords, Presentation, ChevronRight, X, Building2, Calculator, Calendar } from "lucide-react";
 
 interface EvolutionNode {
   key: string;
@@ -14,6 +14,7 @@ interface EvolutionViewProps {
   analysisData: Record<string, unknown> | null;
   productName?: string;
   accentColor?: string;
+  analysisType?: string;
 }
 
 function getSummary(data: Record<string, unknown> | null, key: string): string | undefined {
@@ -47,10 +48,11 @@ function getSummary(data: Record<string, unknown> | null, key: string): string |
   return undefined;
 }
 
-export function EvolutionView({ analysisData, productName, accentColor = "hsl(var(--primary))" }: EvolutionViewProps) {
+export function EvolutionView({ analysisData, productName, accentColor = "hsl(var(--primary))", analysisType }: EvolutionViewProps) {
   const [expandedNode, setExpandedNode] = useState<string | null>(null);
+  const isBusinessModel = analysisType === "business_model";
 
-  const nodes: EvolutionNode[] = [
+  const productNodes: EvolutionNode[] = [
     {
       key: "original",
       label: "Original Idea",
@@ -92,6 +94,51 @@ export function EvolutionView({ analysisData, productName, accentColor = "hsl(va
       summary: getSummary(analysisData, "pitchDeck"),
     },
   ];
+
+  const businessNodes: EvolutionNode[] = [
+    {
+      key: "original",
+      label: "Business",
+      icon: Building2,
+      color: accentColor,
+      completed: true,
+      summary: productName || "Business analyzed",
+    },
+    {
+      key: "operations",
+      label: "Operations",
+      icon: Brain,
+      color: accentColor,
+      completed: !!(analysisData?.operationalAudit),
+      summary: analysisData?.operationalAudit ? "Operations audited" : undefined,
+    },
+    {
+      key: "dealEconomics",
+      label: "Deal Math",
+      icon: Calculator,
+      color: accentColor,
+      completed: !!(analysisData?.ownerDependencyAssessment),
+      summary: analysisData?.ownerDependencyAssessment ? `Risk: ${(analysisData.ownerDependencyAssessment as any)?.transitionRiskScore}/10` : undefined,
+    },
+    {
+      key: "playbook",
+      label: "Playbook",
+      icon: Calendar,
+      color: accentColor,
+      completed: !!(analysisData?.ownershipPlaybook),
+      summary: analysisData?.ownershipPlaybook ? "100-day plan ready" : undefined,
+    },
+    {
+      key: "reinvented",
+      label: "Reinvented",
+      icon: Sparkles,
+      color: accentColor,
+      completed: !!(analysisData?.reinventedModel),
+      summary: (analysisData?.reinventedModel as any)?.modelName || undefined,
+    },
+  ];
+
+  const nodes = isBusinessModel ? businessNodes : productNodes;
 
   return (
     <div className="space-y-3">

@@ -7,7 +7,7 @@ import {
   Brain, RefreshCw, ArrowRight, Building2, Zap, DollarSign, Shield,
   AlertTriangle, CheckCircle2, Lightbulb, Users, BarChart3, Cpu,
   TrendingUp, Target, Rocket, Clock, ChevronRight, FlipHorizontal,
-  Wrench, Eye, Package, Factory, Layers, FileDown,
+  Wrench, Eye, Package, Factory, Layers, FileDown, Calculator, Calendar,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 import { BundleDeepDive } from "./BundleDeepDive";
@@ -15,6 +15,9 @@ import { BundleDeepDive } from "./BundleDeepDive";
 import { LeverageScore } from "./LeverageScore";
 import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
+import { DealEconomicsPanel } from "./DealEconomicsPanel";
+import { OwnershipPlaybook, type OwnershipPlaybookData } from "./OwnershipPlaybook";
+import { getLensType } from "@/lib/etaLens";
 
 export interface BusinessModelInput {
   type: string;
@@ -151,14 +154,15 @@ const BUSINESS_EXAMPLES = [
   "HVAC company", "Plumbing company", "Auto repair shop", "Vending machine operator",
 ];
 
-export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnalysisComplete }: { initialData?: BusinessModelAnalysisData | null; onSaved?: () => void; renderMode?: "report" | "disrupt"; onAnalysisComplete?: (data: BusinessModelAnalysisData, input: BusinessModelInput) => void }) => {
+export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnalysisComplete, activeLens }: { initialData?: BusinessModelAnalysisData | null; onSaved?: () => void; renderMode?: "report" | "disrupt"; onAnalysisComplete?: (data: BusinessModelAnalysisData, input: BusinessModelInput) => void; activeLens?: any }) => {
   const { user } = useAuth();
+  const isETA = getLensType(activeLens) === "eta";
   const [input, setInput] = useState<BusinessModelInput>({
     type: "", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "",
   });
   const [data, setData] = useState<BusinessModelAnalysisData | null>(initialData ?? null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"summary" | "operations" | "assumptions" | "tech" | "revenue" | "disruption" | "reinvented">("summary");
+  const [activeTab, setActiveTab] = useState<string>("summary");
   const [userSuggestions, setUserSuggestions] = useState("");
 
   const saveToWorkspace = async (analysisData: BusinessModelAnalysisData, businessType: string) => {
@@ -230,7 +234,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
 
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-bma-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
 
-  const allTabs = [
+  const baseTabs = [
     { id: "summary" as const, label: "Business Reality", icon: Eye },
     { id: "operations" as const, label: "Operations Audit", icon: Wrench },
     { id: "assumptions" as const, label: "Hidden Assumptions", icon: Brain },
@@ -240,7 +244,16 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
     { id: "reinvented" as const, label: "Reinvented Model", icon: Rocket },
   ];
 
-  const REPORT_TAB_IDS = ["summary", "operations", "assumptions", "tech", "revenue"];
+  // ETA-specific tabs injected when lens is active
+  const etaTabs = isETA ? [
+    { id: "dealEconomics" as const, label: "Deal Economics", icon: Calculator },
+    { id: "ownerDependency" as const, label: "Owner Risk", icon: AlertTriangle },
+    { id: "playbook" as const, label: "100-Day Playbook", icon: Calendar },
+  ] : [];
+
+  const allTabs = [...baseTabs.slice(0, 5), ...etaTabs, ...baseTabs.slice(5)];
+
+  const REPORT_TAB_IDS = ["summary", "operations", "assumptions", "tech", "revenue", ...(isETA ? ["dealEconomics", "ownerDependency", "playbook"] : [])];
   const DISRUPT_TAB_IDS = ["disruption", "reinvented"];
 
   const tabs = renderMode === "report"
@@ -782,6 +795,90 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             </span>
           </div>
           </AnalysisVisualLayer>
+        </div>
+      )}
+
+      {/* TAB: DEAL ECONOMICS (ETA only) */}
+      {activeTab === "dealEconomics" && isETA && (
+        <div className="space-y-4">
+          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Deal Economics" icon={Calculator} />
+          <DealEconomicsPanel
+            sde={(data as any)?.ownerDependencyAssessment ? undefined : undefined}
+            analysisData={data}
+          />
+          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
+        </div>
+      )}
+
+      {/* TAB: OWNER DEPENDENCY (ETA only) */}
+      {activeTab === "ownerDependency" && isETA && (data as any)?.ownerDependencyAssessment && (
+        <div className="space-y-4">
+          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Owner Dependency Risk" icon={AlertTriangle} />
+          {(() => {
+            const oda = (data as any).ownerDependencyAssessment;
+            const riskColor = oda.transitionRiskScore >= 7 ? "hsl(var(--destructive))" : oda.transitionRiskScore >= 4 ? "hsl(38 92% 35%)" : "hsl(142 70% 30%)";
+            return (
+              <>
+                <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <div className="text-center">
+                    <p className="text-3xl font-black tabular-nums" style={{ color: riskColor }}>{oda.transitionRiskScore}</p>
+                    <p className="typo-status-label text-muted-foreground">/10</p>
+                  </div>
+                  <div>
+                    <p className="typo-card-title">Transition Risk Score</p>
+                    <p className="typo-card-meta text-muted-foreground">
+                      {oda.transitionRiskScore >= 7 ? "High risk — extensive transition planning required" : oda.transitionRiskScore >= 4 ? "Moderate risk — structured transition needed" : "Low risk — business runs independently"}
+                    </p>
+                  </div>
+                </div>
+                {oda.ownerDependencies?.map((dep: any, i: number) => {
+                  const sev = dep.severity as "critical" | "high" | "medium" | "low";
+                  const sevColors = { critical: "hsl(var(--destructive))", high: "hsl(var(--destructive))", medium: "hsl(38 92% 35%)", low: "hsl(142 70% 30%)" };
+                  return (
+                    <div key={i} className="p-3 rounded-lg" style={{ background: `${sevColors[sev]}08`, border: `1px solid ${sevColors[sev]}30` }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-bold" style={{ color: sevColors[sev] }}>{dep.area}</p>
+                        <span className="px-2 py-0.5 rounded-full typo-status-label uppercase" style={{ color: sevColors[sev] }}>{sev}</span>
+                      </div>
+                      <p className="typo-card-body text-foreground/80">{dep.description}</p>
+                      <div className="flex items-start gap-1.5 mt-1">
+                        <CheckCircle2 size={10} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
+                        <p className="typo-card-meta" style={{ color: "hsl(var(--primary))" }}>{dep.mitigation}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+                {oda.keyPersonRisks?.length > 0 && (
+                  <DetailPanel title={`Key Person Risks (${oda.keyPersonRisks.length})`} icon={Users}>
+                    <div className="space-y-1.5 mb-2">
+                      {oda.keyPersonRisks.map((r: string, i: number) => (
+                        <div key={i} className="flex items-start gap-2 text-xs">
+                          <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
+                          <span className="text-foreground/80">{r}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </DetailPanel>
+                )}
+              </>
+            );
+          })()}
+          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
+        </div>
+      )}
+
+      {/* TAB: OWNERSHIP PLAYBOOK (ETA only) */}
+      {activeTab === "playbook" && isETA && (data as any)?.ownershipPlaybook && (
+        <div className="space-y-4">
+          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="100-Day Ownership Playbook" icon={Calendar} />
+          <OwnershipPlaybook data={{
+            transitionRiskScore: (data as any)?.ownerDependencyAssessment?.transitionRiskScore ?? 5,
+            ownerDependencies: (data as any)?.ownerDependencyAssessment?.ownerDependencies ?? [],
+            phases: (data as any).ownershipPlaybook.phases ?? [],
+            quickWins: (data as any).ownershipPlaybook.quickWins ?? [],
+            dueDiligenceQuestions: (data as any).ownershipPlaybook.dueDiligenceQuestions ?? [],
+          }} />
+          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
         </div>
       )}
     </div>

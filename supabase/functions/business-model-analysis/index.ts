@@ -21,6 +21,7 @@ serve(async (req) => {
 
   try {
     const { businessModel, userSuggestions, lens, extractedContext, adaptiveContext: rawAdaptiveCtx } = await req.json();
+    const isETA = lens?.id === "__eta__" || lens?.lensType === "eta";
     const adaptivePrompt = buildAdaptiveContextPrompt(rawAdaptiveCtx);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -163,7 +164,69 @@ The JSON must follow this EXACT structure:
       "decision_readiness": 3,
       "confidence": "high | medium | exploratory"
     }
-  ]
+  ]${isETA ? `,
+  "ownerDependencyAssessment": {
+    "transitionRiskScore": "number 1-10 — how likely is value destruction during ownership transition",
+    "ownerDependencies": [
+      {
+        "area": "Customer Relationships | Vendor Relationships | Operational Knowledge | Pricing Decisions | Sales | Strategic Direction",
+        "severity": "critical | high | medium | low",
+        "description": "What specifically depends on the owner",
+        "mitigation": "Specific action to de-risk this before or during transition"
+      }
+    ],
+    "customerConcentration": {
+      "riskLevel": "critical | high | medium | low",
+      "detail": "Analysis of revenue concentration risk"
+    },
+    "keyPersonRisks": ["Specific key-person dependency and its impact"]
+  },
+  "ownershipPlaybook": {
+    "quickWins": ["Low-effort, high-impact action for first 30 days"],
+    "phases": [
+      {
+        "timeframe": "Week 1-2",
+        "title": "Listen & Learn",
+        "objective": "Build relationships, understand operations from the inside",
+        "actions": ["Specific action 1", "Action 2"],
+        "milestone": "What success looks like",
+        "risks": ["What could go wrong in this phase"]
+      },
+      {
+        "timeframe": "Month 1",
+        "title": "Quick Wins",
+        "objective": "Implement low-risk improvements to build momentum and credibility",
+        "actions": ["Specific action"],
+        "milestone": "Success metric",
+        "risks": ["Risk"]
+      },
+      {
+        "timeframe": "Month 2-3",
+        "title": "Process Optimization",
+        "objective": "Fix operational friction and pricing gaps",
+        "actions": ["Action"],
+        "milestone": "Metric",
+        "risks": ["Risk"]
+      },
+      {
+        "timeframe": "Month 3-6",
+        "title": "Structural Changes",
+        "objective": "Implement model changes and new revenue streams",
+        "actions": ["Action"],
+        "milestone": "Metric",
+        "risks": ["Risk"]
+      },
+      {
+        "timeframe": "Month 6-12",
+        "title": "Scale & Optimize",
+        "objective": "Scale proven improvements, explore technology enablement",
+        "actions": ["Action"],
+        "milestone": "Metric",
+        "risks": ["Risk"]
+      }
+    ],
+    "dueDiligenceQuestions": ["Critical question to ask broker/seller before LOI"]
+  }` : ""}
 }`;
 
     let extractedSection = "";
@@ -196,6 +259,14 @@ CRITICAL INSTRUCTIONS:
 12. COMPETITIVE MOAT: Explain specifically what prevents a competitor from copying the reinvented model within 12 months.
 13. SCORING CALIBRATION: leverageScores default to 4-6. Scores ≥8 require cited evidence. 9-10 almost never justified. Apply friction penalties for behavior change, infrastructure requirements, and capital intensity. Label every opportunity as "Near-term viable", "Conditional opportunity", or "Long-horizon concept".
 ${extractedContext ? "14. DOCUMENT EVIDENCE: Heavily weight the extracted intelligence from uploaded documents. Reference specific findings when making claims." : ""}
+${isETA ? `
+ETA ACQUISITION LENS ACTIVE — ADDITIONAL REQUIREMENTS:
+15. OWNER DEPENDENCY: Produce a detailed owner dependency assessment. Score transition risk 1-10. Identify every area where the owner is critical — customer relationships, vendor relationships, operational knowledge, pricing decisions, sales pipeline.
+16. OWNERSHIP PLAYBOOK: Generate a 100-day post-acquisition playbook with 5 phases (Week 1-2, Month 1, Month 2-3, Month 3-6, Month 6-12). Frame ALL recommendations as actions a NEW OWNER would take — not "disruptive" language but ownership-transition language. Include quick wins for the first 30 days.
+17. DUE DILIGENCE QUESTIONS: Generate 5-8 specific questions to ask the broker/seller that CIMs typically don't answer or answer evasively.
+18. ACQUISITION FRAMING: Throughout the entire analysis, frame insights through the lens of "should I buy this business and how do I improve it" rather than "how to disrupt this industry."
+19. DO NOT default to technology solutions. Prioritize: process improvement > pricing/positioning change > structural model change > operational optimization > technology enablement (only if clearly justified).
+` : ""}
 
 VISUAL & ACTION PLAN INSTRUCTIONS:
 - Generate 1-2 visual specs for the dominant constraint structure. Use constraint_map for showing how constraints connect, causal_chain for cause-effect flows, leverage_hierarchy for ranked interventions.
