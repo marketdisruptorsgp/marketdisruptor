@@ -715,7 +715,39 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     onAnalysisStarted?.();
     try {
       // Build request body — enrich with user curation context for redesign mode
-      const requestBody: Record<string, unknown> = { product, userSuggestions: rerunSuggestions || undefined, adaptiveContext: analysisCtx.adaptiveContext || undefined };
+      // Always pass upstream Report intel so the Disrupt AI has full market context
+      const upstreamIntel: Record<string, unknown> = {};
+      if (product.pricingIntel) upstreamIntel.pricingIntel = product.pricingIntel;
+      if (product.supplyChain) upstreamIntel.supplyChain = {
+        suppliers: (product.supplyChain.suppliers || []).slice(0, 5).map((s: any) => ({ name: s.name, region: s.region, role: s.role })),
+        manufacturers: (product.supplyChain.manufacturers || []).slice(0, 5).map((m: any) => ({ name: m.name, region: m.region, moq: m.moq })),
+        distributors: (product.supplyChain.distributors || []).slice(0, 3).map((d: any) => ({ name: d.name, region: d.region })),
+      };
+      if ((product as any).communityInsights) {
+        const ci = (product as any).communityInsights;
+        upstreamIntel.communityInsights = {
+          communitySentiment: ci.communitySentiment || ci.redditSentiment,
+          topComplaints: (ci.topComplaints || []).slice(0, 5),
+          improvementRequests: (ci.improvementRequests || []).slice(0, 5),
+        };
+      }
+      if ((product as any).userWorkflow) {
+        const uw = (product as any).userWorkflow;
+        upstreamIntel.userWorkflow = {
+          stepByStep: (uw.stepByStep || []).slice(0, 8),
+          frictionPoints: (uw.frictionPoints || []).slice(0, 5),
+          cognitiveLoad: uw.cognitiveLoad,
+        };
+      }
+      if (product.patentData) {
+        upstreamIntel.patentLandscape = {
+          totalPatents: product.patentData.totalPatents,
+          expiredPatents: product.patentData.expiredPatents,
+          keyPlayers: (product.patentData.keyPlayers || []).slice(0, 5),
+          gapAnalysis: product.patentData.gapAnalysis,
+        };
+      }
+      const requestBody: Record<string, unknown> = { product, userSuggestions: rerunSuggestions || undefined, adaptiveContext: analysisCtx.adaptiveContext || undefined, upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined };
       if (renderMode === "redesign") {
         requestBody.insightPreferences = analysisCtx.insightPreferences;
         requestBody.userScores = analysisCtx.userScores;
