@@ -202,129 +202,101 @@ function CausalFlowDiagram({ synopsis }: { synopsis: SynopsisData }) {
   if (!relationships || relationships.length === 0) return null;
 
   return (
-    <SynopsisCard title="Causal Logic" icon={TrendingUp} delay={0.05}>
-      <div className="space-y-3">
+    <SynopsisCard title="How This System Actually Works" icon={TrendingUp} delay={0.05}>
+      <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+        These are the proven cause-and-effect chains that govern outcomes. Each chain shows what drives what — and the mechanism that connects them.
+      </p>
+      <div className="space-y-4">
         {relationships.map((rel, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 + i * 0.08 }}
-            className="space-y-1"
+            className="rounded-xl p-4"
+            style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
           >
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap mb-2">
               <span
-                className="px-2.5 py-1 rounded-lg text-[11px] font-bold"
-                style={{ background: `${COLORS.deprioritized}12`, color: COLORS.deprioritized, border: `1px solid ${COLORS.deprioritized}25` }}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold"
+                style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}
               >
                 {rel.cause}
               </span>
-              <div className="flex items-center gap-1">
-                <ArrowRight size={11} style={{ color: COLORS.mechanism }} />
-              </div>
+              <ArrowRight size={14} className="text-muted-foreground flex-shrink-0" />
               <span
-                className="px-2.5 py-1 rounded-lg text-[11px] font-bold"
-                style={{ background: `${COLORS.prioritized}12`, color: COLORS.prioritized, border: `1px solid ${COLORS.prioritized}25` }}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold"
+                style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.2)" }}
               >
                 {rel.effect}
               </span>
             </div>
-            <p className="text-[11px] text-muted-foreground pl-3 leading-relaxed italic" style={{ borderLeft: `2px solid ${COLORS.mechanism}30` }}>
+            <p className="text-sm text-foreground leading-relaxed">
               {rel.mechanism}
             </p>
           </motion.div>
         ))}
       </div>
-      <div className="mt-3 pt-2 space-y-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Dominant Mechanism</p>
-          <p className="text-xs font-semibold text-foreground leading-snug">
-            {synopsis.core_causal_logic.dominant_mechanism}
-          </p>
-        </div>
+
+      {/* Dominant mechanism — the "so what" */}
+      <div className="mt-4 rounded-xl p-4" style={{ background: "hsl(var(--foreground))" }}>
+        <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--background) / 0.5)" }}>
+          Bottom Line
+        </p>
+        <p className="text-sm font-semibold leading-relaxed" style={{ color: "hsl(var(--background))" }}>
+          {synopsis.core_causal_logic.dominant_mechanism}
+        </p>
         {synopsis.core_causal_logic.secondary_mechanisms && (
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Secondary Mechanisms</p>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              {synopsis.core_causal_logic.secondary_mechanisms}
-            </p>
-          </div>
+          <p className="text-xs mt-2 leading-relaxed" style={{ color: "hsl(var(--background) / 0.6)" }}>
+            {synopsis.core_causal_logic.secondary_mechanisms}
+          </p>
         )}
       </div>
     </SynopsisCard>
   );
 }
 
-/* ═══ 3. DECISION WEIGHT BARS ═══ */
+/* ═══ 3. DECISION DRIVERS ═══ */
 function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
   const drivers = synopsis.decision_drivers;
   if (!drivers || drivers.length === 0) return null;
 
-  const data = drivers.map((d) => ({
-    name: d.factor.length > 28 ? d.factor.slice(0, 26) + "…" : d.factor,
-    full: d.factor,
-    value: d.weight === "high" ? 90 : 55,
-    rationale: d.rationale,
-    weight: d.weight,
-  }));
-
-  const barHeight = Math.max(140, data.length * 32);
-
   return (
-    <SynopsisCard title="Decision Drivers" icon={Scale} delay={0.1}>
-      <div style={{ height: barHeight }} className="-ml-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" barSize={10}>
-            <XAxis type="number" domain={[0, 100]} hide />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={110}
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-            />
-            <Tooltip
-              content={({ active, payload }) => {
-                if (!active || !payload?.[0]) return null;
-                const d = payload[0].payload;
-                return (
-                  <div className="rounded-lg px-3 py-2 text-[11px] max-w-[260px]"
-                    style={{ background: "hsl(var(--popover))", border: `1px solid ${COLORS.border}`, color: "hsl(var(--popover-foreground))" }}>
-                    <p className="font-bold mb-1">{d.full}</p>
-                    <p className="text-muted-foreground leading-relaxed">{d.rationale}</p>
-                  </div>
-                );
+    <SynopsisCard title="What's Actually Driving This Decision" icon={Scale} delay={0.1}>
+      <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+        These are the factors that carry the most weight in shaping the strategic direction. High-influence factors can make or break the outcome.
+      </p>
+      <div className="space-y-3">
+        {drivers.map((d, i) => {
+          const isHigh = d.weight === "high";
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + i * 0.06 }}
+              className="rounded-xl p-4"
+              style={{
+                background: isHigh ? "hsl(var(--primary) / 0.04)" : "hsl(var(--muted))",
+                border: `1.5px solid ${isHigh ? "hsl(var(--primary) / 0.15)" : "hsl(var(--border))"}`,
               }}
-            />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-              {data.map((d, i) => (
-                <Cell key={i} fill={d.weight === "high" ? COLORS.prioritized : COLORS.mechanism} fillOpacity={0.7} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      {/* Rationale list below chart */}
-      <div className="mt-3 space-y-2">
-        {drivers.map((d, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <span className="w-2 h-2 rounded-sm mt-1 flex-shrink-0"
-              style={{ background: d.weight === "high" ? COLORS.prioritized : COLORS.mechanism }} />
-            <div>
-              <p className="text-[11px] font-bold text-foreground">{d.factor}</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">{d.rationale}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-4 mt-3 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-sm" style={{ background: COLORS.prioritized }} />
-          <span className="text-[10px] font-semibold text-muted-foreground">High influence</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-sm" style={{ background: COLORS.mechanism }} />
-          <span className="text-[10px] font-semibold text-muted-foreground">Medium influence</span>
-        </div>
+            >
+              <div className="flex items-center justify-between gap-3 mb-1.5">
+                <p className="text-sm font-bold text-foreground">{d.factor}</p>
+                <span
+                  className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex-shrink-0"
+                  style={{
+                    background: isHigh ? "hsl(var(--primary) / 0.12)" : "hsl(var(--muted-foreground) / 0.1)",
+                    color: isHigh ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                  }}
+                >
+                  {d.weight} influence
+                </span>
+              </div>
+              <p className="text-sm text-foreground leading-relaxed">{d.rationale}</p>
+            </motion.div>
+          );
+        })}
       </div>
     </SynopsisCard>
   );
