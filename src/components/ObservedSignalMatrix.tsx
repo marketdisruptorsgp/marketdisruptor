@@ -631,7 +631,7 @@ function QuadrantCard({
       {signals.length === 0 ? (
         <p className="text-xs text-muted-foreground py-4 text-center italic">No signals detected in this category</p>
       ) : (
-        <div className="mt-4 divide-y divide-foreground/8">
+        <div className="mt-4 divide-y divide-foreground/15">
           {signals.slice(0, 3).map((signal) => (
             <SignalRow
               key={signal.id}
@@ -645,7 +645,7 @@ function QuadrantCard({
           {signals.length > 3 && (
             <Collapsible>
               <CollapsibleContent>
-                <div className="divide-y divide-foreground/8">
+                <div className="divide-y divide-foreground/15">
                   {signals.slice(3).map((signal) => (
                     <SignalRow
                       key={signal.id}
