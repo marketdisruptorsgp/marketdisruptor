@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
 import { toast } from "sonner";
@@ -756,8 +757,18 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         journeyLabel="Pitch Deck Sections"
       />
 
-      {/* Active slide with ScaledSlide wrapper */}
-      <ScaledSlide>{rawSlide(activeSlide, slideContent[activeSlide])}</ScaledSlide>
+       {/* Active slide with ScaledSlide wrapper + transition */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeSlide}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          <ScaledSlide>{rawSlide(activeSlide, slideContent[activeSlide])}</ScaledSlide>
+        </motion.div>
+      </AnimatePresence>
 
       {/* Navigation */}
       {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
