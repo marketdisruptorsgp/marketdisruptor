@@ -538,8 +538,9 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
       return r;
     }
 
-    // Attempt 1: Pro model with tool calling
-    let response = await callAI(true, "google/gemini-2.5-pro");
+    // Attempt 1: Flash model with tool calling (cheaper/faster)
+    // Falls back to Pro if Flash fails to produce valid output
+    let response = await callAI(true, "google/gemini-2.5-flash");
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -565,9 +566,9 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
     try {
       analysis = extractStructuredResponse(aiData);
     } catch (parseErr) {
-      console.warn("[StructuredOutput] Attempt 1 failed, retrying without tool calling:", parseErr);
+      console.warn("[StructuredOutput] Flash attempt failed, retrying with Pro model:", parseErr);
       // Retry: same model, no tool calling (content-based fallback)
-      response = await callAI(false, "google/gemini-2.5-pro");
+      response = await callAI(true, "google/gemini-2.5-pro");
       if (!response.ok) {
         const txt = await response.text();
         throw new Error(`AI gateway retry error ${response.status}: ${txt}`);
