@@ -40,19 +40,58 @@ export function getModeWeights(mode: AnalysisMode): ModeWeights {
 }
 
 /**
+ * Blend weights from multiple active modes.
+ * Averages dimension weights and unions structural focus areas.
+ * Decision thresholds use the most stringent (highest) values.
+ */
+export function getBlendedModeWeights(modes: AnalysisMode[]): ModeWeights {
+  if (modes.length === 0) return getModeWeights("product");
+  if (modes.length === 1) return getModeWeights(modes[0]);
+
+  const allDims = new Set<string>();
+  modes.forEach(m => Object.keys(MODE_WEIGHT_MAP[m]?.dimension_weights || {}).forEach(d => allDims.add(d)));
+
+  const dimension_weights: Record<string, number> = {};
+  for (const dim of allDims) {
+    const values = modes.map(m => MODE_WEIGHT_MAP[m]?.dimension_weights[dim] ?? 1.0);
+    dimension_weights[dim] = values.reduce((a, b) => a + b, 0) / values.length;
+  }
+
+  const structural_focus = [...new Set(modes.flatMap(m => MODE_WEIGHT_MAP[m]?.structural_focus || []))];
+
+  const decision_thresholds = {
+    proceed_min_confidence: Math.max(...modes.map(m => MODE_WEIGHT_MAP[m]?.decision_thresholds.proceed_min_confidence || 50)),
+    conditional_min_confidence: Math.max(...modes.map(m => MODE_WEIGHT_MAP[m]?.decision_thresholds.conditional_min_confidence || 28)),
+    require_verified_evidence: modes.some(m => MODE_WEIGHT_MAP[m]?.decision_thresholds.require_verified_evidence),
+  };
+
+  return { dimension_weights, structural_focus, decision_thresholds };
+}
+
+/**
  * Build a mode weighting prompt section for AI system prompts.
  * Tells the AI how mode weights should affect constraint ranking.
  */
 export function buildModeWeightingPrompt(mode: AnalysisMode): string {
-  const weights = getModeWeights(mode);
+  return buildMultiModeWeightingPrompt([mode]);
+}
+
+/**
+ * Build a blended mode weighting prompt for multi-mode analyses.
+ */
+export function buildMultiModeWeightingPrompt(modes: AnalysisMode[]): string {
+  if (modes.length === 0) modes = ["product"];
+  const weights = modes.length === 1 ? getModeWeights(modes[0]) : getBlendedModeWeights(modes);
   const dims = Object.entries(weights.dimension_weights)
     .filter(([, v]) => Math.abs(v - 1.0) > 0.05)
     .map(([k, v]) => `${k}: ${v > 1 ? "↑" : "↓"} ${v.toFixed(1)}x`)
     .join(", ");
 
+  const modeLabel = modes.map(m => m.toUpperCase()).join(" + ");
+
   return `
 
-MODE-SPECIFIC CONSTRAINT WEIGHTING (${mode.toUpperCase()} MODE):
+MODE-SPECIFIC CONSTRAINT WEIGHTING (${modeLabel} MODE${modes.length > 1 ? "S" : ""}):
 Constraint dimension weights: ${dims}
 Structural focus areas: ${weights.structural_focus.join(", ")}
 Decision thresholds: proceed ≥ ${weights.decision_thresholds.proceed_min_confidence}%, conditional ≥ ${weights.decision_thresholds.conditional_min_confidence}%
@@ -62,5 +101,6 @@ MODE IMPACT ON GOVERNED OUTPUT:
 - Rank binding constraints using the mode dimension weights above
 - Emphasize structural focus areas in constraint discovery
 - Apply mode-specific decision thresholds to decision_synthesis
+${modes.length > 1 ? "- Tag each constraint/insight with its primary mode dimension" : ""}
 `;
 }

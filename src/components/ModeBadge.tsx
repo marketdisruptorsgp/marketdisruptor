@@ -1,38 +1,63 @@
 import { Package, Briefcase, Building2 } from "lucide-react";
+import { useActiveModes, getModeCssVar, getModeLabel, type StrictMode } from "@/hooks/useActiveModes";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import { useModeTheme } from "@/hooks/useModeTheme";
 
-const MODE_CONFIG = {
-  custom: { label: "Product Mode", icon: Package },
-  service: { label: "Service Mode", icon: Briefcase },
-  business: { label: "Business Mode", icon: Building2 },
-} as const;
+const MODE_ICONS: Record<StrictMode, typeof Package> = {
+  product: Package,
+  service: Briefcase,
+  business: Building2,
+};
 
 export function ModeBadge() {
-  const { mainTab, analysisParams } = useAnalysis();
-  const theme = useModeTheme();
-  const mode = mainTab as keyof typeof MODE_CONFIG;
-  const config = MODE_CONFIG[mode] || MODE_CONFIG.custom;
-  const Icon = config.icon;
+  const activeModes = useActiveModes();
+  const { analysisParams } = useAnalysis();
   const category = analysisParams?.category || "";
+  const isMulti = activeModes.length > 1;
 
   return (
-    <div
-      className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold"
-      style={{
-        background: theme.tint,
-        color: theme.primary,
-        border: `1px solid ${theme.outline}`,
-      }}
-    >
-      <Icon size={13} />
-      <span>{config.label}</span>
-      {category && (
-        <>
-          <span className="text-muted-foreground font-normal">·</span>
-          <span className="font-semibold opacity-80">{category}</span>
-        </>
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {activeModes.map((mode) => {
+        const Icon = MODE_ICONS[mode] || Package;
+        const cssVar = getModeCssVar(mode);
+        const label = getModeLabel(mode);
+        return (
+          <div
+            key={mode}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold"
+            style={{
+              background: `hsl(var(${cssVar}) / 0.1)`,
+              color: `hsl(var(${cssVar}))`,
+              border: `1px solid hsl(var(${cssVar}) / 0.25)`,
+            }}
+          >
+            <Icon size={12} />
+            <span>{label}</span>
+          </div>
+        );
+      })}
+      {category && !isMulti && (
+        <span className="text-xs text-muted-foreground font-medium">· {category}</span>
       )}
     </div>
+  );
+}
+
+/** Inline mode pill for section headers — shows which mode a section belongs to */
+export function SectionModePill({ mode }: { mode: StrictMode }) {
+  const cssVar = getModeCssVar(mode);
+  const label = getModeLabel(mode);
+  const Icon = MODE_ICONS[mode] || Package;
+
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
+      style={{
+        background: `hsl(var(${cssVar}) / 0.08)`,
+        color: `hsl(var(${cssVar}))`,
+      }}
+    >
+      <Icon size={9} />
+      {label}
+    </span>
   );
 }

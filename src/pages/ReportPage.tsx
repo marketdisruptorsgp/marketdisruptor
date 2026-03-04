@@ -201,7 +201,7 @@ export default function ReportPage() {
           {/* === ALL SECTIONS AS ACCORDIONS === */}
 
           {/* 1. Overview — open by default */}
-          <DetailPanel title="Overview" icon={Target}>
+          <DetailPanel title="Overview" icon={Target} sectionMode="product">
             {selectedProduct.keyInsight && (
               <div className="insight-callout mb-3">
                 <p className="typo-card-body font-semibold leading-snug">{selectedProduct.keyInsight}</p>
@@ -241,7 +241,7 @@ export default function ReportPage() {
 
           {/* 2. User Journey */}
           {uw?.stepByStep?.length > 0 && (
-            <DetailPanel title="User Journey" icon={Clock}>
+            <DetailPanel title="User Journey" icon={Clock} sectionMode="service">
               <div className="space-y-3">
                 <div className="flex justify-end">
                   <button
@@ -276,7 +276,7 @@ export default function ReportPage() {
 
           {/* 3. Community Intel */}
           {ci && (
-            <DetailPanel title="Community Intel" icon={MessageSquare}>
+            <DetailPanel title="Community Intel" icon={MessageSquare} sectionMode="service">
               {(() => {
                 const sentiment = ci.communitySentiment || ci.redditSentiment;
                 const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
@@ -324,7 +324,7 @@ export default function ReportPage() {
 
           {/* 5. Pricing Intel */}
           {selectedProduct.pricingIntel && (
-            <DetailPanel title="Pricing Intel" icon={DollarSign}>
+            <DetailPanel title="Pricing Intel" icon={DollarSign} sectionMode="business">
               <div className="space-y-3">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
@@ -347,7 +347,7 @@ export default function ReportPage() {
 
           {/* 6. Supply Chain (products only) */}
           {!isService && selectedProduct.supplyChain && (
-            <DetailPanel title="Supply Chain" icon={Package}>
+            <DetailPanel title="Supply Chain" icon={Package} sectionMode="product">
               <div className="space-y-3">
                 <SupplySection title="Suppliers" icon={<Factory size={12} className="text-primary" />}
                   items={(selectedProduct.supplyChain.suppliers || []).map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
