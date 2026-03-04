@@ -439,7 +439,164 @@ function NextSectionButton({ label, onClick }: { label: string; onClick: () => v
   );
 }
 
+/* ── Assumption Card List with show-more gate ── */
+function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumptions: HiddenAssumption[]; showLimit: number; reasonBorder: Record<string, string> }) {
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? assumptions : assumptions.slice(0, showLimit);
+
+  return (
+    <>
+      <div className="space-y-3">
+        {visible.map((a, i) => {
+          const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
+          const borderColor = reasonBorder[a.reason] || "hsl(var(--border))";
+          const leveragePercent = a.leverageScore != null ? (a.leverageScore / 10) * 100 : 0;
+          const leverageColor = a.leverageScore != null
+            ? a.leverageScore >= 8 ? "hsl(var(--destructive))" : a.leverageScore >= 5 ? "hsl(38 92% 42%)" : "hsl(142 70% 35%)"
+            : "hsl(var(--muted-foreground))";
+
+          return (
+            <div key={i} className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", borderLeft: `4px solid ${borderColor}`, border: `1.5px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}`, borderLeftWidth: "4px", borderLeftColor: borderColor }}>
+              <div className="p-4 space-y-3">
+                <p className="text-[13px] font-bold text-foreground flex items-start gap-2.5">
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>{i + 1}</span>
+                  <span className="leading-snug">{a.assumption}</span>
+                </p>
+                <div className="ml-8 flex items-center gap-2 flex-wrap">
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: reasonStyle.bg, color: reasonStyle.text, border: `1px solid ${borderColor}40` }}>
+                    {reasonStyle.label}
+                  </span>
+                  {a.isChallengeable && (
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.25)" }}>
+                      ✓ Challengeable
+                    </span>
+                  )}
+                  {a.leverageScore != null && (
+                    <div className="flex items-center gap-1.5 flex-1 min-w-[120px] max-w-[200px]">
+                      <div className="h-1.5 rounded-full overflow-hidden flex-1" style={{ background: "hsl(var(--muted))" }}>
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${leveragePercent}%`, background: leverageColor }} />
+                      </div>
+                      <span className="text-[10px] font-bold tabular-nums" style={{ color: leverageColor }}>{a.leverageScore}/10</span>
+                    </div>
+                  )}
+                </div>
+                <div className="ml-8 pl-3 py-1.5" style={{ borderLeft: "2px solid hsl(var(--border))" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Current State</p>
+                  <p className="text-xs text-foreground/70 leading-relaxed italic">"{a.currentAnswer}"</p>
+                </div>
+                {a.challengeIdea && (
+                  <div className="ml-8 p-3 rounded-lg" style={{ background: "hsl(var(--primary) / 0.05)", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>Challenge Approach</p>
+                    <p className="text-xs text-foreground/80 leading-relaxed">{a.challengeIdea}</p>
+                  </div>
+                )}
+                <div className="ml-8 flex items-center justify-end">
+                  <PitchDeckToggle contentKey={`assumptions-${i}`} label="Include in Pitch" />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {assumptions.length > showLimit && (
+        <button onClick={() => setShowAll(!showAll)} className="w-full py-2.5 rounded-xl text-xs font-bold transition-all"
+          style={{ background: "hsl(var(--muted))", color: "hsl(var(--primary))", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
+          {showAll ? "Show fewer" : `Show ${assumptions.length - showLimit} more assumptions`}
+        </button>
+      )}
+    </>
+  );
+}
+
+/* ── Flip Card List with show-more gate ── */
+function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicItem[]; assumptions: HiddenAssumption[]; showLimit: number }) {
+  const [showAll, setShowAll] = useState(false);
+  const [expandedFlip, setExpandedFlip] = useState<number | null>(null);
+  const visible = showAll ? flips : flips.slice(0, showLimit);
+
+  return (
+    <>
+      <div className="space-y-3">
+        {visible.map((item, i) => {
+          const isExpanded = expandedFlip === i;
+          const matchedAssumption = assumptions.find(a =>
+            item.originalAssumption.toLowerCase().includes(a.assumption.toLowerCase().slice(0, 20))
+          );
+          const leverageScore = matchedAssumption?.leverageScore;
+          const rationalePreview = item.rationale?.length > 120 ? item.rationale.slice(0, 120) + "…" : item.rationale;
+
+          return (
+            <div key={i} className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
+              <div className="grid grid-cols-[1fr_auto_1fr]">
+                <div className="p-3.5" style={{ background: "hsl(var(--muted))" }}>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Assumption</p>
+                  <p className="text-xs text-foreground/70 leading-relaxed">{item.originalAssumption}</p>
+                </div>
+                <div className="flex items-center justify-center px-2.5" style={{ background: "hsl(var(--primary))" }}>
+                  <FlipHorizontal size={14} style={{ color: "hsl(var(--background))" }} />
+                </div>
+                <div className="p-3.5" style={{ background: "hsl(var(--primary) / 0.06)" }}>
+                  <p className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>Bold Alternative</p>
+                  <p className="text-xs font-semibold leading-relaxed text-foreground">{item.boldAlternative}</p>
+                </div>
+              </div>
+              <div className="px-4 py-3 space-y-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                <div className="flex items-start justify-between gap-3">
+                  {!isExpanded && <p className="text-xs text-foreground/70 leading-relaxed flex-1">{rationalePreview}</p>}
+                  {isExpanded && <div className="flex-1" />}
+                  {leverageScore != null && (
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold flex-shrink-0 tabular-nums" style={{
+                      background: leverageScore >= 7 ? "hsl(var(--primary) / 0.1)" : "hsl(var(--muted))",
+                      color: leverageScore >= 7 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                      border: `1px solid ${leverageScore >= 7 ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}`
+                    }}>
+                      Leverage: {leverageScore}/10
+                    </span>
+                  )}
+                </div>
+                {!isExpanded && item.rationale?.length > 120 && (
+                  <button onClick={() => setExpandedFlip(i)} className="text-[11px] font-bold" style={{ color: "hsl(var(--primary))" }}>
+                    Read full analysis →
+                  </button>
+                )}
+                {isExpanded && (
+                  <div className="space-y-3 pt-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Why This Creates Value</p>
+                        <p className="text-xs text-foreground/80 leading-relaxed">{item.rationale}</p>
+                      </div>
+                      <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">How It Works</p>
+                        <p className="text-xs text-foreground/80 leading-relaxed">{item.physicalMechanism}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setExpandedFlip(null)} className="text-[11px] font-bold" style={{ color: "hsl(var(--muted-foreground))" }}>
+                      Collapse ↑
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-1">
+                  <InsightRating sectionId={`flip-${i}`} compact />
+                  <PitchDeckToggle contentKey={`flippedLogic-${i}`} label="Include in Pitch" />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {flips.length > showLimit && (
+        <button onClick={() => setShowAll(!showAll)} className="w-full py-2.5 rounded-xl text-xs font-bold transition-all"
+          style={{ background: "hsl(var(--muted))", color: "hsl(var(--primary))", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
+          {showAll ? "Show fewer" : `Show ${flips.length - showLimit} more inversions`}
+        </button>
+      )}
+    </>
+  );
+}
+
 export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, onAnalysisStarted, renderMode, autoTrigger, userScores, onScoreChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
+
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
   const analysisCtx = useAnalysis();
@@ -882,121 +1039,114 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       {/* ═══════ SECTION CONTENT ═══════ */}
 
       {/* Section 1: Hidden Assumptions */}
-      {activeStep === "assumptions" && (
+      {activeStep === "assumptions" && (() => {
+        const assumptions = data.hiddenAssumptions || [];
+        const challengeableCount = assumptions.filter(a => a.isChallengeable).length;
+        const avgLeverage = assumptions.length > 0
+          ? (assumptions.reduce((s, a) => s + (a.leverageScore || 0), 0) / assumptions.length).toFixed(1)
+          : "0";
+        const reasonCounts: Record<string, number> = {};
+        assumptions.forEach(a => { reasonCounts[a.reason] = (reasonCounts[a.reason] || 0) + 1; });
+        const topReason = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0];
+        const SHOW_LIMIT = 10;
+
+        const REASON_BORDER: Record<string, string> = {
+          tradition: "hsl(38 92% 50%)",
+          manufacturing: "hsl(217 91% 55%)",
+          cost: "hsl(142 70% 40%)",
+          physics: "hsl(271 81% 50%)",
+          habit: "hsl(330 80% 50%)",
+        };
+
+        return (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
 
           <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="firstPrinciples" governedOverride={analysisCtx.governedData}>
-          {/* Individual pitch deck toggles on each card below */}
-          <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-xs text-foreground/80 leading-relaxed">
-              <strong>Why this matters:</strong> Every product is built on assumptions — about who uses it, how they use it, and why it's designed the way it is. Most go unchallenged. The best innovations come from questioning what everyone else takes for granted.
-            </p>
+
+          {/* ── Stats Strip ── */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {[
+              `${assumptions.length} Assumptions`,
+              `${challengeableCount} Challengeable`,
+              `Avg Leverage: ${avgLeverage}/10`,
+              ...(topReason ? [`Top reason: ${REASON_COLORS[topReason[0]]?.label || topReason[0]}`] : []),
+            ].map((label, ci) => (
+              <span key={ci} className="px-2.5 py-1 rounded-lg text-[11px] font-bold tabular-nums"
+                style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+                {label}
+              </span>
+            ))}
           </div>
 
-          <DetailPanel title="How to read each assumption card" icon={Lightbulb}>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-              <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Root Cause Tag</p>
-                <p className="text-xs text-foreground/70 leading-relaxed">Why this assumption exists — tradition, manufacturing limits, cost pressure, physics, or user habit. Helps you understand what's holding the status quo in place.</p>
-              </div>
-              <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Leverage Score (1–10)</p>
-                <p className="text-xs text-foreground/70 leading-relaxed">How much potential value you could unlock by successfully challenging this assumption. Higher scores = bigger opportunity if you can crack it.</p>
-              </div>
-              <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Challengeable</p>
-                <p className="text-xs text-foreground/70 leading-relaxed">Our analysis indicates this assumption can realistically be disrupted with current technology, market conditions, or business model innovation.</p>
-              </div>
-            </div>
-          </DetailPanel>
-
-           <div className="space-y-3">
-            {(data.hiddenAssumptions || []).map((a, i) => {
-              const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
-              return (
-                <div key={i} className="p-3.5 rounded-lg" style={{ background: "hsl(var(--card))", border: `1.5px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}` }}>
-                  <p className="text-xs font-bold text-foreground flex items-center gap-2 mb-1">
-                    <span className="w-5 h-5 rounded-full flex items-center justify-center typo-status-label font-bold flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
-                    {a.assumption}
-                  </p>
-                  <p className="typo-card-body text-muted-foreground leading-relaxed ml-7">{a.currentAnswer}</p>
-                  {a.challengeIdea && (
-                    <div className="ml-7 mt-1.5 p-2 rounded typo-card-body" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                      <span className="font-bold text-foreground">Challenge: </span>
-                      <span className="text-foreground/80">{a.challengeIdea}</span>
-                    </div>
-                  )}
-                  {/* Metadata row — muted, secondary to content */}
-                  <div className="ml-7 mt-2 flex items-center gap-1.5 flex-wrap">
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-medium text-muted-foreground" style={{ background: "hsl(var(--muted))" }}>{reasonStyle.label}</span>
-                    {a.isChallengeable && <span className="px-1.5 py-0.5 rounded text-[9px] font-medium text-muted-foreground" style={{ background: "hsl(var(--muted))" }}>Challengeable</span>}
-                    {a.leverageScore != null && (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-medium tabular-nums text-muted-foreground" style={{ background: "hsl(var(--muted))" }}>
-                        Leverage {a.leverageScore}/10
-                      </span>
-                    )}
-                    <span className="ml-auto" />
-                    <PitchDeckToggle contentKey={`assumptions-${i}`} label="Include in Pitch" />
-                  </div>
-                </div>
-              );
-            })}
+          {/* ── Approach Banner ── */}
+          <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--card))", borderLeft: "4px solid hsl(var(--primary))", border: "1.5px solid hsl(var(--border))", borderLeftWidth: "4px", borderLeftColor: "hsl(var(--primary))" }}>
+            <p className="text-[13px] font-bold text-foreground">Analytical Approach</p>
+            <ul className="text-xs text-foreground/80 leading-relaxed space-y-1.5 ml-4 list-disc">
+              <li>We deconstructed <strong>{assumptions.length} hidden assumptions</strong> governing how this product is designed, priced, and used.</li>
+              <li>Each assumption was classified by root cause: {Object.entries(reasonCounts).map(([r, c]) => `${c} from ${REASON_COLORS[r]?.label || r}`).join(", ")}.</li>
+              <li><strong>{challengeableCount} assumptions</strong> ({assumptions.length > 0 ? Math.round(challengeableCount / assumptions.length * 100) : 0}%) are realistically challengeable with current technology or business model innovation.</li>
+              <li>Average leverage score across all assumptions: <strong>{avgLeverage}/10</strong> — indicating the potential value unlocked by challenging the status quo.</li>
+              <li>Assumptions scored by their disruption potential: higher leverage = bigger opportunity if successfully challenged.</li>
+            </ul>
           </div>
+
+          {/* ── Assumption Cards ── */}
+          <AssumptionCardList assumptions={assumptions} showLimit={SHOW_LIMIT} reasonBorder={REASON_BORDER} />
 
           {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
           </AnalysisVisualLayer>
         </div>
-      )}
+        );
+      })()}
 
       {/* Section 2: Flip the Logic */}
-      {activeStep === "flip" && (
+      {activeStep === "flip" && (() => {
+        const flips = data.flippedLogic || [];
+        const assumptions = data.hiddenAssumptions || [];
+        const reasonCounts: Record<string, number> = {};
+        assumptions.forEach(a => { reasonCounts[a.reason] = (reasonCounts[a.reason] || 0) + 1; });
+        const topCategory = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0];
+        const highLeverageCount = assumptions.filter(a => (a.leverageScore || 0) >= 7).length;
+        const SHOW_LIMIT = 10;
+
+        return (
         <div className="space-y-4">
           <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
-          {/* Individual pitch deck toggles on each card below */}
-          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="text-xs text-foreground/80 leading-relaxed">
-              <strong>Methodology:</strong> Each assumption above is deliberately inverted to explore what happens when conventional wisdom is violated. This isn't contrarianism for its own sake — it's a structured technique to surface non-obvious opportunities that competitors overlook because they never question the status quo.
-            </p>
+
+          {/* ── Stats Strip ── */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {[
+              `${flips.length} Inversions`,
+              `${highLeverageCount} High-leverage`,
+              ...(topCategory ? [`Top category: ${REASON_COLORS[topCategory[0]]?.label || topCategory[0]}`] : []),
+            ].map((label, ci) => (
+              <span key={ci} className="px-2.5 py-1 rounded-lg text-[11px] font-bold tabular-nums"
+                style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+                {label}
+              </span>
+            ))}
           </div>
 
-          {(data.flippedLogic || []).map((item, i) => (
-            <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-              <div className="grid grid-cols-[1fr_auto_1fr]">
-                <div className="p-3" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Assumption</p>
-                  <p className="text-xs text-foreground/80 leading-relaxed">{item.originalAssumption}</p>
-                </div>
-                <div className="flex items-center justify-center px-2" style={{ background: "hsl(var(--primary))" }}>
-                  <FlipHorizontal size={14} style={{ color: "white" }} />
-                </div>
-                <div className="p-3" style={{ background: "hsl(var(--primary-muted))" }}>
-                  <p className="text-[9px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "hsl(var(--primary))" }}>Flip</p>
-                  <p className="text-xs font-semibold leading-relaxed" style={{ color: "hsl(var(--primary-dark))" }}>{item.boldAlternative}</p>
-                </div>
-              </div>
-              <DetailPanel title="Why it creates value & mechanism" icon={Lightbulb} defaultOpen>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-                  <div>
-                    <p className="text-[9px] font-bold uppercase text-muted-foreground mb-0.5">Value Created</p>
-                    <p className="text-xs text-foreground/70">{item.rationale}</p>
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-bold uppercase text-muted-foreground mb-0.5">Mechanism</p>
-                    <p className="text-xs text-foreground/70">{item.physicalMechanism}</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <InsightRating sectionId={`flip-${i}`} compact />
-                  <PitchDeckToggle contentKey={`flippedLogic-${i}`} label="Include in Pitch" />
-                </div>
-              </DetailPanel>
-            </div>
-          ))}
+          {/* ── Approach Banner ── */}
+          <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--card))", borderLeft: "4px solid hsl(var(--primary))", border: "1.5px solid hsl(var(--border))", borderLeftWidth: "4px", borderLeftColor: "hsl(var(--primary))" }}>
+            <p className="text-[13px] font-bold text-foreground">Inversion Approach</p>
+            <ul className="text-xs text-foreground/80 leading-relaxed space-y-1.5 ml-4 list-disc">
+              <li>Each of the {assumptions.length} assumptions above was <strong>deliberately inverted</strong> — asking "what if the opposite were true?"</li>
+              <li>This generated <strong>{flips.length} structural inversions</strong>, each exploring a non-obvious opportunity competitors miss because they never question the status quo.</li>
+              <li>For each inversion, we analyzed <strong>why it creates value</strong> (market rationale) and <strong>how it works</strong> (physical or operational mechanism).</li>
+              {topCategory && <li>The most inverted category: <strong>{REASON_COLORS[topCategory[0]]?.label || topCategory[0]}</strong> ({topCategory[1]} assumptions targeted).</li>}
+              <li>This is not contrarianism — it's a systematic technique to surface the highest-leverage opportunities hidden inside conventional thinking.</li>
+            </ul>
+          </div>
+
+          {/* ── Flip Cards ── */}
+          <FlipCardList flips={flips} assumptions={assumptions} showLimit={SHOW_LIMIT} />
 
           {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
         </div>
-      )}
+        );
+      })()}
 
       {/* Section 3: Flipped Ideas */}
       {activeStep === "ideas" && (
