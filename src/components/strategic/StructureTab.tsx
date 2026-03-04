@@ -441,7 +441,7 @@ export function StructureTab({
                     <span className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(var(--background))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
                       {d}
                     </span>
-                    {i < dims.length - 1 && <ArrowRight size={10} className="text-muted-foreground/40 flex-shrink-0" />}
+                    {i < dims.length - 1 && <ArrowRight size={16} className="text-foreground flex-shrink-0" strokeWidth={2.5} />}
                   </React.Fragment>
                 ))}
               </div>

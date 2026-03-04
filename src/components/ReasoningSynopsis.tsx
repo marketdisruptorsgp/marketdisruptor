@@ -423,7 +423,7 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
                 {d}
               </span>
               {i < synopsis.evaluation_path.dimensions_examined.length - 1 && (
-                <ArrowRight size={9} className="text-muted-foreground/40" />
+                <ArrowRight size={16} className="text-foreground flex-shrink-0" strokeWidth={2.5} />
               )}
             </React.Fragment>
           ))}
