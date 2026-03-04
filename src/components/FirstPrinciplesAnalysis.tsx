@@ -451,6 +451,13 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [userContext, setUserContext] = useState("");
   const [rerunSuggestions, setRerunSuggestions] = useState("");
   const autoTriggered = useRef(false);
+
+  // Sync externalData → internal data when it changes (e.g. navigating back to a completed step)
+  useEffect(() => {
+    if (externalData && !data) {
+      setData(externalData as FirstPrinciplesData);
+    }
+  }, [externalData]); // eslint-disable-line react-hooks/exhaustive-deps
   
 
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {

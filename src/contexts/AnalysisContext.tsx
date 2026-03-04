@@ -826,6 +826,17 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       const { applyLensAdaptation } = await import("@/lib/lensAdaptationEngine");
       const extraction = extractGovernedArtifacts(stepKey, data);
       
+      // ── PAYLOAD COMPACTION: Limit previousSnapshot to prevent unbounded growth ──
+      // Keep only the latest snapshot per step (not recursive) and cap total keys
+      const MAX_SNAPSHOT_KEYS = 6;
+      const snapshotKeys = Object.keys(previousSnapshot);
+      if (snapshotKeys.length > MAX_SNAPSHOT_KEYS) {
+        // Remove oldest keys beyond limit
+        for (const oldKey of snapshotKeys.slice(0, snapshotKeys.length - MAX_SNAPSHOT_KEYS)) {
+          delete previousSnapshot[oldKey];
+        }
+      }
+
       let merged: Record<string, unknown> = { ...prev, [stepKey]: data, previousSnapshot, governedHashes };
       
       // Merge governed artifacts into analysis_data.governed (top level)
@@ -878,6 +889,22 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             // Remove stale hash
             delete governedHashes[depStep];
           }
+        }
+      }
+
+      // ── SIZE GUARD: Strip oversized base64 blobs to prevent DB timeout ──
+      const mergedStr = JSON.stringify(merged);
+      const payloadBytes = new TextEncoder().encode(mergedStr).length;
+      const MAX_PAYLOAD_BYTES = 4_000_000; // 4MB safety limit
+      if (payloadBytes > MAX_PAYLOAD_BYTES) {
+        console.warn(`[Pipeline] Payload too large (${(payloadBytes / 1_000_000).toFixed(1)}MB), stripping previousSnapshot and base64 data`);
+        delete merged.previousSnapshot;
+        // Strip any base64 data URIs from pitchDeckImages
+        if (merged.pitchDeckImages && Array.isArray(merged.pitchDeckImages)) {
+          merged.pitchDeckImages = (merged.pitchDeckImages as any[]).map(img => ({
+            ...img,
+            url: typeof img.url === "string" && img.url.startsWith("data:") ? "" : img.url,
+          }));
         }
       }
 
