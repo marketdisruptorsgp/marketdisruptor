@@ -14,7 +14,6 @@ import { HeroSection } from "@/components/HeroSection";
 import { LoadingTracker } from "@/components/LoadingTracker";
 import { StepNavigator } from "@/components/StepNavigator";
 import { getStepConfigs } from "@/lib/stepConfigs";
-import { ProductCard } from "@/components/ProductCard";
 import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 
 import { PatentIntelligence } from "@/components/PatentIntelligence";
@@ -22,27 +21,37 @@ import { ObservedSignalMatrix } from "@/components/ObservedSignalMatrix";
 import { ModeBadge } from "@/components/ModeBadge";
 import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
 import { ScoreBar } from "@/components/ScoreBar";
-import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
-import { DetailPanel, NextStepButton, StepNavBar } from "@/components/SectionNav";
+import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { downloadPatentPDF } from "@/lib/pdfExport";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import {
-  Target, Brain, Swords, Presentation, Save, RefreshCw, FileDown,
+  Target, Save, RefreshCw, FileDown,
   ExternalLink, MessageSquare,
-  TrendingUp, TrendingDown, Minus, DollarSign, Package, Store, Truck,
-  Factory, Rocket, Globe, Users, ThumbsDown, ThumbsUp, Wrench, Heart,
-  ShieldAlert, CheckCircle2, Lightbulb, AlertTriangle, Zap, Database,
+  DollarSign, Package, Store, Truck,
+  Factory,
+  ShieldAlert, Lightbulb,
   Clock, ScrollText, StickyNote,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 
-function TrendBadge({ trend }: { trend?: "up" | "down" | "stable" }) {
-  if (trend === "up") return <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-green-600"><TrendingUp size={9} /> Rising</span>;
-  if (trend === "down") return <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-red-500"><TrendingDown size={9} /> Falling</span>;
-  return <span className="inline-flex items-center gap-0.5 typo-card-meta font-bold text-yellow-600"><Minus size={9} /> Stable</span>;
+/* ── Section tab config ── */
+type SectionTab = { id: string; label: string; icon: React.ElementType };
+
+function getAvailableSections(selectedProduct: any, isService: boolean): SectionTab[] {
+  const tabs: SectionTab[] = [
+    { id: "overview", label: "Overview", icon: Target },
+  ];
+  const uw = (selectedProduct as any).userWorkflow;
+  if (uw?.stepByStep?.length > 0) tabs.push({ id: "journey", label: "User Journey", icon: Clock });
+  const ci = (selectedProduct as any).communityInsights;
+  if (ci) tabs.push({ id: "community", label: "Community Intel", icon: MessageSquare });
+  if (selectedProduct.pricingIntel) tabs.push({ id: "pricing", label: "Pricing Intel", icon: DollarSign });
+  if (!isService && selectedProduct.supplyChain) tabs.push({ id: "supply", label: "Supply Chain", icon: Package });
+  if (!isService) tabs.push({ id: "patents", label: "Patent Intel", icon: ScrollText });
+  return tabs;
 }
 
 export default function ReportPage() {
@@ -54,6 +63,7 @@ export default function ReportPage() {
   const { tier } = useSubscription();
   const [isSaving, setIsSaving] = React.useState(false);
   const [refreshingJourney, setRefreshingJourney] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("overview");
 
   const handleRefreshJourney = async () => {
     if (!selectedProduct || refreshingJourney) return;
@@ -131,6 +141,8 @@ export default function ReportPage() {
   const ci = (selectedProduct as any).communityInsights;
   const uw = (selectedProduct as any).userWorkflow;
 
+  const sectionTabs = getAvailableSections(selectedProduct, isService);
+
   return (
     <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
@@ -191,6 +203,28 @@ export default function ReportPage() {
           </p>
         </div>
 
+        {/* ── Section Tab Buttons (like Disrupt step) ── */}
+        <div className="flex flex-wrap gap-2">
+          {sectionTabs.map((tab) => {
+            const isActive = activeSection === tab.id;
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveSection(tab.id)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
+                style={{
+                  background: isActive ? modeAccent : "hsl(var(--muted))",
+                  color: isActive ? "white" : "hsl(var(--foreground))",
+                  border: isActive ? "none" : "1px solid hsl(var(--border))",
+                }}
+              >
+                <TabIcon size={14} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
 
         {/* Observed Signal Matrix — structured signal summary */}
         <ObservedSignalMatrix
@@ -199,91 +233,85 @@ export default function ReportPage() {
           saveStepData={analysis.saveStepData}
         />
 
-        {/* Adaptive Visual Layer — enforces visual primacy + text suppression */}
+        {/* ── Active Section Content ── */}
         <AnalysisVisualLayer
           analysis={selectedProduct as unknown as Record<string, unknown>}
           step="report"
           governedOverride={analysis.governedData}
         >
-          {/* === ALL SECTIONS AS ACCORDIONS === */}
-
-          {/* 1. Overview — open by default */}
-          <DetailPanel title="Overview" icon={Target} sectionMode="product">
-            {selectedProduct.keyInsight && (
-              <div className="insight-callout mb-3">
-                <p className="typo-card-body font-semibold leading-snug">{selectedProduct.keyInsight}</p>
-              </div>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-3">
-                {selectedProduct.description && (
-                  <p className="typo-card-body text-foreground/80 leading-relaxed">{selectedProduct.description}</p>
-                )}
-                {selectedProduct.marketSizeEstimate && (
-                  <p className="typo-card-body font-semibold text-green-700">TAM: {selectedProduct.marketSizeEstimate}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <ScoreBar label="Adoption" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
-                <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
-                <ScoreBar label="Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
-              </div>
-            </div>
-            {selectedProduct.trendAnalysis && (
-              <p className="typo-card-body text-foreground/70 leading-relaxed mt-3">{selectedProduct.trendAnalysis}</p>
-            )}
-            {selectedProduct.sources?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {selectedProduct.sources.map((src: any) => (
-                  <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium bg-primary/5 text-primary">
-                    <ExternalLink size={9} /> {src.label?.slice(0, 30)}
-                  </a>
-                ))}
-              </div>
-            )}
-          </DetailPanel>
-
-          {/* Assumptions Map removed — belongs in Disrupt step (downstream) */}
-
-          {/* 2. User Journey */}
-          {uw?.stepByStep?.length > 0 && (
-            <DetailPanel title="User Journey" icon={Clock} sectionMode="service">
-              <div className="space-y-3">
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleRefreshJourney}
-                    disabled={refreshingJourney}
-                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground disabled:opacity-50"
-                  >
-                    <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
-                    {refreshingJourney ? "Refreshing..." : "Refresh"}
-                  </button>
+          {activeSection === "overview" && (
+            <SectionCard icon={Target} title="Overview">
+              {selectedProduct.keyInsight && (
+                <div className="insight-callout mb-3">
+                  <p className="typo-card-body font-semibold leading-snug">{selectedProduct.keyInsight}</p>
                 </div>
-                <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
-                {(uw.cognitiveLoad || uw.contextOfUse) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {uw.cognitiveLoad && (
-                      <div className="p-3 rounded-lg bg-card border border-border">
-                        <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
-                        <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
-                      </div>
-                    )}
-                    {uw.contextOfUse && (
-                      <div className="p-3 rounded-lg bg-card border border-border">
-                        <p className="typo-card-eyebrow mb-1">Context of Use</p>
-                        <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-3">
+                  {selectedProduct.description && (
+                    <p className="typo-card-body text-foreground/80 leading-relaxed">{selectedProduct.description}</p>
+                  )}
+                  {selectedProduct.marketSizeEstimate && (
+                    <p className="typo-card-body font-semibold text-green-700">TAM: {selectedProduct.marketSizeEstimate}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <ScoreBar label="Adoption" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
+                  <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
+                  <ScoreBar label="Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
+                </div>
               </div>
-            </DetailPanel>
+              {selectedProduct.trendAnalysis && (
+                <p className="typo-card-body text-foreground/70 leading-relaxed mt-3">{selectedProduct.trendAnalysis}</p>
+              )}
+              {selectedProduct.sources?.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {selectedProduct.sources.map((src: any) => (
+                    <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium bg-primary/5 text-primary">
+                      <ExternalLink size={9} /> {src.label?.slice(0, 30)}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
           )}
 
-          {/* 3. Community Intel */}
-          {ci && (
-            <DetailPanel title="Community Intel" icon={MessageSquare} sectionMode="service">
+          {activeSection === "journey" && uw?.stepByStep?.length > 0 && (
+            <SectionCard icon={Clock} title="User Journey"
+              action={
+                <button
+                  onClick={handleRefreshJourney}
+                  disabled={refreshingJourney}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-muted border border-border text-foreground disabled:opacity-50"
+                >
+                  <RefreshCw size={12} className={refreshingJourney ? "animate-spin" : ""} />
+                  {refreshingJourney ? "Refreshing..." : "Refresh"}
+                </button>
+              }
+            >
+              <WorkflowTimeline steps={uw.stepByStep} frictionPoints={uw.frictionPoints || []} />
+              {(uw.cognitiveLoad || uw.contextOfUse) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  {uw.cognitiveLoad && (
+                    <div className="p-3 rounded-lg bg-card border border-border">
+                      <p className="typo-card-eyebrow mb-1">Cognitive Load</p>
+                      <p className="text-xs text-foreground/80">{uw.cognitiveLoad}</p>
+                    </div>
+                  )}
+                  {uw.contextOfUse && (
+                    <div className="p-3 rounded-lg bg-card border border-border">
+                      <p className="typo-card-eyebrow mb-1">Context of Use</p>
+                      <p className="text-xs text-foreground/80">{uw.contextOfUse}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </SectionCard>
+          )}
+
+          {activeSection === "community" && ci && (
+            <SectionCard icon={MessageSquare} title="Community Intel">
               {(() => {
                 const sentiment = ci.communitySentiment || ci.redditSentiment;
                 const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
@@ -326,76 +354,68 @@ export default function ReportPage() {
                   </div>
                 );
               })()}
-            </DetailPanel>
+            </SectionCard>
           )}
 
-          {/* 5. Pricing Intel */}
-          {selectedProduct.pricingIntel && (
-            <DetailPanel title="Pricing Intel" icon={DollarSign} sectionMode="business">
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {[
-                    { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice },
-                    { label: "Resale Avg", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold },
-                    { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal },
-                    { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium },
-                    { label: "Margins", value: selectedProduct.pricingIntel.margins },
-                    { label: "Trend", value: selectedProduct.pricingIntel.priceDirection?.toUpperCase() },
-                  ].filter(x => x.value).map((item) => (
-                    <div key={item.label} className="p-2.5 rounded-lg bg-muted border border-border">
-                      <p className="typo-card-eyebrow mb-0.5">{item.label}</p>
-                      <p className="typo-card-body font-bold text-foreground">{item.value}</p>
+          {activeSection === "pricing" && selectedProduct.pricingIntel && (
+            <SectionCard icon={DollarSign} title="Pricing Intel">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice },
+                  { label: "Resale Avg", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold },
+                  { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal },
+                  { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium },
+                  { label: "Margins", value: selectedProduct.pricingIntel.margins },
+                  { label: "Trend", value: selectedProduct.pricingIntel.priceDirection?.toUpperCase() },
+                ].filter(x => x.value).map((item) => (
+                  <div key={item.label} className="p-2.5 rounded-lg bg-muted border border-border">
+                    <p className="typo-card-eyebrow mb-0.5">{item.label}</p>
+                    <p className="typo-card-body font-bold text-foreground">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
+
+          {activeSection === "supply" && !isService && selectedProduct.supplyChain && (
+            <SectionCard icon={Package} title="Supply Chain">
+              <SupplySection title="Suppliers" icon={<Factory size={12} className="text-primary" />}
+                items={(selectedProduct.supplyChain.suppliers || []).map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
+                color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
+              <SupplySection title="Manufacturers" icon={<Package size={12} className="text-blue-500" />}
+                items={(selectedProduct.supplyChain.manufacturers || []).map((m: any) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
+                color="hsl(217 91% 60% / 0.08)" borderColor="hsl(217 91% 60% / 0.3)" />
+              <SupplySection title="Vendors" icon={<Store size={12} className="text-purple-500" />}
+                items={(selectedProduct.supplyChain.vendors || []).map((v: any) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
+                color="hsl(262 83% 58% / 0.08)" borderColor="hsl(262 83% 58% / 0.3)" />
+              <SupplySection title="Distributors" icon={<Truck size={12} className="text-orange-500" />}
+                items={(selectedProduct.supplyChain.distributors || []).map((d: any) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
+                color="hsl(32 100% 50% / 0.08)" borderColor="hsl(32 100% 50% / 0.3)" />
+              {selectedProduct.supplyChain.retailers?.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+                  {selectedProduct.supplyChain.retailers.map((r: any) => (
+                    <div key={r.name} className="p-2.5 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
+                      <p className="text-xs font-bold text-foreground">{r.name}</p>
+                      <p className="text-sm font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
                     </div>
                   ))}
                 </div>
-              </div>
-            </DetailPanel>
-          )}
-
-          {/* 6. Supply Chain (products only) */}
-          {!isService && selectedProduct.supplyChain && (
-            <DetailPanel title="Supply Chain" icon={Package} sectionMode="product">
-              <div className="space-y-3">
-                <SupplySection title="Suppliers" icon={<Factory size={12} className="text-primary" />}
-                  items={(selectedProduct.supplyChain.suppliers || []).map((s: any) => ({ name: s.name, badge: s.region, detail: s.role, url: s.url }))}
-                  color="hsl(var(--primary-muted))" borderColor="hsl(var(--primary) / 0.3)" />
-                <SupplySection title="Manufacturers" icon={<Package size={12} className="text-blue-500" />}
-                  items={(selectedProduct.supplyChain.manufacturers || []).map((m: any) => ({ name: m.name, badge: m.region, detail: `MOQ: ${m.moq}`, url: m.url }))}
-                  color="hsl(217 91% 60% / 0.08)" borderColor="hsl(217 91% 60% / 0.3)" />
-                <SupplySection title="Vendors" icon={<Store size={12} className="text-purple-500" />}
-                  items={(selectedProduct.supplyChain.vendors || []).map((v: any) => ({ name: v.name, badge: v.type, detail: v.notes, url: v.url }))}
-                  color="hsl(262 83% 58% / 0.08)" borderColor="hsl(262 83% 58% / 0.3)" />
-                <SupplySection title="Distributors" icon={<Truck size={12} className="text-orange-500" />}
-                  items={(selectedProduct.supplyChain.distributors || []).map((d: any) => ({ name: d.name, badge: d.region, detail: d.notes, url: d.url }))}
-                  color="hsl(32 100% 50% / 0.08)" borderColor="hsl(32 100% 50% / 0.3)" />
-                {selectedProduct.supplyChain.retailers?.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {selectedProduct.supplyChain.retailers.map((r: any) => (
-                      <div key={r.name} className="p-2.5 rounded-lg text-center" style={{ background: "hsl(142 70% 45% / 0.08)", border: "1px solid hsl(142 70% 45% / 0.2)" }}>
-                        <p className="text-xs font-bold text-foreground">{r.name}</p>
-                        <p className="text-sm font-bold" style={{ color: "hsl(142 70% 35%)" }}>{r.marketShare}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </DetailPanel>
-          )}
-
-          {/* 7. Patent Intel (products only) */}
-          {!isService && (
-            <DetailPanel title="Patent Intel" icon={ScrollText}>
-              {selectedProduct.patentData && (
-                <div className="flex justify-end mb-2">
-                  <button
-                    onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary text-white text-xs"
-                    style={{ background: modeAccent }}
-                  >
-                    <FileDown size={12} /> Patent PDF
-                  </button>
-                </div>
               )}
+            </SectionCard>
+          )}
+
+          {activeSection === "patents" && !isService && (
+            <SectionCard icon={ScrollText} title="Patent Intel"
+              action={selectedProduct.patentData ? (
+                <button
+                  onClick={() => downloadPatentPDF(selectedProduct, selectedProduct.patentData)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary text-white text-xs"
+                  style={{ background: modeAccent }}
+                >
+                  <FileDown size={12} /> Patent PDF
+                </button>
+              ) : undefined}
+            >
               <PatentIntelligence
                 product={selectedProduct}
                 onSave={(patentData) => {
@@ -415,7 +435,7 @@ export default function ReportPage() {
                   }
                 }}
               />
-            </DetailPanel>
+            </SectionCard>
           )}
         </AnalysisVisualLayer>
 
@@ -430,6 +450,24 @@ export default function ReportPage() {
           onClick={() => navigate(`${baseUrl}/disrupt`)}
         />
       </main>
+    </div>
+  );
+}
+
+/* ── Section content card wrapper ── */
+function SectionCard({ icon: Icon, title, children, action }: { icon: React.ElementType; title: string; children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl p-5 space-y-3" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.08)" }}>
+            <Icon size={14} style={{ color: "hsl(var(--primary))" }} />
+          </div>
+          <h3 className="typo-card-title">{title}</h3>
+        </div>
+        {action}
+      </div>
+      {children}
     </div>
   );
 }
