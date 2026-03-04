@@ -153,17 +153,6 @@ export default function DisruptPage() {
                 >
                   <Icon size={16} />
                   <span>{tab.label}</span>
-                  {tab.id === "hypotheses" && rawHypotheses && (
-                    <span
-                      className="px-2 py-0.5 rounded-full text-[10px] font-bold leading-none"
-                      style={{
-                        background: isActive ? "hsl(var(--background) / 0.2)" : "hsl(var(--primary) / 0.12)",
-                        color: isActive ? "hsl(var(--background))" : "hsl(var(--primary))",
-                      }}
-                    >
-                      {rawHypotheses.length}
-                    </span>
-                  )}
                 </button>
               );
             })}
@@ -237,6 +226,32 @@ export default function DisruptPage() {
             )}
 
             {effectiveTab === "hypotheses" && hasHypotheses && ranking && (
+              <div className="space-y-3">
+                {/* Problem Framing context */}
+                {(() => {
+                  const pf = (synopsisData as any)?.problem_framing;
+                  if (!pf) return null;
+                  return (
+                    <div className="rounded-xl px-5 py-4 space-y-3" style={{ background: "hsl(var(--muted))", border: "1.5px solid hsl(var(--border))" }}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.12)" }}>
+                          <Target size={15} style={{ color: "hsl(var(--primary))" }} />
+                        </div>
+                        <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Problem Framing</p>
+                      </div>
+                      <p className="text-sm font-semibold text-foreground leading-relaxed">{pf.objective_interpretation}</p>
+                      {pf.success_criteria && pf.success_criteria.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {pf.success_criteria.map((c: string, i: number) => (
+                            <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(38 92% 50% / 0.08)", color: "hsl(38 82% 42%)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                 <StructuralInterpretationsPanel
                   ranking={ranking}
@@ -270,6 +285,7 @@ export default function DisruptPage() {
                     analysis.setActiveBranchId(id);
                   }}
                 />
+              </div>
               </div>
             )}
 
