@@ -10,6 +10,7 @@ import React, { useRef, useState, useEffect } from "react";
    - White background with restrained accent usage
    - Top-aligned content (no vertical centering)
    - Every slide has one clear visual focal point
+   - Premium glassmorphism + gradient depth effects
    ═══════════════════════════════════════════════════════════════ */
 
 // ── ScaledSlide Container ─────────────────────────────────────
@@ -43,7 +44,7 @@ export function ScaledSlide({ children }: { children: React.ReactNode }) {
 // ── Subtle Background ─────────────────────────────────────────
 function SubtleGrid({ accentColor }: { accentColor: string }) {
   return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.018 }}>
+    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.015 }}>
       <defs>
         <pattern id="slide-grid" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
           <line x1="80" y1="0" x2="80" y2="80" stroke={accentColor} strokeWidth="0.5" />
@@ -55,12 +56,28 @@ function SubtleGrid({ accentColor }: { accentColor: string }) {
   );
 }
 
+// ── Accent Glow — radial gradient wash ────────────────────────
+function AccentGlow({ accentColor }: { accentColor: string }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{
+      background: `radial-gradient(ellipse at 85% 85%, ${accentColor}08 0%, transparent 55%), radial-gradient(ellipse at 10% 10%, ${accentColor}05 0%, transparent 40%)`,
+    }} />
+  );
+}
+
 // ── Monogram ──────────────────────────────────────────────────
 function MonogramLogo({ name, accentColor, size = 80 }: { name: string; accentColor: string; size?: number }) {
   const initials = name.split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || "").join("");
   const r = size / 2;
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <defs>
+        <radialGradient id="mono-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={accentColor} stopOpacity="0.15" />
+          <stop offset="100%" stopColor={accentColor} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx={r} cy={r} r={r} fill="url(#mono-glow)" />
       <circle cx={r} cy={r} r={r - 2} fill="none" stroke={accentColor} strokeWidth="2" opacity="0.3" />
       <circle cx={r} cy={r} r={r - 8} fill={accentColor} opacity="0.08" />
       <text x="50%" y="52%" dominantBaseline="middle" textAnchor="middle"
@@ -99,20 +116,32 @@ export function PitchSlideFrame({
       borderRadius: 12,
     }}>
       <SubtleGrid accentColor={accentColor} />
+      <AccentGlow accentColor={accentColor} />
 
-      {/* Accent bar — thin top line */}
-      <div style={{ width: "100%", height: 4, flexShrink: 0, background: accentColor }} />
+      {/* Accent bar — gradient top line */}
+      <div style={{
+        width: "100%", height: 4, flexShrink: 0,
+        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88, ${accentColor})`,
+      }} />
 
-      {/* Header — left-aligned with accent stripe */}
+      {/* Header */}
       <div style={{
         display: "flex", alignItems: "flex-end", justifyContent: "space-between",
         padding: "32px 72px 24px", flexShrink: 0,
         borderBottom: "1px solid #e8e8ec",
         position: "relative", zIndex: 10,
       }}>
+        {/* Gradient fade under header */}
+        <div style={{
+          position: "absolute", left: 0, right: 0, bottom: -20, height: 20,
+          background: "linear-gradient(180deg, rgba(0,0,0,0.02) 0%, transparent 100%)",
+          pointerEvents: "none",
+        }} />
         <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
-          {/* Vertical accent stripe */}
-          <div style={{ width: 4, height: 52, borderRadius: 2, background: accentColor, flexShrink: 0, marginTop: 4 }} />
+          <div style={{
+            width: 4, height: 52, borderRadius: 2, flexShrink: 0, marginTop: 4,
+            background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)`,
+          }} />
           <div>
             {categoryLabel && (
               <p style={{
@@ -140,7 +169,7 @@ export function PitchSlideFrame({
         </span>
       </div>
 
-      {/* Content — top-aligned, NO vertical centering */}
+      {/* Content */}
       <div style={{
         flex: 1, padding: "32px 72px",
         position: "relative", zIndex: 10,
@@ -185,18 +214,38 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
       borderRadius: 12,
     }}>
       <SubtleGrid accentColor={accentColor} />
+      <AccentGlow accentColor={accentColor} />
 
-      {/* Accent bar */}
-      <div style={{ width: "100%", height: 6, flexShrink: 0, background: accentColor }} />
+      {/* Geometric accent shape */}
+      <div style={{
+        position: "absolute", right: -120, top: -120, width: 500, height: 500,
+        borderRadius: "50%", border: `2px solid ${accentColor}`,
+        opacity: 0.06, pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", right: -60, top: -60, width: 360, height: 360,
+        borderRadius: "50%", background: accentColor,
+        opacity: 0.03, pointerEvents: "none",
+      }} />
+
+      {/* Accent bar — gradient */}
+      <div style={{
+        width: "100%", height: 6, flexShrink: 0,
+        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}66, ${accentColor})`,
+      }} />
 
       {/* Left accent stripe */}
-      <div style={{ position: "absolute", left: 72, top: 140, width: 5, height: 200, borderRadius: 3, background: accentColor, opacity: 0.2 }} />
+      <div style={{
+        position: "absolute", left: 72, top: 140, width: 5, height: 200, borderRadius: 3,
+        background: `linear-gradient(180deg, ${accentColor}, ${accentColor}22)`,
+        opacity: 0.3,
+      }} />
 
-      {/* Content — top-aligned */}
+      {/* Content */}
       <div style={{ flex: 1, display: "flex", padding: "100px 120px 60px", position: "relative", zIndex: 10, gap: 60 }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 48 }}>
-            <MonogramLogo name={productName} accentColor={accentColor} size={80} />
+            <MonogramLogo name={productName} accentColor={accentColor} size={96} />
             <div>
               <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.25em", color: accentColor, textTransform: "uppercase" }}>Market Disruptor</p>
               <p style={{ fontSize: 14, fontWeight: 600, letterSpacing: "0.2em", color: "#a1a1aa", textTransform: "uppercase", marginTop: 4 }}>Investor Pitch Deck</p>
@@ -204,7 +253,7 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
           </div>
 
           <h1 style={{
-            fontSize: 68, fontWeight: 800,
+            fontSize: 72, fontWeight: 800,
             color: "#0f0f12",
             fontFamily: "'Space Grotesk', sans-serif",
             lineHeight: 1.05, letterSpacing: "-0.02em",
@@ -215,7 +264,11 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
             <p style={{ fontSize: 30, color: "#71717a", maxWidth: hasImages ? "100%" : "70%", lineHeight: 1.35, marginTop: 20, fontWeight: 500 }}>{subtitle}</p>
           )}
 
-          <div style={{ width: 64, height: 3, background: accentColor, opacity: 0.4, marginTop: 32 }} />
+          <div style={{
+            width: 80, height: 3, marginTop: 32,
+            background: `linear-gradient(90deg, ${accentColor}, transparent)`,
+            opacity: 0.5,
+          }} />
 
           <div style={{ marginTop: "auto" }}>
             <p style={{ fontSize: 15, color: "#71717a", fontWeight: 500 }}>{today}</p>
@@ -223,7 +276,6 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
           </div>
         </div>
 
-        {/* Cover images on right */}
         {hasImages && (
           <div style={{
             display: "flex", flexDirection: "column", gap: 16,
@@ -233,7 +285,7 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
               <div key={i} style={{
                 borderRadius: 12, overflow: "hidden",
                 border: "1px solid #e8e8ec",
-                boxShadow: "0 8px 32px -8px rgba(0,0,0,0.12)",
+                boxShadow: `0 8px 32px -8px rgba(0,0,0,0.12), 0 0 0 1px ${accentColor}10`,
               }}>
                 <img src={img.url} alt={img.ideaName} style={{
                   width: "100%",
@@ -284,7 +336,7 @@ export function ThreeColumnGrid({ children }: { children: React.ReactNode }) {
 // STRUCTURED CONTENT BLOCKS
 // ═══════════════════════════════════════════════════════════════
 
-// ── Insight Card: bordered card with accent top and big idea ──
+// ── Insight Card: bordered card with gradient accent top ──────
 export function InsightCard({ title, body, accentColor = "#4b68f5", icon }: {
   title: string; body: string; accentColor?: string; icon?: React.ReactNode;
 }) {
@@ -292,9 +344,15 @@ export function InsightCard({ title, body, accentColor = "#4b68f5", icon }: {
     <div style={{
       padding: "28px 32px", borderRadius: 10,
       background: "#fafafa", border: "1px solid #e8e8ec",
-      borderTop: `3px solid ${accentColor}`,
+      borderTop: "none",
       display: "flex", flexDirection: "column", gap: 12,
+      position: "relative", overflow: "hidden",
     }}>
+      {/* Gradient top border */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 3,
+        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}44, transparent)`,
+      }} />
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {icon && <span style={{ color: accentColor, flexShrink: 0 }}>{icon}</span>}
         <p style={{ fontSize: 20, fontWeight: 700, color: "#0f0f12", lineHeight: 1.3 }}>{title}</p>
@@ -304,7 +362,7 @@ export function InsightCard({ title, body, accentColor = "#4b68f5", icon }: {
   );
 }
 
-// ── Key Metric Panel: big number as visual focal point ────────
+// ── Key Metric Panel: big number with glow ring ──────────────
 export function KeyMetricPanel({ value, label, sublabel, accentColor = "#4b68f5" }: {
   value: string; label: string; sublabel?: string; accentColor?: string;
 }) {
@@ -314,11 +372,19 @@ export function KeyMetricPanel({ value, label, sublabel, accentColor = "#4b68f5"
       background: "#fafafa", border: "1px solid #e8e8ec",
       borderLeft: `5px solid ${accentColor}`,
       display: "flex", alignItems: "center", gap: 40,
+      position: "relative", overflow: "hidden",
     }}>
-      <div style={{ flexShrink: 0 }}>
-        <p style={{ fontSize: 52, fontWeight: 800, color: accentColor, fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1 }}>{value}</p>
+      {/* Subtle glow behind metric */}
+      <div style={{
+        position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)",
+        width: 120, height: 120, borderRadius: "50%",
+        background: `radial-gradient(circle, ${accentColor}12 0%, transparent 70%)`,
+        pointerEvents: "none",
+      }} />
+      <div style={{ flexShrink: 0, position: "relative", zIndex: 1 }}>
+        <p style={{ fontSize: 56, fontWeight: 800, color: accentColor, fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1 }}>{value}</p>
       </div>
-      <div>
+      <div style={{ position: "relative", zIndex: 1 }}>
         <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#71717a" }}>{label}</p>
         {sublabel && <p style={{ fontSize: 18, color: "#52525b", marginTop: 4, lineHeight: 1.4 }}>{sublabel}</p>}
       </div>
@@ -326,7 +392,7 @@ export function KeyMetricPanel({ value, label, sublabel, accentColor = "#4b68f5"
   );
 }
 
-// ── Comparison Layout: side-by-side before/after or vs ────────
+// ── Comparison Layout ────────────────────────────────────────
 export function ComparisonLayout({ leftTitle, leftItems, rightTitle, rightItems, accentColor = "#4b68f5" }: {
   leftTitle: string; leftItems: string[]; rightTitle: string; rightItems: string[];
   accentColor?: string;
@@ -336,7 +402,7 @@ export function ComparisonLayout({ leftTitle, leftItems, rightTitle, rightItems,
       <div style={{ padding: "28px 32px", background: "#fafafa" }}>
         <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 16 }}>{leftTitle}</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {leftItems.map((item, i) => (
+          {(leftItems || []).map((item, i) => (
             <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#d4d4d8", flexShrink: 0, marginTop: 8 }} />
               <p style={{ fontSize: 19, color: "#52525b", lineHeight: 1.45 }}>{item}</p>
@@ -347,7 +413,7 @@ export function ComparisonLayout({ leftTitle, leftItems, rightTitle, rightItems,
       <div style={{ padding: "28px 32px", background: "#ffffff", borderLeft: `3px solid ${accentColor}` }}>
         <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: accentColor, marginBottom: 16 }}>{rightTitle}</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {rightItems.map((item, i) => (
+          {(rightItems || []).map((item, i) => (
             <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: accentColor, opacity: 0.5, flexShrink: 0, marginTop: 7 }} />
               <p style={{ fontSize: 19, color: "#0f0f12", lineHeight: 1.45, fontWeight: 500 }}>{item}</p>
@@ -359,15 +425,18 @@ export function ComparisonLayout({ leftTitle, leftItems, rightTitle, rightItems,
   );
 }
 
-// ── Takeaway Callout: bottom-anchored key insight ─────────────
+// ── Takeaway Callout: frosted-glass effect ────────────────────
 export function TakeawayCallout({ text, accentColor = "#4b68f5", label = "Key Takeaway" }: {
   text: string; accentColor?: string; label?: string;
 }) {
   return (
     <div style={{
       padding: "20px 32px", borderRadius: 10,
-      background: accentColor, marginTop: "auto",
+      background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`,
+      marginTop: "auto",
       display: "flex", alignItems: "center", gap: 20,
+      boxShadow: `0 8px 32px -8px ${accentColor}44`,
+      backdropFilter: "blur(8px)",
     }}>
       <div style={{ width: 4, height: 40, borderRadius: 2, background: "#ffffff", opacity: 0.4, flexShrink: 0 }} />
       <div>
@@ -378,7 +447,7 @@ export function TakeawayCallout({ text, accentColor = "#4b68f5", label = "Key Ta
   );
 }
 
-// ── Emphasis Box: accent-bordered content area ────────────────
+// ── Emphasis Box ──────────────────────────────────────────────
 export function EmphasisBox({ children, accentColor = "#4b68f5", label }: {
   children: React.ReactNode; accentColor?: string; label?: string;
 }) {
@@ -394,15 +463,16 @@ export function EmphasisBox({ children, accentColor = "#4b68f5", label }: {
   );
 }
 
-// ── Stat Card: compact metric display ─────────────────────────
+// ── Stat Card: elevated with shadow ───────────────────────────
 export function SlideStatCard({ label, value, accentColor, sublabel }: {
   label: string; value: string; accentColor?: string; sublabel?: string;
 }) {
   return (
     <div style={{
       padding: "20px 24px", borderRadius: 10,
-      background: "#fafafa", border: "1px solid #e8e8ec",
+      background: "#ffffff", border: "1px solid #e8e8ec",
       borderLeft: accentColor ? `4px solid ${accentColor}` : "1px solid #e8e8ec",
+      boxShadow: "0 2px 8px -2px rgba(0,0,0,0.06)",
     }}>
       <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 6 }}>{label}</p>
       <p style={{ fontSize: 28, fontWeight: 800, color: "#0f0f12", lineHeight: 1.2, fontFamily: "'Space Grotesk', sans-serif" }}>{value}</p>
@@ -432,23 +502,31 @@ export function SlideBullet({ children, index, accentColor }: {
   );
 }
 
-// ── Quote Block: statement with left accent ───────────────────
+// ── Quote Block: with decorative quote mark ───────────────────
 export function SlideQuoteBlock({ quote, accentColor = "#4b68f5", label }: {
   quote: string; accentColor?: string; label?: string;
 }) {
   return (
     <div style={{
       padding: "28px 36px", borderRadius: 10,
-      background: "#fafafa", border: "1px solid #e8e8ec",
+      background: `linear-gradient(135deg, #fafafa, #f5f5f5)`,
+      border: "1px solid #e8e8ec",
       borderLeft: `4px solid ${accentColor}`,
+      position: "relative", overflow: "hidden",
     }}>
-      {label && <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 14 }}>{label}</p>}
-      <p style={{ fontSize: 24, color: "#0f0f12", opacity: 0.85, lineHeight: 1.55 }}>{quote}</p>
+      {/* Large decorative quote mark */}
+      <span style={{
+        position: "absolute", top: -8, left: 16, fontSize: 96,
+        fontFamily: "Georgia, serif", color: accentColor, opacity: 0.08,
+        lineHeight: 1, pointerEvents: "none",
+      }}>"</span>
+      {label && <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 14, position: "relative", zIndex: 1 }}>{label}</p>}
+      <p style={{ fontSize: 24, color: "#0f0f12", opacity: 0.85, lineHeight: 1.55, position: "relative", zIndex: 1 }}>{quote}</p>
     </div>
   );
 }
 
-// ── Market Size Visual ────────────────────────────────────────
+// ── Market Size Visual with animated dash-array ───────────────
 export function MarketSizeVisual({ tam, sam, som, accentColor = "#4b68f5" }: {
   tam: string; sam: string; som: string; accentColor?: string;
 }) {
@@ -461,9 +539,16 @@ export function MarketSizeVisual({ tam, sam, som, accentColor = "#4b68f5" }: {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
       <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#a1a1aa" }}>Addressable Market</p>
       <svg width="340" height="340" viewBox="0 0 340 340">
-        <circle cx="170" cy="170" r="160" fill={accentColor} opacity="0.06" stroke={accentColor} strokeWidth="2" strokeOpacity="0.2" />
-        <circle cx="170" cy="170" r="110" fill={accentColor} opacity="0.1" stroke={accentColor} strokeWidth="2" strokeOpacity="0.3" />
-        <circle cx="170" cy="170" r="55" fill={accentColor} opacity="0.18" stroke={accentColor} strokeWidth="2.5" strokeOpacity="0.45" />
+        <defs>
+          <radialGradient id="market-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={accentColor} stopOpacity="0.08" />
+            <stop offset="100%" stopColor={accentColor} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx="170" cy="170" r="165" fill="url(#market-glow)" />
+        <circle cx="170" cy="170" r="160" fill={accentColor} opacity="0.04" stroke={accentColor} strokeWidth="2" strokeOpacity="0.2" strokeDasharray="8 4" />
+        <circle cx="170" cy="170" r="110" fill={accentColor} opacity="0.08" stroke={accentColor} strokeWidth="2" strokeOpacity="0.3" strokeDasharray="6 3" />
+        <circle cx="170" cy="170" r="55" fill={accentColor} opacity="0.15" stroke={accentColor} strokeWidth="2.5" strokeOpacity="0.45" />
         <text x="170" y="28" textAnchor="middle" fontSize="12" fontWeight="700" fill={accentColor} opacity="0.9">TAM</text>
         <text x="170" y="48" textAnchor="middle" fontSize="18" fontWeight="800" fill="#0f0f12">{extract(tam)}</text>
         <text x="170" y="78" textAnchor="middle" fontSize="12" fontWeight="700" fill={accentColor} opacity="0.9">SAM</text>
@@ -488,18 +573,22 @@ export function MarketSizeVisual({ tam, sam, som, accentColor = "#4b68f5" }: {
   );
 }
 
-// ── Risk Severity Bar ─────────────────────────────────────────
+// ── Risk Severity Bar: wider pill with animated fill ──────────
 export function RiskSeverityBar({ severity }: { severity: "high" | "medium" | "low" }) {
   const map = {
     high: { fill: "#ef4444", width: "100%", bg: "#fef2f2" },
     medium: { fill: "#f59e0b", width: "60%", bg: "#fffbeb" },
     low: { fill: "#22c55e", width: "30%", bg: "#f0fdf4" },
   };
-  const c = map[severity];
+  const c = map[severity] || map.medium;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 140 }}>
-      <div style={{ flex: 1, height: 6, borderRadius: 3, background: c.bg }}>
-        <div style={{ height: "100%", borderRadius: 3, width: c.width, background: c.fill, transition: "width 0.3s" }} />
+    <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 160 }}>
+      <div style={{ flex: 1, height: 10, borderRadius: 5, background: c.bg, overflow: "hidden" }}>
+        <div style={{
+          height: "100%", borderRadius: 5, width: c.width, background: `linear-gradient(90deg, ${c.fill}88, ${c.fill})`,
+          transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
+          boxShadow: `0 0 8px ${c.fill}33`,
+        }} />
       </div>
       <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: c.fill }}>{severity}</span>
     </div>
@@ -514,7 +603,7 @@ export function ScenarioBarChart({ scenarios, accentColor = "#4b68f5" }: {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 4 }}>Revenue Scenarios</p>
-      {scenarios.map((s, i) => (
+      {(scenarios || []).map((s, i) => (
         <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <span style={{ fontSize: 16, fontWeight: 700, color: "#71717a", width: 110, textAlign: "right", flexShrink: 0 }}>{s.label}</span>
           <div style={{ flex: 1, height: 36, borderRadius: 6, overflow: "hidden", background: "#f4f4f5" }}>
@@ -522,7 +611,7 @@ export function ScenarioBarChart({ scenarios, accentColor = "#4b68f5" }: {
               height: "100%", borderRadius: 6,
               display: "flex", alignItems: "center", paddingLeft: 14,
               width: `${widths[i] || 50}%`,
-              background: accentColor, opacity: 0.1 + (i * 0.15),
+              background: `linear-gradient(90deg, ${accentColor}22, ${accentColor}${(30 + i * 20).toString(16)})`,
             }}>
               <span style={{ fontSize: 18, fontWeight: 700, color: "#0f0f12" }}>{s.value}</span>
             </div>
@@ -539,16 +628,18 @@ export function SlideTimeline({ steps, accentColor = "#4b68f5" }: {
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
-      {steps.map((step, i) => (
+      {(steps || []).map((step, i) => (
         <div key={i} style={{ display: "flex", gap: 18 }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <div style={{
               width: 32, height: 32, borderRadius: "50%",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 14, fontWeight: 900, flexShrink: 0,
-              background: accentColor, color: "#ffffff", opacity: 0.85,
+              background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`,
+              color: "#ffffff",
+              boxShadow: `0 2px 8px ${accentColor}33`,
             }}>{i + 1}</div>
-            {i < steps.length - 1 && <div style={{ width: 2, flex: 1, minHeight: 20, background: accentColor, opacity: 0.12 }} />}
+            {i < steps.length - 1 && <div style={{ width: 2, flex: 1, minHeight: 20, background: `linear-gradient(180deg, ${accentColor}33, ${accentColor}08)` }} />}
           </div>
           <div style={{ paddingBottom: 20, flex: 1 }}>
             <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 4 }}>{step.label}</p>
@@ -572,7 +663,7 @@ export function MetricBar({ metric, target, why, accentColor = "#4b68f5" }: {
         <span style={{ fontSize: 16, fontWeight: 700, color: accentColor }}>{target}</span>
       </div>
       <div style={{ height: 6, borderRadius: 3, background: "#f4f4f5" }}>
-        <div style={{ height: "100%", borderRadius: 3, width: `${hashW}%`, background: accentColor, opacity: 0.35 }} />
+        <div style={{ height: "100%", borderRadius: 3, width: `${hashW}%`, background: `linear-gradient(90deg, ${accentColor}55, ${accentColor})`, transition: "width 0.5s" }} />
       </div>
       {why && <p style={{ fontSize: 14, color: "#71717a" }}>{why}</p>}
     </div>
@@ -593,7 +684,7 @@ export function FunnelVisual({ stages, accentColor = "#4b68f5" }: {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 14 }}>Conversion Funnel</p>
       <svg width={maxW + 60} height={totalH + 10} viewBox={`0 0 ${maxW + 60} ${totalH + 10}`}>
-        {stages.map((stage, i) => {
+        {(stages || []).map((stage, i) => {
           const w = maxW - (i * (maxW * 0.15));
           const x = (maxW + 60 - w) / 2;
           const y = i * (barH + gap) + 5;
@@ -619,7 +710,7 @@ export function DonutChart({ label, segments, accentColor = "#4b68f5", size = 16
   const cy = size / 2;
   let cumAngle = -90;
 
-  const arcs = segments.map((seg) => {
+  const arcs = (segments || []).map((seg) => {
     const startAngle = cumAngle;
     cumAngle += (seg.pct / 100) * 360;
     const endAngle = cumAngle;
@@ -639,13 +730,29 @@ export function DonutChart({ label, segments, accentColor = "#4b68f5", size = 16
         <circle cx={cx} cy={cy} r={r - 14} fill="none" stroke="#e8e8ec" strokeWidth="1" />
       </svg>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        {segments.slice(0, 4).map((s, i) => (
+        {(segments || []).slice(0, 4).map((s, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 10, height: 10, borderRadius: "50%", background: accentColor, opacity: 0.22 + i * 0.15 }} />
             <span style={{ fontSize: 13, color: "#0f0f12" }}>{s.label}</span>
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ── Empty Section Placeholder ─────────────────────────────────
+export function EmptySlideSection({ label }: { label: string }) {
+  return (
+    <div style={{
+      padding: "40px 32px", borderRadius: 10,
+      background: "#fafafa", border: "1px dashed #d4d4d8",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      minHeight: 120,
+    }}>
+      <p style={{ fontSize: 18, color: "#a1a1aa", fontWeight: 500 }}>
+        {label} — click <strong>Regenerate</strong> to populate
+      </p>
     </div>
   );
 }
