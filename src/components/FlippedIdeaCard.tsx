@@ -19,9 +19,10 @@ interface FlippedIdeaCardProps {
   onSelectForPitch?: (url: string, ideaName: string) => void;
   onRemoveFromPitch?: (url: string) => void;
   onRegenerateSingle?: () => void;
+  onCompetitorsScouted?: (competitors: unknown[]) => void;
 }
 
-export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange, pitchDeckImages, onSelectForPitch, onRemoveFromPitch, onRegenerateSingle }: FlippedIdeaCardProps) => {
+export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreChange, pitchDeckImages, onSelectForPitch, onRemoveFromPitch, onRegenerateSingle, onCompetitorsScouted }: FlippedIdeaCardProps) => {
   const [mockupImage, setMockupImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const autoGenTriggered = useRef(false);
@@ -294,6 +295,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
         ideaName={idea.name}
         ideaDescription={idea.description}
         category={productName}
+        onCompetitorsScouted={onCompetitorsScouted}
       />
 
       {/* Action Plan */}

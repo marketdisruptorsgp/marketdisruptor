@@ -165,6 +165,10 @@ interface AnalysisContextType {
   regulatoryData: unknown;
   setRegulatoryData: (d: unknown) => void;
 
+  // Scouted competitors (from Disrupt step — passed to Stress Test)
+  scoutedCompetitors: unknown[];
+  setScoutedCompetitors: (d: unknown[]) => void;
+
   // Mode routing
   modeRouting: RoutingResult | null;
   setModeRouting: (r: RoutingResult | null) => void;
@@ -383,6 +387,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [geoData, setGeoData] = useState<unknown>(null);
   // ── Regulatory Data (adaptive) ──
   const [regulatoryData, setRegulatoryData] = useState<unknown>(null);
+  // ── Scouted Competitors (from Disrupt → Stress Test) ──
+  const [scoutedCompetitors, setScoutedCompetitors] = useState<unknown[]>([]);
 
   const fetchGeoData = useCallback(async (category: string, productName?: string) => {
     try {
@@ -1158,6 +1164,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (ad?.adaptiveContext) setAdaptiveContext(ad.adaptiveContext as AdaptiveContextData);
     if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
     if (ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)) setPitchDeckExclusions(new Set(ad.pitchDeckExclusions as string[]));
+    if (ad?.scoutedCompetitors && Array.isArray(ad.scoutedCompetitors)) setScoutedCompetitors(ad.scoutedCompetitors as unknown[]);
     // projectNotes is loaded on-demand in portfolio/report, no context state needed
     // Restore active lens (lens object is fetched on-demand by LensToggle; we just clear state here)
     // The activeLensId is stored but lens restoration requires a DB fetch — handled by LensToggle
@@ -1328,6 +1335,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         if (ad?.adaptiveContext) setAdaptiveContext(ad.adaptiveContext as AdaptiveContextData);
         if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
         if (ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)) setPitchDeckExclusions(new Set(ad.pitchDeckExclusions as string[]));
+        if (ad?.scoutedCompetitors && Array.isArray(ad.scoutedCompetitors)) setScoutedCompetitors(ad.scoutedCompetitors as unknown[]);
         if (!ad?.activeLensId) setActiveLensState(null);
         if (ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)) setOutdatedSteps(new Set(ad.outdatedSteps as string[]));
         else setOutdatedSteps(new Set());
@@ -1377,6 +1385,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       activeLens, setActiveLens,
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
+      scoutedCompetitors, setScoutedCompetitors,
       modeRouting, setModeRouting,
       adaptiveContext, setAdaptiveContext,
       governedData, setGovernedData,

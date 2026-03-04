@@ -1126,6 +1126,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                       onSelectForPitch={analysisCtx.setPitchDeckImage}
                       onRemoveFromPitch={analysisCtx.removePitchDeckImage}
                       onRegenerateSingle={onRegenerateIdeas ? () => onRegenerateIdeas(`REGENERATE_SINGLE:${i}:${userContext || ""}`) : undefined}
+                      onCompetitorsScouted={(comps) => {
+                        const prev = analysisCtx.scoutedCompetitors || [];
+                        const merged = [...prev, ...comps];
+                        analysisCtx.setScoutedCompetitors(merged);
+                        analysisCtx.saveStepData("scoutedCompetitors", merged);
+                      }}
                     />
                   ))}
                 </div>

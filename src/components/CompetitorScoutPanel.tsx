@@ -16,9 +16,10 @@ interface CompetitorScoutPanelProps {
   ideaName: string;
   ideaDescription: string;
   category?: string;
+  onCompetitorsScouted?: (competitors: Competitor[]) => void;
 }
 
-export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category }: CompetitorScoutPanelProps) => {
+export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, onCompetitorsScouted }: CompetitorScoutPanelProps) => {
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasScouted, setHasScouted] = useState(false);
@@ -38,6 +39,7 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category }: Co
 
       setCompetitors(data.competitors || []);
       setHasScouted(true);
+      onCompetitorsScouted?.(data.competitors || []);
 
       if (data.competitors?.length === 0) {
         toast.info("No direct competitors found — you might be onto something new!");
