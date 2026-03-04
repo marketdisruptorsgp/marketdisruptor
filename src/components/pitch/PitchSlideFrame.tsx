@@ -44,7 +44,7 @@ export function ScaledSlide({ children }: { children: React.ReactNode }) {
 // ── Subtle Background ─────────────────────────────────────────
 function SubtleGrid({ accentColor }: { accentColor: string }) {
   return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.015 }}>
+    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.02 }}>
       <defs>
         <pattern id="slide-grid" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
           <line x1="80" y1="0" x2="80" y2="80" stroke={accentColor} strokeWidth="0.5" />
@@ -56,12 +56,57 @@ function SubtleGrid({ accentColor }: { accentColor: string }) {
   );
 }
 
-// ── Accent Glow — radial gradient wash ────────────────────────
+// ── Accent Glow — radial gradient wash (amplified) ────────────
 function AccentGlow({ accentColor }: { accentColor: string }) {
   return (
     <div className="absolute inset-0 pointer-events-none" style={{
-      background: `radial-gradient(ellipse at 85% 85%, ${accentColor}08 0%, transparent 55%), radial-gradient(ellipse at 10% 10%, ${accentColor}05 0%, transparent 40%)`,
+      background: `radial-gradient(ellipse at 85% 85%, ${accentColor}14 0%, transparent 55%), radial-gradient(ellipse at 10% 10%, ${accentColor}0a 0%, transparent 45%), radial-gradient(ellipse at 50% 0%, ${accentColor}06 0%, transparent 50%)`,
     }} />
+  );
+}
+
+// ── Noise Texture Overlay ─────────────────────────────────────
+function NoiseOverlay() {
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{
+      opacity: 0.03,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+      backgroundSize: "128px 128px",
+    }} />
+  );
+}
+
+// ── Decorative Geometric Elements per slide ───────────────────
+function SlideDecorativeElements({ slideNumber, accentColor }: { slideNumber: number; accentColor: string }) {
+  const variant = slideNumber % 3;
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* Corner accent — bottom right quarter circle */}
+      <div style={{
+        position: "absolute", right: -60, bottom: -60,
+        width: 200, height: 200, borderRadius: "50%",
+        background: `radial-gradient(circle at center, ${accentColor}06 0%, transparent 70%)`,
+      }} />
+      {/* Variant-specific elements */}
+      {variant === 0 && (
+        <>
+          <div style={{ position: "absolute", left: 60, bottom: 100, width: 120, height: 120, borderRadius: "50%", border: `1.5px solid ${accentColor}`, opacity: 0.04 }} />
+          <div style={{ position: "absolute", right: 140, top: 80, width: 2, height: 80, background: `linear-gradient(180deg, ${accentColor}08, transparent)` }} />
+        </>
+      )}
+      {variant === 1 && (
+        <>
+          <div style={{ position: "absolute", right: 200, bottom: 60, width: 80, height: 80, borderRadius: "50%", background: accentColor, opacity: 0.025 }} />
+          <div style={{ position: "absolute", left: 100, top: 160, width: 160, height: 1.5, background: `linear-gradient(90deg, ${accentColor}0a, transparent)` }} />
+        </>
+      )}
+      {variant === 2 && (
+        <>
+          <div style={{ position: "absolute", left: 40, bottom: 140, width: 60, height: 60, borderRadius: "50%", border: `1px solid ${accentColor}`, opacity: 0.05 }} />
+          <div style={{ position: "absolute", right: 80, top: 200, width: 100, height: 100, borderRadius: "50%", background: accentColor, opacity: 0.02 }} />
+        </>
+      )}
+    </div>
   );
 }
 
@@ -73,16 +118,19 @@ function MonogramLogo({ name, accentColor, size = 80 }: { name: string; accentCo
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <defs>
         <radialGradient id="mono-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={accentColor} stopOpacity="0.15" />
+          <stop offset="0%" stopColor={accentColor} stopOpacity="0.2" />
           <stop offset="100%" stopColor={accentColor} stopOpacity="0" />
         </radialGradient>
       </defs>
+      {/* Animated concentric rings */}
       <circle cx={r} cy={r} r={r} fill="url(#mono-glow)" />
-      <circle cx={r} cy={r} r={r - 2} fill="none" stroke={accentColor} strokeWidth="2" opacity="0.3" />
-      <circle cx={r} cy={r} r={r - 8} fill={accentColor} opacity="0.08" />
+      <circle cx={r} cy={r} r={r - 1} fill="none" stroke={accentColor} strokeWidth="1.5" opacity="0.12" strokeDasharray="4 3" />
+      <circle cx={r} cy={r} r={r - 2} fill="none" stroke={accentColor} strokeWidth="2" opacity="0.25" />
+      <circle cx={r} cy={r} r={r - 6} fill="none" stroke={accentColor} strokeWidth="1" opacity="0.15" strokeDasharray="6 4" />
+      <circle cx={r} cy={r} r={r - 10} fill={accentColor} opacity="0.1" />
       <text x="50%" y="52%" dominantBaseline="middle" textAnchor="middle"
         fontFamily="'Space Grotesk', sans-serif" fontWeight="800"
-        fontSize={size * 0.36} fill={accentColor} opacity="0.7">
+        fontSize={size * 0.36} fill={accentColor} opacity="0.75">
         {initials}
       </text>
     </svg>
@@ -112,16 +160,26 @@ export function PitchSlideFrame({
       width: 1920, height: 1080,
       display: "flex", flexDirection: "column",
       position: "relative", overflow: "hidden",
-      background: "#ffffff",
+      background: "linear-gradient(180deg, #ffffff 0%, #fafbff 100%)",
       borderRadius: 12,
     }}>
       <SubtleGrid accentColor={accentColor} />
       <AccentGlow accentColor={accentColor} />
+      <NoiseOverlay />
+      <SlideDecorativeElements slideNumber={slideNumber} accentColor={accentColor} />
 
-      {/* Accent bar — gradient top line */}
+      {/* Accent bar — vivid gradient top line (6px) */}
       <div style={{
-        width: "100%", height: 4, flexShrink: 0,
-        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88, ${accentColor})`,
+        width: "100%", height: 6, flexShrink: 0,
+        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}aa, ${accentColor}dd, ${accentColor})`,
+        boxShadow: `0 2px 12px -2px ${accentColor}30`,
+      }} />
+
+      {/* Right vertical accent stripe */}
+      <div style={{
+        position: "absolute", right: 0, top: 6, width: 3, height: 100,
+        background: `linear-gradient(180deg, ${accentColor}20, transparent)`,
+        borderRadius: "0 0 2px 2px",
       }} />
 
       {/* Header */}
@@ -144,11 +202,15 @@ export function PitchSlideFrame({
           }} />
           <div>
             {categoryLabel && (
-              <p style={{
-                fontSize: 13, fontWeight: 700, letterSpacing: "0.2em",
-                color: accentColor, opacity: 0.85, marginBottom: 8,
+              <span style={{
+                display: "inline-block",
+                fontSize: 12, fontWeight: 700, letterSpacing: "0.2em",
+                color: accentColor, marginBottom: 8,
                 textTransform: "uppercase",
-              }}>{categoryLabel}</p>
+                padding: "3px 12px", borderRadius: 20,
+                background: `${accentColor}0c`,
+                border: `1px solid ${accentColor}18`,
+              }}>{categoryLabel}</span>
             )}
             <h2 style={{
               fontSize: 42, fontWeight: 800,
@@ -185,7 +247,7 @@ export function PitchSlideFrame({
         padding: "12px 72px", flexShrink: 0,
         borderTop: "1px solid #e8e8ec",
         position: "relative", zIndex: 10,
-        background: "#fafafa",
+        background: "linear-gradient(135deg, #fafafa, #f8f9fc)",
       }}>
         <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", color: "#a1a1aa", textTransform: "uppercase" }}>Market Disruptor</span>
         {productName && (
@@ -210,28 +272,43 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
       width: 1920, height: 1080,
       display: "flex", flexDirection: "column",
       position: "relative", overflow: "hidden",
-      background: "#ffffff",
+      background: "linear-gradient(180deg, #ffffff 0%, #f8f9fc 100%)",
       borderRadius: 12,
     }}>
       <SubtleGrid accentColor={accentColor} />
-      <AccentGlow accentColor={accentColor} />
+      {/* Amplified accent glow for cover */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: `radial-gradient(ellipse at 70% 60%, ${accentColor}18 0%, transparent 50%), radial-gradient(ellipse at 20% 20%, ${accentColor}0c 0%, transparent 45%)`,
+      }} />
+      <NoiseOverlay />
 
-      {/* Geometric accent shape */}
+      {/* Multiple geometric accent shapes */}
       <div style={{
         position: "absolute", right: -120, top: -120, width: 500, height: 500,
         borderRadius: "50%", border: `2px solid ${accentColor}`,
-        opacity: 0.06, pointerEvents: "none",
+        opacity: 0.08, pointerEvents: "none",
       }} />
       <div style={{
         position: "absolute", right: -60, top: -60, width: 360, height: 360,
         borderRadius: "50%", background: accentColor,
-        opacity: 0.03, pointerEvents: "none",
+        opacity: 0.04, pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", right: 40, top: 40, width: 200, height: 200,
+        borderRadius: "50%", border: `1.5px dashed ${accentColor}`,
+        opacity: 0.06, pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", left: -80, bottom: -80, width: 300, height: 300,
+        borderRadius: "50%", background: accentColor,
+        opacity: 0.025, pointerEvents: "none",
       }} />
 
-      {/* Accent bar — gradient */}
+      {/* Accent bar — gradient (6px) */}
       <div style={{
         width: "100%", height: 6, flexShrink: 0,
-        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}66, ${accentColor})`,
+        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88, ${accentColor}cc, ${accentColor})`,
+        boxShadow: `0 2px 12px -2px ${accentColor}30`,
       }} />
 
       {/* Left accent stripe */}
@@ -258,16 +335,18 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
             fontFamily: "'Space Grotesk', sans-serif",
             lineHeight: 1.05, letterSpacing: "-0.02em",
             maxWidth: hasImages ? "100%" : "75%",
+            textShadow: `0 0 60px ${accentColor}10`,
           }}>{productName}</h1>
 
           {subtitle && (
             <p style={{ fontSize: 30, color: "#71717a", maxWidth: hasImages ? "100%" : "70%", lineHeight: 1.35, marginTop: 20, fontWeight: 500 }}>{subtitle}</p>
           )}
 
+          {/* Gradient divider line */}
           <div style={{
-            width: 80, height: 3, marginTop: 32,
-            background: `linear-gradient(90deg, ${accentColor}, transparent)`,
-            opacity: 0.5,
+            width: 160, height: 3, marginTop: 32,
+            background: `linear-gradient(90deg, ${accentColor}, ${accentColor}44, transparent)`,
+            borderRadius: 2,
           }} />
 
           <div style={{ marginTop: "auto" }}>
@@ -292,7 +371,7 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
                   height: coverImages!.length > 1 ? 260 : 400,
                   objectFit: "cover",
                 }} />
-                <div style={{ padding: "10px 16px", background: "#fafafa", borderTop: "1px solid #e8e8ec" }}>
+                <div style={{ padding: "10px 16px", background: "linear-gradient(135deg, #fafafa, #f8f9fc)", borderTop: "1px solid #e8e8ec" }}>
                   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", color: "#a1a1aa", textTransform: "uppercase" }}>Concept Design</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: "#0f0f12", marginTop: 2 }}>{img.ideaName}</p>
                 </div>
@@ -303,7 +382,7 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
       </div>
 
       {/* Bottom bar */}
-      <div style={{ height: 44, background: "#fafafa", borderTop: "1px solid #e8e8ec", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <div style={{ height: 44, background: "linear-gradient(135deg, #fafafa, #f8f9fc)", borderTop: "1px solid #e8e8ec", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.2em", color: "#a1a1aa", textTransform: "uppercase" }}>Market Disruptor · Confidential</span>
       </div>
     </div>
@@ -343,15 +422,16 @@ export function InsightCard({ title, body, accentColor = "#4b68f5", icon }: {
   return (
     <div style={{
       padding: "28px 32px", borderRadius: 10,
-      background: "#fafafa", border: "1px solid #e8e8ec",
+      background: `linear-gradient(135deg, #fafafa, #f8f9fc)`,
+      border: "1px solid #e8e8ec",
       borderTop: "none",
       display: "flex", flexDirection: "column", gap: 12,
       position: "relative", overflow: "hidden",
     }}>
-      {/* Gradient top border */}
+      {/* Gradient top border (4px) */}
       <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: 3,
-        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}44, transparent)`,
+        position: "absolute", top: 0, left: 0, right: 0, height: 4,
+        background: `linear-gradient(90deg, ${accentColor}, ${accentColor}66, transparent)`,
       }} />
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {icon && <span style={{ color: accentColor, flexShrink: 0 }}>{icon}</span>}
@@ -362,24 +442,32 @@ export function InsightCard({ title, body, accentColor = "#4b68f5", icon }: {
   );
 }
 
-// ── Key Metric Panel: big number with glow ring ──────────────
+// ── Key Metric Panel: big number with prominent glow ring ────
 export function KeyMetricPanel({ value, label, sublabel, accentColor = "#4b68f5" }: {
   value: string; label: string; sublabel?: string; accentColor?: string;
 }) {
   return (
     <div style={{
       padding: "32px 40px", borderRadius: 10,
-      background: "#fafafa", border: "1px solid #e8e8ec",
+      background: `linear-gradient(135deg, #fafafa, #f8f9fc)`,
+      border: "1px solid #e8e8ec",
       borderLeft: `5px solid ${accentColor}`,
       display: "flex", alignItems: "center", gap: 40,
       position: "relative", overflow: "hidden",
     }}>
-      {/* Subtle glow behind metric */}
+      {/* Prominent glow behind metric */}
       <div style={{
-        position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)",
-        width: 120, height: 120, borderRadius: "50%",
-        background: `radial-gradient(circle, ${accentColor}12 0%, transparent 70%)`,
+        position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
+        width: 160, height: 160, borderRadius: "50%",
+        background: `radial-gradient(circle, ${accentColor}1a 0%, ${accentColor}08 40%, transparent 70%)`,
         pointerEvents: "none",
+      }} />
+      {/* Pulsing accent dot */}
+      <div style={{
+        position: "absolute", left: 24, top: 24,
+        width: 8, height: 8, borderRadius: "50%",
+        background: accentColor, opacity: 0.4,
+        boxShadow: `0 0 8px ${accentColor}40`,
       }} />
       <div style={{ flexShrink: 0, position: "relative", zIndex: 1 }}>
         <p style={{ fontSize: 56, fontWeight: 800, color: accentColor, fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1 }}>{value}</p>
@@ -425,7 +513,7 @@ export function ComparisonLayout({ leftTitle, leftItems, rightTitle, rightItems,
   );
 }
 
-// ── Takeaway Callout: frosted-glass effect ────────────────────
+// ── Takeaway Callout: frosted-glass with pattern overlay ──────
 export function TakeawayCallout({ text, accentColor = "#4b68f5", label = "Key Takeaway" }: {
   text: string; accentColor?: string; label?: string;
 }) {
@@ -435,11 +523,19 @@ export function TakeawayCallout({ text, accentColor = "#4b68f5", label = "Key Ta
       background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`,
       marginTop: "auto",
       display: "flex", alignItems: "center", gap: 20,
-      boxShadow: `0 8px 32px -8px ${accentColor}44`,
+      boxShadow: `0 12px 40px -8px ${accentColor}44`,
       backdropFilter: "blur(8px)",
+      position: "relative", overflow: "hidden",
     }}>
-      <div style={{ width: 4, height: 40, borderRadius: 2, background: "#ffffff", opacity: 0.4, flexShrink: 0 }} />
-      <div>
+      {/* Subtle pattern overlay */}
+      <div style={{
+        position: "absolute", inset: 0, opacity: 0.06,
+        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 1px, transparent 1px), radial-gradient(circle at 80% 30%, rgba(255,255,255,0.2) 1px, transparent 1px)`,
+        backgroundSize: "40px 40px",
+        pointerEvents: "none",
+      }} />
+      <div style={{ width: 4, height: 40, borderRadius: 2, background: "#ffffff", opacity: 0.4, flexShrink: 0, position: "relative", zIndex: 1 }} />
+      <div style={{ position: "relative", zIndex: 1 }}>
         <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#ffffff", opacity: 0.7, marginBottom: 4 }}>{label}</p>
         <p style={{ fontSize: 20, color: "#ffffff", lineHeight: 1.45, fontWeight: 500 }}>{text}</p>
       </div>
@@ -454,7 +550,7 @@ export function EmphasisBox({ children, accentColor = "#4b68f5", label }: {
   return (
     <div style={{
       padding: "24px 32px", borderRadius: 10,
-      background: "#fafafa", border: "1px solid #e8e8ec",
+      background: `linear-gradient(135deg, #fafafa, #f8f9fc)`, border: "1px solid #e8e8ec",
       borderLeft: `4px solid ${accentColor}`,
     }}>
       {label && <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: accentColor, marginBottom: 12 }}>{label}</p>}
@@ -463,7 +559,7 @@ export function EmphasisBox({ children, accentColor = "#4b68f5", label }: {
   );
 }
 
-// ── Stat Card: elevated with shadow ───────────────────────────
+// ── Stat Card: elevated with gradient left strip + inner shadow
 export function SlideStatCard({ label, value, accentColor, sublabel }: {
   label: string; value: string; accentColor?: string; sublabel?: string;
 }) {
@@ -472,10 +568,18 @@ export function SlideStatCard({ label, value, accentColor, sublabel }: {
       padding: "20px 24px", borderRadius: 10,
       background: "#ffffff", border: "1px solid #e8e8ec",
       borderLeft: accentColor ? `4px solid ${accentColor}` : "1px solid #e8e8ec",
-      boxShadow: "0 2px 8px -2px rgba(0,0,0,0.06)",
+      boxShadow: "0 2px 8px -2px rgba(0,0,0,0.06), inset 0 1px 2px rgba(0,0,0,0.02)",
+      position: "relative", overflow: "hidden",
     }}>
+      {/* Gradient strip on left edge */}
+      {accentColor && (
+        <div style={{
+          position: "absolute", left: 0, top: 0, bottom: 0, width: 4,
+          background: `linear-gradient(180deg, ${accentColor}, ${accentColor}66)`,
+        }} />
+      )}
       <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 6 }}>{label}</p>
-      <p style={{ fontSize: 28, fontWeight: 800, color: "#0f0f12", lineHeight: 1.2, fontFamily: "'Space Grotesk', sans-serif" }}>{value}</p>
+      <p style={{ fontSize: 34, fontWeight: 800, color: "#0f0f12", lineHeight: 1.2, fontFamily: "'Space Grotesk', sans-serif" }}>{value}</p>
       {sublabel && <p style={{ fontSize: 15, color: "#71717a", marginTop: 4 }}>{sublabel}</p>}
     </div>
   );
@@ -508,25 +612,25 @@ export function SlideQuoteBlock({ quote, accentColor = "#4b68f5", label }: {
 }) {
   return (
     <div style={{
-      padding: "28px 36px", borderRadius: 10,
-      background: `linear-gradient(135deg, #fafafa, #f5f5f5)`,
+      padding: "32px 40px", borderRadius: 10,
+      background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}04, #fafafa)`,
       border: "1px solid #e8e8ec",
-      borderLeft: `4px solid ${accentColor}`,
+      borderLeft: `5px solid ${accentColor}`,
       position: "relative", overflow: "hidden",
     }}>
       {/* Large decorative quote mark */}
       <span style={{
-        position: "absolute", top: -8, left: 16, fontSize: 96,
-        fontFamily: "Georgia, serif", color: accentColor, opacity: 0.08,
+        position: "absolute", top: -8, left: 16, fontSize: 120,
+        fontFamily: "Georgia, serif", color: accentColor, opacity: 0.1,
         lineHeight: 1, pointerEvents: "none",
       }}>"</span>
-      {label && <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "#a1a1aa", marginBottom: 14, position: "relative", zIndex: 1 }}>{label}</p>}
-      <p style={{ fontSize: 24, color: "#0f0f12", opacity: 0.85, lineHeight: 1.55, position: "relative", zIndex: 1 }}>{quote}</p>
+      {label && <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: accentColor, opacity: 0.7, marginBottom: 14, position: "relative", zIndex: 1 }}>{label}</p>}
+      <p style={{ fontSize: 26, color: "#0f0f12", opacity: 0.85, lineHeight: 1.55, position: "relative", zIndex: 1 }}>{quote}</p>
     </div>
   );
 }
 
-// ── Market Size Visual with animated dash-array ───────────────
+// ── Market Size Visual with gradient fills ────────────────────
 export function MarketSizeVisual({ tam, sam, som, accentColor = "#4b68f5" }: {
   tam: string; sam: string; som: string; accentColor?: string;
 }) {
@@ -541,14 +645,33 @@ export function MarketSizeVisual({ tam, sam, som, accentColor = "#4b68f5" }: {
       <svg width="340" height="340" viewBox="0 0 340 340">
         <defs>
           <radialGradient id="market-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor={accentColor} stopOpacity="0.08" />
+            <stop offset="0%" stopColor={accentColor} stopOpacity="0.12" />
             <stop offset="100%" stopColor={accentColor} stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="tam-fill" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={accentColor} stopOpacity="0.06" />
+            <stop offset="100%" stopColor={accentColor} stopOpacity="0.02" />
+          </radialGradient>
+          <radialGradient id="sam-fill" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={accentColor} stopOpacity="0.12" />
+            <stop offset="100%" stopColor={accentColor} stopOpacity="0.05" />
+          </radialGradient>
+          <radialGradient id="som-fill" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={accentColor} stopOpacity="0.22" />
+            <stop offset="100%" stopColor={accentColor} stopOpacity="0.1" />
           </radialGradient>
         </defs>
         <circle cx="170" cy="170" r="165" fill="url(#market-glow)" />
-        <circle cx="170" cy="170" r="160" fill={accentColor} opacity="0.04" stroke={accentColor} strokeWidth="2" strokeOpacity="0.2" strokeDasharray="8 4" />
-        <circle cx="170" cy="170" r="110" fill={accentColor} opacity="0.08" stroke={accentColor} strokeWidth="2" strokeOpacity="0.3" strokeDasharray="6 3" />
-        <circle cx="170" cy="170" r="55" fill={accentColor} opacity="0.15" stroke={accentColor} strokeWidth="2.5" strokeOpacity="0.45" />
+        {/* TAM */}
+        <circle cx="170" cy="170" r="160" fill="url(#tam-fill)" stroke={accentColor} strokeWidth="2" strokeOpacity="0.2" strokeDasharray="8 4" />
+        {/* SAM */}
+        <circle cx="170" cy="170" r="110" fill="url(#sam-fill)" stroke={accentColor} strokeWidth="2" strokeOpacity="0.3" strokeDasharray="6 3" />
+        {/* SOM */}
+        <circle cx="170" cy="170" r="55" fill="url(#som-fill)" stroke={accentColor} strokeWidth="2.5" strokeOpacity="0.45" />
+        {/* Dashed connector lines between rings */}
+        <line x1="170" y1="10" x2="170" y2="60" stroke={accentColor} strokeWidth="1" strokeOpacity="0.15" strokeDasharray="3 3" />
+        <line x1="170" y1="280" x2="170" y2="330" stroke={accentColor} strokeWidth="1" strokeOpacity="0.15" strokeDasharray="3 3" />
+        {/* Labels */}
         <text x="170" y="28" textAnchor="middle" fontSize="12" fontWeight="700" fill={accentColor} opacity="0.9">TAM</text>
         <text x="170" y="48" textAnchor="middle" fontSize="18" fontWeight="800" fill="#0f0f12">{extract(tam)}</text>
         <text x="170" y="78" textAnchor="middle" fontSize="12" fontWeight="700" fill={accentColor} opacity="0.9">SAM</text>
