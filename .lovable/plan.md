@@ -1,71 +1,51 @@
 
 
-## Problem
+## Analysis: Where Should Flipped Ideas Live?
 
-The **Assumptions** and **Flip the Logic** sections in the Disrupt step render minimal content: each assumption shows just `assumption`, `currentAnswer`, `challengeIdea`, and metadata tags. Flip the Logic shows `originalAssumption → boldAlternative` with a collapsible rationale/mechanism. The user wants richer, more articulated output explaining the analytical approach, what was considered, and why — with top 10 bullets, expand-for-more, and dynamic visual accents.
+### Current Flow
 
-## Root Cause
+```text
+Step 3 — DISRUPT (Deconstruction)
+  ├── Hidden Assumptions (identify & challenge)
+  ├── Flip the Logic (invert assumptions into alternatives)  ← generative
+  └── Flipped Ideas (concrete alternative concepts)          ← generative
+  └── [Reasoning / Hypotheses tabs below]
 
-The edge function already returns rich fields (`reason`, `leverageScore`, `isChallengeable`, `challengeIdea`, `rationale`, `physicalMechanism`) but the UI treats them as secondary metadata rather than primary content. There's no introductory "approach" narrative and no progressive disclosure beyond the existing `DetailPanel`.
+Step 4 — REDESIGN (Construction)
+  ├── Redesigned Concept visual
+  └── First Principles rendered in "redesign" mode
+```
 
-## Plan
+### The Logical Problem
 
-### 1. Add Analytical Approach Banners to Both Sections
+Disrupt's purpose is **deconstruction** — tearing apart assumptions, exposing structural weaknesses, understanding *why things are the way they are*. But "Flip the Logic" and "Flipped Ideas" are **constructive** acts: they generate alternatives and new concepts. They don't belong in the deconstruction phase.
 
-Replace the static "Why this matters" and "Methodology" blurbs with structured, data-driven approach summaries that dynamically reflect what was analyzed:
+The natural cognitive flow is:
 
-**Assumptions section** — a bordered banner showing:
-- How many assumptions were uncovered
-- Breakdown by reason category (e.g., "3 from tradition, 2 from cost, 1 from habit")
-- How many are challengeable vs. structural
-- Average leverage score
-- A 1-sentence methodology note
+1. **Disrupt**: "Here are 12 assumptions holding this product together. Here's why each exists. Here's the leverage score for challenging each one."
+2. **Redesign**: "Now, what if we inverted those assumptions? Here are the flips. Here's what a rebuilt concept looks like."
 
-**Flip the Logic section** — a bordered banner showing:
-- How many inversions were generated
-- Which assumption categories were targeted
-- A 1-sentence methodology note on structural inversion
+Moving Flip the Logic and Flipped Ideas to Redesign creates a clean separation:
+- **Disrupt** = pure analysis (assumptions, reasoning, hypotheses)
+- **Redesign** = pure synthesis (inversions, flipped ideas, concept generation)
 
-These banners use section-aware coloring with left accent borders.
+This also makes the Redesign step more substantial — right now it's thin (just a concept visual and a re-render of FirstPrinciplesAnalysis in redesign mode), while Disrupt is overloaded.
 
-### 2. Enrich Assumption Cards with Progressive Disclosure
+### Recommendation
 
-Currently each card shows assumption + currentAnswer + challengeIdea inline. Redesign to:
+**Yes, move them.** The Disrupt step should end with the enriched Assumptions section and the Reasoning/Hypotheses tabs. The Redesign step should open with "Flip the Logic" (showing how assumptions were inverted), then "Flipped Ideas" (concrete alternatives), then the Redesigned Concept visual.
 
-- **Primary**: Numbered assumption text (bold, full width)
-- **Always visible**: Reason tag (color-coded pill with accent border), leverage score bar (horizontal, like `ScoreBar`), challengeable badge
-- **"Current state" line**: `currentAnswer` displayed as a quoted insight
-- **"Challenge approach" line**: `challengeIdea` — currently hidden behind metadata, promote to a visible accent-bordered callout
-- Show top 10 by default; if more than 10, show "Show N more" expand button
+### Plan
 
-### 3. Enrich Flip the Logic Cards with Richer Content
+1. **Disrupt step (`FirstPrinciplesAnalysis` default mode)**: Remove the "Flip the Logic" and "Flipped Ideas" sections from the section sequence. The step now shows: Hidden Assumptions → (end of interactive sections). Reasoning/Hypotheses tabs remain below as they are today.
 
-Currently shows assumption → flip in a 3-column grid with collapsible rationale. Redesign to:
+2. **Redesign step (`FirstPrinciplesAnalysis` redesign mode)**: Add "Flip the Logic" and "Flipped Ideas" as the first two sections *before* the existing redesign concept visual. The section sequence becomes: Flip the Logic → Flipped Ideas → Redesigned Concept.
 
-- **Primary row**: Original assumption (muted) → Bold alternative (accent-highlighted)
-- **Always visible below the flip**: 2-line rationale preview (first 120 chars), with "Read full analysis" expand
-- **Expanded state**: Full rationale + physicalMechanism in a structured 2-column layout with labeled sections ("Why this creates value" / "How it works")
-- Add a small "Inversion strength" indicator based on how different the flip is from the original (heuristic: if leverageScore exists on the source assumption, use it)
-- Show top 10 by default; "Show N more" expand for remainder
+3. **Data flow**: Both sections already read from the same `data` object (`flippedLogic`, `flippedIdeas`). Since the Redesign step receives `externalData` from `analysis.redesignData ?? analysis.disruptData`, the flip data generated during Disrupt is already available downstream — no data plumbing changes needed.
 
-### 4. Dynamic Visual Summary Strip
+4. **Section numbering**: Update `getSections()` in `FirstPrinciplesAnalysis.tsx` to conditionally include/exclude flip sections based on `renderMode`. Default mode gets assumptions only; redesign mode gets flips + ideas + concept.
 
-At the top of each section, add a compact horizontal stats strip with high-contrast coloring:
+### Files to Edit
 
-**Assumptions**: `[N Assumptions] [M Challengeable] [Avg Leverage: X/10] [Top reason: Tradition]`
-**Flip the Logic**: `[N Inversions] [M High-leverage] [Top category: Cost]`
-
-Each stat chip uses the mode accent color with a subtle background tint, matching the section-aware coloring system.
-
-### 5. Reason Color System Enhancement
-
-Upgrade the existing `REASON_COLORS` to use accent-border left strips on cards instead of tiny muted pills. Each reason gets a distinct left-border color (tradition=amber, manufacturing=blue, cost=green, physics=purple, habit=pink), making the cards scannable at a glance.
-
-### Technical Scope
-
-All changes are in `src/components/FirstPrinciplesAnalysis.tsx`:
-- Lines ~885-950 (Assumptions section): Add approach banner, stats strip, enrich cards, add show-more gate
-- Lines ~952-998 (Flip the Logic section): Add approach banner, stats strip, enrich cards with always-visible rationale, add show-more gate
-- No edge function changes needed — all data fields already exist
-- No new components needed — reuses existing `DetailPanel`, `Collapsible` patterns
+- `src/components/FirstPrinciplesAnalysis.tsx` — restructure `getSections()` to move flip/ideas sections from default to redesign render mode
 
