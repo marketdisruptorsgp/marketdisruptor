@@ -1,10 +1,8 @@
 import React from "react";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
-import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
-import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, Lightbulb, GitBranch, ChevronDown, Atom, ArrowRight } from "lucide-react";
-import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
+import { Brain, ChevronDown, Atom, ArrowRight } from "lucide-react";
+import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
 
 interface StructureTabProps {
@@ -504,89 +502,6 @@ export function StructureTab({
         />
       </div>
 
-      {/* B. Reasoning */}
-      {hasSynopsis && (
-        <StructureSection title="Reasoning" icon={Lightbulb} defaultOpen={false}>
-          <ReasoningSynopsis
-            data={synopsisData}
-            analysisData={{ ...selectedProduct, governed: governedData } as any}
-            products={undefined}
-            title={selectedProduct?.name || ""}
-            category={analysis.analysisParams?.category || ""}
-            analysisType={(analysis.analysisParams as any)?.analysisType || (analysis.analysisParams as any)?.analysis_type || "product"}
-            avgScore={(selectedProduct as any)?.revivalScore ?? null}
-            analysisId={analysis.analysisId}
-            onApplyRevision={(revision: any) => {
-              const currentGoverned = analysis.governedData || {};
-              if (revision.type === "re_rank" && revision.payload?.hypotheses) {
-                analysis.setGovernedData({ ...currentGoverned, root_hypotheses: revision.payload.hypotheses });
-              } else if (revision.type === "update_assumption" && revision.payload) {
-                const synopsis = (currentGoverned as any)?.reasoning_synopsis || {};
-                const updatedAssumptions = synopsis.key_assumptions?.map((a: any) =>
-                  a.assumption === revision.payload.target ? { ...a, ...revision.payload.updates } : a
-                ) || [];
-                analysis.setGovernedData({
-                  ...currentGoverned,
-                  reasoning_synopsis: { ...synopsis, key_assumptions: updatedAssumptions },
-                });
-              }
-              analysis.saveStepData("governed", analysis.governedData || currentGoverned);
-              analysis.markStepOutdated("redesign");
-              analysis.markStepOutdated("stressTest");
-              analysis.markStepOutdated("pitch");
-            }}
-          />
-        </StructureSection>
-      )}
-
-      {/* C. Hypotheses */}
-      {hasHypotheses && ranking && (
-        <StructureSection
-          title="Hypotheses"
-          icon={GitBranch}
-          defaultOpen={false}
-          badge={rawHypotheses ? `${rawHypotheses.length} paths` : undefined}
-        >
-          <StructuralInterpretationsPanel
-            ranking={ranking}
-            activeBranchId={analysis.activeBranchId}
-            analysisData={{ ...selectedProduct, governed: analysis.governedData }}
-            title={selectedProduct?.name || ""}
-            category={analysis.analysisParams?.category || ""}
-            onApplyRevision={(revision: any) => {
-              const currentGoverned = analysis.governedData || {};
-              if (revision.type === "new_hypothesis" && revision.payload) {
-                const existing = (currentGoverned as any)?.root_hypotheses || [];
-                const newH = { ...revision.payload, id: `user-hyp-${Date.now()}` };
-                analysis.setGovernedData({ ...currentGoverned, root_hypotheses: [...existing, newH] });
-                analysis.markStepOutdated("redesign");
-                analysis.markStepOutdated("stressTest");
-                analysis.markStepOutdated("pitch");
-              }
-            }}
-            onSelectBranch={(id: string) => {
-              const selected = rawHypotheses!.find((h: StrategicHypothesis) => h.id === id);
-              if (selected) {
-                const signals: { selected_high_capital?: boolean; selected_high_risk?: boolean; selected_long_horizon?: boolean } = {};
-                if (selected.estimated_capital_required && selected.estimated_capital_required > 500_000) {
-                  signals.selected_high_capital = true;
-                }
-                if (selected.constraint_type === "risk" || selected.fragility_score > 6) {
-                  signals.selected_high_risk = true;
-                }
-                if (selected.estimated_time_to_impact_months && selected.estimated_time_to_impact_months > analysis.strategicProfile.time_horizon_months) {
-                  signals.selected_long_horizon = true;
-                }
-                if (Object.keys(signals).length > 0) {
-                  const evolved = adaptStrategicProfile(analysis.strategicProfile, signals);
-                  analysis.setStrategicProfile(evolved);
-                }
-              }
-              analysis.setActiveBranchId(id);
-            }}
-          />
-        </StructureSection>
-      )}
     </div>
   );
 }
