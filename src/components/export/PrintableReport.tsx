@@ -4,8 +4,11 @@ import { isServiceCategory } from "@/utils/normalizeProduct";
 import { ScoreBar } from "@/components/ScoreBar";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
 import {
-  Target, Clock, MessageSquare, DollarSign, Package, Factory, Store, Truck,
+  Target, Clock, MessageSquare, DollarSign, Package,
   ShieldAlert, Lightbulb, ExternalLink, ScrollText,
+  Brain, Zap, Sparkles, Swords, Shield, CheckCircle2, XCircle,
+  TrendingUp, TrendingDown, BarChart3, Globe, Rocket,
+  FlipHorizontal, AlertTriangle, RefreshCw,
 } from "lucide-react";
 
 interface PrintableReportProps {
@@ -20,6 +23,11 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
   const ci = (product as any)?.communityInsights;
   const uw = (product as any)?.userWorkflow;
   const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  const disruptData = analysisData?.disrupt as Record<string, unknown> | null;
+  const stressTestData = analysisData?.stressTest as Record<string, unknown> | null;
+  const pitchDeckData = analysisData?.pitchDeck as Record<string, unknown> | null;
+  const redesignData = analysisData?.redesign as Record<string, unknown> | null;
 
   return (
     <div className="print-report">
@@ -153,37 +161,21 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
       )}
 
       {/* ── Disruption Analysis ── */}
-      {analysisData?.disrupt && (
-        <PrintSection title="Disruption Analysis">
-          <PrintJSON data={analysisData.disrupt as Record<string, unknown>} />
-        </PrintSection>
-      )}
+      {disruptData && <DisruptSection data={disruptData} />}
 
       {/* ── Stress Test ── */}
-      {analysisData?.stressTest && (
-        <PrintSection title="Stress Test">
-          <PrintJSON data={analysisData.stressTest as Record<string, unknown>} />
-        </PrintSection>
-      )}
+      {stressTestData && <StressTestSection data={stressTestData} />}
 
       {/* ── Pitch Deck ── */}
-      {analysisData?.pitchDeck && (
-        <PrintSection title="Pitch Deck">
-          <PrintJSON data={analysisData.pitchDeck as Record<string, unknown>} />
-        </PrintSection>
-      )}
+      {pitchDeckData && <PitchDeckSection data={pitchDeckData} />}
 
       {/* ── Redesign ── */}
-      {analysisData?.redesign && (
-        <PrintSection title="Redesign Proposals">
-          <PrintJSON data={analysisData.redesign as Record<string, unknown>} />
-        </PrintSection>
-      )}
+      {redesignData && <RedesignSection data={redesignData} />}
 
       {/* ── Patent Data ── */}
       {!isService && product?.patentData && (
         <PrintSection title="Patent Intelligence" icon={<ScrollText size={14} />}>
-          <PrintJSON data={product.patentData as Record<string, unknown>} />
+          <PatentSection data={product.patentData as Record<string, unknown>} />
         </PrintSection>
       )}
 
@@ -194,6 +186,10 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
     </div>
   );
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED HELPERS
+   ═══════════════════════════════════════════════════════════════ */
 
 function PrintSection({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -219,7 +215,626 @@ function PrintSupplyList({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-/** Renders nested analysis JSON as readable key-value pairs */
+function PrintCard({ children, accent }: { children: React.ReactNode; accent?: string }) {
+  return (
+    <div
+      className="print-card"
+      style={{
+        borderLeft: accent ? `3px solid ${accent}` : undefined,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function PrintMetricBox({ label, value }: { label: string; value: string | number | undefined | null }) {
+  if (!value) return null;
+  return (
+    <div className="print-metric-box">
+      <p className="print-label">{label}</p>
+      <p className="print-metric-value">{value}</p>
+    </div>
+  );
+}
+
+function PrintTag({ label, color }: { label: string; color: string }) {
+  return (
+    <span className="print-tag" style={{ background: color + "18", color, borderColor: color + "30" }}>
+      {label}
+    </span>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DISRUPTION ANALYSIS (Assumptions, Flipped Logic, Redesigned Concept)
+   ═══════════════════════════════════════════════════════════════ */
+
+function DisruptSection({ data }: { data: Record<string, unknown> }) {
+  const assumptions = (data.hiddenAssumptions as any[]) || [];
+  const flippedLogic = (data.flippedLogic as any[]) || [];
+  const concept = data.redesignedConcept as Record<string, any> | undefined;
+
+  return (
+    <PrintSection title="Disruption Analysis" icon={<Brain size={14} />}>
+      {/* Assumptions */}
+      {assumptions.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title">
+            <Brain size={12} /> Hidden Assumptions
+          </h3>
+          {assumptions.map((a, i) => (
+            <PrintCard key={i} accent={a.isChallengeable ? "hsl(271 81% 55%)" : "hsl(220 10% 70%)"}>
+              <p className="print-card-title">
+                <span className="print-card-number">{i + 1}</span>
+                {a.assumption}
+              </p>
+              <p className="print-body-sm">{a.currentAnswer}</p>
+              {a.challengeIdea && (
+                <div className="print-highlight-box">
+                  <span className="font-semibold">Challenge:</span> {a.challengeIdea}
+                </div>
+              )}
+              <div className="print-tag-row">
+                {a.reason && <PrintTag label={a.reason} color="hsl(38 92% 45%)" />}
+                {a.isChallengeable && <PrintTag label="Challengeable" color="hsl(271 81% 55%)" />}
+                {a.leverageScore != null && <PrintTag label={`Leverage ${a.leverageScore}/10`} color="hsl(217 91% 50%)" />}
+              </div>
+            </PrintCard>
+          ))}
+        </div>
+      )}
+
+      {/* Flipped Logic */}
+      {flippedLogic.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title">
+            <FlipHorizontal size={12} /> Flipped Logic
+          </h3>
+          {flippedLogic.map((item, i) => (
+            <PrintCard key={i}>
+              <div className="print-flip-grid">
+                <div className="print-flip-left">
+                  <p className="print-label">Assumption</p>
+                  <p className="print-body-sm">{item.originalAssumption}</p>
+                </div>
+                <div className="print-flip-arrow">→</div>
+                <div className="print-flip-right">
+                  <p className="print-label" style={{ color: "hsl(271 81% 55%)" }}>Flip</p>
+                  <p className="print-body-sm font-semibold">{item.boldAlternative}</p>
+                </div>
+              </div>
+              {(item.rationale || item.physicalMechanism) && (
+                <div className="print-grid-2" style={{ marginTop: "0.5rem" }}>
+                  {item.rationale && (
+                    <div>
+                      <p className="print-label">Value Created</p>
+                      <p className="print-body-sm">{item.rationale}</p>
+                    </div>
+                  )}
+                  {item.physicalMechanism && (
+                    <div>
+                      <p className="print-label">Mechanism</p>
+                      <p className="print-body-sm">{item.physicalMechanism}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </PrintCard>
+          ))}
+        </div>
+      )}
+
+      {/* Redesigned Concept (within disrupt data) */}
+      {concept?.conceptName && <ConceptCard concept={concept} />}
+    </PrintSection>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REDESIGN SECTION
+   ═══════════════════════════════════════════════════════════════ */
+
+function RedesignSection({ data }: { data: Record<string, unknown> }) {
+  const concept = data.redesignedConcept as Record<string, any> | undefined;
+  if (!concept?.conceptName) {
+    // Fallback for unknown structure
+    return (
+      <PrintSection title="Redesign Proposals" icon={<Sparkles size={14} />}>
+        <PrintJSON data={data} />
+      </PrintSection>
+    );
+  }
+  return (
+    <PrintSection title="Redesign Proposals" icon={<Sparkles size={14} />}>
+      <ConceptCard concept={concept} />
+    </PrintSection>
+  );
+}
+
+function ConceptCard({ concept }: { concept: Record<string, any> }) {
+  return (
+    <div className="print-subsection">
+      <h3 className="print-subsection-title" style={{ color: "hsl(38 92% 45%)" }}>
+        <Sparkles size={12} /> {concept.conceptName}
+      </h3>
+      {concept.tagline && <p className="print-body font-semibold" style={{ fontStyle: "italic" }}>{concept.tagline}</p>}
+
+      {concept.coreInsight && (
+        <PrintCard accent="hsl(38 92% 50%)">
+          <p className="print-label">Core Insight</p>
+          <p className="print-body-sm">{concept.coreInsight}</p>
+        </PrintCard>
+      )}
+
+      {concept.radicalDifferences?.length > 0 && (
+        <div>
+          <p className="print-label" style={{ marginBottom: "0.3rem" }}>Radical Differences</p>
+          {concept.radicalDifferences.map((d: string, i: number) => (
+            <div key={i} className="print-list-item">
+              <Zap size={10} style={{ color: "hsl(38 92% 50%)", flexShrink: 0, marginTop: 2 }} />
+              <span>{d}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="print-grid-2">
+        {concept.physicalDescription && (
+          <div className="print-info-box">
+            <p className="print-label">Physical Form</p>
+            <p className="print-body-sm">{concept.physicalDescription}</p>
+            {concept.sizeAndWeight && <p className="print-body-sm" style={{ color: "hsl(220 10% 50%)" }}>Size: {concept.sizeAndWeight}</p>}
+          </div>
+        )}
+        {concept.materials?.length > 0 && (
+          <div className="print-info-box">
+            <p className="print-label">Materials</p>
+            <div className="print-tag-row">
+              {concept.materials.map((m: string, i: number) => (
+                <PrintTag key={i} label={m} color="hsl(220 10% 45%)" />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Business metrics */}
+      <div className="print-grid-4">
+        <PrintMetricBox label="Price Point" value={concept.pricePoint} />
+        <PrintMetricBox label="Target User" value={concept.targetUser} />
+        <PrintMetricBox label="Capital Required" value={concept.capitalRequired} />
+        <PrintMetricBox label="Risk Level" value={concept.riskLevel} />
+      </div>
+
+      {concept.smartFeatures?.length > 0 && (
+        <div>
+          <p className="print-label">Smart Features</p>
+          {concept.smartFeatures.map((f: string, i: number) => (
+            <div key={i} className="print-list-item">
+              <Zap size={10} style={{ color: "hsl(271 81% 55%)", flexShrink: 0, marginTop: 2 }} />
+              <span>{f}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {concept.userExperienceTransformation && (
+        <PrintCard>
+          <p className="print-label">UX Transformation</p>
+          <p className="print-body-sm">{concept.userExperienceTransformation}</p>
+        </PrintCard>
+      )}
+
+      {concept.frictionEliminated?.length > 0 && (
+        <div>
+          <p className="print-label">Friction Eliminated</p>
+          {concept.frictionEliminated.map((f: string, i: number) => (
+            <div key={i} className="print-list-item">
+              <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+              <span>{f}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(concept.whyItHasntBeenDone || concept.biggestRisk || concept.manufacturingPath) && (
+        <div className="print-grid-2" style={{ marginTop: "0.25rem" }}>
+          {concept.whyItHasntBeenDone && (
+            <div className="print-info-box">
+              <p className="print-label">Why Not Already Done</p>
+              <p className="print-body-sm">{concept.whyItHasntBeenDone}</p>
+            </div>
+          )}
+          {concept.biggestRisk && (
+            <div className="print-info-box">
+              <p className="print-label">Biggest Risk</p>
+              <p className="print-body-sm">{concept.biggestRisk}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STRESS TEST
+   ═══════════════════════════════════════════════════════════════ */
+
+function StressTestSection({ data }: { data: Record<string, unknown> }) {
+  const redTeam = data.redTeam as { verdict?: string; arguments?: any[]; killShot?: string } | undefined;
+  const blueTeam = data.blueTeam as { verdict?: string; arguments?: any[]; moonshot?: string } | undefined;
+  const counterExamples = (data.counterExamples as any[]) || [];
+  const feasibility = (data.feasibilityChecklist as any[]) || [];
+  const confidenceScores = data.confidenceScores as Record<string, { score: number; reasoning: string }> | undefined;
+  const blindSpots = (data.blindSpots as string[]) || [];
+  const recommendations = (data.strategicRecommendations as string[]) || [];
+
+  return (
+    <PrintSection title="Stress Test" icon={<Swords size={14} />}>
+      {/* Red Team */}
+      {redTeam?.arguments?.length && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title" style={{ color: "hsl(0 72% 51%)" }}>
+            <ShieldAlert size={12} /> Red Team — Why It Could Fail
+          </h3>
+          {redTeam.verdict && <p className="print-body font-semibold">{redTeam.verdict}</p>}
+          {redTeam.arguments.map((arg, i) => (
+            <PrintCard key={i} accent={arg.severity === "critical" ? "hsl(0 72% 51%)" : arg.severity === "major" ? "hsl(38 92% 50%)" : "hsl(220 10% 60%)"}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.2rem" }}>
+                <p className="print-card-title" style={{ margin: 0 }}>{arg.title}</p>
+                <PrintTag label={arg.severity?.toUpperCase() || "—"} color={arg.severity === "critical" ? "hsl(0 72% 51%)" : "hsl(38 92% 50%)"} />
+              </div>
+              <p className="print-body-sm">{arg.argument}</p>
+              {arg.biasExposed && <p className="print-body-sm" style={{ color: "hsl(220 10% 50%)" }}>Bias: {arg.biasExposed}</p>}
+            </PrintCard>
+          ))}
+          {redTeam.killShot && (
+            <PrintCard accent="hsl(0 72% 51%)">
+              <p className="print-label" style={{ color: "hsl(0 72% 51%)" }}>Kill Shot</p>
+              <p className="print-body-sm font-semibold">{redTeam.killShot}</p>
+            </PrintCard>
+          )}
+        </div>
+      )}
+
+      {/* Blue Team */}
+      {blueTeam?.arguments?.length && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title" style={{ color: "hsl(142 70% 35%)" }}>
+            <Shield size={12} /> Blue Team — Why It Could Succeed
+          </h3>
+          {blueTeam.verdict && <p className="print-body font-semibold">{blueTeam.verdict}</p>}
+          {blueTeam.arguments.map((arg, i) => (
+            <PrintCard key={i} accent={arg.strength === "strong" ? "hsl(142 70% 40%)" : "hsl(217 91% 55%)"}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.2rem" }}>
+                <p className="print-card-title" style={{ margin: 0 }}>{arg.title}</p>
+                <PrintTag label={arg.strength?.toUpperCase() || "—"} color={arg.strength === "strong" ? "hsl(142 70% 40%)" : "hsl(217 91% 55%)"} />
+              </div>
+              <p className="print-body-sm">{arg.argument}</p>
+              {arg.enabler && <p className="print-body-sm" style={{ color: "hsl(220 10% 50%)" }}>Enabler: {arg.enabler}</p>}
+            </PrintCard>
+          ))}
+          {blueTeam.moonshot && (
+            <PrintCard accent="hsl(142 70% 40%)">
+              <p className="print-label" style={{ color: "hsl(142 70% 35%)" }}>Moonshot Scenario</p>
+              <p className="print-body-sm font-semibold">{blueTeam.moonshot}</p>
+            </PrintCard>
+          )}
+        </div>
+      )}
+
+      {/* Counter Examples */}
+      {counterExamples.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title">
+            <Globe size={12} /> Counter Examples
+          </h3>
+          {counterExamples.map((ex, i) => {
+            const outcomeColor = ex.outcome === "succeeded" ? "hsl(142 70% 40%)" : ex.outcome === "failed" ? "hsl(0 72% 51%)" : "hsl(38 92% 50%)";
+            return (
+              <PrintCard key={i} accent={outcomeColor}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.2rem" }}>
+                  <p className="print-card-title" style={{ margin: 0 }}>{ex.name}</p>
+                  <PrintTag label={ex.outcome?.toUpperCase()} color={outcomeColor} />
+                  {ex.year && <span className="print-body-sm" style={{ color: "hsl(220 10% 55%)" }}>{ex.year}</span>}
+                </div>
+                {ex.similarity && <p className="print-body-sm">Similarity: {ex.similarity}</p>}
+                <p className="print-body-sm font-semibold">Lesson: {ex.lesson}</p>
+                {ex.revenue && <p className="print-body-sm" style={{ color: "hsl(220 10% 50%)" }}>{ex.revenue}</p>}
+              </PrintCard>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Confidence Scores */}
+      {confidenceScores && Object.keys(confidenceScores).length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><BarChart3 size={12} /> Confidence Scores</h3>
+          <div className="print-grid-2">
+            {Object.entries(confidenceScores).map(([key, val]) => {
+              const label = key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase());
+              const score = typeof val === "object" ? val.score : val;
+              const reasoning = typeof val === "object" ? val.reasoning : "";
+              const color = (score as number) >= 7 ? "hsl(142 70% 40%)" : (score as number) >= 5 ? "hsl(38 92% 50%)" : "hsl(0 72% 51%)";
+              return (
+                <div key={key} className="print-info-box">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <p className="print-label">{label}</p>
+                    <span className="print-score-badge" style={{ background: color + "18", color }}>{String(score)}/10</span>
+                  </div>
+                  {reasoning && <p className="print-body-sm">{reasoning}</p>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Feasibility */}
+      {feasibility.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><CheckCircle2 size={12} /> Feasibility Checklist</h3>
+          {feasibility.map((item, i) => {
+            const statusColor = item.status === "critical" ? "hsl(0 72% 51%)" : item.status === "important" ? "hsl(38 92% 50%)" : "hsl(220 10% 55%)";
+            return (
+              <PrintCard key={i} accent={statusColor}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.15rem" }}>
+                  <p className="print-card-title" style={{ margin: 0 }}>{item.item}</p>
+                  <PrintTag label={item.status?.toUpperCase()} color={statusColor} />
+                </div>
+                <p className="print-body-sm">{item.detail}</p>
+                {item.estimatedCost && <p className="print-body-sm" style={{ color: "hsl(220 10% 50%)" }}>Est. cost: {item.estimatedCost}</p>}
+              </PrintCard>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Blind Spots */}
+      {blindSpots.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><AlertTriangle size={12} /> Blind Spots</h3>
+          {blindSpots.map((b, i) => (
+            <div key={i} className="print-list-item">
+              <AlertTriangle size={10} style={{ color: "hsl(38 92% 50%)", flexShrink: 0, marginTop: 2 }} />
+              <span>{b}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Strategic Recommendations */}
+      {recommendations.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><Rocket size={12} /> Strategic Recommendations</h3>
+          {recommendations.map((r, i) => (
+            <div key={i} className="print-list-item">
+              <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+              <span>{r}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </PrintSection>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PITCH DECK
+   ═══════════════════════════════════════════════════════════════ */
+
+function PitchDeckSection({ data }: { data: Record<string, unknown> }) {
+  const d = data as Record<string, any>;
+  const market = d.marketOpportunity as { tam?: string; sam?: string; som?: string; growthRate?: string } | undefined;
+  const financials = d.financialModel as Record<string, any> | undefined;
+  const risks = (d.risks || d.risksMitigation) as any[] | undefined;
+  const milestones = (d.milestones || d.implementationTimeline) as any[] | undefined;
+  const competitiveAdvantage = (d.competitiveAdvantage || d.competitiveMoat) as string[] | string | undefined;
+
+  return (
+    <PrintSection title="Pitch Deck" icon={<BarChart3 size={14} />}>
+      {/* Tagline & Elevator Pitch */}
+      {(d.tagline || d.elevatorPitch) && (
+        <PrintCard accent="hsl(271 81% 55%)">
+          {d.tagline && <p className="print-body font-bold" style={{ fontSize: "14px" }}>{d.tagline}</p>}
+          {d.elevatorPitch && <p className="print-body-sm">{d.elevatorPitch}</p>}
+        </PrintCard>
+      )}
+
+      {/* Problem / Solution */}
+      {(d.problemStatement || d.solutionStatement) && (
+        <div className="print-grid-2">
+          {d.problemStatement && (
+            <PrintCard accent="hsl(0 72% 51%)">
+              <p className="print-label">Problem</p>
+              <p className="print-body-sm">{d.problemStatement}</p>
+            </PrintCard>
+          )}
+          {d.solutionStatement && (
+            <PrintCard accent="hsl(142 70% 40%)">
+              <p className="print-label">Solution</p>
+              <p className="print-body-sm">{d.solutionStatement}</p>
+            </PrintCard>
+          )}
+        </div>
+      )}
+
+      {/* Why Now */}
+      {d.whyNow && (
+        <PrintCard>
+          <p className="print-label">Why Now</p>
+          <p className="print-body-sm">{d.whyNow}</p>
+        </PrintCard>
+      )}
+
+      {/* Market Opportunity */}
+      {market && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><Globe size={12} /> Market Opportunity</h3>
+          <div className="print-grid-4">
+            <PrintMetricBox label="TAM" value={market.tam} />
+            <PrintMetricBox label="SAM" value={market.sam} />
+            <PrintMetricBox label="SOM" value={market.som} />
+            <PrintMetricBox label="Growth" value={market.growthRate} />
+          </div>
+        </div>
+      )}
+
+      {/* Financial Model */}
+      {financials && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><DollarSign size={12} /> Financial Model</h3>
+          {financials.unitEconomics && (
+            <div className="print-grid-3">
+              <PrintMetricBox label="COGS" value={financials.unitEconomics.cogs} />
+              <PrintMetricBox label="Retail Price" value={financials.unitEconomics.retailPrice} />
+              <PrintMetricBox label="Gross Margin" value={financials.unitEconomics.grossMargin} />
+              <PrintMetricBox label="Payback" value={financials.unitEconomics.paybackPeriod} />
+              <PrintMetricBox label="LTV" value={financials.unitEconomics.ltv} />
+              <PrintMetricBox label="CAC" value={financials.unitEconomics.cac} />
+            </div>
+          )}
+          {financials.scenarios && (
+            <div className="print-grid-3" style={{ marginTop: "0.5rem" }}>
+              {["conservative", "base", "optimistic"].map((key) => {
+                const s = financials.scenarios?.[key];
+                if (!s) return null;
+                const color = key === "conservative" ? "hsl(38 92% 50%)" : key === "optimistic" ? "hsl(142 70% 40%)" : "hsl(217 91% 55%)";
+                return (
+                  <PrintCard key={key} accent={color}>
+                    <p className="print-label">{key.charAt(0).toUpperCase() + key.slice(1)}</p>
+                    <p className="print-body-sm">Units: {s.units}</p>
+                    <p className="print-body-sm">Revenue: {s.revenue}</p>
+                    <p className="print-body-sm">Profit: {s.profit}</p>
+                    {s.assumptions && <p className="print-body-sm" style={{ color: "hsl(220 10% 50%)" }}>{s.assumptions}</p>}
+                  </PrintCard>
+                );
+              })}
+            </div>
+          )}
+          {financials.fundingAsk && (
+            <PrintCard accent="hsl(271 81% 55%)">
+              <p className="print-label">Funding Ask</p>
+              <p className="print-body-sm font-semibold">{financials.fundingAsk}</p>
+              {financials.useOfFunds?.length > 0 && (
+                <div style={{ marginTop: "0.3rem" }}>
+                  {financials.useOfFunds.map((u: string, i: number) => (
+                    <div key={i} className="print-list-item">
+                      <CheckCircle2 size={9} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+                      <span>{u}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </PrintCard>
+          )}
+        </div>
+      )}
+
+      {/* Competitive Advantage */}
+      {competitiveAdvantage && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><Shield size={12} /> Competitive Advantage</h3>
+          {Array.isArray(competitiveAdvantage) ? (
+            competitiveAdvantage.map((a, i) => (
+              <div key={i} className="print-list-item">
+                <Shield size={10} style={{ color: "hsl(217 91% 55%)", flexShrink: 0, marginTop: 2 }} />
+                <span>{a}</span>
+              </div>
+            ))
+          ) : (
+            <p className="print-body-sm">{competitiveAdvantage}</p>
+          )}
+        </div>
+      )}
+
+      {/* Risks */}
+      {risks && Array.isArray(risks) && risks.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><AlertTriangle size={12} /> Risks & Mitigation</h3>
+          {risks.map((r, i) => (
+            <PrintCard key={i} accent="hsl(38 92% 50%)">
+              <p className="print-card-title">{r.risk || r.title || r.name || `Risk ${i + 1}`}</p>
+              {r.mitigation && <p className="print-body-sm">Mitigation: {r.mitigation}</p>}
+              {r.severity && <PrintTag label={r.severity} color="hsl(38 92% 50%)" />}
+            </PrintCard>
+          ))}
+        </div>
+      )}
+
+      {/* Milestones */}
+      {milestones && Array.isArray(milestones) && milestones.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><Clock size={12} /> Milestones</h3>
+          {milestones.map((m, i) => (
+            <div key={i} className="print-list-item">
+              <span className="print-card-number">{i + 1}</span>
+              <span>{typeof m === "string" ? m : `${m.milestone || m.title || ""} — ${m.timeline || m.date || ""}`}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </PrintSection>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PATENT INTELLIGENCE
+   ═══════════════════════════════════════════════════════════════ */
+
+function PatentSection({ data }: { data: Record<string, unknown> }) {
+  const patents = (data.patents || data.relevantPatents) as any[] | undefined;
+  const landscape = data.landscapeAnalysis as string | undefined;
+  const whitespace = (data.whitespaceOpportunities || data.opportunities) as string[] | undefined;
+
+  if (!patents?.length && !landscape && !whitespace?.length) {
+    return <PrintJSON data={data} />;
+  }
+
+  return (
+    <>
+      {landscape && (
+        <PrintCard>
+          <p className="print-label">Landscape Analysis</p>
+          <p className="print-body-sm">{landscape}</p>
+        </PrintCard>
+      )}
+      {patents && patents.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><ScrollText size={12} /> Relevant Patents</h3>
+          {patents.map((p, i) => (
+            <PrintCard key={i}>
+              <p className="print-card-title">{p.title || p.name || `Patent ${i + 1}`}</p>
+              {p.patentNumber && <p className="print-body-sm" style={{ color: "hsl(220 10% 50%)" }}>{p.patentNumber}</p>}
+              {p.assignee && <p className="print-body-sm">Assignee: {p.assignee}</p>}
+              {(p.abstract || p.description || p.summary) && <p className="print-body-sm">{p.abstract || p.description || p.summary}</p>}
+              {p.relevance && <p className="print-body-sm font-semibold">Relevance: {p.relevance}</p>}
+            </PrintCard>
+          ))}
+        </div>
+      )}
+      {whitespace && whitespace.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title"><Lightbulb size={12} /> Whitespace Opportunities</h3>
+          {whitespace.map((w, i) => (
+            <div key={i} className="print-list-item">
+              <Lightbulb size={10} style={{ color: "hsl(38 92% 50%)", flexShrink: 0, marginTop: 2 }} />
+              <span>{w}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FALLBACK JSON RENDERER (for truly unknown data)
+   ═══════════════════════════════════════════════════════════════ */
+
 function PrintJSON({ data }: { data: Record<string, unknown> }) {
   if (!data) return null;
 
