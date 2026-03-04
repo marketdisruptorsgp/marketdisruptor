@@ -1,65 +1,41 @@
 
 
-## Intel Digest: A Structured Signal Summary for the Report Page
+## Diagnosis
 
-### What it is
-A new `IntelDigest` component placed at the top of the report (above the accordion sections), acting as a distilled visual dashboard of the key findings. It extracts signals from the existing product data — strengths, complaints, friction points, reviews — and presents them in a scannable, interactive, color-coded layout.
+**Truncation issue:** The `generate-pitch-deck` edge function requests `max_tokens: 24000` but the JSON schema is massive (~163 lines of structured output). The AI model frequently hits the token limit, producing truncated JSON. The current repair logic (brace-balancing) partially works but loses entire slide sections (typically the last 2-4 fields like `competitiveLandscape`, `investmentAsk`, `supplierContacts`). There is **no `finish_reason` check** — truncated outputs silently pass through.
 
-### Data Sources (all already available on `selectedProduct`)
-- **Strengths**: Positive reviews, high confidence scores, key insight
-- **Complaints**: `communityInsights.topComplaints`
-- **Friction Points**: `userWorkflow.frictionPoints`
-- **Requests**: `communityInsights.improvementRequests`
-- **Pricing Signal**: `pricingIntel.priceDirection`
+**Styling/wow factor:** The current slide components are functional but lack visual punch — everything uses the same `#fafafa` panels with `1px solid #e8e8ec` borders. No gradients, no depth hierarchy, no dramatic focal points.
 
-### Visual Design
+## Plan
 
-```text
-┌─────────────────────────────────────────────────────┐
-│  Intel Digest                                       │
-├──────────┬──────────┬──────────┬────────────────────┤
-│ Strengths│Complaints│ Friction │ Requests           │
-│  (green) │  (red)   │ (amber)  │ (blue)             │
-├──────────┴──────────┴──────────┴────────────────────┤
-│                                                     │
-│  ● Strong brand nostalgia        [☐] [expand ▾]    │
-│  ● Film cost is #1 barrier       [☐] [expand ▾]    │
-│  ● Checkout flow has 3 drops     [☐] [expand ▾]    │
-│  ...                                                │
-└─────────────────────────────────────────────────────┘
-```
+### 1. Fix truncation — Edge function improvements
+**File:** `supabase/functions/generate-pitch-deck/index.ts`
 
-### Layout & Interaction
-- **4-column tab bar** at the top: Strengths (green), Complaints (red), Friction (amber), Requests (blue). Each tab shows a count badge.
-- **Signal rows** below the active tab: each row shows:
-  - A colored dot matching the category
-  - The signal text (full text, no truncation)
-  - A **checkbox** (☐) — user can checkmark items they care about
-  - An **expand** toggle — reveals a text area for adding a personal note
-- Checked items and notes are **persisted** via `saveStepData("intelDigestNotes", ...)` to `analysis_data`, same pattern as `projectNotes`.
-- All text is high-contrast black (`text-foreground`), 13px body. No cut-off — each row expands naturally.
-- Mode-agnostic: works for Product (reviews + supply chain signals), Service (community + journey), Business (all applicable fields). Falls back gracefully if a category has zero items.
+- Check `finish_reason` / `finishReason` — if `"length"` or `"MAX_TOKENS"`, log warning and attempt a **completion request** (send the truncated JSON back with instruction to complete it)
+- Reduce prompt input size: trim `disruptData`, `stressTestData`, `redesignData` to only essential fields (not full JSON dumps) — cut input tokens by ~40%
+- Simplify the JSON schema in the prompt: remove `supplierContacts` and `distributorContacts` from the required output (these are rarely rendered and consume ~15% of output tokens). Generate them only if explicitly needed.
+- Add `"response_format": { "type": "json_object" }` to force JSON mode (supported by Gemini via the gateway)
 
-### Implementation Plan
+### 2. Add defensive fallbacks — Frontend
+**File:** `src/components/PitchDeck.tsx`
 
-**1. New component: `src/components/IntelDigest.tsx`**
-- Props: `product: Product`, `analysisId: string | null`, `saveStepData: fn`
-- Internal state: `activeTab` (strengths | complaints | friction | requests), `checkedItems: Record<string, boolean>`, `notes: Record<string, string>`
-- On mount, loads persisted digest notes from `analysis_data.intelDigestNotes`
-- Each tab filters signals from the product data
-- Checkbox toggles and note edits auto-save with debounce
+- Add null guards on every slide section: `data.risks?.slice(0, 4)` → already done for some, but `data.competitiveAdvantages`, `data.investorHighlights`, `data.keyMetrics` etc. need `|| []` fallbacks
+- If a slide's content is entirely empty (all fields null), show a "This section wasn't generated — click Regenerate" placeholder instead of blank/crashing
 
-**2. Update `src/pages/ReportPage.tsx`**
-- Import and render `<IntelDigest>` between the `<ProductCard>` and the `<AnalysisVisualLayer>` accordion sections
-- Pass `selectedProduct`, `analysisId`, `analysis.saveStepData`
+### 3. Enhance slide styling — Visual wow factor
+**File:** `src/components/pitch/PitchSlideFrame.tsx`
 
-**3. No backend changes** — uses existing `saveStepData` which writes to `saved_analyses.analysis_data`
+- **Cover slide**: Add a subtle gradient wash using the accent color (radial gradient from bottom-right corner at 5% opacity), larger monogram, and a geometric accent shape
+- **SlideQuoteBlock**: Add a faint gradient background instead of flat `#fafafa`, larger opening quote mark as a decorative element
+- **KeyMetricPanel**: Make the value dramatically larger (64px+), add a subtle pulsing glow ring behind the number
+- **InsightCard**: Add a subtle top-border gradient (accent → transparent) instead of flat 3px border
+- **TakeawayCallout**: Add a frosted-glass effect with backdrop blur styling
+- **RiskSeverityBar**: Wider track (10px), rounded pill shape, animated fill on mount
+- **PitchSlideFrame header**: Add a subtle gradient fade beneath the header divider for depth
+- **SlideStatCard**: Add hover-like elevation shadow for more dimensionality
+- **MarketSizeVisual**: Add animated dash-array on circles for a premium feel, subtle radial gradient fill
 
-### Technical Details
-- Tabs use simple state, not Radix Tabs (keeps it lightweight)
-- Checkbox state stored as `{ [signalText]: true }` 
-- Notes stored as `{ [signalText]: "user note text" }`
-- Both persisted together as `intelDigestNotes` in analysis_data
-- Expand/collapse uses Collapsible from Radix (already installed)
-- Colors: green-600, red-500, amber-500, blue-500 for category dots/tabs — all on white/card background for high contrast
+### 4. Consistent across modes
+- All accent colors already flow through `accentColor` prop — no mode-specific fixes needed
+- Add the same null-guard pattern to all slide content blocks so Service and Business analyses with different data shapes don't break
 
