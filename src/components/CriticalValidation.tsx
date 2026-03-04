@@ -299,124 +299,114 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           </div>
         </DetailPanel>
 
-        {/* Red Team — AGAINST the idea */}
-        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--destructive))" }}>
-              <XCircle size={14} style={{ color: "white" }} />
-            </div>
-            <div>
-              <p className="typo-card-eyebrow" style={{ color: "hsl(var(--destructive))" }}>Red Team — Against This Idea</p>
-              <p className="typo-card-meta text-muted-foreground">Why this concept will fail</p>
-            </div>
-          </div>
-          <p className="typo-card-body font-semibold text-foreground leading-relaxed">{data.redTeam.verdict}</p>
-        </div>
-
-        {(data.redTeam?.arguments || []).slice(0, 2).map((arg, i) => {
-          const s = SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor;
-          return (
-            <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-              <div className="flex items-center justify-between mb-1">
-                <p className="typo-card-body font-bold text-foreground">{arg.title}</p>
-                <span className="px-2 py-0.5 rounded-full typo-status-label" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>{s.label}</span>
+        {/* ═══ SPLIT ARENA: Red (left) vs Green (right) ═══ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+          {/* ── RED TEAM (left) ── */}
+          <div className="relative" style={{ background: "hsl(0 72% 52% / 0.04)" }}>
+            {/* Red header band */}
+            <div className="px-5 py-4 flex items-center gap-3" style={{ background: "hsl(0 72% 48%)" }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
+                <XCircle size={18} style={{ color: "white" }} />
               </div>
-              <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
-              <InsightRating sectionId={`red-${i}`} compact />
+              <div>
+                <p className="text-sm font-extrabold text-white tracking-tight">Red Team</p>
+                <p className="text-[11px] text-white/70 font-medium">Against This Idea</p>
+              </div>
             </div>
-          );
-        })}
 
-        {(data.redTeam?.arguments || []).length > 2 && (
-          <DetailPanel title={`${(data.redTeam?.arguments || []).length - 2} more Red Team arguments`} icon={XCircle}>
-            <div className="space-y-3 mb-2">
-              {(data.redTeam?.arguments || []).slice(2).map((arg, i) => {
+            <div className="p-4 space-y-3">
+              {/* Verdict */}
+              <div className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(0 72% 52% / 0.15)" }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(0 72% 48%)" }}>Verdict</p>
+                <p className="text-sm text-foreground leading-relaxed">{data.redTeam.verdict}</p>
+              </div>
+
+              {/* Arguments */}
+              {(data.redTeam?.arguments || []).map((arg, i) => {
                 const s = SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor;
                 return (
-                  <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                    <p className="typo-card-body font-bold text-foreground mb-1">{arg.title}</p>
-                    <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <span className="typo-card-meta font-semibold" style={{ color: "hsl(271 81% 40%)" }}>Bias: {arg.biasExposed}</span>
+                  <div key={i} className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-sm font-bold text-foreground">{arg.title}</p>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider" style={{ background: `${s.text}15`, color: s.text }}>{s.label}</span>
                     </div>
+                    <p className="text-sm text-foreground/80 leading-relaxed">{arg.argument}</p>
+                    {arg.biasExposed && (
+                      <p className="text-[11px] mt-1.5 font-medium" style={{ color: "hsl(271 81% 45%)" }}>Bias: {arg.biasExposed}</p>
+                    )}
+                    <InsightRating sectionId={`red-${i}`} compact />
                   </div>
                 );
               })}
-            </div>
-          </DetailPanel>
-        )}
 
-        {/* Kill Shot */}
-        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}>
-            <Flame size={11} /> Kill Shot
-          </p>
-          <p className="typo-card-body font-bold text-foreground leading-relaxed">{data.redTeam.killShot}</p>
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px" style={{ background: "hsl(var(--border))" }} />
-          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-            <Swords size={14} style={{ color: "white" }} />
-          </div>
-          <div className="flex-1 h-px" style={{ background: "hsl(var(--border))" }} />
-        </div>
-
-        {/* Green Team — FOR the idea */}
-        <div className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(142 70% 45%)" }}>
-              <CheckCircle2 size={14} style={{ color: "white" }} />
-            </div>
-            <div>
-              <p className="typo-card-eyebrow" style={{ color: "hsl(142 70% 30%)" }}>Green Team — For This Idea</p>
-              <p className="typo-card-meta text-muted-foreground">Why this concept will succeed</p>
-            </div>
-          </div>
-          <p className="typo-card-body font-semibold text-foreground leading-relaxed">{data.blueTeam.verdict}</p>
-        </div>
-
-        {(data.blueTeam?.arguments || []).slice(0, 2).map((arg, i) => {
-          const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;
-          return (
-            <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-              <div className="flex items-center justify-between mb-1">
-                <p className="typo-card-body font-bold text-foreground">{arg.title}</p>
-                <span className="px-2 py-0.5 rounded-full typo-status-label" style={{ background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>{s.label}</span>
+              {/* Kill Shot */}
+              <div className="rounded-xl p-3.5" style={{ background: "hsl(0 72% 52% / 0.06)", border: "1px solid hsl(0 72% 52% / 0.18)" }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(0 72% 48%)" }}>
+                  <Flame size={11} /> Kill Shot
+                </p>
+                <p className="text-sm font-semibold text-foreground leading-relaxed">{data.redTeam.killShot}</p>
               </div>
-              <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
-              <InsightRating sectionId={`blue-${i}`} compact />
             </div>
-          );
-        })}
+          </div>
 
-        {(data.blueTeam?.arguments || []).length > 2 && (
-          <DetailPanel title={`${(data.blueTeam?.arguments || []).length - 2} more Green Team arguments`} icon={CheckCircle2}>
-            <div className="space-y-3 mb-2">
-              {(data.blueTeam?.arguments || []).slice(2).map((arg, i) => {
+          {/* ── CENTER VS DIVIDER (visible on md+) ── */}
+          {/* The grid gap=0 + border between cells creates natural division */}
+
+          {/* ── GREEN TEAM (right) ── */}
+          <div className="relative" style={{ background: "hsl(142 60% 45% / 0.04)", borderLeft: "1px solid hsl(var(--border))" }}>
+            {/* Green header band */}
+            <div className="px-5 py-4 flex items-center gap-3" style={{ background: "hsl(142 60% 38%)" }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
+                <CheckCircle2 size={18} style={{ color: "white" }} />
+              </div>
+              <div>
+                <p className="text-sm font-extrabold text-white tracking-tight">Green Team</p>
+                <p className="text-[11px] text-white/70 font-medium">For This Idea</p>
+              </div>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {/* Verdict */}
+              <div className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(142 60% 45% / 0.15)" }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(142 60% 35%)" }}>Verdict</p>
+                <p className="text-sm text-foreground leading-relaxed">{data.blueTeam.verdict}</p>
+              </div>
+
+              {/* Arguments */}
+              {(data.blueTeam?.arguments || []).map((arg, i) => {
                 const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;
                 return (
-                  <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                    <p className="typo-card-body font-bold text-foreground mb-1">{arg.title}</p>
-                    <p className="typo-card-body text-foreground/80 leading-relaxed">{arg.argument}</p>
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <span className="typo-card-meta font-semibold" style={{ color: "hsl(var(--primary))" }}>Enabler: {arg.enabler}</span>
+                  <div key={i} className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="text-sm font-bold text-foreground">{arg.title}</p>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider" style={{ background: `${s.text}15`, color: s.text }}>{s.label}</span>
                     </div>
+                    <p className="text-sm text-foreground/80 leading-relaxed">{arg.argument}</p>
+                    {arg.enabler && (
+                      <p className="text-[11px] mt-1.5 font-medium" style={{ color: "hsl(142 60% 35%)" }}>Enabler: {arg.enabler}</p>
+                    )}
+                    <InsightRating sectionId={`blue-${i}`} compact />
                   </div>
                 );
               })}
-            </div>
-          </DetailPanel>
-        )}
 
-        {/* Moonshot */}
-        <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}>
-            <Target size={11} /> Moonshot Potential
-          </p>
-          <p className="typo-card-body font-bold text-foreground leading-relaxed">{data.blueTeam.moonshot}</p>
+              {/* Moonshot */}
+              <div className="rounded-xl p-3.5" style={{ background: "hsl(142 60% 45% / 0.06)", border: "1px solid hsl(142 60% 45% / 0.18)" }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(142 60% 35%)" }}>
+                  <Target size={11} /> Moonshot Potential
+                </p>
+                <p className="text-sm font-semibold text-foreground leading-relaxed">{data.blueTeam.moonshot}</p>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* VS badge overlay — centered on the divider */}
+        <div className="relative -mt-[calc(50%+1rem)] hidden md:block pointer-events-none" style={{ height: 0 }}>
+          {/* Rendered via CSS below instead */}
+        </div>
+
+        {/* ═══ BELOW THE ARENA: shared sections ═══ */}
 
         {/* Counter Examples — collapsed */}
         {data.counterExamples?.length > 0 && (
