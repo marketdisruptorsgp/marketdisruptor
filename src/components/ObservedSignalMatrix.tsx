@@ -38,6 +38,8 @@ interface QuadrantDef {
   dotColor: string;
   barColor: string;
   bgTint: string;
+  headerBg: string;
+  headerText: string;
   explanation: string;
   /** Priority for slot selection — higher = more likely to be shown */
   priority: number;
@@ -53,9 +55,11 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "What's Working",
     subtitle: "Strongest positive signals",
     icon: ShieldCheck,
-    dotColor: "bg-green-600",
+    dotColor: "bg-green-700",
     barColor: "bg-green-600",
-    bgTint: "bg-green-200/60 dark:bg-green-950/40",
+    bgTint: "bg-green-50 dark:bg-green-950/50",
+    headerBg: "bg-green-600",
+    headerText: "text-white",
     explanation: "These are the things people genuinely like. High scores mean more people mentioned it positively or it showed up as a clear advantage.",
     priority: 100, // always try to show
     extract: (product, mkId) => {
@@ -93,9 +97,11 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Top Complaints",
     subtitle: "Most common pain points",
     icon: AlertTriangle,
-    dotColor: "bg-red-600",
+    dotColor: "bg-red-700",
     barColor: "bg-red-600",
-    bgTint: "bg-red-200/50 dark:bg-red-950/40",
+    bgTint: "bg-red-50 dark:bg-red-950/50",
+    headerBg: "bg-red-600",
+    headerText: "text-white",
     explanation: "These are the most frequently mentioned frustrations from real users. Higher scores indicate more people raised this same issue.",
     priority: 90, // always try to show
     extract: (product, mkId) => {
@@ -129,9 +135,11 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Friction in the Journey",
     subtitle: "Where users get stuck or drop off",
     icon: Eye,
-    dotColor: "bg-amber-600",
+    dotColor: "bg-amber-700",
     barColor: "bg-amber-600",
-    bgTint: "bg-amber-200/50 dark:bg-amber-950/40",
+    bgTint: "bg-amber-50 dark:bg-amber-950/50",
+    headerBg: "bg-amber-500",
+    headerText: "text-white",
     explanation: "These are moments in the user experience where people slow down, get confused, or leave. Pulled from the user journey analysis and workflow data.",
     priority: 80,
     extract: (product, mkId) => {
@@ -218,9 +226,11 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Emerging Patterns",
     subtitle: "Signals worth watching",
     icon: TrendingUp,
-    dotColor: "bg-blue-600",
+    dotColor: "bg-blue-700",
     barColor: "bg-blue-600",
-    bgTint: "bg-blue-200/50 dark:bg-blue-950/40",
+    bgTint: "bg-blue-50 dark:bg-blue-950/50",
+    headerBg: "bg-blue-600",
+    headerText: "text-white",
     explanation: "These are improvement requests, unmet needs, or growing trends that could become opportunities. They're not yet problems — they're openings.",
     priority: 70,
     extract: (product, mkId) => {
@@ -248,9 +258,11 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Competitive Gaps",
     subtitle: "Where rivals fall short",
     icon: AlertTriangle,
-    dotColor: "bg-purple-600",
+    dotColor: "bg-purple-700",
     barColor: "bg-purple-600",
-    bgTint: "bg-purple-200/50 dark:bg-purple-950/40",
+    bgTint: "bg-purple-50 dark:bg-purple-950/50",
+    headerBg: "bg-purple-600",
+    headerText: "text-white",
     explanation: "Market gaps and weaknesses in current competitors. These are openings that could be exploited for differentiation.",
     priority: 60,
     extract: (product, mkId) => {
@@ -274,9 +286,11 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Operational Bottlenecks",
     subtitle: "What limits scale and efficiency",
     icon: Eye,
-    dotColor: "bg-orange-600",
+    dotColor: "bg-orange-700",
     barColor: "bg-orange-600",
-    bgTint: "bg-orange-200/50 dark:bg-orange-950/40",
+    bgTint: "bg-orange-50 dark:bg-orange-950/50",
+    headerBg: "bg-orange-600",
+    headerText: "text-white",
     explanation: "Structural bottlenecks in how the service or business operates. These constrain growth and create inefficiency.",
     priority: 65,
     extract: (product, mkId) => {
@@ -306,9 +320,11 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Pricing Intelligence",
     subtitle: "Market price dynamics and margins",
     icon: TrendingUp,
-    dotColor: "bg-emerald-600",
+    dotColor: "bg-emerald-700",
     barColor: "bg-emerald-600",
-    bgTint: "bg-emerald-200/50 dark:bg-emerald-950/40",
+    bgTint: "bg-emerald-50 dark:bg-emerald-950/50",
+    headerBg: "bg-emerald-600",
+    headerText: "text-white",
     explanation: "Key pricing signals including market rates, margin data, and price direction trends from verified and modeled sources.",
     priority: 50,
     extract: (product, mkId) => {
@@ -339,9 +355,11 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Supply Chain Intel",
     subtitle: "Sourcing, manufacturing, distribution",
     icon: ShieldCheck,
-    dotColor: "bg-teal-600",
+    dotColor: "bg-teal-700",
     barColor: "bg-teal-600",
-    bgTint: "bg-teal-200/50 dark:bg-teal-950/40",
+    bgTint: "bg-teal-50 dark:bg-teal-950/50",
+    headerBg: "bg-teal-600",
+    headerText: "text-white",
     explanation: "Intelligence on suppliers, manufacturers, distributors and retailers. Shows the supply network structure.",
     priority: 40,
     extract: (product, mkId) => {
@@ -379,6 +397,8 @@ interface ActiveQuadrant {
   dotColor: string;
   barColor: string;
   bgTint: string;
+  headerBg: string;
+  headerText: string;
   explanation: string;
 }
 
@@ -413,6 +433,8 @@ function selectQuadrants(product: Product): { quadrants: ActiveQuadrant[]; data:
     dotColor: s.def.dotColor,
     barColor: s.def.barColor,
     bgTint: s.def.bgTint,
+    headerBg: s.def.headerBg,
+    headerText: s.def.headerText,
     explanation: s.def.explanation,
   }));
 
@@ -603,35 +625,37 @@ function QuadrantCard({
   const Icon = config.icon;
 
   return (
-    <div className={`border-b border-r border-border/60 last:border-r-0 p-6 ${config.bgTint}`}>
-      {/* Quadrant header */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm border border-white/60`} style={{ background: "hsl(var(--background) / 0.9)" }}>
-          <Icon size={17} className="text-foreground" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-1.5">
-            <h3 className="text-sm font-extrabold text-foreground tracking-tight">{config.title}</h3>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="text-muted-foreground/60 hover:text-foreground transition-colors">
-                  <Info size={11} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[260px] text-xs leading-relaxed">
-                {config.explanation}
-              </TooltipContent>
-            </Tooltip>
+    <div className={`border-b border-r border-border/60 last:border-r-0 ${config.bgTint}`}>
+      {/* Bold colored header bar */}
+      <div className={`px-5 py-3 ${config.headerBg} ${config.headerText} flex items-center justify-between`}>
+        <div className="flex items-center gap-2.5">
+          <Icon size={16} />
+          <div>
+            <h3 className="text-sm font-extrabold tracking-tight uppercase">{config.title}</h3>
+            <p className="text-[11px] opacity-80">{config.subtitle}</p>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">{config.subtitle}</p>
         </div>
-        <span className="text-xl font-black text-foreground tabular-nums">{signals.length}</span>
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="opacity-70 hover:opacity-100 transition-opacity">
+                <Info size={13} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[260px] text-xs leading-relaxed">
+              {config.explanation}
+            </TooltipContent>
+          </Tooltip>
+          <span className="text-xl font-black tabular-nums">{signals.length}</span>
+        </div>
       </div>
 
+      {/* Signal content */}
+      <div className="p-5">
       {signals.length === 0 ? (
         <p className="text-xs text-muted-foreground py-4 text-center italic">No signals detected in this category</p>
       ) : (
-        <div className="mt-4 divide-y divide-foreground/15">
+        <div className="divide-y divide-foreground/10">
           {signals.slice(0, 3).map((signal) => (
             <SignalRow
               key={signal.id}
@@ -645,7 +669,7 @@ function QuadrantCard({
           {signals.length > 3 && (
             <Collapsible>
               <CollapsibleContent>
-                <div className="divide-y divide-foreground/15">
+                <div className="divide-y divide-foreground/10">
                   {signals.slice(3).map((signal) => (
                     <SignalRow
                       key={signal.id}
@@ -666,6 +690,7 @@ function QuadrantCard({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
