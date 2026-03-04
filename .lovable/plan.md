@@ -1,118 +1,85 @@
+# No dark slides. 
 
+&nbsp;
 
-# Mobile UX Overhaul — World-Class Standards
+# Pitch Deck Visual Wow Factor Upgrade
 
-## Current Issues Identified
+## Current State
 
-1. **Navigation**: Mobile hamburger menu is a plain list with no visual hierarchy, no active state indicators, and no quick-action buttons. The user avatar button is too small (28px tap target). No bottom navigation for core actions.
-2. **Start Page Hero**: `text-7xl` title causes horizontal overflow on small screens (390px). The rotating word has no width constraint, causing layout shift.
-3. **Mode Cards**: `grid-cols-1 md:grid-cols-3` works but cards are overly tall on mobile with excessive padding (`p-5 sm:p-6`). No horizontal swipe affordance.
-4. **Step Navigator**: `min-w-max` with horizontal scroll and no scroll indicators. Steps are tiny pill-shaped buttons that are hard to tap. No visible scrollbar or swipe hint.
-5. **Showcase Gallery**: Carousel arrows (`CarouselPrevious`/`CarouselNext`) clip outside container on mobile (`-left-4`). Images are full-width but captions are cramped.
-6. **Analysis Setup (NewAnalysisPage)**: The "Deconstruct My Problem" textarea and clarifier section has excessive nested padding on mobile. "Continue to Configuration" button is right-aligned and small on mobile — should be full-width.
-7. **Footer**: Duplicated across DashboardPage and StartPage with inconsistent structure.
-8. **Modals/Sheets**: UserHeader dropdown uses absolute positioning with `min(14rem, calc(100vw - 2rem))` which works but the font sizes and spacing are desktop-optimized.
-9. **About Page Hero**: `text-6xl sm:text-8xl` is good but line break mid-phrase on smaller screens.
-10. **Pipeline Steps (How It Works)**: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-6` — 2-col grid on mobile makes cards too narrow, descriptions get truncated.
-11. **Touch targets**: Multiple buttons throughout are below the 44px minimum recommended by Apple HIG / Material Design.
+Slides are predominantly white (`#ffffff`) with `#fafafa` panels, `#e8e8ec` borders, and a barely-visible grid pattern at 1.5% opacity. The accent glow is at 3-8% opacity. The result is clean but reads as a document rather than a presentation. Every slide has the same visual weight — no rhythm, no contrast, no drama.
 
 ## Plan
 
-### 1. Add Persistent Bottom Navigation Bar (Mobile Only)
-**New file: `src/components/MobileBottomNav.tsx`**
+### 1. Introduce Dark "Hero" Slides for Key Moments
 
-- Fixed bottom bar visible only on `md:hidden`
-- 4 tabs: Home, New Analysis, Workspace, Profile
-- Active state with accent color fill, inactive with muted
-- `safe-area-inset-bottom` padding for notched devices
-- 56px height with 44px+ tap targets
-- Renders in `App.tsx` inside the auth-gated routes
+Alternate between light and dark slides to create visual rhythm. The **Cover**, **Problem**, **Market**, and **The Ask** slides will use a dark theme (`#0a0a0f` background) with light text and glowing accent elements.
 
-### 2. Fix Start Page Mobile Hero
-**File: `src/pages/StartPage.tsx`**
+**File: `src/components/pitch/PitchSlideFrame.tsx**`
 
-- Reduce hero title from `text-7xl` to `text-4xl` on mobile (keep `sm:text-8xl md:text-9xl`)
-- Set `min-h-[52px]` on the rotating word container to prevent layout shift
-- Reduce hero padding: `pt-6 sm:pt-12`
+- Add a `variant` prop to `PitchSlideFrame`: `"light" | "dark"` (default `"light"`)
+- Dark variant: background `#0a0a0f`, text `#f4f4f5`, borders `rgba(255,255,255,0.08)`, footer `#111115`
+- Increase `AccentGlow` opacity from 3-8% to 10-20% on dark slides for dramatic radial washes
+- Add a subtle noise texture overlay (CSS `background-image` with inline SVG data URI) for depth
 
-### 3. Improve Mobile Navigation Drawer
-**File: `src/components/PlatformNav.tsx`**
+### 2. Amplify Cover Slide
 
-- Add active route highlighting in mobile menu
-- Add a prominent "Start Analysis" CTA button at the top of the drawer
-- Increase touch targets to 48px height
-- Add user info + plan badge at bottom of drawer
-- Sheet width from `w-72` to `w-[85vw] max-w-sm`
+**File: `src/components/pitch/PitchSlideFrame.tsx**` — `PitchCoverSlide`
 
-### 4. Optimize Mode Cards for Mobile
-**File: `src/pages/NewAnalysisPage.tsx`**
+- Switch to dark background with large radial accent gradient (35% opacity center fade)
+- Add animated concentric accent rings behind the monogram (3 rings, staggered opacity)
+- Product name in white with subtle text-shadow glow in accent color
+- Add a horizontal gradient divider line (accent → transparent) below the title
+- Increase geometric shapes: multiple offset circles at varying opacities
 
-- On mobile: make mode cards horizontal scroll (`flex overflow-x-auto snap-x`) instead of stacked grid — shows partial next card as swipe affordance
-- Reduce internal padding to `p-4` on mobile
-- Make "Continue to Configuration" button full-width on mobile
-- Reduce "Have a specific problem in mind?" divider text size on mobile
+### 3. Richer Data Visualization Components
 
-### 5. Enhance Step Navigator for Mobile
-**File: `src/components/StepNavigator.tsx`**
+**File: `src/components/pitch/PitchSlideFrame.tsx**`
 
-- Add scroll-snap behavior to step cards
-- Show gradient fade on right edge to hint at scrollability
-- Increase step card tap area to 48px minimum height
-- Add step number badge visible on mobile
+- `**SlideStatCard**`: Add a gradient background strip on the left edge, increase value font to 34px, add subtle inner shadow
+- `**KeyMetricPanel**`: Make the glow ring more prominent (20% opacity, larger radius), add a pulsing accent dot indicator
+- `**MarketSizeVisual**`: Add gradient fills to the concentric circles instead of flat opacity, add dashed connector lines between rings
+- `**InsightCard**`: Increase the top gradient border from 3px to 4px, add a subtle gradient wash across the card background
+- `**TakeawayCallout**`: Add a subtle pattern overlay and increase shadow depth
 
-### 6. Fix Showcase Gallery Mobile
-**File: `src/components/ShowcaseGallery.tsx`**
+### 4. Add Visual Section Accents to Slide Frame
 
-- Move carousel arrows inside the card area on mobile (not outside the container)
-- Add padding to prevent arrow clipping
-- Reduce heading size: `text-xl sm:text-3xl`
+**File: `src/components/pitch/PitchSlideFrame.tsx**` — `PitchSlideFrame`
 
-### 7. Global Mobile Spacing & Touch Targets
-**File: `src/index.css`**
+- Increase top accent bar from 4px to 6px with more vivid gradient
+- Add a decorative corner accent (quarter-circle gradient in bottom-right, 4% opacity)
+- Add a faint vertical accent stripe on the right side (mirror of left accent bar in header)
+- Make the category label pill-shaped with tinted background instead of plain text
 
-- Add `.touch-target-min` utility class: `min-h-[44px] min-w-[44px]`
-- Add `env(safe-area-inset-bottom)` padding to fixed bottom elements
-- Add scrollbar-hide utility for horizontal scroll containers
+### 5. Upgrade Slide Content Styling
 
-### 8. Pipeline Steps Mobile Layout
-**File: `src/pages/StartPage.tsx`**
+**File: `src/components/PitchDeck.tsx**`
 
-- Change from `grid-cols-2` to single-column vertically stacked cards on mobile (`grid-cols-1 sm:grid-cols-3 lg:grid-cols-6`)
-- Or use horizontal scroll with snap on mobile for a more premium feel
+- **Problem slide**: Use dark variant. Make the quote block larger with accent-tinted background
+- **Market slide**: Use dark variant. MarketSizeVisual circles get accent gradient fills
+- **The Ask slide**: Use dark variant. Funding amount displayed as a massive hero number with glow
+- **Risks slide**: Add severity-colored left gradient strips instead of plain left borders
+- Wrap `panel` style objects with subtle gradient backgrounds (`linear-gradient(135deg, #fafafa, #f8f8fa)` → `linear-gradient(135deg, #ffffff, #f8f9fc)`)
 
-### 9. Footer Consolidation
-**Files: `src/pages/StartPage.tsx`, `src/pages/DashboardPage.tsx`**
+### 6. Add Geometric Depth Elements
 
-- Extract shared footer into `src/components/AppFooter.tsx`
-- Add `pb-20` on mobile to account for bottom nav bar
+**File: `src/components/pitch/PitchSlideFrame.tsx**`
 
-### 10. About Page Mobile
-**File: `src/pages/AboutPage.tsx`**
+- New `SlideDecorativeElements` component: renders 2-3 subtle geometric shapes per slide (circles, lines) using the accent color at 3-6% opacity
+- Positioned in corners/edges to add depth without competing with content
+- Different arrangements per slide number (modulo-based variation)
 
-- Reduce hero title to `text-4xl sm:text-6xl md:text-8xl` for mobile
-- Reduce hero padding: `pt-16 sm:pt-24`
+## Technical Approach
 
-## Technical Details
+- All changes are inline styles (existing pattern) — no new CSS files
+- Dark variant uses the same accent color system — just inverts the neutral palette
+- `PitchSlideFrame` gets a `variant` prop; `PitchCoverSlide` is always dark
+- No new dependencies
+- Backwards-compatible: default variant is `"light"`, existing slides unchanged unless explicitly set
 
-- Bottom nav uses `useLocation()` for active state
-- All touch targets will meet 44px minimum (Apple HIG)
-- `safe-area-inset-bottom` via Tailwind's `pb-[env(safe-area-inset-bottom)]` for iPhone notch
-- Horizontal scroll containers use `snap-x snap-mandatory` with `snap-center` children
-- No new dependencies needed — uses existing framer-motion for subtle transitions
+## Files to Edit
 
-## Files to Create/Edit
 
-| File | Action |
-|------|--------|
-| `src/components/MobileBottomNav.tsx` | Create |
-| `src/components/AppFooter.tsx` | Create |
-| `src/App.tsx` | Add MobileBottomNav |
-| `src/pages/StartPage.tsx` | Fix hero, pipeline layout |
-| `src/pages/AboutPage.tsx` | Fix hero sizing |
-| `src/pages/NewAnalysisPage.tsx` | Mode cards, button sizing |
-| `src/pages/DashboardPage.tsx` | Use AppFooter, bottom padding |
-| `src/components/PlatformNav.tsx` | Enhance mobile drawer |
-| `src/components/StepNavigator.tsx` | Scroll snap, touch targets |
-| `src/components/ShowcaseGallery.tsx` | Fix arrow positioning |
-| `src/index.css` | Add mobile utilities |
-
+| File                                       | Changes                                                                       |
+| ------------------------------------------ | ----------------------------------------------------------------------------- |
+| `src/components/pitch/PitchSlideFrame.tsx` | Add dark variant, amplify visual elements, richer component styling           |
+| `src/components/PitchDeck.tsx`             | Apply dark variant to cover/problem/market/ask slides, upgrade content panels |
