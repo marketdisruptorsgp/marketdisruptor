@@ -24,8 +24,8 @@ import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
 import { ScoreBar } from "@/components/ScoreBar";
 import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { DetailPanel, NextStepButton, StepNavBar } from "@/components/SectionNav";
-import { downloadFullAnalysisPDF, downloadPatentPDF } from "@/lib/pdfExport";
-import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
+import { downloadPatentPDF } from "@/lib/pdfExport";
+import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import {
   Target, Brain, Swords, Presentation, Save, RefreshCw, FileDown,
@@ -157,7 +157,21 @@ export default function ReportPage() {
               profile={analysis.strategicProfile}
               onChangeProfile={analysis.setStrategicProfile}
             />
-            <button onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct, gatherAllAnalysisData(analysis))} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
+            <button onClick={() => {
+              if (!selectedProduct) return;
+              const data: Record<string, unknown> = {};
+              if (analysis.disruptData) data.disrupt = analysis.disruptData;
+              if (analysis.stressTestData) data.stressTest = analysis.stressTestData;
+              if (analysis.pitchDeckData) data.pitchDeck = analysis.pitchDeckData;
+              if (analysis.redesignData) data.redesign = analysis.redesignData;
+              if (selectedProduct.patentData) data.patentData = selectedProduct.patentData;
+              downloadReportAsPDF(selectedProduct, data, {
+                title: selectedProduct.name,
+                mode: (analysis.analysisParams as any)?.analysisType,
+                onProgress: (msg) => toast.loading(msg, { id: "pdf-progress" }),
+              }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
+                .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
+            }} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
               <FileDown size={12} /> PDF
             </button>
             <button onClick={handleManualSave} disabled={isSaving} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-primary text-primary-foreground" style={{ opacity: isSaving ? 0.7 : 1 }}>

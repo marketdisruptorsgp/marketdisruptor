@@ -538,3 +538,82 @@
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* ── PrintableReport Styles (used by downloadReportPDF) ──────── */
+.print-report {
+  color: #1a1a2e;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.print-cover {
+  text-align: center;
+  padding: 60px 20px 40px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+.print-cover-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+.print-cover-title {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+.print-cover-mode {
+  font-size: 14px;
+  font-weight: 600;
+  color: hsl(229 89% 63%);
+  margin-bottom: 4px;
+}
+.print-cover-date {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+.print-cover-insight {
+  font-size: 15px;
+  font-style: italic;
+  color: #475569;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+.print-section {
+  margin-bottom: 20px;
+  page-break-inside: avoid;
+}
+.print-section-title {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 10px;
+}
+.print-section-icon { color: hsl(229 89% 63%); }
+.print-section-content { padding: 0 4px; }
+.print-body { font-size: 13px; color: #334155; line-height: 1.6; margin-bottom: 6px; }
+.print-body-sm { font-size: 12px; color: #475569; line-height: 1.5; margin-bottom: 4px; }
+.print-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 2px; }
+.print-scores { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.print-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+.print-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 8px 0; }
+.print-info-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; }
+.print-list-item { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; color: #334155; margin-bottom: 4px; }
+.print-sources { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.print-source-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: hsl(229 89% 63%); }
+.print-json-list { list-style: disc; padding-left: 20px; margin: 4px 0; }
+.print-json-list li { font-size: 12px; color: #334155; margin-bottom: 2px; }
+.print-json-object { margin: 4px 0; }
+.print-json-entry { margin-bottom: 6px; }
+.print-footer { text-align: center; font-size: 11px; color: #94a3b8; padding: 20px 0; border-top: 1px solid #e2e8f0; margin-top: 24px; }

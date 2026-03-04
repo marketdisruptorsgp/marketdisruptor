@@ -4,10 +4,10 @@ import { Download, FileText, Link2, ChevronDown, Check, Loader2, Presentation } 
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { generateInvestorPitchPDF } from "@/services/export/pdfGenerator";
-import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { generateOpportunityBriefPDF } from "@/services/export/opportunityBrief";
 import { generateInvestorPitchPPTX } from "@/services/export/pptxGenerator";
 import { buildPublicUrl } from "@/lib/publicUrl";
+import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 
 interface ExportPanelProps {
   product: Product;
@@ -70,12 +70,18 @@ export function ExportPanel({
     }
   };
 
-  const handleFullReportPDF = () => {
+  const handleFullReportPDF = async () => {
     setGenerating("full");
     try {
-      downloadFullAnalysisPDF(product, analysisData || null);
-      toast.success("Full report PDF exported!");
+      await downloadReportAsPDF(product, analysisData || null, {
+        title: product.name,
+        mode: (analysisCtx.analysisParams as any)?.analysisType,
+        onProgress: (msg) => toast.loading(msg, { id: "pdf-progress" }),
+      });
+      toast.dismiss("pdf-progress");
+      toast.success("Full report PDF downloaded!");
     } catch {
+      toast.dismiss("pdf-progress");
       toast.error("Failed to export full report");
     } finally {
       setGenerating(null);
