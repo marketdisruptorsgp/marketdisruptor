@@ -1311,8 +1311,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                   )}
                   {topMove.competitiveBlindSpot && (
                     <span className="text-[10px]" style={{ color: "hsl(var(--background) / 0.5)" }}>
-                      Vulnerable: {topMove.competitiveBlindSpot.length > 60 ? topMove.competitiveBlindSpot.slice(0, 58) + "…" : topMove.competitiveBlindSpot}
-                    </span>
+                       Vulnerable: {topMove.competitiveBlindSpot}
+                     </span>
                   )}
                 </div>
               </div>
