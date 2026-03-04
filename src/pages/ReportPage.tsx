@@ -26,6 +26,7 @@ import { RevivalScoreBadge } from "@/components/RevivalScoreBadge";
 import { DetailPanel, NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { downloadPatentPDF } from "@/lib/pdfExport";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
+import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import {
   Target, Brain, Swords, Presentation, Save, RefreshCw, FileDown,
@@ -159,12 +160,7 @@ export default function ReportPage() {
             />
             <button onClick={() => {
               if (!selectedProduct) return;
-              const data: Record<string, unknown> = {};
-              if (analysis.disruptData) data.disrupt = analysis.disruptData;
-              if (analysis.stressTestData) data.stressTest = analysis.stressTestData;
-              if (analysis.pitchDeckData) data.pitchDeck = analysis.pitchDeckData;
-              if (analysis.redesignData) data.redesign = analysis.redesignData;
-              if (selectedProduct.patentData) data.patentData = selectedProduct.patentData;
+              const data = gatherAllAnalysisData(analysis);
               downloadReportAsPDF(selectedProduct, data, {
                 title: selectedProduct.name,
                 mode: (analysis.analysisParams as any)?.analysisType,
