@@ -12,14 +12,23 @@ interface FaqItem {
 }
 
 const CATEGORIES = [
-  { id: "all", label: "All", icon: Layers },
-  { id: "platform", label: "Platform & Data", icon: Database },
-  { id: "analysis", label: "Analysis & Scoring", icon: BarChart3 },
-  { id: "eta", label: "ETA / Acquisitions", icon: Briefcase },
-  { id: "lenses", label: "Lenses & Archetypes", icon: Telescope },
-  { id: "privacy", label: "Privacy & Security", icon: Shield },
-  { id: "pricing", label: "Plans & Pricing", icon: CreditCard },
+  { id: "all", label: "All", icon: Layers, color: "bg-primary/10 text-primary border-primary/20" },
+  { id: "platform", label: "Platform & Data", icon: Database, color: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
+  { id: "analysis", label: "Analysis & Scoring", icon: BarChart3, color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
+  { id: "eta", label: "ETA / Acquisitions", icon: Briefcase, color: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
+  { id: "lenses", label: "Lenses & Archetypes", icon: Telescope, color: "bg-violet-500/10 text-violet-700 border-violet-500/20" },
+  { id: "privacy", label: "Privacy & Security", icon: Shield, color: "bg-rose-500/10 text-rose-700 border-rose-500/20" },
+  { id: "pricing", label: "Plans & Pricing", icon: CreditCard, color: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20" },
 ];
+
+const CATEGORY_ACCENT: Record<string, string> = {
+  platform: "border-l-blue-500",
+  analysis: "border-l-emerald-500",
+  eta: "border-l-amber-500",
+  lenses: "border-l-violet-500",
+  privacy: "border-l-rose-500",
+  pricing: "border-l-cyan-500",
+};
 
 const FAQS: FaqItem[] = [
   // Platform & Data
@@ -78,47 +87,48 @@ export default function FaqsPage() {
       <PlatformNav tier={tier} />
 
       <div className="border-b border-border bg-card">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-4">Support</p>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight mb-3">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Support</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight mb-1.5">
             Frequently Asked Questions
           </h1>
-          <p className="text-base text-muted-foreground max-w-2xl leading-relaxed mb-6">
+          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed mb-4">
             Everything you need to know about the platform, our methodology, data privacy, and pricing.
           </p>
 
           {/* Search */}
-          <div className="relative max-w-md">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative max-w-sm">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search questions…"
-              className="pl-9 h-10 text-sm"
+              className="pl-8 h-9 text-sm"
             />
           </div>
         </div>
       </div>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Category pills */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex flex-wrap gap-1.5 mb-5">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             const isActive = activeCategory === cat.id;
+            const catColor = cat.color;
             return (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all border ${
                   isActive
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"
+                    ? catColor
+                    : "bg-card text-muted-foreground border-border hover:text-foreground"
                 }`}
               >
-                <Icon size={12} />
+                <Icon size={11} />
                 {cat.label}
-                <span className={`text-[10px] ml-0.5 ${isActive ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>
+                <span className={`text-[10px] ml-0.5 opacity-60`}>
                   {categoryCount(cat.id)}
                 </span>
               </button>
@@ -128,7 +138,7 @@ export default function FaqsPage() {
 
         {/* Results count */}
         {(search || activeCategory !== "all") && (
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-[11px] text-muted-foreground mb-3">
             {filtered.length} {filtered.length === 1 ? "result" : "results"}
             {search && <> for "<span className="font-semibold text-foreground">{search}</span>"</>}
             {activeCategory !== "all" && <> in <span className="font-semibold text-foreground">{CATEGORIES.find(c => c.id === activeCategory)?.label}</span></>}
@@ -136,34 +146,38 @@ export default function FaqsPage() {
         )}
 
         {filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <Search size={32} className="mx-auto text-muted-foreground/40 mb-3" />
+          <div className="text-center py-12">
+            <Search size={28} className="mx-auto text-muted-foreground/40 mb-2" />
             <p className="text-sm text-muted-foreground">No matching questions found.</p>
-            <button onClick={() => { setSearch(""); setActiveCategory("all"); }} className="text-xs text-primary font-semibold mt-2 hover:underline">
+            <button onClick={() => { setSearch(""); setActiveCategory("all"); }} className="text-xs text-primary font-semibold mt-1.5 hover:underline">
               Clear filters
             </button>
           </div>
         ) : (
-          <Accordion type="single" collapsible defaultValue="faq-0" className="space-y-3">
-            {filtered.map((faq, i) => (
-              <AccordionItem key={`${faq.category}-${i}`} value={`faq-${i}`} className="border border-border rounded-lg px-4 sm:px-5 bg-card shadow-sm">
-                <AccordionTrigger className="text-sm font-semibold text-foreground py-4 hover:no-underline text-left">
-                  <div className="flex items-start gap-3 w-full pr-2">
-                    <span className="flex-1">{faq.q}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5">
-                      {CATEGORIES.find(c => c.id === faq.category)?.label}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
-                  <span dangerouslySetInnerHTML={{ __html: faq.a }} />
-                </AccordionContent>
-              </AccordionItem>
-            ))}
+          <Accordion type="single" collapsible defaultValue="faq-0" className="space-y-1.5">
+            {filtered.map((faq, i) => {
+              const catMeta = CATEGORIES.find(c => c.id === faq.category);
+              const accentClass = CATEGORY_ACCENT[faq.category] || "border-l-primary";
+              return (
+                <AccordionItem key={`${faq.category}-${i}`} value={`faq-${i}`} className={`border border-border border-l-[3px] ${accentClass} rounded-md px-3.5 sm:px-4 bg-card`}>
+                  <AccordionTrigger className="text-[13px] font-semibold text-foreground py-3 hover:no-underline text-left">
+                    <div className="flex items-center gap-2.5 w-full pr-2">
+                      <span className="flex-1">{faq.q}</span>
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded flex-shrink-0 border ${catMeta?.color || "bg-muted text-muted-foreground"}`}>
+                        {catMeta?.label}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-[13px] text-muted-foreground leading-relaxed pb-3 pt-0">
+                    <span dangerouslySetInnerHTML={{ __html: faq.a }} />
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
           </Accordion>
         )}
 
-        <footer className="mt-20 pt-6 border-t border-border text-center" />
+        <footer className="mt-12 pt-4 border-t border-border text-center" />
       </main>
     </div>
   );
