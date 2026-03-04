@@ -205,13 +205,13 @@ export function RedesignVisualGenerator({ productName, concept, accentColor = "h
     analysis.saveStepData("redesign", updatedData);
   }, [visuals, analysis]);
 
-  // Auto-generate on first mount if no visuals exist
+  // Auto-generate on first mount if no visuals exist and concept data is available
   useEffect(() => {
     const existing = (analysis.redesignData as any)?.redesignVisuals;
-    if (!existing || existing.length === 0) {
-      // Don't auto-generate — wait for user action, since image gen costs credits
+    if ((!existing || existing.length === 0) && concept.conceptName && !generating) {
+      generateAllVisuals();
     }
-  }, []);
+  }, [concept.conceptName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Empty state — no visuals yet
   if (visuals.length === 0 && !generating) {
