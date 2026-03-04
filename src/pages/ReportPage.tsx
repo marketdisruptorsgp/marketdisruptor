@@ -178,19 +178,6 @@ export default function ReportPage() {
           </div>
         </div>
 
-        {/* ── Intelligence Report Context Banner ── */}
-        <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: modeAccent }}>
-              <Target size={18} style={{ color: "white" }} />
-            </div>
-            <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Intelligence Report</h3>
-          </div>
-          <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
-            This report consolidates everything we've gathered about this {isService ? "service" : "product"} and its market. You'll find real pricing data, supply chain intelligence, community sentiment, competitive positioning, and user journey mapping — all synthesized into actionable sections. Each finding is tagged with its confidence level so you know exactly what's verified versus modeled.
-          </p>
-        </div>
-
         {/* Product Card */}
         <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 

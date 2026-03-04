@@ -1,4 +1,5 @@
-import { ExternalLink, TrendingUp, TrendingDown, Minus, ImageOff } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 import { DataLabel } from "./DataLabel";
 
@@ -9,7 +10,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) => {
-  // Only show image if user-uploaded (imageSource === "user")
+  const [expanded, setExpanded] = useState(false);
   const showImage = product.image && product.image !== "PLACEHOLDER_IMAGE" && product.image !== "" && (product as unknown as { imageSource?: string }).imageSource === "user";
 
   return (
@@ -28,7 +29,6 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         />
       )}
 
-      {/* Image — only show if user-uploaded */}
       {showImage ? (
         <div className="relative overflow-hidden bg-muted">
           <img
@@ -52,7 +52,6 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
           )}
         </div>
       ) : (
-        /* No image: just show pricing inline */
         product.pricingIntel && (
           <div className="px-4 pt-3 flex items-center justify-end">
             <span className="typo-card-meta flex items-center gap-1">
@@ -63,20 +62,13 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
         )
       )}
 
-      <div className="p-3 sm:p-4 space-y-2">
-        <div>
-          <p className="typo-card-eyebrow mb-0.5">{product.category}</p>
-          <h3 className="typo-card-title leading-tight">{product.name}</h3>
-        </div>
-
-        {product.keyInsight && (
-          <p className="typo-card-body leading-relaxed text-muted-foreground line-clamp-2">
-            {product.keyInsight}
-          </p>
-        )}
-
-        <div className="flex items-center justify-end pt-1">
-          <div className="flex gap-1 flex-wrap justify-end">
+      <div className="p-3 sm:p-4 space-y-1.5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="typo-card-eyebrow mb-0.5">{product.category}</p>
+            <h3 className="typo-card-title leading-tight">{product.name}</h3>
+          </div>
+          <div className="flex gap-1 flex-wrap justify-end flex-shrink-0">
             {(product.sources || []).slice(0, 2).map((s) => (
               <a
                 key={s.label}
@@ -93,9 +85,26 @@ export const ProductCard = ({ product, isSelected, onClick }: ProductCardProps) 
           </div>
         </div>
 
-        {product.marketSizeEstimate && (
-          <div className="flex items-center gap-1.5 typo-card-meta border-t pt-2" style={{ borderColor: "hsl(var(--border))" }}>
-            <span>{product.marketSizeEstimate}</span>
+        {/* Expandable detail */}
+        {(product.keyInsight || product.marketSizeEstimate) && (
+          <div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+              className="flex items-center gap-1 typo-card-meta font-semibold text-primary hover:opacity-80 transition-opacity"
+            >
+              {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              {expanded ? "Less" : "More details"}
+            </button>
+            {expanded && (
+              <div className="mt-2 space-y-2 pt-2 border-t" style={{ borderColor: "hsl(var(--border))" }}>
+                {product.keyInsight && (
+                  <p className="typo-card-body leading-relaxed text-foreground">{product.keyInsight}</p>
+                )}
+                {product.marketSizeEstimate && (
+                  <p className="typo-card-body font-semibold" style={{ color: "hsl(var(--score-high))" }}>TAM: {product.marketSizeEstimate}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
