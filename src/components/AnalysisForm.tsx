@@ -227,6 +227,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
           documentTexts,
           imageUrls,
           context: `${businessInput.type} — ${businessInput.description}`,
+          lensType: undefined, // TODO: pass active lens type when lens context is available
         });
         if (result) {
           extractedContext = extractionToContext(result);

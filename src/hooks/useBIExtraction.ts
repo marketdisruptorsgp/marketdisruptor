@@ -54,12 +54,43 @@ export interface BIExtraction {
     candidate_leverage_points: string[];
   };
   missing_critical_information: string[];
+  eta_assessment?: {
+    financial_snapshot: {
+      sde: number | null;
+      revenue: number | null;
+      cogs: number | null;
+      gross_margin_pct: number | null;
+      claimed_addbacks: { item: string; amount: number | null; confidence: "high" | "medium" | "low"; flag?: string }[];
+      missing_financials: string[];
+    };
+    owner_dependency_score: number;
+    owner_dependencies: {
+      area: string;
+      severity: "critical" | "high" | "medium" | "low";
+      description: string;
+      mitigation: string;
+    }[];
+    customer_concentration: {
+      top_1_pct: number | null;
+      top_3_pct: number | null;
+      top_5_pct: number | null;
+      risk_level: "critical" | "high" | "medium" | "low";
+      detail: string;
+    };
+    employee_risk: {
+      key_person_risks: string[];
+      management_depth: string;
+      institutional_knowledge_gaps: string[];
+    };
+    due_diligence_questions: string[];
+  };
 }
 
 interface ExtractParams {
   documentTexts?: { name: string; content: string }[];
   imageUrls?: string[];
   context?: string;
+  lensType?: string;
 }
 
 export function useBIExtraction() {
@@ -188,6 +219,36 @@ export function extractionToContext(ext: BIExtraction): string {
 
   if (ext.missing_critical_information?.length) {
     parts.push(`\nMISSING INFO: ${ext.missing_critical_information.join("; ")}`);
+  }
+
+  if (ext.eta_assessment) {
+    const eta = ext.eta_assessment;
+    parts.push(`\nETA ACQUISITION ASSESSMENT:`);
+    const fs = eta.financial_snapshot;
+    if (fs.sde) parts.push(`SDE: $${fs.sde.toLocaleString()}`);
+    if (fs.revenue) parts.push(`Revenue: $${fs.revenue.toLocaleString()}`);
+    if (fs.gross_margin_pct) parts.push(`Gross Margin: ${fs.gross_margin_pct}%`);
+    if (fs.claimed_addbacks?.length) {
+      parts.push(`Claimed Addbacks:`);
+      for (const ab of fs.claimed_addbacks) {
+        parts.push(`  ${ab.item}: ${ab.amount ? `$${ab.amount.toLocaleString()}` : "undisclosed"} (confidence: ${ab.confidence})${ab.flag ? ` ⚠ ${ab.flag}` : ""}`);
+      }
+    }
+    if (fs.missing_financials?.length) parts.push(`Missing financials: ${fs.missing_financials.join("; ")}`);
+    parts.push(`Owner Dependency Score: ${eta.owner_dependency_score}/10`);
+    if (eta.owner_dependencies?.length) {
+      for (const d of eta.owner_dependencies) {
+        parts.push(`  [${d.severity}] ${d.area}: ${d.description}`);
+      }
+    }
+    const cc = eta.customer_concentration;
+    if (cc) {
+      parts.push(`Customer Concentration: Top 1 = ${cc.top_1_pct ?? "?"}%, Top 3 = ${cc.top_3_pct ?? "?"}%, Risk: ${cc.risk_level}`);
+    }
+    if (eta.due_diligence_questions?.length) {
+      parts.push(`\nDUE DILIGENCE QUESTIONS TO ASK:`);
+      for (const q of eta.due_diligence_questions) parts.push(`  • ${q}`);
+    }
   }
 
   return parts.join("\n");

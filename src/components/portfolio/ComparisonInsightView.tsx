@@ -21,7 +21,7 @@ interface InsightDimension {
   detail: (a: SavedAnalysis) => string | null;
 }
 
-const DIMENSIONS: InsightDimension[] = [
+const BASE_DIMENSIONS: InsightDimension[] = [
   {
     label: "Revival Score", key: "revival", icon: TrendingUp,
     explainer: "The AI-generated revival score rates how viable this product concept is for a modern market relaunch, factoring in demand signals, competitive landscape, and differentiation potential. Scores above 7 are uncommon and indicate genuinely strong opportunities.",
@@ -42,9 +42,7 @@ const DIMENSIONS: InsightDimension[] = [
       const risks = d?.stressTestData?.risks || d?.pitchDeck?.risks || [];
       const highCount = risks.filter((r: any) => r.severity === "high").length;
       const medCount = risks.filter((r: any) => r.severity === "medium").length;
-      // No data = unknown = conservative score
       if (risks.length === 0) return 3;
-      // Penalize heavily for high risks, moderately for medium
       return Math.max(1, Math.min(10, 10 - highCount * 3 - medCount * 1));
     },
     detail: (a) => {
@@ -62,7 +60,7 @@ const DIMENSIONS: InsightDimension[] = [
     extract: (a) => {
       const d = a.analysis_data as any;
       const tam = d?.pitchDeck?.marketOpportunity?.tam;
-      if (!tam) return 2; // No data = low, not mid
+      if (!tam) return 2;
       const numMatch = tam.match(/\$?([\d.]+)\s*(B|T|M)/i);
       if (!numMatch) return 3;
       const val = parseFloat(numMatch[1]);
@@ -90,7 +88,6 @@ const DIMENSIONS: InsightDimension[] = [
       const channels = d?.pitchDeck?.gtmStrategy?.keyChannels || [];
       const hasSegments = !!d?.pitchDeck?.gtmStrategy?.targetSegment;
       const hasTimeline = !!d?.pitchDeck?.gtmStrategy?.timeline;
-      // Much more conservative: channels alone don't mean readiness
       if (channels.length === 0) return 2;
       let score = Math.min(6, channels.length + 1);
       if (hasSegments) score += 1;
@@ -111,9 +108,8 @@ const DIMENSIONS: InsightDimension[] = [
       const d = a.analysis_data as any;
       const products = d?.products || [];
       const scores = products.map((p: any) => p.leverageScore).filter(Boolean);
-      if (!scores.length) return 3; // No data = conservative
+      if (!scores.length) return 3;
       const avg = scores.reduce((s: number, v: number) => s + v, 0) / scores.length;
-      // Apply slight deflation — raw leverage scores tend to cluster high
       return Math.round(Math.max(1, Math.min(10, avg * 0.85)) * 10) / 10;
     },
     detail: (a) => {
@@ -127,10 +123,9 @@ const DIMENSIONS: InsightDimension[] = [
     extract: (a) => {
       const d = a.analysis_data as any;
       const margin = d?.pitchDeck?.financialModel?.unitEconomics?.grossMargin || d?.pitchDeck?.businessModel?.unitEconomics?.grossMargin;
-      if (!margin) return 2; // No data = very low, not mid
+      if (!margin) return 2;
       const pct = parseFloat(margin);
       if (isNaN(pct)) return 3;
-      // Realistic mapping: 80%+ = 8, 60% = 6, 40% = 4, etc.
       return Math.max(1, Math.min(10, Math.round(pct / 10)));
     },
     detail: (a) => {
@@ -141,6 +136,73 @@ const DIMENSIONS: InsightDimension[] = [
     },
   },
 ];
+
+// ETA-specific dimensions for business acquisition comparisons
+const ETA_DIMENSIONS: InsightDimension[] = [
+  {
+    label: "Owner Dependency", key: "ownerDep", icon: ShieldAlert,
+    explainer: "How dependent the business is on the current owner. Lower scores (inverted) mean higher dependency and higher transition risk. Score of 10 means the business runs independently.",
+    extract: (a) => {
+      const d = a.analysis_data as any;
+      const score = d?.ownerDependencyAssessment?.transitionRiskScore;
+      if (score == null) return 5;
+      return Math.max(1, 10 - score); // Invert: high dependency = low score
+    },
+    detail: (a) => {
+      const d = a.analysis_data as any;
+      const deps = d?.ownerDependencyAssessment?.ownerDependencies;
+      if (!deps?.length) return "No owner dependency data available";
+      const critical = deps.filter((dep: any) => dep.severity === "critical" || dep.severity === "high");
+      return `${critical.length} critical/high dependency areas: ${critical[0]?.area || "—"}`;
+    },
+  },
+  {
+    label: "Improvement Potential", key: "improvement", icon: TrendingUp,
+    explainer: "How much upside exists from operational improvements, pricing changes, and revenue expansion identified in the analysis. Higher scores indicate more actionable opportunities.",
+    extract: (a) => {
+      const d = a.analysis_data as any;
+      const streams = d?.revenueReinvention?.untappedStreams?.length || 0;
+      const friction = d?.operationalAudit?.frictionPoints?.length || 0;
+      const assumptions = d?.hiddenAssumptions?.filter((h: any) => h.isChallengeable)?.length || 0;
+      const total = streams + Math.min(friction, 5) + Math.min(assumptions, 5);
+      return Math.min(10, Math.round(total * 0.7));
+    },
+    detail: (a) => {
+      const d = a.analysis_data as any;
+      const streams = d?.revenueReinvention?.untappedStreams?.length || 0;
+      const quickWins = d?.ownershipPlaybook?.quickWins?.length || 0;
+      return `${streams} revenue opportunities, ${quickWins} quick wins identified`;
+    },
+  },
+  {
+    label: "Customer Concentration", key: "custConc", icon: Target,
+    explainer: "Revenue diversification across customers. Higher score = more diversified (safer). If top customer is >25% of revenue, score drops significantly.",
+    extract: (a) => {
+      const d = a.analysis_data as any;
+      const cc = d?.ownerDependencyAssessment?.customerConcentration;
+      if (!cc) return 5;
+      if (cc.riskLevel === "critical") return 2;
+      if (cc.riskLevel === "high") return 4;
+      if (cc.riskLevel === "medium") return 6;
+      return 8;
+    },
+    detail: (a) => {
+      const d = a.analysis_data as any;
+      return d?.ownerDependencyAssessment?.customerConcentration?.detail || "No customer concentration data";
+    },
+  },
+];
+
+function getDimensions(compareList: SavedAnalysis[]): InsightDimension[] {
+  const hasETA = compareList.some(a => a.analysis_type === "business_model");
+  if (hasETA) {
+    // Use a mix: keep core dimensions + add ETA ones
+    return [...BASE_DIMENSIONS.slice(0, 2), ...ETA_DIMENSIONS, ...BASE_DIMENSIONS.slice(5)];
+  }
+  return BASE_DIMENSIONS;
+}
+
+const DIMENSIONS = BASE_DIMENSIONS; // default fallback
 
 function getScoreColor(score: number) {
   if (score >= 7) return "hsl(var(--score-high))";
@@ -160,6 +222,7 @@ const RADAR_COLORS = ["hsl(var(--mode-product))", "hsl(var(--mode-service))", "h
 
 export function ComparisonInsightView({ compareList }: { compareList: SavedAnalysis[] }) {
   const [expandedDim, setExpandedDim] = useState<string | null>(null);
+  const activeDimensions = getDimensions(compareList);
 
   if (compareList.length === 0) {
     return (
@@ -169,7 +232,7 @@ export function ComparisonInsightView({ compareList }: { compareList: SavedAnaly
     );
   }
 
-  const radarData = DIMENSIONS.map((dim) => {
+  const radarData = activeDimensions.map((dim) => {
     const entry: any = { dimension: dim.label.split(" ")[0] };
     compareList.forEach((a, i) => { entry[`p${i}`] = dim.extract(a); });
     return entry;
@@ -205,7 +268,7 @@ export function ComparisonInsightView({ compareList }: { compareList: SavedAnaly
 
       {/* Dimension breakdown */}
       <div className="space-y-2">
-        {DIMENSIONS.map((dim) => {
+        {activeDimensions.map((dim) => {
           const isExpanded = expandedDim === dim.key;
           const values = compareList.map((a, i) => ({ title: a.title, score: dim.extract(a), detail: dim.detail(a), color: RADAR_COLORS[i] }));
           const maxScore = Math.max(...values.map((v) => v.score));

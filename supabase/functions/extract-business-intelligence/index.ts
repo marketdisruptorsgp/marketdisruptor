@@ -70,7 +70,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { documentTexts, imageUrls, context } = await req.json();
+    const { documentTexts, imageUrls, context, lensType } = await req.json();
+    const isETA = lensType === "eta";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -82,39 +83,49 @@ serve(async (req) => {
       });
     }
 
+    const etaSchemaBlock = isETA ? `,
+  "eta_assessment": {
+    "financial_snapshot": {
+      "sde": "number | null — Seller's Discretionary Earnings",
+      "revenue": "number | null",
+      "cogs": "number | null",
+      "gross_margin_pct": "number | null",
+      "claimed_addbacks": [{"item": "string", "amount": "number | null", "confidence": "high|medium|low", "flag": "optional string — red flag note if addback seems inflated"}],
+      "missing_financials": ["string — financial data not disclosed"]
+    },
+    "owner_dependency_score": "number 1-10 (10 = fully owner-dependent)",
+    "owner_dependencies": [{"area": "string", "severity": "critical|high|medium|low", "description": "string", "mitigation": "string — specific action to de-risk"}],
+    "customer_concentration": {
+      "top_1_pct": "number | null — % revenue from largest customer",
+      "top_3_pct": "number | null",
+      "top_5_pct": "number | null",
+      "risk_level": "critical|high|medium|low",
+      "detail": "string"
+    },
+    "employee_risk": {
+      "key_person_risks": ["string"],
+      "management_depth": "string",
+      "institutional_knowledge_gaps": ["string"]
+    },
+    "due_diligence_questions": ["string — questions the CIM didn't answer that buyers must ask"]
+  }` : "";
+
     const systemPrompt = `You are a Business Intelligence Extraction Engine.
+${isETA ? `\nYou are operating in ETA (Entrepreneur Through Acquisition) mode. The uploaded documents are likely CIMs (Confidential Information Memorandums) for a business acquisition.
+
+ADDITIONAL ETA-SPECIFIC RULES:
+1. EXTRACT FINANCIALS: Look for SDE, EBITDA, revenue, COGS, addbacks. CIMs hide poor metrics — flag missing numbers.
+2. ADDBACK SKEPTICISM: Broker-prepared CIMs inflate addbacks. Flag each addback with confidence level. Common inflations: above-market owner salary, one-time expenses that recur, personal expenses that are actually business costs.
+3. OWNER DEPENDENCY: Count how many relationships, processes, and decisions go through the owner. This is the #1 deal killer.
+4. CUSTOMER CONCENTRATION: If >25% revenue from one customer, flag as critical. If >50% from top 3, flag as high.
+5. EMPLOYEE RISK: Look for key-person dependencies, thin management layers, and institutional knowledge gaps.
+6. DUE DILIGENCE GAPS: List 5-10 questions the CIM should answer but didn't.
+` : ""}
 
 You convert unstructured documents and images into structured system intelligence
-that can power constraint maps, causal diagrams, and action planning.
-
-You do NOT summarize documents. You reconstruct how the business actually works.
-
-PROCESSING RULES:
-1. READ EVERYTHING — Extract text, tables, captions, slide titles, chart labels, and visible relationships.
-2. NORMALIZE INFORMATION — Convert narrative descriptions into structured business components.
-3. IDENTIFY STRUCTURE, NOT TOPICS — Focus on: flows, dependencies, bottlenecks, incentives, constraints, leverage points.
-4. PRESERVE EVIDENCE — Attach source snippets supporting each major claim.
-5. DO NOT GENERATE STRATEGY — Only extract how the system currently operates.
-
-IMAGE INTERPRETATION RULES:
-If images contain:
-• charts → extract variables, direction, trend meaning
-• diagrams → extract nodes and relationships
-• product photos → infer function and user interaction
-• process visuals → extract flow steps
-• org charts → extract structure and dependencies
-Convert visual relationships into causal relationships.
-
-EVIDENCE STANDARD:
-Every constraint and system claim must include at least one supporting snippet from the document or image interpretation.
-If no evidence exists: mark confidence = low.
-
-FAILSAFE BEHAVIOR:
-If input quality is poor: extract what is knowable, list missing critical information, do NOT hallucinate structure.
-
-Return ONLY valid JSON matching this schema:
-${EXTRACTION_SCHEMA}`;
-
+...
+${EXTRACTION_SCHEMA}${etaSchemaBlock}
+}`;
     // Build multimodal content parts
     const contentParts: any[] = [];
 
