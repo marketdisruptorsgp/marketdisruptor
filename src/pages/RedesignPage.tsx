@@ -8,6 +8,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { StepNavigator } from "@/components/StepNavigator";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { RedesignVisualGenerator } from "@/components/RedesignVisualGenerator";
+import { StepLoadingTracker, REDESIGN_TASKS } from "@/components/StepLoadingTracker";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
@@ -115,36 +116,49 @@ export default function RedesignPage() {
           </div>
         </div>
 
-        {/* Concept visuals are now rendered inside FirstPrinciplesAnalysis redesign mode */}
+        {/* Loading Tracker (front and center) */}
+        {analysisLoading && (
+          <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <StepLoadingTracker
+              title="Generating Redesign Concept"
+              tasks={REDESIGN_TASKS}
+              estimatedSeconds={50}
+              accentColor="hsl(38 92% 50%)"
+            />
+          </div>
+        )}
 
-        <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <FirstPrinciplesAnalysis
-            product={selectedProduct}
-            onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
-            flippedIdeas={selectedProduct.flippedIdeas}
-            onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
-            generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
-            renderMode="redesign"
-            autoTrigger={shouldAutoTrigger}
-            externalData={isOutdated ? null : (analysis.redesignData ?? analysis.disruptData)}
-            runTrigger={runTrigger}
-            onLoadingChange={setAnalysisLoading}
-            onDataLoaded={(d) => {
-              analysis.setRedesignData(d);
-              analysis.saveStepData("redesign", d);
-              analysis.clearStepOutdated("redesign");
-              analysis.markStepOutdated("pitch");
-            }}
-            onPatentSave={(patentData) => {
-              const updated = products.map(p =>
-                p.id === selectedProduct.id ? { ...p, patentData } : p
-              );
-              analysis.setProducts(updated);
-              analysis.setSelectedProduct({ ...selectedProduct, patentData });
-              if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
-            }}
-          />
-        </div>
+        {/* Content */}
+        {!analysisLoading && (
+          <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <FirstPrinciplesAnalysis
+              product={selectedProduct}
+              onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
+              flippedIdeas={selectedProduct.flippedIdeas}
+              onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
+              generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
+              renderMode="redesign"
+              autoTrigger={shouldAutoTrigger}
+              externalData={isOutdated ? null : (analysis.redesignData ?? analysis.disruptData)}
+              runTrigger={runTrigger}
+              onLoadingChange={setAnalysisLoading}
+              onDataLoaded={(d) => {
+                analysis.setRedesignData(d);
+                analysis.saveStepData("redesign", d);
+                analysis.clearStepOutdated("redesign");
+                analysis.markStepOutdated("pitch");
+              }}
+              onPatentSave={(patentData) => {
+                const updated = products.map(p =>
+                  p.id === selectedProduct.id ? { ...p, patentData } : p
+                );
+                analysis.setProducts(updated);
+                analysis.setSelectedProduct({ ...selectedProduct, patentData });
+                if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
+              }}
+            />
+          </div>
+        )}
 
         <NextStepButton
           stepNumber={5}

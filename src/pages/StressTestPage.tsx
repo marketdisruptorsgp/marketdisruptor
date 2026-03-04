@@ -1,4 +1,5 @@
 import React from "react";
+import { StepLoadingTracker, STRESS_TEST_TASKS } from "@/components/StepLoadingTracker";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
@@ -105,23 +106,37 @@ export default function StressTestPage() {
           </div>
         </div>
 
-        {/* Single view — no tabs */}
-        <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <CriticalValidation
-            product={selectedProduct}
-            analysisData={selectedProduct}
-            activeTab="debate"
-            externalData={analysis.stressTestData}
-            runTrigger={runTrigger}
-            onLoadingChange={setAnalysisLoading}
-            onDataLoaded={(d) => {
-              analysis.setStressTestData(d);
-              analysis.saveStepData("stressTest", d);
-              analysis.clearStepOutdated("stressTest");
-              analysis.markStepOutdated("pitch");
-            }}
-          />
-        </div>
+        {/* Loading Tracker (front and center) */}
+        {analysisLoading && (
+          <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <StepLoadingTracker
+              title="Running Stress Test"
+              tasks={STRESS_TEST_TASKS}
+              estimatedSeconds={30}
+              accentColor="hsl(350 80% 55%)"
+            />
+          </div>
+        )}
+
+        {/* Content */}
+        {!analysisLoading && (
+          <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <CriticalValidation
+              product={selectedProduct}
+              analysisData={selectedProduct}
+              activeTab="debate"
+              externalData={analysis.stressTestData}
+              runTrigger={runTrigger}
+              onLoadingChange={setAnalysisLoading}
+              onDataLoaded={(d) => {
+                analysis.setStressTestData(d);
+                analysis.saveStepData("stressTest", d);
+                analysis.clearStepOutdated("stressTest");
+                analysis.markStepOutdated("pitch");
+              }}
+            />
+          </div>
+        )}
 
         {/* No gating */}
         <NextStepButton
