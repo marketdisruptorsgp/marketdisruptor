@@ -49,10 +49,11 @@ export default function DisruptPage() {
   const governedData = analysis.governedData;
   const synopsisData = governedData?.reasoning_synopsis ?? null;
 
+  const hasDisruptData = !!analysis.disruptData;
   const cm = governedData?.constraint_map as Record<string, unknown> | undefined;
   const rawHypotheses = (cm?.root_hypotheses || governedData?.root_hypotheses) as StrategicHypothesis[] | undefined;
-  const hasHypotheses = rawHypotheses && rawHypotheses.length > 0;
-  const hasSynopsis = !!synopsisData;
+  const hasHypotheses = hasDisruptData && rawHypotheses && rawHypotheses.length > 0;
+  const hasSynopsis = hasDisruptData && !!synopsisData;
   const ranking = hasHypotheses ? rankWithProfile(rawHypotheses!, analysis.strategicProfile) : null;
 
   const scrollToSection = (id: DisruptSection) => {
