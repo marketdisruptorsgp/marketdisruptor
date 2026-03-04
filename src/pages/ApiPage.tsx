@@ -450,9 +450,12 @@ export default function ApiPage() {
               </section>
 
               {/* ETA-specific value prop */}
-              <section className="insight-callout">
-                <p className="text-sm font-semibold text-foreground mb-2">🎯 For ETA / Acquisition Operators</p>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+              <section className="border border-amber-200 border-l-[3px] border-l-amber-500 rounded-md bg-amber-50/50 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Briefcase size={14} className="text-amber-600" />
+                  <p className="text-sm font-bold text-amber-900">For ETA / Acquisition Operators</p>
+                </div>
+                <p className="text-xs text-amber-800/70 leading-relaxed mb-3">
                   If you're sourcing, evaluating, and closing small business acquisitions, these integrations turn Market Disruptor into your deal intelligence command center:
                 </p>
                 <div className="grid sm:grid-cols-2 gap-2">
@@ -465,8 +468,8 @@ export default function ApiPage() {
                     "Route stress test results to your advisory board's Slack channel for rapid deal committee reviews",
                   ].map((tip, i) => (
                     <div key={i} className="flex items-start gap-1.5">
-                      <CheckCircle2 size={11} className="text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-[11px] text-muted-foreground leading-relaxed">{tip}</span>
+                      <CheckCircle2 size={11} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-[11px] text-amber-900/80 leading-relaxed">{tip}</span>
                     </div>
                   ))}
                 </div>
