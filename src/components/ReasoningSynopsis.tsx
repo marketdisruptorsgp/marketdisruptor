@@ -206,7 +206,7 @@ function CausalFlowDiagram({ synopsis }: { synopsis: SynopsisData }) {
 
   return (
     <SynopsisCard title="How This System Actually Works" icon={TrendingUp} delay={0.05}>
-      <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+      <p className="text-sm text-foreground/80 mb-4 leading-relaxed">
         These are the proven cause-and-effect chains that govern outcomes. Each chain shows what drives what — and the mechanism that connects them.
       </p>
       <div className="space-y-4">
@@ -243,14 +243,14 @@ function CausalFlowDiagram({ synopsis }: { synopsis: SynopsisData }) {
 
       {/* Dominant mechanism — the "so what" */}
       <div className="mt-4 rounded-xl p-4" style={{ background: "hsl(var(--foreground))" }}>
-        <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--background) / 0.5)" }}>
+        <p className="text-xs font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--background) / 0.6)" }}>
           Bottom Line
         </p>
         <p className="text-sm font-semibold leading-relaxed" style={{ color: "hsl(var(--background))" }}>
           {synopsis.core_causal_logic.dominant_mechanism}
         </p>
         {synopsis.core_causal_logic.secondary_mechanisms && (
-          <p className="text-xs mt-2 leading-relaxed" style={{ color: "hsl(var(--background) / 0.6)" }}>
+          <p className="text-sm mt-2 leading-relaxed" style={{ color: "hsl(var(--background) / 0.8)" }}>
             {synopsis.core_causal_logic.secondary_mechanisms}
           </p>
         )}
@@ -266,7 +266,7 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
 
   return (
     <SynopsisCard title="What's Actually Driving This Decision" icon={Scale} delay={0.1}>
-      <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+      <p className="text-sm text-foreground/80 mb-4 leading-relaxed">
         These are the factors that carry the most weight in shaping the strategic direction. High-influence factors can make or break the outcome.
       </p>
       <div className="space-y-3">

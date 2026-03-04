@@ -90,7 +90,7 @@ function SignalOrb({
         }}
       >
         <span
-          className="text-[10px] font-bold text-center leading-tight px-1 select-none"
+          className="text-xs font-bold text-center leading-tight px-1 select-none"
           style={{ color: `${solidColor}` }}
         >
           {label.length > 20 ? label.slice(0, 18) + "…" : label}
@@ -105,7 +105,7 @@ function SignalOrb({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-[9px] font-bold pointer-events-none"
+            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-xs font-bold pointer-events-none"
             style={{
               top: size + 6,
               background: "hsl(var(--popover))",
@@ -155,8 +155,8 @@ function SignalDepthPanel({
       <div className="flex items-start gap-2 mb-3">
         <div className="w-2.5 h-2.5 rounded-full mt-0.5 flex-shrink-0" style={{ background: color, boxShadow: `0 0 8px ${glowColor}60` }} />
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold leading-snug" style={{ color: "hsl(var(--foreground))" }}>{signal.label}</p>
-          <p className="text-[10px] font-semibold mt-0.5" style={{ color }}>{ROLE_LABELS[signal.role]}</p>
+          <p className="text-sm font-bold leading-snug" style={{ color: "hsl(var(--foreground))" }}>{signal.label}</p>
+          <p className="text-xs font-semibold mt-0.5" style={{ color }}>{ROLE_LABELS[signal.role]}</p>
         </div>
       </div>
 
@@ -164,7 +164,7 @@ function SignalDepthPanel({
       <div className="grid grid-cols-3 gap-3 mb-3">
         {(["impact", "confidence", "recurrence"] as const).map((key) => (
           <div key={key} className="space-y-1">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--cin-label) / 0.6)" }}>{key}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--foreground) / 0.7)" }}>{key}</p>
             <div className="flex items-center justify-center gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <motion.span
@@ -184,8 +184,8 @@ function SignalDepthPanel({
       {/* Score */}
       <div className="space-y-1 mb-2">
         <div className="flex items-center justify-between">
-          <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "hsl(var(--cin-label) / 0.5)" }}>Score</span>
-          <span className="text-[11px] font-extrabold" style={{ color }}>{signal.score}</span>
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "hsl(var(--foreground) / 0.5)" }}>Score</span>
+          <span className="text-sm font-extrabold" style={{ color }}>{signal.score}</span>
         </div>
         <div className="h-1 rounded-full overflow-hidden" style={{ background: "hsl(var(--cin-depth-fg))" }}>
           <motion.div
@@ -202,8 +202,8 @@ function SignalDepthPanel({
         <div className="pt-2" style={{ borderTop: `1px solid hsl(var(--cin-depth-fg))` }}>
           <div className="flex flex-wrap gap-1">
             {signal.sourceKeys.map((src, i) => (
-              <span key={i} className="text-[8px] px-1.5 py-0.5 rounded font-medium"
-                style={{ background: "hsl(var(--cin-depth-fg))", color: "hsl(var(--cin-label) / 0.7)" }}>
+              <span key={i} className="text-xs px-1.5 py-0.5 rounded font-medium"
+                style={{ background: "hsl(var(--cin-depth-fg))", color: "hsl(var(--foreground) / 0.7)" }}>
                 {src}
               </span>
             ))}
@@ -269,7 +269,7 @@ function VerdictOrb({ story }: { story: VisualStory }) {
           <span className="text-base sm:text-lg font-extrabold" style={{ color }}>
             {Math.round(viability * 100)}%
           </span>
-          <span className="text-[8px] font-bold uppercase tracking-widest mt-0.5" style={{ color: "hsl(var(--cin-label) / 0.6)" }}>
+          <span className="text-xs font-bold uppercase tracking-widest mt-0.5" style={{ color: "hsl(var(--foreground) / 0.5)" }}>
             Viability
           </span>
         </div>
@@ -280,7 +280,7 @@ function VerdictOrb({ story }: { story: VisualStory }) {
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="mt-3 px-4 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest"
+        className="mt-3 px-4 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest"
         style={{
           color,
           background: `${color}10`,
@@ -296,8 +296,8 @@ function VerdictOrb({ story }: { story: VisualStory }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
-        className="text-[9px] font-medium text-center mt-2 max-w-[180px] leading-relaxed"
-        style={{ color: "hsl(var(--cin-label) / 0.5)" }}
+        className="text-xs font-semibold text-center mt-2 max-w-[180px] leading-relaxed"
+        style={{ color: "hsl(var(--foreground) / 0.5)" }}
       >
         {story.verdict.summary.length > 80
           ? story.verdict.summary.slice(0, 78) + "…"
@@ -352,8 +352,8 @@ function SideLabel({ side }: { side: "red" | "green" }) {
       style={{ [side === "red" ? "left" : "right"]: "6%" }}
     >
       <span
-        className="text-[9px] font-extrabold uppercase tracking-[0.2em]"
-        style={{ color: `${color}80` }}
+        className="text-xs font-extrabold uppercase tracking-[0.15em]"
+        style={{ color: `${color}` }}
       >
         {label}
       </span>
@@ -401,8 +401,8 @@ export function CinematicArena({ story }: { story: VisualStory }) {
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] font-extrabold uppercase tracking-[0.25em] z-10"
-        style={{ color: "hsl(var(--cin-label) / 0.4)" }}
+        className="absolute top-4 left-1/2 -translate-x-1/2 text-sm font-extrabold uppercase tracking-[0.2em] z-10"
+        style={{ color: "hsl(var(--foreground) / 0.5)" }}
       >
         Survival Arena
       </motion.p>
@@ -452,8 +452,8 @@ export function CinematicArena({ story }: { story: VisualStory }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-semibold uppercase tracking-widest z-10"
-        style={{ color: "hsl(var(--cin-label) / 0.25)" }}
+        className="absolute bottom-3 left-1/2 -translate-x-1/2 text-xs font-semibold uppercase tracking-widest z-10"
+        style={{ color: "hsl(var(--foreground) / 0.35)" }}
       >
         Tap signal to explore
       </motion.p>

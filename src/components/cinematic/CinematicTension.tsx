@@ -67,7 +67,7 @@ function TensionOrb({
           border: `1.5px solid ${color}${hovered || isSelected ? '55' : '25'}`,
         }}
       >
-        <span className="text-[9px] font-bold text-center leading-tight px-1 select-none"
+        <span className="text-xs font-bold text-center leading-tight px-1 select-none"
           style={{ color }}>{label.length > 18 ? label.slice(0, 16) + "…" : label}</span>
       </motion.div>
 
@@ -76,7 +76,7 @@ function TensionOrb({
           <motion.div
             initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.12 }}
-            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-[9px] font-bold pointer-events-none z-30"
+            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-xs font-bold pointer-events-none z-30"
             style={{ top: size + 6, background: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))", border: `1px solid ${color}20` }}
           >
             {ROLE_LABELS[signal.role]} · {signal.score}
@@ -119,7 +119,7 @@ function DepthPanel({ signal, onClose }: { signal: RankedSignal; onClose: () => 
       <div className="grid grid-cols-3 gap-2">
         {(["impact", "confidence", "recurrence"] as const).map((key) => (
           <div key={key} className="space-y-1">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--cin-label) / 0.5)" }}>{key}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--foreground) / 0.7)" }}>{key}</p>
             <div className="flex items-center justify-center gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <span key={i} className="w-1.5 h-3 rounded-sm"
@@ -161,12 +161,12 @@ export function CinematicTension({ story }: { story: VisualStory }) {
         style={{ color: "hsl(var(--cin-label) / 0.4)" }}>Tension Map</motion.p>
 
       <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-        className="absolute top-4 left-[6%] text-[9px] font-extrabold uppercase tracking-[0.15em]"
-        style={{ color: "hsl(var(--cin-green) / 0.5)" }}>Drivers</motion.span>
+        className="absolute top-4 left-[6%] text-xs font-extrabold uppercase tracking-[0.15em]"
+        style={{ color: "hsl(var(--cin-green))" }}>Drivers</motion.span>
 
       <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-        className="absolute top-4 right-[6%] text-[9px] font-extrabold uppercase tracking-[0.15em]"
-        style={{ color: "hsl(var(--cin-red) / 0.5)" }}>Constraints</motion.span>
+        className="absolute top-4 right-[6%] text-xs font-extrabold uppercase tracking-[0.15em]"
+        style={{ color: "hsl(var(--cin-red))" }}>Constraints</motion.span>
 
       {/* Tension line through center */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
@@ -198,8 +198,8 @@ export function CinematicTension({ story }: { story: VisualStory }) {
       </AnimatePresence>
 
       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
-        className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-semibold uppercase tracking-widest z-10"
-        style={{ color: "hsl(var(--cin-label) / 0.25)" }}>Tap signal to explore</motion.p>
+        className="absolute bottom-3 left-1/2 -translate-x-1/2 text-xs font-semibold uppercase tracking-widest z-10"
+        style={{ color: "hsl(var(--foreground) / 0.4)" }}>Tap signal to explore</motion.p>
     </motion.div>
   );
 }

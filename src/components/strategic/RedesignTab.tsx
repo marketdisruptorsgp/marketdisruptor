@@ -155,8 +155,8 @@ function StrategyCardComponent({ card }: { card: StrategyCard }) {
         </div>
         <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
           <span className="text-lg font-black tabular-nums text-foreground">{card.compositeScore.toFixed(1)}</span>
-          <span className="text-[9px] font-bold text-foreground/40 uppercase">Score</span>
-          <ChevronDown size={14} className="text-foreground/40 transition-transform mt-1" style={{ transform: expanded ? "rotate(180deg)" : "none" }} />
+          <span className="text-xs font-bold text-foreground/60 uppercase">Score</span>
+          <ChevronDown size={14} className="text-foreground/50 transition-transform mt-1" style={{ transform: expanded ? "rotate(180deg)" : "none" }} />
         </div>
       </button>
 
@@ -171,9 +171,9 @@ function StrategyCardComponent({ card }: { card: StrategyCard }) {
               { label: "Horizon", value: card.timeHorizon, icon: Clock },
             ].map((item) => (
               <div key={item.label} className="p-2.5 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <item.icon size={13} className="mx-auto mb-1" style={{ color: "hsl(var(--foreground) / 0.5)" }} />
-                <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/60">{item.label}</p>
-                <p className="text-xs font-bold text-foreground mt-0.5">
+                <item.icon size={13} className="mx-auto mb-1" style={{ color: "hsl(var(--foreground) / 0.7)" }} />
+                <p className="text-xs font-bold uppercase tracking-wider text-foreground/70">{item.label}</p>
+                <p className="text-sm font-bold text-foreground mt-0.5">
                   {typeof item.value === "number" ? `${item.value}/10` : item.value}
                 </p>
               </div>

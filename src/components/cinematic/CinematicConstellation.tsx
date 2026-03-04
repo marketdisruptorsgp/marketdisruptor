@@ -12,12 +12,12 @@ import { ChevronDown } from "lucide-react";
    ═══════════════════════════════════════════════════════════════ */
 
 const ROLE_META: Record<string, { label: string; color: string; description: string }> = {
-  driver:     { label: "Drivers",     color: "hsl(142 70% 40%)",  description: "Forces pushing this forward" },
-  constraint: { label: "Constraints", color: "hsl(0 72% 50%)",    description: "Forces holding this back" },
-  mechanism:  { label: "Mechanisms",  color: "hsl(38 92% 45%)",   description: "How the system actually works" },
-  assumption: { label: "Assumptions", color: "hsl(271 60% 55%)",  description: "Untested beliefs at risk" },
-  leverage:   { label: "Leverage",    color: "hsl(229 80% 58%)",  description: "High-impact intervention points" },
-  outcome:    { label: "Outcomes",    color: "hsl(160 60% 40%)",  description: "Expected results" },
+  driver:     { label: "Drivers",     color: "hsl(142 55% 32%)",  description: "Forces pushing this forward" },
+  constraint: { label: "Constraints", color: "hsl(0 65% 42%)",    description: "Forces holding this back" },
+  mechanism:  { label: "Mechanisms",  color: "hsl(28 80% 38%)",   description: "How the system actually works" },
+  assumption: { label: "Assumptions", color: "hsl(271 55% 42%)",  description: "Untested beliefs at risk" },
+  leverage:   { label: "Leverage",    color: "hsl(229 70% 42%)",  description: "High-impact intervention points" },
+  outcome:    { label: "Outcomes",    color: "hsl(160 50% 32%)",  description: "Expected results" },
 };
 
 const ROLE_ORDER = ["driver", "constraint", "leverage", "mechanism", "assumption", "outcome"];
@@ -48,13 +48,13 @@ function SignalRow({ signal, maxScore, color, index }: { signal: RankedSignal; m
       className="flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-muted/40 group"
     >
       <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: color }} />
-      <p className="text-[13px] text-foreground font-medium flex-1 min-w-0 leading-snug">
+      <p className="text-sm text-foreground font-semibold flex-1 min-w-0 leading-snug">
         {label}
       </p>
       <div className="w-16 flex-shrink-0">
         <ScoreBar value={signal.score} max={maxScore} color={color} />
       </div>
-      <span className="text-[10px] font-bold text-muted-foreground w-5 text-right flex-shrink-0">
+      <span className="text-xs font-bold text-foreground w-5 text-right flex-shrink-0">
         {signal.score}
       </span>
     </motion.div>
@@ -74,14 +74,14 @@ function RoleGroup({ role, signals, maxScore, defaultOpen }: { role: string; sig
       >
         <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: meta.color }} />
         <div className="flex-1 min-w-0">
-          <span className="text-[13px] font-bold text-foreground">{meta.label}</span>
-          <span className="text-[11px] text-muted-foreground ml-2">{meta.description}</span>
+          <span className="text-sm font-bold text-foreground">{meta.label}</span>
+          <span className="text-xs text-foreground/70 ml-2">{meta.description}</span>
         </div>
-        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+        <span className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0"
           style={{ background: `${meta.color}12`, color: meta.color }}>
           {signals.length}
         </span>
-        <ChevronDown size={14} className="text-muted-foreground transition-transform flex-shrink-0"
+        <ChevronDown size={14} className="text-foreground/50 transition-transform flex-shrink-0"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
       </button>
       <AnimatePresence>
@@ -138,15 +138,15 @@ export function CinematicConstellation({ story, title }: { story: VisualStory; t
       {/* Header with signal count + legend */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-foreground">
             {title}
           </span>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-            style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+            style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
             {allSignals.length} signals
           </span>
         </div>
-        <span className="text-[10px] text-muted-foreground/60">Score →</span>
+        <span className="text-xs font-semibold text-foreground/60">Score →</span>
       </div>
 
       {/* Role groups */}
@@ -168,8 +168,8 @@ export function CinematicConstellation({ story, title }: { story: VisualStory; t
           const meta = ROLE_META[role];
           return (
             <div key={role} className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-sm" style={{ background: meta.color }} />
-              <span className="text-[10px] font-semibold text-muted-foreground">{meta.label}</span>
+              <div className="w-2.5 h-2.5 rounded-sm" style={{ background: meta.color }} />
+              <span className="text-xs font-semibold text-foreground">{meta.label}</span>
             </div>
           );
         })}
