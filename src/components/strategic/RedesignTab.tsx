@@ -207,18 +207,16 @@ export function RedesignTab({ disruptData, hypotheses, governedData }: RedesignT
   const compounds = strategies.filter(s => s.category === "compound");
 
   if (strategies.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <Wrench size={32} className="mx-auto mb-3" style={{ color: "hsl(var(--muted-foreground))" }} />
-        <p className="text-sm font-bold text-foreground">No strategy data yet</p>
-        <p className="text-sm text-foreground/60 mt-1">Run the analysis to generate actionable strategies.</p>
-      </div>
-    );
+    return null;
   }
 
   return (
     <div className="space-y-6">
-      {/* All strategies ranked */}
+      {/* Section header */}
+      <div className="px-1">
+        <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">Strategic Responses</p>
+        <p className="text-sm text-foreground/70 leading-relaxed">Actions derived from the constraints and hypotheses above — ranked by composite impact.</p>
+      </div>
       {breakStrategies.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-1">
