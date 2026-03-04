@@ -184,6 +184,7 @@ interface FirstPrinciplesAnalysisProps {
   onAnalysisStarted?: () => void;
   renderMode?: "disrupt" | "redesign";
   autoTrigger?: boolean;
+  activeSection?: "flip" | "ideas" | "concept";
 }
 
 const REASON_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -714,7 +715,7 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
   );
 }
 
-export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, onAnalysisStarted, renderMode, autoTrigger, userScores, onScoreChange, runTrigger, onLoadingChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
+export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, onAnalysisStarted, renderMode, autoTrigger, userScores, onScoreChange, runTrigger, onLoadingChange, activeSection }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
 
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
@@ -722,8 +723,16 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [data, setData] = useState<FirstPrinciplesData | null>((externalData as FirstPrinciplesData) || null);
   const [loading, setLoading] = useState(false);
   const isService = product.category === "Service";
-  const [activeStep, setActiveStep] = useState<"assumptions" | "flip" | "ideas" | "concept">(renderMode === "redesign" ? "flip" : "assumptions");
-  const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set([renderMode === "redesign" ? "flip" : "assumptions"]));
+  const [activeStep, setActiveStep] = useState<"assumptions" | "flip" | "ideas" | "concept">(renderMode === "redesign" ? (activeSection || "flip") : "assumptions");
+  const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set([renderMode === "redesign" ? (activeSection || "flip") : "assumptions"]));
+
+  // Sync activeSection from parent when it changes
+  useEffect(() => {
+    if (activeSection && renderMode === "redesign") {
+      setActiveStep(activeSection);
+      setVisitedFPSteps(prev => new Set([...prev, activeSection]));
+    }
+  }, [activeSection, renderMode]);
   const [userContext, setUserContext] = useState("");
   const [rerunSuggestions, setRerunSuggestions] = useState("");
   const autoTriggered = useRef(false);
@@ -987,37 +996,41 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
     return (
       <div className="space-y-4" data-fp-steps>
-        {/* Header + re-run */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50%)" }}>
-              <Sparkles size={14} style={{ color: "white" }} />
+        {/* Header + re-run — hidden when page provides its own tabs */}
+        {!activeSection && (
+          <>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50%)" }}>
+                  <Sparkles size={14} style={{ color: "white" }} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground text-sm leading-tight">Redesign: {product.name}</h3>
+                  <p className="typo-card-meta text-muted-foreground">{totalSections} sections · Click any to jump</p>
+                </div>
+              </div>
+              <button
+                onClick={runAnalysis}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+              >
+                {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+                Re-run
+              </button>
             </div>
-            <div>
-              <h3 className="font-bold text-foreground text-sm leading-tight">Redesign: {product.name}</h3>
-              <p className="typo-card-meta text-muted-foreground">{totalSections} sections · Click any to jump</p>
-            </div>
-          </div>
-          <button
-            onClick={runAnalysis}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-            style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-          >
-            {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
-            Re-run
-          </button>
-        </div>
 
-        {/* Section Navigator */}
-        <SectionWorkflowNav
-          tabs={allSteps}
-          activeId={activeStep}
-          visitedIds={visitedFPSteps}
-          onSelect={(id) => { setActiveStep(id as typeof activeStep); setVisitedFPSteps(prev => new Set([...prev, id])); scrollToSteps(); }}
-          descriptions={REDESIGN_SECTION_DESCRIPTIONS_NAV}
-          journeyLabel="Redesign Sections"
-        />
+            {/* Section Navigator */}
+            <SectionWorkflowNav
+              tabs={allSteps}
+              activeId={activeStep}
+              visitedIds={visitedFPSteps}
+              onSelect={(id) => { setActiveStep(id as typeof activeStep); setVisitedFPSteps(prev => new Set([...prev, id])); scrollToSteps(); }}
+              descriptions={REDESIGN_SECTION_DESCRIPTIONS_NAV}
+              journeyLabel="Redesign Sections"
+            />
+          </>
+        )}
 
         {/* ── Section: Flip the Logic ── */}
         {activeStep === "flip" && (() => {

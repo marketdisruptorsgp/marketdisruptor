@@ -19,14 +19,23 @@ import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save, RefreshCw } from "lucide-react";
+import { FileDown, Save, RefreshCw, FlipHorizontal, Zap, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 const { useState } = React;
 
+const REDESIGN_TABS = [
+  { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal },
+  { id: "ideas" as const, label: "Flipped Ideas", icon: Zap },
+  { id: "concept" as const, label: "Redesigned Concept", icon: Sparkles },
+];
+
+type RedesignTabId = typeof REDESIGN_TABS[number]["id"];
+
 export default function RedesignPage() {
   const [runTrigger, setRunTrigger] = useState(0);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<RedesignTabId>("flip");
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
@@ -43,7 +52,7 @@ export default function RedesignPage() {
   const baseUrl = `/analysis/${analysisId}`;
   const isOutdated = analysis.outdatedSteps.has("redesign");
   const shouldAutoTrigger = isOutdated || !analysis.redesignData;
-
+  const hasData = !!analysis.redesignData;
 
   return (
     <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
@@ -85,7 +94,7 @@ export default function RedesignPage() {
               onChangeProfile={analysis.setStrategicProfile}
             />
             <button
-              onClick={() => setRunTrigger(t => t + 1)}
+              onClick={() => { setRunTrigger(t => t + 1); setActiveTab("flip"); }}
               disabled={analysisLoading}
               className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all"
               style={{
@@ -95,7 +104,7 @@ export default function RedesignPage() {
               }}
             >
               {analysisLoading ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-              {analysis.redesignData ? "Re-run Analysis" : "Run Analysis"}
+              {hasData ? "Re-run Analysis" : "Run Analysis"}
             </button>
             <button onClick={() => {
               if (!selectedProduct) return;
@@ -114,6 +123,45 @@ export default function RedesignPage() {
             </button>
             <ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={theme.primary} />
           </div>
+        </div>
+
+        {/* ── Section Tab Bubbles — matching Intel Report & Disrupt ── */}
+        <div className="flex flex-wrap items-center gap-2">
+          {REDESIGN_TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
+                style={{
+                  background: isActive ? theme.primary : "hsl(var(--muted))",
+                  color: isActive ? "white" : "hsl(var(--foreground))",
+                  border: isActive ? "none" : "1px solid hsl(var(--border))",
+                }}
+              >
+                <TabIcon size={14} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Divider ── */}
+        <div className="h-px w-full" style={{ background: "hsl(var(--border))" }} />
+
+        {/* ── Redesign Context Banner (black with white text) ── */}
+        <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50%)" }}>
+              <Sparkles size={18} style={{ color: "white" }} />
+            </div>
+            <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Redesign Concept</h3>
+          </div>
+          <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
+            Every assumption from Disrupt is inverted, recombined, and synthesized into bold product concepts — grounded in flipped logic and upstream intelligence. Each idea traces back to a specific structural constraint.
+          </p>
         </div>
 
         {/* Loading Tracker (front and center) */}
@@ -141,6 +189,7 @@ export default function RedesignPage() {
             externalData={isOutdated ? null : (analysis.redesignData ?? analysis.disruptData)}
             runTrigger={runTrigger}
             onLoadingChange={setAnalysisLoading}
+            activeSection={activeTab}
             onDataLoaded={(d) => {
               analysis.setRedesignData(d);
               analysis.saveStepData("redesign", d);
