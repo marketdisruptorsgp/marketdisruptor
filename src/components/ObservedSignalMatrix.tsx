@@ -53,8 +53,8 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "What's Working",
     subtitle: "Strongest positive signals",
     icon: ShieldCheck,
-    dotColor: "bg-green-500",
-    barColor: "bg-green-500",
+    dotColor: "bg-green-600",
+    barColor: "bg-green-600",
     bgTint: "bg-green-50/60 dark:bg-green-950/20",
     explanation: "These are the things people genuinely like. High scores mean more people mentioned it positively or it showed up as a clear advantage.",
     priority: 100, // always try to show
@@ -93,8 +93,8 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Top Complaints",
     subtitle: "Most common pain points",
     icon: AlertTriangle,
-    dotColor: "bg-red-500",
-    barColor: "bg-red-500",
+    dotColor: "bg-red-600",
+    barColor: "bg-red-600",
     bgTint: "bg-red-50/60 dark:bg-red-950/20",
     explanation: "These are the most frequently mentioned frustrations from real users. Higher scores indicate more people raised this same issue.",
     priority: 90, // always try to show
@@ -129,8 +129,8 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Friction in the Journey",
     subtitle: "Where users get stuck or drop off",
     icon: Eye,
-    dotColor: "bg-amber-500",
-    barColor: "bg-amber-500",
+    dotColor: "bg-amber-600",
+    barColor: "bg-amber-600",
     bgTint: "bg-amber-50/60 dark:bg-amber-950/20",
     explanation: "These are moments in the user experience where people slow down, get confused, or leave. Pulled from the user journey analysis and workflow data.",
     priority: 80,
@@ -218,8 +218,8 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Emerging Patterns",
     subtitle: "Signals worth watching",
     icon: TrendingUp,
-    dotColor: "bg-blue-500",
-    barColor: "bg-blue-500",
+    dotColor: "bg-blue-600",
+    barColor: "bg-blue-600",
     bgTint: "bg-blue-50/60 dark:bg-blue-950/20",
     explanation: "These are improvement requests, unmet needs, or growing trends that could become opportunities. They're not yet problems — they're openings.",
     priority: 70,
@@ -248,8 +248,8 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Competitive Gaps",
     subtitle: "Where rivals fall short",
     icon: AlertTriangle,
-    dotColor: "bg-purple-500",
-    barColor: "bg-purple-500",
+    dotColor: "bg-purple-600",
+    barColor: "bg-purple-600",
     bgTint: "bg-purple-50/60 dark:bg-purple-950/20",
     explanation: "Market gaps and weaknesses in current competitors. These are openings that could be exploited for differentiation.",
     priority: 60,
@@ -274,8 +274,8 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Operational Bottlenecks",
     subtitle: "What limits scale and efficiency",
     icon: Eye,
-    dotColor: "bg-orange-500",
-    barColor: "bg-orange-500",
+    dotColor: "bg-orange-600",
+    barColor: "bg-orange-600",
     bgTint: "bg-orange-50/60 dark:bg-orange-950/20",
     explanation: "Structural bottlenecks in how the service or business operates. These constrain growth and create inefficiency.",
     priority: 65,
@@ -306,8 +306,8 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Pricing Intelligence",
     subtitle: "Market price dynamics and margins",
     icon: TrendingUp,
-    dotColor: "bg-emerald-500",
-    barColor: "bg-emerald-500",
+    dotColor: "bg-emerald-600",
+    barColor: "bg-emerald-600",
     bgTint: "bg-emerald-50/60 dark:bg-emerald-950/20",
     explanation: "Key pricing signals including market rates, margin data, and price direction trends from verified and modeled sources.",
     priority: 50,
@@ -339,8 +339,8 @@ const QUADRANT_POOL: QuadrantDef[] = [
     title: "Supply Chain Intel",
     subtitle: "Sourcing, manufacturing, distribution",
     icon: ShieldCheck,
-    dotColor: "bg-teal-500",
-    barColor: "bg-teal-500",
+    dotColor: "bg-teal-600",
+    barColor: "bg-teal-600",
     bgTint: "bg-teal-50/60 dark:bg-teal-950/20",
     explanation: "Intelligence on suppliers, manufacturers, distributors and retailers. Shows the supply network structure.",
     priority: 40,
@@ -429,21 +429,21 @@ const ATTENTION_LEVELS = [
     label: "High Priority",
     description: "This signal demands immediate attention — it's concentrated and recurring across multiple sources.",
     color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-    dot: "bg-red-500",
+    dot: "bg-red-600",
   },
   {
     value: "structural_review" as const,
     label: "Needs Review",
     description: "Worth investigating further — there may be a deeper structural issue causing this pattern.",
     color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
-    dot: "bg-amber-500",
+    dot: "bg-amber-600",
   },
   {
     value: "monitor" as const,
     label: "Monitor",
     description: "Not urgent right now, but keep watching — this could grow into something significant over time.",
     color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-    dot: "bg-blue-500",
+    dot: "bg-blue-600",
   },
 ];
 
@@ -684,7 +684,9 @@ function SignalRow({
   onUpdate: (patch: Partial<UserSignalState>) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [textExpanded, setTextExpanded] = useState(false);
   const activeLevel = ATTENTION_LEVELS.find((l) => l.value === state.attention_level);
+  const isLong = signal.label.length > 100;
 
   return (
     <div className={`rounded-lg transition-colors ${expanded ? "bg-background/60" : "hover:bg-background/40"}`}>
@@ -697,9 +699,19 @@ function SignalRow({
       >
         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${config.dotColor}`} />
 
-        <p className="text-[13px] leading-snug text-foreground flex-1 min-w-0">
-          {signal.label}
-        </p>
+        <div className="flex-1 min-w-0">
+          <p className={`text-[13px] leading-snug text-foreground ${!textExpanded && isLong ? "line-clamp-2" : ""}`}>
+            {signal.label}
+          </p>
+          {isLong && !textExpanded && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setTextExpanded(true); }}
+              className="text-[11px] font-semibold text-primary hover:opacity-80 mt-0.5"
+            >
+              Read more
+            </button>
+          )}
+        </div>
 
         {/* Score bar */}
         <div className="flex items-center gap-2 flex-shrink-0">
