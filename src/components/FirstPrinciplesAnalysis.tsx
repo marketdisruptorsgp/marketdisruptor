@@ -1158,112 +1158,118 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           }
 
           return (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
 
-              <div className="flex items-center gap-2 mb-2">
-                <h4 className="font-extrabold text-foreground text-lg">{concept.conceptName}</h4>
-                <span className="text-sm font-semibold text-foreground/70">— {concept.tagline}</span>
+              {/* Concept name + tagline hero */}
+              <div className="rounded-xl p-5" style={{ background: "hsl(38 92% 50% / 0.08)", border: "2px solid hsl(38 92% 50% / 0.2)" }}>
+                <h4 className="font-extrabold text-foreground text-xl leading-tight">{concept.conceptName}</h4>
+                <p className="text-sm font-bold text-foreground/70 mt-1">{concept.tagline}</p>
               </div>
 
-              {/* Core insight */}
-              <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Core Insight</p>
-                <p className="text-sm leading-relaxed text-foreground">{concept.coreInsight}</p>
+              {/* Core insight — prominent callout */}
+              <div className="rounded-xl p-5" style={{ background: "hsl(217 91% 45% / 0.06)", borderLeft: "4px solid hsl(217 91% 45%)" }}>
+                <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-2" style={{ color: "hsl(217 91% 45%)" }}>Core Insight</p>
+                <p className="text-sm font-semibold leading-relaxed text-foreground">{concept.coreInsight}</p>
               </div>
 
-              {/* Radical Differences */}
+              {/* Radical Differences — numbered cards */}
               <div>
-                <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Radical Differences</p>
-                <div className="space-y-1.5">
+                <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-foreground mb-3">Radical Differences</p>
+                <div className="space-y-2">
                   {(concept.radicalDifferences || []).map((diff: string, i: number) => (
-                    <div key={i} className="flex items-start gap-2 p-3 rounded-lg text-sm" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                      <Zap size={14} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
-                      <span className="text-foreground">{diff}</span>
+                    <div key={i} className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-extrabold" style={{ background: "hsl(38 92% 50%)", color: "white" }}>
+                        {i + 1}
+                      </div>
+                      <span className="text-sm font-semibold text-foreground leading-relaxed">{diff}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Physical Description */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Physical Form</p>
-                  <p className="text-sm text-foreground">{concept.physicalDescription}</p>
-                  {concept.sizeAndWeight && <p className="text-sm font-semibold text-foreground mt-1">Size: {concept.sizeAndWeight}</p>}
+              {/* Physical Description + Materials — rich cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-5 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-2" style={{ color: "hsl(271 70% 45%)" }}>Physical Form</p>
+                  <p className="text-sm font-semibold text-foreground leading-relaxed">{concept.physicalDescription}</p>
+                  {concept.sizeAndWeight && <p className="text-sm font-bold text-foreground mt-2">Size: {concept.sizeAndWeight}</p>}
                 </div>
-                <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Materials</p>
-                  <div className="flex flex-wrap gap-1.5">
+                <div className="p-5 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-3" style={{ color: "hsl(271 70% 45%)" }}>Materials</p>
+                  <div className="flex flex-wrap gap-2">
                     {(concept.materials || []).map((m: string, i: number) => (
-                      <span key={i} className="px-2.5 py-1 rounded-full text-sm font-semibold" style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>{m}</span>
+                      <span key={i} className="px-3 py-1.5 rounded-lg text-sm font-bold" style={{ background: "hsl(271 70% 45% / 0.08)", color: "hsl(271 70% 40%)", border: "1px solid hsl(271 70% 45% / 0.15)" }}>{m}</span>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* Smart Features */}
+              {/* Smart Features — icon grid */}
               {concept.smartFeatures?.length > 0 && (
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Smart Features</p>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-foreground mb-3">Smart Features</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {concept.smartFeatures.map((f: string, i: number) => (
-                      <div key={i} className="flex items-start gap-2 p-3 rounded-lg text-sm" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <Cpu size={14} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
-                        <span className="text-foreground">{f}</span>
+                      <div key={i} className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "hsl(152 60% 44% / 0.05)", border: "1px solid hsl(152 60% 44% / 0.15)" }}>
+                        <Cpu size={16} style={{ color: "hsl(152 60% 35%)", flexShrink: 0, marginTop: 2 }} />
+                        <span className="text-sm font-semibold text-foreground">{f}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* UX Transformation & Friction Eliminated */}
-              <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">User Experience Transformation</p>
-                <p className="text-sm text-foreground leading-relaxed">{concept.userExperienceTransformation}</p>
+              {/* UX Transformation — bold callout */}
+              <div className="rounded-xl p-5" style={{ background: "hsl(152 60% 44% / 0.06)", borderLeft: "4px solid hsl(152 60% 44%)" }}>
+                <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-2" style={{ color: "hsl(152 60% 35%)" }}>User Experience Transformation</p>
+                <p className="text-sm font-semibold text-foreground leading-relaxed">{concept.userExperienceTransformation}</p>
               </div>
+
+              {/* Friction Eliminated */}
               {concept.frictionEliminated?.length > 0 && (
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Friction Eliminated</p>
+                  <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-foreground mb-3">Friction Eliminated</p>
                   <div className="space-y-1.5">
                     {concept.frictionEliminated.map((f: string, i: number) => (
-                      <div key={i} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-                        <span className="text-foreground">{f}</span>
+                      <div key={i} className="flex items-start gap-2.5 p-3 rounded-lg" style={{ background: "hsl(142 70% 35% / 0.05)" }}>
+                        <CheckCircle2 size={16} style={{ color: "hsl(142 70% 35%)", flexShrink: 0, marginTop: 1 }} />
+                        <span className="text-sm font-semibold text-foreground">{f}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Business details */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {/* Business details — bold stat cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { label: "Price Point", value: concept.pricePoint },
-                  { label: "Target User", value: concept.targetUser },
-                  { label: "Capital Required", value: concept.capitalRequired || "—" },
-                  { label: "Risk Level", value: concept.riskLevel || "—" },
+                  { label: "Price Point", value: concept.pricePoint, color: "hsl(217 91% 45%)" },
+                  { label: "Target User", value: concept.targetUser, color: "hsl(271 70% 45%)" },
+                  { label: "Capital Required", value: concept.capitalRequired || "—", color: "hsl(38 92% 45%)" },
+                  { label: "Risk Level", value: concept.riskLevel || "—", color: "hsl(0 72% 48%)" },
                 ].map((item) => (
-                  <div key={item.label} className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="text-xs font-bold uppercase tracking-wider text-foreground">{item.label}</p>
-                    <p className="text-sm font-extrabold text-foreground mt-1">{item.value}</p>
+                  <div key={item.label} className="p-4 rounded-xl text-center" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.12em]" style={{ color: item.color }}>{item.label}</p>
+                    <p className="text-sm font-extrabold text-foreground mt-1.5">{item.value}</p>
                   </div>
                 ))}
               </div>
 
+              {/* Why not done + Risk — deep contrast panel */}
               <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert} defaultOpen>
-                <div className="space-y-3 mb-2">
-                  <div>
-                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Why Not Already Done</p>
-                    <p className="text-sm text-foreground">{concept.whyItHasntBeenDone}</p>
+                <div className="space-y-4 mb-2">
+                  <div className="p-4 rounded-xl" style={{ background: "hsl(0 72% 52% / 0.05)", borderLeft: "3px solid hsl(0 72% 48%)" }}>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5" style={{ color: "hsl(0 72% 42%)" }}>Why Not Already Done</p>
+                    <p className="text-sm font-semibold text-foreground leading-relaxed">{concept.whyItHasntBeenDone}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Biggest Risk</p>
-                    <p className="text-sm text-foreground">{concept.biggestRisk}</p>
+                  <div className="p-4 rounded-xl" style={{ background: "hsl(36 80% 52% / 0.05)", borderLeft: "3px solid hsl(36 80% 45%)" }}>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5" style={{ color: "hsl(36 80% 38%)" }}>Biggest Risk</p>
+                    <p className="text-sm font-semibold text-foreground leading-relaxed">{concept.biggestRisk}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Manufacturing Path</p>
-                    <p className="text-sm text-foreground">{concept.manufacturingPath}</p>
+                  <div className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5 text-foreground">Manufacturing Path</p>
+                    <p className="text-sm font-semibold text-foreground leading-relaxed">{concept.manufacturingPath}</p>
                   </div>
                 </div>
               </DetailPanel>
