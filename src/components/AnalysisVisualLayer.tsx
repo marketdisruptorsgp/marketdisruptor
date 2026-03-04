@@ -601,7 +601,8 @@ export function AnalysisVisualLayer({
   
   // §9 VISUAL TRUTHFULNESS: Only render visuals when governed data provides structural basis
   const hasGovernedStructure = !!(governedData?.constraint_map || governedData?.causal_chains || governedData?.first_principles);
-  const hasStorySignals = rankedSignals.length >= 2 && validation.valid && (
+  // Suppress story visuals on Report step — Disrupt handles this with more depth
+  const hasStorySignals = step !== "report" && rankedSignals.length >= 2 && validation.valid && (
     hasGovernedStructure || !governedData
   );
 
