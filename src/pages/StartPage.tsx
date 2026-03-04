@@ -101,7 +101,7 @@ export default function StartPage() {
       {/* Hero */}
       <section className="pt-8 sm:pt-12 pb-4 sm:pb-6 px-4">
         <div className="max-w-5xl mx-auto text-left">
-          <h1 className="text-4xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tight text-foreground leading-[1.0]">
+          <h1 className="text-7xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tight text-foreground leading-[1.0]">
             Rethink any
           </h1>
           <motion.span
@@ -110,7 +110,7 @@ export default function StartPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="block text-4xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tight leading-[1.0] cursor-pointer select-none min-h-[48px] sm:min-h-[80px]"
+            className="block text-7xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tight leading-[1.0] cursor-pointer select-none min-h-[80px] sm:min-h-[80px]"
             style={{ color: ROTATING_WORDS[wordIndex].color }}
             onClick={() => setPaused((p) => !p)}
           >
