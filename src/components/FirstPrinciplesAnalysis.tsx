@@ -596,7 +596,7 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
             item.originalAssumption.toLowerCase().includes(a.assumption.toLowerCase().slice(0, 20))
           );
           const leverageScore = matchedAssumption?.leverageScore;
-          const rationalePreview = item.rationale?.length > 120 ? item.rationale.slice(0, 120) + "…" : item.rationale;
+          const rationalePreview = item.rationale;
 
           return (
             <div key={i} className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
@@ -615,23 +615,18 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
               </div>
               <div className="px-4 py-3 space-y-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
                 <div className="flex items-start justify-between gap-3">
-                  {!isExpanded && <p className="text-xs text-foreground/70 leading-relaxed flex-1">{rationalePreview}</p>}
+                  {!isExpanded && <p className="text-sm text-foreground leading-relaxed flex-1">{rationalePreview}</p>}
                   {isExpanded && <div className="flex-1" />}
                   {leverageScore != null && (
                     <span className="px-2 py-0.5 rounded-md text-[10px] font-bold flex-shrink-0 tabular-nums" style={{
                       background: leverageScore >= 7 ? "hsl(var(--primary) / 0.1)" : "hsl(var(--muted))",
-                      color: leverageScore >= 7 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                      color: leverageScore >= 7 ? "hsl(var(--primary))" : "hsl(var(--foreground))",
                       border: `1px solid ${leverageScore >= 7 ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}`
                     }}>
                       Leverage: {leverageScore}/10
                     </span>
                   )}
                 </div>
-                {!isExpanded && item.rationale?.length > 120 && (
-                  <button onClick={() => setExpandedFlip(i)} className="text-[11px] font-bold" style={{ color: "hsl(var(--primary))" }}>
-                    Read full analysis →
-                  </button>
-                )}
                 {isExpanded && (
                   <div className="space-y-3 pt-1">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

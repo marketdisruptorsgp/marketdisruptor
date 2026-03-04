@@ -462,7 +462,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             {data.operationalAudit.customerJourney.slice(0, 5).map((step, i) => (
               <div key={i} className="flex items-center gap-1">
                 <span className="px-2 py-1 rounded typo-card-meta font-semibold" style={{ background: "hsl(var(--muted))" }}>
-                  {i + 1}. {step.length > 35 ? step.slice(0, 35) + "…" : step}
+                  {i + 1}. {step}
                 </span>
                 {i < Math.min(data.operationalAudit.customerJourney.length, 5) - 1 && <ChevronRight size={10} className="text-muted-foreground" />}
               </div>

@@ -574,7 +574,7 @@ export function ReasoningInterrogation({ analysisData, products, title, category
                   border: "1px solid hsl(var(--border))",
                 }}
               >
-                {action.label.length > 35 ? action.label.slice(0, 33) + "…" : action.label}
+                {action.label}
               </button>
             ))}
           </div>

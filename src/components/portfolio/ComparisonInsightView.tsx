@@ -260,7 +260,7 @@ export function ComparisonInsightView({ compareList }: { compareList: SavedAnaly
           {compareList.map((a, i) => (
             <div key={a.id} className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ background: RADAR_COLORS[i] }} />
-              <span className="typo-card-body font-semibold text-foreground">{(a.title || "Untitled").length > 28 ? (a.title || "Untitled").slice(0, 28) + "…" : (a.title || "Untitled")}</span>
+              <span className="typo-card-body font-semibold text-foreground">{a.title || "Untitled"}</span>
             </div>
           ))}
         </div>

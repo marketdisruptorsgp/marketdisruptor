@@ -353,7 +353,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         {(data.competitiveAdvantages?.length || 0) > 0 ? (
           <ComparisonLayout
             leftTitle="Market Standard"
-            leftItems={(data.competitiveAdvantages || []).slice(0, 3).map(a => `Lacks: ${a.split(" ").slice(0, 6).join(" ")}...`)}
+            leftItems={(data.competitiveAdvantages || []).slice(0, 3).map(a => `Lacks: ${a}`)}
             rightTitle="Our Differentiation"
             rightItems={(data.competitiveAdvantages || []).slice(0, 3)}
             accentColor={accentColor}

@@ -390,8 +390,8 @@ function FragilityMap({ story }: { story: VisualStory }) {
       style={{ background: "hsl(var(--vi-surface-elevated))", border: "1px solid hsl(var(--border))", boxShadow: "var(--shadow-vi-panel)" }}
     >
       <div className="px-5 pt-4 pb-2">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Fragility Structure</p>
-        <p className="text-xs text-foreground/80 leading-relaxed">{story.verdict.summary}</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-1">Fragility Structure</p>
+        <p className="text-sm text-foreground leading-relaxed">{story.verdict.summary}</p>
       </div>
       <div className="px-5 pb-4 space-y-1.5">
         {sorted.slice(0, 8).map((s, i) => {
@@ -399,7 +399,6 @@ function FragilityMap({ story }: { story: VisualStory }) {
           const roleColor = ROLE_CHIP_COLORS[s.role] || "hsl(var(--muted-foreground))";
           const roleLabel = ROLE_LABELS[s.role] || s.role;
           const normalizedLabel = normalizeSignalLabel(s.label);
-          const shortLabel = normalizedLabel.length > 60 ? normalizedLabel.slice(0, 58) + "…" : normalizedLabel;
 
           return (
             <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
@@ -413,12 +412,12 @@ function FragilityMap({ story }: { story: VisualStory }) {
                 style={{ background: isExpanded ? `${roleColor}06` : "transparent" }}
               >
                 <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: roleColor }} />
-                <span className="text-[12px] font-semibold text-foreground flex-1 leading-snug">{shortLabel}</span>
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold flex-shrink-0" style={{ background: `${roleColor}12`, color: roleColor }}>
+                <span className="text-sm font-semibold text-foreground flex-1 leading-snug">{normalizedLabel}</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold flex-shrink-0" style={{ background: `${roleColor}12`, color: roleColor }}>
                   {roleLabel}
                 </span>
-                <span className="text-[10px] font-bold tabular-nums text-muted-foreground flex-shrink-0 w-5 text-right">{s.score}</span>
-                <ChevronRight size={12} className="text-muted-foreground transition-transform flex-shrink-0" style={{ transform: isExpanded ? "rotate(90deg)" : "none" }} />
+                <span className="text-xs font-bold tabular-nums text-foreground flex-shrink-0 w-5 text-right">{s.score}</span>
+                <ChevronRight size={12} className="text-foreground/60 transition-transform flex-shrink-0" style={{ transform: isExpanded ? "rotate(90deg)" : "none" }} />
               </button>
               <AnimatePresence>
                 {isExpanded && (
@@ -430,7 +429,7 @@ function FragilityMap({ story }: { story: VisualStory }) {
                     className="overflow-hidden"
                   >
                     <div className="px-3.5 pb-3 pt-1 space-y-2" style={{ borderTop: `1px solid hsl(var(--border) / 0.5)` }}>
-                      <p className="text-[11px] text-foreground/80 leading-relaxed">{normalizedLabel}</p>
+                      <p className="text-sm text-foreground leading-relaxed">{normalizedLabel}</p>
                       <div className="grid grid-cols-3 gap-2">
                         <MetricBlock label="Impact" value={s.impact} max={5} color={roleColor} />
                         <MetricBlock label="Confidence" value={s.confidence} max={5} color={roleColor} />
