@@ -129,6 +129,12 @@ export default function DisruptPage() {
               const Icon = tab.icon;
               const isActive = effectiveTab === tab.id;
               const isDisabled = !hasDisruptData && tab.id !== "structure";
+              // Bubble badges: Reasoning next to First Principles, Hypotheses next to Signal
+              const bubble = tab.id === "structure" && hasSynopsis
+                ? "Reasoning"
+                : tab.id === "signal" && hasHypotheses && rawHypotheses
+                ? `${rawHypotheses.length} Hypothes${rawHypotheses.length === 1 ? "is" : "es"}`
+                : null;
               return (
                 <button
                   key={tab.id}
@@ -144,6 +150,17 @@ export default function DisruptPage() {
                 >
                   <Icon size={16} />
                   <span>{tab.label}</span>
+                  {bubble && (
+                    <span
+                      className="px-2 py-0.5 rounded-full text-[10px] font-bold leading-none"
+                      style={{
+                        background: isActive ? "hsl(var(--background) / 0.2)" : "hsl(var(--primary) / 0.12)",
+                        color: isActive ? "hsl(var(--background))" : "hsl(var(--primary))",
+                      }}
+                    >
+                      {bubble}
+                    </span>
+                  )}
                 </button>
               );
             })}
