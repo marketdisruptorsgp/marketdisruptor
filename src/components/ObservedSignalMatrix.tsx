@@ -129,7 +129,7 @@ function humanize(raw: string): string {
 
 /* ── Signal extraction with richer friction sourcing ── */
 
-function extractMatrixData(product: Product): MatrixData {
+function extractMatrixData(product: Product, governedData?: Record<string, unknown> | null): MatrixData {
   const ci = (product as any).communityInsights;
   const uw = (product as any).userWorkflow;
   const cs = product.confidenceScores;
@@ -223,7 +223,64 @@ function extractMatrixData(product: Product): MatrixData {
     });
   }
 
-  // Source 4: If still empty, derive from negative reviews mentioning UX/process words
+  // Source 4: Governed friction_tiers and friction_map from the reasoning engine
+  if (governedData) {
+    const frictionTiers = governedData.friction_tiers as Record<string, unknown> | undefined;
+    if (frictionTiers) {
+      for (const tierKey of ["tier_1", "tier_2", "tier_3"]) {
+        const tierScore = tierKey === "tier_1" ? 8 : tierKey === "tier_2" ? 6 : 4;
+        const tierLabel = tierKey === "tier_1" ? "System-limiting" : tierKey === "tier_2" ? "Performance-affecting" : "Optimization opportunity";
+        const items = frictionTiers[tierKey];
+        const itemList = Array.isArray(items) ? items : items && typeof items === "object" ? [items] : [];
+        for (const item of itemList) {
+          const raw = typeof item === "string" ? item : (item as any)?.description || (item as any)?.friction_id || (item as any)?.system_impact || "";
+          const text = humanize(raw);
+          if (text && !seenFriction.has(text.toLowerCase())) {
+            seenFriction.add(text.toLowerCase());
+            friction.push({
+              id: mkId(), label: text, score: tierScore, frequency: 1,
+              why: `${tierLabel} friction identified by the structural reasoning engine.`,
+            });
+          }
+        }
+      }
+    }
+
+    const frictionMap = governedData.friction_map as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(frictionMap)) {
+      for (const fm of frictionMap) {
+        const raw = (fm.root_cause as string) || (fm.dimension_classification as string) || (fm.friction_id as string) || "";
+        const text = humanize(raw);
+        if (text && !seenFriction.has(text.toLowerCase())) {
+          seenFriction.add(text.toLowerCase());
+          const impact = fm.impacted_outcome ? ` → impacts ${humanize(fm.impacted_outcome as string)}` : "";
+          friction.push({
+            id: mkId(), label: text, score: 6, frequency: 1,
+            why: `Root-cause friction from structural analysis${impact}.`,
+          });
+        }
+      }
+    }
+
+    // Also pull from first_principles.fundamental_constraints
+    const fp = governedData.first_principles as Record<string, unknown> | undefined;
+    if (fp?.fundamental_constraints) {
+      const constraints = Array.isArray(fp.fundamental_constraints) ? fp.fundamental_constraints : [];
+      for (const c of constraints) {
+        const raw = typeof c === "string" ? c : (c as any)?.description || (c as any)?.constraint || "";
+        const text = humanize(raw);
+        if (text && !seenFriction.has(text.toLowerCase())) {
+          seenFriction.add(text.toLowerCase());
+          friction.push({
+            id: mkId(), label: text, score: 7, frequency: 1,
+            why: "Fundamental constraint identified in first-principles analysis.",
+          });
+        }
+      }
+    }
+  }
+
+  // Source 5: If still empty, derive from negative reviews mentioning UX/process words
   if (friction.length === 0 && product.reviews?.length) {
     const uxKeywords = /confus|difficult|slow|complicated|hard to|frustrat|broken|bug|crash|stuck|wait|load/i;
     product.reviews
@@ -264,12 +321,14 @@ export function ObservedSignalMatrix({
   product,
   analysisId,
   saveStepData,
+  governedData,
 }: {
   product: Product;
   analysisId: string | null;
   saveStepData: (key: string, data: unknown) => Promise<void>;
+  governedData?: Record<string, unknown> | null;
 }) {
-  const data = useMemo(() => extractMatrixData(product), [product]);
+  const data = useMemo(() => extractMatrixData(product, governedData), [product, governedData]);
   const totalSignals = Object.values(data).reduce((s, arr) => s + arr.length, 0);
 
   const [userStates, setUserStates] = useState<PersistedState>({});
