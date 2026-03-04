@@ -191,8 +191,6 @@ export default function ReportPage() {
           </p>
         </div>
 
-        {/* Product Card */}
-        <ProductCard product={selectedProduct} isSelected={true} onClick={() => {}} />
 
         {/* Observed Signal Matrix — structured signal summary */}
         <ObservedSignalMatrix
