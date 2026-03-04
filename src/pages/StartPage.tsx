@@ -5,6 +5,7 @@ import { ShowcaseGallery } from "@/components/ShowcaseGallery";
 import { PlatformNav } from "@/components/PlatformNav";
 import { motion } from "framer-motion";
 import { useState, useEffect, lazy, Suspense } from "react";
+import { AppFooter } from "@/components/AppFooter";
 import {
   Upload, Briefcase, Building2, ArrowRight,
   ShieldCheck, BookOpen, Camera, Target,
@@ -100,7 +101,7 @@ export default function StartPage() {
       {/* Hero */}
       <section className="pt-8 sm:pt-12 pb-4 sm:pb-6 px-4">
         <div className="max-w-5xl mx-auto text-left">
-          <h1 className="text-7xl sm:text-8xl md:text-9xl font-extrabold tracking-tight text-foreground leading-[1.0]">
+          <h1 className="text-4xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tight text-foreground leading-[1.0]">
             Rethink any
           </h1>
           <motion.span
@@ -109,7 +110,7 @@ export default function StartPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="block text-7xl sm:text-8xl md:text-9xl font-extrabold tracking-tight leading-[1.0] cursor-pointer select-none"
+            className="block text-4xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tight leading-[1.0] cursor-pointer select-none min-h-[48px] sm:min-h-[80px]"
             style={{ color: ROTATING_WORDS[wordIndex].color }}
             onClick={() => setPaused((p) => !p)}
           >
@@ -179,11 +180,11 @@ export default function StartPage() {
                 </motion.span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 relative">
+              <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-3 sm:gap-4 pb-2 sm:pb-0 sm:grid sm:grid-cols-3 lg:grid-cols-6 relative">
                 {PIPELINE_STEPS.map((item, i) => {
                   const Icon = item.icon;
                   return (
-                    <div key={item.step} className="relative">
+                    <div key={item.step} className="relative min-w-[200px] sm:min-w-0 snap-center flex-shrink-0">
                       {i > 0 && (
                         <div className="hidden lg:flex absolute -left-2 top-8 z-10 items-center justify-center">
                           <ChevronRight
@@ -287,22 +288,7 @@ export default function StartPage() {
       </section>
 
 
-      {/* Footer */}
-      <footer className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
-            <span className="flex items-center gap-1"><ShieldCheck size={11} /> Your data is encrypted & never shared</span>
-            <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:flex items-center gap-1"><BookOpen size={11} /> Analyses scoped to your account via RLS</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <a href="/pricing" className="font-semibold text-primary hover:underline py-1">Enterprise & Teams</a>
-          </div>
-        </div>
-        <div className="border-t border-border py-5 text-center px-4">
-          {profile && <p className="text-xs text-muted-foreground">Signed in as <strong className="text-foreground">{profile.first_name}</strong></p>}
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   );
 }

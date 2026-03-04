@@ -34,6 +34,7 @@ import NewAnalysisPage from "./pages/NewAnalysisPage";
 import IntelligencePage from "./pages/IntelligencePage";
 import StartPage from "./pages/StartPage";
 import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage"));
 const AdminHealthPage = lazy(() => import("./pages/AdminHealthPage"));
@@ -132,6 +133,7 @@ const App = () => (
               <AnalysisProvider>
                 <AppRoutes />
                 <HelpAssistantPanel />
+                <MobileBottomNav />
               </AnalysisProvider>
             </SubscriptionProvider>
           </AuthProvider>

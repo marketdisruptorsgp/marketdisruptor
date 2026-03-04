@@ -15,9 +15,10 @@ import { ShowcaseGallery } from "@/components/ShowcaseGallery";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import {
-  Upload, Briefcase, Building2, ShieldCheck, BookOpen,
+  Upload, Briefcase, Building2,
   Rocket, TrendingUp, Users, FileText, ArrowRight, Camera } from
 "lucide-react";
+import { AppFooter } from "@/components/AppFooter";
 
 const MODE_WORDS = [
 { label: "product", color: "hsl(var(--mode-product))" },
@@ -202,22 +203,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-border mt-0">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
-            <span className="flex items-center gap-1"><ShieldCheck size={11} /> Your data is encrypted & never shared</span>
-            <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:flex items-center gap-1"><BookOpen size={11} /> Analyses scoped to your account via RLS</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <a href="/pricing" className="font-semibold text-primary hover:underline py-1">Enterprise & Teams</a>
-          </div>
-        </div>
-        <div className="border-t border-border py-5 sm:py-6 text-center px-4">
-          {profile && <p className="text-xs leading-relaxed text-muted-foreground">Signed in as <strong className="text-foreground">{profile.first_name}</strong></p>}
-        </div>
-      </footer>
+      <AppFooter />
     </div>);
 
 }

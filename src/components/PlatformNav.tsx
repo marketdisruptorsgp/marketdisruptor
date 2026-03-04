@@ -110,27 +110,43 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
           {/* Mobile hamburger */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <button className="md:hidden p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                <Menu size={18} />
+              <button className="md:hidden p-2.5 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
+                <Menu size={20} />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72 p-0">
+            <SheetContent side="right" className="w-[85vw] max-w-sm p-0">
               <div className="p-4 border-b border-border">
-                <p className="typo-nav-primary">Menu</p>
+                <p className="typo-nav-primary text-lg">Menu</p>
               </div>
-              <div className="p-3 space-y-1">
+
+              {/* CTA at top */}
+              <div className="p-4">
+                <button
+                  onClick={() => { navigate("/analysis/new"); setMobileOpen(false); }}
+                  className="w-full flex items-center justify-center gap-2 min-h-[48px] rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-colors hover:opacity-90"
+                >
+                  <PlusCircle size={16} />
+                  Start New Analysis
+                </button>
+              </div>
+
+              <div className="px-3 pb-3 space-y-1">
                 <p className="typo-card-eyebrow px-3 pt-2 pb-1">Navigate</p>
                 {PRIMARY_NAV.map((item) => {
                   const Icon = item.icon;
+                  const active = isActive(item.path);
                   return (
                     <a
                       key={item.path}
                       href={item.path}
                       onClick={(e) => { e.preventDefault(); navigate(item.path); setMobileOpen(false); }}
-                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                      className={`w-full flex items-center gap-3 rounded-xl px-4 min-h-[48px] text-left transition-colors ${
+                        active ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                      }`}
                     >
-                      <Icon size={14} className="text-primary" />
+                      <Icon size={16} className={active ? "text-primary" : "text-muted-foreground"} />
                       <span className="typo-nav-primary">{item.label}</span>
+                      {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
                     </a>
                   );
                 })}
@@ -139,14 +155,17 @@ export function PlatformNav({ tier, onOpenSaved, savedCount }: PlatformNavProps)
                 <p className="typo-card-eyebrow px-3 pt-2 pb-1">Resources</p>
                 {RESOURCES_ITEMS.map((item) => {
                   const Icon = item.icon;
+                  const active = isActive(item.path);
                   return (
                     <a
                       key={item.label}
                       href={item.path}
                       onClick={(e) => { e.preventDefault(); navigate(item.path); setMobileOpen(false); }}
-                      className="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted"
+                      className={`w-full flex items-center gap-3 rounded-xl px-4 min-h-[48px] text-left transition-colors ${
+                        active ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                      }`}
                     >
-                      <Icon size={14} className="text-muted-foreground" />
+                      <Icon size={16} className={active ? "text-primary" : "text-muted-foreground"} />
                       <span className="typo-nav-primary">{item.label}</span>
                     </a>
                   );

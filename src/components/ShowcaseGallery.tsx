@@ -76,7 +76,7 @@ export function ShowcaseGallery() {
   return (
     <section className="mb-20">
       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Example</p>
-      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-2">
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
         Play-Doh — Rethought, Reinvented, Disrupted
       </h2>
       <p className="text-sm text-muted-foreground mb-8 max-w-2xl">
@@ -103,8 +103,8 @@ export function ShowcaseGallery() {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="-left-4 sm:-left-5" />
-        <CarouselNext className="-right-4 sm:-right-5" />
+        <CarouselPrevious className="left-2 sm:-left-5" />
+        <CarouselNext className="right-2 sm:-right-5" />
       </Carousel>
 
       {/* Dot indicators */}

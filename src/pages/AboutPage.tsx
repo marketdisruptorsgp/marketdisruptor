@@ -80,7 +80,7 @@ export default function AboutPage() {
         <div className="absolute inset-0 pointer-events-none" style={{
           background: "radial-gradient(ellipse 80% 50% at 50% 0%, hsl(var(--primary) / 0.06) 0%, transparent 70%)",
         }} />
-        <div className="max-w-4xl mx-auto px-6 sm:px-10 pt-24 sm:pt-32 pb-16 sm:pb-20 relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-10 pt-16 sm:pt-24 md:pt-32 pb-12 sm:pb-20 relative">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -93,7 +93,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-6xl sm:text-8xl font-extrabold tracking-tight text-foreground leading-[1.05] mb-6"
+            className="text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight text-foreground leading-[1.05] mb-6"
           >
             Rethink The
             <br />
