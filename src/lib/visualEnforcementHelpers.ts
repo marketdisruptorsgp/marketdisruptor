@@ -61,8 +61,16 @@ export function validateVisualStory(story: VisualStory, signals: RankedSignal[])
  * Returns a display-safe label.
  */
 export function normalizeSignalLabel(label: string, maxWords = 6): string {
-  const words = label.trim().split(/\s+/);
-  if (words.length <= maxWords) return label.trim();
+  let clean = label.trim();
+  // Strip JSON fragments, code identifiers, and technical prefixes
+  clean = clean.replace(/[{}\[\]"]/g, ""); // remove JSON brackets/quotes
+  clean = clean.replace(/^(F\d+_|inputs?:|outputs?:)/i, ""); // strip function IDs
+  clean = clean.replace(/\b[A-Z][a-z]+[A-Z]\w+/g, (m) => m.replace(/([a-z])([A-Z])/g, "$1 $2")); // camelCase → words
+  clean = clean.replace(/[_]+/g, " "); // underscores to spaces
+  clean = clean.replace(/\s{2,}/g, " ").trim();
+  if (!clean || clean.length < 3) return label.trim().slice(0, 30);
+  const words = clean.split(/\s+/);
+  if (words.length <= maxWords) return clean;
   return words.slice(0, maxWords).join(" ") + "…";
 }
 
