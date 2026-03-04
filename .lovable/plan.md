@@ -1,45 +1,52 @@
 
 
-## Plan: Global Font Color + Size Upgrade
+## Better User Journey Visualization
 
 ### Problem
-Gray/muted text throughout the platform reduces readability. Font sizes need a ~10% bump across all modes, steps, and sections.
+The current `WorkflowTimeline` is a simple vertical list of steps with expandable friction details. It looks the same regardless of what's being analyzed (SaaS product vs physical product vs service). It doesn't feel like a real process/workflow diagram.
 
-### Approach — Two CSS-level changes (no component edits needed)
+### Approach: Adaptive Journey Layout
 
-**1. Kill gray text globally** — Change `--muted-foreground` CSS variable from `220 10% 40%` (gray) to match `--foreground` (`224 20% 10%`, near-black). This single change propagates to every `text-muted-foreground` usage across all 117+ files without touching any component code.
+**1. New `AdaptiveJourneyMap` component** (replaces `WorkflowTimeline` in journey tab)
 
-**2. Bump all font sizes ~10%** — Increase the base `body` font-size from `0.875rem` to `0.9625rem`, and scale each typography role class proportionally:
+Detects the type of journey from step content and `contextOfUse`/category, then renders an appropriate layout:
 
-| Role | Current | New (~+10%) |
-|------|---------|-------------|
-| body | 0.875rem (14px) | 0.9625rem (15.4px) |
-| typo-nav-primary | 0.9375rem | 1.03rem |
-| typo-step-title-active/inactive | 0.875rem | 0.9625rem |
-| typo-step-subtitle | 0.8125rem | 0.894rem |
-| typo-page-title | 2rem | 2.2rem |
-| typo-page-meta | 0.875rem | 0.9625rem |
-| typo-card-eyebrow | 0.8125rem | 0.894rem |
-| typo-card-title | 1rem | 1.1rem |
-| typo-card-body | 0.875rem | 0.9625rem |
-| typo-card-meta | 0.8125rem | 0.894rem |
-| typo-section-title | 1.125rem | 1.2375rem |
-| typo-section-description | 0.875rem | 0.9625rem |
-| typo-status-label | 0.8125rem | 0.894rem |
-| typo-button-primary | 0.875rem | 0.9625rem |
-| typo-button-secondary | 0.8125rem | 0.894rem |
+- **Digital/SaaS journeys** (keywords: sign up, download, configure, dashboard) → Horizontal swimlane-style flow with phase groupings (Discovery → Onboarding → Core Usage → Retention)
+- **Physical/Service journeys** (keywords: visit, drive, arrive, wait, appointment) → Location-based vertical timeline with environment context
+- **E-commerce journeys** (keywords: browse, cart, checkout, deliver) → Funnel-style visualization showing conversion stages
+- **Default** → Enhanced horizontal process flow with connected nodes
 
-### Files to edit
-- **`src/index.css`** — The only file that needs changes. Both the CSS variable and all typography class sizes live here.
+**2. Visual improvements across all layouts:**
+- Steps rendered as connected **process nodes** (rounded cards with directional arrows/connectors between them)
+- Friction points shown **inline** as red warning badges on the connector lines (not hidden behind expand)
+- High-severity friction steps get a red/amber border glow — severity is visible at a glance
+- Phase grouping headers (e.g., "DISCOVERY", "ONBOARDING", "CORE USAGE") auto-derived from step content
+- Cognitive Load and Context of Use rendered as a summary bar at the top, not buried at the bottom
 
-### What this covers
-- All modes (Product, Service, Business Model)
-- All steps (Intel, Disrupt, Redesign, Stress Test, Pitch)
-- All sections, cards, panels, navigation, badges, buttons
-- Existing and new analyses
+**3. Horizontal flow for desktop, vertical for mobile:**
+- On desktop (sm+): steps flow left-to-right in a scrollable horizontal track with curved SVG connectors
+- On mobile: collapses to the current vertical layout but with the new styling
 
-### What stays unchanged
-- No component files touched
-- Color accents, borders, spacing unaffected
-- Heading font family (Space Grotesk) unchanged
+### Technical Plan
+
+| Task | Detail |
+|------|--------|
+| Create `src/components/AdaptiveJourneyMap.tsx` | New component with phase detection, horizontal flow layout, friction overlays |
+| Phase detection logic | Categorize steps into phases (Discovery/Evaluation/Acquisition/Usage/Retention) based on keyword matching from existing `STEP_ICON_KEYWORDS` |
+| Journey type detection | Use `contextOfUse`, category, and step keywords to pick layout variant |
+| Friction severity visualization | Red/amber/green connector segments between nodes; high-severity steps get prominent callout |
+| Update `ReportPage.tsx` | Replace `WorkflowTimeline` with `AdaptiveJourneyMap` in the journey tab |
+| Update `ShareableAnalysisPage.tsx` | Same replacement for shared view |
+| Keep `WorkflowTimeline` export | Other pages (Index, PrintableReport) still use it — don't break them |
+
+### Data available for adaptation
+From `userWorkflow`:
+- `stepByStep: string[]` — step names
+- `frictionPoints: { stepIndex, friction, severity, rootCause }[]`
+- `cognitiveLoad: string`
+- `contextOfUse: string`
+
+From parent product:
+- `category` — product/service/business type
+- `name`, `description` — what's being analyzed
 
