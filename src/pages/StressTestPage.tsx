@@ -18,7 +18,7 @@ import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save, RefreshCw } from "lucide-react";
+import { FileDown, Save, RefreshCw, Swords } from "lucide-react";
 import { toast } from "sonner";
 
 export default function StressTestPage() {
@@ -64,7 +64,19 @@ export default function StressTestPage() {
 
         {isOutdated && <OutdatedBanner stepName="Stress Test" accentColor={theme.primary} />}
 
-        
+        {/* ── Stress Test Context Banner ── */}
+        <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(350 80% 55%)" }}>
+              <Swords size={18} style={{ color: "white" }} />
+            </div>
+            <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>Stress Test</h3>
+          </div>
+          <p className="text-sm leading-relaxed pl-[48px]" style={{ color: "hsl(0 0% 100% / 0.85)" }}>
+            Red Team vs Green Team adversarial debate — your idea is attacked and defended to expose blind spots, validate strengths, and deliver a clear survival judgment.
+          </p>
+        </div>
+
 
         {/* Analysis title — persistent across all steps */}
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground px-1">{selectedProduct.name}</h1>
