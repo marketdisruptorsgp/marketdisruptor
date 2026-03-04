@@ -584,8 +584,6 @@ export function ReasoningSynopsis({ data, analysisData, products, title, categor
         <KeyAssumptionsPanel assumptions={synopsis.key_assumptions || []} />
         <CounterfactualPanel scenarios={synopsis.counterfactual_scenarios || []} />
       </div>
-      {/* Structured text sections */}
-      <StructuredTextSynopsis synopsis={synopsis} />
     </div>
   );
 }
