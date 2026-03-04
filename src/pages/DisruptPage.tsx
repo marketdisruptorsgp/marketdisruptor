@@ -10,15 +10,16 @@ import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
-import { KeyTakeawayBanner, getDisruptTakeaway } from "@/components/KeyTakeawayBanner";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
-import { ModeHeader } from "@/components/ModeHeader";
 import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
 import { scrollToTop } from "@/utils/scrollToTop";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
 import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
-import { Brain, GitBranch, ChevronRight } from "lucide-react";
+import { Brain, GitBranch, ChevronRight, FileDown, Save, RefreshCw } from "lucide-react";
 import { ModeBadge } from "@/components/ModeBadge";
+import StrategicProfileSelector from "@/components/StrategicProfileSelector";
+import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
+import { toast } from "sonner";
 
 export default function DisruptPage() {
   const [activeTab, setActiveTab] = useState<"reasoning" | "hypotheses">("reasoning");
@@ -60,22 +61,34 @@ export default function DisruptPage() {
         />
 
         <StepNavBar backLabel="Intelligence Report" backPath={`${baseUrl}/report`} accentColor={theme.primary} />
-        <div className="flex justify-end"><ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={theme.primary} /></div>
 
-        {(() => {
-          const takeaway = getDisruptTakeaway(analysis.disruptData as Record<string, unknown> | null);
-          return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor={theme.primary} /> : null;
-        })()}
-
-        {/* ActiveHypothesisBanner hidden on Disrupt — shown on Redesign and downstream */}
-
-        <ModeHeader
-          stepNumber={3}
-          stepTitle="Disrupt"
-          subtitle={`Deconstructing <strong class="text-foreground">${selectedProduct.name}</strong>`}
-          accentColor={theme.primary}
-          explainerKey="step-disrupt"
-        />
+        {/* Compact header with archetype + actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+          <h2 className="typo-section-title">Disrupt</h2>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <StrategicProfileSelector
+              profile={analysis.strategicProfile}
+              onChangeProfile={analysis.setStrategicProfile}
+            />
+            <button onClick={() => {
+              if (!selectedProduct) return;
+              const data: Record<string, unknown> = {};
+              if (analysis.disruptData) data.disrupt = analysis.disruptData;
+              downloadReportAsPDF(selectedProduct, data, {
+                title: selectedProduct.name,
+                mode: (analysis.analysisParams as any)?.analysisType,
+                onProgress: (msg) => toast.loading(msg, { id: "pdf-progress" }),
+              }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
+                .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
+            }} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
+              <FileDown size={12} /> PDF
+            </button>
+            <button onClick={() => analysis.handleManualSave()} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-primary text-primary-foreground">
+              <Save size={12} /> Save
+            </button>
+            <ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={theme.primary} />
+          </div>
+        </div>
 
         {/* ── First Principles Analysis ── */}
         <div className="rounded overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
