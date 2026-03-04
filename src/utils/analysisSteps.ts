@@ -12,7 +12,7 @@ export interface StepStatus {
 
 const STEP_DEFINITIONS = [
   { key: "intelData",      label: "Intelligence Report", route: "report",      order: 1, uiStep: 2 },
-  { key: "disrupt",        label: "Disrupt",             route: "disrupt",     order: 2, uiStep: 3 },
+  { key: "disrupt",        label: "Deconstruct",             route: "disrupt",     order: 2, uiStep: 3 },
   { key: "redesign",       label: "Redesign",            route: "redesign",    order: 3, uiStep: 4 },
   { key: "stressTest",     label: "Stress Test",         route: "stress-test", order: 4, uiStep: 5 },
   { key: "pitchDeck",      label: "Pitch Deck",          route: "pitch",       order: 5, uiStep: 6 },

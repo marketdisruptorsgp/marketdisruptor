@@ -744,7 +744,7 @@ export default function Index() {
             <StepNavigator
               steps={[
                 { step: 2, label: "Intelligence Report", description: "Deep market data, pricing & supply chain intel", icon: Target, color: modeAccent },
-                { step: 3, label: "Disrupt", description: "Assumptions, flip the logic & flipped ideas", icon: Brain, color: "hsl(271 81% 55%)" },
+                { step: 3, label: "Deconstruct", description: "Assumptions, flip the logic & flipped ideas", icon: Brain, color: "hsl(271 81% 55%)" },
                 { step: 4, label: "Redesign", description: "Interactive concept illustrations", icon: Sparkles, color: "hsl(38 92% 50%)" },
                 { step: 5, label: "Stress Test", description: "Red vs Green team critical validation", icon: Swords, color: "hsl(350 80% 55%)" },
                 { step: 6, label: "Pitch Deck", description: "Investor-ready presentation builder", icon: Presentation, color: "hsl(var(--primary))" },
@@ -1728,7 +1728,7 @@ export default function Index() {
             <StepNavigator
               steps={[
                 { step: 2, label: "Intelligence Report", description: "Business model deep analysis", icon: Target, color: bizAccent },
-                { step: 3, label: "Disrupt", description: "Challenge assumptions & reinvent", icon: Brain, color: "hsl(271 81% 55%)" },
+                { step: 3, label: "Deconstruct", description: "Challenge assumptions & reinvent", icon: Brain, color: "hsl(271 81% 55%)" },
                 { step: 4, label: "Redesign", description: "Reinvented concept illustrations", icon: Sparkles, color: "hsl(38 92% 50%)" },
                 { step: 5, label: "Stress Test", description: "Red vs Green team debate", icon: Swords, color: "hsl(350 80% 55%)" },
                 { step: 6, label: "Pitch Deck", description: "Investor-ready pitch builder", icon: Presentation, color: "hsl(var(--primary))" },

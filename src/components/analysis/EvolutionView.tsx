@@ -63,7 +63,7 @@ export function EvolutionView({ analysisData, productName, accentColor = "hsl(va
     },
     {
       key: "disrupt",
-      label: "Disrupt",
+      label: "Deconstruct",
       icon: Brain,
       color: accentColor,
       completed: !!(analysisData?.disrupt || analysisData?.firstPrinciples),

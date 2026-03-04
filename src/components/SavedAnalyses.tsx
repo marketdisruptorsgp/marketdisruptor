@@ -253,7 +253,7 @@ function ProjectCard({ analysis, onLoad, onDelete }: { analysis: SavedAnalysis; 
               { key: "pitchDeck", label: "Pitch" },
               { key: "stressTest", label: "Stress Test" },
               { key: "redesign", label: "Redesign" },
-              { key: "disrupt", label: "Disrupt" },
+              { key: "disrupt", label: "Deconstruct" },
             ];
             for (const s of steps) {
               if (ad[s.key]) {
