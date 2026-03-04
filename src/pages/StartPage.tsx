@@ -180,11 +180,12 @@ export default function StartPage() {
                 </motion.span>
               </div>
 
-              <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-3 sm:gap-4 pb-2 sm:pb-0 sm:grid sm:grid-cols-3 lg:grid-cols-6 relative">
+              {/* Desktop: 6-col grid */}
+              <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-6 gap-4 relative">
                 {PIPELINE_STEPS.map((item, i) => {
                   const Icon = item.icon;
                   return (
-                    <div key={item.step} className="relative min-w-[200px] sm:min-w-0 snap-center flex-shrink-0">
+                    <div key={item.step} className="relative">
                       {i > 0 && (
                         <div className="hidden lg:flex absolute -left-2 top-8 z-10 items-center justify-center">
                           <ChevronRight
@@ -199,7 +200,7 @@ export default function StartPage() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-40px" }}
                         transition={{ duration: 0.4, delay: i * 0.08 }}
-                        className="text-center rounded-xl border p-3 transition-all duration-1000"
+                        className="text-center rounded-xl border p-3 transition-all duration-1000 h-full"
                         style={{
                           borderColor: `color-mix(in srgb, ${activeColor} 18%, hsl(var(--border)))`,
                           background: `color-mix(in srgb, ${activeColor} 4%, hsl(var(--card)))`,
@@ -229,6 +230,51 @@ export default function StartPage() {
                         </motion.p>
                       </motion.div>
                     </div>
+                  );
+                })}
+              </div>
+
+              {/* Mobile: compact vertical list */}
+              <div className="sm:hidden space-y-2">
+                {PIPELINE_STEPS.map((item, i) => {
+                  const Icon = item.icon;
+                  return (
+                    <motion.div
+                      key={item.step}
+                      initial={{ opacity: 0, x: -12 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.3, delay: i * 0.05 }}
+                      className="flex items-start gap-3 rounded-lg border p-3 transition-all duration-1000"
+                      style={{
+                        borderColor: `color-mix(in srgb, ${activeColor} 18%, hsl(var(--border)))`,
+                        background: `color-mix(in srgb, ${activeColor} 4%, hsl(var(--card)))`,
+                      }}
+                    >
+                      <div
+                        className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-1000"
+                        style={{
+                          background: `color-mix(in srgb, ${activeColor} 16%, transparent)`,
+                        }}
+                      >
+                        <Icon size={18} className="transition-colors duration-1000" style={{ color: activeColor }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-foreground/40">Step {item.step}</span>
+                          <span className="text-[13px] font-bold text-foreground">{item.label}</span>
+                        </div>
+                        <motion.p
+                          key={modeKey}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.8 }}
+                          className="text-[11px] text-foreground/55 leading-relaxed"
+                        >
+                          {item.desc[modeKey]}
+                        </motion.p>
+                      </div>
+                    </motion.div>
                   );
                 })}
               </div>
