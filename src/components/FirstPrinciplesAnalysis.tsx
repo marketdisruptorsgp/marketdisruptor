@@ -474,7 +474,7 @@ function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumpti
                 className="w-full text-left px-4 py-3 flex items-center gap-3"
               >
                 <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>{i + 1}</span>
-                <span className="text-[13px] font-bold text-foreground flex-1 leading-snug">{a.assumption}</span>
+                <span className="text-sm font-bold text-foreground flex-1 leading-snug">{a.assumption}</span>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {a.urgencySignal === "eroding" && (
                     <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "hsl(0 70% 50% / 0.1)", color: "hsl(0 70% 50%)" }}>↓ Eroding</span>
@@ -507,14 +507,14 @@ function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumpti
                       }}>
                         {a.urgencySignal === "eroding" ? "↓ Eroding Now" : a.urgencySignal === "emerging" ? "↑ Emerging Opportunity" : "→ Stable"}
                       </span>
-                      {a.urgencyReason && <span className="text-[11px] text-muted-foreground">{a.urgencyReason}</span>}
+                      {a.urgencyReason && <span className="text-xs text-foreground/80">{a.urgencyReason}</span>}
                     </div>
                   )}
 
                   {/* Leverage bar */}
                   {a.leverageScore != null && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-20">Leverage</span>
+                      <span className="text-xs font-bold uppercase tracking-wider text-foreground/70 w-20">Leverage</span>
                       <div className="h-2 rounded-full overflow-hidden flex-1" style={{ background: "hsl(var(--muted))" }}>
                         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(a.leverageScore / 10) * 100}%`, background: leverageColor }} />
                       </div>
@@ -524,31 +524,31 @@ function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumpti
 
                   {/* Why it exists */}
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Why this exists</p>
-                    <p className="text-xs text-foreground/80 leading-relaxed">{a.currentAnswer}</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-foreground/70 mb-1">Why this exists</p>
+                    <p className="text-sm text-foreground leading-relaxed">{a.currentAnswer}</p>
                   </div>
 
                   {/* Impact scenario */}
                   {a.impactScenario && (
                     <div className="p-3 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 40% / 0.15)" }}>
-                      <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 35%)" }}>If challenged successfully</p>
-                      <p className="text-xs text-foreground/80 leading-relaxed">{a.impactScenario}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 35%)" }}>If challenged successfully</p>
+                      <p className="text-sm text-foreground leading-relaxed">{a.impactScenario}</p>
                     </div>
                   )}
 
                   {/* Competitive blind spot */}
                   {a.competitiveBlindSpot && (
                     <div className="p-3 rounded-lg" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
-                      <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(38 92% 35%)" }}>Who's vulnerable</p>
-                      <p className="text-xs text-foreground/80 leading-relaxed">{a.competitiveBlindSpot}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(38 92% 35%)" }}>Who's vulnerable</p>
+                      <p className="text-sm text-foreground leading-relaxed">{a.competitiveBlindSpot}</p>
                     </div>
                   )}
 
                   {/* Challenge approach */}
                   {a.challengeIdea && (
                     <div className="p-3 rounded-lg" style={{ background: "hsl(var(--primary) / 0.05)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
-                      <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>How to challenge this</p>
-                      <p className="text-xs text-foreground/80 leading-relaxed">{a.challengeIdea}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>How to challenge this</p>
+                      <p className="text-sm text-foreground leading-relaxed">{a.challengeIdea}</p>
                     </div>
                   )}
 
@@ -1185,25 +1185,25 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   return (
     <div className="space-y-4" data-fp-steps>
       {/* ── First Principles Methodology Banner ── */}
-      <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--primary) / 0.04)", border: "1.5px solid hsl(var(--primary) / 0.15)" }}>
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-            <Brain size={16} style={{ color: "white" }} />
+      <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+            <Brain size={18} style={{ color: "white" }} />
           </div>
           <div>
-            <h3 className="font-extrabold text-foreground text-sm leading-tight">First Principles Analysis</h3>
-            <p className="typo-card-meta text-muted-foreground mt-0.5">{product.name}</p>
+            <h3 className="font-extrabold text-base leading-tight" style={{ color: "hsl(var(--background))" }}>First Principles Analysis</h3>
+            <p className="text-xs font-semibold mt-0.5" style={{ color: "hsl(var(--background) / 0.6)" }}>{product.name}</p>
           </div>
         </div>
-        <p className="text-xs text-foreground/70 leading-relaxed pl-[42px]">
-          Strip away convention, analogy, and industry norms. Every assumption is decomposed to its root cause — <strong className="text-foreground">tradition, cost, physics, manufacturing limits, or habit</strong> — then stress-tested for leverage. High-leverage assumptions are where structural reinvention begins.
+        <p className="text-sm leading-relaxed pl-[48px]" style={{ color: "hsl(var(--background) / 0.7)" }}>
+          Strip away convention, analogy, and industry norms. Every assumption is decomposed to its root cause — <strong style={{ color: "hsl(var(--background) / 0.95)" }}>tradition, cost, physics, manufacturing limits, or habit</strong> — then stress-tested for leverage.
         </p>
       </div>
 
       {/* Header + re-run (compact) */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Hidden Assumptions & Leverage Analysis</p>
+          <p className="text-sm font-bold text-foreground uppercase tracking-widest">Hidden Assumptions & Leverage Analysis</p>
         </div>
         <button
           onClick={runAnalysis}
@@ -1320,7 +1320,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           })()}
 
           {/* ── Summary line ── */}
-          <p className="text-xs text-muted-foreground leading-relaxed">
+          <p className="text-sm font-semibold text-foreground leading-relaxed">
             {assumptions.length} assumptions deconstructed · {challengeableCount} challengeable ({assumptions.length > 0 ? Math.round(challengeableCount / assumptions.length * 100) : 0}%) · avg leverage {avgLeverage}/10{topReason ? ` · top root cause: ${REASON_COLORS[topReason[0]]?.label || topReason[0]}` : ""}
             {(() => { const eroding = assumptions.filter(a => a.urgencySignal === "eroding").length; return eroding > 0 ? ` · ${eroding} eroding now` : ""; })()}
           </p>
