@@ -16,7 +16,7 @@ import { useNavigate, Link } from "react-router-dom";
 
 const MODE_CONFIG = {
   custom: {
-    label: "Disrupt This Product",
+    label: "Deconstruct This Product",
     icon: Upload,
     cssVar: "--mode-product",
     tips: [
@@ -27,7 +27,7 @@ const MODE_CONFIG = {
     ],
   },
   service: {
-    label: "Disrupt This Service",
+    label: "Deconstruct This Service",
     icon: Briefcase,
     cssVar: "--mode-service",
     tips: [
@@ -38,7 +38,7 @@ const MODE_CONFIG = {
     ],
   },
   business: {
-    label: "Disrupt This Business Model",
+    label: "Deconstruct This Business Model",
     icon: Building2,
     cssVar: "--mode-business",
     tips: [

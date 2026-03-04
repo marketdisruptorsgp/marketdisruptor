@@ -1,6 +1,6 @@
 import { CheckCircle2 } from "lucide-react";
 
-const STEP_LABELS = ["Intel", "Disrupt", "Redesign", "Stress Test", "Pitch"];
+const STEP_LABELS = ["Intel", "Deconstruct", "Redesign", "Stress Test", "Pitch"];
 
 interface StepProgressDotsProps {
   analysisData: Record<string, unknown> | null;

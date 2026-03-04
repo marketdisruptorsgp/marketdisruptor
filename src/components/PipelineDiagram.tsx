@@ -41,7 +41,7 @@ const STEPS = [
   },
   {
     step: 3,
-    label: "DISRUPT",
+    label: "DECONSTRUCT",
     color: "hsl(271 81% 56%)",
     bg: "hsl(271 81% 56% / 0.12)",
     border: "hsl(271 81% 56% / 0.4)",

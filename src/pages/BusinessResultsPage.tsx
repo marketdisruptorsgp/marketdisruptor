@@ -89,7 +89,7 @@ export default function BusinessResultsPage() {
         <StepNavigator
           steps={[
             { step: 2, label: "Intelligence Report", description: "Business model deep analysis", icon: Target, color: modeAccent },
-            { step: 3, label: "Disrupt", description: "Challenge assumptions & reinvent", icon: Brain, color: "hsl(350 80% 55%)" },
+            { step: 3, label: "Deconstruct", description: "Challenge assumptions & reinvent", icon: Brain, color: "hsl(350 80% 55%)" },
             { step: 4, label: "Stress Test", description: "Red vs Green team debate", icon: Swords, color: "hsl(38 92% 50%)" },
             { step: 5, label: "Pitch Deck", description: "Investor-ready pitch builder", icon: Presentation, color: modeAccent },
           ]}

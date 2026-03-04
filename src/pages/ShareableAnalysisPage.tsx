@@ -43,7 +43,7 @@ const ACCENT = "hsl(var(--primary))";
 function getSharedStepConfigs(): StepConfig[] {
   return [
     { step: 2, label: "Intelligence Report", description: "Deep market data, pricing & supply chain intel", icon: Target, color: ACCENT },
-    { step: 3, label: "Disrupt", description: "Assumptions, flip the logic & flipped ideas", icon: Brain, color: "hsl(271 81% 55%)" },
+    { step: 3, label: "Deconstruct", description: "Assumptions, flip the logic & flipped ideas", icon: Brain, color: "hsl(271 81% 55%)" },
     { step: 4, label: "Redesign", description: "Interactive redesigned concept with illustrations", icon: Sparkles, color: "hsl(38 92% 50%)" },
     { step: 5, label: "Stress Test", description: "Red vs Green team critical validation", icon: Swords, color: "hsl(350 80% 55%)" },
     { step: 6, label: "Pitch Deck", description: "Investor-ready presentation builder", icon: Presentation, color: ACCENT },

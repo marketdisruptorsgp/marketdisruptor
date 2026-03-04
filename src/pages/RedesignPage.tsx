@@ -74,7 +74,7 @@ export default function RedesignPage() {
           accentColor={theme.primary}
         />
 
-        <StepNavBar backLabel="Disrupt" backPath={`${baseUrl}/disrupt`} accentColor={theme.primary} />
+        <StepNavBar backLabel="Deconstruct" backPath={`${baseUrl}/disrupt`} accentColor={theme.primary} />
 
         {isOutdated && (
           <OutdatedBanner

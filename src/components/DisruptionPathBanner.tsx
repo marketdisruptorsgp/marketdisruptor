@@ -15,7 +15,7 @@ interface StepDef {
 const PIPELINE_STEPS: StepDef[] = [
   {
     icon: Crosshair,
-    label: "Choose What to Disrupt",
+    label: "Choose What to Deconstruct",
     shortLabel: "Choose",
     color: "230 90% 63%",
     desc: {
@@ -47,8 +47,8 @@ const PIPELINE_STEPS: StepDef[] = [
   },
   {
     icon: Brain,
-    label: "Disrupt & Reinvent",
-    shortLabel: "Disrupt",
+    label: "Deconstruct & Reinvent",
+    shortLabel: "Deconstruct",
     color: "271 81% 55%",
     desc: {
       product: "Challenge assumptions & generate radical flip ideas for products",

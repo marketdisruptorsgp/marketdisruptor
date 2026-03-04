@@ -57,7 +57,7 @@ export function AnalysisTimeline({ analysisData, createdAt, accentColor = "hsl(v
     },
     {
       key: "disrupt",
-      label: "Disrupt Completed",
+      label: "Deconstruct Completed",
       icon: Brain,
       color: "hsl(271 81% 55%)",
       completed: !!(analysisData?.disrupt || analysisData?.firstPrinciples),
