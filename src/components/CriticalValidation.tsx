@@ -31,8 +31,7 @@ class StressTestVisualWrapper extends React.Component<
       // Render children without visual layer on error
       return <div className="space-y-4">{this.props.children}</div>;
     }
-    // Lazy import to avoid circular deps
-    const { AnalysisVisualLayer } = require("./AnalysisVisualLayer");
+    // Use the already-imported AnalysisVisualLayer
     return (
       <AnalysisVisualLayer
         analysis={this.props.analysis}
@@ -254,7 +253,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         >
           <Swords size={15} /> Run Critical Validation
         </button>
-        <p className="typo-card-meta text-muted-foreground">Requires completed Disrupt analysis · ~20-30s</p>
+        <p className="typo-card-meta text-muted-foreground">Requires completed Deconstruct analysis · ~20-30s</p>
       </div>
     );
   }
