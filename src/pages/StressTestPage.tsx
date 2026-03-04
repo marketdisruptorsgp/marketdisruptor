@@ -12,7 +12,7 @@ import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton, StepNavBar } from "@/components/SectionNav";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { OutdatedBanner } from "@/components/OutdatedBanner";
-import { ActiveHypothesisBanner } from "@/components/ActiveHypothesisBanner";
+
 import { scrollToTop } from "@/utils/scrollToTop";
 import { ModeBadge } from "@/components/ModeBadge";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
@@ -64,7 +64,7 @@ export default function StressTestPage() {
 
         {isOutdated && <OutdatedBanner stepName="Stress Test" accentColor={theme.primary} />}
 
-        <ActiveHypothesisBanner stepName="Stress Test" accentColor={theme.primary} />
+        
 
         {/* Analysis title — persistent across all steps */}
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground px-1">{selectedProduct.name}</h1>
