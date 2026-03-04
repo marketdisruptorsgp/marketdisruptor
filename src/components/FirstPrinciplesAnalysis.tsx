@@ -486,8 +486,16 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         requestBody.insightPreferences = analysisCtx.insightPreferences;
         requestBody.userScores = analysisCtx.userScores;
         requestBody.steeringText = analysisCtx.steeringText;
-        requestBody.disruptContext = analysisCtx.disruptData;
-        requestBody.selectedImages = analysisCtx.pitchDeckImages;
+        // Only send the fields the edge function actually uses (hiddenAssumptions, flippedLogic)
+        // to avoid oversized payloads from sending the full disrupt analysis blob
+        if (analysisCtx.disruptData) {
+          const dd = analysisCtx.disruptData as Record<string, unknown>;
+          requestBody.disruptContext = {
+            hiddenAssumptions: dd.hiddenAssumptions || null,
+            flippedLogic: dd.flippedLogic || null,
+          };
+        }
+        // Note: selectedImages is not used by the edge function — omitted to reduce payload size
         // Pass governed reasoning data (causal chains, reasoning revisions, constraint maps)
         if (analysisCtx.governedData) {
           requestBody.governedContext = {
@@ -511,6 +519,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Analysis failed";
+        console.error("[Redesign/Disrupt] Analysis failed:", { error, result, renderMode });
         if (msg.includes("Rate limit") || msg.includes("429")) {
           toast.error("Rate limit hit — please wait a moment and try again.");
         } else if (msg.includes("credits") || msg.includes("402")) {
