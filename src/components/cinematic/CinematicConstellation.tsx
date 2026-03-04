@@ -3,175 +3,177 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { VisualStory } from "@/lib/visualStoryCompiler";
 import type { RankedSignal } from "@/lib/signalRanking";
 import { normalizeSignalLabel } from "@/lib/visualEnforcementHelpers";
+import { ChevronDown } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════════
-   CINEMATIC SIGNAL CONSTELLATION
-   All signals arranged as a constellation/star field.
+   SIGNAL SUMMARY — Clean, scannable intelligence overview
+   Replaces decorative constellation with actionable grouped list.
    Used for CLUSTERED_INTELLIGENCE and PRIORITIZED_SIGNAL_FIELD.
    ═══════════════════════════════════════════════════════════════ */
 
-const ROLE_LABELS: Record<string, string> = {
-  driver: "Driver", constraint: "Constraint", mechanism: "Mechanism",
-  assumption: "Assumption", leverage: "Leverage", outcome: "Outcome",
+const ROLE_META: Record<string, { label: string; color: string; description: string }> = {
+  driver:     { label: "Drivers",     color: "hsl(142 70% 40%)",  description: "Forces pushing this forward" },
+  constraint: { label: "Constraints", color: "hsl(0 72% 50%)",    description: "Forces holding this back" },
+  mechanism:  { label: "Mechanisms",  color: "hsl(38 92% 45%)",   description: "How the system actually works" },
+  assumption: { label: "Assumptions", color: "hsl(271 60% 55%)",  description: "Untested beliefs at risk" },
+  leverage:   { label: "Leverage",    color: "hsl(229 80% 58%)",  description: "High-impact intervention points" },
+  outcome:    { label: "Outcomes",    color: "hsl(160 60% 40%)",  description: "Expected results" },
 };
 
-const ROLE_COLORS: Record<string, { solid: string; glow: string }> = {
-  driver: { solid: "hsl(var(--cin-green))", glow: "hsl(var(--cin-green-glow))" },
-  constraint: { solid: "hsl(var(--cin-red))", glow: "hsl(var(--cin-red-glow))" },
-  mechanism: { solid: "hsl(38 92% 50%)", glow: "hsl(38 92% 60%)" },
-  assumption: { solid: "hsl(38 92% 50%)", glow: "hsl(38 92% 60%)" },
-  leverage: { solid: "hsl(229 89% 63%)", glow: "hsl(229 89% 73%)" },
-  outcome: { solid: "hsl(var(--cin-green))", glow: "hsl(var(--cin-green-glow))" },
-};
+const ROLE_ORDER = ["driver", "constraint", "leverage", "mechanism", "assumption", "outcome"];
 
-function StarOrb({
-  signal, index, total, maxScore, onSelect, isSelected,
-}: {
-  signal: RankedSignal; index: number; total: number; maxScore: number;
-  onSelect: (s: RankedSignal | null) => void; isSelected: boolean;
-}) {
-  const [hovered, setHovered] = useState(false);
+function ScoreBar({ value, max, color }: { value: number; max: number; color: string }) {
+  const pct = Math.min((value / (max || 1)) * 100, 100);
+  return (
+    <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="h-full rounded-full"
+        style={{ background: color }}
+      />
+    </div>
+  );
+}
+
+function SignalRow({ signal, maxScore, color, index }: { signal: RankedSignal; maxScore: number; color: string; index: number }) {
   const label = normalizeSignalLabel(signal.label);
-  const norm = signal.score / (maxScore || 1);
-  const size = 32 + norm * 32;
-
-  const { solid: color, glow: glowColor } = ROLE_COLORS[signal.role] || ROLE_COLORS.driver;
-
-  // Distribute in a spiral pattern
-  const goldenAngle = 2.399963;
-  const angle = index * goldenAngle;
-  const r = 18 + (index / total) * 22;
-  const cx = 50 + Math.cos(angle) * r;
-  const cy = 48 + Math.sin(angle) * r * 0.75;
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0 }}
-      animate={{ opacity: 1, scale: hovered || isSelected ? 1.2 : 1 }}
-      transition={{ delay: 0.1 + index * 0.07, duration: 0.5, type: "spring" }}
-      className="absolute cursor-pointer"
-      style={{
-        left: `${cx}%`, top: `${cy}%`,
-        transform: "translate(-50%, -50%)",
-        zIndex: isSelected ? 20 : hovered ? 15 : 10,
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={(e) => { e.stopPropagation(); onSelect(isSelected ? null : signal); }}
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.04, duration: 0.25 }}
+      className="flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-muted/40 group"
     >
-      <motion.div
-        animate={{
-          boxShadow: hovered || isSelected
-            ? `0 0 ${size}px ${size / 2}px ${glowColor}30`
-            : `0 0 ${size / 3}px ${size / 6}px ${glowColor}12`,
-        }}
-        className="rounded-full flex items-center justify-center"
-        style={{
-          width: size, height: size,
-          background: `radial-gradient(circle at 40% 35%, ${color}20, ${color}04)`,
-          border: `1px solid ${color}${hovered || isSelected ? '50' : '20'}`,
-        }}
-      >
-        <span className="text-[8px] font-bold text-center leading-tight px-0.5 select-none"
-          style={{ color: `${color}` }}>
-          {label.length > 16 ? label.slice(0, 14) + "…" : label}
-        </span>
-      </motion.div>
-
-      <AnimatePresence>
-        {hovered && !isSelected && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
-            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 rounded-md text-[9px] font-bold pointer-events-none z-30"
-            style={{ top: size + 4, background: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))", border: "1px solid hsl(var(--border))" }}
-          >
-            {ROLE_LABELS[signal.role]} · {signal.score}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: color }} />
+      <p className="text-[13px] text-foreground font-medium flex-1 min-w-0 leading-snug">
+        {label}
+      </p>
+      <div className="w-16 flex-shrink-0">
+        <ScoreBar value={signal.score} max={maxScore} color={color} />
+      </div>
+      <span className="text-[10px] font-bold text-muted-foreground w-5 text-right flex-shrink-0">
+        {signal.score}
+      </span>
     </motion.div>
   );
 }
 
-function DepthPanel({ signal, onClose }: { signal: RankedSignal; onClose: () => void }) {
-  const color = (ROLE_COLORS[signal.role] || ROLE_COLORS.driver).solid;
+function RoleGroup({ role, signals, maxScore, defaultOpen }: { role: string; signals: RankedSignal[]; maxScore: number; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const meta = ROLE_META[role] || ROLE_META.driver;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-      className="absolute z-30 rounded-xl p-4 max-w-[240px]"
-      style={{
-        right: "6%", bottom: "8%",
-        background: "hsl(var(--popover) / 0.97)",
-        border: `1px solid ${color}20`,
-        backdropFilter: "blur(16px)",
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="flex items-start gap-2 mb-2">
-        <div className="w-2 h-2 rounded-full mt-1" style={{ background: color }} />
-        <div>
-          <p className="text-xs font-bold" style={{ color: "hsl(var(--foreground))" }}>{signal.label}</p>
-          <p className="text-[10px] font-semibold" style={{ color }}>{ROLE_LABELS[signal.role]}</p>
+    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30"
+        style={{ background: open ? `${meta.color}06` : "transparent" }}
+      >
+        <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: meta.color }} />
+        <div className="flex-1 min-w-0">
+          <span className="text-[13px] font-bold text-foreground">{meta.label}</span>
+          <span className="text-[11px] text-muted-foreground ml-2">{meta.description}</span>
         </div>
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {(["impact", "confidence", "recurrence"] as const).map((key) => (
-          <div key={key} className="space-y-1">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-center" style={{ color: "hsl(var(--cin-label) / 0.5)" }}>{key}</p>
-            <div className="flex items-center justify-center gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} className="w-1.5 h-3 rounded-sm"
-                  style={{ background: i < signal[key] ? color : "hsl(var(--cin-depth-fg))" }} />
+        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+          style={{ background: `${meta.color}12`, color: meta.color }}>
+          {signals.length}
+        </span>
+        <ChevronDown size={14} className="text-muted-foreground transition-transform flex-shrink-0"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-2 pb-2 space-y-0.5">
+              {signals.map((s, i) => (
+                <SignalRow key={i} signal={s} maxScore={maxScore} color={meta.color} index={i} />
               ))}
             </div>
-          </div>
-        ))}
-      </div>
-      <button onClick={onClose}
-        className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px]"
-        style={{ background: "hsl(var(--cin-depth-fg))", color: "hsl(var(--cin-label) / 0.5)" }}>×</button>
-    </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
 export function CinematicConstellation({ story, title }: { story: VisualStory; title: string }) {
-  const [selected, setSelected] = useState<RankedSignal | null>(null);
-
-  const signals = useMemo(() =>
+  const allSignals = useMemo(() =>
     [...story.drivers, ...story.constraints, ...story.mechanisms, ...story.assumptions, ...story.leverages, ...story.outcomes]
-      .sort((a, b) => b.score - a.score).slice(0, 9),
+      .sort((a, b) => b.score - a.score),
     [story]
   );
-  const maxScore = signals[0]?.score || 1;
+
+  const maxScore = allSignals[0]?.score || 1;
+
+  // Group by role, only show roles that have signals
+  const groups = useMemo(() => {
+    const byRole: Record<string, RankedSignal[]> = {};
+    for (const s of allSignals) {
+      if (!byRole[s.role]) byRole[s.role] = [];
+      byRole[s.role].push(s);
+    }
+    return ROLE_ORDER
+      .filter(role => byRole[role]?.length > 0)
+      .map(role => ({ role, signals: byRole[role] }));
+  }, [allSignals]);
+
+  if (allSignals.length === 0) return null;
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
-      className="relative w-full rounded-2xl overflow-hidden"
-      style={{
-        height: "clamp(300px, 42vh, 420px)",
-        background: "radial-gradient(ellipse 70% 55% at 50% 50%, hsl(var(--cin-depth-mid)), hsl(var(--cin-depth-bg)))",
-        border: "1px solid hsl(var(--cin-depth-fg))",
-        boxShadow: "0 4px 24px -8px hsl(220 20% 80% / 0.3)",
-      }}
-      onClick={() => setSelected(null)}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-3"
     >
-      <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] font-extrabold uppercase tracking-[0.25em] z-10"
-        style={{ color: "hsl(var(--cin-label) / 0.4)" }}>{title}</motion.p>
+      {/* Header with signal count + legend */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground">
+            {title}
+          </span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+            style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+            {allSignals.length} signals
+          </span>
+        </div>
+        <span className="text-[10px] text-muted-foreground/60">Score →</span>
+      </div>
 
-      {signals.map((s, i) => (
-        <StarOrb key={i} signal={s} index={i} total={signals.length} maxScore={maxScore}
-          onSelect={setSelected} isSelected={selected === s} />
-      ))}
+      {/* Role groups */}
+      <div className="space-y-2">
+        {groups.map(({ role, signals }, gi) => (
+          <RoleGroup
+            key={role}
+            role={role}
+            signals={signals}
+            maxScore={maxScore}
+            defaultOpen={gi < 3} // First 3 groups open by default
+          />
+        ))}
+      </div>
 
-      <AnimatePresence>
-        {selected && <DepthPanel signal={selected} onClose={() => setSelected(null)} />}
-      </AnimatePresence>
-
-      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
-        className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-semibold uppercase tracking-widest z-10"
-        style={{ color: "hsl(var(--cin-label) / 0.25)" }}>Tap signal to explore</motion.p>
+      {/* Legend */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+        {groups.map(({ role }) => {
+          const meta = ROLE_META[role];
+          return (
+            <div key={role} className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-sm" style={{ background: meta.color }} />
+              <span className="text-[10px] font-semibold text-muted-foreground">{meta.label}</span>
+            </div>
+          );
+        })}
+      </div>
     </motion.div>
   );
 }
