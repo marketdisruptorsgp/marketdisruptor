@@ -700,6 +700,9 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         return;
       }
 
+      console.log("[FirstPrinciples] Edge function result keys:", Object.keys(result.analysis || {}));
+      console.log("[FirstPrinciples] hiddenAssumptions count:", (result.analysis?.hiddenAssumptions || []).length);
+      console.log("[FirstPrinciples] flippedLogic count:", (result.analysis?.flippedLogic || []).length);
       setData(result.analysis);
       onDataLoaded?.(result.analysis);
       setActiveStep(renderMode === "redesign" ? "flip" : "assumptions");
