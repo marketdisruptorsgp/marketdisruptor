@@ -586,66 +586,115 @@ function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumpti
 /* ── Flip Card List with show-more gate ── */
 function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicItem[]; assumptions: HiddenAssumption[]; showLimit: number }) {
   const [showAll, setShowAll] = useState(false);
-  const [expandedFlip, setExpandedFlip] = useState<number | null>(null);
+  const [expandedFlip, setExpandedFlip] = useState<number | null>(0);
   const visible = showAll ? flips : flips.slice(0, showLimit);
 
   return (
     <>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {visible.map((item, i) => {
           const isExpanded = expandedFlip === i;
           const matchedAssumption = assumptions.find(a =>
             item.originalAssumption.toLowerCase().includes(a.assumption.toLowerCase().slice(0, 20))
           );
           const leverageScore = matchedAssumption?.leverageScore;
-          const rationalePreview = item.rationale;
 
           return (
-            <div key={i} className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
-              <div className="grid grid-cols-[1fr_auto_1fr]">
-                <div className="p-3.5" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Assumption</p>
-                  <p className="text-xs text-foreground/70 leading-relaxed">{item.originalAssumption}</p>
+            <div
+              key={i}
+              className="rounded-2xl overflow-hidden transition-all duration-300"
+              style={{
+                background: "hsl(var(--card))",
+                border: isExpanded ? "1.5px solid hsl(var(--primary) / 0.35)" : "1.5px solid hsl(var(--border))",
+                boxShadow: isExpanded ? "0 8px 24px -8px hsl(var(--primary) / 0.12)" : "0 2px 8px -4px hsl(var(--foreground) / 0.06)",
+              }}
+            >
+              {/* Assumption → Bold Alternative header */}
+              <button
+                onClick={() => setExpandedFlip(isExpanded ? null : i)}
+                className="w-full text-left cursor-pointer"
+              >
+                <div className="grid grid-cols-[1fr_auto_1fr] min-h-[72px]">
+                  <div className="p-4 flex flex-col justify-center" style={{ background: "hsl(var(--muted))" }}>
+                    <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">Assumption</p>
+                    <p className="text-[13px] font-bold text-foreground leading-snug">{item.originalAssumption}</p>
+                  </div>
+                  <div className="flex items-center justify-center px-3" style={{ background: "hsl(var(--primary))" }}>
+                    <FlipHorizontal size={15} style={{ color: "hsl(var(--background))" }} />
+                  </div>
+                  <div className="p-4 flex flex-col justify-center" style={{ background: "hsl(var(--primary) / 0.06)" }}>
+                    <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--primary))" }}>Bold Alternative</p>
+                    <p className="text-[13px] font-bold leading-snug text-foreground">{item.boldAlternative}</p>
+                  </div>
                 </div>
-                <div className="flex items-center justify-center px-2.5" style={{ background: "hsl(var(--primary))" }}>
-                  <FlipHorizontal size={14} style={{ color: "hsl(var(--background))" }} />
-                </div>
-                <div className="p-3.5" style={{ background: "hsl(var(--primary) / 0.06)" }}>
-                  <p className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>Bold Alternative</p>
-                  <p className="text-xs font-semibold leading-relaxed text-foreground">{item.boldAlternative}</p>
-                </div>
-              </div>
-              <div className="px-4 py-3 space-y-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                <div className="flex items-start justify-between gap-3">
-                  {!isExpanded && <p className="text-sm text-foreground leading-relaxed flex-1">{rationalePreview}</p>}
-                  {isExpanded && <div className="flex-1" />}
+              </button>
+
+              {/* Body */}
+              <div className="px-5 py-4 space-y-3" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                {/* Rationale — always visible as the "why it matters" hook */}
+                <p className="text-sm text-foreground/85 leading-relaxed">{item.rationale}</p>
+
+                {/* Leverage + expand hint row */}
+                <div className="flex items-center justify-between">
                   {leverageScore != null && (
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold flex-shrink-0 tabular-nums" style={{
-                      background: leverageScore >= 7 ? "hsl(var(--primary) / 0.1)" : "hsl(var(--muted))",
-                      color: leverageScore >= 7 ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-                      border: `1px solid ${leverageScore >= 7 ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}`
-                    }}>
-                      Leverage: {leverageScore}/10
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 10 }).map((_, dot) => (
+                          <div
+                            key={dot}
+                            className="w-2 h-2 rounded-full transition-all"
+                            style={{
+                              background: dot < leverageScore
+                                ? leverageScore >= 8
+                                  ? "hsl(var(--primary))"
+                                  : leverageScore >= 6
+                                    ? "hsl(38 92% 50%)"
+                                    : "hsl(var(--muted-foreground))"
+                                : "hsl(var(--muted))",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-[11px] font-bold tabular-nums" style={{
+                        color: leverageScore >= 8 ? "hsl(var(--primary))" : leverageScore >= 6 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))",
+                      }}>
+                        {leverageScore}/10 leverage
+                      </span>
+                    </div>
                   )}
+                  <button
+                    onClick={() => setExpandedFlip(isExpanded ? null : i)}
+                    className="text-[11px] font-bold flex items-center gap-1 transition-colors"
+                    style={{ color: "hsl(var(--primary))" }}
+                  >
+                    {isExpanded ? "Less" : "Deep dive"}
+                    <ChevronDown size={12} style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
+                  </button>
                 </div>
+
+                {/* Expanded detail */}
                 {isExpanded && (
-                  <div className="space-y-3 pt-1">
+                  <div className="space-y-3 pt-2" style={{ borderTop: "1px dashed hsl(var(--border))" }}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Why This Creates Value</p>
+                      <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">💡 Why This Creates Value</p>
                         <p className="text-xs text-foreground/80 leading-relaxed">{item.rationale}</p>
                       </div>
-                      <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">How It Works</p>
+                      <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">⚙️ How It Works</p>
                         <p className="text-xs text-foreground/80 leading-relaxed">{item.physicalMechanism}</p>
                       </div>
                     </div>
-                    <button onClick={() => setExpandedFlip(null)} className="text-[11px] font-bold" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      Collapse ↑
-                    </button>
+                    {matchedAssumption?.impactScenario && (
+                      <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: "hsl(var(--primary))" }}>🎯 Impact Scenario</p>
+                        <p className="text-xs text-foreground/80 leading-relaxed">{matchedAssumption.impactScenario}</p>
+                      </div>
+                    )}
                   </div>
                 )}
+
+                {/* Actions row */}
                 <div className="flex items-center justify-between pt-1">
                   <InsightRating sectionId={`flip-${i}`} compact />
                   <PitchDeckToggle contentKey={`flippedLogic-${i}`} label="Include in Pitch" />
@@ -656,7 +705,7 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
         })}
       </div>
       {flips.length > showLimit && (
-        <button onClick={() => setShowAll(!showAll)} className="w-full py-2.5 rounded-xl text-xs font-bold transition-all"
+        <button onClick={() => setShowAll(!showAll)} className="w-full py-3 rounded-xl text-xs font-bold transition-all"
           style={{ background: "hsl(var(--muted))", color: "hsl(var(--primary))", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
           {showAll ? "Show fewer" : `Show ${flips.length - showLimit} more inversions`}
         </button>
