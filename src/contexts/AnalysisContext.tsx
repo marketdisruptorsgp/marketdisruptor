@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
+import { normalizeProductFields, isServiceCategory } from "@/utils/normalizeProduct";
 import { type Product, type FlippedIdea } from "@/data/mockProducts";
 import { type AnalysisMode } from "@/components/AnalysisForm";
 import type { UserLens } from "@/components/LensToggle";
@@ -976,7 +977,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         confidenceScores: p.confidenceScores || { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
       };
       // Merge extra fields from DB (pricingIntel, supplyChain, etc.) without overriding guaranteed defaults
-      return { ...p, ...base };
+      // Normalize alternate field names (userJourney→userWorkflow, customerSentiment→communityInsights, etc.)
+      return normalizeProductFields({ ...p, ...base });
     });
 
     // Restore persisted step data
@@ -1098,7 +1100,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       setProducts(sanitizedProducts);
       setSelectedProduct(sanitizedProducts[0]);
       setAnalysisParams({ category: analysis.category, era: analysis.era || "All Eras / Current", batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
-      const isService = analysis.analysis_type === "service";
+      const isService = analysis.analysis_type === "service" || isServiceCategory(analysis.category || "");
       setMainTab(isService ? "service" : "custom");
       setActiveMode(isService ? "service" : "custom");
       setDetailTab("overview");
@@ -1175,7 +1177,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
             flippedIdeas: Array.isArray(p.flippedIdeas) ? p.flippedIdeas : [],
             confidenceScores: p.confidenceScores || { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
           };
-          return { ...p, ...base };
+          return normalizeProductFields({ ...p, ...base });
         });
 
         if (sanitizedProducts.length === 0) {
@@ -1190,7 +1192,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         setProducts(sanitizedProducts);
         setSelectedProduct(sanitizedProducts[0]);
         setAnalysisParams({ category: data.category, era: data.era || "All Eras / Current", batchSize: data.batch_size ?? 5 });
-        const isService = data.analysis_type === "service";
+        const isService = data.analysis_type === "service" || isServiceCategory(data.category || "");
         setMainTab(isService ? "service" : data.analysis_type === "business_model" ? "business" : "custom");
         setActiveMode(isService ? "service" : data.analysis_type === "business_model" ? "business" : "custom");
         setStep("done");
