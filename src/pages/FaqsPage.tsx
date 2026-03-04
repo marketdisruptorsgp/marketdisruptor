@@ -110,6 +110,19 @@ export default function FaqsPage() {
       </div>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* ETA spotlight banner */}
+        <button
+          onClick={() => setActiveCategory("eta")}
+          className="w-full mb-4 flex items-center gap-3 px-4 py-3 rounded-md border-l-[3px] border-l-amber-500 border border-amber-200 bg-amber-50 hover:bg-amber-100/80 transition-colors text-left"
+        >
+          <Briefcase size={16} className="text-amber-600 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-bold text-amber-900">For ETA / Acquisition Operators</p>
+            <p className="text-[11px] text-amber-700 mt-0.5">SDE addbacks, deal economics, stagnation diagnostics, 100-day playbooks, and due diligence questions — {categoryCount("eta")} articles</p>
+          </div>
+          <span className="text-[10px] font-bold text-amber-600 bg-amber-200/60 px-2 py-0.5 rounded flex-shrink-0">View all</span>
+        </button>
+
         {/* Category pills */}
         <div className="flex flex-wrap gap-1.5 mb-5">
           {CATEGORIES.map((cat) => {
