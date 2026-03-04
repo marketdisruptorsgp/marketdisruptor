@@ -1159,24 +1159,24 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
 
               <div className="flex items-center gap-2 mb-2">
-                <h4 className="font-bold text-foreground text-sm">{concept.conceptName}</h4>
-                <span className="text-xs text-muted-foreground">— {concept.tagline}</span>
+                <h4 className="font-extrabold text-foreground text-lg">{concept.conceptName}</h4>
+                <span className="text-sm font-semibold text-foreground/70">— {concept.tagline}</span>
               </div>
 
               {/* Core insight */}
               <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="typo-card-eyebrow mb-1 text-muted-foreground">Core Insight</p>
-                <p className="text-sm leading-relaxed text-foreground/85">{concept.coreInsight}</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Core Insight</p>
+                <p className="text-sm leading-relaxed text-foreground">{concept.coreInsight}</p>
               </div>
 
               {/* Radical Differences */}
               <div>
-                <p className="typo-card-eyebrow text-muted-foreground mb-2">Radical Differences</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Radical Differences</p>
                 <div className="space-y-1.5">
                   {(concept.radicalDifferences || []).map((diff: string, i: number) => (
-                    <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                      <Zap size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                      <span className="text-foreground/80">{diff}</span>
+                    <div key={i} className="flex items-start gap-2 p-3 rounded-lg text-sm" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <Zap size={14} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
+                      <span className="text-foreground">{diff}</span>
                     </div>
                   ))}
                 </div>
@@ -1184,16 +1184,16 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
               {/* Physical Description */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="typo-card-eyebrow text-muted-foreground mb-1">Physical Form</p>
-                  <p className="typo-card-body text-foreground/80">{concept.physicalDescription}</p>
-                  {concept.sizeAndWeight && <p className="typo-card-meta text-muted-foreground mt-1">Size: {concept.sizeAndWeight}</p>}
+                <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Physical Form</p>
+                  <p className="text-sm text-foreground">{concept.physicalDescription}</p>
+                  {concept.sizeAndWeight && <p className="text-sm font-semibold text-foreground mt-1">Size: {concept.sizeAndWeight}</p>}
                 </div>
-                <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="typo-card-eyebrow text-muted-foreground mb-1">Materials</p>
-                  <div className="flex flex-wrap gap-1">
+                <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Materials</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {(concept.materials || []).map((m: string, i: number) => (
-                      <span key={i} className="px-2 py-0.5 rounded-full typo-card-meta font-medium" style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>{m}</span>
+                      <span key={i} className="px-2.5 py-1 rounded-full text-sm font-semibold" style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>{m}</span>
                     ))}
                   </div>
                 </div>
@@ -1202,12 +1202,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               {/* Smart Features */}
               {concept.smartFeatures?.length > 0 && (
                 <div>
-                  <p className="typo-card-eyebrow text-muted-foreground mb-2">Smart Features</p>
+                  <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Smart Features</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {concept.smartFeatures.map((f: string, i: number) => (
-                      <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <Cpu size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                        <span className="text-foreground/80">{f}</span>
+                      <div key={i} className="flex items-start gap-2 p-3 rounded-lg text-sm" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                        <Cpu size={14} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
+                        <span className="text-foreground">{f}</span>
                       </div>
                     ))}
                   </div>
@@ -1215,18 +1215,18 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               )}
 
               {/* UX Transformation & Friction Eliminated */}
-              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="typo-card-eyebrow text-muted-foreground mb-1">User Experience Transformation</p>
-                <p className="text-xs text-foreground/80 leading-relaxed">{concept.userExperienceTransformation}</p>
+              <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">User Experience Transformation</p>
+                <p className="text-sm text-foreground leading-relaxed">{concept.userExperienceTransformation}</p>
               </div>
               {concept.frictionEliminated?.length > 0 && (
                 <div>
-                  <p className="typo-card-eyebrow text-muted-foreground mb-2">Friction Eliminated</p>
-                  <div className="space-y-1">
+                  <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Friction Eliminated</p>
+                  <div className="space-y-1.5">
                     {concept.frictionEliminated.map((f: string, i: number) => (
-                      <div key={i} className="flex items-start gap-2 text-xs">
-                        <CheckCircle2 size={11} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 1 }} />
-                        <span className="text-foreground/80">{f}</span>
+                      <div key={i} className="flex items-start gap-2 text-sm">
+                        <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
+                        <span className="text-foreground">{f}</span>
                       </div>
                     ))}
                   </div>
@@ -1241,26 +1241,26 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                   { label: "Capital Required", value: concept.capitalRequired || "—" },
                   { label: "Risk Level", value: concept.riskLevel || "—" },
                 ].map((item) => (
-                  <div key={item.label} className="p-2 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="typo-status-label text-muted-foreground">{item.label}</p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">{item.value}</p>
+                  <div key={item.label} className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                    <p className="text-xs font-bold uppercase tracking-wider text-foreground">{item.label}</p>
+                    <p className="text-sm font-extrabold text-foreground mt-1">{item.value}</p>
                   </div>
                 ))}
               </div>
 
               <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert} defaultOpen>
-                <div className="space-y-2 mb-2">
+                <div className="space-y-3 mb-2">
                   <div>
-                    <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Why Not Already Done</p>
-                    <p className="text-xs text-foreground/80">{concept.whyItHasntBeenDone}</p>
+                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Why Not Already Done</p>
+                    <p className="text-sm text-foreground">{concept.whyItHasntBeenDone}</p>
                   </div>
                   <div>
-                    <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Biggest Risk</p>
-                    <p className="text-xs text-foreground/80">{concept.biggestRisk}</p>
+                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Biggest Risk</p>
+                    <p className="text-sm text-foreground">{concept.biggestRisk}</p>
                   </div>
                   <div>
-                    <p className="typo-card-eyebrow text-muted-foreground mb-0.5">Manufacturing Path</p>
-                    <p className="text-xs text-foreground/80">{concept.manufacturingPath}</p>
+                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Manufacturing Path</p>
+                    <p className="text-sm text-foreground">{concept.manufacturingPath}</p>
                   </div>
                 </div>
               </DetailPanel>
