@@ -730,6 +730,47 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         const { getBranchPayload } = await import("@/lib/branchContext");
         activeBranch = getBranchPayload(governedData, activeBranchId, strategicProfile);
       }
+      // Build upstream intel bundle
+      const upstreamIntel: Record<string, unknown> = {};
+      if (product.pricingIntel) upstreamIntel.pricingIntel = product.pricingIntel;
+      if (product.supplyChain) upstreamIntel.supplyChain = {
+        suppliers: ((product.supplyChain as any).suppliers || []).slice(0, 5).map((s: any) => ({ name: s.name, region: s.region, role: s.role })),
+        manufacturers: ((product.supplyChain as any).manufacturers || []).slice(0, 5).map((m: any) => ({ name: m.name, region: m.region, moq: m.moq })),
+        distributors: ((product.supplyChain as any).distributors || []).slice(0, 3).map((d: any) => ({ name: d.name, region: d.region })),
+      };
+      if ((product as any).communityInsights) {
+        const ci = (product as any).communityInsights;
+        upstreamIntel.communityInsights = {
+          communitySentiment: ci.communitySentiment || ci.redditSentiment,
+          topComplaints: (ci.topComplaints || []).slice(0, 5),
+          improvementRequests: (ci.improvementRequests || []).slice(0, 5),
+        };
+      }
+      if ((product as any).userWorkflow) {
+        const uw = (product as any).userWorkflow;
+        upstreamIntel.userWorkflow = {
+          stepByStep: (uw.stepByStep || []).slice(0, 8),
+          frictionPoints: (uw.frictionPoints || []).slice(0, 5),
+          cognitiveLoad: uw.cognitiveLoad,
+        };
+      }
+      if (product.patentData) {
+        upstreamIntel.patentLandscape = {
+          totalPatents: product.patentData.totalPatents,
+          expiredPatents: product.patentData.expiredPatents,
+          keyPlayers: (product.patentData.keyPlayers || []).slice(0, 5),
+          gapAnalysis: product.patentData.gapAnalysis,
+        };
+      }
+      // Build disrupt context from saved disrupt data
+      let disruptCtx: Record<string, unknown> | undefined;
+      if (disruptData) {
+        const dd = disruptData as Record<string, unknown>;
+        disruptCtx = {
+          hiddenAssumptions: dd.hiddenAssumptions || null,
+          flippedLogic: dd.flippedLogic || null,
+        };
+      }
       const { data, error } = await supabase.functions.invoke("generate-flip-ideas", {
         body: {
           product,
@@ -738,6 +779,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           steeringText: steeringText || undefined,
           activeBranch,
           adaptiveContext: adaptiveContext || undefined,
+          upstreamIntel: Object.keys(upstreamIntel).length > 0 ? upstreamIntel : undefined,
+          disruptContext: disruptCtx || undefined,
         },
       });
 
