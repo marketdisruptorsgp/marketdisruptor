@@ -445,61 +445,89 @@ function NextSectionButton({ label, onClick }: { label: string; onClick: () => v
   );
 }
 
-/* ── Assumption Card List with show-more gate ── */
+/* ── Assumption Card List — distilled, scannable, expand-for-detail ── */
 function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumptions: HiddenAssumption[]; showLimit: number; reasonBorder: Record<string, string> }) {
   const [showAll, setShowAll] = useState(false);
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const visible = showAll ? assumptions : assumptions.slice(0, showLimit);
 
   return (
     <>
-      <div className="space-y-3">
+      <div className="space-y-2">
         {visible.map((a, i) => {
           const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
           const borderColor = reasonBorder[a.reason] || "hsl(var(--border))";
-          const leveragePercent = a.leverageScore != null ? (a.leverageScore / 10) * 100 : 0;
           const leverageColor = a.leverageScore != null
             ? a.leverageScore >= 8 ? "hsl(var(--destructive))" : a.leverageScore >= 5 ? "hsl(38 92% 42%)" : "hsl(142 70% 35%)"
             : "hsl(var(--muted-foreground))";
+          const isExpanded = expandedIdx === i;
 
           return (
-            <div key={i} className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", borderLeft: `4px solid ${borderColor}`, border: `1.5px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}`, borderLeftWidth: "4px", borderLeftColor: borderColor }}>
-              <div className="p-4 space-y-3">
-                <p className="text-[13px] font-bold text-foreground flex items-start gap-2.5">
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>{i + 1}</span>
-                  <span className="leading-snug">{a.assumption}</span>
-                </p>
-                <div className="ml-8 flex items-center gap-2 flex-wrap">
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: reasonStyle.bg, color: reasonStyle.text, border: `1px solid ${borderColor}40` }}>
+            <div key={i} className="rounded-xl overflow-hidden transition-all" style={{ background: "hsl(var(--card))", borderLeft: `4px solid ${borderColor}`, border: `1.5px solid ${isExpanded ? "hsl(var(--primary) / 0.3)" : "hsl(var(--border))"}`, borderLeftWidth: "4px", borderLeftColor: borderColor }}>
+              {/* ── Collapsed: one-line distilled view ── */}
+              <button
+                onClick={() => setExpandedIdx(isExpanded ? null : i)}
+                className="w-full text-left px-4 py-3 flex items-center gap-3"
+              >
+                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>{i + 1}</span>
+                <span className="text-[13px] font-bold text-foreground flex-1 leading-snug">{a.assumption}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>
                     {reasonStyle.label}
                   </span>
-                  {a.isChallengeable && (
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.25)" }}>
-                      ✓ Challengeable
-                    </span>
-                  )}
                   {a.leverageScore != null && (
-                    <div className="flex items-center gap-1.5 flex-1 min-w-[120px] max-w-[200px]">
-                      <div className="h-1.5 rounded-full overflow-hidden flex-1" style={{ background: "hsl(var(--muted))" }}>
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${leveragePercent}%`, background: leverageColor }} />
+                    <span className="text-[11px] font-bold tabular-nums" style={{ color: leverageColor }}>{a.leverageScore}/10</span>
+                  )}
+                  {a.isChallengeable && (
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} title="Challengeable" />
+                  )}
+                  <ChevronDown size={14} className="text-muted-foreground transition-transform" style={{ transform: isExpanded ? "rotate(180deg)" : "none" }} />
+                </div>
+              </button>
+
+              {/* ── Expanded: full detail ── */}
+              {isExpanded && (
+                <div className="px-4 pb-4 pt-0 space-y-3" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+                  {/* Leverage bar */}
+                  {a.leverageScore != null && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-20">Leverage</span>
+                      <div className="h-2 rounded-full overflow-hidden flex-1" style={{ background: "hsl(var(--muted))" }}>
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(a.leverageScore / 10) * 100}%`, background: leverageColor }} />
                       </div>
-                      <span className="text-[10px] font-bold tabular-nums" style={{ color: leverageColor }}>{a.leverageScore}/10</span>
+                      <span className="text-[11px] font-bold tabular-nums w-8 text-right" style={{ color: leverageColor }}>{a.leverageScore}/10</span>
                     </div>
                   )}
-                </div>
-                <div className="ml-8 pl-3 py-1.5" style={{ borderLeft: "2px solid hsl(var(--border))" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Current State</p>
-                  <p className="text-xs text-foreground/70 leading-relaxed italic">"{a.currentAnswer}"</p>
-                </div>
-                {a.challengeIdea && (
-                  <div className="ml-8 p-3 rounded-lg" style={{ background: "hsl(var(--primary) / 0.05)", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>Challenge Approach</p>
-                    <p className="text-xs text-foreground/80 leading-relaxed">{a.challengeIdea}</p>
+
+                  {/* Why it exists */}
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Why this exists</p>
+                    <p className="text-xs text-foreground/80 leading-relaxed">{a.currentAnswer}</p>
                   </div>
-                )}
-                <div className="ml-8 flex items-center justify-end">
-                  <PitchDeckToggle contentKey={`assumptions-${i}`} label="Include in Pitch" />
+
+                  {/* Challenge approach */}
+                  {a.challengeIdea && (
+                    <div className="p-3 rounded-lg" style={{ background: "hsl(var(--primary) / 0.05)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>How to challenge this</p>
+                      <p className="text-xs text-foreground/80 leading-relaxed">{a.challengeIdea}</p>
+                    </div>
+                  )}
+
+                  {/* Tags row */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {a.isChallengeable && (
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
+                        Challengeable
+                      </span>
+                    )}
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>
+                      Root: {reasonStyle.label}
+                    </span>
+                    <div className="flex-1" />
+                    <PitchDeckToggle contentKey={`assumptions-${i}`} label="Include in Pitch" />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           );
         })}
@@ -1199,32 +1227,10 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
           <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="firstPrinciples" governedOverride={analysisCtx.governedData}>
 
-          {/* ── Stats Strip ── */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {[
-              `${assumptions.length} Assumptions`,
-              `${challengeableCount} Challengeable`,
-              `Avg Leverage: ${avgLeverage}/10`,
-              ...(topReason ? [`Top reason: ${REASON_COLORS[topReason[0]]?.label || topReason[0]}`] : []),
-            ].map((label, ci) => (
-              <span key={ci} className="px-2.5 py-1 rounded-lg text-[11px] font-bold tabular-nums"
-                style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
-                {label}
-              </span>
-            ))}
-          </div>
-
-          {/* ── Approach Banner ── */}
-          <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--card))", borderLeft: "4px solid hsl(var(--primary))", border: "1.5px solid hsl(var(--border))", borderLeftWidth: "4px", borderLeftColor: "hsl(var(--primary))" }}>
-            <p className="text-[13px] font-bold text-foreground">Analytical Approach</p>
-            <ul className="text-xs text-foreground/80 leading-relaxed space-y-1.5 ml-4 list-disc">
-              <li>We deconstructed <strong>{assumptions.length} hidden assumptions</strong> governing how this product is designed, priced, and used.</li>
-              <li>Each assumption was classified by root cause: {Object.entries(reasonCounts).map(([r, c]) => `${c} from ${REASON_COLORS[r]?.label || r}`).join(", ")}.</li>
-              <li><strong>{challengeableCount} assumptions</strong> ({assumptions.length > 0 ? Math.round(challengeableCount / assumptions.length * 100) : 0}%) are realistically challengeable with current technology or business model innovation.</li>
-              <li>Average leverage score across all assumptions: <strong>{avgLeverage}/10</strong> — indicating the potential value unlocked by challenging the status quo.</li>
-              <li>Assumptions scored by their disruption potential: higher leverage = bigger opportunity if successfully challenged.</li>
-            </ul>
-          </div>
+          {/* ── Summary line ── */}
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {assumptions.length} assumptions deconstructed · {challengeableCount} challengeable ({assumptions.length > 0 ? Math.round(challengeableCount / assumptions.length * 100) : 0}%) · avg leverage {avgLeverage}/10{topReason ? ` · top root cause: ${REASON_COLORS[topReason[0]]?.label || topReason[0]}` : ""}
+          </p>
 
           {/* ── Assumption Cards ── */}
           <AssumptionCardList assumptions={assumptions} showLimit={SHOW_LIMIT} reasonBorder={REASON_BORDER} />
