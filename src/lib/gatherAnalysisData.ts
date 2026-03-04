@@ -17,6 +17,11 @@ export function gatherAllAnalysisData(analysis: any): Record<string, unknown> {
     data.userScores = analysis.userScores;
   }
 
+  // Governed data (reasoning synopsis, decision synthesis, constraint maps, etc.)
+  if (analysis.governedData) {
+    data.governed = analysis.governedData;
+  }
+
   // Patent data from selected product
   if (analysis.selectedProduct?.patentData) {
     data.patentData = analysis.selectedProduct.patentData;

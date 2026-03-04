@@ -28,6 +28,7 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
   const stressTestData = analysisData?.stressTest as Record<string, unknown> | null;
   const pitchDeckData = analysisData?.pitchDeck as Record<string, unknown> | null;
   const redesignData = analysisData?.redesign as Record<string, unknown> | null;
+  const governedData = analysisData?.governed as Record<string, unknown> | null;
 
   return (
     <div className="print-report">
@@ -162,6 +163,9 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
 
       {/* ── Disruption Analysis ── */}
       {disruptData && <DisruptSection data={disruptData} />}
+
+      {/* ── Governed Intelligence (Reasoning, Confidence, Decision) ── */}
+      {governedData && <GovernedSection data={governedData} />}
 
       {/* ── Stress Test ── */}
       {stressTestData && <StressTestSection data={stressTestData} />}
@@ -832,8 +836,216 @@ function PatentSection({ data }: { data: Record<string, unknown> }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   GOVERNED INTELLIGENCE (Reasoning Synopsis, Decision Synthesis, Confidence)
+   ═══════════════════════════════════════════════════════════════ */
+
+function GovernedSection({ data }: { data: Record<string, unknown> }) {
+  const synopsis = data.reasoning_synopsis as Record<string, any> | undefined;
+  const decision = data.decision_synthesis as Record<string, any> | undefined;
+  const constraintMap = data.constraint_map as Record<string, any> | undefined;
+  const firstPrinciples = data.first_principles as Record<string, any> | undefined;
+  const hypotheses = (data.root_hypotheses as any[]) || [];
+
+  return (
+    <>
+      {/* Reasoning Synopsis */}
+      {synopsis && (
+        <PrintSection title="Reasoning Synopsis" icon={<Brain size={14} />}>
+          {synopsis.lens_influence && (
+            <PrintCard accent="hsl(271 81% 55%)">
+              <p className="print-label">Lens Applied</p>
+              <p className="print-body font-semibold">{synopsis.lens_influence?.lens_name || "Strategic Lens"}</p>
+              {synopsis.lens_influence?.prioritized_factors?.length > 0 && (
+                <div style={{ marginTop: "0.3rem" }}>
+                  <p className="print-label">Prioritized Factors</p>
+                  <div className="print-tag-row">
+                    {synopsis.lens_influence.prioritized_factors.map((f: string, i: number) => (
+                      <PrintTag key={i} label={f} color="hsl(271 81% 55%)" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {synopsis.lens_influence?.deprioritized_factors?.length > 0 && (
+                <div style={{ marginTop: "0.3rem" }}>
+                  <p className="print-label">De-prioritized</p>
+                  <div className="print-tag-row">
+                    {synopsis.lens_influence.deprioritized_factors.map((f: string, i: number) => (
+                      <PrintTag key={i} label={f} color="hsl(220 10% 55%)" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {synopsis.lens_influence?.alternative_lens_impact && (
+                <div style={{ marginTop: "0.3rem" }}>
+                  <p className="print-label">Alternative Lens Impact</p>
+                  <p className="print-body-sm">{synopsis.lens_influence.alternative_lens_impact}</p>
+                </div>
+              )}
+            </PrintCard>
+          )}
+
+          {synopsis.evaluation_path && (
+            <PrintCard>
+              {synopsis.evaluation_path.evaluation_logic && (
+                <div>
+                  <p className="print-label">Evaluation Logic</p>
+                  <p className="print-body-sm">{synopsis.evaluation_path.evaluation_logic}</p>
+                </div>
+              )}
+              {synopsis.evaluation_path.dimensions_examined?.length > 0 && (
+                <div style={{ marginTop: "0.3rem" }}>
+                  <p className="print-label">Dimensions Examined</p>
+                  <div className="print-tag-row">
+                    {synopsis.evaluation_path.dimensions_examined.map((d: string, i: number) => (
+                      <PrintTag key={i} label={d} color="hsl(217 91% 50%)" />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </PrintCard>
+          )}
+
+          {synopsis.key_assumptions?.length > 0 && (
+            <div className="print-subsection">
+              <h3 className="print-subsection-title"><AlertTriangle size={12} /> Key Assumptions</h3>
+              {synopsis.key_assumptions.map((a: string, i: number) => (
+                <div key={i} className="print-list-item">
+                  <AlertTriangle size={10} style={{ color: "hsl(38 92% 50%)", flexShrink: 0, marginTop: 2 }} />
+                  <span>{a}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </PrintSection>
+      )}
+
+      {/* Decision Synthesis */}
+      {decision && (
+        <PrintSection title="Decision Synthesis" icon={<CheckCircle2 size={14} />}>
+          {decision.decision_grade && (
+            <PrintCard accent={
+              decision.decision_grade === "go" ? "hsl(142 70% 40%)" :
+              decision.decision_grade === "conditional" ? "hsl(38 92% 50%)" :
+              "hsl(0 72% 51%)"
+            }>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
+                <p className="print-label">Decision Grade</p>
+                <PrintTag
+                  label={decision.decision_grade.toUpperCase()}
+                  color={
+                    decision.decision_grade === "go" ? "hsl(142 70% 40%)" :
+                    decision.decision_grade === "conditional" ? "hsl(38 92% 50%)" :
+                    "hsl(0 72% 51%)"
+                  }
+                />
+              </div>
+              {decision.confidence_score != null && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <p className="print-label">Confidence Score</p>
+                  <span className="print-score-badge" style={{
+                    background: (decision.confidence_score >= 60 ? "hsl(142 70% 40%)" : decision.confidence_score >= 40 ? "hsl(38 92% 50%)" : "hsl(0 72% 51%)") + "18",
+                    color: decision.confidence_score >= 60 ? "hsl(142 70% 40%)" : decision.confidence_score >= 40 ? "hsl(38 92% 50%)" : "hsl(0 72% 51%)"
+                  }}>{decision.confidence_score}/100</span>
+                </div>
+              )}
+            </PrintCard>
+          )}
+
+          {decision.blocking_uncertainties?.length > 0 && (
+            <div className="print-subsection">
+              <h3 className="print-subsection-title" style={{ color: "hsl(38 92% 45%)" }}>
+                <AlertTriangle size={12} /> Blocking Uncertainties
+              </h3>
+              {decision.blocking_uncertainties.map((u: string, i: number) => (
+                <div key={i} className="print-list-item">
+                  <AlertTriangle size={10} style={{ color: "hsl(38 92% 50%)", flexShrink: 0, marginTop: 2 }} />
+                  <span>{u}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {decision.next_required_evidence && (
+            <PrintCard>
+              <p className="print-label">Next Required Evidence</p>
+              <p className="print-body-sm">{decision.next_required_evidence}</p>
+            </PrintCard>
+          )}
+
+          {decision.fastest_validation_experiment && (
+            <PrintCard accent="hsl(217 91% 50%)">
+              <p className="print-label">Fastest Validation Experiment</p>
+              <p className="print-body-sm">{decision.fastest_validation_experiment}</p>
+            </PrintCard>
+          )}
+        </PrintSection>
+      )}
+
+      {/* Root Hypotheses */}
+      {hypotheses.length > 0 && (
+        <PrintSection title="Strategic Hypotheses" icon={<Lightbulb size={14} />}>
+          {hypotheses.map((h: any, i: number) => (
+            <PrintCard key={i} accent="hsl(271 81% 55%)">
+              <p className="print-card-title">
+                <span className="print-card-number">{i + 1}</span>
+                {h.statement || h.hypothesis || h.title || `Hypothesis ${i + 1}`}
+              </p>
+              {h.rationale && <p className="print-body-sm">{h.rationale}</p>}
+              {h.confidence != null && (
+                <PrintTag label={`Confidence: ${h.confidence}`} color="hsl(217 91% 50%)" />
+              )}
+            </PrintCard>
+          ))}
+        </PrintSection>
+      )}
+
+      {/* First Principles */}
+      {firstPrinciples && (
+        <PrintSection title="First Principles" icon={<Zap size={14} />}>
+          {firstPrinciples.minimum_viable_system && (
+            <PrintCard>
+              <p className="print-label">Minimum Viable System</p>
+              <p className="print-body-sm">{typeof firstPrinciples.minimum_viable_system === "string" ? firstPrinciples.minimum_viable_system : JSON.stringify(firstPrinciples.minimum_viable_system)}</p>
+            </PrintCard>
+          )}
+          {firstPrinciples.constraints?.length > 0 && (
+            <div className="print-subsection">
+              <h3 className="print-subsection-title">Binding Constraints</h3>
+              {(firstPrinciples.constraints as any[]).map((c: any, i: number) => (
+                <div key={i} className="print-list-item">
+                  <span className="print-card-number">{i + 1}</span>
+                  <span>{typeof c === "string" ? c : c.name || c.constraint || JSON.stringify(c)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </PrintSection>
+      )}
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    FALLBACK JSON RENDERER (for truly unknown data)
    ═══════════════════════════════════════════════════════════════ */
+
+/** Humanize any key format: snake_case, SCREAMING_SNAKE, camelCase, _prefixed */
+function humanizeKey(key: string): string {
+  // Strip leading underscores
+  let k = key.replace(/^_+/, "");
+  // Convert snake_case / SCREAMING_SNAKE to spaces
+  k = k.replace(/_/g, " ");
+  // Insert space before uppercase runs in camelCase
+  k = k.replace(/([a-z])([A-Z])/g, "$1 $2");
+  // Title case
+  return k.replace(/\b\w/g, c => c.toUpperCase()).trim();
+}
+
+/** Keys to skip in the fallback renderer (internal computation artifacts) */
+const INTERNAL_KEYS = new Set([
+  "_confidence_computation", "_evidence_distribution", "_meta",
+  "computation_trace", "governed_hashes", "_governed_version",
+]);
 
 function PrintJSON({ data }: { data: Record<string, unknown> }) {
   if (!data) return null;
@@ -857,7 +1069,8 @@ function PrintJSON({ data }: { data: Record<string, unknown> }) {
         <div className="print-json-object" style={{ marginLeft: depth > 0 ? "1rem" : 0 }}>
           {Object.entries(obj).map(([k, v]) => {
             if (v === null || v === undefined) return null;
-            const label = k.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase());
+            if (INTERNAL_KEYS.has(k)) return null;
+            const label = humanizeKey(k);
             return (
               <div key={k} className="print-json-entry">
                 <span className="print-label">{label}</span>
