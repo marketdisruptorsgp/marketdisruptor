@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,30 +56,68 @@ Modern redesign aesthetic, high quality render, white or gradient background, co
 
     const data = await response.json();
 
-    // Extract image from response
+    // Extract base64 image from response
     const message = data.choices?.[0]?.message;
-    const imageUrl = message?.images?.[0]?.image_url?.url;
-
-    if (imageUrl) {
-      return new Response(JSON.stringify({ success: true, imageUrl }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    let base64Url: string | null = message?.images?.[0]?.image_url?.url || null;
 
     // Also check content array format
-    if (Array.isArray(message?.content)) {
+    if (!base64Url && Array.isArray(message?.content)) {
       for (const part of message.content) {
         if (part.type === "image_url" && part.image_url?.url) {
-          return new Response(
-            JSON.stringify({ success: true, imageUrl: part.image_url.url }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+          base64Url = part.image_url.url;
+          break;
         }
       }
     }
 
-    console.error("No image in response:", JSON.stringify(data).slice(0, 500));
-    throw new Error("No image returned from AI.");
+    if (!base64Url) {
+      console.error("No image in response:", JSON.stringify(data).slice(0, 500));
+      throw new Error("No image returned from AI.");
+    }
+
+    // Upload to Supabase storage for a permanent URL
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // Extract raw base64 data
+      const base64Match = base64Url.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
+      if (base64Match) {
+        const ext = base64Match[1] === "jpeg" ? "jpg" : base64Match[1];
+        const rawBase64 = base64Match[2];
+        const binaryData = Uint8Array.from(atob(rawBase64), c => c.charCodeAt(0));
+
+        const fileName = `visuals/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("product-visuals")
+          .upload(fileName, binaryData, {
+            contentType: `image/${base64Match[1]}`,
+            upsert: false,
+          });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from("product-visuals")
+            .getPublicUrl(fileName);
+
+          if (urlData?.publicUrl) {
+            return new Response(JSON.stringify({ success: true, imageUrl: urlData.publicUrl }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        } else {
+          console.warn("Storage upload failed, falling back to base64:", uploadError.message);
+        }
+      }
+    } catch (storageErr) {
+      console.warn("Storage upload error, falling back to base64:", storageErr);
+    }
+
+    // Fallback: return base64 directly
+    return new Response(JSON.stringify({ success: true, imageUrl: base64Url }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("generate-product-visual error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {

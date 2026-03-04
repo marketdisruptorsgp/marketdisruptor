@@ -260,9 +260,10 @@ export function PitchSlideFrame({
 }
 
 // ── Cover Slide (1920×1080) ───────────────────────────────────
-export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5", totalSlides, coverImages }: {
+export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5", totalSlides, coverImages, userName }: {
   productName: string; subtitle?: string; accentColor?: string; totalSlides: number;
   coverImages?: { url: string; ideaName: string }[];
+  userName?: string;
 }) {
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   const hasImages = coverImages && coverImages.length > 0;
@@ -344,10 +345,22 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
 
           {/* Gradient divider line */}
           <div style={{
-            width: 160, height: 3, marginTop: 32,
+            width: 160, height: 3, marginTop: 28,
             background: `linear-gradient(90deg, ${accentColor}, ${accentColor}44, transparent)`,
             borderRadius: 2,
           }} />
+
+          {userName && (
+            <p style={{
+              fontSize: 28, fontWeight: 700,
+              color: "#0f0f12",
+              fontFamily: "'Space Grotesk', sans-serif",
+              marginTop: 20,
+              letterSpacing: "-0.01em",
+            }}>
+              {userName}
+            </p>
+          )}
 
           <div style={{ marginTop: "auto" }}>
             <p style={{ fontSize: 15, color: "#71717a", fontWeight: 500 }}>{today}</p>
@@ -370,7 +383,7 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
                   width: "100%",
                   height: coverImages!.length > 1 ? 260 : 400,
                   objectFit: "cover",
-                }} />
+                }} onError={(e) => { const parent = (e.target as HTMLImageElement).closest('div'); if (parent) (parent as HTMLElement).style.display = 'none'; }} />
                 <div style={{ padding: "10px 16px", background: "linear-gradient(135deg, #fafafa, #f8f9fc)", borderTop: "1px solid #e8e8ec" }}>
                   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", color: "#a1a1aa", textTransform: "uppercase" }}>Concept Design</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: "#0f0f12", marginTop: 2 }}>{img.ideaName}</p>
