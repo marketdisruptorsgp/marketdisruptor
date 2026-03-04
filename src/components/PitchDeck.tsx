@@ -24,6 +24,7 @@ import {
   ScenarioBarChart, SlideQuoteBlock, SlideTimeline, MetricBar,
   FunnelVisual, DonutChart, KeyMetricPanel, EmphasisBox, SplitLayout,
   InsightCard, ComparisonLayout, TakeawayCallout, ThreeColumnGrid,
+  EmptySlideSection,
 } from "@/components/pitch/PitchSlideFrame";
 import { PresentationMode } from "@/components/pitch/PresentationMode";
 import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
@@ -348,15 +349,15 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       <div style={gap28}>
         <KeyMetricPanel label="Elevator Pitch" value="→" accentColor={accentColor} sublabel={data.elevatorPitch} />
         <InsightCard title="Solution Overview" body={data.solutionStatement} accentColor={accentColor} />
-        {data.competitiveAdvantages?.length > 0 && (
+        {(data.competitiveAdvantages?.length || 0) > 0 ? (
           <ComparisonLayout
             leftTitle="Market Standard"
-            leftItems={data.competitiveAdvantages.slice(0, 3).map(a => `Lacks: ${a.split(" ").slice(0, 6).join(" ")}...`)}
+            leftItems={(data.competitiveAdvantages || []).slice(0, 3).map(a => `Lacks: ${a.split(" ").slice(0, 6).join(" ")}...`)}
             rightTitle="Our Differentiation"
-            rightItems={data.competitiveAdvantages.slice(0, 3)}
+            rightItems={(data.competitiveAdvantages || []).slice(0, 3)}
             accentColor={accentColor}
           />
-        )}
+        ) : <EmptySlideSection label="Competitive advantages" />}
       </div>
     ),
 
@@ -457,13 +458,17 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             />
           )}
           {data.productInnovation && <InsightCard title="Innovation Thesis" body={data.productInnovation} accentColor={accentColor} />}
-          <ComparisonLayout
-            leftTitle="Competitive Advantages"
-            leftItems={data.competitiveAdvantages.slice(0, 4)}
-            rightTitle="Investor Highlights"
-            rightItems={data.investorHighlights.slice(0, 4)}
-            accentColor={accentColor}
-          />
+          {(data.competitiveAdvantages?.length || 0) > 0 && (data.investorHighlights?.length || 0) > 0 ? (
+            <ComparisonLayout
+              leftTitle="Competitive Advantages"
+              leftItems={(data.competitiveAdvantages || []).slice(0, 4)}
+              rightTitle="Investor Highlights"
+              rightItems={(data.investorHighlights || []).slice(0, 4)}
+              accentColor={accentColor}
+            />
+          ) : (
+            <EmptySlideSection label="Competitive analysis" />
+          )}
           <TakeawayCallout text="Structurally differentiated — not just better features, but a fundamentally different approach." accentColor={accentColor} />
         </div>
       );
@@ -571,7 +576,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     /* ═══ 8. RISKS ═══ */
     risks: (
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {data.risks.slice(0, 4).map((r, i) => (
+        {(data.risks || []).slice(0, 4).map((r, i) => (
           <div key={i} style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #e8e8ec" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 24px", background: "#fafafa" }}>
               <p style={{ fontSize: 21, fontWeight: 700, color: "#0f0f12", display: "flex", alignItems: "center", gap: 10 }}>
