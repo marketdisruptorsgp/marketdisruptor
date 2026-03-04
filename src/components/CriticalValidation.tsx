@@ -434,6 +434,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
                       </span>
                     </div>
                     <p className="typo-card-body font-semibold leading-relaxed" style={{ color: "hsl(var(--primary))" }}>Lesson: {ex.lesson}</p>
+                    <div className="flex items-center justify-end mt-2">
+                      <PitchDeckToggle contentKey={`precedent-${i}`} label="Include in Pitch" />
+                    </div>
                   </div>
                 );
               })}
