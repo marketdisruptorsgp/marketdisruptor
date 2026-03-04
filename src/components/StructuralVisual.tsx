@@ -1,240 +1,191 @@
-import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useMemo } from "react";
+import { motion } from "framer-motion";
+import { ArrowDown } from "lucide-react";
 import type { VisualSpec, VisualNode, NodeRole } from "@/lib/visualContract";
 import { resolveRole } from "@/lib/visualContract";
 
-/* ═══════════════════════════════════════════════════════════════
-   CINEMATIC STRUCTURAL VISUAL
-   Replaces ReactFlow node-link diagrams with a spatial field.
-   Nodes positioned by role tier (top→bottom), rendered as
-   glowing orbs with relationship lines.
-   ═══════════════════════════════════════════════════════════════ */
-
 export type { NodeRole, VisualNode, VisualSpec };
 export { resolveRole };
-// Re-export edge/certainty types for backward compat
 export type { Certainty, LegacyNodeType, VisualEdge } from "@/lib/visualContract";
 
 const ROLE_TIER: Record<NodeRole, number> = {
   system: 0, force: 1, mechanism: 2, leverage: 3, outcome: 4,
 };
 
-const ROLE_COLORS: Record<NodeRole, { solid: string; glow: string }> = {
-  system:    { solid: "hsl(var(--cin-red))",     glow: "hsl(var(--cin-red-glow))" },
-  force:     { solid: "hsl(var(--cin-label))",   glow: "hsl(var(--cin-label))" },
-  mechanism: { solid: "hsl(38 92% 50%)",         glow: "hsl(38 92% 60%)" },
-  leverage:  { solid: "hsl(229 89% 63%)",        glow: "hsl(229 89% 73%)" },
-  outcome:   { solid: "hsl(var(--cin-green))",   glow: "hsl(var(--cin-green-glow))" },
+const ROLE_META: Record<NodeRole, { label: string; color: string; bg: string; border: string }> = {
+  system:    { label: "System",   color: "hsl(var(--destructive))",        bg: "hsl(var(--destructive) / 0.06)", border: "hsl(var(--destructive) / 0.15)" },
+  force:     { label: "Driver",   color: "hsl(var(--foreground) / 0.7)",   bg: "hsl(var(--muted) / 0.5)",        border: "hsl(var(--border))" },
+  mechanism: { label: "Mechanism",color: "hsl(38 92% 45%)",               bg: "hsl(38 92% 50% / 0.06)",        border: "hsl(38 92% 50% / 0.15)" },
+  leverage:  { label: "Leverage", color: "hsl(229 89% 58%)",              bg: "hsl(229 89% 63% / 0.06)",       border: "hsl(229 89% 63% / 0.15)" },
+  outcome:   { label: "Outcome",  color: "hsl(142 60% 40%)",              bg: "hsl(142 60% 40% / 0.06)",       border: "hsl(142 60% 40% / 0.15)" },
 };
 
-const ROLE_LABELS: Record<NodeRole, string> = {
-  system: "System", force: "Driver", mechanism: "Mechanism",
-  leverage: "Leverage", outcome: "Outcome",
-};
-
-interface NodePos {
-  node: VisualNode;
-  x: number;
-  y: number;
+interface TierGroup {
+  tier: number;
   role: NodeRole;
+  nodes: VisualNode[];
 }
 
-function layoutNodes(spec: VisualSpec): NodePos[] {
-  const tiers = new Map<number, VisualNode[]>();
+function groupByTier(spec: VisualSpec): TierGroup[] {
+  const tiers = new Map<number, { role: NodeRole; nodes: VisualNode[] }>();
   for (const n of spec.nodes) {
     const role = resolveRole(n);
     const tier = ROLE_TIER[role] ?? 2;
-    if (!tiers.has(tier)) tiers.set(tier, []);
-    tiers.get(tier)!.push(n);
+    if (!tiers.has(tier)) tiers.set(tier, { role, nodes: [] });
+    tiers.get(tier)!.nodes.push(n);
   }
-
-  const sorted = [...tiers.entries()].sort(([a], [b]) => a - b);
-  const totalTiers = sorted.length;
-  const positions: NodePos[] = [];
-
-  sorted.forEach(([, nodes], tierIdx) => {
-    const yPercent = totalTiers <= 1 ? 50 : 15 + (tierIdx / (totalTiers - 1)) * 70;
-    const totalNodes = nodes.length;
-    nodes.forEach((node, i) => {
-      const xPercent = totalNodes <= 1 ? 50 : 15 + (i / (totalNodes - 1)) * 70;
-      positions.push({ node, x: xPercent, y: yPercent, role: resolveRole(node) });
-    });
-  });
-
-  return positions;
+  return [...tiers.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([tier, { role, nodes }]) => ({ tier, role, nodes }));
 }
 
-function StructuralOrb({
-  pos, index, onSelect, isSelected,
-}: {
-  pos: NodePos; index: number;
-  onSelect: (n: VisualNode | null) => void; isSelected: boolean;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const { solid: color, glow: glowColor } = ROLE_COLORS[pos.role] || ROLE_COLORS.force;
-  const priority = pos.node.priority || 2;
-  const size = priority === 1 ? 56 : priority === 3 ? 38 : 46;
-  const label = pos.node.label.length > 22 ? pos.node.label.slice(0, 20) + "…" : pos.node.label;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.3 }}
-      animate={{ opacity: 1, scale: hovered || isSelected ? 1.15 : 1 }}
-      transition={{ delay: 0.1 + index * 0.06, duration: 0.4, type: "spring" }}
-      className="absolute cursor-pointer"
-      style={{
-        left: `${pos.x}%`, top: `${pos.y}%`,
-        transform: "translate(-50%, -50%)",
-        zIndex: isSelected ? 20 : hovered ? 15 : 10,
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={(e) => { e.stopPropagation(); onSelect(isSelected ? null : pos.node); }}
-    >
-      <motion.div
-        animate={{
-          boxShadow: hovered || isSelected
-            ? `0 0 ${size}px ${size / 3}px ${glowColor}30`
-            : `0 0 ${size / 3}px ${size / 6}px ${glowColor}12`,
-        }}
-        className="rounded-full flex flex-col items-center justify-center"
-        style={{
-          width: size, height: size,
-          background: `radial-gradient(circle at 40% 35%, ${color}22, ${color}04)`,
-          border: `1.5px solid ${color}${hovered || isSelected ? '50' : '20'}`,
-        }}
-      >
-        <span className="text-[7px] font-bold uppercase tracking-wider mb-0.5 opacity-60" style={{ color }}>{ROLE_LABELS[pos.role]}</span>
-        <span className="text-[9px] font-bold text-center leading-tight px-1 select-none" style={{ color }}>
-          {label}
-        </span>
-      </motion.div>
-    </motion.div>
-  );
+function cleanLabel(label: string): string {
+  // Strip prefixes like "Constraint: ", "Friction: ", "Outcome: ", "Intervention: ", "Leverage: ", "Value: "
+  return label.replace(/^(Constraint|Friction|Outcome|Intervention|Leverage|Value|Pain|Driver|Mechanism|System):\s*/i, "").trim();
 }
 
-function NodeDetail({ node, role, onClose }: { node: VisualNode; role: NodeRole; onClose: () => void }) {
-  const { solid: color } = ROLE_COLORS[role] || ROLE_COLORS.force;
+function FlowCard({ node, role, index }: { node: VisualNode; role: NodeRole; index: number }) {
+  const meta = ROLE_META[role] || ROLE_META.force;
+  const label = cleanLabel(node.label);
   const attrs = node.attributes
     ? Array.isArray(node.attributes) ? node.attributes.join(" · ") : node.attributes
     : null;
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-      className="absolute z-30 rounded-xl p-4 max-w-[220px]"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05 + index * 0.06, duration: 0.3 }}
+      className="rounded-lg px-4 py-3"
       style={{
-        right: "6%", bottom: "8%",
-        background: "hsl(var(--popover) / 0.97)",
-        border: `1px solid ${color}20`,
-        backdropFilter: "blur(16px)",
+        background: meta.bg,
+        border: `1px solid ${meta.border}`,
       }}
-      onClick={(e) => e.stopPropagation()}
     >
-      <div className="flex items-start gap-2 mb-2">
-        <div className="w-2 h-2 rounded-full mt-1" style={{ background: color }} />
-        <div>
-          <p className="text-xs font-bold" style={{ color: "hsl(var(--foreground))" }}>{node.label}</p>
-          <p className="text-[10px] font-semibold" style={{ color }}>{ROLE_LABELS[role]}</p>
+      <div className="flex items-start gap-2.5">
+        <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: meta.color }} />
+        <div className="min-w-0 flex-1">
+          <span
+            className="text-[9px] font-bold uppercase tracking-[0.08em] block mb-0.5"
+            style={{ color: meta.color }}
+          >
+            {meta.label}
+          </span>
+          <p className="text-sm font-semibold leading-snug" style={{ color: "hsl(var(--foreground))" }}>
+            {label}
+          </p>
+          {attrs && (
+            <p className="text-xs leading-relaxed mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
+              {attrs}
+            </p>
+          )}
+          {node.certainty && node.certainty !== "verified" && (
+            <span
+              className="inline-block mt-1.5 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded"
+              style={{
+                background: "hsl(var(--muted) / 0.5)",
+                color: "hsl(var(--muted-foreground))",
+              }}
+            >
+              {node.certainty}
+            </span>
+          )}
         </div>
       </div>
-      {attrs && <p className="text-[10px] leading-relaxed" style={{ color: "hsl(var(--cin-label) / 0.6)" }}>{attrs}</p>}
-      {node.certainty && node.certainty !== "verified" && (
-        <span className="inline-block mt-2 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded"
-          style={{ background: "hsl(var(--cin-depth-fg))", color: "hsl(var(--cin-label) / 0.5)" }}>{node.certainty}</span>
+    </motion.div>
+  );
+}
+
+function FlowArrow({ label, index }: { label?: string; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.1 + index * 0.06 }}
+      className="flex flex-col items-center py-1"
+    >
+      <ArrowDown className="w-3.5 h-3.5" style={{ color: "hsl(var(--muted-foreground) / 0.4)" }} />
+      {label && (
+        <span className="text-[9px] font-semibold mt-0.5" style={{ color: "hsl(var(--muted-foreground) / 0.5)" }}>
+          {label}
+        </span>
       )}
-      <button onClick={onClose}
-        className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px]"
-        style={{ background: "hsl(var(--cin-depth-fg))", color: "hsl(var(--cin-label) / 0.5)" }}>×</button>
     </motion.div>
   );
 }
 
 export function StructuralVisual({ spec }: { spec: VisualSpec }) {
-  const [selected, setSelected] = useState<VisualNode | null>(null);
-  const positions = useMemo(() => layoutNodes(spec), [spec]);
-  const nodeMap = useMemo(() => new Map(positions.map(p => [p.node.id, p])), [positions]);
+  const tiers = useMemo(() => groupByTier(spec), [spec]);
+
+  // Build edge label lookup: from tier → to tier → label
+  const edgeLabels = useMemo(() => {
+    const nodeRoleTier = new Map<string, number>();
+    for (const n of spec.nodes) {
+      nodeRoleTier.set(n.id, ROLE_TIER[resolveRole(n)] ?? 2);
+    }
+    const labels = new Map<string, string>();
+    for (const e of spec.edges) {
+      const fromTier = nodeRoleTier.get(e.from);
+      const toTier = nodeRoleTier.get(e.to);
+      if (fromTier !== undefined && toTier !== undefined && (e.label || e.relationship)) {
+        labels.set(`${fromTier}-${toTier}`, (e.label || e.relationship)!);
+      }
+    }
+    return labels;
+  }, [spec]);
 
   if (!spec?.nodes?.length) return null;
 
-  const selectedPos = selected ? nodeMap.get(selected.id) : null;
-  const tierCount = new Set(positions.map(p => ROLE_TIER[p.role])).size;
-  const height = Math.max(280, tierCount * 120 + 60);
+  let nodeIdx = 0;
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}
-      className="relative w-full rounded-2xl overflow-hidden"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+      className="rounded-xl p-4 space-y-0"
       style={{
-        height,
-        background: "radial-gradient(ellipse 75% 55% at 50% 50%, hsl(var(--cin-depth-mid)), hsl(var(--cin-depth-bg)))",
-        border: "1px solid hsl(var(--cin-depth-fg))",
-        boxShadow: "0 4px 24px -8px hsl(220 20% 80% / 0.3)",
+        background: "hsl(var(--card))",
+        border: "1px solid hsl(var(--border))",
       }}
-      onClick={() => setSelected(null)}
     >
       {spec.title && (
-        <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] font-extrabold uppercase tracking-[0.2em] z-10"
-          style={{ color: "hsl(var(--cin-label) / 0.4)" }}>{spec.title}</motion.p>
+        <motion.p
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}
+          className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-center mb-3"
+          style={{ color: "hsl(var(--muted-foreground) / 0.5)" }}
+        >
+          {spec.title}
+        </motion.p>
       )}
 
-      {/* Relationship lines */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
-        {spec.edges.map((e, i) => {
-          const from = nodeMap.get(e.from);
-          const to = nodeMap.get(e.to);
-          if (!from || !to) return null;
-          const color = ROLE_COLORS[from.role]?.solid || "hsl(var(--cin-label))";
-          return (
-            <motion.line key={i}
-              x1={`${from.x}%`} y1={`${from.y}%`} x2={`${to.x}%`} y2={`${to.y}%`}
-              stroke={`${color}`} strokeOpacity="0.12" strokeWidth="1"
-              initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-              transition={{ delay: 0.5 + i * 0.08, duration: 0.5 }}
-            />
-          );
-        })}
-      </svg>
+      {tiers.map((tierGroup, tierIdx) => {
+        const prevTier = tierIdx > 0 ? tiers[tierIdx - 1].tier : null;
+        const arrowLabel = prevTier !== null
+          ? edgeLabels.get(`${prevTier}-${tierGroup.tier}`)
+          : undefined;
 
-      {/* Edge labels */}
-      {spec.edges.map((e, i) => {
-        const from = nodeMap.get(e.from);
-        const to = nodeMap.get(e.to);
-        if (!from || !to || !e.label) return null;
-        const mx = (from.x + to.x) / 2;
-        const my = (from.y + to.y) / 2;
         return (
-          <motion.span key={`lbl-${i}`}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 + i * 0.05 }}
-            className="absolute text-[7px] font-bold uppercase tracking-wider pointer-events-none z-5"
-            style={{
-              left: `${mx}%`, top: `${my}%`,
-              transform: "translate(-50%, -50%)",
-              color: "hsl(var(--cin-label) / 0.3)",
-            }}>
-            {e.label || e.relationship}
-          </motion.span>
+          <React.Fragment key={tierGroup.tier}>
+            {tierIdx > 0 && <FlowArrow label={arrowLabel} index={tierIdx} />}
+            <div className={tierGroup.nodes.length > 1 ? "grid grid-cols-2 gap-2" : ""}>
+              {tierGroup.nodes.map((node) => {
+                const idx = nodeIdx++;
+                return <FlowCard key={node.id} node={node} role={tierGroup.role} index={idx} />;
+              })}
+            </div>
+          </React.Fragment>
         );
       })}
 
-      {positions.map((pos, i) => (
-        <StructuralOrb key={pos.node.id} pos={pos} index={i}
-          onSelect={setSelected} isSelected={selected === pos.node} />
-      ))}
-
-      <AnimatePresence>
-        {selected && selectedPos && (
-          <NodeDetail node={selected} role={selectedPos.role} onClose={() => setSelected(null)} />
-        )}
-      </AnimatePresence>
-
       {spec.interpretation && (
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-medium text-center max-w-[250px] z-10"
-          style={{ color: "hsl(var(--cin-label) / 0.25)" }}>
-          {spec.interpretation.length > 60 ? spec.interpretation.slice(0, 58) + "…" : spec.interpretation}
+        <motion.p
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+          className="text-xs leading-relaxed text-center pt-3 mt-2"
+          style={{
+            color: "hsl(var(--muted-foreground) / 0.6)",
+            borderTop: "1px solid hsl(var(--border) / 0.5)",
+          }}
+        >
+          {spec.interpretation}
         </motion.p>
       )}
     </motion.div>
