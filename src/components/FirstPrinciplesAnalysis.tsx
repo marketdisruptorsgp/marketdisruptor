@@ -1162,7 +1162,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
 
               {/* Concept name + tagline hero */}
-              <div className="rounded-xl p-5" style={{ background: "hsl(38 92% 50% / 0.08)", border: "2px solid hsl(38 92% 50% / 0.2)" }}>
+              <div className="rounded-xl p-5" style={{ background: "hsl(217 91% 45% / 0.08)", border: "2px solid hsl(217 91% 45% / 0.2)" }}>
                 <h4 className="font-extrabold text-foreground text-xl leading-tight">{concept.conceptName}</h4>
                 <p className="text-sm font-bold text-foreground/70 mt-1">{concept.tagline}</p>
               </div>
