@@ -162,6 +162,9 @@ export default function ReportPage() {
 
         <StepNavBar backLabel="Home" backPath="/" accentColor={modeAccent} />
 
+        {/* Analysis title — persistent across all steps */}
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground px-1">{selectedProduct.name}</h1>
+
         {/* Compact header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
           <h2 className="typo-section-title">Intelligence Report</h2>
