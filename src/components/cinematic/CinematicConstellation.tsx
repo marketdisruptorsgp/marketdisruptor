@@ -126,6 +126,24 @@ export function CinematicConstellation({ story, title }: { story: VisualStory; t
       .map(role => ({ role, signals: byRole[role] }));
   }, [allSignals]);
 
+  // Derive a contextual insight from signal distribution
+  const topDriverCount = groups.find(g => g.role === "driver")?.signals.length || 0;
+  const topConstraintCount = groups.find(g => g.role === "constraint")?.signals.length || 0;
+  const topLeverageCount = groups.find(g => g.role === "leverage")?.signals.length || 0;
+
+  const contextInsight = useMemo(() => {
+    if (topConstraintCount > topDriverCount + 1) {
+      return "This market is constraint-heavy — more forces are holding things back than pushing forward. Focus on which constraints can be broken.";
+    }
+    if (topDriverCount > topConstraintCount + 2) {
+      return "Strong momentum signals detected — the tailwinds significantly outnumber the headwinds. Timing matters here.";
+    }
+    if (topLeverageCount >= 2) {
+      return `${topLeverageCount} high-impact intervention points identified — these are the levers most likely to shift the outcome.`;
+    }
+    return "The forces shaping this market are balanced — success depends on which constraints you choose to break first.";
+  }, [topDriverCount, topConstraintCount, topLeverageCount]);
+
   if (allSignals.length === 0) return null;
 
   return (
@@ -135,18 +153,23 @@ export function CinematicConstellation({ story, title }: { story: VisualStory; t
       transition={{ duration: 0.3 }}
       className="space-y-3"
     >
-      {/* Header with signal count + legend */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-foreground">
-            {title}
-          </span>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-            style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
-            {allSignals.length} signals
-          </span>
+      {/* Header with signal count + context */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-foreground">
+              {title}
+            </span>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
+              {allSignals.length} signals
+            </span>
+          </div>
+          <span className="text-xs font-semibold text-foreground/60">Score →</span>
         </div>
-        <span className="text-xs font-semibold text-foreground/60">Score →</span>
+        <p className="text-sm text-foreground/70 leading-relaxed font-medium">
+          {contextInsight}
+        </p>
       </div>
 
       {/* Role groups */}
