@@ -389,6 +389,18 @@ export default function NewAnalysisPage() {
     // Build extracted context if available
     const extractedContext = extraction ? extractionToContext(extraction) : "";
 
+    // Build and persist adaptive context for the entire pipeline
+    const adaptiveCtx = aiAnalysis ? {
+      problemStatement: problemText,
+      entity: aiAnalysis.entity,
+      detectedModes: aiAnalysis.modes,
+      selectedChallenges: aiAnalysis.challenges.filter(c => selectedChallenges.has(c.id)),
+      summary: aiAnalysis.summary,
+    } : problemText.trim().length > 15 ? {
+      problemStatement: problemText,
+    } : null;
+    analysis.setAdaptiveContext(adaptiveCtx);
+
     try {
       if (primaryCard === "business") {
         analysis.setMainTab("business");
@@ -406,6 +418,7 @@ export default function NewAnalysisPage() {
               notes: urls.length ? `Sources: ${urls.join(", ")}` : "",
             },
             extractedContext,
+            adaptiveContext: adaptiveCtx,
           },
         });
 

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, missingDataWarning } from "../_shared/modeEnforcement.ts";
+import { buildAdaptiveContextPrompt, extractAdaptiveContext } from "../_shared/adaptiveContext.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
@@ -16,7 +17,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count, activeBranch } = await req.json();
+    const { product, audience, additionalContext, insightPreferences, steeringText, lens, count, activeBranch, adaptiveContext: rawAdaptiveCtx } = await req.json();
+    const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
+    const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const ideaCount = count || 2;
     const mode = resolveMode(undefined, product.category);
     const filterResult = filterInputData(mode, product);
@@ -35,7 +38,7 @@ serve(async (req) => {
 
     const systemPrompt = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFramework()}
-${branchPrompt}
+${branchPrompt}${adaptivePrompt}
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
 - Decompose every system into at least 3 layers of depth

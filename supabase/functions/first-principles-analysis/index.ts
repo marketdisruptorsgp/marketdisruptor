@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { resolveMode, filterInputData, validateOutput, buildTrace, missingDataWarning, getModeGuardPrompt } from "../_shared/modeEnforcement.ts";
+import { buildAdaptiveContextPrompt, extractAdaptiveContext } from "../_shared/adaptiveContext.ts";
 import { buildLensPrompt } from "../_shared/lensPrompt.ts";
 import { getReasoningFramework } from "../_shared/reasoningFramework.ts";
 import { enforceVisualContract } from "../_shared/visualFallback.ts";
@@ -20,7 +21,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch, governedContext } = await req.json();
+    const { product, userSuggestions, lens, refreshWorkflowOnly, insightPreferences, userScores, steeringText, disruptContext, selectedImages, activeBranch, governedContext, adaptiveContext: rawAdaptiveCtx } = await req.json();
+    const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
+    const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     // Extract active branch context for isolated or combined downstream reasoning
     const isCombinedMode = !activeBranch?.active_branch_id || activeBranch?.active_branch_id === "combined";
     const branchCtx = (!isCombinedMode && activeBranch) ? extractActiveBranch(
@@ -42,7 +45,7 @@ serve(async (req) => {
 
     const OS_PREAMBLE = `You are Market Disruptor OS — a platform-grade strategic reinvention engine by SGP Capital.
 ${getReasoningFramework()}
-${modeGuard}${branchPrompt}
+${modeGuard}${branchPrompt}${adaptivePrompt}
 
 CORE PRINCIPLES:
 - First-principles reasoning over analogy or convention
