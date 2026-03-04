@@ -414,7 +414,6 @@ export function StructureTab({
           </div>
           <div>
             <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>First Principles Decomposition</h3>
-            <p className="text-xs font-bold mt-0.5" style={{ color: "white" }}>{selectedProduct.name}</p>
           </div>
         </div>
         <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
