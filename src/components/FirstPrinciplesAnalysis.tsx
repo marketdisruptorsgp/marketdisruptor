@@ -711,7 +711,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         <div>
           <p className="typo-card-eyebrow text-muted-foreground mb-2">Radical Differences</p>
           <div className="space-y-1.5">
-            {concept.radicalDifferences.map((diff, i) => (
+            {(concept.radicalDifferences || []).map((diff, i) => (
               <div key={i} className="flex items-start gap-2 p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 <Zap size={12} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
                 <span className="text-foreground/80">{diff}</span>
@@ -730,7 +730,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow text-muted-foreground mb-1">Materials</p>
             <div className="flex flex-wrap gap-1">
-              {concept.materials.map((m, i) => (
+              {(concept.materials || []).map((m, i) => (
                 <span key={i} className="px-2 py-0.5 rounded-full typo-card-meta font-medium" style={{ background: "hsl(var(--card))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>{m}</span>
               ))}
             </div>
@@ -896,7 +896,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           </DetailPanel>
 
            <div className="space-y-3">
-            {data.hiddenAssumptions.map((a, i) => {
+            {(data.hiddenAssumptions || []).map((a, i) => {
               const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
               return (
                 <div key={i} className="p-3.5 rounded-lg" style={{ background: "hsl(var(--card))", border: `1.5px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.25)" : "hsl(var(--border))"}` }}>
@@ -944,7 +944,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             </p>
           </div>
 
-          {data.flippedLogic.map((item, i) => (
+          {(data.flippedLogic || []).map((item, i) => (
             <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
               <div className="grid grid-cols-[1fr_auto_1fr]">
                 <div className="p-3" style={{ background: "hsl(var(--muted))" }}>
