@@ -316,50 +316,7 @@ The JSON must follow this EXACT structure:
       "confidence": "high | medium | exploratory"
     }
   ],
-  "governed": {
-    "domain_confirmation": {
-      "system_type": "product | service | business_model",
-      "outcome_mechanism": "causal transformation this system performs",
-      "success_condition": "solution-independent success definition",
-      "domain_lock": true
-    },
-    "first_principles": {
-      "minimum_viable_system": "irreducible system — what MUST exist for value creation",
-      "causal_model": {
-        "inputs": ["input1", "input2"],
-        "mechanism": "core transformation mechanism",
-        "outputs": ["output1", "output2"]
-      },
-      "fundamental_constraints": ["hard constraint 1", "hard constraint 2"],
-      "resource_limits": ["capital/time/talent limit"],
-      "behavioral_realities": ["what humans actually do vs should do"],
-      "dependency_structure": ["what must exist for this to work"],
-      "viability_assumptions": [
-        {"assumption": "text", "evidence_status": "verified|modeled|speculative", "leverage_if_wrong": 7}
-      ]
-    },
-    "friction_tiers": {
-      "tier_1": [{"friction_id": "f1", "description": "system-limiting friction", "system_impact": "blocks scale/breaks economics/prevents adoption"}],
-      "tier_2": [{"friction_id": "f2", "description": "meaningful optimization target", "optimization_target": "measurable improvement worth investment"}],
-      "tier_3": [{"friction_id": "f3", "description": "observational friction — real but does not drive redesign"}]
-    },
-    "constraint_map": {
-      "causal_chains": [
-        {"friction_id": "f1", "structural_constraint": "root constraint", "system_impact": "downstream effect", "impact_dimension": "cost|time|adoption|scale|reliability|risk"}
-      ],
-      "binding_constraint_id": "f1",
-      "dominance_proof": "why this constraint dominates — comparative evidence",
-      "counterfactual_removal_result": "what changes if this constraint is removed",
-      "next_binding_constraint": "what becomes limiting after removal"
-    },
-    "decision_synthesis": {
-      "decision_grade": "decision_grade|conditional|blocked",
-      "confidence_score": 55,
-      "blocking_uncertainties": ["key uncertainty 1"],
-      "fastest_validation_experiment": "cheapest way to test this",
-      "next_required_evidence": "what evidence would change the assessment"
-    }
-  }
+  "governed": { ... structured output enforced via tool calling schema — fill ALL governed fields completely ... }
 }`;
 
     const userPrompt = isService

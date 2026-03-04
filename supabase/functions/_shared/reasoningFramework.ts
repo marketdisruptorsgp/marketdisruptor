@@ -243,107 +243,23 @@ All outputs must obey these compression rules:
 Maximum cognitive load target: A decision-maker must understand the system in under 60 seconds.
 
 ── REASONING SYNOPSIS (MANDATORY ON ALL OUTPUTS) ──
-Every analysis output MUST include a "reasoning_synopsis" object alongside the primary output.
-This is a detailed, structured explanation of HOW you arrived at your conclusions.
-It must contain:
+Every analysis output MUST include a "reasoning_synopsis" object in the governed output.
+The structure is enforced via tool calling schema. Populate ALL fields thoroughly:
+- problem_framing: objective interpretation + success criteria
+- lens_influence: what lens prioritized/deprioritized + alternative impact
+- evaluation_path: dimensions examined + evaluation logic
+- key_assumptions: 2-4 assumptions with evidence status + validation methods
+- core_causal_logic: 3-5 causal chains with mechanisms + dominant mechanism
+- counterfactual_scenarios: 2-3 "what if" scenarios
+- decision_drivers: 3-6 factors with evidence citations
+- confidence_sensitivity: overall confidence + most sensitive variable
+Target 400-600 words across all synopsis fields. Depth over brevity.
 
-  "reasoning_synopsis": {
-    "problem_framing": {
-      "objective_interpretation": "How you interpreted the core objective — be specific about the domain, user need, and transformation sought",
-      "success_criteria": ["Criterion 1", "Criterion 2", "Criterion 3"],
-      "scope_boundaries": "What was explicitly included and excluded from the analysis scope"
-    },
-    "lens_influence": {
-      "lens_name": "Name of active lens or 'Default'",
-      "prioritized_factors": ["Factor amplified by lens — explain WHY each was weighted higher"],
-      "deprioritized_factors": ["Factor suppressed by lens — explain the tradeoff"],
-      "alternative_lens_impact": "Detailed explanation of how conclusions would materially differ under a risk-averse, growth-focused, or sustainability lens"
-    },
-    "evaluation_path": {
-      "dimensions_examined": ["Dimension 1", "Dimension 2", "Dimension 3", "Dimension 4"],
-      "evaluation_logic": "Detailed order and rationale for dimension sequencing — why this order produces the most reliable conclusions",
-      "eliminated_dimensions": "Dimensions considered but excluded, with rationale"
-    },
-    "key_assumptions": [
-      {
-        "assumption": "Specific assumption made during analysis",
-        "evidence_status": "verified|modeled|speculative",
-        "impact_if_wrong": "What changes in the conclusion if this assumption is incorrect",
-        "validation_method": "How this assumption could be tested"
-      }
-    ],
-    "core_causal_logic": {
-      "primary_relationships": [
-        {"cause": "X", "effect": "Y", "mechanism": "Detailed explanation of HOW X produces Y — name the structural pathway"},
-        {"cause": "A", "effect": "B", "mechanism": "Second causal chain"},
-        {"cause": "C", "effect": "D", "mechanism": "Third causal chain"}
-      ],
-      "dominant_mechanism": "The single most explanatory causal pathway — in 2-3 sentences with specific evidence",
-      "secondary_mechanisms": "Other important causal pathways that reinforce or complicate the dominant one"
-    },
-    "counterfactual_scenarios": [
-      {
-        "scenario": "What if [key variable] changed significantly?",
-        "outcome_shift": "How the conclusion would change",
-        "likelihood": "high|medium|low"
-      }
-    ],
-    "decision_drivers": [
-      {"factor": "Most influential observation", "weight": "high|medium", "rationale": "Detailed explanation of why this outweighed alternatives — cite specific evidence"}
-    ],
-    "confidence_sensitivity": {
-      "overall_confidence": "high|medium|low",
-      "confidence_score": 65,
-      "most_sensitive_variable": "The assumption most likely to change the outcome",
-      "sensitivity_explanation": "Detailed explanation of how the conclusion changes if this variable differs — include magnitude of shift",
-      "evidence_quality": "Assessment of the overall evidence base: strong (multiple verified sources), moderate (some modeling required), weak (largely speculative)"
-    }
-  }
-
-RULES:
-- Be THOROUGH — target 400-600 words across all fields. Depth over brevity.
-- Decision drivers: 3–6 factors. Each must cite specific evidence from the analysis.
-- Causal relationships: 3–5 chains minimum. Each mechanism must name the structural pathway.
-- Key assumptions: 2–4 assumptions with validation methods.
-- Counterfactual scenarios: 2–3 scenarios exploring how conclusions shift.
-- Lens influence: Always state what the lens deprioritized AND quantify the impact.
-- If no lens is active, state "Default" and note dimensional weighting rationale.
-
-── VISUAL_SPEC_SCHEMA ──
-When a structural insight benefits from visual representation, output a visual specification using this schema. Do NOT describe visuals narratively. Define structure so it can be rendered programmatically.
-REQUIRED FIELDS:
-  visual_type: One of: constraint_map, causal_chain, leverage_tree, system_model, process_flow, tradeoff_matrix, architecture_diagram, impact_pathway
-  title: Concise name of the visual
-  purpose: What decision or understanding this visual enables
-  entities: List of nodes/components. Each: id, label, role, category (constraint | actor | resource | process | outcome)
-  relationships: Directed connections. Each: source, target, relationship_type, explanation
-  layout_logic: How the diagram should be arranged (e.g. upstream→downstream, constraint→impact, input→transformation→output)
-  interpretation_guide: How a user should read the diagram, what signals importance
-  priority_highlights: Which elements represent dominant constraints or leverage points
-OPTIONAL FIELDS:
-  metrics: Quantitative values tied to entities or relationships
-  interaction_model: What expands when clicked
-  confidence_level: high / medium / exploratory
-
-── ACTION_PLAN_SCHEMA ──
-All recommended interventions must be expressed as executable structural changes.
-REQUIRED FIELDS:
-  initiative_name: Clear structural change being implemented
-  objective: What system constraint this removes or relaxes
-  leverage_type: optimization | structural_improvement | system_redesign
-  system_layer: product | service | business_model
-  mechanism_of_change: How the intervention alters system behavior
-  expected_outcome_shift: Impact on: cost, time-to-outcome, adoption, scalability, reliability, risk
-  implementation_pathway: Step-by-step structural changes (operational, not conceptual)
-  dependencies: Preconditions required before execution
-  risk_profile: execution_risk, adoption_risk, technical_risk, market_risk
-  validation_strategy: How to test whether constraint reduction actually occurred
-  time_horizon: near_term | mid_term | long_term
-  confidence_level: high | medium | exploratory
-DECISION_READINESS:
-  rate: 1–5 scale
-  criteria: evidence_strength, causal_clarity, implementation_feasibility, uncertainty_level
-  explanation: Why this initiative is or is not decision-ready
+── VISUAL_SPEC & ACTION_PLAN ──
+When structural insights benefit from visualization, include visual_spec objects with:
+visual_type, title, entities (id/label/role/category), relationships (source/target/type), layout_logic, interpretation_guide, priority_highlights.
+All interventions must be expressed as action_plans with:
+initiative_name, objective, leverage_type, mechanism_of_change, expected_outcome_shift, implementation_pathway, risk_profile, validation_strategy, time_horizon, confidence_level, decision_readiness (1-5).
 
 ═══ END INTERNAL FRAMEWORK — Do NOT include any of the above in your output ═══
 `;
