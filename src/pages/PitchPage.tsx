@@ -5,6 +5,7 @@ import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { HeroSection } from "@/components/HeroSection";
+import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker";
 import { StepNavigator } from "@/components/StepNavigator";
 import { PitchDeck } from "@/components/PitchDeck";
 import { getStepConfigs } from "@/lib/stepConfigs";
@@ -105,25 +106,40 @@ export default function PitchPage() {
           </div>
         </div>
 
-        <PitchDeck
-          product={selectedProduct}
-          analysisId={analysisId}
-          externalData={analysis.pitchDeckData}
-          disruptData={analysis.disruptData}
-          stressTestData={analysis.stressTestData}
-          redesignData={analysis.redesignData}
-          userScores={analysis.userScores}
-          accentColor={theme.primary}
-          insightPreferences={analysis.insightPreferences}
-          steeringText={analysis.steeringText}
-          runTrigger={runTrigger}
-          onLoadingChange={setAnalysisLoading}
-          onSave={(d) => {
-            analysis.setPitchDeckData(d);
-            analysis.saveStepData("pitchDeck", d);
-            analysis.clearStepOutdated("pitch");
-          }}
-        />
+        {/* Loading Tracker (front and center) */}
+        {analysisLoading && (
+          <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <StepLoadingTracker
+              title="Building Pitch Deck"
+              tasks={PITCH_DECK_TASKS}
+              estimatedSeconds={35}
+              accentColor={theme.primary}
+            />
+          </div>
+        )}
+
+        {/* Content */}
+        {!analysisLoading && (
+          <PitchDeck
+            product={selectedProduct}
+            analysisId={analysisId}
+            externalData={analysis.pitchDeckData}
+            disruptData={analysis.disruptData}
+            stressTestData={analysis.stressTestData}
+            redesignData={analysis.redesignData}
+            userScores={analysis.userScores}
+            accentColor={theme.primary}
+            insightPreferences={analysis.insightPreferences}
+            steeringText={analysis.steeringText}
+            runTrigger={runTrigger}
+            onLoadingChange={setAnalysisLoading}
+            onSave={(d) => {
+              analysis.setPitchDeckData(d);
+              analysis.saveStepData("pitchDeck", d);
+              analysis.clearStepOutdated("pitch");
+            }}
+          />
+        )}
       </main>
     </div>
   );

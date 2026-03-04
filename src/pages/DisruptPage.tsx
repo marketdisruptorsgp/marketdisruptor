@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { SignalTab } from "@/components/strategic/SignalTab";
 import { StructureTab } from "@/components/strategic/StructureTab";
 import { RedesignTab } from "@/components/strategic/RedesignTab";
+import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 
 const TABS = [
   { id: "signal" as const, label: "Signal", icon: Target, description: "Executive decision layer" },
@@ -149,43 +150,57 @@ export default function DisruptPage() {
           </div>
         </div>
 
+        {/* ── Loading Tracker (front and center) ── */}
+        {analysisLoading && (
+          <div className="rounded-xl overflow-hidden p-4 sm:p-6" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+            <StepLoadingTracker
+              title="Building First Principles Analysis"
+              tasks={DISRUPT_TASKS}
+              estimatedSeconds={50}
+              accentColor="hsl(271 81% 55%)"
+            />
+          </div>
+        )}
+
         {/* ── Tab Content ── */}
-        <div className="min-h-[400px]">
-          {effectiveTab === "signal" && (
-            <SignalTab
-              disruptData={analysis.disruptData as Record<string, unknown> | null}
-              governedData={governedData as Record<string, unknown> | null}
-              hypotheses={hasHypotheses ? rawHypotheses! : null}
-              analysisType={(analysis.analysisParams as any)?.analysisType || "product"}
-              lastUpdated={new Date().toISOString()}
-            />
-          )}
+        {!analysisLoading && (
+          <div className="min-h-[400px]">
+            {effectiveTab === "signal" && (
+              <SignalTab
+                disruptData={analysis.disruptData as Record<string, unknown> | null}
+                governedData={governedData as Record<string, unknown> | null}
+                hypotheses={hasHypotheses ? rawHypotheses! : null}
+                analysisType={(analysis.analysisParams as any)?.analysisType || "product"}
+                lastUpdated={new Date().toISOString()}
+              />
+            )}
 
-          {effectiveTab === "structure" && (
-            <StructureTab
-              selectedProduct={selectedProduct}
-              analysis={analysis}
-              governedData={governedData as Record<string, unknown> | null}
-              synopsisData={synopsisData}
-              rawHypotheses={hasHypotheses ? rawHypotheses! : null}
-              hasDisruptData={hasDisruptData}
-              hasSynopsis={hasSynopsis}
-              hasHypotheses={hasHypotheses}
-              ranking={ranking}
-              products={products}
-              runTrigger={runTrigger}
-              onLoadingChange={setAnalysisLoading}
-            />
-          )}
+            {effectiveTab === "structure" && (
+              <StructureTab
+                selectedProduct={selectedProduct}
+                analysis={analysis}
+                governedData={governedData as Record<string, unknown> | null}
+                synopsisData={synopsisData}
+                rawHypotheses={hasHypotheses ? rawHypotheses! : null}
+                hasDisruptData={hasDisruptData}
+                hasSynopsis={hasSynopsis}
+                hasHypotheses={hasHypotheses}
+                ranking={ranking}
+                products={products}
+                runTrigger={runTrigger}
+                onLoadingChange={setAnalysisLoading}
+              />
+            )}
 
-          {effectiveTab === "redesign" && (
-            <RedesignTab
-              disruptData={analysis.disruptData as Record<string, unknown> | null}
-              hypotheses={hasHypotheses ? rawHypotheses! : null}
-              governedData={governedData as Record<string, unknown> | null}
-            />
-          )}
-        </div>
+            {effectiveTab === "redesign" && (
+              <RedesignTab
+                disruptData={analysis.disruptData as Record<string, unknown> | null}
+                hypotheses={hasHypotheses ? rawHypotheses! : null}
+                governedData={governedData as Record<string, unknown> | null}
+              />
+            )}
+          </div>
+        )}
 
         <NextStepButton
           stepNumber={4}
