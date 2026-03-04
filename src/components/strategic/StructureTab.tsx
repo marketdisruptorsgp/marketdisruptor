@@ -3,7 +3,7 @@ import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, Lightbulb, GitBranch, ChevronDown } from "lucide-react";
+import { Brain, Lightbulb, GitBranch, ChevronDown, Atom, ArrowRight } from "lucide-react";
 import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
 
@@ -18,6 +18,8 @@ interface StructureTabProps {
   hasHypotheses: boolean;
   ranking: any;
   products: Product[];
+  runTrigger?: number;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
 function StructureSection({
@@ -66,6 +68,178 @@ function StructureSection({
   );
 }
 
+/* ── First Principles Display ── */
+function FirstPrinciplesSection({ governedData }: { governedData: Record<string, unknown> | null }) {
+  const fp = governedData?.first_principles as {
+    minimum_viable_system?: string;
+    causal_model?: { inputs?: string[]; mechanism?: string; outputs?: string[] };
+    fundamental_constraints?: string[];
+    resource_limits?: string[];
+    behavioral_realities?: string[];
+    dependency_structure?: string[];
+    viability_assumptions?: Array<{ assumption: string; evidence_status: string; leverage_if_wrong: number }>;
+  } | undefined;
+
+  if (!fp) {
+    return (
+      <div className="text-center py-8 space-y-2">
+        <Atom size={28} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
+        <p className="text-sm font-bold text-foreground">No first principles data yet</p>
+        <p className="text-xs text-muted-foreground">Run the analysis to decompose this system into fundamental truths.</p>
+      </div>
+    );
+  }
+
+  const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
+    verified: { bg: "hsl(142 70% 40% / 0.12)", text: "hsl(142 70% 40%)", label: "Verified" },
+    modeled: { bg: "hsl(38 92% 50% / 0.12)", text: "hsl(38 92% 50%)", label: "Modeled" },
+    speculative: { bg: "hsl(0 70% 50% / 0.12)", text: "hsl(0 70% 50%)", label: "Speculative" },
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Minimum Viable System */}
+      {fp.minimum_viable_system && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Minimum Viable System</p>
+          <p className="text-sm leading-relaxed text-foreground">{fp.minimum_viable_system}</p>
+        </div>
+      )}
+
+      {/* Causal Model */}
+      {fp.causal_model && (
+        <div className="space-y-2">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Causal Model</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Inputs */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Inputs</p>
+              <div className="flex flex-wrap gap-1.5">
+                {(fp.causal_model.inputs || []).map((inp, i) => (
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
+                    {inp}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <ArrowRight size={16} className="text-muted-foreground hidden sm:block flex-shrink-0" />
+            {/* Mechanism */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Mechanism</p>
+              <p className="text-xs leading-relaxed text-foreground font-medium">{fp.causal_model.mechanism}</p>
+            </div>
+            <ArrowRight size={16} className="text-muted-foreground hidden sm:block flex-shrink-0" />
+            {/* Outputs */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Outputs</p>
+              <div className="flex flex-wrap gap-1.5">
+                {(fp.causal_model.outputs || []).map((out, i) => (
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
+                    {out}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fundamental Constraints */}
+      {fp.fundamental_constraints && fp.fundamental_constraints.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Fundamental Constraints</p>
+          <ul className="space-y-1">
+            {fp.fundamental_constraints.map((c, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+                <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "hsl(0 70% 50%)" }} />
+                {c}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Resource Limits */}
+      {fp.resource_limits && fp.resource_limits.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Resource Limits</p>
+          <ul className="space-y-1">
+            {fp.resource_limits.map((r, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+                <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "hsl(38 92% 50%)" }} />
+                {r}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Behavioral Realities */}
+      {fp.behavioral_realities && fp.behavioral_realities.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Behavioral Realities</p>
+          <ul className="space-y-1">
+            {fp.behavioral_realities.map((b, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+                <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "hsl(271 81% 50%)" }} />
+                {b}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Dependency Structure */}
+      {fp.dependency_structure && fp.dependency_structure.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Dependency Structure</p>
+          <ul className="space-y-1">
+            {fp.dependency_structure.map((d, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+                <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "hsl(217 91% 55%)" }} />
+                {d}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Viability Assumptions */}
+      {fp.viability_assumptions && fp.viability_assumptions.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Viability Assumptions</p>
+          <div className="space-y-2">
+            {fp.viability_assumptions
+              .sort((a, b) => b.leverage_if_wrong - a.leverage_if_wrong)
+              .map((va, i) => {
+                const status = STATUS_COLORS[va.evidence_status] || STATUS_COLORS.speculative;
+                return (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 p-3 rounded-lg"
+                    style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground leading-relaxed font-medium">{va.assumption}</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: status.bg, color: status.text }}>
+                          {status.label}
+                        </span>
+                        <span className="text-[10px] font-bold tabular-nums text-muted-foreground">
+                          Leverage if wrong: {va.leverage_if_wrong}/10
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function StructureTab({
   selectedProduct,
   analysis,
@@ -77,16 +251,28 @@ export function StructureTab({
   hasHypotheses,
   ranking,
   products,
+  runTrigger,
+  onLoadingChange,
 }: StructureTabProps) {
   const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || [];
 
   return (
     <div className="space-y-3">
+      {/* First Principles */}
+      <StructureSection
+        title="First Principles"
+        icon={Atom}
+        defaultOpen={true}
+        badge={hasDisruptData ? "Decomposed" : undefined}
+      >
+        <FirstPrinciplesSection governedData={governedData} />
+      </StructureSection>
+
       {/* A. Assumptions */}
       <StructureSection
         title="Assumptions"
         icon={Brain}
-        defaultOpen={true}
+        defaultOpen={hasDisruptData}
         badge={assumptions.length > 0 ? `${assumptions.length} found` : undefined}
       >
         <FirstPrinciplesAnalysis
@@ -96,6 +282,8 @@ export function StructureTab({
           onRegenerateIdeas={(ctx: string | undefined) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
           generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
           externalData={analysis.disruptData}
+          runTrigger={runTrigger}
+          onLoadingChange={onLoadingChange}
           onAnalysisStarted={() => { analysis.setGovernedData(null); }}
           onDataLoaded={(d: unknown) => {
             analysis.setDisruptData(d);

@@ -178,6 +178,8 @@ interface FirstPrinciplesAnalysisProps {
   generatingIdeas?: boolean;
   onPatentSave?: (patentData: unknown) => void;
   externalData?: unknown;
+  runTrigger?: number;
+  onLoadingChange?: (loading: boolean) => void;
   onDataLoaded?: (data: unknown) => void;
   onAnalysisStarted?: () => void;
   renderMode?: "disrupt" | "redesign";
@@ -663,7 +665,7 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
   );
 }
 
-export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, onAnalysisStarted, renderMode, autoTrigger, userScores, onScoreChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
+export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRegenerateIdeas, generatingIdeas, onPatentSave, externalData, onDataLoaded, onAnalysisStarted, renderMode, autoTrigger, userScores, onScoreChange, runTrigger, onLoadingChange }: FirstPrinciplesAnalysisProps & { onSaved?: () => void; userScores?: Record<string, Record<string, number>>; onScoreChange?: (ideaId: string, scoreKey: string, value: number) => void }) => {
 
   const scrollToSteps = () => setTimeout(() => document.querySelector('[data-fp-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   const { user } = useAuth();
@@ -777,6 +779,18 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     }
   };
 
+
+  // Expose loading state to parent
+  useEffect(() => { onLoadingChange?.(loading); }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Parent-triggered re-run via runTrigger counter
+  const runTriggerRef = useRef(runTrigger ?? 0);
+  useEffect(() => {
+    if (runTrigger !== undefined && runTrigger > runTriggerRef.current && !loading) {
+      runTriggerRef.current = runTrigger;
+      runAnalysis();
+    }
+  }, [runTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-trigger redesign when arriving with outdated or missing data
   useEffect(() => {
