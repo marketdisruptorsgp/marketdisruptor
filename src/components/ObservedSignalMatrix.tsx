@@ -55,7 +55,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: ShieldCheck,
     dotColor: "bg-green-600",
     barColor: "bg-green-600",
-    bgTint: "bg-green-50/60 dark:bg-green-950/20",
+    bgTint: "bg-green-100/80 dark:bg-green-950/30",
     explanation: "These are the things people genuinely like. High scores mean more people mentioned it positively or it showed up as a clear advantage.",
     priority: 100, // always try to show
     extract: (product, mkId) => {
@@ -95,7 +95,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: AlertTriangle,
     dotColor: "bg-red-600",
     barColor: "bg-red-600",
-    bgTint: "bg-red-50/60 dark:bg-red-950/20",
+    bgTint: "bg-red-100/80 dark:bg-red-950/30",
     explanation: "These are the most frequently mentioned frustrations from real users. Higher scores indicate more people raised this same issue.",
     priority: 90, // always try to show
     extract: (product, mkId) => {
@@ -131,7 +131,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: Eye,
     dotColor: "bg-amber-600",
     barColor: "bg-amber-600",
-    bgTint: "bg-amber-50/60 dark:bg-amber-950/20",
+    bgTint: "bg-amber-100/80 dark:bg-amber-950/30",
     explanation: "These are moments in the user experience where people slow down, get confused, or leave. Pulled from the user journey analysis and workflow data.",
     priority: 80,
     extract: (product, mkId) => {
@@ -220,7 +220,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: TrendingUp,
     dotColor: "bg-blue-600",
     barColor: "bg-blue-600",
-    bgTint: "bg-blue-50/60 dark:bg-blue-950/20",
+    bgTint: "bg-blue-100/80 dark:bg-blue-950/30",
     explanation: "These are improvement requests, unmet needs, or growing trends that could become opportunities. They're not yet problems — they're openings.",
     priority: 70,
     extract: (product, mkId) => {
@@ -250,7 +250,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: AlertTriangle,
     dotColor: "bg-purple-600",
     barColor: "bg-purple-600",
-    bgTint: "bg-purple-50/60 dark:bg-purple-950/20",
+    bgTint: "bg-purple-100/80 dark:bg-purple-950/30",
     explanation: "Market gaps and weaknesses in current competitors. These are openings that could be exploited for differentiation.",
     priority: 60,
     extract: (product, mkId) => {
@@ -276,7 +276,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: Eye,
     dotColor: "bg-orange-600",
     barColor: "bg-orange-600",
-    bgTint: "bg-orange-50/60 dark:bg-orange-950/20",
+    bgTint: "bg-orange-100/80 dark:bg-orange-950/30",
     explanation: "Structural bottlenecks in how the service or business operates. These constrain growth and create inefficiency.",
     priority: 65,
     extract: (product, mkId) => {
@@ -308,7 +308,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: TrendingUp,
     dotColor: "bg-emerald-600",
     barColor: "bg-emerald-600",
-    bgTint: "bg-emerald-50/60 dark:bg-emerald-950/20",
+    bgTint: "bg-emerald-100/80 dark:bg-emerald-950/30",
     explanation: "Key pricing signals including market rates, margin data, and price direction trends from verified and modeled sources.",
     priority: 50,
     extract: (product, mkId) => {
@@ -341,7 +341,7 @@ const QUADRANT_POOL: QuadrantDef[] = [
     icon: ShieldCheck,
     dotColor: "bg-teal-600",
     barColor: "bg-teal-600",
-    bgTint: "bg-teal-50/60 dark:bg-teal-950/20",
+    bgTint: "bg-teal-100/80 dark:bg-teal-950/30",
     explanation: "Intelligence on suppliers, manufacturers, distributors and retailers. Shows the supply network structure.",
     priority: 40,
     extract: (product, mkId) => {
