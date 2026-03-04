@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isServiceCategory } from "@/utils/normalizeProduct";
 import { toast } from "sonner";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway } from "@/components/KeyTakeawayBanner";
 import { WorkflowTimeline } from "@/components/FirstPrinciplesAnalysis";
@@ -126,7 +127,7 @@ export default function ReportPage() {
   }
 
   const modeAccent = theme.primary;
-  const isService = selectedProduct?.category === "Service";
+  const isService = selectedProduct?.category === "Service" || isServiceCategory(selectedProduct?.category || "");
 
   const handleManualSave = async () => {
     setIsSaving(true);
