@@ -4,6 +4,8 @@ import { scrollToTop } from "@/utils/scrollToTop";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 import { InfoExplainer } from "@/components/InfoExplainer";
+import { type StrictMode, getModeCssVar } from "@/hooks/useActiveModes";
+import { SectionModePill } from "@/components/ModeBadge";
 
 /* ── Consistent Back + Home bar ──────────────────── */
 export function StepNavBar({ backLabel, backPath, accentColor }: { backLabel: string; backPath: string; accentColor?: string }) {
@@ -117,9 +119,14 @@ export function NextStepButton({ stepNumber, label, onClick, color, allSectionsV
   );
 }
 
-/* ── Collapsible detail panel — Presentation style ──────────────────────── */
-export function DetailPanel({ title, icon: Icon, children, defaultOpen = false, explainerKey }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean; explainerKey?: string }) {
+/* ── Collapsible detail panel — Presentation style with optional mode coloring ──────────────────────── */
+export function DetailPanel({ title, icon: Icon, children, defaultOpen = false, explainerKey, sectionMode }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean; explainerKey?: string; sectionMode?: StrictMode }) {
   const [open, setOpen] = useState(defaultOpen);
+  const accentCssVar = sectionMode ? getModeCssVar(sectionMode) : null;
+  const iconBg = accentCssVar ? `hsl(var(${accentCssVar}) / 0.08)` : "hsl(var(--primary) / 0.08)";
+  const iconColor = accentCssVar ? `hsl(var(${accentCssVar}))` : "hsl(var(--primary))";
+  const borderLeft = accentCssVar ? `3px solid hsl(var(${accentCssVar}) / 0.4)` : undefined;
+
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger
@@ -127,13 +134,15 @@ export function DetailPanel({ title, icon: Icon, children, defaultOpen = false, 
         style={{
           background: "hsl(var(--card))",
           border: "1.5px solid hsl(var(--border))",
+          borderLeft: borderLeft || "1.5px solid hsl(var(--border))",
         }}
       >
         <span className="flex items-center gap-3 typo-card-title">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.08)" }}>
-            <Icon size={15} style={{ color: "hsl(var(--primary))" }} />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: iconBg }}>
+            <Icon size={15} style={{ color: iconColor }} />
           </div>
           {title}
+          {sectionMode && <SectionModePill mode={sectionMode} />}
           {explainerKey && (
             <span onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
               <InfoExplainer explainerKey={explainerKey} />

@@ -181,6 +181,7 @@ export interface AdaptiveContextData {
   problemStatement?: string;
   entity?: { name: string; type: string };
   detectedModes?: { mode: string; confidence: number; reason: string }[];
+  activeModes?: string[]; // User-selected active modes (e.g., ["product", "service", "business"])
   selectedChallenges?: { id: string; question: string; context: string; priority: string; related_mode: string }[];
   summary?: string;
   userGuidance?: string;

@@ -105,6 +105,7 @@ export default function NewAnalysisPage() {
   const { setModeRouting } = analysis;
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [showManualClarifier, setShowManualClarifier] = useState(false);
+  const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set());
   const [problemText, setProblemText] = useState(() => {
     return sessionStorage.getItem("deconstruct-problem-text") || "";
   });
@@ -204,6 +205,12 @@ export default function NewAnalysisPage() {
         .filter((c: AIChallenge) => c.priority === "high")
         .map((c: AIChallenge) => c.id);
       setSelectedChallenges(new Set(highPriority));
+
+      // Auto-enable all detected modes with ≥20% confidence
+      const detectedIds = (data as AIProblemAnalysis).modes
+        .filter((m: any) => m.confidence >= 20)
+        .map((m: any) => m.mode);
+      setEnabledModes(new Set(detectedIds));
 
       // Auto-populate entity name
       if (!clarifierName && data.entity?.name) {
@@ -399,15 +406,19 @@ export default function NewAnalysisPage() {
     const extractedContext = extraction ? extractionToContext(extraction) : "";
 
     // Build and persist adaptive context for the entire pipeline
+    // Include activeModes from detected+toggled modes
+    const activeModes = detectedModes.length > 0 ? detectedModes : [primaryCard];
     const adaptiveCtx = aiAnalysis ? {
       problemStatement: problemText,
       entity: aiAnalysis.entity,
       detectedModes: aiAnalysis.modes,
+      activeModes,
       selectedChallenges: aiAnalysis.challenges.filter(c => selectedChallenges.has(c.id)),
       summary: aiAnalysis.summary,
     } : problemText.trim().length > 15 ? {
       problemStatement: problemText,
-    } : null;
+      activeModes,
+    } : { activeModes };
     analysis.setAdaptiveContext(adaptiveCtx);
 
     try {
@@ -480,9 +491,13 @@ export default function NewAnalysisPage() {
   };
 
   const userExplanation = routing ? explainRouting(routing) : null;
-  const detectedModes = routing
+  const rawDetectedModes = routing
     ? [toCardId(routing.primaryMode), ...routing.secondaryModes.map(toCardId)]
     : [];
+  // Use enabledModes (user-toggled) if populated, otherwise all detected modes
+  const detectedModes = enabledModes.size > 0
+    ? rawDetectedModes.filter(m => enabledModes.has(m))
+    : rawDetectedModes;
   const canContinue = useDeconstruct ? !!routing : !!selectedMode;
   const isLoading = analysis.step === "scraping" || analysis.step === "analyzing";
 
@@ -652,30 +667,44 @@ export default function NewAnalysisPage() {
                   <Zap size={16} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--mode-multi))" }} />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <span className="text-xs font-medium text-muted-foreground">Modes we'll apply:</span>
-                      {detectedModes.map((modeId) => {
+                      <span className="text-xs font-medium text-muted-foreground">Modes — click to toggle:</span>
+                      {rawDetectedModes.map((modeId) => {
                         const aiMode = aiAnalysis?.modes?.find(m => m.mode === modeId);
+                        const isEnabled = enabledModes.size === 0 || enabledModes.has(modeId);
+                        const isPrimary = modeId === toCardId(routing!.primaryMode);
                         return (
-                          <span
+                          <button
                             key={modeId}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold"
-                            style={{
-                              background: `hsl(var(${MODE_CSS_VAR[modeId]}) / 0.15)`,
-                              color: `hsl(var(${MODE_CSS_VAR[modeId]}))`,
+                            type="button"
+                            onClick={() => {
+                              setEnabledModes(prev => {
+                                const next = new Set(prev.size === 0 ? rawDetectedModes : prev);
+                                if (next.has(modeId) && next.size > 1) {
+                                  next.delete(modeId);
+                                } else {
+                                  next.add(modeId);
+                                }
+                                return next;
+                              });
                             }}
-                            title={aiMode?.reason}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all"
+                            style={{
+                              background: isEnabled ? `hsl(var(${MODE_CSS_VAR[modeId]}) / 0.15)` : "hsl(var(--muted) / 0.5)",
+                              color: isEnabled ? `hsl(var(${MODE_CSS_VAR[modeId]}))` : "hsl(var(--muted-foreground))",
+                              opacity: isEnabled ? 1 : 0.5,
+                              border: isEnabled ? `1px solid hsl(var(${MODE_CSS_VAR[modeId]}) / 0.3)` : "1px solid transparent",
+                            }}
+                            title={aiMode?.reason || (isPrimary ? "Primary mode" : "Secondary mode")}
                           >
                             <span
-                              className="w-2 h-2 rounded-full"
-                              style={{ background: `hsl(var(${MODE_CSS_VAR[modeId]}))` }}
+                              className="w-2 h-2 rounded-full transition-colors"
+                              style={{ background: isEnabled ? `hsl(var(${MODE_CSS_VAR[modeId]}))` : "hsl(var(--muted-foreground) / 0.4)" }}
                             />
                             {MODE_LABELS[modeId]}
-                            {aiMode ? (
+                            {aiMode && (
                               <span className="opacity-60">· {aiMode.confidence}%</span>
-                            ) : modeId === toCardId(routing!.primaryMode) ? (
-                              <span className="opacity-60">· {userExplanation.confidence}%</span>
-                            ) : null}
-                          </span>
+                            )}
+                          </button>
                         );
                       })}
                     </div>

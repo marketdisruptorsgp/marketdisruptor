@@ -62,10 +62,21 @@ export const PROHIBITED_OUTPUTS: Record<StrictAnalysisMode, readonly string[]> =
  * Include this in every edge function that generates analytical content.
  */
 export function getModeGuardPrompt(mode: StrictAnalysisMode): string {
-  const required = REQUIRED_DIMENSIONS[mode];
-  const prohibited = PROHIBITED_OUTPUTS[mode];
+  return getMultiModeGuardPrompt([mode]);
+}
 
-  return `
+/**
+ * Generate a blended mode enforcement prompt for multi-mode analyses.
+ * Combines required dimensions from all active modes.
+ * Only prohibits outputs that ALL active modes prohibit (intersection).
+ */
+export function getMultiModeGuardPrompt(modes: StrictAnalysisMode[]): string {
+  if (modes.length === 0) modes = ["product"];
+  if (modes.length === 1) {
+    const mode = modes[0];
+    const required = REQUIRED_DIMENSIONS[mode];
+    const prohibited = PROHIBITED_OUTPUTS[mode];
+    return `
 ═══ MODE ENFORCEMENT: ${mode.toUpperCase()} ANALYSIS ═══
 
 REQUIRED DIMENSIONS (must address all):
@@ -85,6 +96,43 @@ OUTPUT VALIDATION (include in response):
 2. What dimensions were intentionally ignored
 3. Evidence supporting each conclusion
 4. Alternative modes rejected and why
+`;
+  }
+
+  // Multi-mode: blend dimensions
+  const allRequired = modes.flatMap(m => [...REQUIRED_DIMENSIONS[m]]);
+  const uniqueRequired = [...new Set(allRequired)];
+
+  // Only prohibit what ALL active modes prohibit (intersection)
+  const prohibitedSets = modes.map(m => new Set(PROHIBITED_OUTPUTS[m]));
+  const intersectedProhibited = [...prohibitedSets[0]].filter(p =>
+    prohibitedSets.every(s => s.has(p))
+  );
+
+  const modeLabels = modes.map(m => m.toUpperCase()).join(" + ");
+  return `
+═══ MULTI-MODE ANALYSIS: ${modeLabels} ═══
+
+This analysis blends ${modes.length} analytical lenses. Address dimensions from ALL active modes.
+
+REQUIRED DIMENSIONS (must address all):
+${uniqueRequired.map((d, i) => `  ${i + 1}. ${d}`).join("\n")}
+
+${intersectedProhibited.length > 0 ? `PROHIBITED OUTPUTS (must NOT produce):
+${intersectedProhibited.map((d) => `  ✗ ${d}`).join("\n")}` : "No outputs are universally prohibited across these modes."}
+
+MULTI-MODE GUIDELINES:
+• Tag each insight with its primary mode (product/service/business)
+• Identify cross-mode synergies and tensions between dimensions
+• Each mode should receive proportional coverage based on relevance
+• When dimensions conflict across modes, explicitly flag the tension
+• Do NOT force-fit insights — if a mode has limited relevance, cover it briefly
+
+OUTPUT VALIDATION (include in response):
+1. Which modes are active and why each applies
+2. Cross-mode tensions or synergies discovered
+3. Evidence supporting each conclusion
+4. How mode-blending changed the analysis vs single-mode
 `;
 }
 
