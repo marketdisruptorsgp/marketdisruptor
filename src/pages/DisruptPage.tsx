@@ -45,7 +45,6 @@ export default function DisruptPage() {
   const { selectedProduct, analysisId, products } = analysis;
 
   if (analysis.step !== "done" || !selectedProduct) {
-    if (shouldRedirectHome) return null;
     return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin border-primary" /></div>;
   }
 
