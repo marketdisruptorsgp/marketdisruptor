@@ -183,22 +183,38 @@ ${EXTRACTION_SCHEMA}${etaSchemaBlock}
       text: "Extract the complete business intelligence from all provided documents and images. Return ONLY the JSON object.",
     });
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: contentParts },
-        ],
-        temperature: 0.3,
-        max_tokens: 12000,
-      }),
-    });
+    const fetchController = new AbortController();
+    const fetchTimeout = setTimeout(() => fetchController.abort(), 150_000); // 2.5 min
+
+    let response: Response;
+    try {
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        signal: fetchController.signal,
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: contentParts },
+          ],
+          temperature: 0.3,
+          max_tokens: 12000,
+        }),
+      });
+    } catch (fetchErr) {
+      clearTimeout(fetchTimeout);
+      const msg = String(fetchErr);
+      if (msg.includes("abort")) {
+        throw new Error("AI processing timed out (>2.5 min). Try a smaller document.");
+      }
+      throw new Error(`AI gateway connection failed: ${msg}`);
+    } finally {
+      clearTimeout(fetchTimeout);
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -217,7 +233,22 @@ ${EXTRACTION_SCHEMA}${etaSchemaBlock}
       throw new Error(`AI gateway error ${response.status}: ${txt}`);
     }
 
-    const aiData = await response.json();
+    // Read response body defensively — connection can drop mid-stream
+    let rawResponseText: string;
+    try {
+      rawResponseText = await response.text();
+    } catch (bodyErr) {
+      console.error("Failed to read AI response body:", bodyErr);
+      throw new Error("AI response was interrupted. Please retry with a smaller document.");
+    }
+
+    let aiData: any;
+    try {
+      aiData = JSON.parse(rawResponseText);
+    } catch (parseErr) {
+      console.error("AI response not valid JSON (first 300):", rawResponseText.slice(0, 300));
+      throw new Error("AI returned a malformed response. Please retry.");
+    }
     const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
 
     let cleaned = rawText
