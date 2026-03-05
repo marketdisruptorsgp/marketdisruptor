@@ -172,6 +172,40 @@ const DEBATE_SECTIONS = [
   { id: "validate", label: "Validate & Score", icon: CheckCircle2 },
 ];
 
+/** Collapsible argument card — shows headline + badge, body collapsed if >100 chars */
+function CollapsibleArgCard({ title, body, badgeLabel, badgeColor, annotation, annotationColor, ratingId, pitchKey }: {
+  title: string; body: string; badgeLabel: string; badgeColor: string;
+  annotation?: string; annotationColor?: string;
+  ratingId: string; pitchKey: string;
+}) {
+  const isLong = body.length > 100;
+  const [expanded, setExpanded] = React.useState(!isLong);
+
+  return (
+    <div className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-sm font-bold text-foreground">{title}</p>
+        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider" style={{ background: `${badgeColor}15`, color: badgeColor }}>{badgeLabel}</span>
+      </div>
+      {isLong && !expanded ? (
+        <>
+          <p className="text-sm text-foreground/80 leading-relaxed">{body.slice(0, 100)}…</p>
+          <button onClick={() => setExpanded(true)} className="text-[11px] font-bold text-muted-foreground hover:text-foreground mt-1">Read more</button>
+        </>
+      ) : (
+        <p className="text-sm text-foreground/80 leading-relaxed">{body}</p>
+      )}
+      {annotation && expanded && (
+        <p className="text-[11px] mt-1.5 font-medium" style={{ color: annotationColor }}>{annotation}</p>
+      )}
+      <div className="flex items-center justify-between mt-2">
+        <InsightRating sectionId={ratingId} compact />
+        <PitchDeckToggle contentKey={pitchKey} label="Include in Pitch" />
+      </div>
+    </div>
+  );
+}
+
 export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
@@ -340,25 +374,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               </div>
 
               {/* Arguments */}
-              {(data.redTeam?.arguments || []).map((arg, i) => {
-                const s = SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor;
-                return (
-                  <div key={i} className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-sm font-bold text-foreground">{arg.title}</p>
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider" style={{ background: `${s.text}15`, color: s.text }}>{s.label}</span>
-                    </div>
-                    <p className="text-sm text-foreground/80 leading-relaxed">{arg.argument}</p>
-                    {arg.biasExposed && (
-                      <p className="text-[11px] mt-1.5 font-medium" style={{ color: "hsl(271 81% 45%)" }}>Bias: {arg.biasExposed}</p>
-                    )}
-                    <div className="flex items-center justify-between mt-2">
-                      <InsightRating sectionId={`red-${i}`} compact />
-                      <PitchDeckToggle contentKey={`stress-red-${i}`} label="Include in Pitch" />
-                    </div>
-                  </div>
-                );
-              })}
+              {(data.redTeam?.arguments || []).map((arg, i) => (
+                <CollapsibleArgCard key={i} title={arg.title} body={arg.argument} badgeLabel={SEVERITY_STYLES[arg.severity]?.label || "MINOR"} badgeColor={(SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor).text} annotation={arg.biasExposed ? `Bias: ${arg.biasExposed}` : undefined} annotationColor="hsl(271 81% 45%)" ratingId={`red-${i}`} pitchKey={`stress-red-${i}`} />
+              ))}
 
               {/* Kill Shot */}
               <div className="rounded-xl p-3.5" style={{ background: "hsl(0 72% 52% / 0.06)", border: "1px solid hsl(0 72% 52% / 0.18)" }}>
@@ -397,25 +415,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               </div>
 
               {/* Arguments */}
-              {(data.blueTeam?.arguments || []).map((arg, i) => {
-                const s = STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate;
-                return (
-                  <div key={i} className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-sm font-bold text-foreground">{arg.title}</p>
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider" style={{ background: `${s.text}15`, color: s.text }}>{s.label}</span>
-                    </div>
-                    <p className="text-sm text-foreground/80 leading-relaxed">{arg.argument}</p>
-                    {arg.enabler && (
-                      <p className="text-[11px] mt-1.5 font-medium" style={{ color: "hsl(142 60% 35%)" }}>Enabler: {arg.enabler}</p>
-                    )}
-                    <div className="flex items-center justify-between mt-2">
-                      <InsightRating sectionId={`blue-${i}`} compact />
-                      <PitchDeckToggle contentKey={`stress-green-${i}`} label="Include in Pitch" />
-                    </div>
-                  </div>
-                );
-              })}
+              {(data.blueTeam?.arguments || []).map((arg, i) => (
+                <CollapsibleArgCard key={i} title={arg.title} body={arg.argument} badgeLabel={(STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate).label} badgeColor={(STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate).text} annotation={arg.enabler ? `Enabler: ${arg.enabler}` : undefined} annotationColor="hsl(142 60% 35%)" ratingId={`blue-${i}`} pitchKey={`stress-green-${i}`} />
+              ))}
 
               {/* Moonshot */}
               <div className="rounded-xl p-3.5" style={{ background: "hsl(142 60% 45% / 0.06)", border: "1px solid hsl(142 60% 45% / 0.18)" }}>
