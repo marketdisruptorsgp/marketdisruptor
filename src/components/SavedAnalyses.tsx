@@ -312,8 +312,9 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
       toast.error("Could not load saved analyses");
     } else {
       const all = ((data as unknown) as SavedAnalysis[]) || [];
-      setAnalyses(all);
-      onCountChange?.(all.length);
+      const filtered = all.filter((a) => a.analysis_type !== "first_principles");
+      setAnalyses(filtered);
+      onCountChange?.(filtered.length);
     }
     setLoading(false);
   };
