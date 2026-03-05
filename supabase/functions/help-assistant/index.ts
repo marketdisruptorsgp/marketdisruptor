@@ -27,7 +27,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, context, stream: useStream = true } = await req.json();
+    const { messages, context, stream: useStream = true, structured = false } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -42,12 +42,13 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: useStream ? "google/gemini-2.5-flash-lite" : "google/gemini-2.5-flash",
+        model: structured ? "google/gemini-2.5-flash" : useStream ? "google/gemini-2.5-flash-lite" : "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT + contextNote },
           ...messages,
         ],
         stream: useStream,
+        ...(structured ? { max_tokens: 6000 } : {}),
       }),
     });
 

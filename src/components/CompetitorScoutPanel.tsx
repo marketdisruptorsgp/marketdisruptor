@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, ExternalLink, Shield, AlertTriangle, Crosshair, ChevronDown, ChevronUp, Sparkles, Loader2, MapPin, Globe, BarChart3, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
+import { StrategyBriefing, type StrategyBriefingData } from "./StrategyBriefing";
 
 export interface Competitor {
   name: string;
@@ -36,7 +36,7 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, auto
   const [isLoading, setIsLoading] = useState(false);
   const [hasScouted, setHasScouted] = useState(false);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
-  const [refinement, setRefinement] = useState<string | null>(null);
+  const [refinement, setRefinement] = useState<StrategyBriefingData | null>(null);
   const [isRefining, setIsRefining] = useState(false);
   const autoScoutTriggered = useRef(false);
 
@@ -85,6 +85,7 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, auto
       const { data, error } = await supabase.functions.invoke("help-assistant", {
         body: {
           stream: false,
+          structured: true,
           messages: [
             {
               role: "user",
@@ -93,24 +94,37 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, auto
 Here is my competitive landscape:
 ${competitorContext}
 
-Give me a sharp, actionable 90-day differentiation strategy. Structure it as:
+Return a 90-day differentiation strategy as JSON matching this exact schema:
+{
+  "coreDifferentiator": {
+    "headline": "Single bold sentence — the angle I should own",
+    "bullets": ["Insight 1 (max 15 words)", "Insight 2", "Insight 3"],
+    "competitorRef": "Which competitors this exploits gaps in"
+  },
+  "positioning": {
+    "approach": "One sentence positioning statement",
+    "avoid": [{"competitor": "Name", "reason": "Why to avoid"}],
+    "challenge": [{"competitor": "Name", "angle": "How to challenge"}]
+  },
+  "businessModelAngles": [
+    {"name": "Model name", "description": "What it is (1 sentence)", "opportunity": "Why competitors miss this (1 sentence)"}
+  ],
+  "quickWins": [
+    {"action": "Action title (3-5 words)", "detail": "One sentence on execution", "timeframe": "Week 1 / Month 1 / Month 2-3"}
+  ],
+  "antiPatterns": [
+    {"rule": "Do NOT... (imperative, max 10 words)", "reason": "Why this fails (1-2 sentences)", "competitor": "Who does this"}
+  ]
+}
 
-**🎯 Core Differentiator**
-The single strongest angle I should own, referencing specific competitor gaps.
-
-**🛡️ Positioning Strategy**
-How to position to avoid head-to-head competition with the strongest players. Be specific about which competitors to avoid and which to challenge.
-
-**💰 Business Model Angles**
-Pricing or revenue model opportunities that competitors are missing or doing poorly.
-
-**⚡ Quick Wins (First 90 Days)**
-3-4 specific, actionable tactics I can execute immediately to gain traction.
-
-**🚫 Anti-Patterns**
-What to explicitly NOT do — reference specific competitor mistakes by name.
-
-Be specific, bold, and reference the actual competitors by name. No generic advice.`,
+Rules:
+- 3 bullets max in coreDifferentiator
+- 2-3 entries in avoid and challenge
+- 2-3 business model angles
+- 3-4 quick wins
+- 2-3 anti-patterns
+- Reference actual competitor names. No generic advice.
+- Return ONLY valid JSON. No markdown, no code fences.`,
             },
           ],
         },
@@ -119,8 +133,24 @@ Be specific, bold, and reference the actual competitors by name. No generic advi
       if (error) throw error;
       const reply = data?.reply;
       if (!reply) throw new Error("No response from AI");
-      setRefinement(reply);
+
+      // Parse the JSON reply
+      let cleaned = reply.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("Invalid strategy format");
+
+      let parsed: StrategyBriefingData;
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch {
+        // Fix trailing commas
+        const fixed = jsonMatch[0].replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
+        parsed = JSON.parse(fixed);
+      }
+
+      setRefinement(parsed);
     } catch (err: any) {
+      console.error("Refinement parse error:", err);
       toast.error(err.message || "Refinement failed");
     } finally {
       setIsRefining(false);
@@ -386,14 +416,7 @@ Be specific, bold, and reference the actual competitors by name. No generic advi
 
       {/* Refinement output */}
       {refinement && (
-        <div className="p-4 rounded-lg bg-accent/30 border border-accent space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 text-primary">
-            <Sparkles size={11} /> 90-Day Differentiation Strategy
-          </p>
-          <div className="text-xs text-foreground/85 leading-relaxed prose prose-sm prose-headings:text-sm prose-headings:font-bold prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-li:my-0.5 max-w-none">
-            <ReactMarkdown>{refinement}</ReactMarkdown>
-          </div>
-        </div>
+        <StrategyBriefing data={refinement} accentColor="hsl(var(--primary))" />
       )}
     </div>
   );
