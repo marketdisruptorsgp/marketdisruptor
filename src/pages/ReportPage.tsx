@@ -239,7 +239,7 @@ export default function ReportPage() {
                   <div className="space-y-3">
                     <p>{selectedProduct.description}</p>
                     {selectedProduct.trendAnalysis && (
-                      <p className="text-foreground/80">{selectedProduct.trendAnalysis}</p>
+                      <p className="text-muted-foreground">{selectedProduct.trendAnalysis}</p>
                     )}
                     {selectedProduct.sources?.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
@@ -414,12 +414,12 @@ function SupplySection({ title, icon, items }: {
           <div key={item.name} className="p-2.5 rounded-lg flex items-start justify-between gap-2 bg-muted border border-border">
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-foreground truncate">{item.name}</p>
-              <p className="text-[11px] text-muted-foreground">{item.detail}</p>
+              <p className="text-xs text-muted-foreground">{item.detail}</p>
             </div>
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-background/80 text-foreground/70">{item.badge}</span>
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-muted text-muted-foreground">{item.badge}</span>
               {item.url && (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[10px] text-primary">
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-xs text-primary">
                   <ExternalLink size={9} /> Visit
                 </a>
               )}

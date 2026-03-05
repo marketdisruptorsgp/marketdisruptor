@@ -318,9 +318,9 @@ export default function WorkspacePage() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center py-6 text-center">
-                      <Heart size={24} className="text-muted-foreground/30 mb-2" />
-                      <p className="text-xs font-semibold text-foreground/60">No favorites yet</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                      <Heart size={24} className="text-muted-foreground mb-2" />
+                      <p className="text-xs font-semibold text-muted-foreground">No favorites yet</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Tap <Heart size={9} className="inline text-primary fill-primary" /> on any project.
                       </p>
                     </div>
@@ -428,7 +428,7 @@ export default function WorkspacePage() {
                                 background: isCompared ? "hsl(var(--primary))" : "transparent",
                               }}
                             >
-                              {isCompared && <span className="text-white text-[9px] font-bold">✓</span>}
+                              {isCompared && <span className="text-primary-foreground text-xs font-bold">✓</span>}
                             </button>
                             <button
                               onClick={() => analysis.handleLoadSaved(a as any)}

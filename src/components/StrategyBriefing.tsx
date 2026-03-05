@@ -111,7 +111,7 @@ export function StrategyBriefing({ data, accentColor = "hsl(var(--primary))" }: 
             {data.positioning.avoid.map((a, i) => (
               <div key={i} className="space-y-1">
                 <p className="text-sm font-bold text-foreground">{a.competitor}</p>
-                <p className="text-xs text-foreground/70 leading-relaxed">— {a.reason}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">— {a.reason}</p>
               </div>
             ))}
           </div>
@@ -125,7 +125,7 @@ export function StrategyBriefing({ data, accentColor = "hsl(var(--primary))" }: 
             {data.positioning.challenge.map((c, i) => (
               <div key={i} className="space-y-1">
                 <p className="text-sm font-bold text-foreground">{c.competitor}</p>
-                <p className="text-xs text-foreground/70 leading-relaxed">— {c.angle}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">— {c.angle}</p>
               </div>
             ))}
           </div>
@@ -147,10 +147,10 @@ export function StrategyBriefing({ data, accentColor = "hsl(var(--primary))" }: 
           {data.businessModelAngles.map((m, i) => (
             <div key={i} className={`${cardBase} p-4 space-y-2`}>
               <p className="text-sm font-bold text-foreground">{m.name}</p>
-              <p className="text-xs text-foreground/75 leading-relaxed">{m.description}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{m.description}</p>
               <div className="flex items-start gap-1.5 pt-1 border-t border-border text-xs" style={{ color: "hsl(38 92% 50%)" }}>
                 <TrendingUp size={12} className="mt-0.5 shrink-0" />
-                <span className="text-foreground/80">{m.opportunity}</span>
+                <span className="text-foreground">{m.opportunity}</span>
               </div>
             </div>
           ))}
@@ -184,7 +184,7 @@ export function StrategyBriefing({ data, accentColor = "hsl(var(--primary))" }: 
                     <Clock size={9} /> {w.timeframe}
                   </span>
                 </div>
-                <p className="text-xs text-foreground/75 leading-relaxed mt-0.5">{w.detail}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{w.detail}</p>
               </div>
               <ArrowRight size={14} className="text-muted-foreground shrink-0 mt-1" />
             </div>
@@ -232,7 +232,7 @@ export function StrategyBriefing({ data, accentColor = "hsl(var(--primary))" }: 
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-4 pb-4 pt-0 text-xs text-foreground/75 leading-relaxed border-t border-border mt-0">
+                    <div className="px-4 pb-4 pt-0 text-xs text-muted-foreground leading-relaxed border-t border-border mt-0">
                       <div className="pt-3">{a.reason}</div>
                     </div>
                   </motion.div>

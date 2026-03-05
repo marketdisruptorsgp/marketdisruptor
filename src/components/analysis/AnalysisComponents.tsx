@@ -287,10 +287,10 @@ export function SignalCard({ label, score, type = "neutral", explanation, detail
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs font-bold text-foreground leading-snug">{label}</p>
             {score !== undefined && (
-              <span className="text-xs font-bold tabular-nums text-foreground/70 flex-shrink-0">{score.toFixed(1)}</span>
+              <span className="text-xs font-bold tabular-nums text-muted-foreground flex-shrink-0">{score.toFixed(1)}</span>
             )}
           </div>
-          {explanation && <p className="text-[11px] text-foreground/70 mt-1 leading-relaxed">{explanation}</p>}
+          {explanation && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{explanation}</p>}
           {detail && (
             <button
               onClick={() => setExpanded(!expanded)}

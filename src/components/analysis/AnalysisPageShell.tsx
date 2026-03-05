@@ -275,21 +275,17 @@ interface AnalysisContextBannerProps {
 
 export function AnalysisContextBanner({ icon: Icon, title, description, iconColor }: AnalysisContextBannerProps) {
   return (
-    <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
-      <div className="flex items-center gap-3">
-        <div
-          className="w-9 h-9 rounded-lg flex items-center justify-center"
-          style={{ background: iconColor || "hsl(var(--primary))" }}
-        >
-          <Icon size={18} style={{ color: "white" }} />
-        </div>
-        <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>
-          {title}
-        </h3>
+    <div className="rounded-xl p-5 flex items-start gap-4 bg-card border border-border">
+      <div
+        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ background: `${iconColor || "hsl(var(--primary))"}25` }}
+      >
+        <Icon size={18} style={{ color: iconColor || "hsl(var(--primary))" }} />
       </div>
-      <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "hsl(0 0% 100% / 0.85)" }}>
-        {description}
-      </p>
+      <div className="flex-1 min-w-0">
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{description}</p>
+      </div>
     </div>
   );
 }
