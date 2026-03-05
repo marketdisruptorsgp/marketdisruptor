@@ -806,7 +806,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       accentColor={accentColor}
       totalSlides={TOTAL + 1}
       coverImages={validCoverImages.length > 0 ? validCoverImages : undefined}
-      userName="Eric Lieb"
+      userName={/audi|mechanic|auto\s?repair|car\s?repair/i.test(`${product.name} ${product.category || ""} ${product.description || ""}`) ? "Eric Lieb" : "Steven"}
     />
   );
   const allRawSlides = [rawCover, ...SLIDE_TABS.map(tab => rawSlide(tab.id, slideContent[tab.id]))];
