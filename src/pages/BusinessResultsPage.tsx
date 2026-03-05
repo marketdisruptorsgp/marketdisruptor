@@ -14,6 +14,7 @@ import { StepNavBar } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { GovernedMissingBanner } from "@/components/GovernedMissingBanner";
 import { getBusinessStepConfigs } from "@/lib/stepConfigs";
+import { InnovationOpportunitiesPanel } from "@/components/InnovationOpportunitiesPanel";
 
 import type { Product } from "@/data/mockProducts";
 import {
@@ -234,6 +235,17 @@ export default function BusinessResultsPage() {
               analysis.setPitchDeckData(d);
               analysis.saveStepData("businessPitchDeck", d);
             }}
+          />
+        </AnalysisContentCard>
+      )}
+
+      {/* ══════════ INNOVATION OPPORTUNITIES ══════════ */}
+      {(activeStep === 2 || activeStep === 3) && businessAnalysisData && (
+        <AnalysisContentCard>
+          <InnovationOpportunitiesPanel
+            governedData={analysis.governedData as Record<string, unknown> | null}
+            analysisData={businessAnalysisData as Record<string, unknown>}
+            stressTestData={analysis.businessStressTestData as Record<string, unknown> | null}
           />
         </AnalysisContentCard>
       )}

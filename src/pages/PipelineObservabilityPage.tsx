@@ -10,6 +10,7 @@ import { STEP_CONTRACTS } from "@/utils/pipelineValidation";
 import { detectSignals } from "@/lib/signalDetection";
 import { extractAndRankSignals } from "@/lib/signalRanking";
 import { validatePipelineCheckpoints } from "@/utils/checkpointGate";
+import { countOpportunities, deriveInnovationOpportunities } from "@/lib/innovationEngine";
 
 /* ─── Types ─── */
 interface PipelineStep {
@@ -31,9 +32,14 @@ const METHODOLOGY_LAYERS = [
   { id: "frameworks", label: "Framework Application", description: "Governed schema enforcement, friction tiers, constraint mapping" },
   { id: "mode_specific", label: "Mode-Specific Analysis", description: "Mode enforcement, dimension weighting, input filtering" },
   { id: "insight_synthesis", label: "Insight Synthesis", description: "Signal detection, signal ranking, visual ontology classification" },
+  { id: "structural_diagnosis", label: "Structural Diagnosis", description: "Market failure identification: value chain, pricing distortions, trust failures" },
   { id: "strategic_signals", label: "Strategic Signal Generation", description: "Strategic OS archetypes, hypothesis branching, dominance scoring" },
   { id: "metrics", label: "Metrics Intelligence", description: "Confidence computation, scoring calibration, evidence governance" },
   { id: "narrative", label: "Narrative Output", description: "Pitch deck generation, action plans, visual specs" },
+  { id: "eta_analysis", label: "ETA Analysis", description: "Acquisition viability, SBA modeling, DSCR, owner dependency" },
+  { id: "financial_modeling", label: "Financial Modeling", description: "Deterministic SBA loan calc, valuation, scenario engine" },
+  { id: "innovation_engine", label: "Innovation Engine", description: "Structural leverage, pricing shifts, automation opportunities" },
+  { id: "data_provenance", label: "Data Provenance", description: "Provenance tracking for all numeric outputs (SOURCE/USER_INPUT/MODELED)" },
 ] as const;
 
 /* ─── Status badge ─── */
@@ -436,11 +442,70 @@ export default function PipelineObservabilityPage() {
               "generate-pitch-deck: mode-adaptive prompts, truncation recovery, JSON repair",
             ],
           };
+        case "structural_diagnosis":
+          return {
+            layer,
+            status: (governed as any)?.constraint_map || (governed as any)?.friction_map?.length > 0 ? "ACTIVE" as const : "MISSING" as const,
+            evidence: [
+              `constraint_map: ${(governed as any)?.constraint_map ? "✓ binding constraint identified" : "✗ missing"}`,
+              `friction_map: ${((governed as any)?.friction_map || []).length} friction points`,
+              `leverage_map: ${((governed as any)?.leverage_map || []).length} leverage points`,
+              "Analyzes: value chain inefficiencies, pricing distortions, trust failures, access barriers",
+            ],
+          };
+        case "eta_analysis":
+          return {
+            layer,
+            status: mainTab === "business" ? "ACTIVE" as const : "PARTIALLY IMPLEMENTED" as const,
+            evidence: [
+              "DealEconomicsPanel: SBA loan modeling, DSCR computation",
+              "BusinessModelAnalysis: ETA tabs (Deal Economics, Addback Scrutiny, Stagnation Dx, Owner Risk, 100-Day Playbook)",
+              mainTab === "business" ? "✓ Active in current mode" : "Available via ETA lens in non-business modes",
+            ],
+          };
+        case "financial_modeling": {
+          return {
+            layer,
+            status: "ACTIVE" as const,
+            evidence: [
+              "financialModelingEngine.ts: deterministic SBA loan calc, valuation, scenario engine",
+              "All outputs include DataProvenance metadata (SOURCE/USER_INPUT/MODELED)",
+              "Formula: P × r / (1 - (1+r)^-n) for monthly payments",
+              "Scenario engine: Base, -10%, -20%, -30%, +10%, +20%",
+            ],
+          };
+        }
+        case "innovation_engine": {
+          const innovOutput = deriveInnovationOpportunities(governed as any, (disruptData || businessAnalysisData) as any, stressTestData as any);
+          const total = countOpportunities(innovOutput);
+          return {
+            layer,
+            status: total > 0 ? "ACTIVE" as const : "MISSING" as const,
+            evidence: [
+              `${total} innovation opportunities derived`,
+              `Structural leverage: ${innovOutput.structural_leverage.length}`,
+              `Pricing shifts: ${innovOutput.pricing_model_shifts.length}`,
+              `Automation: ${innovOutput.automation_opportunities.length}`,
+              "Source: innovationEngine.ts — derives from constraint_map, friction_map, stress test",
+            ],
+          };
+        }
+        case "data_provenance":
+          return {
+            layer,
+            status: "ACTIVE" as const,
+            evidence: [
+              "dataProvenance.ts: ProvenancedValue<T> type with full metadata",
+              "financialModelingEngine.ts: all outputs use modeledValue() with provenance",
+              "DealEconomicsPanel: ProvenanceBadge UI shows SOURCE/USER_INPUT/MODELED",
+              "Types: SOURCE (external data), USER_INPUT (user-provided), MODELED (deterministic formula)",
+            ],
+          };
         default:
           return { layer, status: "MISSING" as const, evidence: [] };
       }
     });
-  }, [selectedProduct, disruptData, stressTestData, pitchDeckData, governedData, mainTab, analysis.strategicProfile, analysis.activeBranchId]);
+  }, [selectedProduct, disruptData, stressTestData, pitchDeckData, governedData, mainTab, analysis.strategicProfile, analysis.activeBranchId, businessAnalysisData]);
 
   // Summary stats
   const stats = useMemo(() => {
@@ -471,7 +536,7 @@ export default function PipelineObservabilityPage() {
             { label: "Steps Complete", value: `${stats.completed}/${stats.total}`, icon: CheckCircle2, color: "hsl(142 70% 35%)" },
             { label: "Data Flowing", value: `${(stats.totalDataSize / 1024).toFixed(0)}KB`, icon: Database, color: "hsl(var(--primary))" },
             { label: "Governed Artifacts", value: String(stats.totalArtifacts), icon: Shield, color: "hsl(38 92% 42%)" },
-            { label: "Active Layers", value: `${stats.activeLayers}/8`, icon: Layers, color: "hsl(var(--primary))" },
+            { label: "Active Layers", value: `${stats.activeLayers}/13`, icon: Layers, color: "hsl(var(--primary))" },
           ].map((card, i) => (
             <div key={i} className="rounded-lg border border-border p-4 flex items-center gap-3" style={{ background: "hsl(var(--card))" }}>
               <card.icon className="w-5 h-5 flex-shrink-0" style={{ color: card.color }} />
@@ -565,7 +630,7 @@ export default function PipelineObservabilityPage() {
         {/* Footer */}
         <div className="text-center py-4">
           <p className="text-xs text-muted-foreground">
-            Pipeline Observability Console • {new Date().toISOString().split("T")[0]} • {pipelineSteps.length} steps tracked • {stats.activeLayers}/8 methodology layers active
+            Pipeline Observability Console • {new Date().toISOString().split("T")[0]} • {pipelineSteps.length} steps tracked • {stats.activeLayers}/13 methodology layers active
           </p>
         </div>
       </div>
