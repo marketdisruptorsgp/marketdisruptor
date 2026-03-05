@@ -404,47 +404,35 @@ Return ONLY the JSON object.${buildLensPrompt(lens)}${buildLensWeightingPrompt(l
 
     enforceVisualContract(analysis);
 
-    // ── Governed: build validation object for checkpoint gates ──
+    // ── Governed: build validation object for checkpoint gates (NON-BLOCKING) ──
     const governed = analysis.governed || {};
     const governedValidation = buildValidationObject("first-principles", governed, [
       "domain_confirmation", "first_principles", "friction_tiers", "constraint_map", "decision_synthesis"
     ]);
     console.log(`[Governed] business-model-analysis validation:`, JSON.stringify(governedValidation));
 
-    // ── RUNTIME ENFORCEMENT: Return 422 if governed validation fails ──
-    if (!governedValidation.validation_passed) {
-      console.error(`[Governed] CHECKPOINT BLOCKED: ${governedValidation.blocking_reason_if_any}`);
-      return new Response(JSON.stringify({
-        success: false,
-        error: "Governed validation failed — required reasoning artifacts missing",
-        _governedValidation: governedValidation,
-        analysis,
-      }), {
-        status: 422,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Governed is optional — log failures but don't block the response
+    let governedComplete = governedValidation.validation_passed;
+    if (!governedComplete) {
+      console.warn(`[Governed] SOFT WARNING: governed validation failed — ${governedValidation.blocking_reason_if_any}. Analysis will proceed without governed reasoning.`);
+      // Strip incomplete governed to avoid partial data crashes
+      analysis._governedIncomplete = true;
     }
 
-    // ── Deep validation: check field quality ──
-    const deepValidation = deepValidateGoverned(governed);
-    if (!deepValidation.validation_passed) {
-      console.error(`[Governed] DEEP VALIDATION FAILED: ${deepValidation.blocking_reason_if_any}`);
-      return new Response(JSON.stringify({
-        success: false,
-        error: "Governed deep validation failed — structural artifacts incomplete",
-        _governedValidation: deepValidation,
-        analysis,
-      }), {
-        status: 422,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // ── Deep validation: only if governed passed initial check ──
+    if (governedComplete) {
+      const deepValidation = deepValidateGoverned(governed);
+      if (!deepValidation.validation_passed) {
+        console.warn(`[Governed] DEEP VALIDATION SOFT FAIL: ${deepValidation.blocking_reason_if_any}`);
+        governedComplete = false;
+        analysis._governedIncomplete = true;
+      }
     }
 
-    // ── Evidence-governed confidence computation ──
-    const confidenceResult = computeGovernedConfidence(governed);
-    console.log(`[Governed] Computed confidence: ${confidenceResult.computation_trace}`);
-    // Override AI-generated confidence with computed confidence
-    if (governed.decision_synthesis) {
+    // ── Evidence-governed confidence computation (only if governed is complete) ──
+    if (governedComplete && governed.decision_synthesis) {
+      const confidenceResult = computeGovernedConfidence(governed);
+      console.log(`[Governed] Computed confidence: ${confidenceResult.computation_trace}`);
       const ds = governed.decision_synthesis as Record<string, unknown>;
       ds.confidence_score = confidenceResult.computed_confidence;
       ds.decision_grade = confidenceResult.computed_decision_grade;

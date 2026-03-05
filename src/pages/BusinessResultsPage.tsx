@@ -14,6 +14,7 @@ import { ModeBadge } from "@/components/ModeBadge";
 import { StepNavBar } from "@/components/SectionNav";
 import { ShareAnalysis } from "@/components/ShareAnalysis";
 import { scrollToTop } from "@/utils/scrollToTop";
+import { GovernedMissingBanner } from "@/components/GovernedMissingBanner";
 
 import type { Product } from "@/data/mockProducts";
 import {
@@ -229,6 +230,18 @@ export default function BusinessResultsPage() {
             </p>
           </div>
         )}
+
+        {/* ══════════ GOVERNED MISSING BANNER ══════════ */}
+        <GovernedMissingBanner
+          businessAnalysisData={businessAnalysisData as Record<string, unknown> | null}
+          businessModelInput={businessModelInput}
+          onGovernedReady={(governed) => {
+            const updated = { ...businessAnalysisData, governed, _governedIncomplete: undefined } as any;
+            analysis.setBusinessAnalysisData(updated);
+            analysis.setGovernedData(governed);
+            analysis.saveStepData("businessAnalysis", updated);
+          }}
+        />
 
         {/* ══════════ STEP CONTENT ══════════ */}
 

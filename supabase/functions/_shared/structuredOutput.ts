@@ -629,7 +629,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
         additionalProperties: true,
       },
     },
-    required: ["businessSummary", "operationalAudit", "hiddenAssumptions", "technologyLeverage", "revenueReinvention", "disruptionAnalysis", "reinventedModel", "governed"],
+    required: ["businessSummary", "operationalAudit", "hiddenAssumptions", "technologyLeverage", "revenueReinvention", "disruptionAnalysis", "reinventedModel"],
     additionalProperties: true,
   },
 };
