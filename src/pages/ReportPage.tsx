@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { PricingIntelCard } from "@/components/PricingIntelCard";
 import { supabase } from "@/integrations/supabase/client";
 import { isServiceCategory } from "@/utils/normalizeProduct";
 import { toast } from "sonner";
@@ -298,23 +299,7 @@ export default function ReportPage() {
 
       {activeSection === "pricing" && selectedProduct.pricingIntel && (
         <AnalysisSectionCard icon={DollarSign} title="Pricing Intel">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {[
-              { label: "Market Price", value: selectedProduct.pricingIntel.currentMarketPrice },
-              { label: "Original Price", value: (selectedProduct.pricingIntel as any).originalRetailPrice },
-              { label: "Price Direction", value: selectedProduct.pricingIntel.priceDirection },
-              { label: "Margin Estimate", value: (selectedProduct.pricingIntel as any).marginEstimate },
-              { label: "Price Range", value: selectedProduct.pricingIntel.priceRange },
-            ].filter(m => m.value).map(m => (
-              <div key={m.label} className="p-2.5 rounded-lg bg-muted border border-border">
-                <p className="typo-card-eyebrow">{m.label}</p>
-                <p className="typo-card-body font-bold text-foreground mt-0.5">{m.value}</p>
-              </div>
-            ))}
-          </div>
-          {(selectedProduct.pricingIntel as any).pricingNotes && (
-            <p className="typo-card-body text-foreground/70 mt-2">{(selectedProduct.pricingIntel as any).pricingNotes}</p>
-          )}
+          <PricingIntelCard pricingIntel={selectedProduct.pricingIntel as any} />
         </AnalysisSectionCard>
       )}
 

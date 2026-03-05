@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { PricingIntelCard } from "@/components/PricingIntelCard";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { StepNavigator, type StepConfig } from "@/components/StepNavigator";
@@ -413,23 +414,7 @@ export default function ShareableAnalysisPage() {
             {/* Pricing Intel */}
             {activeSection === "pricing" && product?.pricingIntel && (
               <SectionCard icon={DollarSign} title="Pricing Intel">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {[
-                    { label: "Market Price", value: product.pricingIntel.currentMarketPrice },
-                    { label: "Original Price", value: (product.pricingIntel as any).originalRetailPrice },
-                    { label: "Price Direction", value: product.pricingIntel.priceDirection },
-                    { label: "Margin Estimate", value: (product.pricingIntel as any).marginEstimate },
-                    { label: "Price Range", value: product.pricingIntel.priceRange },
-                  ].filter(m => m.value).map(m => (
-                    <div key={m.label} className="p-2.5 rounded-lg bg-muted border border-border">
-                      <p className="typo-card-eyebrow">{m.label}</p>
-                      <p className="typo-card-body font-bold text-foreground mt-0.5">{m.value}</p>
-                    </div>
-                  ))}
-                </div>
-                {(product.pricingIntel as any).pricingNotes && (
-                  <p className="typo-card-body text-foreground/70 mt-2">{(product.pricingIntel as any).pricingNotes}</p>
-                )}
+                <PricingIntelCard pricingIntel={product.pricingIntel as any} />
               </SectionCard>
             )}
 
