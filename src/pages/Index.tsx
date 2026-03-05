@@ -82,7 +82,9 @@ import {
   ChevronRight,
   Briefcase,
   X,
+  ScrollText,
 } from "lucide-react";
+import { PatentIntelligence } from "@/components/PatentIntelligence";
 
 const STEPS = [
   { icon: Search, label: "Discover & Collect" },
@@ -171,7 +173,7 @@ export default function Index() {
   } | null>(null);
   const [generatingIdeasFor, setGeneratingIdeasFor] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "action" | "ideas" | "community" | "workflow">("overview");
+  const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "patents" | "action" | "ideas" | "community" | "workflow">("overview");
   const [visitedDetailTabs, setVisitedDetailTabs] = useState<Set<string>>(new Set(["overview"]));
   const [visitedStressTestTabs, setVisitedStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
   const [visitedBusinessStressTestTabs, setVisitedBusinessStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
@@ -870,6 +872,7 @@ export default function Index() {
                       { id: "workflow" as const, label: "User Journey", icon: Clock },
                       { id: "pricing" as const, label: "Pricing", icon: DollarSign },
                       { id: "supply" as const, label: "Supply Chain", icon: Package },
+                      { id: "patents" as const, label: "Patents", icon: ScrollText },
                     ];
                     const currentIdx = DETAIL_TABS.findIndex(t => t.id === detailTab);
                     return (
@@ -1295,6 +1298,11 @@ export default function Index() {
 
                   {detailTab === "supply" && !selectedProduct.supplyChain && (
                     <p className="text-sm text-muted-foreground text-center py-8">No supply chain data available for this product.</p>
+                  )}
+
+                  {/* TAB: PATENTS */}
+                  {detailTab === "patents" && (
+                    <PatentIntelligence product={selectedProduct} />
                   )}
 
                   {/* TAB: ACTION PLAN */}
