@@ -78,6 +78,19 @@ function StructureSection({
 }
 
 /* ── First Principles Display ── */
+function ConstraintList({ items, dotColor }: { items: string[]; dotColor: string }) {
+  return (
+    <ul className="space-y-1">
+      {items.map((c, i) => (
+        <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+          <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: dotColor }} />
+          {c}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function FirstPrinciplesSection({ governedData }: { governedData: Record<string, unknown> | null }) {
   const fp = governedData?.first_principles as {
     minimum_viable_system?: string;
@@ -93,93 +106,38 @@ function FirstPrinciplesSection({ governedData }: { governedData: Record<string,
     return (
       <div className="text-center py-8 space-y-2">
         <Atom size={28} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
-        <p className="text-sm font-bold text-foreground">No first principles data yet</p>
+        <p className="text-sm font-bold text-foreground">No structural data yet</p>
         <p className="text-xs text-muted-foreground">Run the analysis to decompose this system into fundamental truths.</p>
       </div>
     );
   }
 
-  const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-    verified: { bg: "hsl(142 70% 40% / 0.12)", text: "hsl(142 70% 40%)", label: "Verified" },
-    modeled: { bg: "hsl(38 92% 50% / 0.12)", text: "hsl(38 92% 50%)", label: "Modeled" },
-    speculative: { bg: "hsl(0 70% 50% / 0.12)", text: "hsl(0 70% 50%)", label: "Speculative" },
-  };
+  // Collapsible constraint groups — progressive disclosure
+  const groups: { label: string; items: string[]; dotColor: string; defaultOpen: boolean }[] = [
+    { label: "Fundamental Constraints", items: fp.fundamental_constraints || [], dotColor: "hsl(0 70% 50%)", defaultOpen: true },
+    { label: "Resource Limits", items: fp.resource_limits || [], dotColor: "hsl(38 92% 50%)", defaultOpen: false },
+    { label: "Behavioral Realities", items: fp.behavioral_realities || [], dotColor: "hsl(271 81% 50%)", defaultOpen: false },
+    { label: "Dependency Structure", items: fp.dependency_structure || [], dotColor: "hsl(217 91% 55%)", defaultOpen: false },
+  ].filter(g => g.items.length > 0);
 
   return (
-    <div className="space-y-5">
-      {/* ── 1. Fundamental Constraints (what holds the system back) ── */}
-      {fp.fundamental_constraints && fp.fundamental_constraints.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Fundamental Constraints</p>
-          <ul className="space-y-1">
-            {fp.fundamental_constraints.map((c, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
-                <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "hsl(0 70% 50%)" }} />
-                {c}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+    <div className="space-y-3">
+      {/* Constraint groups — collapsed by default except first */}
+      {groups.map((group) => (
+        <CollapsibleConstraintGroup
+          key={group.label}
+          label={`${group.label} (${group.items.length})`}
+          items={group.items}
+          dotColor={group.dotColor}
+          defaultOpen={group.defaultOpen}
+        />
+      ))}
 
-      {/* Resource Limits */}
-      {fp.resource_limits && fp.resource_limits.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Resource Limits</p>
-          <ul className="space-y-1">
-            {fp.resource_limits.map((r, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
-                <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "hsl(38 92% 50%)" }} />
-                {r}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Behavioral Realities */}
-      {fp.behavioral_realities && fp.behavioral_realities.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Behavioral Realities</p>
-          <ul className="space-y-1">
-            {fp.behavioral_realities.map((b, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
-                <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "hsl(271 81% 50%)" }} />
-                {b}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Dependency Structure */}
-      {fp.dependency_structure && fp.dependency_structure.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Dependency Structure</p>
-          <ul className="space-y-1">
-            {fp.dependency_structure.map((d, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
-                <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "hsl(217 91% 55%)" }} />
-                {d}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* ── 2. Causal Model (system structure — moved to end) ── */}
-      {fp.minimum_viable_system && (
-        <div className="space-y-1.5">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Minimum Viable System</p>
-          <p className="text-sm leading-relaxed text-foreground">{fp.minimum_viable_system}</p>
-        </div>
-      )}
-
+      {/* Causal Model — always visible as a visual framework */}
       {fp.causal_model && (
         <div className="space-y-2">
           <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Causal Model</p>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
-            {/* Inputs */}
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Inputs</p>
               <div className="flex flex-wrap gap-1.5">
@@ -191,13 +149,11 @@ function FirstPrinciplesSection({ governedData }: { governedData: Record<string,
               </div>
             </div>
             <ArrowRight size={16} className="text-muted-foreground hidden sm:block flex-shrink-0" />
-            {/* Mechanism */}
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Mechanism</p>
               <p className="text-xs leading-relaxed text-foreground font-medium">{fp.causal_model.mechanism}</p>
             </div>
             <ArrowRight size={16} className="text-muted-foreground hidden sm:block flex-shrink-0" />
-            {/* Outputs */}
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Outputs</p>
               <div className="flex flex-wrap gap-1.5">
@@ -211,7 +167,41 @@ function FirstPrinciplesSection({ governedData }: { governedData: Record<string,
           </div>
         </div>
       )}
+
+      {/* Minimum Viable System — expandable */}
+      {fp.minimum_viable_system && (
+        <Collapsible>
+          <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left hover:bg-muted/50 transition-colors" style={{ border: "1px solid hsl(var(--border))" }}>
+            <span className="text-xs font-bold text-foreground">Minimum Viable System</span>
+            <ChevronDown size={12} className="text-muted-foreground" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <p className="text-sm leading-relaxed text-foreground px-3 py-2">{fp.minimum_viable_system}</p>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
+  );
+}
+
+/* Collapsible constraint group helper */
+function CollapsibleConstraintGroup({ label, items, dotColor, defaultOpen }: { label: string; items: string[]; dotColor: string; defaultOpen: boolean }) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-left hover:bg-muted/50 transition-colors" style={{ border: "1px solid hsl(var(--border))" }}>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: dotColor }} />
+          <span className="text-xs font-bold text-foreground">{label}</span>
+        </div>
+        <ChevronDown size={12} className="text-muted-foreground transition-transform" style={{ transform: open ? "rotate(180deg)" : "none" }} />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="px-3 py-2">
+          <ConstraintList items={items} dotColor={dotColor} />
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -312,87 +302,113 @@ function UnifiedAssumptionsSection({
         const leverageColor = item.leverage >= 8 ? "hsl(0 70% 50%)" : item.leverage >= 5 ? "hsl(38 92% 50%)" : "hsl(220 10% 55%)";
         const reasonColor = item.reason ? REASON_COLORS[item.reason] || "hsl(220 10% 55%)" : undefined;
         const status = item.evidence_status ? STATUS_COLORS[item.evidence_status] || STATUS_COLORS.speculative : undefined;
-        const hasInsight = item.impactScenario || item.competitiveBlindSpot;
+        const hasDeepInsight = item.challengeIdea || item.impactScenario || item.competitiveBlindSpot;
 
         return (
-          <div
+          <AssumptionCard
             key={i}
-            className="rounded-lg overflow-hidden"
-            style={{
-              background: "hsl(var(--muted))",
-              border: "1px solid hsl(var(--border))",
-              borderLeft: reasonColor ? `3px solid ${reasonColor}` : undefined,
-            }}
-          >
-            <div className="p-3">
-              <p className="text-sm text-foreground leading-relaxed font-medium">{item.assumption}</p>
-
-              {item.currentAnswer && (
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.currentAnswer}</p>
-              )}
-
-              {/* Tags row */}
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                {/* Leverage score */}
-                <span className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-full" style={{ background: leverageColor + "18", color: leverageColor }}>
-                  Leverage: {item.leverage}/10
-                </span>
-                {/* Evidence status */}
-                {status && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: status.bg, color: status.text }}>
-                    {status.label}
-                  </span>
-                )}
-                {/* Reason category */}
-                {item.reason && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: (reasonColor || "hsl(220 10% 55%)") + "18", color: reasonColor }}>
-                    {item.reason.charAt(0).toUpperCase() + item.reason.slice(1)}
-                  </span>
-                )}
-                {item.isChallengeable && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(271 81% 55% / 0.12)", color: "hsl(271 81% 55%)" }}>
-                    Challengeable
-                  </span>
-                )}
-                {item.urgencySignal && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{
-                    background: item.urgencySignal === "eroding" ? "hsl(0 70% 50% / 0.12)" : item.urgencySignal === "emerging" ? "hsl(142 70% 40% / 0.12)" : "hsl(220 10% 55% / 0.12)",
-                    color: item.urgencySignal === "eroding" ? "hsl(0 70% 50%)" : item.urgencySignal === "emerging" ? "hsl(142 70% 40%)" : "hsl(220 10% 55%)",
-                  }}>
-                    {item.urgencySignal.charAt(0).toUpperCase() + item.urgencySignal.slice(1)}
-                  </span>
-                )}
-              </div>
-
-              {/* Challenge approach */}
-              {item.challengeIdea && (
-                <div className="mt-2 p-2 rounded-md text-xs leading-relaxed" style={{ background: "hsl(271 81% 55% / 0.06)", border: "1px solid hsl(271 81% 55% / 0.15)" }}>
-                  <span className="font-bold" style={{ color: "hsl(271 81% 55%)" }}>Challenge approach: </span>
-                  <span className="text-foreground">{item.challengeIdea}</span>
-                </div>
-              )}
-
-              {/* Strategic Insight annotations (folded deep insights) */}
-              {hasInsight && (
-                <div className="mt-2 space-y-1">
-                  {item.impactScenario && (
-                    <div className="p-2 rounded-md text-xs leading-relaxed" style={{ background: "hsl(var(--primary) / 0.05)", border: "1px solid hsl(var(--primary) / 0.12)" }}>
-                      <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>Impact scenario: </span>
-                      <span className="text-foreground">{item.impactScenario}</span>
-                    </div>
-                  )}
-                  {item.competitiveBlindSpot && (
-                    <div className="p-2 rounded-md text-xs leading-relaxed" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
-                      <span className="font-bold" style={{ color: "hsl(38 92% 45%)" }}>Competitive blind spot: </span>
-                      <span className="text-foreground">{item.competitiveBlindSpot}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+            item={item}
+            leverageColor={leverageColor}
+            reasonColor={reasonColor}
+            status={status}
+            hasDeepInsight={!!hasDeepInsight}
+          />
         );
       })}
+    </div>
+  );
+}
+
+/* ── Assumption Card with progressive disclosure ── */
+function AssumptionCard({ item, leverageColor, reasonColor, status, hasDeepInsight }: {
+  item: any;
+  leverageColor: string;
+  reasonColor?: string;
+  status?: { bg: string; text: string; label: string };
+  hasDeepInsight: boolean;
+}) {
+  const [showDetail, setShowDetail] = React.useState(false);
+
+  return (
+    <div
+      className="rounded-lg overflow-hidden"
+      style={{
+        background: "hsl(var(--muted))",
+        border: "1px solid hsl(var(--border))",
+        borderLeft: reasonColor ? `3px solid ${reasonColor}` : undefined,
+      }}
+    >
+      <div className="p-3">
+        <p className="text-sm text-foreground leading-relaxed font-medium">{item.assumption}</p>
+
+        {/* Tags row — always visible */}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          <span className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-full" style={{ background: leverageColor + "18", color: leverageColor }}>
+            Leverage: {item.leverage}/10
+          </span>
+          {status && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: status.bg, color: status.text }}>
+              {status.label}
+            </span>
+          )}
+          {item.reason && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: (reasonColor || "hsl(220 10% 55%)") + "18", color: reasonColor }}>
+              {item.reason.charAt(0).toUpperCase() + item.reason.slice(1)}
+            </span>
+          )}
+          {item.isChallengeable && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "hsl(271 81% 55% / 0.12)", color: "hsl(271 81% 55%)" }}>
+              Challengeable
+            </span>
+          )}
+          {item.urgencySignal && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{
+              background: item.urgencySignal === "eroding" ? "hsl(0 70% 50% / 0.12)" : item.urgencySignal === "emerging" ? "hsl(142 70% 40% / 0.12)" : "hsl(220 10% 55% / 0.12)",
+              color: item.urgencySignal === "eroding" ? "hsl(0 70% 50%)" : item.urgencySignal === "emerging" ? "hsl(142 70% 40%)" : "hsl(220 10% 55%)",
+            }}>
+              {item.urgencySignal.charAt(0).toUpperCase() + item.urgencySignal.slice(1)}
+            </span>
+          )}
+        </div>
+
+        {/* Progressive disclosure toggle for deep insights */}
+        {hasDeepInsight && (
+          <button
+            onClick={() => setShowDetail(!showDetail)}
+            className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronDown size={11} className="transition-transform" style={{ transform: showDetail ? "rotate(180deg)" : "none" }} />
+            {showDetail ? "Hide insights" : "View insights"}
+          </button>
+        )}
+
+        {/* Collapsed detail content */}
+        {showDetail && (
+          <div className="mt-2 space-y-1.5">
+            {item.currentAnswer && (
+              <p className="text-xs text-muted-foreground leading-relaxed">{item.currentAnswer}</p>
+            )}
+            {item.challengeIdea && (
+              <div className="p-2 rounded-md text-xs leading-relaxed" style={{ background: "hsl(271 81% 55% / 0.06)", border: "1px solid hsl(271 81% 55% / 0.15)" }}>
+                <span className="font-bold" style={{ color: "hsl(271 81% 55%)" }}>Challenge approach: </span>
+                <span className="text-foreground">{item.challengeIdea}</span>
+              </div>
+            )}
+            {item.impactScenario && (
+              <div className="p-2 rounded-md text-xs leading-relaxed" style={{ background: "hsl(var(--primary) / 0.05)", border: "1px solid hsl(var(--primary) / 0.12)" }}>
+                <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>Impact scenario: </span>
+                <span className="text-foreground">{item.impactScenario}</span>
+              </div>
+            )}
+            {item.competitiveBlindSpot && (
+              <div className="p-2 rounded-md text-xs leading-relaxed" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
+                <span className="font-bold" style={{ color: "hsl(38 92% 45%)" }}>Competitive blind spot: </span>
+                <span className="text-foreground">{item.competitiveBlindSpot}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -433,8 +449,8 @@ export function StructureTab({
           </div>
           <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
             {viewMode === "assumptions"
-              ? "Every hidden assumption, structural constraint, and behavioral reality governing this market — ranked by strategic leverage potential."
-              : "Below, we've broken down every structural constraint, hidden assumption, and leverage point governing this market. You'll find the root forces that actually shape pricing, competition, and buyer behavior — stripped of industry jargon and conventional wisdom. Each constraint is ranked by how much strategic leverage it offers for disruption."}
+              ? "Hidden assumptions and structural constraints ranked by strategic leverage potential."
+              : "Structural constraints, leverage points, and root forces governing this market — stripped of convention and ranked by disruption potential."}
           </p>
         </div>
       )}
