@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Brain, RefreshCw, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { toast } from "sonner";
 
 /**
@@ -26,12 +27,12 @@ export function GovernedMissingBanner({ businessAnalysisData, businessModelInput
   const handleRegenerate = async () => {
     setLoading(true);
     try {
-      const { data: result, error } = await supabase.functions.invoke("business-model-analysis", {
+      const { data: result, error } = await invokeWithTimeout("business-model-analysis", {
         body: {
           businessModel: businessModelInput || { type: "Business", description: "Regenerate reasoning" },
           userSuggestions: "Focus on generating complete governed reasoning artifacts (domain_confirmation, first_principles, friction_tiers, constraint_map, decision_synthesis, reasoning_synopsis). The primary business analysis tabs are already complete.",
         },
-      });
+      }, 180_000);
 
       if (error || !result?.success) {
         toast.error("Reasoning regeneration failed — try again");

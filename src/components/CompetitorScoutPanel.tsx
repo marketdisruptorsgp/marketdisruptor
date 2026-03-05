@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, ExternalLink, Shield, AlertTriangle, Crosshair, ChevronDown, ChevronUp, Sparkles, Loader2, MapPin, Globe, BarChart3, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { toast } from "sonner";
 import { StrategyBriefing, type StrategyBriefingData } from "./StrategyBriefing";
 
@@ -43,9 +44,9 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, auto
   const handleScout = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("scout-competitors", {
+      const { data, error } = await invokeWithTimeout("scout-competitors", {
         body: { ideaName, ideaDescription, category },
-      });
+      }, 90_000);
 
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Scouting failed");

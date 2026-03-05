@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { downloadBusinessModelPDF } from "@/lib/pdfExport";
@@ -201,9 +202,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
     }
     setLoading(true);
     try {
-      const { data: result, error } = await supabase.functions.invoke("business-model-analysis", {
+      const { data: result, error } = await invokeWithTimeout("business-model-analysis", {
         body: { businessModel: input, userSuggestions: userSuggestions || undefined },
-      });
+      }, 180_000);
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Analysis failed";
         if (msg.includes("Rate limit") || msg.includes("429")) {

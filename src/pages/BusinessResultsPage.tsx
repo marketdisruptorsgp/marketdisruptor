@@ -152,6 +152,8 @@ export default function BusinessResultsPage() {
         accentColor={modeAccent}
         hideRun
         hideShare
+        strategicProfile={analysis.strategicProfile}
+        onChangeProfile={analysis.setStrategicProfile}
         onPdf={() => downloadFullAnalysisPDF(bizSyntheticProduct, gatherBusinessAnalysisData(analysis))}
       />
 

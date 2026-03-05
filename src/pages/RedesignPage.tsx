@@ -153,7 +153,7 @@ export default function RedesignPage() {
             analysis.setRedesignData(d);
             analysis.saveStepData("redesign", d);
             analysis.clearStepOutdated("redesign");
-            analysis.markStepOutdated("pitch");
+            analysis.markStepOutdated("pitchDeck");
           }}
           onPatentSave={(patentData) => {
             const updated = products.map(p =>

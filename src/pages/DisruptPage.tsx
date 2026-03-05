@@ -214,7 +214,7 @@ export default function DisruptPage() {
                 analysis.saveStepData("governed", analysis.governedData || currentGoverned);
                 analysis.markStepOutdated("redesign");
                 analysis.markStepOutdated("stressTest");
-                analysis.markStepOutdated("pitch");
+                analysis.markStepOutdated("pitchDeck");
               }}
             />
           </AnalysisContentCard>
@@ -263,7 +263,7 @@ export default function DisruptPage() {
                     analysis.setGovernedData({ ...currentGoverned, root_hypotheses: [...existing, newH] });
                     analysis.markStepOutdated("redesign");
                     analysis.markStepOutdated("stressTest");
-                    analysis.markStepOutdated("pitch");
+                    analysis.markStepOutdated("pitchDeck");
                   }
                 }}
                 onSelectBranch={(id: string) => {
