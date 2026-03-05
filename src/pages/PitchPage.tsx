@@ -4,22 +4,18 @@ import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
-import { HeroSection } from "@/components/HeroSection";
-import { StepLoadingTracker, PITCH_DECK_TASKS } from "@/components/StepLoadingTracker"; // kept for type ref
-import { StepNavigator } from "@/components/StepNavigator";
 import { PitchDeck } from "@/components/PitchDeck";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { StepNavBar } from "@/components/SectionNav";
-import { ShareAnalysis } from "@/components/ShareAnalysis";
-import { OutdatedBanner } from "@/components/OutdatedBanner";
-
 import { scrollToTop } from "@/utils/scrollToTop";
-import { ModeBadge } from "@/components/ModeBadge";
-import StrategicProfileSelector from "@/components/StrategicProfileSelector";
-import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
-import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
+
+// ── Shared layout components ──
+import {
+  AnalysisPageShell,
+  AnalysisStepHeader,
+  AnalysisActionToolbar,
+  AnalysisLoadingSpinner,
+} from "@/components/analysis/AnalysisPageShell";
 
 export default function PitchPage() {
   const [runTrigger, setRunTrigger] = React.useState(0);
@@ -33,102 +29,65 @@ export default function PitchPage() {
   const { selectedProduct, analysisId } = analysis;
 
   if (analysis.step !== "done" || !selectedProduct) {
-    return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin border-primary" /></div>;
+    return <AnalysisLoadingSpinner />;
   }
 
   const baseUrl = `/analysis/${analysisId}`;
   const isOutdated = analysis.outdatedSteps.has("pitch");
 
   return (
-    <div className="min-h-screen" style={{ background: "hsl(var(--background))" }}>
-      <HeroSection tier={tier} remainingAnalyses={null} />
-      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
-        <ModeBadge />
-        <StepNavigator
-          steps={getStepConfigs(theme.primary)}
-          activeStep={6}
-          visitedSteps={new Set([2, 3, 4, 5, 6])}
-          onStepChange={(s) => {
-            scrollToTop();
-            if (s === 2) navigate(`${baseUrl}/report`);
-            else if (s === 3) navigate(`${baseUrl}/disrupt`);
-            else if (s === 4) navigate(`${baseUrl}/redesign`);
-            else if (s === 5) navigate(`${baseUrl}/stress-test`);
-          }}
-          outdatedSteps={analysis.outdatedSteps}
-          accentColor={theme.primary}
-        />
+    <AnalysisPageShell tier={tier}>
+      <AnalysisStepHeader
+        steps={getStepConfigs(theme.primary)}
+        activeStep={6}
+        visitedSteps={new Set([2, 3, 4, 5, 6])}
+        onStepChange={(s) => {
+          if (s === 2) navigate(`${baseUrl}/report`);
+          else if (s === 3) navigate(`${baseUrl}/disrupt`);
+          else if (s === 4) navigate(`${baseUrl}/redesign`);
+          else if (s === 5) navigate(`${baseUrl}/stress-test`);
+        }}
+        outdatedSteps={analysis.outdatedSteps}
+        accentColor={theme.primary}
+        backLabel="Stress Test"
+        backPath={`${baseUrl}/stress-test`}
+        outdatedStepName={isOutdated ? "Pitch Deck" : undefined}
+      />
 
-        <StepNavBar backLabel="Stress Test" backPath={`${baseUrl}/stress-test`} accentColor={theme.primary} />
+      <AnalysisActionToolbar
+        analysisTitle={selectedProduct.name}
+        stepTitle="Pitch Deck"
+        analysis={analysis}
+        selectedProduct={selectedProduct}
+        analysisId={analysisId}
+        accentColor={theme.primary}
+        isLoading={analysisLoading}
+        hasData={!!analysis.pitchDeckData}
+        onRun={() => setRunTrigger(t => t + 1)}
+        strategicProfile={analysis.strategicProfile}
+        onChangeProfile={analysis.setStrategicProfile}
+      />
 
-        {isOutdated && <OutdatedBanner stepName="Pitch Deck" accentColor={theme.primary} />}
-
-        
-
-        {/* Analysis title — persistent across all steps */}
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground px-1">{selectedProduct.name}</h1>
-
-        {/* Compact header with archetype + actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-          <h2 className="typo-section-title">Pitch Deck</h2>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <StrategicProfileSelector
-              profile={analysis.strategicProfile}
-              onChangeProfile={analysis.setStrategicProfile}
-            />
-            <button
-              onClick={() => setRunTrigger(t => t + 1)}
-              disabled={analysisLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all"
-              style={{
-                background: analysisLoading ? "hsl(var(--primary) / 0.6)" : "hsl(var(--primary))",
-                color: "hsl(var(--primary-foreground))",
-                opacity: analysisLoading ? 0.7 : 1,
-              }}
-            >
-              {analysisLoading ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-              {analysis.pitchDeckData ? "Re-run Analysis" : "Run Analysis"}
-            </button>
-            <button onClick={() => {
-              if (!selectedProduct) return;
-              const data = gatherAllAnalysisData(analysis);
-              downloadReportAsPDF(selectedProduct, data, {
-                title: selectedProduct.name,
-                mode: (analysis.analysisParams as any)?.analysisType,
-                onProgress: (msg) => toast.loading(msg, { id: "pdf-progress" }),
-              }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
-                .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
-            }} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground">
-              <FileDown size={12} /> PDF
-            </button>
-            <button onClick={() => analysis.handleManualSave()} className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-primary text-primary-foreground">
-              <Save size={12} /> Save
-            </button>
-            <ShareAnalysis analysisId={analysisId || ""} analysisTitle={selectedProduct.name} accentColor={theme.primary} />
-          </div>
-        </div>
-
-        {/* Content — always mounted so loading lifecycle completes */}
-        <PitchDeck
-            product={selectedProduct}
-            analysisId={analysisId}
-            externalData={analysis.pitchDeckData}
-            disruptData={analysis.disruptData}
-            stressTestData={analysis.stressTestData}
-            redesignData={analysis.redesignData}
-            userScores={analysis.userScores}
-            accentColor={theme.primary}
-            insightPreferences={analysis.insightPreferences}
-            steeringText={analysis.steeringText}
-            runTrigger={runTrigger}
-            onLoadingChange={setAnalysisLoading}
-            onSave={(d) => {
-              analysis.setPitchDeckData(d);
-              analysis.saveStepData("pitchDeck", d);
-              analysis.clearStepOutdated("pitch");
-            }}
-          />
-      </main>
-    </div>
+      {/* Content — always mounted so loading lifecycle completes */}
+      <PitchDeck
+        product={selectedProduct}
+        analysisId={analysisId}
+        externalData={analysis.pitchDeckData}
+        disruptData={analysis.disruptData}
+        stressTestData={analysis.stressTestData}
+        redesignData={analysis.redesignData}
+        userScores={analysis.userScores}
+        accentColor={theme.primary}
+        insightPreferences={analysis.insightPreferences}
+        steeringText={analysis.steeringText}
+        runTrigger={runTrigger}
+        onLoadingChange={setAnalysisLoading}
+        onSave={(d) => {
+          analysis.setPitchDeckData(d);
+          analysis.saveStepData("pitchDeck", d);
+          analysis.clearStepOutdated("pitch");
+        }}
+      />
+    </AnalysisPageShell>
   );
 }
