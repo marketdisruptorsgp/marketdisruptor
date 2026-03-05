@@ -168,8 +168,8 @@ export function IntelDigest({
               {cat.label}
               {count > 0 && (
                 <span
-                  className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    isActive ? "bg-white/25" : "bg-foreground/10"
+                  className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold ${
+                    isActive ? "bg-primary/25" : "bg-foreground/10"
                   }`}
                 >
                   {count}

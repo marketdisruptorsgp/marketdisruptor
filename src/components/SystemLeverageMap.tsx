@@ -422,14 +422,14 @@ export function SystemLeverageMapView({
           <div>
             <p className="text-sm font-extrabold text-foreground">System Leverage Map</p>
             <div className="flex items-center gap-2">
-              <p className="text-[11px] font-semibold text-foreground/70">{map.structuralSummary}</p>
+              <p className="text-xs font-semibold text-muted-foreground">{map.structuralSummary}</p>
               {map.provenanceReport && map.provenanceReport.artifactScored > 0 && (
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--success) / 0.1)", color: "hsl(var(--success))" }}>
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--success) / 0.1)", color: "hsl(var(--success))" }}>
                   Artifact-scored
                 </span>
               )}
               {map.provenanceReport && map.provenanceReport.artifactScored === 0 && (
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--warning) / 0.1)", color: "hsl(var(--warning))" }}>
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--warning) / 0.1)", color: "hsl(var(--warning))" }}>
                   Heuristic
                 </span>
               )}
@@ -481,7 +481,7 @@ export function SystemLeverageMapView({
           <span style={{ fontSize: 14 }}>★</span>
           <p className="text-xs font-bold text-foreground">
             {map.convergenceZones.length} high-value disruption zone{map.convergenceZones.length > 1 ? "s" : ""} detected
-            <span className="font-semibold text-foreground/70 ml-1">
+            <span className="font-semibold text-muted-foreground ml-1">
               — multiple lenses converge on the same leverage point
             </span>
           </p>
@@ -505,13 +505,13 @@ export function SystemLeverageMapView({
             <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: layerColor }} />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-foreground">{node.label}</p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {layerLabel} · Impact {node.impact}/10 · {node.evidence?.[0] || ""}
               </p>
             </div>
             <button
               onClick={() => setSelectedNodeId(null)}
-              className="text-[10px] font-bold px-2 py-1 rounded-md transition-colors"
+              className="text-xs font-bold px-2 py-1 rounded-md transition-colors"
               style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
             >
               Clear
@@ -573,7 +573,7 @@ export function SystemLeverageMapView({
                 className="w-2.5 h-2.5 rounded-full"
                 style={{ background: LAYER_META[layer].color }}
               />
-              <span className="text-[9px] font-bold text-foreground/60 uppercase tracking-wide">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
                 {LAYER_META[layer].label}
               </span>
             </div>
@@ -581,7 +581,7 @@ export function SystemLeverageMapView({
           {map.convergenceZones.length > 0 && (
             <div className="flex items-center gap-1.5">
               <span style={{ fontSize: 10, color: "hsl(var(--warning))" }}>★</span>
-              <span className="text-[9px] font-bold text-foreground/60 uppercase tracking-wide">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
                 Convergence Zone
               </span>
             </div>

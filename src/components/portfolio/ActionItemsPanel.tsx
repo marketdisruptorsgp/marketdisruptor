@@ -217,7 +217,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
           {/* AI Suggestions */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="typo-status-label text-foreground/60 uppercase tracking-wider">Strategic Recommendations</p>
+              <p className="typo-status-label text-muted-foreground uppercase tracking-wider">Strategic Recommendations</p>
               <button
                 onClick={generateAISuggestions}
                 disabled={generating || analyses.length === 0}
@@ -232,7 +232,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
             {/* Focus summary */}
             {focusSummary && visibleSuggestions.length > 0 && (
               <div className="rounded-lg px-3 py-2 bg-primary/5 border border-primary/10">
-                <p className="typo-card-meta text-foreground/80 leading-relaxed">
+                <p className="typo-card-meta text-foreground leading-relaxed">
                   <span className="font-semibold text-primary">Focus:</span> {focusSummary}
                 </p>
               </div>
@@ -263,32 +263,32 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
                         </div>
 
                         {/* Reason — the data point */}
-                        <p className="typo-card-meta text-foreground/70 leading-relaxed">
+                        <p className="typo-card-meta text-muted-foreground leading-relaxed">
                           {s.reason}
                         </p>
 
                         {/* Outcome — what this unlocks */}
                         {s.outcome && (
-                          <p className="typo-card-meta text-foreground/70 leading-relaxed">
+                          <p className="typo-card-meta text-muted-foreground leading-relaxed">
                             <span className="font-semibold text-primary/80">→ Unlocks:</span> {s.outcome}
                           </p>
                         )}
 
                         {/* Urgency callout */}
-                        <p className="typo-card-meta font-medium text-foreground/60 italic">
+                        <p className="typo-card-meta font-medium text-muted-foreground italic">
                           ⏱ {s.urgency}
                         </p>
 
                         {/* Meta row */}
                         <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-                          <span className="typo-status-label px-1.5 py-0.5 rounded-full font-semibold bg-muted text-foreground/60">
+                          <span className="typo-status-label px-1.5 py-0.5 rounded-full font-semibold bg-muted text-muted-foreground">
                             → {s.projectTitle}
                           </span>
-                          <span className="flex items-center gap-0.5 typo-status-label px-1.5 py-0.5 rounded-full font-medium bg-muted text-foreground/60">
+                          <span className="flex items-center gap-0.5 typo-status-label px-1.5 py-0.5 rounded-full font-medium bg-muted text-muted-foreground">
                             <LeverIcon size={8} />
                             {lever.label}
                           </span>
-                          <span className="typo-status-label px-1.5 py-0.5 rounded-full font-medium bg-muted text-foreground/60">
+                          <span className="typo-status-label px-1.5 py-0.5 rounded-full font-medium bg-muted text-muted-foreground">
                             {priorityLabel(s.priority)}
                           </span>
                         </div>
@@ -300,7 +300,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
             )}
 
             {!generating && visibleSuggestions.length === 0 && aiSuggestions.length === 0 && analyses.length > 0 && (
-              <p className="typo-card-meta text-foreground/60 text-center py-1">
+              <p className="typo-card-meta text-muted-foreground text-center py-1">
                 Click "Analyze & Suggest" to get data-backed strategic recommendations from your portfolio.
               </p>
             )}
@@ -327,7 +327,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
 
           {/* Active items */}
           {activeItems.length === 0 && completedItems.length === 0 && visibleSuggestions.length === 0 && (
-            <p className="typo-card-meta text-foreground/60 text-center py-3">No action items yet. Add one or generate suggestions.</p>
+            <p className="typo-card-meta text-muted-foreground text-center py-3">No action items yet. Add one or generate suggestions.</p>
           )}
 
           <div className="space-y-1">
@@ -355,7 +355,7 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
                       </button>
                     )}
                     {getProjectName(item.analysis_id) && (
-                      <p className="typo-card-meta text-foreground/60 mt-0.5">→ {getProjectName(item.analysis_id)}</p>
+                      <p className="typo-card-meta text-muted-foreground mt-0.5">→ {getProjectName(item.analysis_id)}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
@@ -391,11 +391,11 @@ export function ActionItemsPanel({ analyses }: { analyses: SavedAnalysis[] }) {
                         />
                         <div className="flex gap-1">
                           <button onClick={() => saveNote(item.id, editingNote.value)} className="typo-card-meta px-2 py-0.5 rounded font-medium" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>Save</button>
-                          <button onClick={() => setEditingNote(null)} className="typo-card-meta px-2 py-0.5 rounded text-foreground/60 hover:text-foreground">Cancel</button>
+                          <button onClick={() => setEditingNote(null)} className="typo-card-meta px-2 py-0.5 rounded text-muted-foreground hover:text-foreground">Cancel</button>
                         </div>
                       </div>
                     ) : (
-                      <button onClick={() => setEditingNote({ id: item.id, value: item.notes || "" })} className="typo-card-meta text-foreground/60 hover:text-foreground transition-colors w-full text-left">
+                      <button onClick={() => setEditingNote({ id: item.id, value: item.notes || "" })} className="typo-card-meta text-muted-foreground hover:text-foreground transition-colors w-full text-left">
                         {item.notes || "Click to add notes…"}
                       </button>
                     )}

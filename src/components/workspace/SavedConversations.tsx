@@ -289,7 +289,7 @@ export function SavedConversations({ refreshKey, onResumeConversation }: Props) 
                           {msg.attachments?.map((att: any, ai: number) => (
                             <div key={ai} className="rounded-lg border border-primary/20 overflow-hidden inline-block">
                               {att.type?.startsWith("image/") ? <img src={att.url} alt={att.name} className="h-16 w-auto object-cover rounded-lg" /> : (
-                                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/5"><FileText size={12} className="text-primary" /><span className="typo-card-meta text-foreground/70">{att.name}</span></div>
+                                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/5"><FileText size={12} className="text-primary" /><span className="typo-card-meta text-muted-foreground">{att.name}</span></div>
                               )}
                             </div>
                           ))}
