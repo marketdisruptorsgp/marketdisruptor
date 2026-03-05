@@ -8,6 +8,7 @@
 
 import { memo, useState } from "react";
 import { Shield, Crosshair, Lightbulb, Zap, Eye } from "lucide-react";
+import { motion } from "framer-motion";
 import type { CommandDeck, ConstraintNode, OpportunityNode } from "@/lib/systemIntelligence";
 import type { LeverageNode } from "@/lib/multiLensEngine";
 import type { ExpandedFrictionScore } from "@/lib/frictionEngine";
@@ -17,6 +18,7 @@ import { ExpandedFrictionDashboard } from "@/components/OpportunityMatrix";
 import { InsightTracePanel } from "@/components/InsightTracePanel";
 import { StrategicSummaryPanel } from "@/components/StrategicSummaryPanel";
 import { OpportunityLandscape } from "@/components/insight-graph/OpportunityLandscape";
+import { StrategicPathways } from "@/components/insight-graph/StrategicPathways";
 import type { InsightGraph } from "@/lib/insightGraph";
 
 interface StrategicCommandDeckProps {
@@ -29,10 +31,10 @@ interface StrategicCommandDeckProps {
 }
 
 function ImpactBadge({ impact, confidence }: { impact: number; confidence: string }) {
-  const color = impact >= 8 ? "hsl(0 70% 50%)" : impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
+  const color = impact >= 8 ? "hsl(0 70% 50%)" : impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--foreground) / 0.5)";
   return (
     <span
-      className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-full"
+      className="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-full"
       style={{ background: `${color}18`, color }}
     >
       {impact}/10{confidence !== "high" && ` · ${confidence}`}
@@ -54,50 +56,76 @@ function TraceButton({ onTrace }: { onTrace: () => void }) {
 
 function ConstraintRow({ node, onTrace }: { node: ConstraintNode; onTrace?: () => void }) {
   return (
-    <div className="flex items-center gap-2.5 py-1.5">
-      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "hsl(0 72% 50%)" }} />
-      <p className="text-sm font-semibold text-foreground flex-1 leading-snug">{node.label}</p>
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex items-center gap-2.5 py-2"
+    >
+      <div
+        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+        style={{ background: "hsl(0 72% 50%)", boxShadow: "0 0 6px hsl(0 72% 50% / 0.4)" }}
+      />
+      <p className="text-sm font-bold text-foreground flex-1 leading-snug">{node.label}</p>
       <ImpactBadge impact={node.impact} confidence={node.confidence} />
       {onTrace && <TraceButton onTrace={onTrace} />}
-    </div>
+    </motion.div>
   );
 }
 
 function LeverageRow({ node, onTrace }: { node: LeverageNode; onTrace?: () => void }) {
   return (
-    <div className="flex items-center gap-2.5 py-1.5">
-      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "hsl(229 89% 63%)" }} />
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex items-center gap-2.5 py-2"
+    >
+      <div
+        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+        style={{ background: "hsl(229 89% 63%)", boxShadow: "0 0 6px hsl(229 89% 63% / 0.4)" }}
+      />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground leading-snug">{node.label}</p>
+        <p className="text-sm font-bold text-foreground leading-snug">{node.label}</p>
         {node.isConvergenceZone && (
-          <span className="text-[9px] font-bold" style={{ color: "hsl(38 92% 50%)" }}>★ Multi-lens convergence</span>
+          <span className="text-[10px] font-bold" style={{ color: "hsl(38 92% 50%)" }}>★ Multi-lens convergence</span>
         )}
       </div>
       <ImpactBadge impact={node.impact} confidence={node.confidence} />
       {onTrace && <TraceButton onTrace={onTrace} />}
-    </div>
+    </motion.div>
   );
 }
 
 function OpportunityRow({ node, onTrace }: { node: OpportunityNode; onTrace?: () => void }) {
   return (
-    <div className="flex items-center gap-2.5 py-1.5">
-      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "hsl(152 60% 44%)" }} />
-      <p className="text-sm font-semibold text-foreground flex-1 leading-snug">{node.label}</p>
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex items-center gap-2.5 py-2"
+    >
+      <div
+        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+        style={{ background: "hsl(152 60% 44%)", boxShadow: "0 0 6px hsl(152 60% 44% / 0.4)" }}
+      />
+      <p className="text-sm font-bold text-foreground flex-1 leading-snug">{node.label}</p>
       <ImpactBadge impact={node.impact} confidence={node.confidence} />
       {onTrace && <TraceButton onTrace={onTrace} />}
-    </div>
+    </motion.div>
   );
 }
 
 function SectionHeader({ icon: Icon, label, count }: { icon: React.ElementType; label: string; count: number }) {
   return (
-    <div className="flex items-center gap-2 mb-1.5">
-      <Icon size={13} className="text-muted-foreground" />
-      <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+    <div className="flex items-center gap-2 mb-2">
+      <div
+        className="w-6 h-6 rounded-lg flex items-center justify-center"
+        style={{ background: "hsl(var(--muted))" }}
+      >
+        <Icon size={12} className="text-foreground" />
+      </div>
+      <p className="text-[11px] font-extrabold uppercase tracking-widest text-foreground">
         {label}
       </p>
-      <span className="text-[10px] font-bold text-muted-foreground/60">({count})</span>
+      <span className="text-[11px] font-bold text-foreground/50">({count})</span>
     </div>
   );
 }
@@ -139,6 +167,11 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
         </div>
       )}
 
+      {/* Strategic Pathways — causal flow visualization */}
+      {insightGraph && insightGraph.nodes.length > 3 && (
+        <StrategicPathways graph={insightGraph} compact />
+      )}
+
       {/* Opportunity Landscape (compact) */}
       {insightGraph && insightGraph.nodes.length > 0 && (
         <div
@@ -146,8 +179,10 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
           style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
         >
           <div className="flex items-center gap-2 mb-2">
-            <Lightbulb size={13} className="text-muted-foreground" />
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "hsl(152 60% 44% / 0.1)" }}>
+              <Lightbulb size={12} style={{ color: "hsl(152 60% 44%)" }} />
+            </div>
+            <p className="text-[11px] font-extrabold uppercase tracking-widest text-foreground">
               Opportunity Landscape
             </p>
           </div>
@@ -165,10 +200,10 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
         >
           <div className="flex items-center gap-2">
             <Zap size={14} style={{ color: "hsl(38 92% 50%)" }} />
-            <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(38 92% 50%)" }}>
+            <p className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(38 92% 50%)" }}>
               Convergence Zones
             </p>
-            <span className="text-[10px] font-bold text-muted-foreground/60">({convergenceZoneDetails.length})</span>
+            <span className="text-[11px] font-bold text-foreground/50">({convergenceZoneDetails.length})</span>
           </div>
           {convergenceZoneDetails.slice(0, 5).map(zone => (
             <div key={zone.id} className="flex items-center gap-2.5 py-1">
@@ -177,10 +212,10 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
                 style={{ background: zone.isStrategic ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))" }}
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground leading-snug">{zone.label}</p>
+                <p className="text-sm font-bold text-foreground leading-snug">{zone.label}</p>
                 <div className="flex gap-1 mt-0.5">
                   {zone.lenses.map(l => (
-                    <span key={l} className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+                    <span key={l} className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
                       {l}
                     </span>
                   ))}
