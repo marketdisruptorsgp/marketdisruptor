@@ -18,7 +18,7 @@ import {
   Globe, Target, Zap, CheckCircle2, ArrowRight, BarChart3,
   ShieldAlert, Lightbulb, Clock,
   AlertTriangle, Rocket, Sparkles,
-  Layers, Shield, FileDown,
+  Layers, Shield, FileDown, ScrollText,
 } from "lucide-react";
 import { NextSectionButton, SectionWorkflowNav, AllExploredBadge } from "@/components/SectionNav";
 import {
@@ -96,6 +96,13 @@ interface PitchDeckData {
     indirectCompetitors?: string[];
     moat?: string;
   };
+  ipLandscape?: {
+    summary?: string;
+    keyPatents?: { title: string; holder: string; relevance: string; threat: string }[];
+    whitespace?: string[];
+    ipStrategy?: string;
+    filingRecommendations?: string[];
+  };
   investmentAsk?: {
     amount?: string;
     useOfFunds?: string[];
@@ -150,6 +157,7 @@ const SLIDE_TABS = [
   { id: "product", label: "Product", icon: Layers },
   { id: "businessmodel", label: "Business Model", icon: DollarSign },
   { id: "traction", label: "Traction & Metrics", icon: TrendingUp },
+  { id: "ip", label: "IP & Patents", icon: ScrollText },
   { id: "risks", label: "Risks", icon: ShieldAlert },
   { id: "gtm", label: "GTM & Positioning", icon: Target },
   { id: "invest", label: "The Ask", icon: Rocket },
@@ -162,13 +170,14 @@ const SLIDE_TITLES: Record<string, string> = {
   problem: "The Problem", solution: "The Solution", whynow: "Why Now",
   market: "Market Opportunity", product: "Product / Innovation",
   businessmodel: "Business Model", traction: "Traction & Metrics",
+  ip: "IP & Patent Landscape",
   risks: "Risks & Mitigation", gtm: "Go-to-Market & Positioning", invest: "The Ask",
 };
 
 const SLIDE_CATEGORY_LABELS: Record<string, string> = {
   problem: "Problem Discovery", solution: "Strategic Thesis", whynow: "Market Timing",
   market: "Market Sizing", product: "Product Analysis", businessmodel: "Financial Model",
-  traction: "Validation", risks: "Risk Assessment", gtm: "Growth Strategy", invest: "Capital Strategy",
+  traction: "Validation", ip: "Intellectual Property", risks: "Risk Assessment", gtm: "Growth Strategy", invest: "Capital Strategy",
 };
 
 // ── Component ─────────────────────────────────────────────────
@@ -241,6 +250,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           geoData: analysisCtx.geoData || undefined,
           regulatoryData: analysisCtx.regulatoryData || undefined,
           adaptiveContext: analysisCtx.adaptiveContext || undefined,
+          patentData: product.patentData || undefined,
         },
       }, 180_000);
       if (error || !result?.success) {
@@ -607,7 +617,75 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       </div>
     ),
 
-    /* ═══ 8. RISKS ═══ */
+    /* ═══ 8. IP & PATENTS ═══ */
+    ip: (() => {
+      const ip = data.ipLandscape;
+      const patentData = product.patentData as any;
+      const hasIp = ip?.summary || ip?.keyPatents?.length || patentData;
+      if (!hasIp) return (
+        <EmptySlideSection label="No patent data available for this analysis. Run the Intelligence Report with patent analysis enabled." />
+      );
+      return (
+        <div style={gap28}>
+          {ip?.summary && (
+            <TakeawayCallout text={ip.summary} accentColor={accentColor} label="IP Landscape Overview" />
+          )}
+          {(ip?.keyPatents || []).length > 0 && (
+            <div style={panel}>
+              <p style={lbl}>Key Patents & Prior Art</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {ip!.keyPatents!.slice(0, 5).map((p, i) => (
+                  <div key={i} style={{ borderRadius: 10, padding: "14px 20px", border: "1px solid #e8e8ec", background: "#fafafa" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                      <p style={{ fontSize: 18, fontWeight: 700, color: "#0f0f12" }}>{p.title}</p>
+                      <span style={{ padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: p.threat === "high" ? "#fee2e2" : p.threat === "medium" ? "#fef3c7" : "#dcfce7", color: p.threat === "high" ? "#dc2626" : p.threat === "medium" ? "#d97706" : "#16a34a" }}>
+                        {(p.threat || "low").toUpperCase()} THREAT
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 13, color: "#666", marginTop: 4 }}>Held by <strong>{p.holder}</strong></p>
+                    <p style={{ ...txt, fontSize: 16, marginTop: 6 }}>{p.relevance}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <SplitLayout
+            left={
+              (ip?.whitespace || []).length > 0 ? (
+                <div style={panel}>
+                  <p style={lbl}>IP Whitespace Opportunities</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {ip!.whitespace!.map((w, i) => (
+                      <SlideBullet key={i} index={i} accentColor="#22c55e">{w}</SlideBullet>
+                    ))}
+                  </div>
+                </div>
+              ) : <div />
+            }
+            right={
+              ip?.ipStrategy ? (
+                <EmphasisBox accentColor={accentColor} label="Recommended IP Strategy">
+                  <p style={txt}>{ip.ipStrategy}</p>
+                  {(ip.filingRecommendations || []).length > 0 && (
+                    <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                      <p style={{ ...lbl, fontSize: 11 }}>Filing Recommendations</p>
+                      {ip.filingRecommendations!.map((r, i) => (
+                        <SlideBullet key={i} index={i} accentColor={accentColor}>{r}</SlideBullet>
+                      ))}
+                    </div>
+                  )}
+                </EmphasisBox>
+              ) : <div />
+            }
+          />
+          {patentData && !ip?.keyPatents?.length && (
+            <InsightCard title="Patent Intelligence (from Report)" body={typeof patentData === "string" ? patentData : JSON.stringify(patentData).slice(0, 500)} accentColor={accentColor} />
+          )}
+        </div>
+      );
+    })(),
+
+    /* ═══ 9. RISKS ═══ */
     risks: (
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {(data.risks || []).slice(0, 4).map((r, i) => (

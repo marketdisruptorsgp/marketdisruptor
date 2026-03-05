@@ -42,6 +42,7 @@ export const PITCH_SLIDE_DESCRIPTIONS: Record<string, string> = {
   product: "Innovation edge & competitive moat",
   businessmodel: "Revenue streams & unit economics",
   traction: "Early signals, KPIs & milestone targets",
+  ip: "Patent landscape, whitespace & IP strategy",
   risks: "Key threats & mitigation strategies",
   gtm: "Go-to-market, positioning & channels",
   invest: "Funding ask, use of funds & exit",
