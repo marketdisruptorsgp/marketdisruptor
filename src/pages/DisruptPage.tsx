@@ -14,6 +14,7 @@ import { RedesignTab } from "@/components/strategic/RedesignTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
+import { InnovationOpportunitiesPanel } from "@/components/InnovationOpportunitiesPanel";
 
 // ── Shared layout components ──
 import {
@@ -289,6 +290,17 @@ export default function DisruptPage() {
               governedData={governedData as Record<string, unknown> | null}
             />
           </div>
+        )}
+
+        {/* Innovation Opportunities — derived from governed artifacts */}
+        {analysis.disruptData && (
+          <AnalysisContentCard>
+            <InnovationOpportunitiesPanel
+              governedData={governedData as Record<string, unknown> | null}
+              analysisData={analysis.disruptData as Record<string, unknown> | null}
+              stressTestData={analysis.stressTestData as Record<string, unknown> | null}
+            />
+          </AnalysisContentCard>
         )}
       </div>
 
