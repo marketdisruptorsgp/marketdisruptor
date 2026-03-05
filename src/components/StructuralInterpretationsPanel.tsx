@@ -56,7 +56,7 @@ function FragilityIndicator({ score }: { score: number }) {
   const bg = score <= 3 ? "bg-green-500/10" : score <= 6 ? "bg-amber-500/10" : "bg-red-500/10";
   const label = score <= 3 ? "Resilient" : score <= 6 ? "Moderate" : "Fragile";
   return (
-    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${bg} ${color}`}>
+    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${bg} ${color}`}>
       {label} {score}/10
     </span>
   );
