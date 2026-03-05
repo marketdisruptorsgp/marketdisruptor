@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
@@ -228,7 +229,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
   const runAnalysis = async () => {
     setLoading(true);
     try {
-      const { data: result, error } = await supabase.functions.invoke("generate-pitch-deck", {
+      const { data: result, error } = await invokeWithTimeout("generate-pitch-deck", {
         body: {
           product,
           disruptData: disruptData || undefined,
@@ -241,7 +242,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           regulatoryData: analysisCtx.regulatoryData || undefined,
           adaptiveContext: analysisCtx.adaptiveContext || undefined,
         },
-      });
+      }, 180_000);
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Generation failed";
         if (msg.includes("429") || msg.includes("Rate limit")) toast.error("Rate limit hit — please wait a moment and try again.");
