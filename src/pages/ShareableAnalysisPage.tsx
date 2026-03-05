@@ -10,7 +10,6 @@ import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { BusinessModelAnalysis, type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
-import { ScoreBar } from "@/components/ScoreBar";
 import { AssumptionsMap } from "@/components/AssumptionsMap";
 import { KeyTakeawayBanner, getCommunityTakeaway, getPricingTakeaway, getSupplyChainTakeaway, getVerdictBadges, getWorkflowTakeaway, getDisruptTakeaway, getStressTestTakeaway, getPitchTakeaway } from "@/components/KeyTakeawayBanner";
 import { AdaptiveJourneyMap } from "@/components/AdaptiveJourneyMap";
@@ -25,6 +24,17 @@ import type { Product } from "@/data/mockProducts";
 import { PlatformNav } from "@/components/PlatformNav";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
+
+// ── Standardized analysis components ──
+import {
+  InsightCard,
+  FrameworkPanel,
+  SignalCard,
+  MetricCard,
+  VisualGrid,
+  ExpandableDetail,
+  AnalysisPanel,
+} from "@/components/analysis/AnalysisComponents";
 
 interface SharedData {
   title: string;
@@ -49,18 +59,12 @@ function getSharedStepConfigs(): StepConfig[] {
   ];
 }
 
-/* ── Section Card — matches authenticated layout ── */
+/* ── Section Card — uses standardized AnalysisPanel ── */
 function SectionCard({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl p-5 space-y-3" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
-      <div className="flex items-center gap-3 mb-1">
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.08)" }}>
-          <Icon size={14} style={{ color: "hsl(var(--primary))" }} />
-        </div>
-        <h3 className="typo-card-title">{title}</h3>
-      </div>
+    <AnalysisPanel icon={Icon} title={title}>
       {children}
-    </div>
+    </AnalysisPanel>
   );
 }
 
@@ -313,37 +317,40 @@ export default function ShareableAnalysisPage() {
               <AnalysisVisualLayer analysis={product as unknown as Record<string, unknown>} step="report" governedOverride={governedData}>
                 <SectionCard icon={Target} title="Overview">
                   {product!.keyInsight && (
-                    <div className="insight-callout mb-3">
-                      <p className="typo-card-body font-semibold leading-snug">{product!.keyInsight}</p>
-                    </div>
+                    <InsightCard
+                      icon={Target}
+                      headline={product!.keyInsight}
+                      badge={product!.marketSizeEstimate ? `TAM: ${product!.marketSizeEstimate}` : undefined}
+                      badgeColor="hsl(152 60% 44%)"
+                    >
+                      <VisualGrid columns={3}>
+                        <MetricCard label="Adoption" value={`${product!.confidenceScores?.adoptionLikelihood ?? 7}/10`} />
+                        <MetricCard label="Feasibility" value={`${product!.confidenceScores?.feasibility ?? 7}/10`} />
+                        <MetricCard label="Resonance" value={`${product!.confidenceScores?.emotionalResonance ?? 8}/10`} />
+                      </VisualGrid>
+                    </InsightCard>
                   )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="space-y-3">
-                      {product!.description && (
-                        <p className="typo-card-body text-foreground/80 leading-relaxed">{product!.description}</p>
-                      )}
-                      {product!.marketSizeEstimate && (
-                        <p className="typo-card-body font-semibold text-green-700">TAM: {product!.marketSizeEstimate}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <ScoreBar label="Adoption" score={product!.confidenceScores?.adoptionLikelihood ?? 7} />
-                      <ScoreBar label="Feasibility" score={product!.confidenceScores?.feasibility ?? 7} />
-                      <ScoreBar label="Resonance" score={product!.confidenceScores?.emotionalResonance ?? 8} />
-                    </div>
-                  </div>
-                  {product!.trendAnalysis && (
-                    <p className="typo-card-body text-foreground/70 leading-relaxed mt-3">{product!.trendAnalysis}</p>
-                  )}
-                  {product!.sources?.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {product!.sources.map((src: any) => (
-                        <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium bg-primary/5 text-primary">
-                          <ExternalLink size={9} /> {src.label?.slice(0, 30)}
-                        </a>
-                      ))}
-                    </div>
+                  {product!.description && (
+                    <InsightCard
+                      headline="Market Context"
+                      subtext={product!.description.length > 120 ? product!.description.slice(0, 120) + "…" : product!.description}
+                      detail={
+                        <div className="space-y-3">
+                          <p>{product!.description}</p>
+                          {product!.trendAnalysis && <p className="text-foreground/80">{product!.trendAnalysis}</p>}
+                          {product!.sources?.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {product!.sources.map((src: any) => (
+                                <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-primary/5 text-primary">
+                                  <ExternalLink size={9} /> {src.label?.slice(0, 30)}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      }
+                    />
                   )}
                 </SectionCard>
               </AnalysisVisualLayer>
@@ -365,50 +372,52 @@ export default function ShareableAnalysisPage() {
 
             {/* Community Intel */}
             {activeSection === "community" && ci && (
-              <SectionCard icon={MessageSquare} title="Community Intel">
+              <FrameworkPanel icon={MessageSquare} title="Community Intel" subtitle="Aggregated sentiment from user reviews and community discussions">
                 {(() => {
                   const sentiment = ci.communitySentiment || ci.redditSentiment;
                   const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
                   return (
                     <div className="space-y-3">
-                      {hasReal && <p className="typo-card-body text-foreground/80">{sentiment}</p>}
+                      {hasReal && (
+                        <InsightCard headline="Community Sentiment" subtext={sentiment} accentColor="hsl(217 91% 45%)" />
+                      )}
                       {ci.topComplaints?.length > 0 && (
-                        <div className="space-y-1">
-                          <p className="typo-card-eyebrow">Complaints</p>
-                          {ci.topComplaints.map((c: string, i: number) => (
-                            <div key={i} className="flex gap-2 items-start typo-card-body">
-                              <ShieldAlert size={10} className="text-destructive flex-shrink-0 mt-0.5" />
-                              <span className="text-foreground/80">{c}</span>
-                            </div>
-                          ))}
+                        <div className="space-y-1.5">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Top Complaints</p>
+                          <VisualGrid columns={2}>
+                            {ci.topComplaints.map((c: string, i: number) => (
+                              <SignalCard key={i} label={c} type="weakness" />
+                            ))}
+                          </VisualGrid>
                         </div>
                       )}
                       {ci.improvementRequests?.length > 0 && (
-                        <div className="space-y-1">
-                          <p className="typo-card-eyebrow">Requests</p>
-                          {ci.improvementRequests.map((r: string, i: number) => (
-                            <div key={i} className="flex gap-2 items-start typo-card-body">
-                              <Lightbulb size={10} className="text-blue-500 flex-shrink-0 mt-0.5" />
-                              <span className="text-foreground/80">{r}</span>
-                            </div>
-                          ))}
+                        <div className="space-y-1.5">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Improvement Requests</p>
+                          <VisualGrid columns={2}>
+                            {ci.improvementRequests.map((r: string, i: number) => (
+                              <SignalCard key={i} label={r} type="opportunity" />
+                            ))}
+                          </VisualGrid>
                         </div>
                       )}
                       {(product as any)?.reviews?.length > 0 && (
-                        <div className="space-y-1">
-                          <p className="typo-card-eyebrow">Reviews</p>
-                          {(product as any).reviews.map((review: any, i: number) => (
-                            <div key={i} className="flex gap-2 items-start text-xs">
-                              <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
-                              <span className="text-foreground/80">{review.text}</span>
-                            </div>
-                          ))}
-                        </div>
+                        <ExpandableDetail label={`${(product as any).reviews.length} Reviews`} icon={MessageSquare}>
+                          <div className="space-y-2 mt-2">
+                            {(product as any).reviews.map((review: any, i: number) => (
+                              <SignalCard
+                                key={i}
+                                label={review.text}
+                                type={review.sentiment === "positive" ? "strength" : review.sentiment === "negative" ? "weakness" : "neutral"}
+                              />
+                            ))}
+                          </div>
+                        </ExpandableDetail>
                       )}
                     </div>
                   );
                 })()}
-              </SectionCard>
+              </FrameworkPanel>
             )}
 
             {/* Pricing Intel */}
