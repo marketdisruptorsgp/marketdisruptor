@@ -39,6 +39,7 @@ const GovernanceAuditPage = lazy(() => import("./pages/GovernanceAuditPage"));
 const DemoPage = lazy(() => import("./pages/DemoPage"));
 const PipelinePage = lazy(() => import("./pages/PipelinePage"));
 const PipelineObservabilityPage = lazy(() => import("./pages/PipelineObservabilityPage"));
+const AdminArchitecturePage = lazy(() => import("./pages/AdminArchitecturePage"));
 
 const queryClient = new QueryClient();
 
@@ -137,6 +138,7 @@ function AppRoutes() {
       <Route path="/admin/analytics" element={<LazyRoute><AdminAnalyticsPage /></LazyRoute>} />
       <Route path="/admin/health" element={<LazyRoute><AdminHealthPage /></LazyRoute>} />
       <Route path="/admin/governance" element={<LazyRoute><GovernanceAuditPage /></LazyRoute>} />
+      <Route path="/admin/architecture" element={<LazyRoute><AdminArchitecturePage /></LazyRoute>} />
       <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
       <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
       <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
