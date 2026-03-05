@@ -9,7 +9,12 @@ import { CriticalValidation } from "@/components/CriticalValidation";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
-import { Swords, XCircle, BarChart3 } from "lucide-react";
+import { Swords, XCircle, BarChart3, Crosshair, LayoutDashboard } from "lucide-react";
+import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
+import { type LensType } from "@/lib/multiLensEngine";
+import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
+import { OpportunityMatrix } from "@/components/OpportunityMatrix";
+import { ETAExecutionPanel } from "@/components/ETAExecutionPanel";
 
 // ── Shared layout components ──
 import {
@@ -25,15 +30,19 @@ import {
   type TabDef,
 } from "@/components/analysis/AnalysisPageShell";
 
-const STRESS_TABS: TabDef<"debate" | "validate">[] = [
+const STRATEGY_TABS: TabDef<"opportunities" | "strategy" | "debate" | "validate">[] = [
+  { id: "opportunities", label: "Opportunities", icon: Crosshair },
+  { id: "strategy", label: "Strategy", icon: LayoutDashboard },
   { id: "debate", label: "Red Team", icon: XCircle, color: "hsl(0 72% 48%)" },
   { id: "validate", label: "Validate & Score", icon: BarChart3 },
 ];
 
+type StrategyTabId = "opportunities" | "strategy" | "debate" | "validate";
+
 export default function StressTestPage() {
   const [runTrigger, setRunTrigger] = React.useState(0);
   const [analysisLoading, setAnalysisLoading] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState<"debate" | "validate">("debate");
+  const [activeTab, setActiveTab] = React.useState<StrategyTabId>("opportunities");
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
@@ -48,6 +57,25 @@ export default function StressTestPage() {
 
   const baseUrl = `/analysis/${analysisId}`;
   const isOutdated = analysis.outdatedSteps.has("stressTest");
+
+  // Build system intelligence for Opportunities & Strategy tabs
+  const governedData = analysis.governedData as Record<string, unknown> | null;
+  const disruptData = analysis.disruptData as Record<string, unknown> | null;
+  const businessData = analysis.businessAnalysisData as Record<string, unknown> | null;
+  const flipIdeas = (disruptData?.flippedIdeas || (selectedProduct as any)?.flippedIdeas || []) as unknown[];
+  const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
+
+  const intelligenceInput: SystemIntelligenceInput | null = governedData ? {
+    analysisId: selectedProduct.id || "unknown",
+    governedData,
+    disruptData,
+    businessAnalysisData: businessData,
+    intelData: null,
+    flipIdeas,
+    activeLenses: activeModes.length > 1 ? activeModes : ["product", "service", "business"],
+  } : null;
+
+  const systemIntelligence = intelligenceInput ? buildSystemIntelligence(intelligenceInput) : null;
 
   return (
     <AnalysisPageShell tier={tier}>
@@ -65,19 +93,19 @@ export default function StressTestPage() {
         accentColor={theme.primary}
         backLabel="Redesign"
         backPath={`${baseUrl}/redesign`}
-        outdatedStepName={isOutdated ? "Stress Test" : undefined}
+        outdatedStepName={isOutdated ? "Strategy Development" : undefined}
       />
 
       <AnalysisContextBanner
         icon={Swords}
-        title="Stress Test"
-        description="Red Team vs Green Team adversarial debate — your idea is attacked and defended to expose blind spots, validate strengths, and deliver a clear survival judgment."
+        title="Strategy Development"
+        description="Opportunity prioritization, strategic command deck, and adversarial stress testing — your idea is attacked, defended, and scored."
         iconColor="hsl(350 80% 55%)"
       />
 
       <AnalysisActionToolbar
         analysisTitle={selectedProduct.name}
-        stepTitle="Stress Test"
+        stepTitle="Strategy Development"
         analysis={analysis}
         selectedProduct={selectedProduct}
         analysisId={analysisId}
@@ -89,23 +117,23 @@ export default function StressTestPage() {
         onChangeProfile={analysis.setStrategicProfile}
       />
 
-      {/* Tab buttons — only show after data loaded */}
-      {analysis.stressTestData && !analysisLoading && (
+      {/* Tab navigation — always visible */}
+      {!analysisLoading && (
         <AnalysisTabBar
-          tabs={STRESS_TABS}
+          tabs={STRATEGY_TABS}
           activeTab={activeTab}
-          onTabChange={(t) => setActiveTab(t as "debate" | "validate")}
+          onTabChange={(t) => setActiveTab(t as StrategyTabId)}
           accentColor={theme.primary}
         />
       )}
 
-      {analysis.stressTestData && !analysisLoading && <AnalysisDivider />}
+      {!analysisLoading && <AnalysisDivider />}
 
       {/* Loading Tracker */}
       {analysisLoading && (
         <AnalysisLoadingCard>
           <StepLoadingTracker
-            title="Running Stress Test"
+            title="Running Strategy Development"
             tasks={STRESS_TEST_TASKS}
             estimatedSeconds={30}
             accentColor="hsl(350 80% 55%)"
@@ -113,26 +141,82 @@ export default function StressTestPage() {
         </AnalysisLoadingCard>
       )}
 
-      {/* Content */}
-      <div style={{ display: analysisLoading ? "none" : undefined }}>
+      {/* ── Opportunities Tab ── */}
+      {activeTab === "opportunities" && !analysisLoading && (
         <AnalysisContentCard>
-          <CriticalValidation
-            product={selectedProduct}
-            analysisData={selectedProduct}
-            activeTab={activeTab}
-            externalData={analysis.stressTestData}
-            runTrigger={runTrigger}
-            onLoadingChange={setAnalysisLoading}
-            competitorIntel={analysis.scoutedCompetitors}
-            onDataLoaded={(d) => {
-              analysis.setStressTestData(d);
-              analysis.saveStepData("stressTest", d);
-              analysis.clearStepOutdated("stressTest");
-              analysis.markStepOutdated("pitchDeck");
-            }}
-          />
+          {systemIntelligence && systemIntelligence.scoredOpportunities.length > 0 && systemIntelligence.scoringSummary ? (
+            <OpportunityMatrix
+              opportunities={systemIntelligence.scoredOpportunities}
+              summary={systemIntelligence.scoringSummary}
+              governanceReport={systemIntelligence.governanceReport || undefined}
+              expandedFriction={systemIntelligence.expandedFriction || undefined}
+            />
+          ) : (
+            <div className="text-center py-12 space-y-2">
+              <Crosshair size={28} className="mx-auto text-muted-foreground" />
+              <p className="text-sm font-bold text-foreground">No opportunities scored yet</p>
+              <p className="text-xs text-muted-foreground">Run the Structural Analysis step first to generate opportunity data.</p>
+            </div>
+          )}
         </AnalysisContentCard>
-      </div>
+      )}
+
+      {/* ── Strategy Tab ── */}
+      {activeTab === "strategy" && !analysisLoading && (
+        <div className="space-y-3">
+          {systemIntelligence ? (
+            <>
+              <AnalysisContentCard>
+                <StrategicCommandDeck
+                  commandDeck={systemIntelligence.commandDeck}
+                  convergenceCount={systemIntelligence.convergenceZones.length}
+                  expandedFriction={systemIntelligence.expandedFriction}
+                  provenanceRegistry={systemIntelligence.provenanceRegistry}
+                  convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
+                />
+              </AnalysisContentCard>
+              <AnalysisContentCard>
+                <ETAExecutionPanel
+                  commandDeck={systemIntelligence.commandDeck}
+                  expandedFriction={systemIntelligence.expandedFriction}
+                  governedData={governedData}
+                />
+              </AnalysisContentCard>
+            </>
+          ) : (
+            <AnalysisContentCard>
+              <div className="text-center py-12 space-y-2">
+                <LayoutDashboard size={28} className="mx-auto text-muted-foreground" />
+                <p className="text-sm font-bold text-foreground">No strategic intelligence yet</p>
+                <p className="text-xs text-muted-foreground">Run the Structural Analysis step first.</p>
+              </div>
+            </AnalysisContentCard>
+          )}
+        </div>
+      )}
+
+      {/* ── Red Team / Validate Tabs (original stress test content) ── */}
+      {(activeTab === "debate" || activeTab === "validate") && (
+        <div style={{ display: analysisLoading ? "none" : undefined }}>
+          <AnalysisContentCard>
+            <CriticalValidation
+              product={selectedProduct}
+              analysisData={selectedProduct}
+              activeTab={activeTab === "debate" ? "debate" : "validate"}
+              externalData={analysis.stressTestData}
+              runTrigger={runTrigger}
+              onLoadingChange={setAnalysisLoading}
+              competitorIntel={analysis.scoutedCompetitors}
+              onDataLoaded={(d) => {
+                analysis.setStressTestData(d);
+                analysis.saveStepData("stressTest", d);
+                analysis.clearStepOutdated("stressTest");
+                analysis.markStepOutdated("pitchDeck");
+              }}
+            />
+          </AnalysisContentCard>
+        </div>
+      )}
 
       <NextStepButton
         stepNumber={6}

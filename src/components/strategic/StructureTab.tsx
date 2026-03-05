@@ -12,6 +12,8 @@ import { OpportunityMatrix } from "@/components/OpportunityMatrix";
 import { FrictionHeatmap } from "@/components/FrictionHeatmap";
 import { ETAExecutionPanel } from "@/components/ETAExecutionPanel";
 
+export type StructureViewMode = "assumptions" | "deconstruct" | "all";
+
 interface StructureTabProps {
   selectedProduct: Product;
   analysis: any; // AnalysisContext
@@ -25,6 +27,8 @@ interface StructureTabProps {
   products: Product[];
   runTrigger?: number;
   onLoadingChange?: (loading: boolean) => void;
+  /** Which sub-tab to render. Defaults to "all" (legacy behavior). */
+  viewMode?: StructureViewMode;
 }
 
 function StructureSection({
@@ -406,28 +410,37 @@ export function StructureTab({
   products,
   runTrigger,
   onLoadingChange,
+  viewMode = "all",
 }: StructureTabProps) {
   const assumptions = (analysis.disruptData as any)?.hiddenAssumptions || [];
+  const showAssumptions = viewMode === "all" || viewMode === "assumptions";
+  const showDeconstruct = viewMode === "all" || viewMode === "deconstruct";
 
   return (
     <div className="space-y-3">
-      {/* ── First Principles Methodology Banner ── */}
-      <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-            <Brain size={18} style={{ color: "white" }} />
+      {/* ── First Principles Methodology Banner (Assumptions view) ── */}
+      {showAssumptions && (
+        <div className="rounded-xl p-5 space-y-2.5" style={{ background: "hsl(var(--foreground))" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
+              <Brain size={18} style={{ color: "white" }} />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>
+                {viewMode === "assumptions" ? "Assumptions & Constraints" : "First Principles Decomposition"}
+              </h3>
+            </div>
           </div>
-          <div>
-            <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>First Principles Decomposition</h3>
-          </div>
+          <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
+            {viewMode === "assumptions"
+              ? "Every hidden assumption, structural constraint, and behavioral reality governing this market — ranked by strategic leverage potential."
+              : "Below, we've broken down every structural constraint, hidden assumption, and leverage point governing this market. You'll find the root forces that actually shape pricing, competition, and buyer behavior — stripped of industry jargon and conventional wisdom. Each constraint is ranked by how much strategic leverage it offers for disruption."}
+          </p>
         </div>
-        <p className="text-sm font-bold leading-relaxed pl-[48px]" style={{ color: "white" }}>
-          Below, we've broken down every structural constraint, hidden assumption, and leverage point governing this market. You'll find the root forces that actually shape pricing, competition, and buyer behavior — stripped of industry jargon and conventional wisdom. Each constraint is ranked by how much strategic leverage it offers for disruption.
-        </p>
-      </div>
+      )}
 
-      {/* ── Evaluation Path (from reasoning synopsis) ── */}
-      {(() => {
+      {/* ── Evaluation Path (Assumptions view) ── */}
+      {showAssumptions && (() => {
         const ep = (synopsisData as any)?.evaluation_path;
         if (!ep) return null;
         const dims: string[] = ep.dimensions_examined || [];
@@ -464,14 +477,14 @@ export function StructureTab({
         );
       })()}
 
-      {/* ── System Intelligence Layer — Central Visual Intelligence ── */}
+      {/* ── System Intelligence Layer ── */}
       {(() => {
         const disruptData = analysis.disruptData as Record<string, unknown> | null;
         const businessData = analysis.businessAnalysisData as Record<string, unknown> | null;
         const flipIdeas = (disruptData?.flippedIdeas || selectedProduct?.flippedIdeas || []) as unknown[];
         const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
 
-        // Loading fallback: if governed data isn't ready yet, show skeleton
+        // Loading fallback
         if (!governedData) {
           return (
             <div className="rounded-xl p-8 flex flex-col items-center gap-3 animate-fade-in" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
@@ -503,55 +516,73 @@ export function StructureTab({
 
         return (
           <>
-            {/* Strategic Command Deck */}
-            <StructureSection
-              title="Strategic Command Deck"
-              icon={LayoutDashboard}
-              defaultOpen={true}
-              badge={systemIntelligence.convergenceZones.length > 0
-                ? `${systemIntelligence.convergenceZones.length} convergence zone${systemIntelligence.convergenceZones.length !== 1 ? "s" : ""}`
-                : undefined}
-            >
-              <StrategicCommandDeck
-                commandDeck={systemIntelligence.commandDeck}
-                convergenceCount={systemIntelligence.convergenceZones.length}
-                expandedFriction={systemIntelligence.expandedFriction}
-                provenanceRegistry={systemIntelligence.provenanceRegistry}
-                convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
-              />
-            </StructureSection>
+            {/* ── Deconstruct view: LeverageMap + FrictionHeatmap ── */}
+            {showDeconstruct && (
+              <>
+                {/* Strategic Command Deck — visible in deconstruct */}
+                <StructureSection
+                  title="Strategic Command Deck"
+                  icon={LayoutDashboard}
+                  defaultOpen={true}
+                  badge={systemIntelligence.convergenceZones.length > 0
+                    ? `${systemIntelligence.convergenceZones.length} convergence zone${systemIntelligence.convergenceZones.length !== 1 ? "s" : ""}`
+                    : undefined}
+                >
+                  <StrategicCommandDeck
+                    commandDeck={systemIntelligence.commandDeck}
+                    convergenceCount={systemIntelligence.convergenceZones.length}
+                    expandedFriction={systemIntelligence.expandedFriction}
+                    provenanceRegistry={systemIntelligence.provenanceRegistry}
+                    convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
+                  />
+                </StructureSection>
 
-            {/* Cross-Lens Friction Heatmap */}
-            {systemIntelligence.leverageMap && intelligenceInput.activeLenses.length >= 2 && (
-              <StructureSection
-                title="Cross-Lens Friction Heatmap"
-                icon={Flame}
-                defaultOpen={false}
-              >
-                <FrictionHeatmap
-                  allNodes={systemIntelligence.leverageMap.nodes}
-                  activeLenses={intelligenceInput.activeLenses}
-                />
-              </StructureSection>
+                {/* Cross-Lens Friction Heatmap */}
+                {systemIntelligence.leverageMap && intelligenceInput.activeLenses.length >= 2 && (
+                  <StructureSection
+                    title="Cross-Lens Friction Heatmap"
+                    icon={Flame}
+                    defaultOpen={false}
+                  >
+                    <FrictionHeatmap
+                      allNodes={systemIntelligence.leverageMap.nodes}
+                      activeLenses={intelligenceInput.activeLenses}
+                    />
+                  </StructureSection>
+                )}
+
+                {/* System Leverage Map */}
+                <StructureSection
+                  title="System Leverage Map"
+                  icon={Network}
+                  defaultOpen={true}
+                  badge={systemIntelligence.leverageMap.convergenceZones.length > 0
+                    ? `${systemIntelligence.leverageMap.convergenceZones.length} convergence${provenanceBadge ? ` · ${provenanceBadge}` : ""}`
+                    : provenanceBadge}
+                >
+                  <SystemLeverageMapView
+                    map={systemIntelligence.leverageMap}
+                    availableLenses={intelligenceInput.activeLenses}
+                  />
+                </StructureSection>
+
+                {/* ETA Execution Assessment */}
+                <StructureSection
+                  title="Execution Assessment"
+                  icon={Gauge}
+                  defaultOpen={true}
+                >
+                  <ETAExecutionPanel
+                    commandDeck={systemIntelligence.commandDeck}
+                    expandedFriction={systemIntelligence.expandedFriction}
+                    governedData={governedData}
+                  />
+                </StructureSection>
+              </>
             )}
 
-            {/* System Leverage Map */}
-            <StructureSection
-              title="System Leverage Map"
-              icon={Network}
-              defaultOpen={true}
-              badge={systemIntelligence.leverageMap.convergenceZones.length > 0
-                ? `${systemIntelligence.leverageMap.convergenceZones.length} convergence${provenanceBadge ? ` · ${provenanceBadge}` : ""}`
-                : provenanceBadge}
-            >
-              <SystemLeverageMapView
-                map={systemIntelligence.leverageMap}
-                availableLenses={intelligenceInput.activeLenses}
-              />
-             </StructureSection>
-
-            {/* Opportunity Prioritization Matrix */}
-            {systemIntelligence.scoredOpportunities.length > 0 && systemIntelligence.scoringSummary && (
+            {/* ── Assumptions view: Opportunity Matrix (constraint-driven) ── */}
+            {showAssumptions && systemIntelligence.scoredOpportunities.length > 0 && systemIntelligence.scoringSummary && (
               <StructureSection
                 title="Opportunity Matrix"
                 icon={BarChart3}
@@ -564,54 +595,45 @@ export function StructureTab({
                   governanceReport={systemIntelligence.governanceReport || undefined}
                   expandedFriction={systemIntelligence.expandedFriction || undefined}
                 />
-               </StructureSection>
+              </StructureSection>
             )}
-
-            {/* ETA Execution Assessment */}
-            <StructureSection
-              title="Execution Assessment"
-              icon={Gauge}
-              defaultOpen={true}
-            >
-              <ETAExecutionPanel
-                commandDeck={systemIntelligence.commandDeck}
-                expandedFriction={systemIntelligence.expandedFriction}
-                governedData={governedData}
-              />
-            </StructureSection>
           </>
         );
       })()}
 
-      {/* Fundamental Constraints & System Structure */}
-      <StructureSection
-        title="Fundamental Constraints"
-        icon={Atom}
-        defaultOpen={true}
-        badge={hasDisruptData ? "Decomposed" : undefined}
-      >
-        <FirstPrinciplesSection governedData={governedData} />
-      </StructureSection>
+      {/* Fundamental Constraints & System Structure (Assumptions view) */}
+      {showAssumptions && (
+        <StructureSection
+          title="Fundamental Constraints"
+          icon={Atom}
+          defaultOpen={true}
+          badge={hasDisruptData ? "Decomposed" : undefined}
+        >
+          <FirstPrinciplesSection governedData={governedData} />
+        </StructureSection>
+      )}
 
-      {/* Unified Assumptions & Leverage */}
-      <StructureSection
-        title="Assumptions & Leverage"
-        icon={Brain}
-        defaultOpen={hasDisruptData}
-        badge={(() => {
-          const hiddenCount = assumptions.length;
-          const viabilityCount = ((governedData?.first_principles as any)?.viability_assumptions || []).length;
-          const total = hiddenCount + viabilityCount;
-          return total > 0 ? `${total} identified` : undefined;
-        })()}
-      >
-        <UnifiedAssumptionsSection
-          governedData={governedData}
-          hiddenAssumptions={assumptions}
-        />
-      </StructureSection>
+      {/* Unified Assumptions & Leverage (Assumptions view) */}
+      {showAssumptions && (
+        <StructureSection
+          title="Assumptions & Leverage"
+          icon={Brain}
+          defaultOpen={hasDisruptData}
+          badge={(() => {
+            const hiddenCount = assumptions.length;
+            const viabilityCount = ((governedData?.first_principles as any)?.viability_assumptions || []).length;
+            const total = hiddenCount + viabilityCount;
+            return total > 0 ? `${total} identified` : undefined;
+          })()}
+        >
+          <UnifiedAssumptionsSection
+            governedData={governedData}
+            hiddenAssumptions={assumptions}
+          />
+        </StructureSection>
+      )}
 
-      {/* Analysis Engine (still needed for running/re-running the core analysis) */}
+      {/* Analysis Engine (hidden — runs the core analysis) */}
       <div className="hidden">
         <FirstPrinciplesAnalysis
           product={selectedProduct}
