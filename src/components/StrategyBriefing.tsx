@@ -103,29 +103,29 @@ export function StrategyBriefing({ data, accentColor = "hsl(var(--primary))" }: 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Avoid column */}
-          <div className={`${cardBase} p-4 space-y-3`}>
+          <div className={`${cardBase} p-4 space-y-4`}>
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-destructive">
               <OctagonX size={12} />
               Do Not Challenge
             </div>
             {data.positioning.avoid.map((a, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm">
-                <span className="font-bold text-foreground shrink-0">{a.competitor}</span>
-                <span className="text-foreground/70">— {a.reason}</span>
+              <div key={i} className="space-y-1">
+                <p className="text-sm font-bold text-foreground">{a.competitor}</p>
+                <p className="text-xs text-foreground/70 leading-relaxed">— {a.reason}</p>
               </div>
             ))}
           </div>
 
           {/* Challenge column */}
-          <div className={`${cardBase} p-4 space-y-3`}>
+          <div className={`${cardBase} p-4 space-y-4`}>
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: "hsl(142 71% 45%)" }}>
               <Swords size={12} />
               Challenge Head-On
             </div>
             {data.positioning.challenge.map((c, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm">
-                <span className="font-bold text-foreground shrink-0">{c.competitor}</span>
-                <span className="text-foreground/70">— {c.angle}</span>
+              <div key={i} className="space-y-1">
+                <p className="text-sm font-bold text-foreground">{c.competitor}</p>
+                <p className="text-xs text-foreground/70 leading-relaxed">— {c.angle}</p>
               </div>
             ))}
           </div>
@@ -143,7 +143,7 @@ export function StrategyBriefing({ data, accentColor = "hsl(var(--primary))" }: 
           <DollarSign size={14} strokeWidth={2.5} />
           Business Model Angles
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {data.businessModelAngles.map((m, i) => (
             <div key={i} className={`${cardBase} p-4 space-y-2`}>
               <p className="text-sm font-bold text-foreground">{m.name}</p>
