@@ -543,8 +543,9 @@ export function StructureTab({
                   opportunities={systemIntelligence.scoredOpportunities}
                   summary={systemIntelligence.scoringSummary}
                   governanceReport={systemIntelligence.governanceReport || undefined}
+                  expandedFriction={systemIntelligence.expandedFriction || undefined}
                 />
-              </StructureSection>
+               </StructureSection>
             )}
           </>
         );
