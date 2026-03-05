@@ -57,7 +57,7 @@ export const STEP_VISUAL_CONFIG: Record<AnalysisStep, StepVisualConfig> = {
   firstPrinciples: {
     type: "structural_system_model",
     question: "What are the fundamental structural forces?",
-    label: "First Principles Model",
+    label: "Structural Model",
   },
   businessModel: {
     type: "solution_architecture",

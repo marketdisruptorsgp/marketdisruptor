@@ -43,6 +43,17 @@ import {
   type TabDef,
 } from "@/components/analysis/AnalysisPageShell";
 
+// ── Standardized analysis components ──
+import {
+  StepCanvas,
+  InsightCard,
+  FrameworkPanel,
+  SignalCard,
+  MetricCard,
+  VisualGrid,
+  ExpandableDetail,
+} from "@/components/analysis/AnalysisComponents";
+
 /* ── Section tab config ── */
 function getAvailableSections(selectedProduct: any, isService: boolean): TabDef[] {
   const tabs: TabDef[] = [
@@ -188,41 +199,63 @@ export default function ReportPage() {
           step="report"
           governedOverride={analysis.governedData}
         >
-          <AnalysisSectionCard icon={Target} title="Overview">
+          <StepCanvas>
+            {/* Key Insight — visual-first, leads the section */}
             {selectedProduct.keyInsight && (
-              <div className="insight-callout mb-3">
-                <p className="typo-card-body font-semibold leading-snug">{selectedProduct.keyInsight}</p>
-              </div>
+              <InsightCard
+                icon={Target}
+                headline={selectedProduct.keyInsight}
+                accentColor={modeAccent}
+                badge={selectedProduct.marketSizeEstimate ? `TAM: ${selectedProduct.marketSizeEstimate}` : undefined}
+                badgeColor="hsl(152 60% 44%)"
+              >
+                {/* Score bars — visual signal density */}
+                <VisualGrid columns={3}>
+                  <MetricCard
+                    label="Adoption"
+                    value={`${selectedProduct.confidenceScores?.adoptionLikelihood ?? 7}/10`}
+                    accentColor={modeAccent}
+                  />
+                  <MetricCard
+                    label="Feasibility"
+                    value={`${selectedProduct.confidenceScores?.feasibility ?? 7}/10`}
+                    accentColor={modeAccent}
+                  />
+                  <MetricCard
+                    label="Resonance"
+                    value={`${selectedProduct.confidenceScores?.emotionalResonance ?? 8}/10`}
+                    accentColor={modeAccent}
+                  />
+                </VisualGrid>
+              </InsightCard>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-3">
-                {selectedProduct.description && (
-                  <p className="typo-card-body text-foreground/80 leading-relaxed">{selectedProduct.description}</p>
-                )}
-                {selectedProduct.marketSizeEstimate && (
-                  <p className="typo-card-body font-semibold text-green-700">TAM: {selectedProduct.marketSizeEstimate}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <ScoreBar label="Adoption" score={selectedProduct.confidenceScores?.adoptionLikelihood ?? 7} />
-                <ScoreBar label="Feasibility" score={selectedProduct.confidenceScores?.feasibility ?? 7} />
-                <ScoreBar label="Resonance" score={selectedProduct.confidenceScores?.emotionalResonance ?? 8} />
-              </div>
-            </div>
-            {selectedProduct.trendAnalysis && (
-              <p className="typo-card-body text-foreground/70 leading-relaxed mt-3">{selectedProduct.trendAnalysis}</p>
+
+            {/* Description — expandable detail, not a wall of text */}
+            {selectedProduct.description && (
+              <InsightCard
+                headline="Market Context"
+                subtext={selectedProduct.description.length > 120 ? selectedProduct.description.slice(0, 120) + "…" : selectedProduct.description}
+                detail={
+                  <div className="space-y-3">
+                    <p>{selectedProduct.description}</p>
+                    {selectedProduct.trendAnalysis && (
+                      <p className="text-foreground/80">{selectedProduct.trendAnalysis}</p>
+                    )}
+                    {selectedProduct.sources?.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {selectedProduct.sources.map((src: any) => (
+                          <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-primary/5 text-primary">
+                            <ExternalLink size={9} /> {src.label?.slice(0, 30)}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                }
+              />
             )}
-            {selectedProduct.sources?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {selectedProduct.sources.map((src: any) => (
-                  <a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded typo-card-meta font-medium bg-primary/5 text-primary">
-                    <ExternalLink size={9} /> {src.label?.slice(0, 30)}
-                  </a>
-                ))}
-              </div>
-            )}
-          </AnalysisSectionCard>
+          </StepCanvas>
         </AnalysisVisualLayer>
       )}
 
@@ -251,50 +284,52 @@ export default function ReportPage() {
       )}
 
       {activeSection === "community" && ci && (
-        <AnalysisSectionCard icon={MessageSquare} title="Community Intel">
+        <FrameworkPanel icon={MessageSquare} title="Community Intel" subtitle="Aggregated sentiment from user reviews and community discussions">
           {(() => {
             const sentiment = ci.communitySentiment || ci.redditSentiment;
             const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
             return (
               <div className="space-y-3">
-                {hasReal && <p className="typo-card-body text-foreground/80">{sentiment}</p>}
+                {hasReal && (
+                  <InsightCard headline="Community Sentiment" subtext={sentiment} accentColor="hsl(217 91% 45%)" />
+                )}
                 {ci.topComplaints?.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="typo-card-eyebrow">Complaints</p>
-                    {ci.topComplaints.map((c: string, i: number) => (
-                      <div key={i} className="flex gap-2 items-start typo-card-body">
-                        <ShieldAlert size={10} className="text-destructive flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground/80">{c}</span>
-                      </div>
-                    ))}
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Top Complaints</p>
+                    <VisualGrid columns={2}>
+                      {ci.topComplaints.map((c: string, i: number) => (
+                        <SignalCard key={i} label={c} type="weakness" />
+                      ))}
+                    </VisualGrid>
                   </div>
                 )}
                 {ci.improvementRequests?.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="typo-card-eyebrow">Requests</p>
-                    {ci.improvementRequests.map((r: string, i: number) => (
-                      <div key={i} className="flex gap-2 items-start typo-card-body">
-                        <Lightbulb size={10} className="text-blue-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground/80">{r}</span>
-                      </div>
-                    ))}
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Improvement Requests</p>
+                    <VisualGrid columns={2}>
+                      {ci.improvementRequests.map((r: string, i: number) => (
+                        <SignalCard key={i} label={r} type="opportunity" />
+                      ))}
+                    </VisualGrid>
                   </div>
                 )}
                 {selectedProduct.reviews?.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="typo-card-eyebrow">Reviews</p>
-                    {selectedProduct.reviews.map((review: any, i: number) => (
-                      <div key={i} className="flex gap-2 items-start text-xs">
-                        <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${review.sentiment === "positive" ? "bg-green-500" : review.sentiment === "negative" ? "bg-red-500" : "bg-yellow-500"}`} />
-                        <span className="text-foreground/80">{review.text}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <ExpandableDetail label={`${selectedProduct.reviews.length} Reviews`} icon={MessageSquare}>
+                    <div className="space-y-2 mt-2">
+                      {selectedProduct.reviews.map((review: any, i: number) => (
+                        <SignalCard
+                          key={i}
+                          label={review.text}
+                          type={review.sentiment === "positive" ? "strength" : review.sentiment === "negative" ? "weakness" : "neutral"}
+                        />
+                      ))}
+                    </div>
+                  </ExpandableDetail>
                 )}
               </div>
             );
           })()}
-        </AnalysisSectionCard>
+        </FrameworkPanel>
       )}
 
       {activeSection === "pricing" && selectedProduct.pricingIntel && (

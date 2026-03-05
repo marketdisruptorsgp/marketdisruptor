@@ -427,7 +427,7 @@ export function StructureTab({
             </div>
             <div>
               <h3 className="font-extrabold text-base leading-tight" style={{ color: "white" }}>
-                {viewMode === "assumptions" ? "Assumptions & Constraints" : "First Principles Decomposition"}
+                {viewMode === "assumptions" ? "Assumptions & Constraints" : "Structural Decomposition"}
               </h3>
             </div>
           </div>

@@ -98,7 +98,7 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
         <div className="rounded-xl border border-border bg-card p-4">
           <p className="typo-card-title mb-1">How Users Analyze</p>
           <p className="typo-card-meta text-muted-foreground mb-3 leading-relaxed">
-            Breakdown of which analysis modes the community uses most. Product mode deconstructs physical/digital products. Service mode targets service businesses. Business Model mode examines revenue structures. First Principles strips assumptions entirely.
+            Breakdown of which analysis modes the community uses most. Product mode deconstructs physical/digital products. Service mode targets service businesses. Business Model mode examines revenue structures.
           </p>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
