@@ -11,14 +11,24 @@ import {
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 
-import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 import { StepLoadingTracker, STRESS_TEST_TASKS } from "@/components/StepLoadingTracker";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 
+// ── Standardized analysis components ──
+import {
+  StepCanvas,
+  InsightCard,
+  FrameworkPanel,
+  SignalCard,
+  VisualGrid,
+  ExpandableDetail,
+  MetricCard,
+  EvidenceCard,
+  AnalysisPanel,
+} from "@/components/analysis/AnalysisComponents";
+
 /**
  * Error-safe wrapper for AnalysisVisualLayer in stress test context.
- * Stress test data has a different shape than product data,
- * so we catch rendering errors gracefully.
  */
 class StressTestVisualWrapper extends React.Component<
   { analysis: Record<string, unknown>; governedData: Record<string, unknown> | null; children: React.ReactNode },
@@ -28,17 +38,9 @@ class StressTestVisualWrapper extends React.Component<
   static getDerivedStateFromError() { return { hasError: true }; }
   componentDidCatch(error: Error) { console.warn("[StressTest] Visual layer error (non-fatal):", error.message); }
   render() {
-    if (this.state.hasError) {
-      // Render children without visual layer on error
-      return <div className="space-y-4">{this.props.children}</div>;
-    }
-    // Use the already-imported AnalysisVisualLayer
+    if (this.state.hasError) return <div className="space-y-4">{this.props.children}</div>;
     return (
-      <AnalysisVisualLayer
-        analysis={this.props.analysis}
-        step="stressTest"
-        governedOverride={this.props.governedData}
-      >
+      <AnalysisVisualLayer analysis={this.props.analysis} step="stressTest" governedOverride={this.props.governedData}>
         {this.props.children}
       </AnalysisVisualLayer>
     );
@@ -135,28 +137,20 @@ interface CriticalValidationProps {
   competitorIntel?: unknown[];
 }
 
-const SEVERITY_STYLES = {
-  critical: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--destructive))", label: "CRITICAL" },
-  major: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(38 92% 35%)", label: "MAJOR" },
-  minor: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--muted-foreground))", label: "MINOR" },
+const SEVERITY_MAP: Record<string, "threat" | "weakness" | "neutral"> = {
+  critical: "threat", major: "weakness", minor: "neutral",
 };
 
-const STRENGTH_STYLES = {
-  strong: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(142 70% 30%)", label: "STRONG" },
-  moderate: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--primary))", label: "MODERATE" },
-  conditional: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(38 92% 35%)", label: "CONDITIONAL" },
+const STRENGTH_MAP: Record<string, "strength" | "opportunity" | "neutral"> = {
+  strong: "strength", moderate: "opportunity", conditional: "neutral",
 };
 
-const OUTCOME_STYLES = {
-  succeeded: { bg: "hsl(var(--muted))", text: "hsl(142 70% 30%)", icon: TrendingUp },
-  failed: { bg: "hsl(var(--muted))", text: "hsl(var(--destructive))", icon: TrendingDown },
-  pivoted: { bg: "hsl(var(--muted))", text: "hsl(38 92% 35%)", icon: RefreshCw },
+const OUTCOME_MAP: Record<string, "strength" | "threat" | "opportunity"> = {
+  succeeded: "strength", failed: "threat", pivoted: "opportunity",
 };
 
-const STATUS_STYLES = {
-  critical: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--destructive))" },
-  important: { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(38 92% 35%)" },
-  "nice-to-have": { bg: "hsl(var(--muted))", border: "hsl(var(--border))", text: "hsl(var(--muted-foreground))" },
+const STATUS_MAP: Record<string, "threat" | "weakness" | "neutral"> = {
+  critical: "threat", important: "weakness", "nice-to-have": "neutral",
 };
 
 const SCORE_LABELS: Record<string, { label: string; icon: typeof Brain }> = {
@@ -167,54 +161,13 @@ const SCORE_LABELS: Record<string, { label: string; icon: typeof Brain }> = {
   overallViability: { label: "Overall Viability", icon: BarChart3 },
 };
 
-const DEBATE_SECTIONS = [
-  { id: "debate", label: "Red vs Green Debate", icon: Swords },
-  { id: "validate", label: "Validate & Score", icon: CheckCircle2 },
-];
-
-/** Collapsible argument card — shows headline + badge, body collapsed if >100 chars */
-function CollapsibleArgCard({ title, body, badgeLabel, badgeColor, annotation, annotationColor, ratingId, pitchKey }: {
-  title: string; body: string; badgeLabel: string; badgeColor: string;
-  annotation?: string; annotationColor?: string;
-  ratingId: string; pitchKey: string;
-}) {
-  const isLong = body.length > 100;
-  const [expanded, setExpanded] = React.useState(!isLong);
-
-  return (
-    <div className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-      <div className="flex items-center justify-between mb-1.5">
-        <p className="text-sm font-bold text-foreground">{title}</p>
-        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider" style={{ background: `${badgeColor}15`, color: badgeColor }}>{badgeLabel}</span>
-      </div>
-      {isLong && !expanded ? (
-        <>
-          <p className="text-sm text-foreground/80 leading-relaxed">{body.slice(0, 100)}…</p>
-          <button onClick={() => setExpanded(true)} className="text-[11px] font-bold text-muted-foreground hover:text-foreground mt-1">Read more</button>
-        </>
-      ) : (
-        <p className="text-sm text-foreground/80 leading-relaxed">{body}</p>
-      )}
-      {annotation && expanded && (
-        <p className="text-[11px] mt-1.5 font-medium" style={{ color: annotationColor }}>{annotation}</p>
-      )}
-      <div className="flex items-center justify-between mt-2">
-        <InsightRating sectionId={ratingId} compact />
-        <PitchDeckToggle contentKey={pitchKey} label="Include in Pitch" />
-      </div>
-    </div>
-  );
-}
-
 export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
   const [userSuggestions, setUserSuggestions] = useState("");
 
-  // Expose loading to parent
   React.useEffect(() => { onLoadingChange?.(loading); }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Parent-triggered re-run via runTrigger counter
   const runTriggerRef = React.useRef(runTrigger ?? 0);
   React.useEffect(() => {
     if (runTrigger !== undefined && runTrigger > runTriggerRef.current && !loading) {
@@ -242,7 +195,6 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
   const runValidation = async () => {
     setLoading(true);
     try {
-      // Build branch-isolated payload if active
       let activeBranch: unknown = undefined;
       if (governedData && activeBranchId) {
         const { getBranchPayload } = await import("@/lib/branchContext");
@@ -252,8 +204,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined, activeBranch, adaptiveContext: adaptiveContextRef || undefined, competitorIntel: competitorIntel?.length ? competitorIntel : undefined },
       }, 180_000);
       if (error || !result?.success) {
-        const msg = result?.error || error?.message || "Validation failed";
-        toast.error(msg);
+        toast.error(result?.error || error?.message || "Validation failed");
       } else {
         setData(result.validation);
         onDataLoaded?.(result.validation);
@@ -268,12 +219,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
   if (!data && loading) {
     return (
-      <StepLoadingTracker
-        title="Running Stress Test"
-        tasks={STRESS_TEST_TASKS}
-        estimatedSeconds={30}
-        accentColor="hsl(350 80% 55%)"
-      />
+      <StepLoadingTracker title="Running Stress Test" tasks={STRESS_TEST_TASKS} estimatedSeconds={30} accentColor="hsl(350 80% 55%)" />
     );
   }
 
@@ -284,78 +230,71 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           <Swords size={30} style={{ color: "hsl(350 80% 55%)" }} />
         </div>
         <div>
-          <h3 className="typo-section-title mb-1">Critical Validation</h3>
-          <p className="typo-card-body text-muted-foreground max-w-sm leading-relaxed">
+          <h3 className="text-lg font-bold text-foreground mb-1">Critical Validation</h3>
+          <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
             Red Team vs Green Team debate, precedents, feasibility checklist, and confidence scoring.
           </p>
         </div>
-        <DetailPanel title="Steer the Stress Test (optional)" icon={Eye}>
+        <ExpandableDetail label="Steer the Stress Test (optional)" icon={Eye} defaultExpanded>
           <textarea
             value={userSuggestions}
             onChange={(e) => setUserSuggestions(e.target.value)}
             placeholder="e.g. Focus on pricing pressure, test subscription model, consider regulatory risks…"
-            className="w-full rounded-lg px-3 py-2.5 typo-card-body leading-relaxed resize-none transition-colors focus:outline-none mb-2"
+            className="w-full rounded-lg px-3 py-2.5 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
             rows={2}
             style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
           />
-        </DetailPanel>
+        </ExpandableDetail>
         <button
           onClick={runValidation}
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg typo-button-primary transition-colors"
+          className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-colors"
           style={{ background: "hsl(350 80% 55%)", color: "white", opacity: loading ? 0.7 : 1 }}
         >
           <Swords size={15} /> Run Critical Validation
         </button>
-        <p className="typo-card-meta text-muted-foreground">Requires completed Deconstruct analysis · ~20-30s</p>
+        <p className="text-[11px] font-bold text-muted-foreground">Requires completed Deconstruct analysis · ~20-30s</p>
       </div>
     );
   }
 
-  const currentTabIdx = DEBATE_SECTIONS.findIndex(s => s.id === activeTab);
-
+  // ═══ DEBATE TAB ═══
   if (activeTab === "debate") {
-    // Build a safe analysis object for the visual layer — stress test data shape differs from product data
     const safeAnalysisForVisual: Record<string, unknown> = {
-      redTeam: data.redTeam,
-      blueTeam: data.blueTeam,
-      blindSpots: data.blindSpots,
+      redTeam: data.redTeam, blueTeam: data.blueTeam, blindSpots: data.blindSpots,
       strategicRecommendations: data.strategicRecommendations,
       ...(data.visualSpecs ? { visualSpecs: data.visualSpecs } : {}),
     };
 
     return (
-      <div className="space-y-4">
-        <SectionHeader current={1} total={2} label="Red vs Green Debate" icon={Swords} />
-
+      <StepCanvas>
         {/* Re-run (collapsed) */}
-        <DetailPanel title="Refine your analysis — add direction, then Re-run" icon={Eye} defaultOpen>
+        <ExpandableDetail label="Refine your analysis — add direction, then Re-run" icon={Eye} defaultExpanded>
           <div className="flex items-center justify-between gap-2 mb-2">
             <textarea
               value={userSuggestions}
               onChange={(e) => setUserSuggestions(e.target.value)}
               placeholder="e.g. Focus more on regulatory risks, test pricing at $X…"
-              className="flex-1 rounded-lg px-3 py-2 typo-card-body leading-relaxed resize-none transition-colors focus:outline-none"
+              className="flex-1 rounded-lg px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none"
               rows={2}
               style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
             />
             <button
               onClick={runValidation}
               disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg typo-button-secondary transition-colors flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex-shrink-0"
               style={{ background: "hsl(350 80% 55%)", color: "white", opacity: loading ? 0.7 : 1 }}
             >
               {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
               Re-run
             </button>
           </div>
-        </DetailPanel>
+        </ExpandableDetail>
 
         {/* ═══ SPLIT ARENA: Red (left) vs Green (right) ═══ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 rounded-2xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-          {/* ── RED TEAM (left) ── */}
+          {/* ── RED TEAM ── */}
           <div className="relative" style={{ background: "hsl(0 72% 52% / 0.04)" }}>
-            {/* Red header band */}
             <div className="px-5 py-4 flex items-center gap-3" style={{ background: "hsl(0 72% 48%)" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
                 <XCircle size={18} style={{ color: "white" }} />
@@ -368,35 +307,48 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
             <div className="p-4 space-y-3">
               {/* Verdict */}
-              <div className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(0 72% 52% / 0.15)" }}>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(0 72% 48%)" }}>Verdict</p>
-                <p className="text-sm text-foreground leading-relaxed">{data.redTeam.verdict}</p>
-              </div>
+              <InsightCard headline={data.redTeam.verdict} badge="VERDICT" badgeColor="hsl(0 72% 48%)" accentColor="hsl(0 72% 48%)" />
 
               {/* Arguments */}
               {(data.redTeam?.arguments || []).map((arg, i) => (
-                <CollapsibleArgCard key={i} title={arg.title} body={arg.argument} badgeLabel={SEVERITY_STYLES[arg.severity]?.label || "MINOR"} badgeColor={(SEVERITY_STYLES[arg.severity] || SEVERITY_STYLES.minor).text} annotation={arg.biasExposed ? `Bias: ${arg.biasExposed}` : undefined} annotationColor="hsl(271 81% 45%)" ratingId={`red-${i}`} pitchKey={`stress-red-${i}`} />
+                <InsightCard
+                  key={i}
+                  headline={arg.title}
+                  subtext={arg.argument.length > 100 ? arg.argument.slice(0, 100) + "…" : arg.argument}
+                  badge={arg.severity.toUpperCase()}
+                  badgeColor={arg.severity === "critical" ? "hsl(var(--destructive))" : arg.severity === "major" ? "hsl(38 92% 35%)" : "hsl(var(--muted-foreground))"}
+                  accentColor="hsl(0 72% 48%)"
+                  detail={
+                    <div className="space-y-2">
+                      {arg.argument.length > 100 && <p className="text-sm text-foreground/80 leading-relaxed">{arg.argument}</p>}
+                      {arg.biasExposed && (
+                        <p className="text-xs font-bold" style={{ color: "hsl(271 81% 45%)" }}>Bias exposed: {arg.biasExposed}</p>
+                      )}
+                    </div>
+                  }
+                  action={
+                    <div className="flex items-center gap-2">
+                      <InsightRating sectionId={`red-${i}`} compact />
+                      <PitchDeckToggle contentKey={`stress-red-${i}`} label="Pitch" />
+                    </div>
+                  }
+                />
               ))}
 
               {/* Kill Shot */}
-              <div className="rounded-xl p-3.5" style={{ background: "hsl(0 72% 52% / 0.06)", border: "1px solid hsl(0 72% 52% / 0.18)" }}>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(0 72% 48%)" }}>
-                  <Flame size={11} /> Kill Shot
-                </p>
-                <p className="text-sm font-semibold text-foreground leading-relaxed">{data.redTeam.killShot}</p>
-                <div className="flex justify-end mt-2">
-                  <PitchDeckToggle contentKey="stress-killshot" label="Include in Pitch" />
-                </div>
-              </div>
+              <InsightCard
+                icon={Flame}
+                headline={data.redTeam.killShot}
+                badge="KILL SHOT"
+                badgeColor="hsl(0 72% 48%)"
+                accentColor="hsl(0 72% 48%)"
+                action={<PitchDeckToggle contentKey="stress-killshot" label="Pitch" />}
+              />
             </div>
           </div>
 
-          {/* ── CENTER VS DIVIDER (visible on md+) ── */}
-          {/* The grid gap=0 + border between cells creates natural division */}
-
-          {/* ── GREEN TEAM (right) ── */}
+          {/* ── GREEN TEAM ── */}
           <div className="relative" style={{ background: "hsl(142 60% 45% / 0.04)", borderLeft: "1px solid hsl(var(--border))" }}>
-            {/* Green header band */}
             <div className="px-5 py-4 flex items-center gap-3" style={{ background: "hsl(142 60% 38%)" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "hsl(0 0% 100% / 0.2)" }}>
                 <CheckCircle2 size={18} style={{ color: "white" }} />
@@ -409,123 +361,119 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
 
             <div className="p-4 space-y-3">
               {/* Verdict */}
-              <div className="rounded-xl p-3.5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(142 60% 45% / 0.15)" }}>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(142 60% 35%)" }}>Verdict</p>
-                <p className="text-sm text-foreground leading-relaxed">{data.blueTeam.verdict}</p>
-              </div>
+              <InsightCard headline={data.blueTeam.verdict} badge="VERDICT" badgeColor="hsl(142 60% 35%)" accentColor="hsl(142 60% 35%)" />
 
               {/* Arguments */}
               {(data.blueTeam?.arguments || []).map((arg, i) => (
-                <CollapsibleArgCard key={i} title={arg.title} body={arg.argument} badgeLabel={(STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate).label} badgeColor={(STRENGTH_STYLES[arg.strength] || STRENGTH_STYLES.moderate).text} annotation={arg.enabler ? `Enabler: ${arg.enabler}` : undefined} annotationColor="hsl(142 60% 35%)" ratingId={`blue-${i}`} pitchKey={`stress-green-${i}`} />
+                <InsightCard
+                  key={i}
+                  headline={arg.title}
+                  subtext={arg.argument.length > 100 ? arg.argument.slice(0, 100) + "…" : arg.argument}
+                  badge={arg.strength.toUpperCase()}
+                  badgeColor={arg.strength === "strong" ? "hsl(142 70% 30%)" : arg.strength === "moderate" ? "hsl(var(--primary))" : "hsl(38 92% 35%)"}
+                  accentColor="hsl(142 60% 35%)"
+                  detail={
+                    <div className="space-y-2">
+                      {arg.argument.length > 100 && <p className="text-sm text-foreground/80 leading-relaxed">{arg.argument}</p>}
+                      {arg.enabler && (
+                        <p className="text-xs font-bold" style={{ color: "hsl(142 60% 35%)" }}>Enabler: {arg.enabler}</p>
+                      )}
+                    </div>
+                  }
+                  action={
+                    <div className="flex items-center gap-2">
+                      <InsightRating sectionId={`blue-${i}`} compact />
+                      <PitchDeckToggle contentKey={`stress-green-${i}`} label="Pitch" />
+                    </div>
+                  }
+                />
               ))}
 
               {/* Moonshot */}
-              <div className="rounded-xl p-3.5" style={{ background: "hsl(142 60% 45% / 0.06)", border: "1px solid hsl(142 60% 45% / 0.18)" }}>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1 flex items-center gap-1" style={{ color: "hsl(142 60% 35%)" }}>
-                  <Target size={11} /> Moonshot Potential
-                </p>
-                <p className="text-sm font-semibold text-foreground leading-relaxed">{data.blueTeam.moonshot}</p>
-                <div className="flex justify-end mt-2">
-                  <PitchDeckToggle contentKey="stress-moonshot" label="Include in Pitch" />
-                </div>
-              </div>
+              <InsightCard
+                icon={Target}
+                headline={data.blueTeam.moonshot}
+                badge="MOONSHOT"
+                badgeColor="hsl(142 60% 35%)"
+                accentColor="hsl(142 60% 35%)"
+                action={<PitchDeckToggle contentKey="stress-moonshot" label="Pitch" />}
+              />
             </div>
           </div>
         </div>
 
-        {/* VS badge overlay — centered on the divider */}
-        <div className="relative -mt-[calc(50%+1rem)] hidden md:block pointer-events-none" style={{ height: 0 }}>
-          {/* Rendered via CSS below instead */}
-        </div>
-
         {/* ═══ BELOW THE ARENA: shared sections ═══ */}
 
-        {/* ── Competitive Landscape Panel ── */}
+        {/* ── Competitive Landscape ── */}
         {data.competitiveLandscape?.originalVsCompetitors?.length ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.12)" }}>
-                <Crosshair size={14} style={{ color: "hsl(var(--primary))" }} />
-              </div>
-              <p className="text-sm font-extrabold text-foreground tracking-tight">Competitive Landscape</p>
-            </div>
-
-            {/* Positioning + Threat */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="p-3 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--primary))" }}>Positioning Strategy</p>
-                <p className="text-sm text-foreground/85 leading-relaxed">{data.competitiveLandscape.positioningRecommendation}</p>
-              </div>
-              <div className="p-3 rounded-xl" style={{ background: "hsl(0 72% 52% / 0.04)", border: "1px solid hsl(0 72% 52% / 0.15)" }}>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(0 72% 48%)" }}>Biggest Threat</p>
-                <p className="text-sm text-foreground/85 leading-relaxed">{data.competitiveLandscape.biggestCompetitiveThreat}</p>
-              </div>
-            </div>
+          <AnalysisPanel title="Competitive Landscape" icon={Crosshair} eyebrow="Strategy">
+            <VisualGrid columns={2}>
+              <InsightCard
+                headline={data.competitiveLandscape.positioningRecommendation}
+                badge="Positioning"
+                badgeColor="hsl(var(--primary))"
+                accentColor="hsl(var(--primary))"
+              />
+              <InsightCard
+                headline={data.competitiveLandscape.biggestCompetitiveThreat}
+                badge="Top Threat"
+                badgeColor="hsl(var(--destructive))"
+                accentColor="hsl(var(--destructive))"
+              />
+            </VisualGrid>
 
             {data.competitiveLandscape.categoryDynamics && (
-              <div className="p-2.5 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Category Dynamics</p>
-                <p className="text-xs text-foreground/80">{data.competitiveLandscape.categoryDynamics}</p>
-              </div>
+              <SignalCard label={data.competitiveLandscape.categoryDynamics} type="neutral" />
             )}
 
-            {/* Competitor comparison cards */}
-            <DetailPanel title={`Competitor Comparisons (${data.competitiveLandscape.originalVsCompetitors.length})`} icon={Crosshair} defaultOpen>
-              <div className="space-y-2 mb-2">
+            <ExpandableDetail label={`Competitor Comparisons (${data.competitiveLandscape.originalVsCompetitors.length})`} icon={Crosshair}>
+              <div className="space-y-2">
                 {data.competitiveLandscape.originalVsCompetitors.map((comp, i) => (
-                  <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid hsl(var(--border))" }}>
-                    <div className="px-3 py-2 flex items-center justify-between" style={{ background: "hsl(var(--muted))" }}>
+                  <InsightCard
+                    key={i}
+                    headline={comp.competitor}
+                    badge="Competitor"
+                    badgeColor="hsl(var(--primary))"
+                    action={
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-foreground">{comp.competitor}</span>
                         {comp.url && (
                           <a href={comp.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
                             <ArrowRight size={8} /> Visit
                           </a>
                         )}
+                        <PitchDeckToggle contentKey={`comp-landscape-${i}`} label="Pitch" />
                       </div>
-                      <PitchDeckToggle contentKey={`comp-landscape-${i}`} label="Include in Pitch" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-0">
-                      {/* Original column */}
-                      <div className="p-3 space-y-2" style={{ borderRight: "1px solid hsl(var(--border))" }}>
-                        <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Original Product</p>
-                        <div>
-                          <p className="text-[10px] font-semibold" style={{ color: "hsl(142 70% 35%)" }}>Advantage</p>
-                          <p className="text-xs text-foreground/75 leading-relaxed">{comp.originalAdvantage}</p>
+                    }
+                    detail={
+                      <VisualGrid columns={2}>
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Original Product</p>
+                          <SignalCard label={comp.originalAdvantage} type="strength" explanation="Advantage" />
+                          <SignalCard label={comp.originalVulnerability} type="threat" explanation="Vulnerability" />
                         </div>
-                        <div>
-                          <p className="text-[10px] font-semibold" style={{ color: "hsl(0 72% 48%)" }}>Vulnerability</p>
-                          <p className="text-xs text-foreground/75 leading-relaxed">{comp.originalVulnerability}</p>
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Redesigned Concept</p>
+                          <SignalCard label={comp.redesignAdvantage} type="strength" explanation="Advantage" />
+                          <SignalCard label={comp.redesignGap} type="weakness" explanation="Remaining Gap" />
                         </div>
-                      </div>
-                      {/* Redesign column */}
-                      <div className="p-3 space-y-2">
-                        <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Redesigned Concept</p>
-                        <div>
-                          <p className="text-[10px] font-semibold" style={{ color: "hsl(142 70% 35%)" }}>Advantage</p>
-                          <p className="text-xs text-foreground/75 leading-relaxed">{comp.redesignAdvantage}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-semibold" style={{ color: "hsl(38 92% 45%)" }}>Remaining Gap</p>
-                          <p className="text-xs text-foreground/75 leading-relaxed">{comp.redesignGap}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                      </VisualGrid>
+                    }
+                    defaultExpanded
+                  />
                 ))}
               </div>
-            </DetailPanel>
+            </ExpandableDetail>
 
             {data.competitiveLandscape.pricingInsight && (
-              <div className="p-3 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(38 92% 45%)" }}>Pricing Insight</p>
-                <p className="text-sm text-foreground/85 leading-relaxed">{data.competitiveLandscape.pricingInsight}</p>
-                <div className="flex justify-end mt-2">
-                  <PitchDeckToggle contentKey="comp-pricing-insight" label="Include in Pitch" />
-                </div>
-              </div>
+              <InsightCard
+                headline={data.competitiveLandscape.pricingInsight}
+                badge="Pricing"
+                badgeColor="hsl(38 92% 45%)"
+                accentColor="hsl(38 92% 45%)"
+                action={<PitchDeckToggle contentKey="comp-pricing-insight" label="Pitch" />}
+              />
             )}
-          </div>
+          </AnalysisPanel>
         ) : (
           !competitorIntel?.length && (
             <div className="p-3 rounded-lg text-center" style={{ background: "hsl(var(--muted) / 0.5)", border: "1px dashed hsl(var(--border))" }}>
@@ -537,211 +485,171 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
           )
         )}
 
-        {/* Counter Examples — collapsed */}
+        {/* Counter Examples */}
         {data.counterExamples?.length > 0 && (
-          <DetailPanel title={`Real-World Precedents (${(data.counterExamples || []).length})`} icon={BookOpen}>
-            <div className="space-y-2 mb-2">
-              {(data.counterExamples || []).map((ex, i) => {
-                const os = OUTCOME_STYLES[ex.outcome] || OUTCOME_STYLES.pivoted;
-                const OutcomeIcon = os.icon;
-                return (
-                  <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="typo-card-body font-bold text-foreground">{ex.name} ({ex.year})</span>
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full typo-status-label" style={{ background: os.bg, color: os.text }}>
-                        <OutcomeIcon size={9} /> {ex.outcome}
-                      </span>
-                    </div>
-                    <p className="typo-card-body font-semibold leading-relaxed" style={{ color: "hsl(var(--primary))" }}>Lesson: {ex.lesson}</p>
-                    <div className="flex items-center justify-end mt-2">
-                      <PitchDeckToggle contentKey={`precedent-${i}`} label="Include in Pitch" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </DetailPanel>
+          <ExpandableDetail label={`Real-World Precedents (${data.counterExamples.length})`} icon={BookOpen}>
+            <VisualGrid columns={1}>
+              {data.counterExamples.map((ex, i) => (
+                <EvidenceCard
+                  key={i}
+                  claim={`${ex.name} (${ex.year})`}
+                  evidence={`Lesson: ${ex.lesson}`}
+                  source={ex.similarity}
+                  confidence={ex.outcome === "succeeded" ? "high" : ex.outcome === "pivoted" ? "medium" : "low"}
+                  action={<PitchDeckToggle contentKey={`precedent-${i}`} label="Pitch" />}
+                />
+              ))}
+            </VisualGrid>
+          </ExpandableDetail>
         )}
 
-        {/* Strategic Recommendations — collapsed */}
+        {/* Strategic Recommendations */}
         {data.strategicRecommendations?.length ? (
-          <DetailPanel title={`Strategic Recommendations (${(data.strategicRecommendations || []).length})`} icon={ArrowRight}>
-            <div className="space-y-1.5 mb-2">
-              {(data.strategicRecommendations || []).map((rec, i) => (
-                <div key={i} className="flex gap-2 items-start p-2 rounded-lg typo-card-body"
-                  style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center typo-status-label flex-shrink-0"
-                    style={{ background: "hsl(142 70% 45% / 0.15)", color: "hsl(142 70% 30%)" }}>{i + 1}</span>
-                  <span className="text-foreground/80 leading-relaxed">{rec}</span>
-                </div>
+          <ExpandableDetail label={`Strategic Recommendations (${data.strategicRecommendations.length})`} icon={ArrowRight}>
+            <VisualGrid columns={1}>
+              {data.strategicRecommendations.map((rec, i) => (
+                <SignalCard key={i} label={rec} type="strength" />
               ))}
-            </div>
-          </DetailPanel>
+            </VisualGrid>
+          </ExpandableDetail>
         ) : null}
 
-        {/* Current Approach Assessment — collapsed */}
+        {/* Current Approach Assessment */}
         {data.currentApproachAssessment && (
-          <DetailPanel title="Current Approach Assessment" icon={Shield}>
-            <div className="space-y-2 mb-2">
+          <ExpandableDetail label="Current Approach Assessment" icon={Shield}>
+            <div className="space-y-3">
               {data.currentApproachAssessment.keepAsIs?.length > 0 && (
-                <div>
-                  <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(142 70% 35%)" }}><CheckCircle2 size={10} /> Keep As-Is</p>
-                  {(data.currentApproachAssessment?.keepAsIs || []).map((item, i) => (
-                    <div key={i} className="flex gap-2 items-start typo-card-body mb-1">
-                      <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-                      <span className="text-foreground/80">{item}</span>
-                    </div>
-                  ))}
-                </div>
+                <FrameworkPanel title="Keep As-Is" icon={CheckCircle2} subtitle={`${data.currentApproachAssessment.keepAsIs.length} items`}>
+                  <VisualGrid columns={1}>
+                    {data.currentApproachAssessment.keepAsIs.map((item, i) => (
+                      <SignalCard key={i} label={item} type="strength" />
+                    ))}
+                  </VisualGrid>
+                </FrameworkPanel>
               )}
               {data.currentApproachAssessment.fullyReinvent?.length > 0 && (
-                <div>
-                  <p className="typo-status-label mb-1 flex items-center gap-1" style={{ color: "hsl(var(--destructive))" }}><RefreshCw size={10} /> Fully Reinvent</p>
-                  {(data.currentApproachAssessment?.fullyReinvent || []).map((item, i) => (
-                    <div key={i} className="flex gap-2 items-start typo-card-body mb-1">
-                      <Flame size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-                      <span className="text-foreground/80">{item}</span>
-                    </div>
-                  ))}
-                </div>
+                <FrameworkPanel title="Fully Reinvent" icon={RefreshCw} subtitle={`${data.currentApproachAssessment.fullyReinvent.length} items`}>
+                  <VisualGrid columns={1}>
+                    {data.currentApproachAssessment.fullyReinvent.map((item, i) => (
+                      <SignalCard key={i} label={item} type="threat" />
+                    ))}
+                  </VisualGrid>
+                </FrameworkPanel>
               )}
-              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="typo-card-meta font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Verdict</p>
-                <p className="typo-card-body text-foreground/80 leading-relaxed">{data.currentApproachAssessment.verdict}</p>
-              </div>
+              <InsightCard
+                headline={data.currentApproachAssessment.verdict}
+                badge="Verdict"
+                badgeColor="hsl(var(--primary))"
+                accentColor="hsl(var(--primary))"
+              />
             </div>
-          </DetailPanel>
+          </ExpandableDetail>
         )}
 
-        {/* Blind Spots — collapsed */}
+        {/* Blind Spots */}
         {data.blindSpots?.length > 0 && (
-          <DetailPanel title={`Blind Spots (${(data.blindSpots || []).length})`} icon={Eye}>
-            <div className="space-y-1.5 mb-2">
-              {(data.blindSpots || []).map((bs, i) => (
-                <div key={i} className="flex gap-2 items-start typo-card-body">
-                  <AlertTriangle size={10} style={{ color: "hsl(38 92% 45%)", flexShrink: 0, marginTop: 2 }} />
-                  <span className="text-foreground/80 leading-relaxed">{bs}</span>
-                </div>
+          <ExpandableDetail label={`Blind Spots (${data.blindSpots.length})`} icon={Eye}>
+            <VisualGrid columns={1}>
+              {data.blindSpots.map((bs, i) => (
+                <SignalCard key={i} label={bs} type="weakness" />
               ))}
-            </div>
-          </DetailPanel>
+            </VisualGrid>
+          </ExpandableDetail>
         )}
-        
-      </div>
+      </StepCanvas>
     );
   }
 
-  // Validate tab
+  // ═══ VALIDATE TAB ═══
   return (
-    <div className="space-y-4">
-      <SectionHeader current={2} total={2} label="Validate & Score" icon={CheckCircle2} />
-      {/* Per-item pitch toggles on scores and checklist items below */}
-
-      {/* Confidence Scores — show top 3, rest in detail */}
+    <StepCanvas>
+      {/* Confidence Scores — MetricCard grid */}
       {data.confidenceScores && (() => {
         const entries = Object.entries(data.confidenceScores);
         return (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <VisualGrid columns={2}>
               {entries.slice(0, 3).map(([key, val]) => {
                 const meta = SCORE_LABELS[key] || { label: key, icon: Brain };
-                const Icon = meta.icon;
-                const score = val.score;
-                const barColor = score >= 7 ? "hsl(142 70% 45%)" : score >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--destructive))";
+                const barColor = val.score >= 7 ? "hsl(142 70% 45%)" : val.score >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--destructive))";
                 return (
-                  <div key={key} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="typo-card-eyebrow flex items-center gap-1">
-                        <Icon size={10} /> {meta.label}
-                      </span>
-                      <span className="typo-card-body font-black" style={{ color: barColor }}>{score}/10</span>
-                    </div>
-                    <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                      <div className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${score * 10}%`, background: barColor }} />
-                    </div>
-                  </div>
+                  <MetricCard
+                    key={key}
+                    label={meta.label}
+                    value={`${val.score}/10`}
+                    accentColor={barColor}
+                    subtext={val.reasoning}
+                  />
                 );
               })}
-            </div>
+            </VisualGrid>
             {entries.length > 3 && (
-              <DetailPanel title={`${entries.length - 3} more confidence scores`} icon={BarChart3}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+              <ExpandableDetail label={`${entries.length - 3} more confidence scores`} icon={BarChart3}>
+                <VisualGrid columns={2}>
                   {entries.slice(3).map(([key, val]) => {
                     const meta = SCORE_LABELS[key] || { label: key, icon: Brain };
-                    const Icon = meta.icon;
-                    const score = val.score;
-                    const barColor = score >= 7 ? "hsl(142 70% 45%)" : score >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--destructive))";
+                    const barColor = val.score >= 7 ? "hsl(142 70% 45%)" : val.score >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--destructive))";
                     return (
-                      <div key={key} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="typo-card-eyebrow flex items-center gap-1">
-                            <Icon size={10} /> {meta.label}
-                          </span>
-                          <span className="typo-card-body font-black" style={{ color: barColor }}>{score}/10</span>
-                        </div>
-                        <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-                          <div className="h-full rounded-full transition-all duration-700"
-                            style={{ width: `${score * 10}%`, background: barColor }} />
-                        </div>
-                        <p className="typo-card-meta text-foreground/70 leading-relaxed mt-1.5">{val.reasoning}</p>
-                      </div>
+                      <MetricCard
+                        key={key}
+                        label={meta.label}
+                        value={`${val.score}/10`}
+                        accentColor={barColor}
+                        subtext={val.reasoning}
+                      />
                     );
                   })}
-                </div>
-              </DetailPanel>
+                </VisualGrid>
+              </ExpandableDetail>
             )}
           </>
         );
       })()}
 
-      {/* Feasibility Checklist — show top 3, rest collapsed */}
+      {/* Feasibility Checklist — SignalCards */}
       {data.feasibilityChecklist?.length > 0 && (() => {
         const items = data.feasibilityChecklist;
         return (
-          <>
-            <p className="typo-card-eyebrow flex items-center gap-1">
-              <ClipboardCheck size={11} style={{ color: "hsl(142 70% 40%)" }} /> Feasibility Checklist
-            </p>
-            <div className="space-y-2">
-              {items.slice(0, 3).map((item, i) => {
-                const s = STATUS_STYLES[item.status] || STATUS_STYLES["nice-to-have"];
-                return (
-                  <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                    <div className="flex items-center justify-between mb-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded-full typo-status-label" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>{item.category}</span>
-                        <p className="typo-card-body font-bold text-foreground">{item.item}</p>
-                      </div>
-                      <span className="px-2 py-0.5 rounded-full typo-status-label uppercase" style={{ color: s.text }}>{item.status}</span>
+          <AnalysisPanel title="Feasibility Checklist" icon={ClipboardCheck} eyebrow="Validation">
+            <VisualGrid columns={1}>
+              {items.slice(0, 3).map((item, i) => (
+                <SignalCard
+                  key={i}
+                  label={item.item}
+                  type={STATUS_MAP[item.status] || "neutral"}
+                  explanation={item.detail}
+                  detail={
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Est. cost: {item.estimatedCost}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground">{item.category}</span>
                     </div>
-                    <p className="typo-card-body text-foreground/70 leading-relaxed">{item.detail}</p>
-                  </div>
-                );
-              })}
-            </div>
+                  }
+                />
+              ))}
+            </VisualGrid>
             {items.length > 3 && (
-              <DetailPanel title={`${items.length - 3} more checklist items`} icon={ClipboardCheck}>
-                <div className="space-y-2 mb-2">
-                  {items.slice(3).map((item, i) => {
-                    const s = STATUS_STYLES[item.status] || STATUS_STYLES["nice-to-have"];
-                    return (
-                      <div key={i} className="p-3 rounded-lg" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
-                        <div className="flex items-center justify-between mb-0.5">
-                          <p className="typo-card-body font-bold text-foreground">{item.item}</p>
-                          <span className="px-2 py-0.5 rounded-full typo-status-label uppercase" style={{ color: s.text }}>{item.status}</span>
+              <ExpandableDetail label={`${items.length - 3} more checklist items`} icon={ClipboardCheck}>
+                <VisualGrid columns={1}>
+                  {items.slice(3).map((item, i) => (
+                    <SignalCard
+                      key={i}
+                      label={item.item}
+                      type={STATUS_MAP[item.status] || "neutral"}
+                      explanation={item.detail}
+                      detail={
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Est. cost: {item.estimatedCost}</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground">{item.category}</span>
                         </div>
-                        <p className="typo-card-body text-foreground/70 leading-relaxed">{item.detail}</p>
-                        <p className="typo-card-meta font-semibold mt-1" style={{ color: "hsl(var(--primary))" }}>Est. cost: {item.estimatedCost}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </DetailPanel>
+                      }
+                    />
+                  ))}
+                </VisualGrid>
+              </ExpandableDetail>
             )}
-          </>
+          </AnalysisPanel>
         );
       })()}
-    </div>
+    </StepCanvas>
   );
 };

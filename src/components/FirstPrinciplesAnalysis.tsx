@@ -15,9 +15,8 @@ import { RiskBadge } from "@/components/RiskBadge";
 import { PatentIntelligence } from "@/components/PatentIntelligence";
 import { downloadPatentPDF } from "@/lib/pdfExport";
 import { StepLoadingTracker, DISRUPT_TASKS, REDESIGN_TASKS } from "@/components/StepLoadingTracker";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import {
-  Brain, Flame, Zap, ChevronRight, ChevronDown, RefreshCw, AlertTriangle, CheckCircle2,
+  Brain, Flame, Zap, ChevronDown, RefreshCw, AlertTriangle, CheckCircle2,
   Wrench, Lightbulb, Package, DollarSign, Users, Factory, FlipHorizontal,
   Eye, ArrowRight, Sparkles, ShieldAlert, Cpu, Ruler, Move, Navigation, Shield, Route,
   Maximize2, Wifi, ScrollText, FileDown, Swords,
@@ -28,33 +27,34 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
-import { SectionWorkflowNav } from "@/components/SectionNav";
 import { StructuralDiagnosisPanel } from "@/components/StructuralDiagnosisPanel";
 
-const DISRUPT_SECTION_DESCRIPTIONS: Record<string, string> = {
-  assumptions: "Hidden assumptions & challenge ideas",
-};
+// ── Standardized analysis components ──
+import {
+  StepCanvas,
+  InsightCard,
+  FrameworkPanel,
+  SignalCard,
+  VisualGrid,
+  ExpandableDetail,
+  MetricCard,
+  AnalysisPanel,
+} from "@/components/analysis/AnalysisComponents";
 
-const REDESIGN_SECTION_DESCRIPTIONS_NAV: Record<string, string> = {
-  flip: "Inverted logic & bold alternatives",
-  ideas: "Flipped product ideas & innovations",
-  concept: "Redesigned concept & radical differences",
-};
-
-// ── Exported section descriptions for Intel Report tabs ──
+// Section description exports
 export const INTEL_SECTION_DESCRIPTIONS: Record<string, string> = {
   reality: "True problem, actual usage & user hacks",
   physical: "Size, weight, form factor & ergonomic gaps",
   workflow: "Step-by-step journey & friction points",
 };
 
-// ── Exported section descriptions for Redesign step ──
 export const REDESIGN_SECTION_DESCRIPTIONS: Record<string, string> = {
   flip: "Inverted logic & bold alternatives",
   ideas: "Flipped product ideas & innovations",
   concept: "Redesigned concept & radical differences",
 };
 
+// Interfaces
 interface CoreReality {
   trueProblem: string;
   actualUsage: string;
@@ -69,17 +69,14 @@ interface FrictionDimensions {
   costStructure?: string;
   ecosystemLockIn?: string;
   maintenanceBurden?: string;
-  // Legacy fields (backward compat)
   sizeAnalysis?: string;
   weightAnalysis?: string;
   formFactorAnalysis?: string;
   staticVsDynamic?: string;
   ergonomicGaps?: string[];
   dimensionOpportunities?: string[];
-  // New fields
   gaps?: string[];
   opportunities?: string[];
-  // Service mode
   deliveryModel?: string;
 }
 
@@ -197,30 +194,28 @@ const REASON_COLORS: Record<string, { bg: string; text: string; label: string }>
   habit: { bg: "hsl(330 80% 55% / 0.1)", text: "hsl(330 80% 40%)", label: "Habit" },
 };
 
-/* ── Map step text to a contextual Lucide icon ──────────────────────── */
-/* Priority: action verbs & touchpoints first, then domain-specific fallbacks */
+const REASON_BORDER: Record<string, string> = {
+  tradition: "hsl(38 92% 50%)",
+  manufacturing: "hsl(217 91% 55%)",
+  cost: "hsl(142 70% 40%)",
+  physics: "hsl(271 81% 50%)",
+  habit: "hsl(330 80% 50%)",
+};
+
+/* ── Map step text to a contextual Lucide icon ── */
 const STEP_ICON_KEYWORDS: [string[], LucideIcon][] = [
-  /* ── Discovery & awareness ── */
   [["discover", "aware", "hear about", "learn about", "first encounter", "introduction"], Search],
   [["search", "browse", "look for", "find", "explore", "research", "compare"], Search],
   [["recommend", "referral", "word of mouth", "told about"], Users],
-
-  /* ── Evaluation & decision ── */
   [["evaluate", "assess", "consider", "weigh", "decide", "choose", "select", "pick"], Lightbulb],
   [["review", "rate", "feedback", "testimonial", "star", "reputation"], Star],
   [["compare", "alternative", "option", "versus", "vs"], Eye],
-
-  /* ── Acquisition & onboarding ── */
   [["sign up", "register", "create account", "onboard", "enroll", "join", "apply"], Lock],
   [["buy", "purchase", "order", "checkout", "add to cart", "subscribe"], ShoppingCart],
   [["pay", "payment", "price", "cost", "charge", "bill", "credit", "invoice", "fee"], CreditCard],
   [["download", "install", "get", "retrieve", "grab"], Download],
-
-  /* ── Setup & configuration ── */
   [["setup", "configure", "install", "customize", "personalize", "adjust", "setting", "preference"], Settings],
   [["connect", "integrate", "link", "pair", "sync"], Globe],
-
-  /* ── Core usage & engagement ── */
   [["use", "engage", "interact", "experience", "start using", "begin", "launch", "open"], ArrowRight],
   [["book", "reserve", "schedule", "appointment", "session"], Clock],
   [["call", "phone", "contact", "reach out", "speak", "consult"], Phone],
@@ -230,18 +225,12 @@ const STEP_ICON_KEYWORDS: [string[], LucideIcon][] = [
   [["watch", "observe", "view", "see", "inspect", "check", "monitor"], Eye],
   [["build", "create", "make", "prepare", "craft", "design", "produce"], Wrench],
   [["learn", "understand", "study", "train", "educate", "teach", "course"], Lightbulb],
-
-  /* ── Fulfillment & delivery ── */
   [["deliver", "ship", "receive", "package", "arrive", "pickup", "collect", "pick up"], Truck],
   [["wait", "pending", "processing", "loading", "queue"], Clock],
-
-  /* ── Retention & loyalty ── */
   [["return", "come back", "repeat", "renew", "reorder", "continue"], Home],
   [["share", "post", "social", "tell", "spread", "refer"], Share2],
   [["save", "favorite", "bookmark", "keep", "store", "remember"], Bookmark],
   [["track", "follow", "progress", "status", "update"], Eye],
-
-  /* ── Travel/location (secondary — only for explicitly physical journeys) ── */
   [["drive", "car", "vehicle", "commute", "transport", "ride"], Car],
   [["navigate", "direction", "route", "location", "destination", "go to", "arrive at", "visit"], MapPin],
   [["fly", "flight", "airplane", "airport", "plane", "travel"], Plane],
@@ -259,19 +248,16 @@ function getStepIcon(stepText: string): LucideIcon {
   for (const [keywords, icon] of STEP_ICON_KEYWORDS) {
     if (keywords.some(kw => lower.includes(kw))) return icon;
   }
-  return ArrowRight; // default fallback
+  return ArrowRight;
 }
 
-
-/* ── Interactive Workflow Timeline — polished, themed, contextual icons ──────────────────────── */
+/* ── Interactive Workflow Timeline (kept intact — unique visual) ── */
 export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; frictionPoints: WorkflowFriction[] }) {
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
 
   const getFriction = (stepIndex: number, stepName: string): WorkflowFriction | undefined => {
-    // First try matching by stepIndex (new format)
     const byIndex = frictionPoints?.find(fp => fp.stepIndex === stepIndex);
     if (byIndex) return byIndex;
-    // Fallback: match by step name (legacy data)
     return frictionPoints?.find(fp =>
       fp.step && (
         stepName.toLowerCase().includes(fp.step.toLowerCase()) ||
@@ -282,7 +268,6 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
 
   return (
     <div className="space-y-1">
-      {/* Section label */}
       <div className="flex items-center gap-2 mb-3">
         <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--foreground))" }}>
           <Route size={13} style={{ color: "hsl(var(--background))" }} />
@@ -293,9 +278,8 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
         </span>
       </div>
 
-      {/* Timeline cards — vertical on all sizes for clarity */}
       <div className="relative">
-      {steps.slice(0, 8).map((step, i) => {
+        {steps.slice(0, 8).map((step, i) => {
           const friction = getFriction(i, step);
           const isExpanded = expandedStep === i;
           const isLast = i === Math.min(steps.length, 8) - 1;
@@ -303,47 +287,32 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
 
           return (
             <div key={i} className="flex items-start gap-3.5 relative">
-              {/* Left rail: illustrated icon + connector */}
               <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center z-10 transition-all duration-300 shadow-sm"
                   style={{
-                    background: isExpanded
-                      ? "hsl(var(--foreground))"
-                      : "hsl(var(--primary) / 0.08)",
-                    color: isExpanded
-                      ? "hsl(var(--background))"
-                      : "hsl(var(--primary))",
+                    background: isExpanded ? "hsl(var(--foreground))" : "hsl(var(--primary) / 0.08)",
+                    color: isExpanded ? "hsl(var(--background))" : "hsl(var(--primary))",
                     border: isExpanded ? "none" : "1.5px solid hsl(var(--primary) / 0.15)",
                     transform: isExpanded ? "scale(1.12)" : "scale(1)",
-                    boxShadow: isExpanded
-                      ? "0 4px 12px -2px hsl(var(--foreground) / 0.2)"
-                      : "0 2px 8px -2px hsl(var(--primary) / 0.12)",
                   }}
                 >
                   <StepIcon size={18} strokeWidth={1.8} />
                 </div>
-                {!isLast && (
-                  <div className="w-[1.5px] flex-1 min-h-[16px]" style={{ background: "hsl(var(--border))" }} />
-                )}
+                {!isLast && <div className="w-[1.5px] flex-1 min-h-[16px]" style={{ background: "hsl(var(--border))" }} />}
               </div>
 
-              {/* Right: step card */}
               <button
                 onClick={() => setExpandedStep(isExpanded ? null : i)}
                 className="flex-1 text-left rounded-xl p-3.5 mb-2 transition-all duration-200 cursor-pointer group"
                 style={{
-                  background: isExpanded
-                    ? "hsl(var(--foreground) / 0.03)"
-                    : "hsl(var(--card))",
-                  border: isExpanded
-                    ? "1.5px solid hsl(var(--foreground) / 0.15)"
-                    : "1px solid hsl(var(--border))",
+                  background: isExpanded ? "hsl(var(--foreground) / 0.03)" : "hsl(var(--card))",
+                  border: isExpanded ? "1.5px solid hsl(var(--foreground) / 0.15)" : "1px solid hsl(var(--border))",
                 }}
               >
                 <div className="flex items-center justify-between">
                   <p className="text-[13px] font-bold text-foreground leading-snug">{step}</p>
-                  <ChevronRight size={13} className="text-muted-foreground transition-transform duration-200 flex-shrink-0 ml-2" style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }} />
+                  <ChevronDown size={13} className="text-muted-foreground flex-shrink-0 ml-2" style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
                 </div>
 
                 {isExpanded && friction && (
@@ -372,12 +341,11 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
         })}
       </div>
 
-      {/* Friction summary bar */}
       {frictionPoints?.length > 0 && (
         <div className="flex items-center gap-2 pt-2 mt-1" style={{ borderTop: "1px solid hsl(var(--border))" }}>
           <AlertTriangle size={12} style={{ color: "hsl(var(--muted-foreground))" }} />
           <span className="text-[11px] font-semibold text-muted-foreground">
-            {frictionPoints.length} friction point{frictionPoints.length !== 1 ? "s" : ""} identified in current journey
+            {frictionPoints.length} friction point{frictionPoints.length !== 1 ? "s" : ""} identified
           </span>
         </div>
       )}
@@ -385,197 +353,72 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
   );
 }
 
-/* ── Collapsible detail panel — Presentation style ──────────────────────── */
-function DetailPanel({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger
-        className="w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-2xl text-left transition-all group cursor-pointer"
-        style={{
-          background: "hsl(var(--card))",
-          border: "1.5px solid hsl(var(--border))",
-        }}
-      >
-        <span className="flex items-center gap-3 text-sm font-bold text-foreground">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "hsl(var(--primary) / 0.08)" }}>
-            <Icon size={14} style={{ color: "hsl(var(--primary))" }} />
-          </div>
-          {title}
-        </span>
-        <span className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="typo-card-meta font-bold uppercase tracking-widest text-muted-foreground hidden sm:inline">Details</span>
-          <ChevronDown size={14} className="transition-transform text-muted-foreground" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
-        </span>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="px-5 pt-3 pb-2">
-        {children}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
-/* ── Section progress + Next button ────────────────── */
-function SectionHeader({ current, total, label, icon: Icon }: { current: number; total: number; label: string; icon: React.ElementType }) {
-  return (
-    <div className="flex items-center justify-between pb-3 mb-4" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
-      <div className="flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-          <Icon size={14} style={{ color: "white" }} />
-        </div>
-        <div>
-          <p className="text-sm font-bold text-foreground leading-tight">{label}</p>
-          <p className="typo-card-meta text-muted-foreground font-medium">Section {current} of {total}</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-1">
-        {Array.from({ length: total }, (_, i) => (
-          <div key={i} className="rounded-full transition-all" style={{
-            width: i + 1 === current ? 16 : 6,
-            height: 6,
-            background: i + 1 <= current ? "hsl(var(--primary))" : "hsl(var(--border))",
-            borderRadius: 999,
-          }} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function NextSectionButton({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center justify-center gap-2 text-sm font-bold px-5 py-3.5 rounded-lg transition-colors mt-6"
-      style={{ background: "hsl(var(--primary))", color: "white" }}
-    >
-      Next: {label} <ArrowRight size={14} />
-    </button>
-  );
-}
-
-/* ── Assumption Card List — distilled, scannable, expand-for-detail ── */
-function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumptions: HiddenAssumption[]; showLimit: number; reasonBorder: Record<string, string> }) {
+/* ── Assumption Card List — using standardized InsightCard ── */
+function AssumptionCardList({ assumptions, showLimit }: { assumptions: HiddenAssumption[]; showLimit: number }) {
   const [showAll, setShowAll] = useState(false);
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const visible = showAll ? assumptions : assumptions.slice(0, showLimit);
 
   return (
     <>
-      <div className="space-y-2">
+      <VisualGrid columns={1}>
         {visible.map((a, i) => {
           const reasonStyle = REASON_COLORS[a.reason] || REASON_COLORS.habit;
-          const borderColor = reasonBorder[a.reason] || "hsl(var(--border))";
           const leverageColor = a.leverageScore != null
             ? a.leverageScore >= 8 ? "hsl(var(--destructive))" : a.leverageScore >= 5 ? "hsl(38 92% 42%)" : "hsl(142 70% 35%)"
             : "hsl(var(--muted-foreground))";
-          const isExpanded = expandedIdx === i;
 
           return (
-            <div key={i} className="rounded-xl overflow-hidden transition-all" style={{ background: "hsl(var(--card))", borderLeft: `4px solid ${borderColor}`, border: `1.5px solid ${isExpanded ? "hsl(var(--primary) / 0.3)" : "hsl(var(--border))"}`, borderLeftWidth: "4px", borderLeftColor: borderColor }}>
-              {/* ── Collapsed: one-line distilled view ── */}
-              <button
-                onClick={() => setExpandedIdx(isExpanded ? null : i)}
-                className="w-full text-left px-4 py-3 flex items-center gap-3"
-              >
-                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: "hsl(var(--foreground))", color: "hsl(var(--background))" }}>{i + 1}</span>
-                <span className="text-sm font-bold text-foreground flex-1 leading-snug">{a.assumption}</span>
-                <div className="flex items-center gap-2 flex-shrink-0">
+            <InsightCard
+              key={i}
+              headline={a.assumption}
+              subtext={a.currentAnswer}
+              accentColor={REASON_BORDER[a.reason] || "hsl(var(--border))"}
+              badge={reasonStyle.label}
+              badgeColor={reasonStyle.text}
+              action={
+                <div className="flex items-center gap-2">
                   {a.urgencySignal === "eroding" && (
                     <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "hsl(0 70% 50% / 0.1)", color: "hsl(0 70% 50%)" }}>↓ Eroding</span>
                   )}
                   {a.urgencySignal === "emerging" && (
                     <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "hsl(142 70% 40% / 0.1)", color: "hsl(142 70% 35%)" }}>↑ Emerging</span>
                   )}
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>
-                    {reasonStyle.label}
-                  </span>
                   {a.leverageScore != null && (
                     <span className="text-[11px] font-bold tabular-nums" style={{ color: leverageColor }}>{a.leverageScore}/10</span>
                   )}
                   {a.isChallengeable && (
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} title="Challengeable" />
                   )}
-                  <ChevronDown size={14} className="text-muted-foreground transition-transform" style={{ transform: isExpanded ? "rotate(180deg)" : "none" }} />
+                  <PitchDeckToggle contentKey={`assumptions-${i}`} label="Pitch" />
                 </div>
-              </button>
-
-              {isExpanded && (
-                <div className="px-4 pb-4 pt-0 space-y-3" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                  {/* Urgency signal badge */}
-                  {a.urgencySignal && (
-                    <div className="flex items-center gap-2 pt-1">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{
-                        background: a.urgencySignal === "eroding" ? "hsl(0 70% 50% / 0.1)" : a.urgencySignal === "emerging" ? "hsl(142 70% 40% / 0.1)" : "hsl(var(--muted))",
-                        color: a.urgencySignal === "eroding" ? "hsl(0 70% 50%)" : a.urgencySignal === "emerging" ? "hsl(142 70% 35%)" : "hsl(var(--muted-foreground))",
-                        border: `1px solid ${a.urgencySignal === "eroding" ? "hsl(0 70% 50% / 0.2)" : a.urgencySignal === "emerging" ? "hsl(142 70% 40% / 0.2)" : "hsl(var(--border))"}`,
-                      }}>
-                        {a.urgencySignal === "eroding" ? "↓ Eroding Now" : a.urgencySignal === "emerging" ? "↑ Emerging Opportunity" : "→ Stable"}
-                      </span>
-                      {a.urgencyReason && <span className="text-xs text-foreground/80">{a.urgencyReason}</span>}
-                    </div>
+              }
+              detail={
+                <div className="space-y-3">
+                  {a.urgencySignal && a.urgencyReason && (
+                    <SignalCard
+                      label={a.urgencySignal === "eroding" ? "Eroding Now" : a.urgencySignal === "emerging" ? "Emerging Opportunity" : "Stable"}
+                      type={a.urgencySignal === "eroding" ? "threat" : a.urgencySignal === "emerging" ? "opportunity" : "neutral"}
+                      explanation={a.urgencyReason}
+                    />
                   )}
-
-                  {/* Leverage bar */}
                   {a.leverageScore != null && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-foreground/70 w-20">Leverage</span>
-                      <div className="h-2 rounded-full overflow-hidden flex-1" style={{ background: "hsl(var(--muted))" }}>
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(a.leverageScore / 10) * 100}%`, background: leverageColor }} />
-                      </div>
-                      <span className="text-[11px] font-bold tabular-nums w-8 text-right" style={{ color: leverageColor }}>{a.leverageScore}/10</span>
-                    </div>
+                    <MetricCard label="Leverage Score" value={`${a.leverageScore}/10`} accentColor={leverageColor} />
                   )}
-
-                  {/* Why it exists */}
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-foreground/70 mb-1">Why this exists</p>
-                    <p className="text-sm text-foreground leading-relaxed">{a.currentAnswer}</p>
-                  </div>
-
-                  {/* Impact scenario */}
                   {a.impactScenario && (
-                    <div className="p-3 rounded-lg" style={{ background: "hsl(142 70% 45% / 0.06)", border: "1px solid hsl(142 70% 40% / 0.15)" }}>
-                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(142 70% 35%)" }}>If challenged successfully</p>
-                      <p className="text-sm text-foreground leading-relaxed">{a.impactScenario}</p>
-                    </div>
+                    <InsightCard headline="If challenged successfully" subtext={a.impactScenario} accentColor="hsl(142 70% 40%)" />
                   )}
-
-                  {/* Competitive blind spot */}
                   {a.competitiveBlindSpot && (
-                    <div className="p-3 rounded-lg" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
-                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(38 92% 35%)" }}>Who's vulnerable</p>
-                      <p className="text-sm text-foreground leading-relaxed">{a.competitiveBlindSpot}</p>
-                    </div>
+                    <InsightCard headline="Who's vulnerable" subtext={a.competitiveBlindSpot} accentColor="hsl(38 92% 35%)" />
                   )}
-
-                  {/* Challenge approach */}
                   {a.challengeIdea && (
-                    <div className="p-3 rounded-lg" style={{ background: "hsl(var(--primary) / 0.05)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
-                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "hsl(var(--primary))" }}>How to challenge this</p>
-                      <p className="text-sm text-foreground leading-relaxed">{a.challengeIdea}</p>
-                    </div>
+                    <InsightCard headline="How to challenge this" subtext={a.challengeIdea} accentColor="hsl(var(--primary))" />
                   )}
-
-                  {/* Tags row */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {a.isChallengeable && (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-                        Challengeable
-                      </span>
-                    )}
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: reasonStyle.bg, color: reasonStyle.text }}>
-                      Root: {reasonStyle.label}
-                    </span>
-                    <div className="flex-1" />
-                    <PitchDeckToggle contentKey={`assumptions-${i}`} label="Include in Pitch" />
-                  </div>
                 </div>
-              )}
-            </div>
+              }
+            />
           );
         })}
-      </div>
+      </VisualGrid>
       {assumptions.length > showLimit && (
         <button onClick={() => setShowAll(!showAll)} className="w-full py-2.5 rounded-xl text-xs font-bold transition-all"
           style={{ background: "hsl(var(--muted))", color: "hsl(var(--primary))", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
@@ -586,124 +429,59 @@ function AssumptionCardList({ assumptions, showLimit, reasonBorder }: { assumpti
   );
 }
 
-/* ── Flip Card List with show-more gate ── */
+/* ── Flip Card List — using standardized InsightCard ── */
 function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicItem[]; assumptions: HiddenAssumption[]; showLimit: number }) {
   const [showAll, setShowAll] = useState(false);
-  const [expandedFlip, setExpandedFlip] = useState<number | null>(0);
   const visible = showAll ? flips : flips.slice(0, showLimit);
 
   return (
     <>
       <div className="space-y-4">
         {visible.map((item, i) => {
-          const isExpanded = expandedFlip === i;
           const matchedAssumption = assumptions.find(a =>
             item.originalAssumption.toLowerCase().includes(a.assumption.toLowerCase().slice(0, 20))
           );
           const leverageScore = matchedAssumption?.leverageScore;
 
           return (
-            <div
+            <InsightCard
               key={i}
-              className="rounded-2xl overflow-hidden transition-all duration-300"
-              style={{
-                background: "hsl(var(--card))",
-                border: isExpanded ? "1.5px solid hsl(var(--primary) / 0.35)" : "1.5px solid hsl(var(--border))",
-                boxShadow: isExpanded ? "0 8px 24px -8px hsl(var(--primary) / 0.12)" : "0 2px 8px -4px hsl(var(--foreground) / 0.06)",
-              }}
-            >
-              {/* Assumption → Bold Alternative header */}
-              <button
-                onClick={() => setExpandedFlip(isExpanded ? null : i)}
-                className="w-full text-left cursor-pointer"
-              >
-                <div className="grid grid-cols-[1fr_auto_1fr] min-h-[72px]">
-                  <div className="p-4 flex flex-col justify-center" style={{ background: "hsl(var(--muted))" }}>
-                    <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">Assumption</p>
-                    <p className="text-[13px] font-bold text-foreground leading-snug">{item.originalAssumption}</p>
-                  </div>
-                  <div className="flex items-center justify-center px-3" style={{ background: "hsl(var(--primary))" }}>
-                    <FlipHorizontal size={15} style={{ color: "hsl(var(--background))" }} />
-                  </div>
-                  <div className="p-4 flex flex-col justify-center" style={{ background: "hsl(var(--primary) / 0.06)" }}>
-                    <p className="text-[9px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--primary))" }}>Bold Alternative</p>
-                    <p className="text-[13px] font-bold leading-snug text-foreground">{item.boldAlternative}</p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Body */}
-              <div className="px-5 py-4 space-y-3" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                {/* Rationale — always visible as the "why it matters" hook */}
-                <p className="text-sm text-foreground/85 leading-relaxed">{item.rationale}</p>
-
-                {/* Leverage + expand hint row */}
-                <div className="flex items-center justify-between">
+              headline={item.boldAlternative}
+              subtext={item.rationale}
+              accentColor="hsl(var(--primary))"
+              badge={`was: ${item.originalAssumption.slice(0, 30)}${item.originalAssumption.length > 30 ? "…" : ""}`}
+              badgeColor="hsl(var(--muted-foreground))"
+              action={
+                <div className="flex items-center gap-2">
                   {leverageScore != null && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: 10 }).map((_, dot) => (
-                          <div
-                            key={dot}
-                            className="w-2 h-2 rounded-full transition-all"
-                            style={{
-                              background: dot < leverageScore
-                                ? leverageScore >= 8
-                                  ? "hsl(var(--primary))"
-                                  : leverageScore >= 6
-                                    ? "hsl(38 92% 50%)"
-                                    : "hsl(var(--muted-foreground))"
-                                : "hsl(var(--muted))",
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[11px] font-bold tabular-nums" style={{
-                        color: leverageScore >= 8 ? "hsl(var(--primary))" : leverageScore >= 6 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))",
-                      }}>
-                        {leverageScore}/10 leverage
-                      </span>
-                    </div>
+                    <span className="text-[11px] font-bold tabular-nums" style={{
+                      color: leverageScore >= 8 ? "hsl(var(--primary))" : leverageScore >= 6 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))",
+                    }}>
+                      {leverageScore}/10
+                    </span>
                   )}
-                  <button
-                    onClick={() => setExpandedFlip(isExpanded ? null : i)}
-                    className="text-[11px] font-bold flex items-center gap-1 transition-colors"
-                    style={{ color: "hsl(var(--primary))" }}
-                  >
-                    {isExpanded ? "Less" : "Deep dive"}
-                    <ChevronDown size={12} style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
-                  </button>
-                </div>
-
-                {/* Expanded detail */}
-                {isExpanded && (
-                  <div className="space-y-3 pt-2" style={{ borderTop: "1px dashed hsl(var(--border))" }}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">💡 Why This Creates Value</p>
-                        <p className="text-xs text-foreground/80 leading-relaxed">{item.rationale}</p>
-                      </div>
-                      <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">⚙️ How It Works</p>
-                        <p className="text-xs text-foreground/80 leading-relaxed">{item.physicalMechanism}</p>
-                      </div>
-                    </div>
-                    {matchedAssumption?.impactScenario && (
-                      <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.15)" }}>
-                        <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: "hsl(var(--primary))" }}>🎯 Impact Scenario</p>
-                        <p className="text-xs text-foreground/80 leading-relaxed">{matchedAssumption.impactScenario}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Actions row */}
-                <div className="flex items-center justify-between pt-1">
                   <InsightRating sectionId={`flip-${i}`} compact />
-                  <PitchDeckToggle contentKey={`flippedLogic-${i}`} label="Include in Pitch" />
+                  <PitchDeckToggle contentKey={`flippedLogic-${i}`} label="Pitch" />
                 </div>
-              </div>
-            </div>
+              }
+              detail={
+                <div className="space-y-3">
+                  <VisualGrid columns={2}>
+                    <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">Why This Creates Value</p>
+                      <p className="text-xs text-foreground/80 leading-relaxed">{item.rationale}</p>
+                    </div>
+                    <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">How It Works</p>
+                      <p className="text-xs text-foreground/80 leading-relaxed">{item.physicalMechanism}</p>
+                    </div>
+                  </VisualGrid>
+                  {matchedAssumption?.impactScenario && (
+                    <InsightCard headline="Impact Scenario" subtext={matchedAssumption.impactScenario} accentColor="hsl(var(--primary))" />
+                  )}
+                </div>
+              }
+            />
           );
         })}
       </div>
@@ -728,7 +506,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [activeStep, setActiveStep] = useState<"assumptions" | "flip" | "ideas" | "concept">(renderMode === "redesign" ? (activeSection || "flip") : "assumptions");
   const [visitedFPSteps, setVisitedFPSteps] = useState<Set<string>>(new Set([renderMode === "redesign" ? (activeSection || "flip") : "assumptions"]));
 
-  // Sync activeSection from parent when it changes
   useEffect(() => {
     if (activeSection && renderMode === "redesign") {
       setActiveStep(activeSection);
@@ -739,17 +516,15 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   const [rerunSuggestions, setRerunSuggestions] = useState("");
   const autoTriggered = useRef(false);
 
-  // Sync externalData → internal data when it changes (e.g. navigating back to a completed step)
   useEffect(() => {
     if (externalData && !data) {
       setData(externalData as FirstPrinciplesData);
     }
   }, [externalData]); // eslint-disable-line react-hooks/exhaustive-deps
-  
 
+  // Save to workspace function
   const saveToWorkspace = async (analysisData: FirstPrinciplesData) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("saved_analyses") as any).insert({
         user_id: user?.id,
         title: `${product.name} — Disrupt`,
@@ -770,12 +545,11 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     }
   };
 
+  // Run analysis function
   const runAnalysis = async () => {
     setLoading(true);
     onAnalysisStarted?.();
     try {
-      // Build request body — enrich with user curation context for redesign mode
-      // Always pass upstream Report intel so the Disrupt AI has full market context
       const upstreamIntel: Record<string, unknown> = {};
       if (product.pricingIntel) upstreamIntel.pricingIntel = product.pricingIntel;
       if (product.supplyChain) upstreamIntel.supplyChain = {
@@ -812,8 +586,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         requestBody.insightPreferences = analysisCtx.insightPreferences;
         requestBody.userScores = analysisCtx.userScores;
         requestBody.steeringText = analysisCtx.steeringText;
-        // Only send the fields the edge function actually uses (hiddenAssumptions, flippedLogic)
-        // to avoid oversized payloads from sending the full disrupt analysis blob
         if (analysisCtx.disruptData) {
           const dd = analysisCtx.disruptData as Record<string, unknown>;
           requestBody.disruptContext = {
@@ -821,8 +593,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             flippedLogic: dd.flippedLogic || null,
           };
         }
-        // Note: selectedImages is not used by the edge function — omitted to reduce payload size
-        // Pass governed reasoning data (causal chains, reasoning revisions, constraint maps)
         if (analysisCtx.governedData) {
           requestBody.governedContext = {
             reasoning_synopsis: analysisCtx.governedData.reasoning_synopsis,
@@ -831,7 +601,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           };
         }
       }
-      // Wire active branch for isolated downstream reasoning
       if (analysisCtx.activeBranchId && analysisCtx.governedData) {
         const { getBranchPayload } = await import("@/lib/branchContext");
         const branchPayload = getBranchPayload(analysisCtx.governedData, analysisCtx.activeBranchId, analysisCtx.strategicProfile);
@@ -871,11 +640,8 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     }
   };
 
-
-  // Expose loading state to parent
   useEffect(() => { onLoadingChange?.(loading); }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Parent-triggered re-run via runTrigger counter
   const runTriggerRef = useRef(runTrigger ?? 0);
   useEffect(() => {
     if (runTrigger !== undefined && runTrigger > runTriggerRef.current && !loading) {
@@ -884,34 +650,12 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
     }
   }, [runTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-trigger redesign when arriving with outdated or missing data
   useEffect(() => {
     if (autoTrigger && renderMode === "redesign" && !loading && !autoTriggered.current) {
       autoTriggered.current = true;
       runAnalysis();
     }
   }, [autoTrigger, renderMode, loading]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const allSteps = renderMode === "redesign"
-    ? [
-        { id: "flip" as const, label: "Flip the Logic", icon: FlipHorizontal },
-        { id: "ideas" as const, label: "Flipped Ideas", icon: Zap },
-        { id: "concept" as const, label: "Redesigned Concept", icon: Sparkles },
-      ]
-    : [
-        { id: "assumptions" as const, label: "Assumptions", icon: Brain },
-      ];
-  const totalSections = allSteps.length;
-  const currentSectionIdx = allSteps.findIndex(s => s.id === activeStep);
-  const currentSectionNum = currentSectionIdx + 1;
-  const nextStep = currentSectionIdx < allSteps.length - 1 ? allSteps[currentSectionIdx + 1] : null;
-
-  const goNext = () => {
-    if (!nextStep) return;
-    setActiveStep(nextStep.id);
-    setVisitedFPSteps(prev => new Set([...prev, nextStep.id]));
-    scrollToSteps();
-  };
 
   if (!data && loading) {
     return (
@@ -925,7 +669,6 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   }
 
   if (!data) {
-    // Redesign mode empty state
     if (renderMode === "redesign") {
       return (
         <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
@@ -938,22 +681,16 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
               Generate a radical reinvention of <strong>{product.name}</strong> — combining all flipped ideas into a cohesive redesigned concept.
             </p>
           </div>
-          <button
-            onClick={runAnalysis}
-            disabled={loading}
+          <button onClick={runAnalysis} disabled={loading}
             className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm transition-colors"
-            style={{ background: "hsl(38 92% 50%)", color: "white", opacity: loading ? 0.7 : 1 }}
-          >
+            style={{ background: "hsl(38 92% 50%)", color: "white", opacity: loading ? 0.7 : 1 }}>
             <Sparkles size={15} /> Generate Redesign
           </button>
-          <p className="typo-card-meta text-muted-foreground">
-            Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
-          </p>
+          <p className="text-[11px] font-bold text-muted-foreground">Uses Gemini 2.5 Pro · Deep analysis · ~30–60s</p>
         </div>
       );
     }
 
-    // Disrupt mode empty state
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-6 text-center">
         <div className="w-20 h-20 rounded flex items-center justify-center" style={{ background: "hsl(var(--primary-muted))" }}>
@@ -965,32 +702,17 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
             Deep analysis of <strong>{product.name}</strong> — questioning every assumption holding the current product together.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-3 max-w-[160px]">
-          {[
-            { icon: Brain, label: "Assumptions" },
-          ].map(({ icon: Icon, label }) => (
-            <div key={label} className="p-3 rounded text-center" style={{ background: "hsl(var(--muted))" }}>
-              <Icon size={18} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
-              <p className="typo-card-meta font-semibold text-muted-foreground">{label}</p>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={runAnalysis}
-          disabled={loading}
+        <button onClick={runAnalysis} disabled={loading}
           className="flex items-center gap-2 px-6 py-3 rounded font-bold text-sm transition-colors"
-          style={{ background: "hsl(var(--primary))", color: "white", opacity: loading ? 0.7 : 1 }}
-        >
+          style={{ background: "hsl(var(--primary))", color: "white", opacity: loading ? 0.7 : 1 }}>
           <Brain size={15} /> Run Disrupt Analysis
         </button>
-        <p className="typo-card-meta text-muted-foreground">
-          Uses Gemini 2.5 Pro · Deep analysis · ~30–60s
-        </p>
+        <p className="text-[11px] font-bold text-muted-foreground">Uses Gemini 2.5 Pro · Deep analysis · ~30–60s</p>
       </div>
     );
   }
 
-  // ── REDESIGN MODE ──
+  // REDESIGN MODE
   if (renderMode === "redesign") {
     const concept = data.redesignedConcept;
     const flips = data.flippedLogic || [];
@@ -998,88 +720,40 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
 
     return (
       <div className="space-y-4" data-fp-steps>
-        {/* Header + re-run — hidden when page provides its own tabs */}
-        {!activeSection && (
-          <>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(38 92% 50%)" }}>
-                  <Sparkles size={14} style={{ color: "white" }} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground text-sm leading-tight">Redesign: {product.name}</h3>
-                  <p className="typo-card-meta text-muted-foreground">{totalSections} sections · Click any to jump</p>
-                </div>
-              </div>
-              <button
-                onClick={runAnalysis}
-                disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-              >
-                {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
-                Re-run
-              </button>
-            </div>
-
-            {/* Section Navigator */}
-            <SectionWorkflowNav
-              tabs={allSteps}
-              activeId={activeStep}
-              visitedIds={visitedFPSteps}
-              onSelect={(id) => { setActiveStep(id as typeof activeStep); setVisitedFPSteps(prev => new Set([...prev, id])); scrollToSteps(); }}
-              descriptions={REDESIGN_SECTION_DESCRIPTIONS_NAV}
-              journeyLabel="Redesign Sections"
-            />
-          </>
-        )}
-
-        {/* ── Section: Flip the Logic ── */}
+        {/* Section: Flip the Logic */}
         {activeStep === "flip" && (() => {
-          const reasonCounts: Record<string, number> = {};
-          assumptions.forEach(a => { reasonCounts[a.reason] = (reasonCounts[a.reason] || 0) + 1; });
           const highLeverageCount = assumptions.filter(a => (a.leverageScore || 0) >= 7).length;
           const SHOW_LIMIT = 10;
 
           if (flips.length === 0) {
             return (
-              <div className="space-y-4">
-                <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
+              <StepCanvas>
                 <div className="text-center py-10 space-y-3">
                   <FlipHorizontal size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
                   <p className="text-sm font-bold text-foreground">No inversion data available</p>
                   <p className="text-xs text-muted-foreground max-w-md mx-auto">Run the Disrupt step first to generate assumption inversions.</p>
                 </div>
-                {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-              </div>
+              </StepCanvas>
             );
           }
 
           return (
-            <div className="space-y-4">
-              <SectionHeader current={currentSectionNum} total={totalSections} label="Flip the Logic" icon={FlipHorizontal} />
-              <div className="flex flex-wrap gap-2 mb-2">
-                <span className="px-2 py-1 rounded-md text-xs font-bold" style={{ background: "hsl(var(--primary-muted))", color: "hsl(var(--primary))" }}>
-                  {flips.length} inversions
-                </span>
+            <StepCanvas>
+              <VisualGrid columns={2}>
+                <MetricCard label="Inversions" value={String(flips.length)} accentColor="hsl(var(--primary))" />
                 {highLeverageCount > 0 && (
-                  <span className="px-2 py-1 rounded-md text-xs font-bold" style={{ background: "hsl(0 70% 50% / 0.12)", color: "hsl(0 70% 50%)" }}>
-                    {highLeverageCount} high leverage
-                  </span>
+                  <MetricCard label="High Leverage" value={String(highLeverageCount)} accentColor="hsl(var(--destructive))" />
                 )}
-              </div>
+              </VisualGrid>
               <FlipCardList flips={flips} assumptions={assumptions} showLimit={SHOW_LIMIT} />
-              {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-            </div>
+            </StepCanvas>
           );
         })()}
 
-        {/* ── Section: Flipped Ideas ── */}
+        {/* Section: Flipped Ideas */}
         {activeStep === "ideas" && (
-          <div className="space-y-4">
-            <SectionHeader current={currentSectionNum} total={totalSections} label="Flipped Ideas" icon={Zap} />
-
-            <DetailPanel title="Steer ideas — add your goals, then regenerate" icon={Lightbulb}>
+          <StepCanvas>
+            <ExpandableDetail label="Steer ideas — add your goals, then regenerate" icon={Lightbulb}>
               <textarea
                 value={userContext}
                 onChange={(e) => setUserContext(e.target.value)}
@@ -1088,20 +762,16 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 rows={2}
                 style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
               />
-            </DetailPanel>
+            </ExpandableDetail>
 
             {flippedIdeas && flippedIdeas.length > 0 ? (
               <>
-                <div className="p-4 rounded-xl space-y-2" style={{ background: "hsl(var(--primary) / 0.06)", border: "1.5px solid hsl(var(--primary) / 0.2)" }}>
-                  <p className="text-sm font-bold text-foreground">
-                    We generated <span style={{ color: "hsl(var(--primary))" }}>{flippedIdeas.length} bold reinvention ideas</span> based on the assumptions and flipped logic from Disrupt.
-                  </p>
-                  <ul className="text-xs text-foreground/70 space-y-1 ml-4 list-disc">
-                    <li><strong>Love an idea?</strong> Save it or add its visual to your pitch deck.</li>
-                    <li><strong>Want to change just one?</strong> Click <strong>Regenerate This Idea</strong> on the specific card.</li>
-                    <li><strong>Want all new ideas?</strong> Use the <strong>Regenerate All</strong> button below.</li>
-                  </ul>
-                </div>
+                <InsightCard
+                  icon={Sparkles}
+                  headline={`${flippedIdeas.length} bold reinvention ideas generated`}
+                  subtext="Based on assumptions and flipped logic from Disrupt."
+                  accentColor="hsl(var(--primary))"
+                />
 
                 <div className="flex items-center justify-end">
                   {onRegenerateIdeas && (
@@ -1143,309 +813,230 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
                 No flipped ideas yet. Run the Disrupt analysis first.
               </div>
             )}
-            {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-          </div>
+          </StepCanvas>
         )}
 
-        {/* ── Section: Redesigned Concept ── */}
+        {/* Section: Redesigned Concept */}
         {activeStep === "concept" && (() => {
           const conceptIsEmpty = !concept || (!concept.conceptName && !concept.coreInsight && !concept.physicalDescription);
           if (conceptIsEmpty) {
             return (
-              <div className="space-y-4">
-                <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
+              <StepCanvas>
                 <div className="text-center py-10 space-y-4">
                   <Sparkles size={36} className="mx-auto" style={{ color: "hsl(38 92% 50%)" }} />
                   <p className="text-lg font-extrabold text-foreground">No redesign concept generated yet</p>
                   <p className="text-sm text-foreground/70 max-w-md mx-auto leading-relaxed">
-                    Click <strong>Re-run Analysis</strong> above to generate a full redesigned concept with radical differences, materials, pricing, and more.
+                    Click <strong>Re-run Analysis</strong> above to generate a full redesigned concept.
                   </p>
                 </div>
-              </div>
+              </StepCanvas>
             );
           }
 
           return (
-            <div className="space-y-5">
-              <SectionHeader current={currentSectionNum} total={totalSections} label="Redesigned Concept" icon={Sparkles} />
+            <StepCanvas>
+              {/* Concept hero */}
+              <AnalysisPanel
+                title={concept.conceptName}
+                subtitle={concept.tagline}
+                icon={Sparkles}
+                eyebrow="Redesigned Concept"
+                eyebrowColor="hsl(217 91% 45%)"
+                accentColor="hsl(217 91% 45%)"
+              >
+                <InsightCard
+                  headline={concept.coreInsight}
+                  badge="Core Insight"
+                  badgeColor="hsl(217 91% 45%)"
+                  accentColor="hsl(217 91% 45%)"
+                />
+              </AnalysisPanel>
 
-              {/* Concept name + tagline hero */}
-              <div className="rounded-xl p-5" style={{ background: "hsl(217 91% 45% / 0.08)", border: "2px solid hsl(217 91% 45% / 0.2)" }}>
-                <h4 className="font-extrabold text-foreground text-xl leading-tight">{concept.conceptName}</h4>
-                <p className="text-sm text-foreground/70 mt-1">{concept.tagline}</p>
-              </div>
-
-              {/* Core insight — prominent callout */}
-              <div className="rounded-xl p-5" style={{ background: "hsl(217 91% 45% / 0.06)", borderLeft: "4px solid hsl(217 91% 45%)" }}>
-                <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-2" style={{ color: "hsl(217 91% 45%)" }}>Core Insight</p>
-                <p className="text-sm leading-relaxed text-foreground">{concept.coreInsight}</p>
-              </div>
-
-              {/* Radical Differences — numbered cards */}
-              <div>
-                <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-foreground mb-3">Radical Differences</p>
-                <div className="space-y-2">
+              {/* Radical Differences */}
+              <FrameworkPanel title="Radical Differences" icon={Zap} subtitle={`${(concept.radicalDifferences || []).length} innovations`}>
+                <VisualGrid columns={1}>
                   {(concept.radicalDifferences || []).map((diff: string, i: number) => (
-                    <div key={i} className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-extrabold" style={{ background: "hsl(38 92% 50%)", color: "white" }}>
-                        {i + 1}
-                      </div>
-                      <span className="text-sm text-foreground leading-relaxed">{diff}</span>
-                    </div>
+                    <SignalCard key={i} label={diff} type="strength" />
                   ))}
-                </div>
-              </div>
+                </VisualGrid>
+              </FrameworkPanel>
 
-              {/* Physical Description + Materials — rich cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-2" style={{ color: "hsl(271 70% 45%)" }}>Physical Form</p>
-                  <p className="text-sm text-foreground leading-relaxed">{concept.physicalDescription}</p>
-                  {concept.sizeAndWeight && <p className="text-sm font-bold text-foreground mt-2">Size: {concept.sizeAndWeight}</p>}
-                </div>
-                <div className="p-5 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-3" style={{ color: "hsl(271 70% 45%)" }}>Materials</p>
+              {/* Physical Form + Materials */}
+              <VisualGrid columns={2}>
+                <InsightCard
+                  headline={concept.physicalDescription}
+                  badge="Physical Form"
+                  badgeColor="hsl(271 70% 45%)"
+                  accentColor="hsl(271 70% 45%)"
+                >
+                  {concept.sizeAndWeight && <MetricCard label="Size & Weight" value={concept.sizeAndWeight} />}
+                </InsightCard>
+                <FrameworkPanel title="Materials" icon={Package}>
                   <div className="flex flex-wrap gap-2">
                     {(concept.materials || []).map((m: string, i: number) => (
                       <span key={i} className="px-3 py-1.5 rounded-lg text-sm" style={{ background: "hsl(271 70% 45% / 0.08)", color: "hsl(271 70% 40%)", border: "1px solid hsl(271 70% 45% / 0.15)" }}>{m}</span>
                     ))}
                   </div>
-                </div>
-              </div>
+                </FrameworkPanel>
+              </VisualGrid>
 
-              {/* Smart Features — icon grid */}
+              {/* Smart Features */}
               {concept.smartFeatures?.length > 0 && (
-                <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-foreground mb-3">Smart Features</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <FrameworkPanel title="Smart Features" icon={Cpu} subtitle={`${concept.smartFeatures.length} features`}>
+                  <VisualGrid columns={2}>
                     {concept.smartFeatures.map((f: string, i: number) => (
-                      <div key={i} className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "hsl(152 60% 44% / 0.05)", border: "1px solid hsl(152 60% 44% / 0.15)" }}>
-                        <Cpu size={16} style={{ color: "hsl(152 60% 35%)", flexShrink: 0, marginTop: 2 }} />
-                        <span className="text-sm text-foreground">{f}</span>
-                      </div>
+                      <SignalCard key={i} label={f} type="opportunity" />
                     ))}
-                  </div>
-                </div>
+                  </VisualGrid>
+                </FrameworkPanel>
               )}
 
-              {/* UX Transformation — bold callout */}
-              <div className="rounded-xl p-5" style={{ background: "hsl(152 60% 44% / 0.06)", borderLeft: "4px solid hsl(152 60% 44%)" }}>
-                <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-2" style={{ color: "hsl(152 60% 35%)" }}>User Experience Transformation</p>
-                <p className="text-sm text-foreground leading-relaxed">{concept.userExperienceTransformation}</p>
-              </div>
+              {/* UX Transformation */}
+              <InsightCard
+                icon={Users}
+                headline={concept.userExperienceTransformation}
+                badge="UX Transformation"
+                badgeColor="hsl(152 60% 35%)"
+                accentColor="hsl(152 60% 44%)"
+              />
 
               {/* Friction Eliminated */}
               {concept.frictionEliminated?.length > 0 && (
-                <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-foreground mb-3">Friction Eliminated</p>
-                  <div className="space-y-1.5">
+                <FrameworkPanel title="Friction Eliminated" icon={CheckCircle2}>
+                  <VisualGrid columns={1}>
                     {concept.frictionEliminated.map((f: string, i: number) => (
-                      <div key={i} className="flex items-start gap-2.5 p-3 rounded-lg" style={{ background: "hsl(142 70% 35% / 0.05)" }}>
-                        <CheckCircle2 size={16} style={{ color: "hsl(142 70% 35%)", flexShrink: 0, marginTop: 1 }} />
-                        <span className="text-sm text-foreground">{f}</span>
-                      </div>
+                      <SignalCard key={i} label={f} type="strength" />
                     ))}
-                  </div>
-                </div>
+                  </VisualGrid>
+                </FrameworkPanel>
               )}
 
-              {/* Business details — bold stat cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: "Price Point", value: concept.pricePoint, color: "hsl(217 91% 45%)" },
-                  { label: "Target User", value: concept.targetUser, color: "hsl(271 70% 45%)" },
-                  { label: "Capital Required", value: concept.capitalRequired || "—", color: "hsl(152 60% 38%)" },
-                  { label: "Risk Level", value: concept.riskLevel || "—", color: "hsl(200 80% 42%)" },
-                ].map((item) => (
-                  <div key={item.label} className="p-4 rounded-xl text-center" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.12em]" style={{ color: item.color }}>{item.label}</p>
-                    <p className="text-sm text-foreground mt-1.5">{item.value}</p>
-                  </div>
-                ))}
-              </div>
+              {/* Business details — MetricCard grid */}
+              <VisualGrid columns={4}>
+                <MetricCard label="Price Point" value={concept.pricePoint} accentColor="hsl(217 91% 45%)" />
+                <MetricCard label="Target User" value={concept.targetUser} accentColor="hsl(271 70% 45%)" />
+                <MetricCard label="Capital Required" value={concept.capitalRequired || "—"} accentColor="hsl(152 60% 38%)" />
+                <MetricCard label="Risk Level" value={concept.riskLevel || "—"} accentColor="hsl(200 80% 42%)" />
+              </VisualGrid>
 
-              {/* Why not done + Risk — deep contrast panel */}
-              <DetailPanel title="Why it hasn't been done & biggest risk" icon={ShieldAlert} defaultOpen>
-                <div className="space-y-4 mb-2">
-                  <div className="p-4 rounded-xl" style={{ background: "hsl(217 91% 45% / 0.05)", borderLeft: "3px solid hsl(217 91% 45%)" }}>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5" style={{ color: "hsl(217 91% 38%)" }}>Why Not Already Done</p>
-                    <p className="text-sm text-foreground leading-relaxed">{concept.whyItHasntBeenDone}</p>
-                  </div>
-                  <div className="p-4 rounded-xl" style={{ background: "hsl(271 70% 45% / 0.05)", borderLeft: "3px solid hsl(271 70% 45%)" }}>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5" style={{ color: "hsl(271 70% 38%)" }}>Biggest Risk</p>
-                    <p className="text-sm text-foreground leading-relaxed">{concept.biggestRisk}</p>
-                  </div>
-                  <div className="p-4 rounded-xl" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.1em] mb-1.5 text-foreground">Manufacturing Path</p>
-                    <p className="text-sm text-foreground leading-relaxed">{concept.manufacturingPath}</p>
-                  </div>
+              {/* Why not done + Risk — expandable */}
+              <ExpandableDetail label="Why it hasn't been done & biggest risk" icon={ShieldAlert} defaultExpanded>
+                <div className="space-y-3">
+                  <InsightCard headline={concept.whyItHasntBeenDone} badge="Why Not Yet" badgeColor="hsl(217 91% 38%)" accentColor="hsl(217 91% 45%)" />
+                  <InsightCard headline={concept.biggestRisk} badge="Biggest Risk" badgeColor="hsl(271 70% 38%)" accentColor="hsl(271 70% 45%)" />
+                  <InsightCard headline={concept.manufacturingPath} badge="Mfg Path" badgeColor="hsl(var(--foreground))" />
                 </div>
-              </DetailPanel>
+              </ExpandableDetail>
 
-              {/* Concept Visuals moved to RedesignPage top-level */}
-
-              {/* All sections done */}
               <div className="text-center py-4">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
                   <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} /> All sections explored
                 </div>
               </div>
-            </div>
+            </StepCanvas>
           );
         })()}
       </div>
     );
   }
 
+  // DISRUPT MODE (assumptions)
   return (
     <div className="space-y-4" data-fp-steps>
-
-      {/* Header + re-run (compact) */}
+      {/* Header + re-run */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-bold text-foreground uppercase tracking-widest">Hidden Assumptions & Leverage Analysis</p>
-        </div>
-        <button
-          onClick={runAnalysis}
-          disabled={loading}
+        <p className="text-sm font-bold text-foreground uppercase tracking-widest">Hidden Assumptions & Leverage Analysis</p>
+        <button onClick={runAnalysis} disabled={loading}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-          style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-        >
+          style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
           {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />}
           Re-run
         </button>
       </div>
 
-      {/* Steer AI (collapsible) */}
-      <DetailPanel title="Refine your analysis — add direction, then Re-run" icon={Lightbulb}>
+      {/* Steer AI */}
+      <ExpandableDetail label="Refine your analysis — add direction, then Re-run" icon={Lightbulb}>
         <textarea
           value={rerunSuggestions}
           onChange={(e) => setRerunSuggestions(e.target.value)}
           placeholder="e.g. Focus on sustainability, explore modular design, target commercial users…"
           className="w-full rounded px-3 py-2.5 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
           rows={2}
-          style={{
-            background: "hsl(var(--background))",
-            border: "1px solid hsl(var(--border))",
-            color: "hsl(var(--foreground))",
-          }}
+          style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }}
         />
-      </DetailPanel>
+      </ExpandableDetail>
 
-      {/* Single section — no nav needed */}
-
-      {/* ═══════ STRUCTURAL DIAGNOSIS (above assumptions) ═══════ */}
+      {/* Structural Diagnosis */}
       <StructuralDiagnosisPanel constraintMap={analysisCtx.governedData?.constraint_map as any} />
 
-      {/* ═══════ SECTION CONTENT ═══════ */}
-
-      {/* Section 1: Hidden Assumptions */}
+      {/* Assumptions section */}
       {activeStep === "assumptions" && (() => {
         const assumptions = data.hiddenAssumptions || [];
         const challengeableCount = assumptions.filter(a => a.isChallengeable).length;
         const avgLeverage = assumptions.length > 0
           ? (assumptions.reduce((s, a) => s + (a.leverageScore || 0), 0) / assumptions.length).toFixed(1)
           : "0";
-        const reasonCounts: Record<string, number> = {};
-        assumptions.forEach(a => { reasonCounts[a.reason] = (reasonCounts[a.reason] || 0) + 1; });
-        const topReason = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0];
         const SHOW_LIMIT = 10;
-
-        const REASON_BORDER: Record<string, string> = {
-          tradition: "hsl(38 92% 50%)",
-          manufacturing: "hsl(217 91% 55%)",
-          cost: "hsl(142 70% 40%)",
-          physics: "hsl(271 81% 50%)",
-          habit: "hsl(330 80% 50%)",
-        };
 
         if (assumptions.length === 0) {
           return (
-            <div className="space-y-4">
-              <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
+            <StepCanvas>
               <div className="text-center py-10 space-y-3">
                 <Brain size={32} className="mx-auto" style={{ color: "hsl(var(--muted-foreground))" }} />
                 <p className="text-sm font-bold text-foreground">No assumption data available</p>
-                <p className="text-xs text-muted-foreground max-w-md mx-auto">This analysis was saved before assumption data was captured. Click <strong>Re-run</strong> above to regenerate the full Disrupt analysis with enriched assumptions and flipped logic.</p>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">Click <strong>Re-run</strong> above to regenerate.</p>
               </div>
-              {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-            </div>
+            </StepCanvas>
           );
         }
 
         return (
-        <div className="space-y-4">
-          <SectionHeader current={currentSectionNum} total={totalSections} label="Hidden Assumptions" icon={Brain} />
+          <StepCanvas>
+            <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="firstPrinciples" governedOverride={analysisCtx.governedData}>
 
-          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="firstPrinciples" governedOverride={analysisCtx.governedData}>
+              {/* Highest-Leverage Move Banner */}
+              {(() => {
+                const topMove = assumptions
+                  .filter(a => a.isChallengeable && (a.leverageScore || 0) >= 7)
+                  .sort((a, b) => (b.leverageScore || 0) - (a.leverageScore || 0))[0];
+                if (!topMove) return null;
+                const erodingCount = assumptions.filter(a => a.urgencySignal === "eroding").length;
+                return (
+                  <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--foreground))", border: "none" }}>
+                    <div className="flex items-center gap-2">
+                      <Flame size={14} style={{ color: "hsl(var(--background))" }} />
+                      <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--background) / 0.7)" }}>Highest-Leverage Move</p>
+                      {erodingCount > 0 && (
+                        <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "hsl(0 70% 50% / 0.2)", color: "hsl(0 70% 65%)" }}>
+                          {erodingCount} eroding now
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-bold leading-snug" style={{ color: "hsl(var(--background))" }}>
+                      Challenge: "{topMove.assumption}"
+                    </p>
+                    {topMove.impactScenario && (
+                      <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--background) / 0.65)" }}>
+                        {topMove.impactScenario}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
 
-          {/* ── Highest-Leverage Move Banner ── */}
-          {(() => {
-            const topMove = assumptions
-              .filter(a => a.isChallengeable && (a.leverageScore || 0) >= 7)
-              .sort((a, b) => (b.leverageScore || 0) - (a.leverageScore || 0))[0];
-            if (!topMove) return null;
-            const erodingCount = assumptions.filter(a => a.urgencySignal === "eroding").length;
-            return (
-              <div className="rounded-xl p-4 space-y-2" style={{ background: "hsl(var(--foreground))", border: "none" }}>
-                <div className="flex items-center gap-2">
-                  <Flame size={14} style={{ color: "hsl(var(--background))" }} />
-                  <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--background) / 0.7)" }}>Highest-Leverage Move</p>
-                  {erodingCount > 0 && (
-                    <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "hsl(0 70% 50% / 0.2)", color: "hsl(0 70% 65%)" }}>
-                      {erodingCount} eroding now
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm font-bold leading-snug" style={{ color: "hsl(var(--background))" }}>
-                  Challenge: "{topMove.assumption}"
-                </p>
-                {topMove.impactScenario && (
-                  <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--background) / 0.7)" }}>
-                    {topMove.impactScenario}
-                  </p>
-                )}
-                <div className="flex items-center gap-3 pt-1">
-                  <span className="text-[10px] font-bold tabular-nums" style={{ color: "hsl(var(--background) / 0.5)" }}>
-                    Leverage: {topMove.leverageScore}/10
-                  </span>
-                  {topMove.urgencySignal === "eroding" && (
-                    <span className="text-[10px] font-bold" style={{ color: "hsl(0 70% 65%)" }}>↓ Eroding</span>
-                  )}
-                  {topMove.competitiveBlindSpot && (
-                    <span className="text-[10px]" style={{ color: "hsl(var(--background) / 0.5)" }}>
-                       Vulnerable: {topMove.competitiveBlindSpot}
-                     </span>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
+              {/* Metric strip */}
+              <VisualGrid columns={3}>
+                <MetricCard label="Total Assumptions" value={String(assumptions.length)} />
+                <MetricCard label="Challengeable" value={String(challengeableCount)} accentColor="hsl(var(--primary))" />
+                <MetricCard label="Avg Leverage" value={`${avgLeverage}/10`} accentColor="hsl(38 92% 42%)" />
+              </VisualGrid>
 
-          {/* ── Summary line ── */}
-          <p className="text-sm font-semibold text-foreground leading-relaxed">
-            {assumptions.length} assumptions deconstructed · {challengeableCount} challengeable ({assumptions.length > 0 ? Math.round(challengeableCount / assumptions.length * 100) : 0}%) · avg leverage {avgLeverage}/10{topReason ? ` · top root cause: ${REASON_COLORS[topReason[0]]?.label || topReason[0]}` : ""}
-            {(() => { const eroding = assumptions.filter(a => a.urgencySignal === "eroding").length; return eroding > 0 ? ` · ${eroding} eroding now` : ""; })()}
-          </p>
+              <AssumptionCardList assumptions={assumptions} showLimit={SHOW_LIMIT} />
 
-          {/* ── Assumption Cards ── */}
-          <AssumptionCardList assumptions={assumptions} showLimit={SHOW_LIMIT} reasonBorder={REASON_BORDER} />
-
-          {nextStep && <NextSectionButton label={nextStep.label} onClick={goNext} />}
-          </AnalysisVisualLayer>
-        </div>
+            </AnalysisVisualLayer>
+          </StepCanvas>
         );
       })()}
-
-      {/* "All sections explored" for single-section Disrupt mode */}
-      {activeStep === "assumptions" && !nextStep && (
-        <div className="text-center py-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
-            <CheckCircle2 size={14} style={{ color: "hsl(142 70% 40%)" }} /> Assumptions mapped — continue to Redesign for inversions &amp; ideas
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };
