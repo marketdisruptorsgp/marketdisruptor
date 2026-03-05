@@ -1060,6 +1060,28 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const handleLoadSaved = useCallback(async (rawAnalysis: any) => {
     setLoadedFromSaved(true);
 
+    // ── CRITICAL: Clear ALL step data before loading a new analysis ──
+    // Prevents cross-analysis data leakage (e.g. Pitch from "Audi Mechanic"
+    // appearing inside "CK Woodworks").
+    setDisruptData(null);
+    setStressTestData(null);
+    setPitchDeckData(null);
+    setRedesignData(null);
+    setGovernedData(null);
+    setBusinessAnalysisData(null);
+    setBusinessStressTestData(null);
+    setActiveBranchIdState(null);
+    setUserScores({});
+    setOutdatedSteps(new Set());
+    setInsightPreferences({});
+    setSteeringText("");
+    setPitchDeckImages([]);
+    setPitchDeckExclusions(new Set());
+    setScoutedCompetitors([]);
+    setAdaptiveContext(null);
+    setGeoData(null);
+    setRegulatoryData(null);
+
     // If analysis_data is missing (e.g. workspace list query), fetch the full record first
     let analysis = rawAnalysis;
     if (!analysis.analysis_data && analysis.id) {
@@ -1235,12 +1257,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         toast.success("Analysis loaded — continue through the full pipeline");
         navigate(`/analysis/${analysis.id}/report`);
       } else {
-        // Use centralized resume logic
-        const hasProducts = sanitizedProducts.length > 0;
-        const { route: resumeRoute, label: resumeLabel } = getResumeRoute(ad, hasProducts);
-
-        toast.success(`Resuming where you left off — ${resumeLabel}`);
-        navigate(`/analysis/${analysis.id}/${resumeRoute}`);
+        // Always open on Intelligence Report (Step 2) — users navigate forward manually.
+        // Previously used getResumeRoute() which jumped to the furthest completed step,
+        // causing completed analyses to skip directly to Pitch Deck.
+        toast.success("Analysis loaded — starting from Intelligence Report");
+        navigate(`/analysis/${analysis.id}/report`);
       }
     }
   }, [navigate]);
