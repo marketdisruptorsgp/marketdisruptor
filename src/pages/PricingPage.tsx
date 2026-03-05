@@ -31,7 +31,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <button
             onClick={() => navigate("/")}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
@@ -46,7 +46,7 @@ export default function PricingPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-20">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-20">
         <div className="text-center mb-14">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Sparkles size={14} className="text-primary" />
