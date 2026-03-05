@@ -7,6 +7,7 @@ import type { RoutingResult } from "@/lib/modeIntelligence";
 import { type StrategicProfile, DEFAULT_PROFILES } from "@/lib/strategicOS";
 import { type BusinessModelAnalysisData } from "@/components/BusinessModelAnalysis";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
@@ -565,9 +566,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         ? `Deep research across multiple data sources for your ${isServiceMode ? "service" : "products"}…`
         : `Deep research across multiple data sources for ${params.category}${isServiceMode ? "" : " products"}…`
       );
-      const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke(
+      const { data: scrapeData, error: scrapeError } = await invokeWithTimeout(
         "scrape-products",
-        { body: { ...baseParams, customProducts } }
+        { body: { ...baseParams, customProducts } },
+        180_000, // 3 min — scraping can be slow
       );
       if (scrapeError || !scrapeData?.success) {
         throw new Error(scrapeData?.error || scrapeError?.message || "Scraping failed");
@@ -607,7 +609,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         : "Searching for real product images across data sources..."
       );
 
-      const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke(
+      const { data: analyzeData, error: analyzeError } = await invokeWithTimeout(
         "analyze-products",
         {
           body: {
@@ -625,7 +627,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
               hasImage: !!cp.imageDataUrl,
             })),
           },
-        }
+        },
+        180_000, // 3 min
       );
 
       if (analyzeError || !analyzeData?.success) {

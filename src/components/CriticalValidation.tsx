@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { toast } from "sonner";
 import {
   Shield, Swords, Target, CheckCircle2, XCircle, AlertTriangle,
@@ -213,9 +214,9 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         const { getBranchPayload } = await import("@/lib/branchContext");
         activeBranch = getBranchPayload(governedData, activeBranchId, strategicProfileRef);
       }
-      const { data: result, error } = await supabase.functions.invoke("critical-validation", {
+      const { data: result, error } = await invokeWithTimeout("critical-validation", {
         body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined, activeBranch, adaptiveContext: adaptiveContextRef || undefined, competitorIntel: competitorIntel?.length ? competitorIntel : undefined },
-      });
+      }, 180_000);
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Validation failed";
         toast.error(msg);

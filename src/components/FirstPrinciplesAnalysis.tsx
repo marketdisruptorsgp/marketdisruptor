@@ -3,6 +3,7 @@ import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import type { Product, FlippedIdea } from "@/data/mockProducts";
@@ -837,9 +838,9 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
           requestBody.activeBranch = branchPayload;
         }
       }
-      const { data: result, error } = await supabase.functions.invoke("first-principles-analysis", {
+      const { data: result, error } = await invokeWithTimeout("first-principles-analysis", {
         body: requestBody,
-      });
+      }, 180_000);
 
       if (error || !result?.success) {
         const msg = result?.error || error?.message || "Analysis failed";

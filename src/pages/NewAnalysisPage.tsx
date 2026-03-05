@@ -18,6 +18,7 @@ import {
   type RoutingResult,
 } from "@/lib/modeIntelligence";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { toast } from "sonner";
 import { useBIExtraction, fileToDocumentText, extractionToContext, type BIExtraction } from "@/hooks/useBIExtraction";
 import { StepLoadingTracker, type StepTask } from "@/components/StepLoadingTracker";
@@ -426,7 +427,7 @@ export default function NewAnalysisPage() {
         analysis.setMainTab("business");
         analysis.setActiveMode("business");
 
-        const { data: result, error } = await supabase.functions.invoke("business-model-analysis", {
+        const { data: result, error } = await invokeWithTimeout("business-model-analysis", {
           body: {
             businessModel: {
               type: name,
@@ -440,7 +441,7 @@ export default function NewAnalysisPage() {
             extractedContext,
             adaptiveContext: adaptiveCtx,
           },
-        });
+        }, 180_000);
 
         if (error || !result?.success) {
           toast.error("Analysis failed: " + (result?.error || error?.message || "Unknown error"));
