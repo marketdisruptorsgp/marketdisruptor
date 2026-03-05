@@ -16,63 +16,65 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const prompt = `Product concept mockup image: "${ideaName}" — inspired by the classic product "${productName}". 
-Visual style: ${visualNotes || description}. 
-Create a clean, professional product concept render. Show the physical product in a lifestyle or studio context. 
-Modern redesign aesthetic, high quality render, white or gradient background, commercial product photography style.`;
+    const prompt = `Generate a product concept image: a modern redesign of "${productName}" called "${ideaName}". 
+Style: clean commercial product photography, studio lighting, white or soft gradient background. 
+${visualNotes ? `Visual details: ${visualNotes}` : ""}
+Show only the physical product, no text overlays.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [{ role: "user", content: prompt }],
-        modalities: ["image", "text"],
-      }),
-    });
+    // Helper to call the image model and extract the base64 URL
+    async function callImageModel(p: string): Promise<string | null> {
+      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image",
+          messages: [{ role: "user", content: p }],
+          modalities: ["image", "text"],
+        }),
+      });
 
-    if (!response.ok) {
-      const txt = await response.text();
-      console.error("Image generation error:", response.status, txt.slice(0, 300));
-
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits in Settings → Workspace → Usage." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error("Image generation error:", resp.status, txt.slice(0, 300));
+        if (resp.status === 429) throw { status: 429, msg: "Rate limit exceeded. Please try again in a moment." };
+        if (resp.status === 402) throw { status: 402, msg: "AI credits exhausted. Please add credits in Settings → Workspace → Usage." };
+        throw new Error(`Image generation failed: ${resp.status}`);
       }
 
-      throw new Error(`Image generation failed: ${response.status} ${txt.slice(0, 200)}`);
-    }
+      const d = await resp.json();
+      const message = d.choices?.[0]?.message;
 
-    const data = await response.json();
+      // Check images array first
+      let url: string | null = message?.images?.[0]?.image_url?.url || null;
 
-    // Extract base64 image from response
-    const message = data.choices?.[0]?.message;
-    let base64Url: string | null = message?.images?.[0]?.image_url?.url || null;
-
-    // Also check content array format
-    if (!base64Url && Array.isArray(message?.content)) {
-      for (const part of message.content) {
-        if (part.type === "image_url" && part.image_url?.url) {
-          base64Url = part.image_url.url;
-          break;
+      // Check content array format
+      if (!url && Array.isArray(message?.content)) {
+        for (const part of message.content) {
+          if (part.type === "image_url" && part.image_url?.url) {
+            url = part.image_url.url;
+            break;
+          }
         }
       }
+
+      return url;
+    }
+
+    // Try twice — retry with simpler prompt if first attempt returns no image
+    let base64Url = await callImageModel(prompt);
+    if (!base64Url) {
+      console.warn("First attempt returned no image, retrying with simplified prompt...");
+      base64Url = await callImageModel(
+        `Generate an image of a modern product concept called "${ideaName}". Clean studio product photography, white background.`
+      );
     }
 
     if (!base64Url) {
-      console.error("No image in response:", JSON.stringify(data).slice(0, 500));
-      throw new Error("No image returned from AI.");
+      console.error("No image after retry");
+      throw new Error("No image returned from AI. The model may be temporarily unable to generate images — please try again.");
     }
 
     // Upload to Supabase storage for a permanent URL
@@ -118,8 +120,15 @@ Modern redesign aesthetic, high quality render, white or gradient background, co
     return new Response(JSON.stringify({ success: true, imageUrl: base64Url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("generate-product-visual error:", err);
+    // Handle structured rate-limit / credit errors
+    if (err && typeof err === "object" && err.status && err.msg) {
+      return new Response(JSON.stringify({ error: err.msg }), {
+        status: err.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
