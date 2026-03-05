@@ -37,16 +37,16 @@ import {
 /* ── Step-specific context banners ── */
 const STEP_BANNERS: Record<number, { icon: React.ElementType; title: string; description: string; color: string }> = {
   2: { icon: Target, title: "Intelligence Report", description: "Deep business model deconstruction — operational audit, hidden assumptions, tech leverage, revenue reinvention, and disruption mapping.", color: "hsl(var(--mode-business))" },
-  3: { icon: Brain, title: "Deconstruct", description: "Disruption vulnerabilities and a reinvented business model — flip your assumptions and discover new value creation pathways.", color: "hsl(350 80% 55%)" },
-  4: { icon: Swords, title: "Stress Test", description: "Red Team vs Green Team adversarial debate — your business model is attacked and defended to expose blind spots and validate strengths.", color: "hsl(38 92% 50%)" },
+  3: { icon: Brain, title: "Structural Analysis", description: "Assumptions, structural constraints, leverage points, and system intelligence — decompose the business model to its root forces.", color: "hsl(350 80% 55%)" },
+  4: { icon: Swords, title: "Strategy Development", description: "Opportunity prioritization, strategic command deck, and adversarial stress testing — your business model is attacked and defended.", color: "hsl(38 92% 50%)" },
   5: { icon: Presentation, title: "Pitch Deck", description: "Investor-ready pitch builder — synthesizes your analysis into a compelling narrative with data-backed slides.", color: "hsl(var(--mode-business))" },
 };
 
 const BACK_LABELS: Record<number, { label: string; step: number }> = {
   2: { label: "Home", step: 0 },
   3: { label: "Intelligence Report", step: 2 },
-  4: { label: "Deconstruct", step: 3 },
-  5: { label: "Stress Test", step: 4 },
+  4: { label: "Structural Analysis", step: 3 },
+  5: { label: "Strategy Development", step: 4 },
 };
 
 const STRESS_TABS: TabDef<"debate" | "validate">[] = [

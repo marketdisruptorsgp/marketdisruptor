@@ -8,7 +8,7 @@ import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
-import { Target, Atom, Lightbulb, GitBranch } from "lucide-react";
+import { Target, Atom, Lightbulb, GitBranch, Brain, Shield } from "lucide-react";
 import { StructureTab } from "@/components/strategic/StructureTab";
 import { RedesignTab } from "@/components/strategic/RedesignTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
@@ -28,16 +28,17 @@ import {
   type TabDef,
 } from "@/components/analysis/AnalysisPageShell";
 
-const TABS: TabDef<"structure" | "reasoning" | "hypotheses">[] = [
-  { id: "structure", label: "First Principles", icon: Atom },
+const TABS: TabDef<"assumptions" | "deconstruct" | "reasoning" | "hypotheses">[] = [
+  { id: "assumptions", label: "Assumptions", icon: Shield },
+  { id: "deconstruct", label: "Deconstruct", icon: Atom },
   { id: "reasoning", label: "Reasoning", icon: Lightbulb },
   { id: "hypotheses", label: "Hypotheses", icon: GitBranch },
 ];
 
-type TabId = "structure" | "reasoning" | "hypotheses";
+type TabId = "assumptions" | "deconstruct" | "reasoning" | "hypotheses";
 
 export default function DisruptPage() {
-  const [activeTab, setActiveTab] = useState<TabId>("structure");
+  const [activeTab, setActiveTab] = useState<TabId>("assumptions");
   const [runTrigger, setRunTrigger] = useState(0);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const analysis = useAnalysis();
@@ -63,7 +64,7 @@ export default function DisruptPage() {
   const ranking = hasHypotheses ? rankWithProfile(rawHypotheses!, analysis.strategicProfile) : null;
 
   const gatedTabs: TabId[] = ["reasoning", "hypotheses"];
-  const effectiveTab = !hasDisruptData && gatedTabs.includes(activeTab) ? "structure" : activeTab;
+  const effectiveTab = !hasDisruptData && gatedTabs.includes(activeTab) ? "assumptions" : activeTab;
 
   // Hide tabs that have no data
   const hiddenTabs: TabId[] = [];
@@ -100,7 +101,7 @@ export default function DisruptPage() {
         accentColor={theme.primary}
         isLoading={analysisLoading}
         hasData={hasDisruptData}
-        onRun={() => { setRunTrigger(t => t + 1); setActiveTab("structure"); }}
+        onRun={() => { setRunTrigger(t => t + 1); setActiveTab("assumptions"); }}
         strategicProfile={analysis.strategicProfile}
         onChangeProfile={analysis.setStrategicProfile}
       />
@@ -159,7 +160,7 @@ export default function DisruptPage() {
             </p>
           </div>
           <button
-            onClick={() => { setRunTrigger(t => t + 1); setActiveTab("structure"); }}
+            onClick={() => { setRunTrigger(t => t + 1); setActiveTab("assumptions"); }}
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors bg-primary text-primary-foreground hover:opacity-90"
           >
             <Atom size={14} />
@@ -170,7 +171,7 @@ export default function DisruptPage() {
 
       {/* ── Tab Content ── */}
       <div style={{ display: analysisLoading || !hasDisruptData ? "none" : undefined }} className="min-h-[400px]">
-        {effectiveTab === "structure" && (
+        {effectiveTab === "assumptions" && (
           <StructureTab
             selectedProduct={selectedProduct}
             analysis={analysis}
@@ -184,6 +185,25 @@ export default function DisruptPage() {
             products={products}
             runTrigger={runTrigger}
             onLoadingChange={setAnalysisLoading}
+            viewMode="assumptions"
+          />
+        )}
+
+        {effectiveTab === "deconstruct" && (
+          <StructureTab
+            selectedProduct={selectedProduct}
+            analysis={analysis}
+            governedData={governedData as Record<string, unknown> | null}
+            synopsisData={synopsisData}
+            rawHypotheses={hasHypotheses ? rawHypotheses! : null}
+            hasDisruptData={hasDisruptData}
+            hasSynopsis={false}
+            hasHypotheses={false}
+            ranking={ranking}
+            products={products}
+            runTrigger={runTrigger}
+            onLoadingChange={setAnalysisLoading}
+            viewMode="deconstruct"
           />
         )}
 

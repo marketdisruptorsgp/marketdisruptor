@@ -5,9 +5,9 @@ import type { StepConfig } from "@/components/StepNavigator";
 export function getStepConfigs(modeAccent: string): StepConfig[] {
   return [
     { step: 2, label: "Intelligence Report", description: "Deep market data, pricing & supply chain intel", icon: Target, color: modeAccent },
-    { step: 3, label: "Deconstruct", description: "Hidden assumptions & leverage analysis", icon: Brain, color: modeAccent },
+    { step: 3, label: "Structural Analysis", description: "Assumptions, constraints & structural decomposition", icon: Brain, color: modeAccent },
     { step: 4, label: "Redesign", description: "Flipped logic, reinvention ideas & redesigned concept", icon: Sparkles, color: modeAccent },
-    { step: 5, label: "Stress Test", description: "Red vs Green team critical validation", icon: Swords, color: modeAccent },
+    { step: 5, label: "Strategy Development", description: "Opportunities, strategic command deck & execution assessment", icon: Swords, color: modeAccent },
     { step: 6, label: "Pitch Deck", description: "Investor-ready presentation builder", icon: Presentation, color: modeAccent },
   ];
 }
@@ -15,8 +15,8 @@ export function getStepConfigs(modeAccent: string): StepConfig[] {
 export function getBusinessStepConfigs(modeAccent: string): StepConfig[] {
   return [
     { step: 2, label: "Intelligence Report", description: "Business model deep analysis", icon: Target, color: modeAccent },
-    { step: 3, label: "Deconstruct", description: "Challenge assumptions & reinvent", icon: Brain, color: modeAccent },
-    { step: 4, label: "Stress Test", description: "Red vs Green team debate", icon: Swords, color: modeAccent },
+    { step: 3, label: "Structural Analysis", description: "Assumptions & structural decomposition", icon: Brain, color: modeAccent },
+    { step: 4, label: "Strategy Development", description: "Opportunities, strategic command & execution", icon: Swords, color: modeAccent },
     { step: 5, label: "Pitch Deck", description: "Investor-ready pitch builder", icon: Presentation, color: modeAccent },
   ];
 }
