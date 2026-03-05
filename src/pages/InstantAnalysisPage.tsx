@@ -119,8 +119,11 @@ export default function InstantAnalysisPage() {
 
   const modeColor = MODE_CONFIG[mode].cssVar;
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawFiles = Array.from(e.target.files || []);
+    if (rawFiles.length === 0) return;
+    const { validateFileBatch } = await import("@/utils/fileValidation");
+    const files = validateFileBatch(rawFiles);
     if (files.length === 0) return;
     setSelectedFiles(files);
     setResult(null);

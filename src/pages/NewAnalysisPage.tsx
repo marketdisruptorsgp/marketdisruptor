@@ -1073,7 +1073,7 @@ export default function NewAnalysisPage() {
                         type="file"
                         accept={DOC_ACCEPT}
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
                           const ext = file.name.split(".").pop()?.toLowerCase() || "";
@@ -1081,10 +1081,8 @@ export default function NewAnalysisPage() {
                             toast.error("Unsupported file type. Use PDF, Word, PowerPoint, Excel, or CSV.");
                             return;
                           }
-                          if (file.size > 20 * 1024 * 1024) {
-                            toast.error("File too large. Maximum 20MB.");
-                            return;
-                          }
+                          const { validateFileUpload } = await import("@/utils/fileValidation");
+                          if (!validateFileUpload(file).allowed) { e.target.value = ""; return; }
                           setClarifierDocs(prev => [...prev, { file, name: file.name }]);
                           extractionTriggered.current = false;
                           e.target.value = "";
@@ -1128,9 +1126,11 @@ export default function NewAnalysisPage() {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
+                          const { validateFileUpload } = await import("@/utils/fileValidation");
+                          if (!validateFileUpload(file).allowed) { e.target.value = ""; return; }
                           const reader = new FileReader();
                           reader.onload = () => {
                             setClarifierImages(prev => [...prev, { file, dataUrl: reader.result as string }]);
@@ -1429,11 +1429,12 @@ export default function NewAnalysisPage() {
                       <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors hover:bg-muted/60" style={{ border: "1.5px dashed hsl(var(--border))", background: "hsl(var(--muted) / 0.3)" }}>
                         <Upload size={14} className="text-muted-foreground" />
                         <span className="text-xs text-muted-foreground">Upload document</span>
-                        <input type="file" accept={DOC_ACCEPT} className="hidden" onChange={(e) => {
+                        <input type="file" accept={DOC_ACCEPT} className="hidden" onChange={async (e) => {
                           const file = e.target.files?.[0]; if (!file) return;
                           const ext = file.name.split(".").pop()?.toLowerCase() || "";
                           if (!DOC_EXTENSIONS.includes(ext)) { toast.error("Unsupported file type."); return; }
-                          if (file.size > 20 * 1024 * 1024) { toast.error("File too large. Maximum 20MB."); return; }
+                          const { validateFileUpload } = await import("@/utils/fileValidation");
+                          if (!validateFileUpload(file).allowed) { e.target.value = ""; return; }
                           setClarifierDocs(prev => [...prev, { file, name: file.name }]); extractionTriggered.current = false; e.target.value = "";
                         }} />
                       </label>
@@ -1457,8 +1458,10 @@ export default function NewAnalysisPage() {
                     {clarifierImages.length < 5 && (
                       <label className="w-14 h-14 rounded-lg flex items-center justify-center cursor-pointer transition-colors hover:bg-muted/80" style={{ border: "1.5px dashed hsl(var(--border))", background: "hsl(var(--muted) / 0.5)" }}>
                         <Upload size={14} className="text-muted-foreground" />
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                           const file = e.target.files?.[0]; if (!file) return;
+                          const { validateFileUpload } = await import("@/utils/fileValidation");
+                          if (!validateFileUpload(file).allowed) { e.target.value = ""; return; }
                           const reader = new FileReader();
                           reader.onload = () => { setClarifierImages(prev => [...prev, { file, dataUrl: reader.result as string }]); extractionTriggered.current = false; };
                           reader.readAsDataURL(file); e.target.value = "";

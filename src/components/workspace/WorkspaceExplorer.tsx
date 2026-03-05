@@ -396,7 +396,8 @@ export function WorkspaceExplorer({ onConversationSaved, loadConversation, onLoa
   const uploadFile = async (file: File): Promise<Attachment | null> => {
     if (!userId) return null;
     if (!ACCEPTED_TYPES.includes(file.type)) { toast.error(`Unsupported: ${file.type.split("/")[1]}`); return null; }
-    if (file.size > MAX_FILE_SIZE) { toast.error("File too large (max 10MB)"); return null; }
+    const { validateFileUpload } = await import("@/utils/fileValidation");
+    if (!validateFileUpload(file).allowed) return null;
     const ext = file.name.split(".").pop() || "bin";
     const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { error } = await supabase.storage.from("explorer-uploads").upload(path, file);
