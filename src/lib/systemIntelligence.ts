@@ -9,10 +9,18 @@
  *   2. Convergence detection
  *   3. System leverage map construction
  *   4. Insight aggregation (Command Deck)
- *   5. UI-ready data preparation
+ *   5. Friction & Leverage scoring (Opportunity Matrix)
+ *   6. Insight Governance (dedup, caps, orphan removal)
+ *   7. UI-ready data preparation
  *
- * This layer runs ONCE per analysis. UI components consume the
- * SystemIntelligence object — never raw governed pipeline data.
+ * Staged processing pipeline:
+ *   Stage 1: Structural Model extraction (constraint_map, causal_chains)
+ *   Stage 2: Lens Interpretation + Leverage Map
+ *   Stage 3: Friction/Leverage scoring → Priority Matrix
+ *   Stage 4: Insight Governance → Command Deck
+ *
+ * Each stage only runs if prior stage data exists. All intermediate
+ * results are cached. Never recomputes upstream unless source changes.
  */
 
 import {
@@ -23,6 +31,16 @@ import {
   type LeverageNode,
   type SystemLeverageMap,
 } from "@/lib/multiLensEngine";
+import {
+  scoreOpportunities,
+  type ScoredOpportunity,
+  type ScoringOutput,
+} from "@/lib/frictionEngine";
+import {
+  governInsights,
+  type GovernedInsight,
+  type GovernanceReport,
+} from "@/lib/insightGovernance";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -71,6 +89,10 @@ export interface SystemIntelligence {
   convergenceZones: string[];
   commandDeck: CommandDeck;
   leverageMap: SystemLeverageMap | null;
+  // Friction & Leverage scoring
+  scoredOpportunities: ScoredOpportunity[];
+  scoringSummary: ScoringOutput["summary"] | null;
+  governanceReport: GovernanceReport | null;
   provenanceReport: { artifactScored: number; heuristicScored: number };
   computedAt: number;
 }
@@ -106,26 +128,9 @@ export interface SystemIntelligenceInput {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  CORE BUILDER
+//  CORE BUILDER — Staged Processing Pipeline
 // ═══════════════════════════════════════════════════════════════
 
-/**
- * Build the SystemIntelligence object from pipeline outputs.
- * This is the ONLY entry point for UI consumption.
- *
- * Architecture:
- *   STRUCTURAL MODEL (governed pipeline outputs)
- *     ↓
- *   SYSTEM CONSTRAINT MAP (extracted constraints)
- *     ↓
- *   LENS INTERPRETATION LAYER (artifact-driven scoring)
- *     ↓
- *   LEVERAGE MAP (interactive graph)
- *     ↓
- *   OPPORTUNITY ENGINE (strategic interventions)
- *     ↓
- *   COMMAND DECK (top insights aggregation)
- */
 export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemIntelligence {
   const { analysisId, governedData, disruptData, businessAnalysisData, intelData, flipIdeas, activeLenses } = input;
 
@@ -133,19 +138,14 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
   const cached = intelligenceCache.get(analysisId);
   if (cached) return cached;
 
-  // Step 1: Extract lens artifacts from pipeline outputs
+  // ── Stage 1: Structural Model + Lens Artifacts ──
   const lensArtifacts = extractLensArtifacts(disruptData, businessAnalysisData, intelData);
 
-  // Step 2: Build the System Leverage Map (contains all nodes/edges)
+  // ── Stage 2: Leverage Map Construction ──
   const leverageMap = buildSystemLeverageMap(
-    governedData,
-    disruptData,
-    flipIdeas,
-    activeLenses,
-    lensArtifacts,
+    governedData, disruptData, flipIdeas, activeLenses, lensArtifacts,
   );
 
-  // Step 3: Extract typed node collections from the map
   const allNodes = leverageMap?.nodes || [];
 
   const constraints: ConstraintNode[] = allNodes
@@ -160,7 +160,34 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
 
   const convergenceZones = leverageMap?.convergenceZones || [];
 
-  // Step 4: Build per-lens analysis summaries
+  // ── Stage 3: Friction & Leverage Scoring ──
+  const dominantLens = leverageMap?.dominantLens || activeLenses[0] || "product";
+
+  const scoringInput = {
+    opportunities: opportunities.map(o => ({
+      id: o.id,
+      label: o.label,
+      description: o.evidence?.[0] || o.attributes || "",
+      category: "opportunity",
+      impact: o.impact,
+      evidence: o.evidence,
+    })),
+    mode: dominantLens,
+  };
+
+  const scoringResult = scoringInput.opportunities.length > 0
+    ? scoreOpportunities(scoringInput)
+    : null;
+
+  // ── Stage 4: Insight Governance ──
+  const rawInsights: GovernedInsight[] = [
+    ...constraints.map(c => ({ id: c.id, label: c.label, evidence: c.evidence })),
+    ...leveragePoints.map(l => ({ id: l.id, label: l.label, evidence: l.evidence })),
+  ];
+
+  const governed = governInsights(rawInsights, scoringResult?.scored || []);
+
+  // Per-lens summaries
   const lenses: Partial<Record<LensType, LensAnalysis>> = {};
   for (const lens of activeLenses) {
     const lensNodes = allNodes.filter(n => n.lensScores.some(ls => ls.lens === lens && ls.score >= 5));
@@ -170,11 +197,11 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
       leverageCount: lensNodes.filter(n => n.type === "leverage").length,
       opportunityCount: lensNodes.filter(n => n.type === "opportunity").length,
       totalImpact: lensNodes.reduce((sum, n) => sum + n.impact, 0),
-      topNodes: lensNodes.sort((a, b) => b.impact - a.impact).slice(0, 5),
+      topNodes: [...lensNodes].sort((a, b) => b.impact - a.impact).slice(0, 5),
     };
   }
 
-  // Step 5: Build Command Deck (top insights)
+  // Command Deck
   const commandDeck: CommandDeck = {
     topConstraints: [...constraints].sort((a, b) => b.impact - a.impact).slice(0, 3),
     topLeveragePoints: [...leveragePoints].sort((a, b) => b.impact - a.impact).slice(0, 3),
@@ -191,13 +218,14 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
     convergenceZones,
     commandDeck,
     leverageMap,
+    scoredOpportunities: governed.opportunities,
+    scoringSummary: scoringResult?.summary || null,
+    governanceReport: governed.report,
     provenanceReport: leverageMap?.provenanceReport || { artifactScored: 0, heuristicScored: 0 },
     computedAt: Date.now(),
   };
 
-  // Cache the result
   intelligenceCache.set(analysisId, result);
-
   return result;
 }
 
@@ -205,34 +233,18 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
 //  MULTI-LENS ORCHESTRATION
 // ═══════════════════════════════════════════════════════════════
 
-/**
- * Run multi-lens analysis.
- *
- * All lenses share the same structural model (constraint_map, causal_chains).
- * Each lens applies its own interpretation layer via artifact-driven scoring.
- * Outputs merge into a single SystemIntelligence object.
- *
- * NOTE: This does NOT run separate full pipelines per lens.
- * The structural model is shared; only interpretation differs.
- */
 export function runMultiLensAnalysis(input: SystemIntelligenceInput): SystemIntelligence {
-  // Invalidate stale cache for this analysis
   invalidateIntelligence(input.analysisId);
-
-  // Ensure all three lenses are active for multi-lens mode
   const fullInput: SystemIntelligenceInput = {
     ...input,
     activeLenses: input.activeLenses.length >= 2
       ? input.activeLenses
       : ["product", "service", "business"],
   };
-
   return buildSystemIntelligence(fullInput);
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  REACT HOOK — useSystemIntelligence
-// ═══════════════════════════════════════════════════════════════
-
 // Re-export types needed by consumers
 export type { LensType, LeverageNode, SystemLeverageMap } from "@/lib/multiLensEngine";
+export type { ScoredOpportunity, ScoringOutput } from "@/lib/frictionEngine";
+export type { GovernanceReport } from "@/lib/insightGovernance";
