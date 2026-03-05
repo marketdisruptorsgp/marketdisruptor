@@ -110,9 +110,7 @@ export default function WorkspacePage() {
       .eq("user_id", user!.id)
       .order("created_at", { ascending: false })
       .limit(100);
-    const all = ((data as unknown as SavedAnalysis[]) || []).filter(
-      (a) => a.analysis_type !== "first_principles"
-    );
+    const all = (data as unknown as SavedAnalysis[]) || [];
     setAnalyses(all);
     setLoading(false);
   };
