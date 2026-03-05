@@ -183,24 +183,7 @@ Be specific, bold, and commercial. This analysis should fundamentally change how
     const aiData = await response.json();
     const rawText: string = aiData.choices?.[0]?.message?.content ?? "";
 
-    let cleaned = rawText
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```$/, "")
-      .trim();
-
-    const firstBrace = cleaned.indexOf("{");
-    const lastBrace = cleaned.lastIndexOf("}");
-    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-      cleaned = cleaned.slice(firstBrace, lastBrace + 1);
-    }
-
-    let patentData;
-    try {
-      patentData = JSON.parse(cleaned);
-    } catch {
-      console.error("JSON parse failed:", cleaned.slice(0, 300));
-      throw new Error("AI returned invalid JSON for patent analysis.");
-    }
+    const patentData = extractAndParseJson(rawText);
 
     return new Response(JSON.stringify({ success: true, patentData }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -213,6 +196,57 @@ Be specific, bold, and commercial. This analysis should fundamentally change how
     );
   }
 });
+
+// ---- Robust JSON extraction with truncation repair ----
+function extractAndParseJson(raw: string): unknown {
+  let cleaned = raw
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .trim();
+
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  if (firstBrace === -1) throw new Error("No JSON object found in AI response");
+
+  if (lastBrace > firstBrace) {
+    cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+  } else {
+    cleaned = cleaned.slice(firstBrace);
+  }
+
+  // Attempt 1: direct parse
+  try { return JSON.parse(cleaned); } catch { /* continue */ }
+
+  // Attempt 2: fix trailing commas and control chars
+  let fixed = cleaned
+    .replace(/,\s*}/g, "}")
+    .replace(/,\s*]/g, "]")
+    .replace(/[\x00-\x1F\x7F]/g, " ");
+  try { return JSON.parse(fixed); } catch { /* continue */ }
+
+  // Attempt 3: repair truncated JSON by closing open braces/brackets
+  const openBraces = (fixed.match(/{/g) || []).length;
+  const closeBraces = (fixed.match(/}/g) || []).length;
+  const openBrackets = (fixed.match(/\[/g) || []).length;
+  const closeBrackets = (fixed.match(/\]/g) || []).length;
+
+  // Remove trailing partial key/value
+  fixed = fixed.replace(/,\s*"[^"]*"?\s*:?\s*"?[^"]*$/, "");
+  fixed = fixed.replace(/,\s*$/, "");
+
+  let suffix = "";
+  for (let i = 0; i < openBrackets - closeBrackets; i++) suffix += "]";
+  for (let i = 0; i < openBraces - closeBraces; i++) suffix += "}";
+
+  try {
+    const result = JSON.parse(fixed + suffix);
+    console.warn("Recovered patent JSON via truncation repair");
+    return result;
+  } catch {
+    console.error("JSON parse failed after all attempts:", cleaned.slice(0, 500));
+    throw new Error("AI returned invalid JSON for patent analysis.");
+  }
+}
 
 // ---- Helper: USPTO PatentsView API (free, no key needed) ----
 async function fetchUSPTOPatents(productName: string, category: string): Promise<string> {
