@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { Brain, ChevronDown, Atom, ArrowRight, Route, Network } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
-import { buildSystemLeverageMap, type LensType } from "@/lib/multiLensEngine";
+import { buildSystemLeverageMap, extractLensArtifacts, type LensType } from "@/lib/multiLensEngine";
 import { SystemLeverageMapView } from "@/components/SystemLeverageMap";
 
 interface StructureTabProps {
@@ -462,18 +462,30 @@ export function StructureTab({
       {/* ── System Leverage Map — Central Visual Intelligence Layer ── */}
       {(() => {
         const disruptData = analysis.disruptData as Record<string, unknown> | null;
+        const businessData = analysis.businessAnalysisData as Record<string, unknown> | null;
         const flipIdeas = (disruptData?.flippedIdeas || selectedProduct?.flippedIdeas || []) as unknown[];
         const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
-        const leverageMap = buildSystemLeverageMap(governedData, disruptData, flipIdeas, activeModes);
+
+        // Extract real lens artifacts from analysis outputs for artifact-driven scoring
+        const lensArtifacts = extractLensArtifacts(disruptData, businessData, null);
+
+        const leverageMap = buildSystemLeverageMap(governedData, disruptData, flipIdeas, activeModes, lensArtifacts);
 
         if (!leverageMap) return null;
+
+        const { artifactScored, heuristicScored } = leverageMap.provenanceReport;
+        const provenanceBadge = artifactScored > 0
+          ? `${Math.round((artifactScored / (artifactScored + heuristicScored)) * 100)}% artifact-scored`
+          : undefined;
 
         return (
           <StructureSection
             title="System Leverage Map"
             icon={Network}
             defaultOpen={true}
-            badge={leverageMap.convergenceZones.length > 0 ? `${leverageMap.convergenceZones.length} convergence` : undefined}
+            badge={leverageMap.convergenceZones.length > 0
+              ? `${leverageMap.convergenceZones.length} convergence${provenanceBadge ? ` · ${provenanceBadge}` : ""}`
+              : provenanceBadge}
           >
             <SystemLeverageMapView
               map={leverageMap}
