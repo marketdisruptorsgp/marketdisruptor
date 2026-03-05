@@ -22,6 +22,7 @@ const DisruptPage = lazy(() => import("./pages/DisruptPage"));
 const RedesignPage = lazy(() => import("./pages/RedesignPage"));
 const StressTestPage = lazy(() => import("./pages/StressTestPage"));
 const PitchPage = lazy(() => import("./pages/PitchPage"));
+const InsightGraphPage = lazy(() => import("./pages/InsightGraphPage"));
 const BusinessResultsPage = lazy(() => import("./pages/BusinessResultsPage"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
 const SharePage = lazy(() => import("./pages/SharePage"));
@@ -160,6 +161,7 @@ function AppRoutes() {
           <Route path="/analysis/:id/redesign" element={<LazyRoute><RedesignPage /></LazyRoute>} />
           <Route path="/analysis/:id/stress-test" element={<LazyRoute><StressTestPage /></LazyRoute>} />
           <Route path="/analysis/:id/pitch" element={<LazyRoute><PitchPage /></LazyRoute>} />
+          <Route path="/analysis/:id/insight-graph" element={<LazyRoute><InsightGraphPage /></LazyRoute>} />
           <Route path="/business/:id" element={<LazyRoute><BusinessResultsPage /></LazyRoute>} />
           <Route path="/pricing" element={<LazyRoute><PricingPage /></LazyRoute>} />
           <Route path="/about" element={<LazyRoute><AboutPage /></LazyRoute>} />

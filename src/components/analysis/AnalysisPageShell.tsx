@@ -6,7 +6,7 @@
  */
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { ModeBadge } from "@/components/ModeBadge";
 import { StepNavigator, type StepConfig } from "@/components/StepNavigator";
@@ -16,7 +16,7 @@ import { ShareAnalysis } from "@/components/ShareAnalysis";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save, RefreshCw } from "lucide-react";
+import { FileDown, Save, RefreshCw, GitBranch } from "lucide-react";
 import { toast } from "sonner";
 import type { TierKey } from "@/hooks/useSubscription";
 import { scrollToTop } from "@/utils/scrollToTop";
@@ -116,6 +116,7 @@ export function AnalysisActionToolbar({
   isLoading, hasData, onRun, strategicProfile, onChangeProfile,
   extraActions, onPdf, hideRun, hideShare,
 }: AnalysisActionToolbarProps) {
+  const navigate = useNavigate();
   const handlePdf = () => {
     if (onPdf) { onPdf(); return; }
     if (!selectedProduct) return;
@@ -144,6 +145,15 @@ export function AnalysisActionToolbar({
               profile={strategicProfile}
               onChangeProfile={onChangeProfile}
             />
+          )}
+          {analysisId && (
+            <button
+              onClick={() => navigate(`/analysis/${analysisId}/insight-graph`)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground hover:bg-muted transition-colors"
+              title="Insight Graph"
+            >
+              <GitBranch size={12} /> Graph
+            </button>
           )}
           {extraActions}
           {!hideRun && onRun && (
