@@ -1,13 +1,14 @@
 import React, { useMemo } from "react";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2 } from "lucide-react";
+import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3 } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
 import { type LensType } from "@/lib/multiLensEngine";
 import { buildSystemIntelligence, invalidateIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { SystemLeverageMapView } from "@/components/SystemLeverageMap";
 import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
+import { OpportunityMatrix } from "@/components/OpportunityMatrix";
 
 interface StructureTabProps {
   selectedProduct: Product;
@@ -528,7 +529,23 @@ export function StructureTab({
                 map={systemIntelligence.leverageMap}
                 availableLenses={intelligenceInput.activeLenses}
               />
-            </StructureSection>
+             </StructureSection>
+
+            {/* Opportunity Prioritization Matrix */}
+            {systemIntelligence.scoredOpportunities.length > 0 && systemIntelligence.scoringSummary && (
+              <StructureSection
+                title="Opportunity Matrix"
+                icon={BarChart3}
+                defaultOpen={true}
+                badge={`${systemIntelligence.scoringSummary.breakthroughs} breakthrough${systemIntelligence.scoringSummary.breakthroughs !== 1 ? "s" : ""}`}
+              >
+                <OpportunityMatrix
+                  opportunities={systemIntelligence.scoredOpportunities}
+                  summary={systemIntelligence.scoringSummary}
+                  governanceReport={systemIntelligence.governanceReport || undefined}
+                />
+              </StructureSection>
+            )}
           </>
         );
       })()}
