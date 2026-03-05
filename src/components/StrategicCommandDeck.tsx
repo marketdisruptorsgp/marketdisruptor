@@ -16,6 +16,8 @@ import type { ConvergenceZone } from "@/lib/convergenceEngine";
 import { ExpandedFrictionDashboard } from "@/components/OpportunityMatrix";
 import { InsightTracePanel } from "@/components/InsightTracePanel";
 import { StrategicSummaryPanel } from "@/components/StrategicSummaryPanel";
+import { OpportunityLandscape } from "@/components/insight-graph/OpportunityLandscape";
+import type { InsightGraph } from "@/lib/insightGraph";
 
 interface StrategicCommandDeckProps {
   commandDeck: CommandDeck;
@@ -23,6 +25,7 @@ interface StrategicCommandDeckProps {
   expandedFriction?: ExpandedFrictionScore | null;
   provenanceRegistry?: ProvenanceRegistry | null;
   convergenceZoneDetails?: ConvergenceZone[];
+  insightGraph?: InsightGraph | null;
 }
 
 function ImpactBadge({ impact, confidence }: { impact: number; confidence: string }) {
@@ -105,6 +108,7 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
   expandedFriction,
   provenanceRegistry,
   convergenceZoneDetails,
+  insightGraph,
 }: StrategicCommandDeckProps) {
   const [tracingId, setTracingId] = useState<string | null>(null);
   const { topConstraints, topLeveragePoints, topOpportunities, convergenceZones } = commandDeck;
@@ -135,7 +139,22 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
         </div>
       )}
 
-      {/* Convergence Zones detail */}
+      {/* Opportunity Landscape (compact) */}
+      {insightGraph && insightGraph.nodes.length > 0 && (
+        <div
+          className="rounded-xl p-4"
+          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb size={13} className="text-muted-foreground" />
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+              Opportunity Landscape
+            </p>
+          </div>
+          <OpportunityLandscape graph={insightGraph} compact />
+        </div>
+      )}
+
       {convergenceZoneDetails && convergenceZoneDetails.length > 0 && (
         <div
           className="rounded-xl p-4 space-y-2"

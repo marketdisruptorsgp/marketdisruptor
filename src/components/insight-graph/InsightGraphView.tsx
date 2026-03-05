@@ -21,6 +21,7 @@ import "reactflow/dist/style.css";
 import type { InsightGraph, InsightGraphNode, InsightNodeType, EdgeRelation } from "@/lib/insightGraph";
 import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 import { InsightNodeCard } from "./InsightNodeCard";
+import { OpportunityLandscape } from "./OpportunityLandscape";
 
 // ═══════════════════════════════════════════════════════════════
 //  FILTER
@@ -167,6 +168,7 @@ interface InsightGraphViewProps {
 
 export const InsightGraphView = memo(function InsightGraphView({ graph }: InsightGraphViewProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"graph" | "landscape">("graph");
   const [filterTypes, setFilterTypes] = useState<Set<InsightNodeType>>(new Set(ALL_NODE_TYPES));
   const [filterStep, setFilterStep] = useState<string | null>(null);
 
@@ -238,6 +240,28 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
 
   return (
     <div className="space-y-3">
+      {/* Tab switcher */}
+      <div className="flex items-center gap-1">
+        {(["graph", "landscape"] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className="px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all"
+            style={{
+              background: activeTab === tab ? "hsl(var(--primary) / 0.1)" : "transparent",
+              border: `1px solid ${activeTab === tab ? "hsl(var(--primary) / 0.3)" : "transparent"}`,
+              color: activeTab === tab ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+            }}
+          >
+            {tab === "graph" ? "Network Graph" : "Opportunity Landscape"}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "landscape" ? (
+        <OpportunityLandscape graph={graph} onSelectNode={setSelectedNodeId} />
+      ) : (
+      <>
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Node type filters */}
@@ -321,16 +345,6 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
             }}
           />
         </ReactFlow>
-
-        {/* Node Detail Card */}
-        {selectedNode && (
-          <InsightNodeCard
-            node={selectedNode}
-            graph={graph}
-            onClose={() => setSelectedNodeId(null)}
-            onSelectNode={setSelectedNodeId}
-          />
-        )}
       </div>
 
       {/* Stats Bar */}
@@ -349,6 +363,22 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
           </span>
         )}
       </div>
+      </>
+      )}
+
+      {/* Node Detail Card (shared across tabs) */}
+      {selectedNodeId && (() => {
+        const sn = graph.nodes.find(n => n.id === selectedNodeId);
+        if (!sn) return null;
+        return (
+          <InsightNodeCard
+            node={sn}
+            graph={graph}
+            onClose={() => setSelectedNodeId(null)}
+            onSelectNode={setSelectedNodeId}
+          />
+        );
+      })()}
     </div>
   );
 });
