@@ -106,40 +106,21 @@ export default function DisruptPage() {
         onChangeProfile={analysis.setStrategicProfile}
       />
 
-      {/* ── Sticky Tab Navigation ── */}
-      <div className="sticky top-0 z-20 -mx-3 sm:-mx-6 px-3 sm:px-6 py-2" style={{ background: "hsl(var(--background))", borderBottom: "2px solid hsl(var(--border))" }}>
-        <div className="flex gap-1 overflow-x-auto">
-          {TABS.map((tab) => {
-            if (hiddenTabs.includes(tab.id)) return null;
-            const Icon = tab.icon;
-            const isActive = effectiveTab === tab.id;
-            const isDisabled = disabledTabs.includes(tab.id);
-            return (
-              <button
-                key={tab.id}
-                onClick={() => !isDisabled && setActiveTab(tab.id)}
-                className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex-shrink-0"
-                style={{
-                  background: isActive ? "hsl(var(--foreground))" : "transparent",
-                  color: isActive ? "hsl(var(--background))" : isDisabled ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))",
-                  border: isActive ? "none" : "1.5px solid hsl(var(--border))",
-                  opacity: isDisabled ? 0.5 : 1,
-                  cursor: isDisabled ? "not-allowed" : "pointer",
-                }}
-              >
-                <Icon size={16} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* ── Tab Navigation (shared component) ── */}
+      <AnalysisTabBar
+        tabs={TABS}
+        activeTab={effectiveTab}
+        onTabChange={(t) => setActiveTab(t as TabId)}
+        accentColor={theme.primary}
+        hiddenTabs={hiddenTabs}
+        disabledTabs={disabledTabs}
+      />
 
       {/* ── Loading Tracker ── */}
       {analysisLoading && (
         <AnalysisLoadingCard>
           <StepLoadingTracker
-            title="Building First Principles Analysis"
+            title="Building Structural Analysis"
             tasks={DISRUPT_TASKS}
             estimatedSeconds={50}
             accentColor="hsl(271 81% 55%)"

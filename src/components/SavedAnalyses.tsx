@@ -52,10 +52,10 @@ const TYPE_CONFIG = {
     bgColor: "hsl(217 91% 45% / 0.1)",
   },
   first_principles: {
-    label: "First Principles",
-    icon: Microscope,
-    color: "hsl(271 81% 55%)",
-    bgColor: "hsl(271 81% 55% / 0.1)",
+    label: "Product",
+    icon: ShoppingBag,
+    color: "hsl(var(--primary))",
+    bgColor: "hsl(var(--primary) / 0.1)",
   },
 } as const;
 

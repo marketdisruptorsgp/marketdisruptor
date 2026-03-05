@@ -760,11 +760,11 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
         products: [],
         product_count: 0,
         avg_revival_score: null,
-        analysis_type: "first_principles",
+        analysis_type: "product",
         analysis_data: JSON.parse(JSON.stringify(analysisData)),
       });
       onSaved?.();
-      toast.success("First principles analysis saved to workspace!");
+      toast.success("Structural analysis saved to workspace!");
     } catch (err) {
       console.error("Save failed:", err);
     }
@@ -916,7 +916,7 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
   if (!data && loading) {
     return (
       <StepLoadingTracker
-        title={renderMode === "redesign" ? "Generating Redesign Concept" : "Building First Principles Analysis"}
+        title={renderMode === "redesign" ? "Generating Redesign Concept" : "Building Structural Analysis"}
         tasks={renderMode === "redesign" ? REDESIGN_TASKS : DISRUPT_TASKS}
         estimatedSeconds={35}
         accentColor={renderMode === "redesign" ? "hsl(38 92% 50%)" : "hsl(271 81% 55%)"}
