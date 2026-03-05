@@ -502,7 +502,7 @@ export function StructureTab({
             analysis.saveStepData("disrupt", d);
             analysis.markStepOutdated("redesign");
             analysis.markStepOutdated("stressTest");
-            analysis.markStepOutdated("pitch");
+            analysis.markStepOutdated("pitchDeck");
           }}
           onPatentSave={(patentData: unknown) => {
             const updated = products.map((p: Product) =>

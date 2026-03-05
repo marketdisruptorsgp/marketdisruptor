@@ -128,7 +128,7 @@ export default function StressTestPage() {
               analysis.setStressTestData(d);
               analysis.saveStepData("stressTest", d);
               analysis.clearStepOutdated("stressTest");
-              analysis.markStepOutdated("pitch");
+              analysis.markStepOutdated("pitchDeck");
             }}
           />
         </AnalysisContentCard>

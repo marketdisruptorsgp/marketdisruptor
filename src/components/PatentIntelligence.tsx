@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { toast } from "sonner";
 import {
   ScrollText, Unlock, Lock, AlertTriangle, TrendingUp, Lightbulb,
@@ -113,9 +114,9 @@ export function PatentIntelligence({ product, onSave }: Props) {
   const runAnalysis = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("patent-analysis", {
+      const { data, error } = await invokeWithTimeout("patent-analysis", {
         body: { productName: product.name, category: product.category, era: product.era },
-      });
+      }, 90_000);
       if (error || !data?.success) throw new Error(data?.error || error?.message || "Patent analysis failed");
       setPatentData(data.patentData);
       onSave?.(data.patentData);
