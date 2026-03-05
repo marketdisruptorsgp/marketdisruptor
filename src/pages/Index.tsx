@@ -808,6 +808,18 @@ export default function Index() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
+                    onClick={() => {
+                      if (!analysisParams) return;
+                      handleAnalyze({ ...analysisParams });
+                    }}
+                    disabled={isLoading || !analysisParams}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                    style={{ background: "hsl(var(--background))", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.4)", opacity: isLoading || !analysisParams ? 0.5 : 1 }}
+                    title="Re-run the intelligence report with fresh data"
+                  >
+                    <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} /> Rerun Intel
+                  </button>
+                  <button
                     onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct, { ...(disruptData ? { disrupt: disruptData } : {}), ...(stressTestData ? { stressTest: stressTestData } : {}), ...(selectedProduct.patentData ? { patentData: selectedProduct.patentData } : {}) })}
                     disabled={!selectedProduct}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
