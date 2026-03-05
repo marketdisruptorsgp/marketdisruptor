@@ -461,20 +461,23 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Operations Audit" icon={Wrench} />
 
+          {!data.operationalAudit ? (
+            <p className="text-sm text-muted-foreground italic">Operations audit data unavailable.</p>
+          ) : (<>
           {/* Customer Journey — compact */}
           <div className="flex flex-wrap gap-1.5 items-center">
-            {data.operationalAudit.customerJourney.slice(0, 5).map((step, i) => (
+            {(data.operationalAudit.customerJourney || []).slice(0, 5).map((step, i) => (
               <div key={i} className="flex items-center gap-1">
                 <span className="px-2 py-1 rounded typo-card-meta font-semibold" style={{ background: "hsl(var(--muted))" }}>
                   {i + 1}. {step}
                 </span>
-                {i < Math.min(data.operationalAudit.customerJourney.length, 5) - 1 && <ChevronRight size={10} className="text-muted-foreground" />}
+                {i < Math.min((data.operationalAudit.customerJourney || []).length, 5) - 1 && <ChevronRight size={10} className="text-muted-foreground" />}
               </div>
             ))}
           </div>
 
           {/* Friction — top 2 */}
-          {data.operationalAudit.frictionPoints.slice(0, 2).map((fp, i) => {
+          {(data.operationalAudit.frictionPoints || []).slice(0, 2).map((fp, i) => {
             const col = IMPACT_COLORS[fp.impact] || IMPACT_COLORS.medium;
             return (
               <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
@@ -487,10 +490,10 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             );
           })}
 
-          {data.operationalAudit.frictionPoints.length > 2 && (
-            <DetailPanel title={`${data.operationalAudit.frictionPoints.length - 2} more friction points`} icon={AlertTriangle}>
+          {(data.operationalAudit.frictionPoints || []).length > 2 && (
+            <DetailPanel title={`${(data.operationalAudit.frictionPoints || []).length - 2} more friction points`} icon={AlertTriangle}>
               <div className="space-y-2 mb-2">
-                {data.operationalAudit.frictionPoints.slice(2).map((fp, i) => {
+                {(data.operationalAudit.frictionPoints || []).slice(2).map((fp, i) => {
                   const col = IMPACT_COLORS[fp.impact] || IMPACT_COLORS.medium;
                   return (
                     <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
@@ -505,11 +508,11 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
 
           <DetailPanel title="Cost Structure & Revenue Leaks" icon={BarChart3}>
             <div className="space-y-3 mb-2">
-              <p className="text-xs text-foreground/80">{data.operationalAudit.costStructure.fixedVsVariable}</p>
+              <p className="text-xs text-foreground/80">{data.operationalAudit.costStructure?.fixedVsVariable}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <p className="typo-card-eyebrow text-muted-foreground">Biggest Cost Drivers</p>
-                  {data.operationalAudit.costStructure.biggestCostDrivers.map((c, i) => (
+                  {(data.operationalAudit.costStructure?.biggestCostDrivers || []).map((c, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs">
                       <ChevronRight size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{c}</span>
@@ -518,7 +521,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 </div>
                 <div className="space-y-1">
                   <p className="typo-card-eyebrow text-muted-foreground">Revenue Leaks</p>
-                  {data.operationalAudit.revenueLeaks.slice(0, 3).map((leak, i) => (
+                  {(data.operationalAudit.revenueLeaks || []).slice(0, 3).map((leak, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs">
                       <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{leak}</span>
@@ -530,6 +533,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           </DetailPanel>
 
           {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
+          </>)}
         </div>
       )}
 
@@ -538,7 +542,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Hidden Assumptions" icon={Brain} />
 
-          {data.hiddenAssumptions.slice(0, 3).map((a, i) => {
+          {(data.hiddenAssumptions || []).slice(0, 3).map((a, i) => {
             const catColor = CATEGORY_COLORS[a.category] || "hsl(var(--muted-foreground))";
             return (
               <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: `1px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))"}` }}>
@@ -563,10 +567,10 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             );
           })}
 
-          {data.hiddenAssumptions.length > 3 && (
-            <DetailPanel title={`${data.hiddenAssumptions.length - 3} more assumptions`} icon={Brain}>
+          {(data.hiddenAssumptions || []).length > 3 && (
+            <DetailPanel title={`${(data.hiddenAssumptions || []).length - 3} more assumptions`} icon={Brain}>
               <div className="space-y-2 mb-2">
-                {data.hiddenAssumptions.slice(3).map((a, i) => (
+                {(data.hiddenAssumptions || []).slice(3).map((a, i) => (
                   <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                     <p className="typo-card-body font-bold text-foreground mb-0.5">{a.assumption}</p>
                     <p className="typo-card-body text-muted-foreground">{a.currentAnswer}</p>
@@ -586,13 +590,16 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Tech Leverage" icon={Cpu} />
 
+          {!data.technologyLeverage ? (
+            <p className="text-sm text-muted-foreground italic">Technology leverage data unavailable.</p>
+          ) : (<>
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
             <p className="typo-card-eyebrow text-muted-foreground mb-1">Current Tech Level</p>
             <p className="text-xs text-foreground/80 leading-relaxed">{data.technologyLeverage.currentTechLevel}</p>
           </div>
 
           {/* Top 2 automation opps */}
-          {data.technologyLeverage.automationOpportunities.slice(0, 2).map((opp, i) => {
+          {(data.technologyLeverage.automationOpportunities || []).slice(0, 2).map((opp, i) => {
             const diff = DIFFICULTY_COLORS[opp.implementationDifficulty] || DIFFICULTY_COLORS.medium;
             return (
               <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
@@ -606,15 +613,15 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             );
           })}
 
-          <DetailPanel title={`Technology Opportunities & Platform Potential (${data.technologyLeverage.aiOpportunities.length + (data.technologyLeverage.automationOpportunities.length > 2 ? data.technologyLeverage.automationOpportunities.length - 2 : 0)})`} icon={Brain}>
+          <DetailPanel title={`Technology Opportunities & Platform Potential (${(data.technologyLeverage.aiOpportunities || []).length + ((data.technologyLeverage.automationOpportunities || []).length > 2 ? (data.technologyLeverage.automationOpportunities || []).length - 2 : 0)})`} icon={Brain}>
             <div className="space-y-2 mb-2">
-              {data.technologyLeverage.automationOpportunities.slice(2).map((opp, i) => (
+              {(data.technologyLeverage.automationOpportunities || []).slice(2).map((opp, i) => (
                 <div key={`auto-${i}`} className="p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))" }}>
                   <p className="font-bold text-foreground">{opp.process}</p>
                   <p className="text-muted-foreground">→ {opp.technology} · {opp.costSaving}</p>
                 </div>
               ))}
-              {data.technologyLeverage.aiOpportunities.map((opp, i) => (
+              {(data.technologyLeverage.aiOpportunities || []).map((opp, i) => (
                 <div key={`ai-${i}`} className="flex items-start gap-2 text-xs">
                   <Lightbulb size={10} style={{ color: "hsl(271 81% 45%)", flexShrink: 0, marginTop: 2 }} />
                   <span className="text-foreground/80">{opp}</span>
@@ -628,6 +635,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           </DetailPanel>
 
           {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
+          </>)}
         </div>
       )}
 
@@ -636,13 +644,17 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Revenue Reinvention" icon={DollarSign} />
 
+          {!data.revenueReinvention ? (
+            <p className="text-sm text-muted-foreground italic">Revenue reinvention data unavailable.</p>
+          ) : (<>
+
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
             <p className="typo-card-eyebrow text-muted-foreground mb-1">Current Revenue Mix</p>
             <p className="text-xs text-foreground/80">{data.revenueReinvention.currentRevenueMix}</p>
           </div>
 
           {/* Top 2 untapped streams */}
-          {data.revenueReinvention.untappedStreams.slice(0, 2).map((stream, i) => {
+          {(data.revenueReinvention.untappedStreams || []).slice(0, 2).map((stream, i) => {
             const eff = EFFORT_COLORS[stream.effort] || EFFORT_COLORS.medium;
             return (
               <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
@@ -656,9 +668,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             );
           })}
 
-          <DetailPanel title={`Pricing Redesign & Bundles (${data.revenueReinvention.bundleOpportunities.length + (data.revenueReinvention.untappedStreams.length > 2 ? data.revenueReinvention.untappedStreams.length - 2 : 0) + 1})`} icon={FlipHorizontal}>
+          <DetailPanel title={`Pricing Redesign & Bundles (${(data.revenueReinvention.bundleOpportunities || []).length + ((data.revenueReinvention.untappedStreams || []).length > 2 ? (data.revenueReinvention.untappedStreams || []).length - 2 : 0) + 1})`} icon={FlipHorizontal}>
             <div className="space-y-3 mb-2">
-              {data.revenueReinvention.untappedStreams.slice(2).map((stream, i) => (
+              {(data.revenueReinvention.untappedStreams || []).slice(2).map((stream, i) => (
                 <div key={i} className="p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))" }}>
                   <p className="font-bold text-foreground">{stream.stream}</p>
                   <p className="text-muted-foreground">{stream.mechanism} · Est: {stream.estimatedSize}</p>
@@ -668,13 +680,14 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 <p className="typo-card-meta font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Bold Pricing Redesign</p>
                 <p className="text-xs text-foreground/80">{data.revenueReinvention.pricingRedesign}</p>
               </div>
-              {data.revenueReinvention.bundleOpportunities.map((b, i) => (
+              {(data.revenueReinvention.bundleOpportunities || []).map((b, i) => (
                 <BundleDeepDive key={i} opportunity={b} businessContext={{ type: input.type, description: input.description }} index={i} />
               ))}
             </div>
           </DetailPanel>
 
           {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
+          </>)}
         </div>
       )}
 
@@ -683,6 +696,10 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Disruption Map" icon={Shield} />
 
+          {!data.disruptionAnalysis ? (
+            <p className="text-sm text-muted-foreground italic">Disruption analysis data unavailable.</p>
+          ) : (<>
+
           {/* Disruptor profile — key insight */}
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--destructive))" }}>The Startup That Could Kill This Business</p>
@@ -690,9 +707,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             <InsightRating sectionId="biz-disruptor" compact />
           </div>
 
-          <DetailPanel title={`Vulnerabilities (${data.disruptionAnalysis.vulnerabilities.length}) & Defense Moves (${data.disruptionAnalysis.defenseMoves.length})`} icon={AlertTriangle}>
+          <DetailPanel title={`Vulnerabilities (${(data.disruptionAnalysis.vulnerabilities || []).length}) & Defense Moves (${(data.disruptionAnalysis.defenseMoves || []).length})`} icon={AlertTriangle}>
             <div className="space-y-2 mb-2">
-              {data.disruptionAnalysis.vulnerabilities.map((v, i) => (
+              {(data.disruptionAnalysis.vulnerabilities || []).map((v, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs">
                   <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                   <span className="text-foreground/80">{v}</span>
@@ -700,7 +717,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               ))}
               <div className="pt-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
                 <p className="typo-card-eyebrow text-muted-foreground mb-1">Defense Moves</p>
-                {data.disruptionAnalysis.defenseMoves.map((m, i) => (
+                {(data.disruptionAnalysis.defenseMoves || []).map((m, i) => (
                   <div key={i} className="flex items-start gap-2 text-xs mb-1">
                     <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
                     <span className="text-foreground/80">{m}</span>
@@ -717,6 +734,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           </div>
 
           {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
+          </>)}
         </div>
       )}
 
@@ -724,6 +742,10 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
       {activeTab === "reinvented" && (
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Reinvented Model" icon={Rocket} />
+
+          {!data.reinventedModel ? (
+            <p className="text-sm text-muted-foreground italic">Reinvented model data unavailable.</p>
+          ) : (<>
 
           {/* Hero */}
           <div className="p-5 rounded-lg relative overflow-hidden"
@@ -740,7 +762,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} suppressText={false} step="businessModel">
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {data.reinventedModel.keyChanges.slice(0, 3).map((c, i) => (
+            {(data.reinventedModel.keyChanges || []).slice(0, 3).map((c, i) => (
               <div key={i} className="flex gap-2 items-start p-2 rounded-lg text-xs"
                 style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 <CheckCircle2 size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
@@ -761,9 +783,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             </div>
           </div>
 
-          <DetailPanel title={`Implementation Roadmap (${data.reinventedModel.implementationRoadmap.length} phases) & Risk`} icon={Clock}>
+          <DetailPanel title={`Implementation Roadmap (${(data.reinventedModel.implementationRoadmap || []).length} phases) & Risk`} icon={Clock}>
             <div className="space-y-3 mb-2">
-              {data.reinventedModel.implementationRoadmap.map((phase, i) => (
+              {(data.reinventedModel.implementationRoadmap || []).map((phase, i) => (
                 <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                   <span className="px-2 py-0.5 rounded-full typo-card-meta font-bold" style={{ background: "hsl(var(--primary))", color: "white" }}>{phase.phase}</span>
                   <div className="space-y-1 mt-2">
@@ -788,7 +810,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 </div>
                 <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                   <p className="typo-card-eyebrow text-muted-foreground">Capabilities</p>
-                  {data.reinventedModel.requiredCapabilities.slice(0, 3).map((c, i) => (
+                  {(data.reinventedModel.requiredCapabilities || []).slice(0, 3).map((c, i) => (
                     <p key={i} className="text-xs text-foreground/80">• {c}</p>
                   ))}
                 </div>
@@ -802,6 +824,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             </span>
           </div>
           </AnalysisVisualLayer>
+          </>)}
         </div>
       )}
 
