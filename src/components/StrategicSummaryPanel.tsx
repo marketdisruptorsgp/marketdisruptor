@@ -140,7 +140,7 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
         <div className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
             Strategic Command Deck
           </div>
-          <div className="text-[11px] text-foreground/60">Executive intelligence briefing</div>
+          <div className="text-xs text-foreground/60">Executive intelligence briefing</div>
         </div>
       </div>
 
@@ -187,7 +187,7 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
         >
           <div className="flex items-center gap-1.5 mb-2">
             <Compass size={12} style={{ color: "hsl(var(--primary))" }} />
-            <p className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
+            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
               Top Insight
             </p>
           </div>
@@ -199,7 +199,7 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
       <div className="px-5 pb-4 space-y-2">
         <div className="flex items-center gap-1.5 mb-1">
           <Zap size={12} style={{ color: "hsl(var(--success))" }} />
-          <p className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--success))" }}>
+          <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--success))" }}>
             Strategic Levers
           </p>
         </div>
@@ -213,7 +213,7 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
             }}
           >
             <span
-              className="text-[11px] font-extrabold tabular-nums w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
+              className="text-xs font-extrabold tabular-nums w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
               style={{
                 background: "hsl(var(--success) / 0.15)",
                 color: "hsl(var(--success))",
@@ -225,7 +225,7 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
               <p className="text-sm font-bold text-foreground leading-snug truncate">{opp.label}</p>
             </div>
             <span
-              className="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-full flex-shrink-0"
+              className="text-xs font-bold tabular-nums px-2 py-0.5 rounded-full flex-shrink-0"
               style={{
                 background: opp.impact >= 8 ? "hsl(var(--success) / 0.15)" : "hsl(var(--muted))",
                 color: opp.impact >= 8 ? "hsl(var(--success))" : "hsl(var(--foreground) / 0.6)",
@@ -244,7 +244,7 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <TrendingUp size={12} style={{ color: "hsl(var(--success))" }} />
-            <p className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--success))" }}>
+            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--success))" }}>
               Strategic Direction
             </p>
           </div>
@@ -253,7 +253,7 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <AlertTriangle size={12} style={{ color: "hsl(var(--destructive))" }} />
-            <p className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>
+            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>
               Critical Uncertainty
             </p>
           </div>

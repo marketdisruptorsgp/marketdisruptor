@@ -24,13 +24,13 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 224 20% 10%;
+    --foreground: 0 0% 0%;
 
     --card: 220 20% 97%;
-    --card-foreground: 224 20% 10%;
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 20% 10%;
+    --popover-foreground: 0 0% 0%;
 
     --primary: 229 89% 63%;
     --primary-foreground: 0 0% 100%;
@@ -40,13 +40,13 @@
     --primary-muted: 229 60% 96%;
 
     --secondary: 220 14% 94%;
-    --secondary-foreground: 224 20% 10%;
+    --secondary-foreground: 0 0% 0%;
 
     --muted: 220 14% 95%;
-    --muted-foreground: 224 20% 10%;
+    --muted-foreground: 0 0% 20%;
 
     --accent: 220 14% 93%;
-    --accent-foreground: 224 20% 10%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 72% 52%;
     --destructive-foreground: 0 0% 100%;
@@ -85,11 +85,11 @@
     --mode-multi-tint: 200 75% 96%;
     --mode-multi-outline: 200 75% 65%;
     --sidebar-background: 220 20% 97%;
-    --sidebar-foreground: 224 20% 10%;
+    --sidebar-foreground: 0 0% 0%;
     --sidebar-primary: 229 89% 63%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 93%;
-    --sidebar-accent-foreground: 224 20% 10%;
+    --sidebar-accent-foreground: 0 0% 0%;
     --sidebar-border: 220 13% 86%;
     --sidebar-ring: 229 70% 60%;
 
@@ -493,9 +493,9 @@
   }
 }
 
-/* ── Contrast Safety Utilities ───────────────────────────────────── */
+/* ── Contrast Safety & Readability Utilities ──────────────────────── */
 @layer utilities {
-  /* Force readable text on light backgrounds — use on cards, panels, content areas */
+  /* Force readable text on light backgrounds */
   .contrast-safe-light {
     color: hsl(var(--foreground)) !important;
   }
@@ -508,11 +508,24 @@
     color: white !important;
   }
 
-  /* CTA container — ensures buttons are never obscured */
+  /* CTA container */
   .cta-container {
     position: relative;
     z-index: 10;
     overflow: visible;
+  }
+}
+
+/* ── Global Minimum Font Size ────────────────────────────────────── */
+@layer base {
+  /* Enforce 12px minimum on all text except SVG internals */
+  p, span, a, li, td, th, label, button, input, textarea, select,
+  summary, figcaption, blockquote, cite, dt, dd {
+    min-font-size: 12px;
+  }
+  /* Prose max-width for readability (70-80 chars) */
+  .prose-readable {
+    max-width: 65ch;
   }
 }
 

@@ -5,8 +5,8 @@
  * Displays: headline, impact, confidence, evidence, reasoning, and chain navigation.
  */
 
-import { memo, useMemo } from "react";
-import { X, ArrowRight, ArrowDown } from "lucide-react";
+import { memo, useMemo, useState } from "react";
+import { X, ArrowDown, ChevronDown } from "lucide-react";
 import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
 import { getInsightChain, NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 
@@ -22,6 +22,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
 }: InsightNodeCardProps) {
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
+  const [showAllEvidence, setShowAllEvidence] = useState(false);
 
   return (
     <div
@@ -42,14 +43,14 @@ export const InsightNodeCard = memo(function InsightNodeCard({
             <div className="w-3.5 h-3.5 rounded-full" style={{ background: config.color }} />
           </div>
           <div className="min-w-0">
-            <p className="text-[9px] font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
+            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
               {config.label}
             </p>
-            <p className="text-sm font-bold text-foreground leading-snug truncate">{node.label}</p>
+            <p className="text-sm font-bold text-foreground leading-snug">{node.label}</p>
           </div>
         </div>
         <button onClick={onClose} className="p-1 rounded-md hover:bg-muted transition-colors flex-shrink-0">
-          <X size={14} className="text-muted-foreground" />
+          <X size={14} className="text-foreground/60" />
         </button>
       </div>
 
@@ -60,31 +61,44 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         <MetricPill label="Influence" value={`${node.influence}`} color={config.color} />
       </div>
 
-      {/* Evidence */}
+      {/* Evidence — collapsible */}
       {node.evidence.length > 0 && (
         <div className="px-4 pb-3">
-          <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-foreground/60 mb-1.5">
             Evidence ({node.evidenceCount})
           </p>
-          <div className="space-y-1">
-            {node.evidence.slice(0, 3).map((e, i) => (
-              <p key={i} className="text-[11px] text-foreground/70 leading-snug pl-2"
+          <div className="space-y-1.5">
+            {node.evidence.slice(0, showAllEvidence ? undefined : 2).map((e, i) => (
+              <p key={i} className="text-sm text-foreground leading-snug pl-2"
                 style={{ borderLeft: `2px solid ${config.borderColor}` }}>
-                {e.slice(0, 120)}
+                {e}
               </p>
             ))}
           </div>
+          {node.evidence.length > 2 && (
+            <button
+              onClick={() => setShowAllEvidence(!showAllEvidence)}
+              className="flex items-center gap-1 mt-2 text-xs font-bold text-foreground/60 hover:text-foreground transition-colors"
+            >
+              <ChevronDown
+                size={12}
+                className="transition-transform"
+                style={{ transform: showAllEvidence ? "rotate(180deg)" : "none" }}
+              />
+              {showAllEvidence ? "Show less" : `View all ${node.evidence.length}`}
+            </button>
+          )}
         </div>
       )}
 
       {/* Insight Chain — threading */}
       {chain.length > 1 && (
         <div className="px-4 pb-4">
-          <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-foreground/60 mb-2">
             Insight Chain
           </p>
           <div className="space-y-1">
-            {chain.map((cn, i) => {
+            {chain.slice(0, 5).map((cn, i) => {
               const cnConfig = NODE_TYPE_CONFIG[cn.type];
               const isActive = cn.id === node.id;
               return (
@@ -98,20 +112,25 @@ export const InsightNodeCard = memo(function InsightNodeCard({
                       cursor: isActive ? "default" : "pointer",
                     }}
                   >
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cnConfig.color }} />
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: cnConfig.color }} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[9px] font-bold uppercase" style={{ color: cnConfig.color }}>{cnConfig.label}</p>
-                      <p className="text-[11px] font-semibold text-foreground truncate">{cn.label}</p>
+                      <p className="text-xs font-bold uppercase" style={{ color: cnConfig.color }}>{cnConfig.label}</p>
+                      <p className="text-sm font-semibold text-foreground truncate">{cn.label}</p>
                     </div>
                   </button>
-                  {i < chain.length - 1 && (
+                  {i < Math.min(chain.length, 5) - 1 && (
                     <div className="flex justify-center py-0.5">
-                      <ArrowDown size={10} className="text-muted-foreground/40" />
+                      <ArrowDown size={12} className="text-foreground/30" />
                     </div>
                   )}
                 </div>
               );
             })}
+            {chain.length > 5 && (
+              <p className="text-xs text-foreground/50 text-center pt-1">
+                +{chain.length - 5} more steps
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -119,8 +138,8 @@ export const InsightNodeCard = memo(function InsightNodeCard({
       {/* Pipeline step badge */}
       <div className="px-4 pb-3">
         <span
-          className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full"
-          style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
+          className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full"
+          style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}
         >
           {node.pipelineStep.replace("_", " ")}
         </span>
@@ -132,8 +151,8 @@ export const InsightNodeCard = memo(function InsightNodeCard({
 function MetricPill({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div className="text-center px-2 py-1.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-      <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="text-xs font-extrabold" style={{ color }}>{value}</p>
+      <p className="text-xs font-bold uppercase tracking-wider text-foreground/60">{label}</p>
+      <p className="text-sm font-extrabold" style={{ color }}>{value}</p>
     </div>
   );
 }
