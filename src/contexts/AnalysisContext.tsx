@@ -1252,8 +1252,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (autoHydratedRef.current) return;
     if (step !== "idle" || products.length > 0) return;
 
-    // Extract analysis ID from URL path: /analysis/:id/report, /analysis/:id/disrupt, etc.
-    const match = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})\//);
+    // Extract analysis ID from URL path: /analysis/:id/... or /business/:id
+    const match = window.location.pathname.match(/(?:\/analysis|\/business)\/([0-9a-f-]{36})/);
     if (!match) return;
     const urlAnalysisId = match[1];
     if (!urlAnalysisId || !user?.id) return;
@@ -1343,10 +1343,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         if (ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)) setOutdatedSteps(new Set(ad.outdatedSteps as string[]));
         else setOutdatedSteps(new Set());
 
-        // Business model routing
-        if (data.analysis_type === "business_model" && ad?.businessPitchDeck) {
-          setPitchDeckData(ad.businessPitchDeck);
+        // Business model routing — always restore businessAnalysisData for business analyses
+        if (data.analysis_type === "business_model") {
           setBusinessAnalysisData(data.analysis_data as BusinessModelAnalysisData);
+          if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
+          // Extract business model input from title
+          const titleParts = (data.title || "").split(" — ");
+          if (titleParts.length > 0) {
+            setBusinessModelInput({ type: titleParts[0], description: "" } as BusinessModelInput);
+          }
         }
 
         console.log("[AutoHydrate] Analysis loaded successfully:", data.title);

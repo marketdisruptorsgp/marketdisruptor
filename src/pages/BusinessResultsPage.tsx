@@ -73,8 +73,20 @@ export default function BusinessResultsPage() {
   const { tier } = useSubscription();
   const theme = useModeTheme("business");
 
-  const [activeStep, setActiveStep] = React.useState(2);
-  const [visitedSteps, setVisitedSteps] = React.useState<Set<number>>(new Set([2]));
+  // Derive initial step from existing data so remounts don't reset to step 2
+  const deriveInitialStep = (): number => {
+    if (analysis.pitchDeckData) return 5;
+    if (analysis.businessStressTestData) return 4;
+    if (analysis.businessAnalysisData) return 2;
+    return 2;
+  };
+  const [activeStep, setActiveStep] = React.useState(deriveInitialStep);
+  const [visitedSteps, setVisitedSteps] = React.useState<Set<number>>(() => {
+    const steps = new Set([2]);
+    const init = deriveInitialStep();
+    for (let i = 2; i <= init; i++) steps.add(i);
+    return steps;
+  });
   const [stressTestTab, setStressTestTab] = React.useState<"debate" | "validate">("debate");
 
   const { businessAnalysisData, businessModelInput } = analysis;
