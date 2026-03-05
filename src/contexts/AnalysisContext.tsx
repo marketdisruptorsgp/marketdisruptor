@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { normalizeProductFields, isServiceCategory } from "@/utils/normalizeProduct";
+import { clearAllState, hydrateFromRow, sanitizeProducts, type HydrationSetters } from "./hydrateAnalysis";
 import { type Product, type FlippedIdea } from "@/data/mockProducts";
 import { type AnalysisMode } from "@/components/AnalysisForm";
 import type { UserLens } from "@/components/LensToggle";
@@ -542,6 +543,20 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     return data.id;
   }, [user?.id]);
 
+  // ── Shared hydration setters object (used by clearAllState and hydrateFromRow) ──
+  const hydrationSetters: HydrationSetters = useMemo(() => ({
+    setAnalysisId, setProducts, setSelectedProduct, setAnalysisParams,
+    setMainTab, setActiveMode, setStep, setDetailTab, setLoadedFromSaved,
+    setDisruptData, setStressTestData, setPitchDeckData, setRedesignData,
+    setGovernedData, setBusinessAnalysisData, setBusinessModelInput,
+    setBusinessStressTestData,
+    setActiveBranchIdState, setStrategicProfileState: setStrategicProfileState,
+    setUserScores, setOutdatedSteps, setInsightPreferences, setSteeringText,
+    setPitchDeckImages, setPitchDeckExclusions, setScoutedCompetitors,
+    setAdaptiveContext: setAdaptiveContextState, setGeoData, setRegulatoryData,
+    setActiveLensState,
+  }), []);
+
   const handleAnalyze = useCallback(async (params: {
     category: string; era: string; batchSize: number;
     customProducts?: { imageDataUrl?: string; productUrl?: string; productName?: string; notes?: string }[];
@@ -554,41 +569,40 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setAnalysisParams(baseParams);
     setStep("scraping");
     setErrorMsg("");
-    setDisruptData(null);
-    setStressTestData(null);
-    setPitchDeckData(null);
-    setRedesignData(null);
-    setGovernedData(null);
-    setBusinessAnalysisData(null);
-    setBusinessStressTestData(null);
-    setActiveBranchIdState(null);
-    setUserScores({});
-    setOutdatedSteps(new Set());
-    setInsightPreferences({});
-    setSteeringText("");
-    setPitchDeckImages([]);
-    setPitchDeckExclusions(new Set());
-    setScoutedCompetitors([]);
-    setAdaptiveContext(null);
-    setGeoData(null);
-    setRegulatoryData(null);
-    // Keep activeLens — user may want to run analysis with their lens
 
-    // Clear intelligence cache to prevent cross-analysis contamination
-    import("@/lib/systemIntelligence").then(({ clearIntelligenceCache }) => {
-      clearIntelligenceCache();
-    }).catch(() => { /* non-critical */ });
+    // Clear all step state to prevent cross-analysis contamination
+    clearAllState(hydrationSetters);
+    // Keep activeLens — user may want to run analysis with their lens
 
     startLoadingTimer();
 
     const hasCustom = customProducts && customProducts.length > 0;
-    const id = crypto.randomUUID();
-    setAnalysisId(id);
+
+    // ── DATABASE-FIRST ID: Create the DB row BEFORE navigating ──
+    // This eliminates the dual-ID race condition where a client UUID
+    // could differ from the DB-assigned ID.
+    const isServiceMode = params.category === "Service";
+    const customName = customProducts?.find(cp => cp.productName)?.productName;
+    const prelimTitle = customName || `${params.category} Analysis`;
+    let dbId: string;
+    try {
+      dbId = await createAnalysis(prelimTitle, isServiceMode ? "service" : "product", {
+        category: params.category,
+        batch_size: params.batchSize,
+      });
+    } catch (createErr) {
+      console.error("Failed to create analysis record:", createErr);
+      setStep("error");
+      setErrorMsg("Failed to initialize analysis. Please try again.");
+      stopLoadingTimer();
+      return;
+    }
+    setAnalysisId(dbId);
 
     // Navigate to report page so user sees loading progress in-place
-    navigate(`/analysis/${id}/report`);
+    navigate(`/analysis/${dbId}/report`);
 
-    const isServiceMode = params.category === "Service";
+    // isServiceMode already declared above
 
     pushLog(hasCustom
       ? `Starting analysis pipeline for your custom ${isServiceMode ? "service" : "products"}...`
@@ -768,7 +782,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       } catch (_) { /* best effort */ }
 
       // Navigate to report page
-      navigate(`/analysis/${analysisId || id}/report`);
+      navigate(`/analysis/${dbId}/report`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Analysis pipeline error:", msg);
@@ -874,19 +888,21 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [analysisParams, products, saveAnalysis]);
 
   // Persist step-level data (disrupt, stress-test, pitch, userScores) into analysis_data JSON
-  // Also snapshot previous values for version comparison
-  // ── GOVERNED: Checkpoint gate validation + atomic governed persistence ──
+  // ── HARDENED: Context switch guard + atomic RPC for simple steps ──
   const saveStepData = useCallback(async (stepKey: string, data: unknown) => {
     if (!analysisId) return;
+
+    // ── CONTEXT SWITCH GUARD: Capture current analysisId in closure ──
+    const capturedId = analysisId;
 
     // ── Pipeline Validation ──
     const { validateStepData, logStepExecution } = await import("@/utils/pipelineValidation");
     const validation = validateStepData(stepKey, data);
-    logStepExecution(stepKey, "save", { analysisId, valid: validation.valid });
+    logStepExecution(stepKey, "save", { analysisId: capturedId, valid: validation.valid });
 
     if (!validation.valid) {
       console.error("[Pipeline] Validation failed for step:", stepKey, validation.errors);
-      return; // Block invalid data from persisting
+      return;
     }
 
     // ── GOVERNED: Checkpoint gate — validate governed artifacts before persistence ──
@@ -895,7 +911,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     if (!governedCheck.allowed) {
       console.error(`[Governed] PERSISTENCE BLOCKED for "${stepKey}": ${governedCheck.reason}`);
       toast.error(`Checkpoint gate blocked: ${governedCheck.reason}`);
-      return; // Do not persist invalid governed data
+      return;
     }
 
     // ── GOVERNED: Invalidate dependent downstream steps ──
@@ -906,12 +922,54 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    // ── CONTEXT SWITCH CHECK: Abort if user switched analyses during validation ──
+    if (analysisId !== capturedId) {
+      console.warn(`[saveStepData] Context switched during save (${capturedId} → ${analysisId}). Aborting.`);
+      return;
+    }
+
     try {
+      // Check if this step requires the complex governed artifact extraction
+      const { extractGovernedArtifacts, mergeGovernedIntoAnalysisData, checkRetroactiveInvalidation, applyRetroactiveInvalidation } = await import("@/lib/governedPersistence");
+      const extraction = extractGovernedArtifacts(stepKey, data);
+      const hasGovernedWork = extraction.hasGoverned && extraction.valid;
+      const depIntegrity = enforceDependencyIntegrity(stepKey, data, {});
+      const needsComplexMerge = hasGovernedWork || depIntegrity.purgeSteps.length > 0;
+
+      if (!needsComplexMerge) {
+        // ── ATOMIC PATH: Use Postgres RPC for simple step saves ──
+        // This is concurrency-safe — no read-merge-write needed
+        try {
+          const { error: rpcError } = await (supabase.rpc as any)("merge_analysis_step", {
+            p_analysis_id: capturedId,
+            p_step_key: stepKey,
+            p_step_payload: JSON.stringify(data),
+          });
+          if (rpcError) {
+            console.error("Atomic merge_analysis_step failed:", rpcError);
+            // Fall through to legacy path
+          } else {
+            logStepExecution(stepKey, "save", { analysisId: capturedId, success: true, atomic: true });
+            return; // Success — done
+          }
+        } catch (rpcErr) {
+          console.warn("[saveStepData] Atomic RPC failed, falling back to legacy merge:", rpcErr);
+        }
+      }
+
+      // ── LEGACY COMPLEX PATH: Read-merge-write for governed artifacts ──
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: existing } = await (supabase.from("saved_analyses") as any)
         .select("analysis_data")
-        .eq("id", analysisId)
+        .eq("id", capturedId)
         .single();
+
+      // ── CONTEXT SWITCH CHECK: Abort if user switched during DB read ──
+      if (analysisId !== capturedId) {
+        console.warn(`[saveStepData] Context switched during DB read. Aborting.`);
+        return;
+      }
+
       const prev = (existing?.analysis_data as Record<string, unknown>) || {};
 
       // Snapshot previous value for version comparison
@@ -922,21 +980,16 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
       // ── GOVERNED: Artifact versioning + dependency integrity ──
       const governedHashes = (prev.governedHashes as Record<string, string>) || {};
-      const depIntegrity = enforceDependencyIntegrity(stepKey, data, governedHashes);
-      governedHashes[stepKey] = depIntegrity.newHash;
+      const depIntegrityFull = enforceDependencyIntegrity(stepKey, data, governedHashes);
+      governedHashes[stepKey] = depIntegrityFull.newHash;
 
-      // ── GOVERNED: Extract and persist governed artifacts at TOP LEVEL ──
-      const { extractGovernedArtifacts, mergeGovernedIntoAnalysisData, checkRetroactiveInvalidation, applyRetroactiveInvalidation } = await import("@/lib/governedPersistence");
       const { buildEvidenceRegistry } = await import("@/lib/evidenceRegistry");
       const { applyLensAdaptation } = await import("@/lib/lensAdaptationEngine");
-      const extraction = extractGovernedArtifacts(stepKey, data);
       
-      // ── PAYLOAD COMPACTION: Limit previousSnapshot to prevent unbounded growth ──
-      // Keep only the latest snapshot per step (not recursive) and cap total keys
+      // ── PAYLOAD COMPACTION ──
       const MAX_SNAPSHOT_KEYS = 6;
       const snapshotKeys = Object.keys(previousSnapshot);
       if (snapshotKeys.length > MAX_SNAPSHOT_KEYS) {
-        // Remove oldest keys beyond limit
         for (const oldKey of snapshotKeys.slice(0, snapshotKeys.length - MAX_SNAPSHOT_KEYS)) {
           delete previousSnapshot[oldKey];
         }
@@ -945,66 +998,55 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       let merged: Record<string, unknown> = { ...prev, [stepKey]: data, previousSnapshot, governedHashes };
       
       // Merge governed artifacts into analysis_data.governed (top level)
-      if (extraction.hasGoverned && extraction.valid) {
+      if (hasGovernedWork) {
         merged = mergeGovernedIntoAnalysisData(merged, extraction);
         console.log(`[GovernedPersistence] Merged ${extraction.presentArtifacts.length} artifacts (${extraction.governedByteSize} bytes) into analysis_data.governed`);
         
-        // §8: Build evidence registry from current analysis state
         const registry = buildEvidenceRegistry(merged);
         merged._evidenceRegistry = registry;
-        console.log(`[EvidenceRegistry] ${registry.trace}`);
 
-        // §7: Apply lens adaptation — re-score constraints under active lens
         const governedForLens = merged.governed as Record<string, unknown> | undefined;
         if (governedForLens) {
-          const activeLens = (merged as any)._activeLens || null;
-          const lensResult = applyLensAdaptation(governedForLens, activeLens);
+          const activeLensVal = (merged as any)._activeLens || null;
+          const lensResult = applyLensAdaptation(governedForLens, activeLensVal);
           if (lensResult) {
             merged._lensAdaptation = lensResult;
-            if (lensResult.structuralChangeLog.length > 0) {
-              console.log(`[LensAdaptation] Structural changes: ${lensResult.structuralChangeLog.join(" | ")}`);
-            }
           }
         }
         
-        // ── RETROACTIVE INVALIDATION: Check if falsification triggers upstream downgrades ──
         const governedObj = merged.governed as Record<string, unknown>;
         const invalidation = checkRetroactiveInvalidation(governedObj);
         if (invalidation.shouldInvalidate) {
           merged.governed = applyRetroactiveInvalidation(governedObj, invalidation);
-          console.warn(`[RetroactiveInvalidation] Applied: confidence downgraded by ${invalidation.confidenceDowngrade}, fragility=${invalidation.fragilityScore}`);
+          console.warn(`[RetroactiveInvalidation] Applied: confidence downgraded by ${invalidation.confidenceDowngrade}`);
           for (const affected of invalidation.affectedArtifacts) {
             markStepOutdated(affected);
           }
         }
       } else if (extraction.hasGoverned && !extraction.valid) {
-        console.warn(`[GovernedPersistence] Governed data present but INVALID (${extraction.governedByteSize} bytes, ${extraction.presentArtifacts.length} artifacts). Rejecting.`);
+        console.warn(`[GovernedPersistence] Governed data INVALID. Rejecting.`);
       }
 
       // ── GOVERNED: Purge invalidated downstream governed artifacts ──
-      const allPurgeSteps = [...new Set([...governedCheck.invalidatedSteps, ...depIntegrity.purgeSteps])];
+      const allPurgeSteps = [...new Set([...governedCheck.invalidatedSteps, ...depIntegrityFull.purgeSteps])];
       if (allPurgeSteps.length > 0) {
         for (const depStep of allPurgeSteps) {
           markStepOutdated(depStep);
-          // Purge governed sub-artifacts
-          const governedData = merged.governed as Record<string, unknown> | undefined;
-          if (governedData && governedData[depStep]) {
-            console.log(`[Governed] Purging stale governed artifact: ${depStep}`);
-            delete governedData[depStep];
-            // Remove stale hash
+          const gd = merged.governed as Record<string, unknown> | undefined;
+          if (gd && gd[depStep]) {
+            delete gd[depStep];
             delete governedHashes[depStep];
           }
         }
       }
 
-      // ── SIZE GUARD: Strip oversized base64 blobs to prevent DB timeout ──
+      // ── SIZE GUARD ──
       const mergedStr = JSON.stringify(merged);
       const payloadBytes = new TextEncoder().encode(mergedStr).length;
-      const MAX_PAYLOAD_BYTES = 4_000_000; // 4MB safety limit
+      const MAX_PAYLOAD_BYTES = 4_000_000;
       if (payloadBytes > MAX_PAYLOAD_BYTES) {
-        console.warn(`[Pipeline] Payload too large (${(payloadBytes / 1_000_000).toFixed(1)}MB), stripping previousSnapshot and base64 data`);
+        console.warn(`[Pipeline] Payload too large (${(payloadBytes / 1_000_000).toFixed(1)}MB), stripping data`);
         delete merged.previousSnapshot;
-        // Strip any base64 data URIs from pitchDeckImages
         if (merged.pitchDeckImages && Array.isArray(merged.pitchDeckImages)) {
           merged.pitchDeckImages = (merged.pitchDeckImages as any[]).map(img => ({
             ...img,
@@ -1013,15 +1055,20 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
+      // ── FINAL CONTEXT SWITCH CHECK before write ──
+      if (analysisId !== capturedId) {
+        console.warn(`[saveStepData] Context switched before final write. Aborting.`);
+        return;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: updateError } = await (supabase.from("saved_analyses") as any)
         .update({ analysis_data: merged, updated_at: new Date().toISOString() })
-        .eq("id", analysisId);
+        .eq("id", capturedId);
       if (updateError) {
-        console.error("saveStepData update failed:", updateError, "analysisId:", analysisId, "stepKey:", stepKey);
+        console.error("saveStepData update failed:", updateError, "analysisId:", capturedId, "stepKey:", stepKey);
       } else {
-        logStepExecution(stepKey, "save", { analysisId, success: true, governedByteSize: extraction.governedByteSize });
-        // Keep governedData state in sync
+        logStepExecution(stepKey, "save", { analysisId: capturedId, success: true, governedByteSize: extraction.governedByteSize });
         if (merged.governed) {
           setGovernedData(merged.governed as Record<string, unknown>);
         }
@@ -1111,36 +1158,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [adaptiveContext, analysisId, saveStepData]);
 
   const handleLoadSaved = useCallback(async (rawAnalysis: any) => {
-    setLoadedFromSaved(true);
+    // ── CLEAR ALL STATE using shared helper ──
+    clearAllState(hydrationSetters);
 
-    // ── CRITICAL: Clear ALL step data before loading a new analysis ──
-    // Prevents cross-analysis data leakage (e.g. Pitch from "Audi Mechanic"
-    // appearing inside "CK Woodworks").
-    setDisruptData(null);
-    setStressTestData(null);
-    setPitchDeckData(null);
-    setRedesignData(null);
-    setGovernedData(null);
-    setBusinessAnalysisData(null);
-    setBusinessStressTestData(null);
-    setActiveBranchIdState(null);
-    setUserScores({});
-    setOutdatedSteps(new Set());
-    setInsightPreferences({});
-    setSteeringText("");
-    setPitchDeckImages([]);
-    setPitchDeckExclusions(new Set());
-    setScoutedCompetitors([]);
-    setAdaptiveContext(null);
-    setGeoData(null);
-    setRegulatoryData(null);
-
-    // Clear intelligence cache to prevent cross-analysis contamination
-    import("@/lib/systemIntelligence").then(({ clearIntelligenceCache }) => {
-      clearIntelligenceCache();
-    }).catch(() => { /* non-critical */ });
-
-    // If analysis_data is missing (e.g. workspace list query), fetch the full record first
+    // If analysis_data is missing, fetch the full record first
     let analysis = rawAnalysis;
     if (!analysis.analysis_data && analysis.id) {
       try {
@@ -1156,44 +1177,17 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Ensure all products have an id and required fields (photo analyses may omit them)
-    const rawProducts = Array.isArray(analysis.products) ? analysis.products : [];
-    const sanitizedProducts = rawProducts.map((p: any, idx: number) => {
-      const base = {
-        id: p.id || `product-${analysis.id}-${idx}`,
-        name: p.name || "Untitled Product",
-        category: p.category || analysis.category || "",
-        image: p.image || "",
-        description: p.description || "",
-        specs: p.specs || "",
-        revivalScore: p.revivalScore ?? 0,
-        era: p.era || "All Eras / Current",
-        sources: Array.isArray(p.sources) ? p.sources : [],
-        reviews: Array.isArray(p.reviews) ? p.reviews : [],
-        socialSignals: Array.isArray(p.socialSignals) ? p.socialSignals : [],
-        competitors: Array.isArray(p.competitors) ? p.competitors : [],
-        assumptionsMap: Array.isArray(p.assumptionsMap) ? p.assumptionsMap : [],
-        flippedIdeas: Array.isArray(p.flippedIdeas) ? p.flippedIdeas : [],
-        confidenceScores: p.confidenceScores || { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
-      };
-      // Merge extra fields from DB (pricingIntel, supplyChain, etc.) without overriding guaranteed defaults
-      // Normalize alternate field names (userJourney→userWorkflow, customerSentiment→communityInsights, etc.)
-      return normalizeProductFields({ ...p, ...base });
-    });
+    // ── USE SHARED HYDRATION HELPER ──
+    const { sanitizedProducts, analysisData: ad } = hydrateFromRow(analysis, hydrationSetters);
 
-    // Restore persisted step data
-    const ad = analysis.analysis_data as Record<string, unknown> | null;
-    // Restore governed data (reasoning synopsis, constraint maps, etc.)
+    // Auto-backfill governed data if missing
     if (ad?.governed) {
-      setGovernedData(ad.governed as Record<string, unknown>);
-      // Auto-backfill root_hypotheses if missing
       const gov = ad.governed as Record<string, unknown>;
       const cm = gov?.constraint_map as Record<string, unknown> | undefined;
       const hasRH = (Array.isArray(gov?.root_hypotheses) && (gov.root_hypotheses as unknown[]).length > 0) ||
         (Array.isArray(cm?.root_hypotheses) && (cm!.root_hypotheses as unknown[]).length > 0);
       const hasSynopsis = !!gov?.reasoning_synopsis;
       if ((!hasRH || !hasSynopsis) && analysis.id) {
-        // Fire-and-forget backfill for this single analysis — generates both hypotheses + synopsis
         supabase.functions.invoke("backfill-strategic-os", {
           body: { singleAnalysisId: analysis.id },
         }).then(({ data }) => {
@@ -1206,61 +1200,25 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
                 (updated.constraint_map as Record<string, unknown>).root_hypotheses = data.hypotheses;
               }
             }
-            if (data?.synopsis) {
-              (updated as any).reasoning_synopsis = data.synopsis;
-            }
+            if (data?.synopsis) (updated as any).reasoning_synopsis = data.synopsis;
             return updated;
           });
-        }).catch(() => { /* silent — non-critical */ });
+        }).catch(() => {});
       }
-    } else {
-      setGovernedData(null);
-      // No governed data at all — trigger full backfill
-      if (analysis.id) {
-        supabase.functions.invoke("backfill-strategic-os", {
-          body: { singleAnalysisId: analysis.id },
-        }).then(({ data }) => {
-          if (data?.hypotheses || data?.synopsis) {
-            setGovernedData({
-              root_hypotheses: data?.hypotheses || [],
-              reasoning_synopsis: data?.synopsis || null,
-            });
-          }
-        }).catch(() => { /* silent */ });
-      }
-    }
-    if (ad?.activeBranchId) setActiveBranchIdState(ad.activeBranchId as string);
-    else setActiveBranchIdState(null);
-    if (ad?.strategicProfile) setStrategicProfileState(ad.strategicProfile as StrategicProfile);
-    if (ad?.disrupt) setDisruptData(ad.disrupt);
-    if (ad?.stressTest) setStressTestData(ad.stressTest);
-    if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
-    if (ad?.businessStressTest) setBusinessStressTestData(ad.businessStressTest);
-    // Business pitch deck uses its own state — never overwrite product pitchDeckData
-    // businessPitchDeck is loaded on-demand by BusinessResultsPage via analysis.pitchDeckData routing
-    if (ad?.redesign) setRedesignData(ad.redesign);
-    if (ad?.geoOpportunity) setGeoData(ad.geoOpportunity);
-    if (ad?.regulatoryContext) setRegulatoryData(ad.regulatoryContext);
-    if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
-    if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
-    if (ad?.steeringText) setSteeringText(ad.steeringText as string);
-    if (ad?.adaptiveContext) setAdaptiveContext(ad.adaptiveContext as AdaptiveContextData);
-    if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
-    if (ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)) setPitchDeckExclusions(new Set(ad.pitchDeckExclusions as string[]));
-    if (ad?.scoutedCompetitors && Array.isArray(ad.scoutedCompetitors)) setScoutedCompetitors(ad.scoutedCompetitors as unknown[]);
-    // projectNotes is loaded on-demand in portfolio/report, no context state needed
-    // Restore active lens (lens object is fetched on-demand by LensToggle; we just clear state here)
-    // The activeLensId is stored but lens restoration requires a DB fetch — handled by LensToggle
-    if (!ad?.activeLensId) setActiveLensState(null);
-
-    // Restore outdated steps
-    if (ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)) {
-      setOutdatedSteps(new Set(ad.outdatedSteps as string[]));
-    } else {
-      setOutdatedSteps(new Set());
+    } else if (analysis.id) {
+      supabase.functions.invoke("backfill-strategic-os", {
+        body: { singleAnalysisId: analysis.id },
+      }).then(({ data }) => {
+        if (data?.hypotheses || data?.synopsis) {
+          setGovernedData({
+            root_hypotheses: data?.hypotheses || [],
+            reasoning_synopsis: data?.synopsis || null,
+          });
+        }
+      }).catch(() => {});
     }
 
-    // Auto-detect legacy schema and flag affected steps for regeneration
+    // Auto-detect legacy schema
     const { detectLegacySchema } = await import("@/utils/legacyDetection");
     const legacy = detectLegacySchema(ad);
     if (legacy.isLegacy) {
@@ -1272,26 +1230,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       toast.info("This analysis used an older framework — regenerate steps to get improved insights");
     }
 
+    // Route-specific navigation
     if (analysis.analysis_type === "business_model") {
-      setBusinessAnalysisData(analysis.analysis_data as BusinessModelAnalysisData);
-      // For business analyses, route businessPitchDeck into pitchDeckData
-      if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
-      const titleParts = (analysis.title || "").split(" — ");
-      setBusinessModelInput({ type: titleParts[0] || "Business", description: "", revenueModel: "", size: "", geography: "", painPoints: "", notes: "" });
-      setMainTab("business");
-      setActiveMode("business");
-      setAnalysisId(analysis.id);
       toast.success("Business model analysis loaded!");
       navigate(`/business/${analysis.id}`);
     } else if (analysis.analysis_type === "first_principles") {
-      if (sanitizedProducts.length > 0) {
-        setProducts(sanitizedProducts);
-        setSelectedProduct(sanitizedProducts[0]);
-        setStep("done");
-      }
-      setMainTab("custom");
-      setActiveMode("custom");
-      setAnalysisId(analysis.id);
       toast.success("First principles analysis loaded — re-run to see full results.");
       navigate(`/analysis/${analysis.id}/disrupt`);
     } else {
@@ -1299,30 +1242,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         toast.error("This analysis has no product data to display.");
         return;
       }
-      setProducts(sanitizedProducts);
-      setSelectedProduct(sanitizedProducts[0]);
-      setAnalysisParams({ category: analysis.category, era: analysis.era || "All Eras / Current", batchSize: analysis.batch_size ?? analysis.batchSize ?? 5 });
-      const isService = analysis.analysis_type === "service" || isServiceCategory(analysis.category || "");
-      setMainTab(isService ? "service" : "custom");
-      setActiveMode(isService ? "service" : "custom");
-      setDetailTab("overview");
-      setStep("done");
-      setAnalysisId(analysis.id);
-
-      // Quick photo analyses: always resume at report so user can proceed through the full pipeline
-      const isQuickPhoto = analysis.analysis_depth === "quick";
-      if (isQuickPhoto) {
-        toast.success("Analysis loaded — continue through the full pipeline");
-        navigate(`/analysis/${analysis.id}/report`);
-      } else {
-        // Always open on Intelligence Report (Step 2) — users navigate forward manually.
-        // Previously used getResumeRoute() which jumped to the furthest completed step,
-        // causing completed analyses to skip directly to Pitch Deck.
-        toast.success("Analysis loaded — starting from Intelligence Report");
-        navigate(`/analysis/${analysis.id}/report`);
-      }
+      toast.success("Analysis loaded — starting from Intelligence Report");
+      navigate(`/analysis/${analysis.id}/report`);
     }
-  }, [navigate]);
+  }, [navigate, hydrationSetters]);
 
   // ── AUTO-HYDRATION: Load analysis from URL when context is empty ──
   // This handles direct navigation (bookmarks, shared links, page refresh)
@@ -1349,30 +1272,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setIsHydrating(true);
     console.log("[AutoHydrate] Loading analysis from URL:", urlAnalysisId);
 
-    // ── CRITICAL: Clear ALL previous state to prevent cross-analysis leakage ──
-    setDisruptData(null);
-    setStressTestData(null);
-    setPitchDeckData(null);
-    setRedesignData(null);
-    setGovernedData(null);
-    setBusinessAnalysisData(null);
-    setBusinessStressTestData(null);
-    setActiveBranchIdState(null);
-    setUserScores({});
-    setOutdatedSteps(new Set());
-    setInsightPreferences({});
-    setSteeringText("");
-    setPitchDeckImages([]);
-    setPitchDeckExclusions(new Set());
-    setScoutedCompetitors([]);
-    setAdaptiveContext(null);
-    setGeoData(null);
-    setRegulatoryData(null);
-
-    // Clear intelligence cache for the previous analysis to prevent stale data
-    import("@/lib/systemIntelligence").then(({ clearIntelligenceCache }) => {
-      clearIntelligenceCache();
-    }).catch(() => { /* non-critical */ });
+    // ── CLEAR ALL STATE using shared helper ──
+    clearAllState(hydrationSetters);
 
     (async () => {
       try {
@@ -1392,76 +1293,14 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const rawProducts = Array.isArray(data.products) ? data.products : [];
-        const sanitizedProducts = rawProducts.map((p: any, idx: number) => {
-          const base = {
-            id: p.id || `product-${data.id}-${idx}`,
-            name: p.name || "Untitled Product",
-            category: p.category || data.category || "",
-            image: p.image || "",
-            description: p.description || "",
-            specs: p.specs || "",
-            revivalScore: p.revivalScore ?? 0,
-            era: p.era || "All Eras / Current",
-            sources: Array.isArray(p.sources) ? p.sources : [],
-            reviews: Array.isArray(p.reviews) ? p.reviews : [],
-            socialSignals: Array.isArray(p.socialSignals) ? p.socialSignals : [],
-            competitors: Array.isArray(p.competitors) ? p.competitors : [],
-            assumptionsMap: Array.isArray(p.assumptionsMap) ? p.assumptionsMap : [],
-            flippedIdeas: Array.isArray(p.flippedIdeas) ? p.flippedIdeas : [],
-            confidenceScores: p.confidenceScores || { adoptionLikelihood: 5, feasibility: 5, emotionalResonance: 5 },
-          };
-          return normalizeProductFields({ ...p, ...base });
-        });
-
-        if (sanitizedProducts.length === 0 && data.analysis_type !== "business_model") {
+        const testProducts = sanitizeProducts(data.products, data);
+        if (testProducts.length === 0 && data.analysis_type !== "business_model") {
           console.warn("[AutoHydrate] Analysis has no products");
           return;
         }
 
-        const ad = data.analysis_data as Record<string, unknown> | null;
-
-        // Restore all state — set analysisId FIRST to ensure saveStepData targets the right row
-        setAnalysisId(data.id);
-        setLoadedFromSaved(true);
-        setProducts(sanitizedProducts);
-        setSelectedProduct(sanitizedProducts[0] || null);
-        setAnalysisParams({ category: data.category, era: data.era || "All Eras / Current", batchSize: data.batch_size ?? 5 });
-        const isService = data.analysis_type === "service" || isServiceCategory(data.category || "");
-        setMainTab(isService ? "service" : data.analysis_type === "business_model" ? "business" : "custom");
-        setActiveMode(isService ? "service" : data.analysis_type === "business_model" ? "business" : "custom");
-        setStep("done");
-
-        // Restore persisted data — use explicit null fallbacks to clear any stale state
-        setGovernedData(ad?.governed ? (ad.governed as Record<string, unknown>) : null);
-        setActiveBranchIdState(ad?.activeBranchId ? (ad.activeBranchId as string) : null);
-        if (ad?.strategicProfile) setStrategicProfileState(ad.strategicProfile as StrategicProfile);
-        setDisruptData(ad?.disrupt || null);
-        setStressTestData(ad?.stressTest || null);
-        setPitchDeckData(ad?.pitchDeck || null);
-        setBusinessStressTestData(ad?.businessStressTest || null);
-        setRedesignData(ad?.redesign || null);
-        setGeoData(ad?.geoOpportunity || null);
-        setRegulatoryData(ad?.regulatoryContext || null);
-        setUserScores(ad?.userScores ? (ad.userScores as Record<string, Record<string, number>>) : {});
-        setInsightPreferences(ad?.insightPreferences ? (ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">) : {});
-        setSteeringText(ad?.steeringText ? (ad.steeringText as string) : "");
-        setAdaptiveContext(ad?.adaptiveContext ? (ad.adaptiveContext as AdaptiveContextData) : null);
-        setPitchDeckImages(ad?.pitchDeckImages ? (ad.pitchDeckImages as { url: string; ideaName: string }[]) : []);
-        setPitchDeckExclusions(ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions) ? new Set(ad.pitchDeckExclusions as string[]) : new Set());
-        setScoutedCompetitors(ad?.scoutedCompetitors && Array.isArray(ad.scoutedCompetitors) ? (ad.scoutedCompetitors as unknown[]) : []);
-        if (!ad?.activeLensId) setActiveLensState(null);
-        setOutdatedSteps(ad?.outdatedSteps && Array.isArray(ad.outdatedSteps) ? new Set(ad.outdatedSteps as string[]) : new Set());
-
-        // Business model routing
-        if (data.analysis_type === "business_model") {
-          setBusinessAnalysisData(data.analysis_data as BusinessModelAnalysisData);
-          if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
-          const titleParts = (data.title || "").split(" — ");
-          if (titleParts.length > 0) {
-            setBusinessModelInput({ type: titleParts[0], description: "" } as BusinessModelInput);
-          }
-        }
+        // ── USE SHARED HYDRATION HELPER ──
+        hydrateFromRow(data, hydrationSetters);
 
         console.log("[AutoHydrate] Analysis loaded successfully:", data.title);
       } catch (err) {
@@ -1470,7 +1309,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         setIsHydrating(false);
       }
     })();
-  }, [step, products.length, user?.id, analysisId]);
+  }, [step, products.length, user?.id, analysisId, hydrationSetters]);
 
   return (
     <AnalysisContext.Provider value={{

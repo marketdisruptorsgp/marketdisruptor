@@ -793,6 +793,14 @@ export type Database = {
     }
     Functions: {
       increment_usage: { Args: { p_user_id: string }; Returns: number }
+      merge_analysis_step: {
+        Args: {
+          p_analysis_id: string
+          p_step_key: string
+          p_step_payload: Json
+        }
+        Returns: undefined
+      }
       update_last_seen: { Args: { p_user_id: string }; Returns: undefined }
       upsert_user_streak: { Args: { p_user_id: string }; Returns: undefined }
     }
