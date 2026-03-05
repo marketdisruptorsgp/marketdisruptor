@@ -1,11 +1,13 @@
 import React, { useMemo } from "react";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, ChevronDown, Atom, ArrowRight, Route, Network } from "lucide-react";
+import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
-import { buildSystemLeverageMap, extractLensArtifacts, type LensType } from "@/lib/multiLensEngine";
+import { type LensType } from "@/lib/multiLensEngine";
+import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { SystemLeverageMapView } from "@/components/SystemLeverageMap";
+import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
 
 interface StructureTabProps {
   selectedProduct: Product;
@@ -459,39 +461,64 @@ export function StructureTab({
         );
       })()}
 
-      {/* ── System Leverage Map — Central Visual Intelligence Layer ── */}
+      {/* ── System Intelligence Layer — Central Visual Intelligence ── */}
       {(() => {
         const disruptData = analysis.disruptData as Record<string, unknown> | null;
         const businessData = analysis.businessAnalysisData as Record<string, unknown> | null;
         const flipIdeas = (disruptData?.flippedIdeas || selectedProduct?.flippedIdeas || []) as unknown[];
         const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
 
-        // Extract real lens artifacts from analysis outputs for artifact-driven scoring
-        const lensArtifacts = extractLensArtifacts(disruptData, businessData, null);
+        const intelligenceInput: SystemIntelligenceInput = {
+          analysisId: selectedProduct.id || "unknown",
+          governedData,
+          disruptData,
+          businessAnalysisData: businessData,
+          intelData: null,
+          flipIdeas,
+          activeLenses: activeModes.length > 1 ? activeModes : ["product", "service", "business"],
+        };
 
-        const leverageMap = buildSystemLeverageMap(governedData, disruptData, flipIdeas, activeModes, lensArtifacts);
+        const systemIntelligence = buildSystemIntelligence(intelligenceInput);
 
-        if (!leverageMap) return null;
+        if (!systemIntelligence.leverageMap) return null;
 
-        const { artifactScored, heuristicScored } = leverageMap.provenanceReport;
+        const { artifactScored, heuristicScored } = systemIntelligence.provenanceReport;
         const provenanceBadge = artifactScored > 0
           ? `${Math.round((artifactScored / (artifactScored + heuristicScored)) * 100)}% artifact-scored`
           : undefined;
 
         return (
-          <StructureSection
-            title="System Leverage Map"
-            icon={Network}
-            defaultOpen={true}
-            badge={leverageMap.convergenceZones.length > 0
-              ? `${leverageMap.convergenceZones.length} convergence${provenanceBadge ? ` · ${provenanceBadge}` : ""}`
-              : provenanceBadge}
-          >
-            <SystemLeverageMapView
-              map={leverageMap}
-              availableLenses={activeModes.length > 1 ? activeModes : ["product", "service", "business"]}
-            />
-          </StructureSection>
+          <>
+            {/* Strategic Command Deck */}
+            <StructureSection
+              title="Strategic Command Deck"
+              icon={LayoutDashboard}
+              defaultOpen={true}
+              badge={systemIntelligence.convergenceZones.length > 0
+                ? `${systemIntelligence.convergenceZones.length} convergence zone${systemIntelligence.convergenceZones.length !== 1 ? "s" : ""}`
+                : undefined}
+            >
+              <StrategicCommandDeck
+                commandDeck={systemIntelligence.commandDeck}
+                convergenceCount={systemIntelligence.convergenceZones.length}
+              />
+            </StructureSection>
+
+            {/* System Leverage Map */}
+            <StructureSection
+              title="System Leverage Map"
+              icon={Network}
+              defaultOpen={true}
+              badge={systemIntelligence.leverageMap.convergenceZones.length > 0
+                ? `${systemIntelligence.leverageMap.convergenceZones.length} convergence${provenanceBadge ? ` · ${provenanceBadge}` : ""}`
+                : provenanceBadge}
+            >
+              <SystemLeverageMapView
+                map={systemIntelligence.leverageMap}
+                availableLenses={intelligenceInput.activeLenses}
+              />
+            </StructureSection>
+          </>
         );
       })()}
 
