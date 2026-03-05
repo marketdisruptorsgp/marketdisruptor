@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { PricingIntelCard } from "@/components/PricingIntelCard";
 
 
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
@@ -1197,45 +1198,7 @@ export default function Index() {
                         const takeaway = getPricingTakeaway(selectedProduct.pricingIntel as any);
                         return takeaway ? <KeyTakeawayBanner takeaway={takeaway} accentColor="hsl(142 70% 35%)" /> : null;
                       })()}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {[
-                          { label: "Current Market Price", value: selectedProduct.pricingIntel.currentMarketPrice, highlight: false },
-                          { label: "Collector Premium", value: selectedProduct.pricingIntel.collectorPremium, highlight: false },
-                          { label: "Resale Avg Sold", value: (selectedProduct.pricingIntel as any).resaleAvgSold || selectedProduct.pricingIntel.ebayAvgSold, highlight: true },
-                          { label: "Vintage Avg Sold", value: (selectedProduct.pricingIntel as any).vintageAvgSold || selectedProduct.pricingIntel.etsyAvgSold, highlight: true },
-                          { label: "Original MSRP", value: selectedProduct.pricingIntel.msrpOriginal, highlight: false },
-                          { label: "Price Trend", value: selectedProduct.pricingIntel.priceDirection.toUpperCase(), highlight: true },
-                        ].map((item) => (
-                          <div
-                            key={item.label}
-                            className="p-4 rounded-xl"
-                            style={{
-                              background: "hsl(var(--muted))",
-                              border: "1px solid hsl(var(--border))",
-                            }}
-                          >
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{item.label}</p>
-                            <p className="text-sm font-bold" style={{ color: item.highlight ? "hsl(var(--primary))" : "hsl(var(--foreground))" }}>
-                              {item.value}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                        <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(142 70% 30%)" }}>
-                          <DollarSign size={10} className="inline mr-1" />Margin Analysis
-                        </p>
-                        <p className="text-sm" style={{ color: "hsl(142 70% 25%)" }}>{selectedProduct.pricingIntel.margins}</p>
-                      </div>
-
-                      <div className="p-4 rounded-xl" style={{ background: "hsl(var(--muted))" }}>
-                        <p className="typo-card-eyebrow mb-2">Full Price Range</p>
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-foreground">{selectedProduct.pricingIntel.priceRange}</span>
-                          <TrendBadge trend={selectedProduct.pricingIntel.priceDirection as "up" | "down" | "stable"} />
-                        </div>
-                      </div>
+                      <PricingIntelCard pricingIntel={selectedProduct.pricingIntel as any} />
                     </div>
                   )}
 
