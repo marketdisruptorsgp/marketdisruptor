@@ -88,7 +88,7 @@ export default function FaqsPage() {
 
       <div className="border-b border-border bg-card">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Support</p>
+          <p className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Support</p>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight mb-1.5">
             Frequently Asked Questions
           </h1>
@@ -111,7 +111,6 @@ export default function FaqsPage() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-
         {/* Category pills */}
         <div className="flex flex-wrap gap-1.5 mb-5">
           {CATEGORIES.map((cat) => {
@@ -122,15 +121,15 @@ export default function FaqsPage() {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all border ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-semibold transition-all border ${
                   isActive
                     ? catColor
                     : "bg-card text-muted-foreground border-border hover:text-foreground"
                 }`}
               >
-                <Icon size={11} />
+                <Icon size={13} />
                 {cat.label}
-                <span className={`text-[10px] ml-0.5 opacity-60`}>
+                <span className="text-sm ml-0.5 opacity-60">
                   {categoryCount(cat.id)}
                 </span>
               </button>
@@ -140,7 +139,7 @@ export default function FaqsPage() {
 
         {/* Results count */}
         {(search || activeCategory !== "all") && (
-          <p className="text-[11px] text-muted-foreground mb-3">
+          <p className="text-sm text-muted-foreground mb-3">
             {filtered.length} {filtered.length === 1 ? "result" : "results"}
             {search && <> for "<span className="font-semibold text-foreground">{search}</span>"</>}
             {activeCategory !== "all" && <> in <span className="font-semibold text-foreground">{CATEGORIES.find(c => c.id === activeCategory)?.label}</span></>}
@@ -151,7 +150,7 @@ export default function FaqsPage() {
           <div className="text-center py-12">
             <Search size={28} className="mx-auto text-muted-foreground/40 mb-2" />
             <p className="text-sm text-muted-foreground">No matching questions found.</p>
-            <button onClick={() => { setSearch(""); setActiveCategory("all"); }} className="text-xs text-primary font-semibold mt-1.5 hover:underline">
+            <button onClick={() => { setSearch(""); setActiveCategory("all"); }} className="text-sm text-primary font-semibold mt-1.5 hover:underline">
               Clear filters
             </button>
           </div>
@@ -162,15 +161,15 @@ export default function FaqsPage() {
               const accentClass = CATEGORY_ACCENT[faq.category] || "border-l-primary";
               return (
                 <AccordionItem key={`${faq.category}-${i}`} value={`faq-${i}`} className={`border border-border border-l-[3px] ${accentClass} rounded-md px-3.5 sm:px-4 bg-card`}>
-                  <AccordionTrigger className="text-[13px] font-semibold text-foreground py-3 hover:no-underline text-left">
+                  <AccordionTrigger className="text-sm font-semibold text-foreground py-3 hover:no-underline text-left">
                     <div className="flex items-center gap-2.5 w-full pr-2">
                       <span className="flex-1">{faq.q}</span>
-                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded flex-shrink-0 border ${catMeta?.color || "bg-muted text-muted-foreground"}`}>
+                      <span className={`text-sm font-bold uppercase tracking-wider px-1.5 py-0.5 rounded flex-shrink-0 border ${catMeta?.color || "bg-muted text-muted-foreground"}`}>
                         {catMeta?.label}
                       </span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="text-[13px] text-muted-foreground leading-relaxed pb-3 pt-0">
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-3 pt-0">
                     <span dangerouslySetInnerHTML={{ __html: faq.a }} />
                   </AccordionContent>
                 </AccordionItem>

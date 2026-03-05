@@ -68,7 +68,7 @@ export default function ResourcesPage() {
       <PlatformNav tier={tier} />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-        <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Resources</p>
+        <p className="text-sm font-bold uppercase tracking-widest text-primary mb-3">Resources</p>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight mb-10">
           Learn How It Works
         </h1>
@@ -125,14 +125,14 @@ export default function ResourcesPage() {
                     <div key={i} className="border border-border rounded-lg p-4 sm:p-5 bg-card shadow-sm">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <span className="text-sm font-bold text-foreground">{t.name}</span>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{t.category}</span>
+                        <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{t.category}</span>
                       </div>
                       <div className="flex flex-wrap items-center gap-3 mb-3">
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                          <TrendingUp size={12} /> {t.momentum}
+                        <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                          <TrendingUp size={14} /> {t.momentum}
                         </span>
-                        <span className="text-xs text-muted-foreground">{t.period}</span>
-                        <span className="text-xs font-semibold text-primary">Revival Score: {t.score}</span>
+                        <span className="text-sm text-muted-foreground">{t.period}</span>
+                        <span className="text-sm font-semibold text-primary">Revival Score: {t.score}</span>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed">{t.insight}</p>
                     </div>
@@ -160,7 +160,7 @@ export default function ResourcesPage() {
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2 mb-1">
                             <span className="text-sm font-bold text-foreground">{s.label}</span>
-                            <span className="text-[10px] text-muted-foreground">{s.time}</span>
+                            <span className="text-sm text-muted-foreground">{s.time}</span>
                           </div>
                           <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
                         </div>
@@ -184,15 +184,15 @@ export default function ResourcesPage() {
                     <div key={i} className="border border-border rounded-lg p-4 sm:p-5 bg-card shadow-sm">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="text-sm font-bold text-foreground">{p.title}</span>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">{p.subtitle}</span>
+                        <span className="text-sm font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">{p.subtitle}</span>
                       </div>
-                      <p className="text-xs font-medium text-muted-foreground mb-3">{p.stats}</p>
+                      <p className="text-sm font-medium text-muted-foreground mb-3">{p.stats}</p>
                       <p className="text-sm text-muted-foreground leading-relaxed">{p.summary}</p>
                       <button
                         onClick={() => navigate("/")}
-                        className="mt-3 text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                        className="mt-3 text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1"
                       >
-                        Run your own analysis in this category <ArrowRight size={12} />
+                        Run your own analysis in this category <ArrowRight size={14} />
                       </button>
                     </div>
                   ))}
