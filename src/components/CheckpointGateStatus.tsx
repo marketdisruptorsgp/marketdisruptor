@@ -22,7 +22,7 @@ const RESULT_CONFIG = {
 
 const STEP_LABELS: Record<string, string> = {
   domain_confirmation: "Domain Confirmation",
-  first_principles: "First Principles",
+  first_principles: "Structural Decomposition",
   friction_tiers: "Friction Qualification",
   constraint_map: "Constraint Mapping",
   falsification: "Falsification Protocol",
