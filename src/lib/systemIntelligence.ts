@@ -51,6 +51,11 @@ import {
   buildProvenanceRegistry,
   type ProvenanceRegistry,
 } from "@/lib/insightProvenance";
+import {
+  orchestrateLenses,
+  type MergedLensOutput,
+} from "@/lib/lensOrchestrator";
+import { type ConvergenceZone } from "@/lib/convergenceEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -108,6 +113,9 @@ export interface SystemIntelligence {
   canonicalModel: CanonicalModel | null;
   provenanceRegistry: ProvenanceRegistry | null;
   expandedFriction: ExpandedFrictionScore | null;
+  // Cross-lens convergence
+  convergenceZoneDetails: ConvergenceZone[];
+  mergedLensOutput: MergedLensOutput | null;
   computedAt: number;
 }
 
@@ -201,7 +209,9 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
 
   const governed = governInsights(rawInsights, scoringResult?.scored || []);
 
-  // Per-lens summaries
+  // Per-lens summaries + orchestration
+  const mergedLensOutput = orchestrateLenses(activeLenses, allNodes);
+
   const lenses: Partial<Record<LensType, LensAnalysis>> = {};
   for (const lens of activeLenses) {
     const lensNodes = allNodes.filter(n => n.lensScores.some(ls => ls.lens === lens && ls.score >= 5));
@@ -264,6 +274,8 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
     canonicalModel,
     provenanceRegistry,
     expandedFriction,
+    convergenceZoneDetails: mergedLensOutput.convergenceZones,
+    mergedLensOutput,
     computedAt: Date.now(),
   };
 
@@ -292,3 +304,5 @@ export type { ScoredOpportunity, ScoringOutput, ExpandedFrictionScore } from "@/
 export type { GovernanceReport } from "@/lib/insightGovernance";
 export type { CanonicalModel } from "@/lib/canonicalSchema";
 export type { ProvenanceRegistry } from "@/lib/insightProvenance";
+export type { ConvergenceZone } from "@/lib/convergenceEngine";
+export type { MergedLensOutput } from "@/lib/lensOrchestrator";

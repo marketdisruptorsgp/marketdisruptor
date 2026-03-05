@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3 } from "lucide-react";
+import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2, BarChart3, Flame } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
 import { type LensType } from "@/lib/multiLensEngine";
@@ -9,6 +9,7 @@ import { buildSystemIntelligence, invalidateIntelligence, type SystemIntelligenc
 import { SystemLeverageMapView } from "@/components/SystemLeverageMap";
 import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
 import { OpportunityMatrix } from "@/components/OpportunityMatrix";
+import { FrictionHeatmap } from "@/components/FrictionHeatmap";
 
 interface StructureTabProps {
   selectedProduct: Product;
@@ -513,8 +514,25 @@ export function StructureTab({
               <StrategicCommandDeck
                 commandDeck={systemIntelligence.commandDeck}
                 convergenceCount={systemIntelligence.convergenceZones.length}
+                expandedFriction={systemIntelligence.expandedFriction}
+                provenanceRegistry={systemIntelligence.provenanceRegistry}
+                convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
               />
             </StructureSection>
+
+            {/* Cross-Lens Friction Heatmap */}
+            {systemIntelligence.leverageMap && intelligenceInput.activeLenses.length >= 2 && (
+              <StructureSection
+                title="Cross-Lens Friction Heatmap"
+                icon={Flame}
+                defaultOpen={false}
+              >
+                <FrictionHeatmap
+                  allNodes={systemIntelligence.leverageMap.nodes}
+                  activeLenses={intelligenceInput.activeLenses}
+                />
+              </StructureSection>
+            )}
 
             {/* System Leverage Map */}
             <StructureSection
