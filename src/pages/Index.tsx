@@ -176,6 +176,7 @@ export default function Index() {
   const [detailTab, setDetailTab] = useState<"overview" | "pricing" | "supply" | "patents" | "action" | "ideas" | "community" | "workflow">("overview");
   const [visitedDetailTabs, setVisitedDetailTabs] = useState<Set<string>>(new Set(["overview"]));
   const [visitedStressTestTabs, setVisitedStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
+  const [intelRerunNotes, setIntelRerunNotes] = useState("");
   const [visitedBusinessStressTestTabs, setVisitedBusinessStressTestTabs] = useState<Set<string>>(new Set(["debate"]));
   const [activeStep, setActiveStep] = useState(2);
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([2]));
@@ -808,18 +809,6 @@ export default function Index() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
-                    onClick={() => {
-                      if (!analysisParams) return;
-                      handleAnalyze({ ...analysisParams });
-                    }}
-                    disabled={isLoading || !analysisParams}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
-                    style={{ background: "hsl(var(--background))", color: "hsl(var(--primary))", border: "1px solid hsl(var(--primary) / 0.4)", opacity: isLoading || !analysisParams ? 0.5 : 1 }}
-                    title="Re-run the intelligence report with fresh data"
-                  >
-                    <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} /> Rerun Intel
-                  </button>
-                  <button
                     onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct, { ...(disruptData ? { disrupt: disruptData } : {}), ...(stressTestData ? { stressTest: stressTestData } : {}), ...(selectedProduct.patentData ? { patentData: selectedProduct.patentData } : {}) })}
                     disabled={!selectedProduct}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
@@ -1423,7 +1412,36 @@ export default function Index() {
 
                   {/* First Principles & Pitch Deck moved to standalone sections below */}
 
-                  {/* Patent Intelligence moved to Step 3 (Disrupt) */}
+                  {/* ── Rerun Intelligence Report ── */}
+                  <div className="rounded-xl p-4 space-y-3" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.18)", borderLeft: "4px solid hsl(var(--primary))" }}>
+                    <div className="flex items-center gap-2">
+                      <Telescope size={14} style={{ color: "hsl(var(--primary))" }} />
+                      <p className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Rerun Intelligence Report</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Re-scrape live market data and regenerate the full intelligence report with fresh pricing, supply chain, community, and patent data.
+                    </p>
+                    <textarea
+                      value={intelRerunNotes}
+                      onChange={(e) => setIntelRerunNotes(e.target.value)}
+                      placeholder="Optional: guide the rerun — e.g. focus on European suppliers, look for newer pricing data…"
+                      className="w-full rounded-lg px-3 py-2.5 text-xs leading-relaxed resize-none transition-colors focus:outline-none"
+                      style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))", minHeight: 48 }}
+                      rows={2}
+                    />
+                    <button
+                      onClick={() => {
+                        if (!analysisParams) return;
+                        handleAnalyze({ ...analysisParams });
+                      }}
+                      disabled={isLoading || !analysisParams}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold transition-all"
+                      style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))", opacity: isLoading || !analysisParams ? 0.5 : 1 }}
+                    >
+                      <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} />
+                      {isLoading ? "Running…" : "Rerun Intel Report"}
+                    </button>
+                  </div>
 
                   {/* Next / Previous section nav */}
                   <div className="flex items-center justify-between pt-4 mt-4" style={{ borderTop: "2px solid hsl(var(--border))" }}>
