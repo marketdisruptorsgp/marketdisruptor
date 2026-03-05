@@ -137,14 +137,34 @@ ${EXTRACTION_SCHEMA}${etaSchemaBlock}
       });
     }
 
-    // Add document texts
+    // Add document texts — detect base64 data URIs and send as inline_data for vision
     if (documentTexts && documentTexts.length > 0) {
       for (let i = 0; i < documentTexts.length; i++) {
         const doc = documentTexts[i];
-        contentParts.push({
-          type: "text",
-          text: `--- DOCUMENT ${i + 1}: ${doc.name || "Untitled"} ---\n${doc.content}`,
-        });
+        const content: string = doc.content || "";
+
+        // Check if it's a data URI (base64-encoded file)
+        const dataUriMatch = content.match(/^data:([^;]+);base64,(.+)$/s);
+        if (dataUriMatch) {
+          const mimeType = dataUriMatch[1];
+          const base64Data = dataUriMatch[2];
+
+          // For PDFs, images, etc. — send as inline_data for Gemini vision
+          contentParts.push({
+            type: "text",
+            text: `--- DOCUMENT ${i + 1}: ${doc.name || "Untitled"} (${mimeType}) ---`,
+          });
+          contentParts.push({
+            type: "image_url",
+            image_url: { url: `data:${mimeType};base64,${base64Data}` },
+          });
+        } else {
+          // Plain text content
+          contentParts.push({
+            type: "text",
+            text: `--- DOCUMENT ${i + 1}: ${doc.name || "Untitled"} ---\n${content}`,
+          });
+        }
       }
     }
 
@@ -215,9 +235,24 @@ ${EXTRACTION_SCHEMA}${etaSchemaBlock}
     try {
       extraction = JSON.parse(cleaned);
     } catch (parseErr) {
-      console.error("JSON parse failed:", parseErr);
-      console.error("Raw content (first 500):", cleaned.slice(0, 500));
-      throw new Error("AI returned invalid JSON. Please retry.");
+      // Attempt JSON repair: balance unclosed braces/brackets
+      let repaired = cleaned;
+      let openBraces = (repaired.match(/{/g) || []).length;
+      let closeBraces = (repaired.match(/}/g) || []).length;
+      let openBrackets = (repaired.match(/\[/g) || []).length;
+      let closeBrackets = (repaired.match(/\]/g) || []).length;
+      // Remove trailing comma before closing
+      repaired = repaired.replace(/,\s*$/, "");
+      while (openBrackets > closeBrackets) { repaired += "]"; closeBrackets++; }
+      while (openBraces > closeBraces) { repaired += "}"; closeBraces++; }
+      try {
+        extraction = JSON.parse(repaired);
+        console.warn("JSON repaired successfully (balanced braces)");
+      } catch (repairErr) {
+        console.error("JSON parse failed after repair:", repairErr);
+        console.error("Raw content (first 500):", cleaned.slice(0, 500));
+        throw new Error("AI returned invalid JSON. Please retry.");
+      }
     }
 
     return new Response(JSON.stringify({ success: true, extraction }), {
