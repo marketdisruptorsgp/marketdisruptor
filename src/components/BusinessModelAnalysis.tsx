@@ -1,25 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { downloadBusinessModelPDF } from "@/lib/pdfExport";
 import {
-  Brain, RefreshCw, ArrowRight, Building2, Zap, DollarSign, Shield,
+  Brain, RefreshCw, Building2, Zap, DollarSign, Shield,
   AlertTriangle, CheckCircle2, Lightbulb, Users, BarChart3, Cpu,
-  TrendingUp, Target, Rocket, Clock, ChevronRight, FlipHorizontal,
-  Wrench, Eye, Package, Factory, Layers, FileDown, Calculator, Calendar,
+  TrendingUp, Target, Rocket, Clock, FlipHorizontal,
+  Wrench, Eye, Factory, FileDown, Calculator, Calendar,
   Search, TrendingDown, FileQuestion,
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 import { BundleDeepDive } from "./BundleDeepDive";
-
 import { LeverageScore } from "./LeverageScore";
-import { SectionHeader, NextSectionButton, DetailPanel } from "@/components/SectionNav";
 import { AnalysisVisualLayer } from "./AnalysisVisualLayer";
 import { DealEconomicsPanel } from "./DealEconomicsPanel";
 import { OwnershipPlaybook, type OwnershipPlaybookData } from "./OwnershipPlaybook";
 import { getLensType } from "@/lib/etaLens";
+
+// ── Standardized analysis components ──
+import {
+  StepCanvas,
+  InsightCard,
+  FrameworkPanel,
+  SignalCard,
+  OpportunityCard,
+  VisualGrid,
+  ExpandableDetail,
+  MetricCard,
+  EvidenceCard,
+  AnalysisPanel,
+} from "@/components/analysis/AnalysisComponents";
 
 export interface BusinessModelInput {
   type: string;
@@ -80,9 +92,8 @@ export interface BusinessModelAnalysisData {
     customerJourney?: string[];
     frictionPoints?: FrictionPoint[];
     costStructure?: {
-      biggestCostDrivers?: string[];
       fixedVsVariable?: string;
-      eliminationCandidates?: string[];
+      biggestCostDrivers?: string[];
     };
     revenueLeaks?: string[];
   };
@@ -97,11 +108,11 @@ export interface BusinessModelAnalysisData {
     currentRevenueMix?: string;
     untappedStreams?: UntappedStream[];
     pricingRedesign?: string;
-    bundleOpportunities?: string[];
+    bundleOpportunities?: any[];
   };
   disruptionAnalysis?: {
-    vulnerabilities?: string[];
     disruptorProfile?: string;
+    vulnerabilities?: string[];
     defenseMoves?: string[];
     attackMoves?: string;
   };
@@ -116,26 +127,20 @@ export interface BusinessModelAnalysisData {
     biggestRisk?: string;
     requiredCapabilities?: string[];
   };
-  visualSpecs?: import("@/lib/visualContract").VisualSpec[];
-  actionPlans?: import("@/lib/visualContract").ActionPlan[];
+  visualSpecs?: any[];
+  actionPlans?: any[];
 }
 
-const IMPACT_COLORS = {
-  high: { bg: "hsl(var(--destructive) / 0.08)", border: "hsl(var(--destructive) / 0.3)", text: "hsl(var(--destructive))", label: "High Impact" },
-  medium: { bg: "hsl(38 92% 50% / 0.08)", border: "hsl(38 92% 50% / 0.3)", text: "hsl(38 92% 35%)", label: "Medium" },
-  low: { bg: "hsl(142 70% 45% / 0.07)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)", label: "Low" },
+const IMPACT_MAP: Record<string, "threat" | "weakness" | "neutral"> = {
+  high: "threat",
+  medium: "weakness",
+  low: "neutral",
 };
 
-const EFFORT_COLORS = {
-  high: { bg: "hsl(var(--destructive) / 0.1)", text: "hsl(var(--destructive))" },
-  medium: { bg: "hsl(38 92% 50% / 0.1)", text: "hsl(38 92% 35%)" },
-  low: { bg: "hsl(142 70% 45% / 0.1)", text: "hsl(142 70% 30%)" },
-};
-
-const DIFFICULTY_COLORS = {
-  easy: { bg: "hsl(142 70% 45% / 0.1)", text: "hsl(142 70% 30%)" },
-  medium: { bg: "hsl(38 92% 50% / 0.1)", text: "hsl(38 92% 35%)" },
-  hard: { bg: "hsl(var(--destructive) / 0.1)", text: "hsl(var(--destructive))" },
+const DIFFICULTY_MAP: Record<string, "strength" | "opportunity" | "neutral" | "threat" | "weakness"> = {
+  easy: "strength",
+  medium: "opportunity",
+  hard: "neutral",
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -167,9 +172,13 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
   const [activeTab, setActiveTab] = useState<string>("summary");
   const [userSuggestions, setUserSuggestions] = useState("");
 
+  // Sync initialData when parent updates
+  useEffect(() => {
+    if (initialData && !data) setData(initialData);
+  }, [initialData]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const saveToWorkspace = async (analysisData: BusinessModelAnalysisData, businessType: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase.from("saved_analyses") as any).insert({
         user_id: user?.id,
         title: `${businessType} — Business Model`,
@@ -234,8 +243,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
     color: "hsl(var(--foreground))",
   } as React.CSSProperties;
 
-  const scrollToSteps = () => setTimeout(() => document.querySelector('[data-bma-steps]')?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-
+  // Determine which tabs are relevant for renderMode
   const baseTabs = [
     { id: "summary" as const, label: "Business Reality", icon: Eye },
     { id: "operations" as const, label: "Operations Audit", icon: Wrench },
@@ -246,7 +254,6 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
     { id: "reinvented" as const, label: "Reinvented Model", icon: Rocket },
   ];
 
-  // ETA-specific tabs injected when lens is active
   const etaTabs = isETA ? [
     { id: "dealEconomics" as const, label: "Deal Economics", icon: Calculator },
     { id: "addbackScrutiny" as const, label: "Addback Scrutiny", icon: Search },
@@ -256,7 +263,6 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
   ] : [];
 
   const allTabs = [...baseTabs.slice(0, 5), ...etaTabs, ...baseTabs.slice(5)];
-
   const REPORT_TAB_IDS = ["summary", "operations", "assumptions", "tech", "revenue", ...(isETA ? ["dealEconomics", "addbackScrutiny", "stagnation", "ownerDependency", "playbook"] : [])];
   const DISRUPT_TAB_IDS = ["disruption", "reinvented"];
 
@@ -266,17 +272,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
     ? allTabs.filter(t => DISRUPT_TAB_IDS.includes(t.id))
     : allTabs;
 
-  const currentTabIdx = tabs.findIndex(t => t.id === activeTab);
-  const nextTab = currentTabIdx < tabs.length - 1 ? tabs[currentTabIdx + 1] : null;
-
-  const goNext = () => {
-    if (!nextTab) return;
-    setActiveTab(nextTab.id);
-    scrollToSteps();
-  };
-
   if (!data && renderMode) return null;
 
+  // ── Input form (standalone mode, no renderMode) ──
   if (!data) {
     return (
       <div className="space-y-6">
@@ -285,8 +283,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             <Building2 size={36} style={{ color: "hsl(var(--primary))" }} />
           </div>
           <div>
-            <h3 className="typo-section-title mb-2" style={{ fontSize: "1.25rem" }}>Business Model Deconstruction</h3>
-            <p className="typo-card-body text-muted-foreground max-w-lg leading-relaxed">
+            <h3 className="text-lg font-bold text-foreground mb-2">Business Model Deconstruction</h3>
+            <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
               First-principles analysis of any business model — friction, costs, automation, and reinvention.
             </p>
           </div>
@@ -295,7 +293,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="typo-card-eyebrow">Business Type *</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Business Type *</label>
               <input type="text" value={input.type} onChange={(e) => setInput((p) => ({ ...p, type: e.target.value }))}
                 placeholder="e.g. Laundromat, Freight broker, Law firm…"
                 className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle}
@@ -305,47 +303,47 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               </datalist>
             </div>
             <div className="space-y-1.5">
-              <label className="typo-card-eyebrow">Revenue Model</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Revenue Model</label>
               <input type="text" value={input.revenueModel} onChange={(e) => setInput((p) => ({ ...p, revenueModel: e.target.value }))}
                 placeholder="e.g. Per-use, monthly contract, hourly…"
                 className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
             </div>
           </div>
-            <div className="space-y-1.5">
-              <label className="typo-card-eyebrow">Business Description *</label>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Business Description *</label>
             <textarea value={input.description} onChange={(e) => setInput((p) => ({ ...p, description: e.target.value }))}
               placeholder="Describe how the business works today…" rows={3}
               className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none resize-none" style={inputStyle} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="typo-card-eyebrow">Size / Scale</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Size / Scale</label>
               <input type="text" value={input.size} onChange={(e) => setInput((p) => ({ ...p, size: e.target.value }))}
                 placeholder="e.g. $500k/yr, 10 employees" className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
             </div>
             <div className="space-y-1.5">
-              <label className="typo-card-eyebrow">Geography</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Geography</label>
               <input type="text" value={input.geography} onChange={(e) => setInput((p) => ({ ...p, geography: e.target.value }))}
                 placeholder="e.g. Suburban US, regional…" className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
             </div>
             <div className="space-y-1.5">
-              <label className="typo-card-eyebrow">Known Pain Points</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Known Pain Points</label>
               <input type="text" value={input.painPoints} onChange={(e) => setInput((p) => ({ ...p, painPoints: e.target.value }))}
                 placeholder="e.g. High labor costs, low margins…" className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="typo-card-eyebrow">Website / URL (optional)</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Website / URL (optional)</label>
             <input type="url" value={input.notes} onChange={(e) => setInput((p) => ({ ...p, notes: e.target.value }))}
               placeholder="Paste a company website or URL for extra context…"
               className="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style={inputStyle} />
           </div>
           <button onClick={runAnalysis} disabled={loading || !input.type.trim() || !input.description.trim()}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg typo-button-primary transition-colors"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-colors"
             style={{ background: "hsl(var(--primary))", color: "white", opacity: (loading || !input.type.trim() || !input.description.trim()) ? 0.6 : 1 }}>
             {loading ? <><RefreshCw size={15} className="animate-spin" /> Deconstructing…</> : <><Brain size={15} /> Run Business Model Analysis</>}
           </button>
-          <p className="typo-card-meta text-muted-foreground">Uses Gemini 2.5 Pro · ~20–40 seconds</p>
+          <p className="text-[10px] font-bold text-muted-foreground">Uses Gemini 2.5 Pro · ~20–40 seconds</p>
         </div>
       </div>
     );
@@ -358,493 +356,401 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
 
   return (
     <div className="space-y-4">
-      {/* Header — only show when not in renderMode */}
+      {/* ── Tab Navigation — only render when NOT in renderMode (parent handles tabs) ── */}
       {!renderMode && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary))" }}>
-                <Building2 size={14} style={{ color: "white" }} />
-              </div>
-              <div>
-                <h3 className="typo-card-title">{input.type}</h3>
-                <p className="typo-card-meta text-muted-foreground">{tabs.length} sections · Click any to jump</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => downloadBusinessModelPDF(input.type || "Business Model", data)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                style={{ background: "hsl(var(--primary))", color: "white" }}>
-                <FileDown size={12} /> PDF
+        <div className="flex flex-wrap gap-1.5">
+          {tabs.map((t, i) => {
+            const Icon = t.icon;
+            const isActive = activeTab === t.id;
+            return (
+              <button key={t.id} onClick={() => setActiveTab(t.id)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  background: isActive ? "hsl(var(--primary))" : "transparent",
+                  color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
+                  border: isActive ? "1px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
+                }}>
+                <Icon size={12} />
+                <span className="hidden sm:inline">{t.label}</span>
+                <span className="sm:hidden">{i + 1}</span>
               </button>
-              <button onClick={runAnalysis} disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
-                {loading ? <RefreshCw size={11} className="animate-spin" /> : <RefreshCw size={11} />} Re-run
-              </button>
-            </div>
-          </div>
-          <DetailPanel title="Refine your analysis — add direction, then Re-run" icon={Lightbulb}>
-            <textarea value={userSuggestions} onChange={(e) => setUserSuggestions(e.target.value)}
-              placeholder="e.g. Focus on automation, explore franchise model…"
-              className="w-full rounded-lg px-3 py-2 text-sm leading-relaxed resize-none transition-colors focus:outline-none mb-2"
-              rows={2} style={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", color: "hsl(var(--foreground))" }} />
-          </DetailPanel>
+            );
+          })}
         </div>
       )}
 
-      {/* Step nav */}
-      <div data-bma-steps className="flex flex-wrap gap-1.5">
-        {tabs.map((t, i) => {
-          const Icon = t.icon;
-          const isActive = activeTab === t.id;
-          return (
-            <button key={t.id} onClick={() => { setActiveTab(t.id); scrollToSteps(); }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg typo-card-meta font-semibold transition-all"
-              style={{
-                background: isActive ? "hsl(var(--primary))" : "transparent",
-                color: isActive ? "white" : "hsl(var(--foreground) / 0.7)",
-                border: isActive ? "1px solid hsl(var(--primary))" : "1px solid hsl(var(--border))",
-              }}>
-              <Icon size={12} />
-              <span className="hidden sm:inline">{t.label}</span>
-              <span className="sm:hidden">{i + 1}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* TAB: BUSINESS REALITY */}
+      {/* ═══ TAB: BUSINESS REALITY ═══ */}
       {activeTab === "summary" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Business Reality" icon={Eye} />
-
+        <StepCanvas>
           {!data.businessSummary ? (
             <p className="text-sm text-muted-foreground italic">Business summary data unavailable.</p>
           ) : (
-          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="businessModel">
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>True Job To Be Done</p>
-            <p className="text-sm text-foreground leading-relaxed">{data.businessSummary?.trueJobToBeDone || "Not available"}</p>
-            <InsightRating sectionId="biz-jtbd" compact />
-          </div>
+            <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="businessModel">
+              <InsightCard
+                icon={Target}
+                headline={data.businessSummary?.trueJobToBeDone || "Not available"}
+                badge="Job To Be Done"
+                badgeColor="hsl(var(--primary))"
+                accentColor="hsl(var(--primary))"
+                action={<InsightRating sectionId="biz-jtbd" compact />}
+              >
+                <VisualGrid columns={2}>
+                  <MetricCard label="Revenue Model" value={data.businessSummary?.currentModel || "N/A"} />
+                  <MetricCard label="Market Position" value={data.businessSummary?.marketPosition || "N/A"} />
+                </VisualGrid>
+              </InsightCard>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-              <p className="typo-card-eyebrow text-muted-foreground mb-1">How Money Flows</p>
-              <p className="typo-card-body text-foreground/80 leading-relaxed">{data.businessSummary?.currentModel || "Not available"}</p>
-            </div>
-            <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-              <p className="typo-card-eyebrow text-muted-foreground mb-1">Market Position</p>
-              <p className="typo-card-body text-foreground/80 leading-relaxed">{data.businessSummary?.marketPosition || "Not available"}</p>
-            </div>
-          </div>
-
-          <DetailPanel title={`Hidden Strengths (${(data.businessSummary.hiddenStrengths || []).length})`} icon={Lightbulb}>
-            <div className="space-y-1.5 mb-2">
-              {(data.businessSummary.hiddenStrengths || []).map((s, i) => (
-                <div key={i} className="flex gap-2 items-start text-xs">
-                  <CheckCircle2 size={10} style={{ color: "hsl(38 92% 40%)", flexShrink: 0, marginTop: 2 }} />
-                  <span className="text-foreground/80">{s}</span>
-                </div>
-              ))}
-            </div>
-          </DetailPanel>
-
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-          </AnalysisVisualLayer>
+              {(data.businessSummary.hiddenStrengths || []).length > 0 && (
+                <FrameworkPanel title="Hidden Strengths" icon={Lightbulb} subtitle={`${(data.businessSummary.hiddenStrengths || []).length} identified`}>
+                  <VisualGrid columns={2}>
+                    {(data.businessSummary.hiddenStrengths || []).slice(0, 4).map((s, i) => (
+                      <SignalCard key={i} label={s} type="strength" />
+                    ))}
+                  </VisualGrid>
+                  {(data.businessSummary.hiddenStrengths || []).length > 4 && (
+                    <ExpandableDetail label={`${(data.businessSummary.hiddenStrengths || []).length - 4} more strengths`}>
+                      <div className="space-y-1.5">
+                        {(data.businessSummary.hiddenStrengths || []).slice(4).map((s, i) => (
+                          <SignalCard key={i} label={s} type="strength" />
+                        ))}
+                      </div>
+                    </ExpandableDetail>
+                  )}
+                </FrameworkPanel>
+              )}
+            </AnalysisVisualLayer>
           )}
-        </div>
+        </StepCanvas>
       )}
 
-      {/* TAB: OPERATIONS AUDIT */}
+      {/* ═══ TAB: OPERATIONS AUDIT ═══ */}
       {activeTab === "operations" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Operations Audit" icon={Wrench} />
-
+        <StepCanvas>
           {!data.operationalAudit ? (
             <p className="text-sm text-muted-foreground italic">Operations audit data unavailable.</p>
-          ) : (<>
-          {/* Customer Journey — compact */}
-          <div className="flex flex-wrap gap-1.5 items-center">
-            {(data.operationalAudit?.customerJourney || []).slice(0, 5).map((step, i) => (
-              <div key={i} className="flex items-center gap-1">
-                <span className="px-2 py-1 rounded typo-card-meta font-semibold" style={{ background: "hsl(var(--muted))" }}>
-                  {i + 1}. {step}
-                </span>
-                {i < Math.min((data.operationalAudit?.customerJourney || []).length, 5) - 1 && <ChevronRight size={10} className="text-muted-foreground" />}
-              </div>
-            ))}
-          </div>
-
-          {/* Friction — top 2 */}
-          {(data.operationalAudit?.frictionPoints || []).slice(0, 2).map((fp, i) => {
-            const col = IMPACT_COLORS[fp.impact] || IMPACT_COLORS.medium;
-            return (
-              <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
-                <div className="flex items-center justify-between mb-0.5">
-                  <p className="typo-card-meta font-bold" style={{ color: col.text }}>{fp.stage}</p>
-                  <span className="px-2 py-0.5 rounded-full typo-status-label" style={{ color: col.text }}>{col.label}</span>
-                </div>
-                <p className="text-xs text-foreground/80 leading-relaxed">{fp.friction}</p>
-              </div>
-            );
-          })}
-
-          {(data.operationalAudit?.frictionPoints || []).length > 2 && (
-            <DetailPanel title={`${(data.operationalAudit?.frictionPoints || []).length - 2} more friction points`} icon={AlertTriangle}>
-              <div className="space-y-2 mb-2">
-                {(data.operationalAudit?.frictionPoints || []).slice(2).map((fp, i) => {
-                  const col = IMPACT_COLORS[fp.impact] || IMPACT_COLORS.medium;
-                  return (
-                    <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
-                      <p className="typo-card-meta font-bold" style={{ color: col.text }}>{fp.stage}</p>
-                      <p className="text-xs text-foreground/80">{fp.friction}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </DetailPanel>
-          )}
-
-          <DetailPanel title="Cost Structure & Revenue Leaks" icon={BarChart3}>
-            <div className="space-y-3 mb-2">
-              <p className="text-xs text-foreground/80">{data.operationalAudit?.costStructure?.fixedVsVariable || "Not available"}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <p className="typo-card-eyebrow text-muted-foreground">Biggest Cost Drivers</p>
-                  {(data.operationalAudit?.costStructure?.biggestCostDrivers || []).map((c, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs">
-                      <ChevronRight size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-                      <span className="text-foreground/80">{c}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-1">
-                  <p className="typo-card-eyebrow text-muted-foreground">Revenue Leaks</p>
-                  {(data.operationalAudit?.revenueLeaks || []).slice(0, 3).map((leak, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs">
-                      <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-                      <span className="text-foreground/80">{leak}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </DetailPanel>
-
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-          </>)}
-        </div>
-      )}
-
-      {/* TAB: HIDDEN ASSUMPTIONS */}
-      {activeTab === "assumptions" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Hidden Assumptions" icon={Brain} />
-
-          {(data.hiddenAssumptions || []).slice(0, 3).map((a, i) => {
-            const catColor = CATEGORY_COLORS[a.category] || "hsl(var(--muted-foreground))";
-            return (
-              <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: `1px solid ${a.isChallengeable ? "hsl(var(--primary) / 0.2)" : "hsl(var(--border))"}` }}>
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="text-xs font-bold text-foreground flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full flex items-center justify-center typo-status-label font-bold flex-shrink-0" style={{ background: "hsl(var(--primary))", color: "white" }}>{i + 1}</span>
-                    {a.assumption}
-                  </p>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className="px-1.5 py-0.5 rounded-full typo-status-label" style={{ background: `${catColor}18`, color: catColor }}>{a.category}</span>
-                    <LeverageScore score={a.leverageScore} />
-                  </div>
-                </div>
-                <p className="typo-card-body text-muted-foreground leading-relaxed ml-7">{a.currentAnswer}</p>
-                {a.challengeIdea && (
-                  <div className="ml-7 mt-1 p-2 rounded typo-card-body" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                    <span className="font-bold" style={{ color: "hsl(var(--primary))" }}>Challenge: </span>
-                    <span className="text-foreground/80">{a.challengeIdea}</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {(data.hiddenAssumptions || []).length > 3 && (
-            <DetailPanel title={`${(data.hiddenAssumptions || []).length - 3} more assumptions`} icon={Brain}>
-              <div className="space-y-2 mb-2">
-                {(data.hiddenAssumptions || []).slice(3).map((a, i) => (
-                  <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="typo-card-body font-bold text-foreground mb-0.5">{a.assumption}</p>
-                    <p className="typo-card-body text-muted-foreground">{a.currentAnswer}</p>
-                    {a.challengeIdea && <p className="typo-card-body mt-1" style={{ color: "hsl(var(--primary))" }}>→ {a.challengeIdea}</p>}
-                  </div>
-                ))}
-              </div>
-            </DetailPanel>
-          )}
-
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-        </div>
-      )}
-
-      {/* TAB: TECH LEVERAGE */}
-      {activeTab === "tech" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Tech Leverage" icon={Cpu} />
-
-          {!data.technologyLeverage ? (
-            <p className="text-sm text-muted-foreground italic">Technology leverage data unavailable.</p>
-          ) : (<>
-          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-            <p className="typo-card-eyebrow text-muted-foreground mb-1">Current Tech Level</p>
-            <p className="text-xs text-foreground/80 leading-relaxed">{data.technologyLeverage?.currentTechLevel || "Not available"}</p>
-          </div>
-
-          {/* Top 2 automation opps */}
-          {(data.technologyLeverage?.automationOpportunities || []).slice(0, 2).map((opp, i) => {
-            const diff = DIFFICULTY_COLORS[opp.implementationDifficulty] || DIFFICULTY_COLORS.medium;
-            return (
-              <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="text-xs font-bold text-foreground">{opp.process}</p>
-                  <span className="px-2 py-0.5 rounded-full typo-status-label flex-shrink-0" style={{ background: diff.bg, color: diff.text }}>{opp.implementationDifficulty}</span>
-                </div>
-                <p className="typo-card-meta font-semibold" style={{ color: "hsl(var(--primary))" }}>→ {opp.technology}</p>
-                <p className="text-xs text-muted-foreground">{opp.costSaving}</p>
-              </div>
-            );
-          })}
-
-          <DetailPanel title={`Technology Opportunities & Platform Potential (${(data.technologyLeverage?.aiOpportunities || []).length + ((data.technologyLeverage?.automationOpportunities || []).length > 2 ? (data.technologyLeverage?.automationOpportunities || []).length - 2 : 0)})`} icon={Brain}>
-            <div className="space-y-2 mb-2">
-              {(data.technologyLeverage?.automationOpportunities || []).slice(2).map((opp, i) => (
-                <div key={`auto-${i}`} className="p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="font-bold text-foreground">{opp.process}</p>
-                  <p className="text-muted-foreground">→ {opp.technology} · {opp.costSaving}</p>
-                </div>
-              ))}
-              {(data.technologyLeverage?.aiOpportunities || []).map((opp, i) => (
-                <div key={`ai-${i}`} className="flex items-start gap-2 text-xs">
-                  <Lightbulb size={10} style={{ color: "hsl(271 81% 45%)", flexShrink: 0, marginTop: 2 }} />
-                  <span className="text-foreground/80">{opp}</span>
-                </div>
-              ))}
-              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="typo-card-meta font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Platform Opportunity</p>
-                <p className="text-xs text-foreground/80">{data.technologyLeverage?.platformOpportunity || "Not available"}</p>
-              </div>
-            </div>
-          </DetailPanel>
-
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-          </>)}
-        </div>
-      )}
-
-      {/* TAB: REVENUE REINVENTION */}
-      {activeTab === "revenue" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Revenue Reinvention" icon={DollarSign} />
-
-          {!data.revenueReinvention ? (
-            <p className="text-sm text-muted-foreground italic">Revenue reinvention data unavailable.</p>
-          ) : (<>
-
-          <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-            <p className="typo-card-eyebrow text-muted-foreground mb-1">Current Revenue Mix</p>
-            <p className="text-xs text-foreground/80">{data.revenueReinvention?.currentRevenueMix || "Not available"}</p>
-          </div>
-
-          {/* Top 2 untapped streams */}
-          {(data.revenueReinvention?.untappedStreams || []).slice(0, 2).map((stream, i) => {
-            const eff = EFFORT_COLORS[stream.effort] || EFFORT_COLORS.medium;
-            return (
-              <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="text-xs font-bold text-foreground">{stream.stream}</p>
-                  <span className="px-2 py-0.5 rounded-full typo-status-label" style={{ background: eff.bg, color: eff.text }}>{stream.effort} effort</span>
-                </div>
-                <p className="text-xs text-foreground/80">{stream.mechanism}</p>
-                <p className="typo-card-meta font-semibold" style={{ color: "hsl(142 70% 30%)" }}>Est: {stream.estimatedSize}</p>
-              </div>
-            );
-          })}
-
-          <DetailPanel title={`Pricing Redesign & Bundles (${(data.revenueReinvention?.bundleOpportunities || []).length + ((data.revenueReinvention?.untappedStreams || []).length > 2 ? (data.revenueReinvention?.untappedStreams || []).length - 2 : 0) + 1})`} icon={FlipHorizontal}>
-            <div className="space-y-3 mb-2">
-              {(data.revenueReinvention?.untappedStreams || []).slice(2).map((stream, i) => (
-                <div key={i} className="p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))" }}>
-                  <p className="font-bold text-foreground">{stream.stream}</p>
-                  <p className="text-muted-foreground">{stream.mechanism} · Est: {stream.estimatedSize}</p>
-                </div>
-              ))}
-              <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <p className="typo-card-meta font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Bold Pricing Redesign</p>
-                <p className="text-xs text-foreground/80">{data.revenueReinvention?.pricingRedesign || "Not available"}</p>
-              </div>
-              {(data.revenueReinvention?.bundleOpportunities || []).map((b, i) => (
-                <BundleDeepDive key={i} opportunity={b} businessContext={{ type: input.type, description: input.description }} index={i} />
-              ))}
-            </div>
-          </DetailPanel>
-
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-          </>)}
-        </div>
-      )}
-
-      {/* TAB: DISRUPTION MAP */}
-      {activeTab === "disruption" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Disruption Map" icon={Shield} />
-
-          {!data.disruptionAnalysis ? (
-            <p className="text-sm text-muted-foreground italic">Disruption analysis data unavailable.</p>
-          ) : (<>
-
-          {/* Disruptor profile — key insight */}
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-            <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--destructive))" }}>The Startup That Could Kill This Business</p>
-            <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis?.disruptorProfile || "Not available"}</p>
-            <InsightRating sectionId="biz-disruptor" compact />
-          </div>
-
-          <DetailPanel title={`Vulnerabilities (${(data.disruptionAnalysis?.vulnerabilities || []).length}) & Defense Moves (${(data.disruptionAnalysis?.defenseMoves || []).length})`} icon={AlertTriangle}>
-            <div className="space-y-2 mb-2">
-              {(data.disruptionAnalysis?.vulnerabilities || []).map((v, i) => (
-                <div key={i} className="flex items-start gap-2 text-xs">
-                  <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-                  <span className="text-foreground/80">{v}</span>
-                </div>
-              ))}
-              <div className="pt-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                <p className="typo-card-eyebrow text-muted-foreground mb-1">Defense Moves</p>
-                {(data.disruptionAnalysis?.defenseMoves || []).map((m, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs mb-1">
-                    <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
-                    <span className="text-foreground/80">{m}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </DetailPanel>
-
-          <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-            <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>If You Were Disrupting With $1M…</p>
-            <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis?.attackMoves || "Not available"}</p>
-            <InsightRating sectionId="biz-attack" compact />
-          </div>
-
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-          </>)}
-        </div>
-      )}
-
-      {/* TAB: REINVENTED MODEL */}
-      {activeTab === "reinvented" && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Reinvented Model" icon={Rocket} />
-
-          {!data.reinventedModel ? (
-            <p className="text-sm text-muted-foreground italic">Reinvented model data unavailable.</p>
-          ) : (<>
-
-          {/* Hero */}
-          <div className="p-5 rounded-lg relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white" }}>
-            <div className="relative">
-              <p className="typo-card-eyebrow opacity-80 mb-2">Reinvented Business Model</p>
-              <h2 className="text-xl font-black mb-1">{data.reinventedModel?.modelName || "Reinvented Model"}</h2>
-              <p className="text-xs leading-relaxed opacity-80">{data.reinventedModel?.coreShift || ""}</p>
-              <InsightRating sectionId="biz-reinvented" compact />
-            </div>
-          </div>
-
-          {/* Key Changes — rendered via AnalysisVisualLayer for action plans */}
-          <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} suppressText={false} step="businessModel">
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {(data.reinventedModel?.keyChanges || []).slice(0, 3).map((c, i) => (
-              <div key={i} className="flex gap-2 items-start p-2 rounded-lg text-xs"
-                style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                <CheckCircle2 size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
-                <span className="text-foreground/85">{c}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Value + Economics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(142 70% 30%)" }}>New Value Proposition</p>
-              <p className="text-xs text-foreground/80">{data.reinventedModel?.newValueProposition || "Not available"}</p>
-            </div>
-            <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(217 91% 40%)" }}>Economic Transformation</p>
-              <p className="text-xs text-foreground/80">{data.reinventedModel?.economicTransformation || "Not available"}</p>
-            </div>
-          </div>
-
-          <DetailPanel title={`Implementation Roadmap (${(data.reinventedModel?.implementationRoadmap || []).length} phases) & Risk`} icon={Clock}>
-            <div className="space-y-3 mb-2">
-              {(data.reinventedModel?.implementationRoadmap || []).map((phase, i) => (
-                <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                  <span className="px-2 py-0.5 rounded-full typo-card-meta font-bold" style={{ background: "hsl(var(--primary))", color: "white" }}>{phase.phase}</span>
-                  <div className="space-y-1 mt-2">
-                    {phase.actions.map((a, j) => (
-                      <div key={j} className="flex items-start gap-2 text-xs">
-                        <ChevronRight size={10} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
-                        <span className="text-foreground/80">{a}</span>
+          ) : (
+            <>
+              {/* Customer Journey — visual flow */}
+              {(data.operationalAudit?.customerJourney || []).length > 0 && (
+                <FrameworkPanel title="Customer Journey" icon={Factory} subtitle={`${(data.operationalAudit?.customerJourney || []).length} steps`}>
+                  <div className="flex flex-wrap gap-1.5 items-center">
+                    {(data.operationalAudit?.customerJourney || []).slice(0, 5).map((step, i, arr) => (
+                      <div key={i} className="flex items-center gap-1">
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold" style={{ background: "hsl(var(--muted))" }}>
+                          {i + 1}. {step}
+                        </span>
+                        {i < Math.min(arr.length, 5) - 1 && <span className="text-muted-foreground text-xs">→</span>}
                       </div>
                     ))}
                   </div>
-                  <p className="typo-card-meta font-semibold mt-1 flex items-center gap-1" style={{ color: "hsl(142 70% 30%)" }}><CheckCircle2 size={10} /> {phase.milestone}</p>
-                </div>
-              ))}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="typo-card-eyebrow text-muted-foreground">ROI</p>
-                  <p className="text-xs text-foreground/80">{data.reinventedModel?.estimatedROI || "—"}</p>
-                </div>
-                <div className="p-3 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
-                  <p className="typo-card-eyebrow" style={{ color: "hsl(var(--destructive))" }}>Biggest Risk</p>
-                  <p className="text-xs text-foreground/80">{data.reinventedModel?.biggestRisk || "—"}</p>
-                </div>
-                <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                  <p className="typo-card-eyebrow text-muted-foreground">Capabilities</p>
-                  {(data.reinventedModel?.requiredCapabilities || []).slice(0, 3).map((c, i) => (
-                    <p key={i} className="text-xs text-foreground/80">• {c}</p>
+                </FrameworkPanel>
+              )}
+
+              {/* Friction Points — visual-first with signal cards */}
+              <AnalysisPanel title="Friction Points" icon={AlertTriangle} eyebrow="Operations">
+                <VisualGrid columns={2}>
+                  {(data.operationalAudit?.frictionPoints || []).slice(0, 3).map((fp, i) => (
+                    <SignalCard
+                      key={i}
+                      label={fp.stage}
+                      type={IMPACT_MAP[fp.impact] || "neutral"}
+                      explanation={fp.friction}
+                      detail={fp.rootCause ? <p className="text-xs">{fp.rootCause}</p> : undefined}
+                    />
                   ))}
-                </div>
-              </div>
-            </div>
-          </DetailPanel>
+                </VisualGrid>
+                {(data.operationalAudit?.frictionPoints || []).length > 3 && (
+                  <ExpandableDetail label={`${(data.operationalAudit?.frictionPoints || []).length - 3} more friction points`}>
+                    <VisualGrid columns={2}>
+                      {(data.operationalAudit?.frictionPoints || []).slice(3).map((fp, i) => (
+                        <SignalCard key={i} label={fp.stage} type={IMPACT_MAP[fp.impact] || "neutral"} explanation={fp.friction} />
+                      ))}
+                    </VisualGrid>
+                  </ExpandableDetail>
+                )}
+              </AnalysisPanel>
 
-          <div className="text-center py-3">
-            <span className="typo-button-secondary px-4 py-2 rounded-lg inline-flex items-center gap-1.5" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}>
-              <CheckCircle2 size={12} style={{ color: "hsl(142 70% 40%)" }} /> All sections explored
-            </span>
-          </div>
-          </AnalysisVisualLayer>
-          </>)}
-        </div>
+              {/* Cost Structure — expandable framework */}
+              <ExpandableDetail label="Cost Structure & Revenue Leaks" icon={BarChart3}>
+                <VisualGrid columns={2}>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Biggest Cost Drivers</p>
+                    {(data.operationalAudit?.costStructure?.biggestCostDrivers || []).map((c, i) => (
+                      <SignalCard key={i} label={c} type="threat" />
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Revenue Leaks</p>
+                    {(data.operationalAudit?.revenueLeaks || []).slice(0, 3).map((leak, i) => (
+                      <SignalCard key={i} label={leak} type="weakness" />
+                    ))}
+                  </div>
+                </VisualGrid>
+              </ExpandableDetail>
+            </>
+          )}
+        </StepCanvas>
       )}
 
-      {/* TAB: DEAL ECONOMICS (ETA only) */}
+      {/* ═══ TAB: HIDDEN ASSUMPTIONS ═══ */}
+      {activeTab === "assumptions" && (
+        <StepCanvas>
+          <AnalysisPanel title="Hidden Assumptions" icon={Brain} eyebrow="Structural Analysis" subtitle={`${(data.hiddenAssumptions || []).length} identified`}>
+            <VisualGrid columns={1}>
+              {(data.hiddenAssumptions || []).slice(0, 3).map((a, i) => (
+                <InsightCard
+                  key={i}
+                  headline={a.assumption}
+                  subtext={a.currentAnswer}
+                  accentColor={a.isChallengeable ? "hsl(var(--primary))" : undefined}
+                  badge={a.category}
+                  badgeColor={CATEGORY_COLORS[a.category] || "hsl(var(--muted-foreground))"}
+                  action={<LeverageScore score={a.leverageScore} />}
+                  detail={a.challengeIdea ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-bold" style={{ color: "hsl(var(--primary))" }}>Challenge Idea</p>
+                      <p className="text-sm text-foreground/80">{a.challengeIdea}</p>
+                    </div>
+                  ) : undefined}
+                />
+              ))}
+            </VisualGrid>
+            {(data.hiddenAssumptions || []).length > 3 && (
+              <ExpandableDetail label={`${(data.hiddenAssumptions || []).length - 3} more assumptions`} icon={Brain}>
+                <VisualGrid columns={1}>
+                  {(data.hiddenAssumptions || []).slice(3).map((a, i) => (
+                    <InsightCard
+                      key={i}
+                      headline={a.assumption}
+                      subtext={a.currentAnswer}
+                      badge={a.category}
+                      badgeColor={CATEGORY_COLORS[a.category]}
+                      action={<LeverageScore score={a.leverageScore} />}
+                      detail={a.challengeIdea ? <p>{a.challengeIdea}</p> : undefined}
+                    />
+                  ))}
+                </VisualGrid>
+              </ExpandableDetail>
+            )}
+          </AnalysisPanel>
+        </StepCanvas>
+      )}
+
+      {/* ═══ TAB: TECH LEVERAGE ═══ */}
+      {activeTab === "tech" && (
+        <StepCanvas>
+          {!data.technologyLeverage ? (
+            <p className="text-sm text-muted-foreground italic">Technology leverage data unavailable.</p>
+          ) : (
+            <>
+              <MetricCard label="Current Tech Level" value={data.technologyLeverage?.currentTechLevel || "N/A"} />
+
+              <AnalysisPanel title="Automation Opportunities" icon={Cpu} eyebrow="Technology">
+                <VisualGrid columns={2}>
+                  {(data.technologyLeverage?.automationOpportunities || []).slice(0, 3).map((opp, i) => (
+                    <OpportunityCard
+                      key={i}
+                      title={opp.process}
+                      impact={`${opp.technology} · ${opp.costSaving}`}
+                      category={opp.implementationDifficulty}
+                    />
+                  ))}
+                </VisualGrid>
+                {(data.technologyLeverage?.automationOpportunities || []).length > 3 && (
+                  <ExpandableDetail label={`${(data.technologyLeverage?.automationOpportunities || []).length - 3} more opportunities`}>
+                    <VisualGrid columns={2}>
+                      {(data.technologyLeverage?.automationOpportunities || []).slice(3).map((opp, i) => (
+                        <OpportunityCard key={i} title={opp.process} impact={`${opp.technology} · ${opp.costSaving}`} category={opp.implementationDifficulty} />
+                      ))}
+                    </VisualGrid>
+                  </ExpandableDetail>
+                )}
+              </AnalysisPanel>
+
+              {(data.technologyLeverage?.aiOpportunities || []).length > 0 && (
+                <ExpandableDetail label={`AI & Platform Opportunities (${(data.technologyLeverage?.aiOpportunities || []).length})`} icon={Lightbulb}>
+                  <VisualGrid columns={1}>
+                    {(data.technologyLeverage?.aiOpportunities || []).map((opp, i) => (
+                      <SignalCard key={i} label={opp} type="opportunity" />
+                    ))}
+                  </VisualGrid>
+                  {data.technologyLeverage?.platformOpportunity && (
+                    <InsightCard
+                      headline="Platform Opportunity"
+                      subtext={data.technologyLeverage.platformOpportunity}
+                      accentColor="hsl(var(--primary))"
+                      className="mt-3"
+                    />
+                  )}
+                </ExpandableDetail>
+              )}
+            </>
+          )}
+        </StepCanvas>
+      )}
+
+      {/* ═══ TAB: REVENUE REINVENTION ═══ */}
+      {activeTab === "revenue" && (
+        <StepCanvas>
+          {!data.revenueReinvention ? (
+            <p className="text-sm text-muted-foreground italic">Revenue reinvention data unavailable.</p>
+          ) : (
+            <>
+              <MetricCard label="Current Revenue Mix" value={data.revenueReinvention?.currentRevenueMix || "N/A"} />
+
+              <AnalysisPanel title="Untapped Revenue Streams" icon={DollarSign} eyebrow="Revenue">
+                <VisualGrid columns={2}>
+                  {(data.revenueReinvention?.untappedStreams || []).slice(0, 3).map((stream, i) => (
+                    <OpportunityCard
+                      key={i}
+                      title={stream.stream}
+                      impact={stream.mechanism}
+                      category={`${stream.effort} effort`}
+                      detail={<p className="text-sm font-bold" style={{ color: "hsl(142 70% 30%)" }}>Est: {stream.estimatedSize}</p>}
+                    />
+                  ))}
+                </VisualGrid>
+                {(data.revenueReinvention?.untappedStreams || []).length > 3 && (
+                  <ExpandableDetail label={`${(data.revenueReinvention?.untappedStreams || []).length - 3} more streams`}>
+                    <VisualGrid columns={2}>
+                      {(data.revenueReinvention?.untappedStreams || []).slice(3).map((stream, i) => (
+                        <OpportunityCard key={i} title={stream.stream} impact={stream.mechanism} category={`${stream.effort} effort`} />
+                      ))}
+                    </VisualGrid>
+                  </ExpandableDetail>
+                )}
+              </AnalysisPanel>
+
+              <ExpandableDetail label="Pricing Redesign & Bundles" icon={FlipHorizontal}>
+                {data.revenueReinvention?.pricingRedesign && (
+                  <InsightCard headline="Bold Pricing Redesign" subtext={data.revenueReinvention.pricingRedesign} accentColor="hsl(var(--primary))" />
+                )}
+                {(data.revenueReinvention?.bundleOpportunities || []).map((b, i) => (
+                  <BundleDeepDive key={i} opportunity={b} businessContext={{ type: input.type, description: input.description }} index={i} />
+                ))}
+              </ExpandableDetail>
+            </>
+          )}
+        </StepCanvas>
+      )}
+
+      {/* ═══ TAB: DISRUPTION MAP ═══ */}
+      {activeTab === "disruption" && (
+        <StepCanvas>
+          {!data.disruptionAnalysis ? (
+            <p className="text-sm text-muted-foreground italic">Disruption analysis data unavailable.</p>
+          ) : (
+            <>
+              <InsightCard
+                icon={Shield}
+                headline={data.disruptionAnalysis?.disruptorProfile || "Not available"}
+                badge="Kill Shot"
+                badgeColor="hsl(var(--destructive))"
+                accentColor="hsl(var(--destructive))"
+                action={<InsightRating sectionId="biz-disruptor" compact />}
+                detail={
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Vulnerabilities</p>
+                    <VisualGrid columns={2}>
+                      {(data.disruptionAnalysis?.vulnerabilities || []).map((v, i) => (
+                        <SignalCard key={i} label={v} type="threat" />
+                      ))}
+                    </VisualGrid>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-3">Defense Moves</p>
+                    <VisualGrid columns={2}>
+                      {(data.disruptionAnalysis?.defenseMoves || []).map((m, i) => (
+                        <SignalCard key={i} label={m} type="strength" />
+                      ))}
+                    </VisualGrid>
+                  </div>
+                }
+              />
+
+              <InsightCard
+                icon={Target}
+                headline={data.disruptionAnalysis?.attackMoves || "Not available"}
+                badge="$1M Attack"
+                badgeColor="hsl(38 92% 42%)"
+                accentColor="hsl(38 92% 42%)"
+                action={<InsightRating sectionId="biz-attack" compact />}
+              />
+            </>
+          )}
+        </StepCanvas>
+      )}
+
+      {/* ═══ TAB: REINVENTED MODEL ═══ */}
+      {activeTab === "reinvented" && (
+        <StepCanvas>
+          {!data.reinventedModel ? (
+            <p className="text-sm text-muted-foreground italic">Reinvented model data unavailable.</p>
+          ) : (
+            <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} suppressText={false} step="businessModel">
+              <AnalysisPanel
+                title={data.reinventedModel?.modelName || "Reinvented Model"}
+                subtitle={data.reinventedModel?.coreShift || ""}
+                icon={Rocket}
+                eyebrow="Reinvented Business Model"
+                eyebrowColor="hsl(var(--primary))"
+                accentColor="hsl(var(--primary))"
+                action={<InsightRating sectionId="biz-reinvented" compact />}
+              >
+                {/* Key Changes */}
+                <VisualGrid columns={2}>
+                  {(data.reinventedModel?.keyChanges || []).slice(0, 4).map((c, i) => (
+                    <SignalCard key={i} label={c} type="strength" />
+                  ))}
+                </VisualGrid>
+              </AnalysisPanel>
+
+              {/* Value & Economics — MetricCards */}
+              <VisualGrid columns={2}>
+                <MetricCard label="New Value Proposition" value={data.reinventedModel?.newValueProposition || "N/A"} accentColor="hsl(142 70% 30%)" />
+                <MetricCard label="Economic Transformation" value={data.reinventedModel?.economicTransformation || "N/A"} accentColor="hsl(217 91% 45%)" />
+              </VisualGrid>
+
+              {/* Implementation & Risk — expandable */}
+              <ExpandableDetail label={`Implementation Roadmap (${(data.reinventedModel?.implementationRoadmap || []).length} phases)`} icon={Clock}>
+                {(data.reinventedModel?.implementationRoadmap || []).map((phase, i) => (
+                  <InsightCard
+                    key={i}
+                    headline={phase.phase}
+                    badge={phase.milestone}
+                    badgeColor="hsl(142 70% 35%)"
+                    detail={
+                      <ul className="space-y-1">
+                        {phase.actions.map((a, j) => (
+                          <li key={j} className="text-sm text-foreground/80 flex items-start gap-2">
+                            <span className="text-primary mt-0.5">→</span> {a}
+                          </li>
+                        ))}
+                      </ul>
+                    }
+                    className="mb-2"
+                  />
+                ))}
+              </ExpandableDetail>
+
+              <VisualGrid columns={3}>
+                <MetricCard label="ROI" value={data.reinventedModel?.estimatedROI || "—"} accentColor="hsl(142 70% 30%)" />
+                <MetricCard label="Biggest Risk" value={data.reinventedModel?.biggestRisk || "—"} accentColor="hsl(var(--destructive))" />
+                <MetricCard label="Capabilities" value={`${(data.reinventedModel?.requiredCapabilities || []).length} needed`} />
+              </VisualGrid>
+            </AnalysisVisualLayer>
+          )}
+        </StepCanvas>
+      )}
+
+      {/* ═══ TAB: DEAL ECONOMICS (ETA only) ═══ */}
       {activeTab === "dealEconomics" && isETA && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Deal Economics" icon={Calculator} />
-          <DealEconomicsPanel
-            sde={(data as any)?.ownerDependencyAssessment ? undefined : undefined}
-            analysisData={data}
-          />
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-        </div>
+        <StepCanvas>
+          <DealEconomicsPanel analysisData={data} />
+        </StepCanvas>
       )}
 
-      {/* TAB: ADDBACK SCRUTINY (ETA only) */}
+      {/* ═══ TAB: ADDBACK SCRUTINY (ETA only) ═══ */}
       {activeTab === "addbackScrutiny" && isETA && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Addback Scrutiny" icon={Search} />
+        <StepCanvas>
           {(() => {
             const addbacks = (data as any)?.addbackScrutiny;
             if (!addbacks) return (
@@ -853,75 +759,48 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 <p className="text-sm text-muted-foreground">Addback data not available. Re-run with ETA Lens to generate.</p>
               </div>
             );
-            const CONF_COLORS = {
-              legitimate: { bg: "hsl(142 70% 45% / 0.06)", border: "hsl(142 70% 45% / 0.25)", text: "hsl(142 70% 30%)", label: "Legitimate" },
-              questionable: { bg: "hsl(38 92% 50% / 0.06)", border: "hsl(38 92% 50% / 0.25)", text: "hsl(38 92% 35%)", label: "Questionable" },
-              suspicious: { bg: "hsl(var(--destructive) / 0.06)", border: "hsl(var(--destructive) / 0.25)", text: "hsl(var(--destructive))", label: "Suspicious" },
-            };
             return (
               <>
-                {/* Summary cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="typo-status-label text-muted-foreground mb-1">Total Claimed Addbacks</p>
-                    <p className="text-xl font-black tabular-nums">{addbacks.totalClaimedAddbacks || "—"}</p>
-                  </div>
-                  <div className="p-3 rounded-xl" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.25)" }}>
-                    <p className="typo-status-label" style={{ color: "hsl(38 92% 35%)" }}>Adjusted SDE</p>
-                    <p className="text-xl font-black tabular-nums" style={{ color: "hsl(38 92% 35%)" }}>{addbacks.adjustedSDE || "—"}</p>
-                    <p className="typo-card-meta text-muted-foreground mt-0.5">After removing questionable items</p>
-                  </div>
-                  <div className="p-3 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="typo-status-label text-muted-foreground mb-1">Adjusted Multiple</p>
-                    <p className="text-xl font-black tabular-nums">{addbacks.adjustedMultiple || "—"}</p>
-                    <p className="typo-card-meta text-muted-foreground mt-0.5">Inflation est: {addbacks.brokerInflationEstimate || "—"}</p>
-                  </div>
-                </div>
+                <VisualGrid columns={3}>
+                  <MetricCard label="Total Claimed Addbacks" value={addbacks.totalClaimedAddbacks || "—"} />
+                  <MetricCard label="Adjusted SDE" value={addbacks.adjustedSDE || "—"} accentColor="hsl(38 92% 35%)" subtext="After removing questionable items" />
+                  <MetricCard label="Adjusted Multiple" value={addbacks.adjustedMultiple || "—"} subtext={`Inflation est: ${addbacks.brokerInflationEstimate || "—"}`} />
+                </VisualGrid>
 
-                {/* Individual addbacks */}
-                {addbacks.claimedAddbacks?.map((ab: any, i: number) => {
-                  const col = CONF_COLORS[ab.confidence as keyof typeof CONF_COLORS] || CONF_COLORS.questionable;
-                  return (
-                    <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-bold" style={{ color: col.text }}>{ab.item}</p>
-                        <div className="flex items-center gap-2">
-                          {ab.amount && <span className="text-xs font-bold tabular-nums">{ab.amount}</span>}
-                          <span className="px-2 py-0.5 rounded-full typo-status-label uppercase" style={{ color: col.text }}>{col.label}</span>
-                        </div>
-                      </div>
-                      <p className="typo-card-body text-foreground/80">{ab.reasoning}</p>
-                      <div className="flex items-start gap-1.5 mt-1.5">
-                        <Target size={10} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
-                        <p className="typo-card-meta" style={{ color: "hsl(var(--primary))" }}>Verify: {ab.verificationStep}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Red flags */}
-                {addbacks.redFlags?.length > 0 && (
-                  <div className="p-3 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.04)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
-                    <p className="typo-card-eyebrow mb-2" style={{ color: "hsl(var(--destructive))" }}>Red Flags</p>
-                    {addbacks.redFlags.map((rf: string, i: number) => (
-                      <div key={i} className="flex items-start gap-2 text-xs mb-1">
-                        <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-                        <span className="text-foreground/80">{rf}</span>
-                      </div>
+                <AnalysisPanel title="Claimed Addbacks" icon={Search}>
+                  <VisualGrid columns={1}>
+                    {addbacks.claimedAddbacks?.map((ab: any, i: number) => (
+                      <InsightCard
+                        key={i}
+                        headline={ab.item}
+                        subtext={ab.reasoning}
+                        badge={ab.confidence}
+                        badgeColor={ab.confidence === "legitimate" ? "hsl(142 70% 30%)" : ab.confidence === "suspicious" ? "hsl(var(--destructive))" : "hsl(38 92% 35%)"}
+                        action={ab.amount ? <span className="text-xs font-bold tabular-nums">{ab.amount}</span> : undefined}
+                        detail={ab.verificationStep ? <p className="text-sm"><span className="font-bold text-primary">Verify:</span> {ab.verificationStep}</p> : undefined}
+                      />
                     ))}
-                  </div>
+                  </VisualGrid>
+                </AnalysisPanel>
+
+                {addbacks.redFlags?.length > 0 && (
+                  <FrameworkPanel title="Red Flags" icon={AlertTriangle} accentColor="hsl(var(--destructive))">
+                    <VisualGrid columns={1}>
+                      {addbacks.redFlags.map((rf: string, i: number) => (
+                        <SignalCard key={i} label={rf} type="threat" />
+                      ))}
+                    </VisualGrid>
+                  </FrameworkPanel>
                 )}
               </>
             );
           })()}
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-        </div>
+        </StepCanvas>
       )}
 
-      {/* TAB: STAGNATION DIAGNOSTIC (ETA only) */}
+      {/* ═══ TAB: STAGNATION DIAGNOSTIC (ETA only) ═══ */}
       {activeTab === "stagnation" && isETA && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Stagnation Diagnostic" icon={TrendingDown} />
+        <StepCanvas>
           {(() => {
             const diag = (data as any)?.stagnationDiagnostic;
             if (!diag) return (
@@ -930,145 +809,99 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 <p className="text-sm text-muted-foreground">Stagnation data not available. Re-run with ETA Lens to generate.</p>
               </div>
             );
-            const trajectoryColors: Record<string, { color: string; label: string }> = {
-              growing: { color: "hsl(142 70% 30%)", label: "Growing" },
-              flat: { color: "hsl(38 92% 35%)", label: "Flat / Stagnant" },
-              declining: { color: "hsl(var(--destructive))", label: "Declining" },
-              accelerating_decline: { color: "hsl(var(--destructive))", label: "Accelerating Decline" },
+            const trajectoryColors: Record<string, string> = {
+              growing: "hsl(142 70% 30%)", flat: "hsl(38 92% 35%)", declining: "hsl(var(--destructive))", accelerating_decline: "hsl(var(--destructive))",
             };
-            const traj = trajectoryColors[diag.overallTrajectory] || trajectoryColors.flat;
             const turnColor = (diag.turnaroundPotential || 0) >= 7 ? "hsl(142 70% 30%)" : (diag.turnaroundPotential || 0) >= 4 ? "hsl(38 92% 35%)" : "hsl(var(--destructive))";
-            const catLabels: Record<string, string> = {
-              owner_fatigue: "Owner Fatigue", competitive_erosion: "Competitive Erosion", structural_decay: "Structural Decay",
-              market_shift: "Market Shift", pricing_compression: "Pricing Compression", talent_loss: "Talent Loss",
-            };
-            const revLabels: Record<string, { color: string; label: string }> = {
-              easily_reversible: { color: "hsl(142 70% 30%)", label: "Easily Reversible" },
-              moderately_reversible: { color: "hsl(38 92% 35%)", label: "Moderately Reversible" },
-              difficult_to_reverse: { color: "hsl(var(--destructive))", label: "Difficult to Reverse" },
-              structural: { color: "hsl(var(--destructive))", label: "Structural / Permanent" },
-            };
             return (
               <>
-                {/* Overview cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <div className="p-3 rounded-xl" style={{ background: `${traj.color}08`, border: `1px solid ${traj.color}30` }}>
-                    <p className="typo-status-label text-muted-foreground mb-1">Trajectory</p>
-                    <p className="text-sm font-black" style={{ color: traj.color }}>{traj.label}</p>
-                  </div>
-                  <div className="p-3 rounded-xl" style={{ background: `${turnColor}08`, border: `1px solid ${turnColor}30` }}>
-                    <p className="typo-status-label text-muted-foreground mb-1">Turnaround Potential</p>
-                    <p className="text-2xl font-black tabular-nums" style={{ color: turnColor }}>{diag.turnaroundPotential}/10</p>
-                  </div>
-                  <div className="p-3 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="typo-status-label text-muted-foreground mb-1">Time to Turnaround</p>
-                    <p className="text-sm font-bold">{diag.timeToTurnaround || "—"}</p>
-                  </div>
-                  <div className="p-3 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                    <p className="typo-status-label text-muted-foreground mb-1">Capital Required</p>
-                    <p className="text-sm font-bold">{diag.capitalRequired || "—"}</p>
-                  </div>
-                </div>
+                <VisualGrid columns={4}>
+                  <MetricCard label="Trajectory" value={diag.overallTrajectory || "N/A"} accentColor={trajectoryColors[diag.overallTrajectory] || "hsl(38 92% 35%)"} />
+                  <MetricCard label="Turnaround Potential" value={`${diag.turnaroundPotential}/10`} accentColor={turnColor} />
+                  <MetricCard label="Time to Turnaround" value={diag.timeToTurnaround || "—"} />
+                  <MetricCard label="Capital Required" value={diag.capitalRequired || "—"} />
+                </VisualGrid>
 
-                {/* Why selling */}
-                <div className="p-4 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.04)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
-                  <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--destructive))" }}>Why Are They Really Selling?</p>
-                  <p className="text-sm text-foreground/85 leading-relaxed">{diag.whySellingAssessment}</p>
-                </div>
+                <InsightCard
+                  icon={AlertTriangle}
+                  headline={diag.whySellingAssessment || "Assessment unavailable"}
+                  badge="Why Selling?"
+                  badgeColor="hsl(var(--destructive))"
+                  accentColor="hsl(var(--destructive))"
+                />
 
-                {/* Root causes */}
-                {diag.rootCauses?.map((rc: any, i: number) => {
-                  const rev = revLabels[rc.reversibility] || revLabels.moderately_reversible;
-                  return (
-                    <div key={i} className="p-3 rounded-lg" style={{ background: `${rev.color}06`, border: `1px solid ${rev.color}25` }}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded-full typo-status-label uppercase font-bold" style={{ background: `${rev.color}12`, color: rev.color }}>
-                            {catLabels[rc.category] || rc.category}
-                          </span>
-                          <span className="typo-card-meta font-bold tabular-nums" style={{ color: rev.color }}>
-                            Reversibility: {rc.reversibilityScore}/10
-                          </span>
-                        </div>
-                        <span className="typo-status-label" style={{ color: rev.color }}>{rev.label}</span>
-                      </div>
-                      <p className="text-xs font-semibold text-foreground mb-0.5">{rc.cause}</p>
-                      <p className="typo-card-body text-foreground/70 mb-1">{rc.evidence}</p>
-                      <div className="flex items-start gap-1.5">
-                        <CheckCircle2 size={10} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
-                        <p className="typo-card-meta" style={{ color: "hsl(var(--primary))" }}>{rc.newOwnerAction}</p>
-                      </div>
-                    </div>
-                  );
-                })}
+                <AnalysisPanel title="Root Causes" icon={TrendingDown}>
+                  <VisualGrid columns={1}>
+                    {diag.rootCauses?.map((rc: any, i: number) => (
+                      <InsightCard
+                        key={i}
+                        headline={rc.cause}
+                        subtext={rc.evidence}
+                        badge={rc.category}
+                        badgeColor={rc.reversibility?.includes("difficult") || rc.reversibility === "structural" ? "hsl(var(--destructive))" : "hsl(38 92% 35%)"}
+                        action={<span className="text-xs font-bold tabular-nums" style={{ color: turnColor }}>Rev: {rc.reversibilityScore}/10</span>}
+                        detail={rc.newOwnerAction ? <p className="text-sm"><span className="font-bold text-primary">Action:</span> {rc.newOwnerAction}</p> : undefined}
+                      />
+                    ))}
+                  </VisualGrid>
+                </AnalysisPanel>
               </>
             );
           })()}
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-        </div>
+        </StepCanvas>
       )}
 
-      {/* TAB: OWNER DEPENDENCY (ETA only) */}
+      {/* ═══ TAB: OWNER DEPENDENCY (ETA only) ═══ */}
       {activeTab === "ownerDependency" && isETA && (data as any)?.ownerDependencyAssessment && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Owner Dependency Risk" icon={AlertTriangle} />
+        <StepCanvas>
           {(() => {
             const oda = (data as any).ownerDependencyAssessment;
             const riskColor = oda.transitionRiskScore >= 7 ? "hsl(var(--destructive))" : oda.transitionRiskScore >= 4 ? "hsl(38 92% 35%)" : "hsl(142 70% 30%)";
             return (
               <>
-                <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                  <div className="text-center">
-                    <p className="text-3xl font-black tabular-nums" style={{ color: riskColor }}>{oda.transitionRiskScore}</p>
-                    <p className="typo-status-label text-muted-foreground">/10</p>
-                  </div>
-                  <div>
-                    <p className="typo-card-title">Transition Risk Score</p>
-                    <p className="typo-card-meta text-muted-foreground">
-                      {oda.transitionRiskScore >= 7 ? "High risk — extensive transition planning required" : oda.transitionRiskScore >= 4 ? "Moderate risk — structured transition needed" : "Low risk — business runs independently"}
-                    </p>
-                  </div>
-                </div>
-                {oda.ownerDependencies?.map((dep: any, i: number) => {
-                  const sev = dep.severity as "critical" | "high" | "medium" | "low";
-                  const sevColors = { critical: "hsl(var(--destructive))", high: "hsl(var(--destructive))", medium: "hsl(38 92% 35%)", low: "hsl(142 70% 30%)" };
-                  return (
-                    <div key={i} className="p-3 rounded-lg" style={{ background: `${sevColors[sev]}08`, border: `1px solid ${sevColors[sev]}30` }}>
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-bold" style={{ color: sevColors[sev] }}>{dep.area}</p>
-                        <span className="px-2 py-0.5 rounded-full typo-status-label uppercase" style={{ color: sevColors[sev] }}>{sev}</span>
-                      </div>
-                      <p className="typo-card-body text-foreground/80">{dep.description}</p>
-                      <div className="flex items-start gap-1.5 mt-1">
-                        <CheckCircle2 size={10} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 2 }} />
-                        <p className="typo-card-meta" style={{ color: "hsl(var(--primary))" }}>{dep.mitigation}</p>
-                      </div>
-                    </div>
-                  );
-                })}
+                <MetricCard
+                  label="Transition Risk Score"
+                  value={`${oda.transitionRiskScore}/10`}
+                  accentColor={riskColor}
+                  subtext={oda.transitionRiskScore >= 7 ? "High risk — extensive transition planning required" : oda.transitionRiskScore >= 4 ? "Moderate risk — structured transition needed" : "Low risk — business runs independently"}
+                />
+
+                <AnalysisPanel title="Owner Dependencies" icon={Users}>
+                  <VisualGrid columns={1}>
+                    {oda.ownerDependencies?.map((dep: any, i: number) => {
+                      const sevColors: Record<string, string> = { critical: "hsl(var(--destructive))", high: "hsl(var(--destructive))", medium: "hsl(38 92% 35%)", low: "hsl(142 70% 30%)" };
+                      return (
+                        <InsightCard
+                          key={i}
+                          headline={dep.area}
+                          subtext={dep.description}
+                          badge={dep.severity}
+                          badgeColor={sevColors[dep.severity] || "hsl(var(--muted-foreground))"}
+                          detail={dep.mitigation ? <p className="text-sm"><span className="font-bold text-primary">Mitigation:</span> {dep.mitigation}</p> : undefined}
+                        />
+                      );
+                    })}
+                  </VisualGrid>
+                </AnalysisPanel>
+
                 {oda.keyPersonRisks?.length > 0 && (
-                  <DetailPanel title={`Key Person Risks (${oda.keyPersonRisks.length})`} icon={Users}>
-                    <div className="space-y-1.5 mb-2">
+                  <ExpandableDetail label={`Key Person Risks (${oda.keyPersonRisks.length})`} icon={AlertTriangle}>
+                    <VisualGrid columns={1}>
                       {oda.keyPersonRisks.map((r: string, i: number) => (
-                        <div key={i} className="flex items-start gap-2 text-xs">
-                          <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
-                          <span className="text-foreground/80">{r}</span>
-                        </div>
+                        <SignalCard key={i} label={r} type="threat" />
                       ))}
-                    </div>
-                  </DetailPanel>
+                    </VisualGrid>
+                  </ExpandableDetail>
                 )}
               </>
             );
           })()}
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-        </div>
+        </StepCanvas>
       )}
 
-      {/* TAB: OWNERSHIP PLAYBOOK (ETA only) */}
+      {/* ═══ TAB: OWNERSHIP PLAYBOOK (ETA only) ═══ */}
       {activeTab === "playbook" && isETA && (data as any)?.ownershipPlaybook && (
-        <div className="space-y-4">
-          <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="100-Day Ownership Playbook" icon={Calendar} />
+        <StepCanvas>
           <OwnershipPlaybook data={{
             transitionRiskScore: (data as any)?.ownerDependencyAssessment?.transitionRiskScore ?? 5,
             ownerDependencies: (data as any)?.ownerDependencyAssessment?.ownerDependencies ?? [],
@@ -1076,8 +909,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             quickWins: (data as any).ownershipPlaybook.quickWins ?? [],
             dueDiligenceQuestions: (data as any).ownershipPlaybook.dueDiligenceQuestions ?? [],
           }} />
-          {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
-        </div>
+        </StepCanvas>
       )}
     </div>
   );

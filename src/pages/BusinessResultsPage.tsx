@@ -3,18 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useModeTheme } from "@/hooks/useModeTheme";
-import { StepNavigator } from "@/components/StepNavigator";
 import { BusinessModelAnalysis } from "@/components/BusinessModelAnalysis";
 import { CriticalValidation } from "@/components/CriticalValidation";
 import { PitchDeck } from "@/components/PitchDeck";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { gatherBusinessAnalysisData } from "@/lib/gatherAnalysisData";
-import { ModeBadge } from "@/components/ModeBadge";
-import { StepNavBar } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { GovernedMissingBanner } from "@/components/GovernedMissingBanner";
 import { getBusinessStepConfigs } from "@/lib/stepConfigs";
-import { InnovationOpportunitiesPanel } from "@/components/InnovationOpportunitiesPanel";
 
 import type { Product } from "@/data/mockProducts";
 import {
@@ -25,6 +21,7 @@ import {
 // ── Shared layout components ──
 import {
   AnalysisPageShell,
+  AnalysisStepHeader,
   AnalysisActionToolbar,
   AnalysisTabBar,
   AnalysisDivider,
@@ -120,11 +117,8 @@ export default function BusinessResultsPage() {
 
   return (
     <AnalysisPageShell tier={tier}>
-      {/* ── Mode badge ── */}
-      <ModeBadge />
-
-      {/* ── Step Navigator ── */}
-      <StepNavigator
+      {/* ── Shared Step Header (ModeBadge + StepNavigator + BackNav) ── */}
+      <AnalysisStepHeader
         steps={getBusinessStepConfigs(modeAccent)}
         activeStep={activeStep}
         visitedSteps={visitedSteps}
@@ -134,12 +128,9 @@ export default function BusinessResultsPage() {
           scrollToTop();
         }}
         accentColor={modeAccent}
+        backLabel={backNav?.label || "Home"}
+        backPath="#"
       />
-
-      {/* ── Back navigation bar ── */}
-      {backNav && backNav.step !== 0 && (
-        <StepNavBar backLabel={backNav.label} backPath="#" accentColor={modeAccent} />
-      )}
 
       <AnalysisActionToolbar
         analysisTitle={bizName}
@@ -236,16 +227,6 @@ export default function BusinessResultsPage() {
         </AnalysisContentCard>
       )}
 
-      {/* ══════════ INNOVATION OPPORTUNITIES ══════════ */}
-      {(activeStep === 2 || activeStep === 3) && businessAnalysisData && (
-        <AnalysisContentCard>
-          <InnovationOpportunitiesPanel
-            governedData={analysis.governedData as Record<string, unknown> | null}
-            analysisData={businessAnalysisData as Record<string, unknown>}
-            stressTestData={analysis.businessStressTestData as Record<string, unknown> | null}
-          />
-        </AnalysisContentCard>
-      )}
     </AnalysisPageShell>
   );
 }

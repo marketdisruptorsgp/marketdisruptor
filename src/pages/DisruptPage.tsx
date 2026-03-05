@@ -10,7 +10,6 @@ import { scrollToTop } from "@/utils/scrollToTop";
 import { type StrategicHypothesis, rankWithProfile, adaptStrategicProfile } from "@/lib/strategicOS";
 import { Target, Atom, Lightbulb, GitBranch, Brain, Shield } from "lucide-react";
 import { StructureTab } from "@/components/strategic/StructureTab";
-import { RedesignTab } from "@/components/strategic/RedesignTab";
 import { StepLoadingTracker, DISRUPT_TASKS } from "@/components/StepLoadingTracker";
 import { ReasoningSynopsis } from "@/components/ReasoningSynopsis";
 import StructuralInterpretationsPanel from "@/components/StructuralInterpretationsPanel";
@@ -285,11 +284,6 @@ export default function DisruptPage() {
               />
             </AnalysisContentCard>
 
-            <RedesignTab
-              disruptData={analysis.disruptData as Record<string, unknown> | null}
-              hypotheses={hasHypotheses ? rawHypotheses! : null}
-              governedData={governedData as Record<string, unknown> | null}
-            />
           </div>
         )}
 
