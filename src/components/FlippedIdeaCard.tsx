@@ -295,6 +295,7 @@ export const FlippedIdeaCard = ({ idea, rank, productName, userScores, onScoreCh
         ideaName={idea.name}
         ideaDescription={idea.description}
         category={productName}
+        autoScout
         onCompetitorsScouted={onCompetitorsScouted}
       />
 
