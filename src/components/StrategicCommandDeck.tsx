@@ -15,6 +15,7 @@ import type { ProvenanceRegistry } from "@/lib/insightProvenance";
 import type { ConvergenceZone } from "@/lib/convergenceEngine";
 import { ExpandedFrictionDashboard } from "@/components/OpportunityMatrix";
 import { InsightTracePanel } from "@/components/InsightTracePanel";
+import { StrategicSummaryPanel } from "@/components/StrategicSummaryPanel";
 
 interface StrategicCommandDeckProps {
   commandDeck: CommandDeck;
@@ -117,6 +118,13 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
 
   return (
     <div className="space-y-3">
+      {/* Executive Strategic Summary */}
+      <StrategicSummaryPanel
+        commandDeck={commandDeck}
+        convergenceZoneDetails={convergenceZoneDetails}
+        expandedFriction={expandedFriction}
+      />
+
       {/* System Friction Dashboard (compact) */}
       {expandedFriction && (
         <div
