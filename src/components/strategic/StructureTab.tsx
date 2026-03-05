@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, ChevronDown, Atom, ArrowRight, Route } from "lucide-react";
+import { Brain, ChevronDown, Atom, ArrowRight, Route, Network } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
+import { buildSystemLeverageMap, type LensType } from "@/lib/multiLensEngine";
+import { SystemLeverageMapView } from "@/components/SystemLeverageMap";
 
 interface StructureTabProps {
   selectedProduct: Product;
@@ -454,6 +456,30 @@ export function StructureTab({
               </div>
             )}
           </div>
+        );
+      })()}
+
+      {/* ── System Leverage Map — Central Visual Intelligence Layer ── */}
+      {(() => {
+        const disruptData = analysis.disruptData as Record<string, unknown> | null;
+        const flipIdeas = (disruptData?.flippedIdeas || selectedProduct?.flippedIdeas || []) as unknown[];
+        const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
+        const leverageMap = buildSystemLeverageMap(governedData, disruptData, flipIdeas, activeModes);
+
+        if (!leverageMap) return null;
+
+        return (
+          <StructureSection
+            title="System Leverage Map"
+            icon={Network}
+            defaultOpen={true}
+            badge={leverageMap.convergenceZones.length > 0 ? `${leverageMap.convergenceZones.length} convergence` : undefined}
+          >
+            <SystemLeverageMapView
+              map={leverageMap}
+              availableLenses={activeModes.length > 1 ? activeModes : ["product", "service", "business"]}
+            />
+          </StructureSection>
         );
       })()}
 
