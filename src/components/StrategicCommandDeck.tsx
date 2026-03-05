@@ -212,9 +212,14 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
         {/* Constraints */}
         <div
           className="rounded-xl p-4 space-y-1"
-          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+          style={{
+            background: "hsl(var(--card))",
+            border: "1px solid hsl(var(--border))",
+            boxShadow: "inset 0 1px 0 hsl(0 0% 100% / 0.03)",
+          }}
         >
           <SectionHeader icon={Shield} label="Top Constraints" count={topConstraints.length} />
+          <div className="h-px my-1" style={{ background: "hsl(0 72% 50% / 0.2)" }} />
           {topConstraints.map(n => (
             <ConstraintRow key={n.id} node={n} onTrace={handleTrace ? () => handleTrace(n.id) : undefined} />
           ))}
@@ -226,9 +231,14 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
         {/* Leverage Points */}
         <div
           className="rounded-xl p-4 space-y-1"
-          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+          style={{
+            background: "hsl(var(--card))",
+            border: "1px solid hsl(var(--border))",
+            boxShadow: "inset 0 1px 0 hsl(0 0% 100% / 0.03)",
+          }}
         >
           <SectionHeader icon={Crosshair} label="Top Leverage" count={topLeveragePoints.length} />
+          <div className="h-px my-1" style={{ background: "hsl(229 89% 63% / 0.2)" }} />
           {topLeveragePoints.map(n => (
             <LeverageRow key={n.id} node={n} onTrace={handleTrace ? () => handleTrace(n.id) : undefined} />
           ))}
@@ -240,9 +250,14 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
         {/* Opportunities */}
         <div
           className="rounded-xl p-4 space-y-1"
-          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+          style={{
+            background: "hsl(var(--card))",
+            border: "1px solid hsl(var(--border))",
+            boxShadow: "inset 0 1px 0 hsl(0 0% 100% / 0.03)",
+          }}
         >
           <SectionHeader icon={Lightbulb} label="Top Opportunities" count={topOpportunities.length} />
+          <div className="h-px my-1" style={{ background: "hsl(152 60% 44% / 0.2)" }} />
           {topOpportunities.map(n => (
             <OpportunityRow key={n.id} node={n} onTrace={handleTrace ? () => handleTrace(n.id) : undefined} />
           ))}
