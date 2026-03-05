@@ -383,7 +383,8 @@ export function PitchCoverSlide({ productName, subtitle, accentColor = "#4b68f5"
                 <img src={img.url} alt={img.ideaName} style={{
                   width: "100%",
                   height: coverImages!.length > 1 ? 260 : 400,
-                  objectFit: "cover",
+                  objectFit: "contain",
+                  background: "#f4f4f5",
                 }} onError={(e) => { const parent = (e.target as HTMLImageElement).closest('div'); if (parent) (parent as HTMLElement).style.display = 'none'; }} />
                 <div style={{ padding: "10px 16px", background: "linear-gradient(135deg, #fafafa, #f8f9fc)", borderTop: "1px solid #e8e8ec" }}>
                   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", color: "#a1a1aa", textTransform: "uppercase" }}>Concept Design</p>
