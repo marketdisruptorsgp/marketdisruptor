@@ -81,7 +81,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product, disruptData, stressTestData, userScores, redesignData, insightPreferences, steeringText, lens, geoData, regulatoryData, adaptiveContext: rawAdaptiveCtx } = await req.json();
+    const { product, disruptData, stressTestData, userScores, redesignData, insightPreferences, steeringText, lens, geoData, regulatoryData, adaptiveContext: rawAdaptiveCtx, patentData } = await req.json();
     const adaptiveCtx = rawAdaptiveCtx || extractAdaptiveContext({ product });
     const adaptivePrompt = buildAdaptiveContextPrompt(adaptiveCtx);
     const mode = resolveMode(product.analysisType, product.category);
@@ -184,6 +184,15 @@ Return this structure:
     "willingness": "Price willingness ≤15 words"
   },
   "investorHighlights": ["Highlight 1", "Highlight 2", "Highlight 3", "Highlight 4", "Highlight 5"],
+  "ipLandscape": {
+    "summary": "1-2 sentence overview of patent/IP landscape and defensibility",
+    "keyPatents": [
+      {"title": "Patent/prior art title", "holder": "Company/entity", "relevance": "How this relates to the product ≤20 words", "threat": "high|medium|low"}
+    ],
+    "whitespace": ["Unpatented opportunity 1", "Whitespace 2", "Whitespace 3"],
+    "ipStrategy": "Recommended IP protection approach ≤2 sentences",
+    "filingRecommendations": ["Filing recommendation 1", "Filing 2"]
+  },
   "completionMessage": "Bold strategic insight ≤2 sentences",
   "visualSpecs": [
     {
@@ -265,6 +274,8 @@ Pricing: ${JSON.stringify(product.pricingIntel || {}).slice(0, 300)}
 ${upstreamBlock}
 ${geoData ? `GEO DATA: US Establishments: ${geoData.us?.totalEstablishments?.toLocaleString() || "N/A"} | Top states: ${JSON.stringify((geoData.us?.topStates || []).slice(0, 3).map((s: any) => s.name))} | Top global: ${JSON.stringify((geoData.global?.topMarkets || []).slice(0, 3).map((c: any) => c.name))}` : ""}
 ${regulatoryData?.regulatoryRelevance !== "none" ? `REGULATORY: ${regulatoryData?.matchedCategory} | Agencies: ${(regulatoryData?.agencies || []).join(", ")}` : ""}
+${patentData ? `PATENT DATA: ${JSON.stringify(patentData).slice(0, 1500)}
+Use this real patent intelligence to populate the ipLandscape section. Identify key patents, assess threat levels, find whitespace opportunities, and recommend filing strategies.` : "No patent data available — generate ipLandscape based on category knowledge and market inference. Flag all claims as [CONTEXTUAL]."}
 ${buildLensPrompt(lens)}
 Return ONLY the JSON object.`;
     }
