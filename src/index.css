@@ -26,7 +26,7 @@
     --background: 0 0% 100%;
     --foreground: 0 0% 0%;
 
-    --card: 220 20% 97%;
+    --card: 0 0% 100%;
     --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
@@ -42,7 +42,7 @@
     --secondary: 220 14% 94%;
     --secondary-foreground: 0 0% 0%;
 
-    --muted: 220 14% 95%;
+    --muted: 220 10% 96%;
     --muted-foreground: 0 0% 20%;
 
     --accent: 220 14% 93%;
@@ -54,8 +54,8 @@
     --success: 152 60% 44%;
     --warning: 36 80% 52%;
 
-    --border: 220 13% 86%;
-    --input: 220 13% 86%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
     --ring: 229 70% 60%;
 
     --radius: 0.625rem;
@@ -84,43 +84,43 @@
     --mode-multi-hover: 200 70% 42%;
     --mode-multi-tint: 200 75% 96%;
     --mode-multi-outline: 200 75% 65%;
-    --sidebar-background: 220 20% 97%;
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 0%;
     --sidebar-primary: 229 89% 63%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 93%;
     --sidebar-accent-foreground: 0 0% 0%;
-    --sidebar-border: 220 13% 86%;
+    --sidebar-border: 0 0% 85%;
     --sidebar-ring: 229 70% 60%;
 
-    --shadow-card: 0 1px 3px 0 hsl(220 20% 80% / 0.12), 0 1px 2px -1px hsl(220 20% 80% / 0.08);
-    --shadow-card-hover: 0 8px 24px -4px hsl(220 20% 80% / 0.18), 0 2px 6px -1px hsl(220 20% 80% / 0.08);
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.06), 0 1px 2px -1px hsl(0 0% 0% / 0.04);
+    --shadow-card-hover: 0 8px 24px -4px hsl(0 0% 0% / 0.1), 0 2px 6px -1px hsl(0 0% 0% / 0.05);
 
     /* Visual Intelligence System */
-    --vi-surface: 220 20% 98%;
+    --vi-surface: 0 0% 98%;
     --vi-surface-elevated: 0 0% 100%;
     --vi-glow-system: 0 72% 52%;
     --vi-glow-force: 220 14% 60%;
     --vi-glow-mechanism: 38 92% 50%;
     --vi-glow-leverage: 229 89% 63%;
     --vi-glow-outcome: 142 70% 45%;
-    --vi-edge: 220 13% 78%;
+    --vi-edge: 0 0% 78%;
     --vi-edge-active: 229 89% 63%;
-    --shadow-vi-panel: 0 4px 24px -4px hsl(220 20% 80% / 0.2), 0 0 0 1px hsl(220 20% 80% / 0.08);
-    --shadow-vi-node: 0 2px 8px -2px hsl(220 20% 80% / 0.15);
-    --shadow-vi-node-hover: 0 8px 32px -8px hsl(220 20% 80% / 0.25), 0 0 0 1px hsl(var(--primary) / 0.15);
+    --shadow-vi-panel: 0 4px 24px -4px hsl(0 0% 0% / 0.08), 0 0 0 1px hsl(0 0% 0% / 0.04);
+    --shadow-vi-node: 0 2px 8px -2px hsl(0 0% 0% / 0.08);
+    --shadow-vi-node-hover: 0 8px 32px -8px hsl(0 0% 0% / 0.12), 0 0 0 1px hsl(var(--primary) / 0.15);
     --shadow-vi-glow: 0 0 20px -4px;
 
-    /* Cinematic Visual Engine — Light theme (museum-quality, editorial) */
-    --cin-depth-bg: 220 14% 96%;
-    --cin-depth-mid: 220 14% 98%;
-    --cin-depth-fg: 220 13% 88%;
+    /* Cinematic Visual Engine — Light theme */
+    --cin-depth-bg: 0 0% 96%;
+    --cin-depth-mid: 0 0% 98%;
+    --cin-depth-fg: 0 0% 88%;
     --cin-red: 0 72% 50%;
     --cin-red-glow: 0 72% 58%;
     --cin-green: 152 60% 38%;
     --cin-green-glow: 152 60% 48%;
-    --cin-verdict-ring: 220 14% 85%;
-    --cin-label: 220 15% 30%;
+    --cin-verdict-ring: 0 0% 85%;
+    --cin-label: 0 0% 15%;
     --cin-surface: 0 0% 100%;
     --shadow-cin-orb: 0 0 40px -8px;
     --shadow-cin-signal: 0 4px 20px -6px;

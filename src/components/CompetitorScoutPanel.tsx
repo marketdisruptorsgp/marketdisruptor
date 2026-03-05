@@ -258,8 +258,8 @@ Rules:
               {/* Executive Summary */}
               {comp.executive_summary && (
                 <div className="p-2.5 rounded bg-muted/50 border border-border">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60 mb-1">Executive Summary</p>
-                  <p className="text-xs text-foreground/85 leading-relaxed">{comp.executive_summary}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Executive Summary</p>
+                  <p className="text-xs text-foreground leading-relaxed">{comp.executive_summary}</p>
                 </div>
               )}
 
@@ -301,7 +301,7 @@ Rules:
               {comp.direct_competition_score && (
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60 flex items-center gap-1">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                       <BarChart3 size={9} /> Direct Competition Score
                     </span>
                     <span className="text-xs font-bold" style={{ color: getCompetitionColor(comp.direct_competition_score) }}>
@@ -323,14 +323,14 @@ Rules:
                 <div className="grid grid-cols-2 gap-2">
                   {comp.pricing_model && (
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60 mb-0.5">Pricing</p>
-                      <p className="text-[11px] text-foreground/80">{comp.pricing_model}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Pricing</p>
+                      <p className="text-xs text-foreground">{comp.pricing_model}</p>
                     </div>
                   )}
                   {comp.target_audience && (
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/60 mb-0.5">Target</p>
-                      <p className="text-[11px] text-foreground/80">{comp.target_audience}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Target</p>
+                      <p className="text-xs text-foreground">{comp.target_audience}</p>
                     </div>
                   )}
                 </div>
@@ -344,7 +344,7 @@ Rules:
                   </p>
                   <ul className="space-y-0.5">
                     {(comp.strengths || []).map((s, j) => (
-                      <li key={j} className="text-[11px] text-foreground/70 flex items-start gap-1">
+                      <li key={j} className="text-xs text-foreground flex items-start gap-1">
                         <span className="text-success mt-0.5">•</span> {s}
                       </li>
                     ))}
@@ -356,7 +356,7 @@ Rules:
                   </p>
                   <ul className="space-y-0.5">
                     {(comp.weaknesses || []).map((w, j) => (
-                      <li key={j} className="text-[11px] text-foreground/70 flex items-start gap-1">
+                      <li key={j} className="text-xs text-foreground flex items-start gap-1">
                         <span className="text-warning mt-0.5">•</span> {w}
                       </li>
                     ))}
@@ -369,13 +369,13 @@ Rules:
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-primary flex items-center gap-1 mb-1">
                   <Crosshair size={9} /> Your Opening
                 </p>
-                <p className="text-xs text-foreground/80 leading-relaxed">{comp.differentiator_gap}</p>
+                <p className="text-xs text-foreground leading-relaxed">{comp.differentiator_gap}</p>
               </div>
 
               {/* Sources */}
               {comp.sources && comp.sources.length > 0 && (
                 <div className="space-y-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/50">Sources</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sources</p>
                   <div className="flex flex-col gap-0.5">
                     {comp.sources.map((src, j) => (
                       <a key={j} href={src} target="_blank" rel="noopener noreferrer"

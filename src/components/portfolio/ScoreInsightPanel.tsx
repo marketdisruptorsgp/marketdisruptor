@@ -79,7 +79,7 @@ export function ScoreInsightPanel({ analyses }: { analyses: SavedAnalysis[] }) {
     <div className="rounded-xl border border-border bg-card p-5 space-y-4">
       <div>
         <p className="typo-status-label text-foreground uppercase tracking-wider mb-1">Score Intelligence</p>
-        <p className="typo-card-body text-foreground/80 leading-relaxed">
+        <p className="typo-card-body text-foreground leading-relaxed">
           How your portfolio's revival scores are distributed. Clusters on the right mean you're consistently finding strong opportunities. Spread means wider exploration.
         </p>
       </div>

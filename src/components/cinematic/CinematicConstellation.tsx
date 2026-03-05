@@ -75,13 +75,13 @@ function RoleGroup({ role, signals, maxScore, defaultOpen }: { role: string; sig
         <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: meta.color }} />
         <div className="flex-1 min-w-0">
           <span className="text-sm font-bold text-foreground">{meta.label}</span>
-          <span className="text-xs text-foreground/70 ml-2">{meta.description}</span>
+          <span className="text-xs text-muted-foreground ml-2">{meta.description}</span>
         </div>
         <span className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0"
           style={{ background: `${meta.color}12`, color: meta.color }}>
           {signals.length}
         </span>
-        <ChevronDown size={14} className="text-foreground/50 transition-transform flex-shrink-0"
+        <ChevronDown size={14} className="text-muted-foreground transition-transform flex-shrink-0"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
       </button>
       <AnimatePresence>
@@ -165,9 +165,9 @@ export function CinematicConstellation({ story, title }: { story: VisualStory; t
               {allSignals.length} signals
             </span>
           </div>
-          <span className="text-xs font-semibold text-foreground/60">Score →</span>
+          <span className="text-xs font-semibold text-muted-foreground">Score →</span>
         </div>
-        <p className="text-sm text-foreground/70 leading-relaxed font-medium">
+        <p className="text-sm text-foreground leading-relaxed font-medium">
           {contextInsight}
         </p>
       </div>

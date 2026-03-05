@@ -140,7 +140,7 @@ export function PricingIntelCard({ pricingIntel: pi }: PricingIntelProps) {
 
       {/* ── Pricing Notes ── */}
       {pi.pricingNotes && (
-        <p className="text-sm text-foreground/70 leading-relaxed">{pi.pricingNotes}</p>
+        <p className="text-sm text-foreground leading-relaxed">{pi.pricingNotes}</p>
       )}
     </div>
   );
