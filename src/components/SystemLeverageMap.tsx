@@ -287,7 +287,19 @@ export function SystemLeverageMapView({
           </div>
           <div>
             <p className="text-sm font-extrabold text-foreground">System Leverage Map</p>
-            <p className="text-[11px] font-semibold text-foreground/70">{map.structuralSummary}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-[11px] font-semibold text-foreground/70">{map.structuralSummary}</p>
+              {map.provenanceReport && map.provenanceReport.artifactScored > 0 && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--success) / 0.1)", color: "hsl(var(--success))" }}>
+                  Artifact-scored
+                </span>
+              )}
+              {map.provenanceReport && map.provenanceReport.artifactScored === 0 && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--warning) / 0.1)", color: "hsl(var(--warning))" }}>
+                  Heuristic
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
