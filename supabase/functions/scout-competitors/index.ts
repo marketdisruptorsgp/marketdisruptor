@@ -20,11 +20,12 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
     if (!FIRECRAWL_API_KEY) throw new Error("FIRECRAWL_API_KEY not configured");
 
-    // Run 3 targeted searches in parallel
+    // Run 4 targeted searches in parallel for deeper coverage
     const queries = [
       `${ideaName} competitor business startup similar product`,
       `"${ideaDescription?.slice(0, 80)}" business company website`,
-      `${category || ""} ${ideaName} alternative similar service startup 2024 2025`,
+      `${category || ""} ${ideaName} alternative similar service startup 2025 2026`,
+      `${ideaName} ${category || ""} company headquarters funding revenue pricing`,
     ];
 
     const searchResults = await Promise.allSettled(
@@ -35,7 +36,7 @@ serve(async (req) => {
             Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ query, limit: 5, scrapeOptions: { formats: ["markdown"] } }),
+          body: JSON.stringify({ query, limit: 6, scrapeOptions: { formats: ["markdown"] } }),
         });
         if (!res.ok) return null;
         return await res.json();
@@ -50,14 +51,17 @@ serve(async (req) => {
       if (result.status === "fulfilled" && result.value?.data) {
         for (const item of result.value.data) {
           if (item.url) allSources.push({ url: item.url, title: item.title || item.url });
-          if (item.markdown) allContent.push(`Source: ${item.url}\nTitle: ${item.title || ""}\n${item.markdown.slice(0, 1500)}`);
+          if (item.markdown) allContent.push(`Source: ${item.url}\nTitle: ${item.title || ""}\n${item.markdown.slice(0, 2000)}`);
         }
       }
     }
 
-    const combinedContent = allContent.join("\n\n---\n\n").slice(0, 15000);
+    const combinedContent = allContent.join("\n\n---\n\n").slice(0, 18000);
 
-    // AI synthesis
+    // Build source URL list for the AI to reference
+    const sourceUrlList = allSources.map(s => s.url).join("\n");
+
+    // AI synthesis with enriched schema
     const aiRes = await fetch(AI_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
@@ -66,7 +70,7 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: `You are a competitive intelligence analyst. I'm developing this business idea:
+            content: `You are a competitive intelligence analyst producing investor-grade competitor profiles. I'm developing this business idea:
 
 Name: ${ideaName}
 Description: ${ideaDescription || "N/A"}
@@ -76,29 +80,53 @@ Here is web research about similar businesses and competitors:
 
 ${combinedContent}
 
-Identify exactly 3-5 REAL competitors or similar businesses. For each, provide:
-1. Their actual company/product name
-2. Their actual website URL (must be a real URL from the research)
-3. A 2-3 sentence description of what they do
-4. Their key strengths (2-3 bullet points)
-5. Their weaknesses or gaps (2-3 bullet points)  
-6. A "differentiator gap" — what opportunity exists to beat them
+Available source URLs from research:
+${sourceUrlList}
+
+Identify exactly 3-5 REAL competitors or similar businesses. For each, provide a comprehensive profile:
+
+1. **name**: Their actual company/product name
+2. **url**: Their actual website URL (must be a real URL from the research)
+3. **description**: 1-2 sentence factual description
+4. **executive_summary**: 3-4 sentence deep analysis of their business model, market position, key metrics, and strategic direction. Be specific — include revenue estimates, user counts, or growth signals if available.
+5. **hq_city**: Their headquarters city and country (e.g. "San Francisco, USA"). Use "Unknown" if not findable.
+6. **founded_year**: Year founded (string, e.g. "2019"). Use null if unknown.
+7. **employee_range**: Approximate headcount range (e.g. "11-50", "51-200", "201-500"). Use null if unknown.
+8. **funding_stage**: Funding stage (e.g. "Seed", "Series A", "Series B", "Bootstrapped", "Public"). Use null if unknown.
+9. **direct_competition_score**: 1-10 integer rating of how directly they compete (10 = identical offering, 1 = tangentially related)
+10. **overlap_areas**: Array of 2-4 specific areas where they overlap with this idea (e.g. "AI-powered analytics", "SMB pricing", "Self-serve onboarding")
+11. **strengths**: 3-4 specific, evidence-backed strengths
+12. **weaknesses**: 3-4 specific weaknesses or gaps
+13. **differentiator_gap**: How to specifically beat them — reference their actual weakness
+14. **pricing_model**: Their pricing approach (e.g. "Freemium, $29-99/mo plans"). Use null if unknown.
+15. **target_audience**: Their primary customer segment. Use null if unknown.
+16. **sources**: Array of 1-3 source URLs from the research that informed this competitor's profile
 
 Return ONLY a valid JSON array:
 [{
   "name": "Company Name",
   "url": "https://actual-url.com",
   "description": "What they do...",
-  "strengths": ["strength 1", "strength 2"],
-  "weaknesses": ["weakness 1", "weakness 2"],
-  "differentiator_gap": "How to beat them..."
+  "executive_summary": "Deep analysis...",
+  "hq_city": "City, Country",
+  "founded_year": "2020",
+  "employee_range": "51-200",
+  "funding_stage": "Series A",
+  "direct_competition_score": 8,
+  "overlap_areas": ["area1", "area2"],
+  "strengths": ["strength 1", "strength 2", "strength 3"],
+  "weaknesses": ["weakness 1", "weakness 2", "weakness 3"],
+  "differentiator_gap": "How to beat them...",
+  "pricing_model": "Freemium, $X/mo",
+  "target_audience": "Who they serve",
+  "sources": ["https://source1.com", "https://source2.com"]
 }]
 
-IMPORTANT: Only include businesses that are genuinely similar. Use real URLs from the research. If fewer than 3 real competitors exist, return what you find.`,
+IMPORTANT: Only include businesses that are genuinely similar. Use real URLs from the research. Every field should be evidence-based — if you can't verify it from the research, use null. Prefer specificity over generality.`,
           },
         ],
-        temperature: 0.4,
-        max_tokens: 4000,
+        temperature: 0.3,
+        max_tokens: 6000,
       }),
     });
 
@@ -120,7 +148,27 @@ IMPORTANT: Only include businesses that are genuinely similar. Use real URLs fro
       competitors = [];
     }
 
-    return new Response(JSON.stringify({ success: true, competitors, sources: allSources.slice(0, 15) }), {
+    // Ensure all competitors have required fields with defaults
+    competitors = competitors.map((c: any) => ({
+      name: c.name || "Unknown",
+      url: c.url || "",
+      description: c.description || "",
+      executive_summary: c.executive_summary || c.description || "",
+      hq_city: c.hq_city || "Unknown",
+      founded_year: c.founded_year || null,
+      employee_range: c.employee_range || null,
+      funding_stage: c.funding_stage || null,
+      direct_competition_score: c.direct_competition_score || 5,
+      overlap_areas: c.overlap_areas || [],
+      strengths: c.strengths || [],
+      weaknesses: c.weaknesses || [],
+      differentiator_gap: c.differentiator_gap || "",
+      pricing_model: c.pricing_model || null,
+      target_audience: c.target_audience || null,
+      sources: c.sources || [],
+    }));
+
+    return new Response(JSON.stringify({ success: true, competitors, sources: allSources.slice(0, 20) }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
