@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, ExternalLink, Shield, AlertTriangle, Crosshair, ChevronDown, ChevronUp, Sparkles, Loader2, MapPin, Globe, BarChart3, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 export interface Competitor {
   name: string;
@@ -83,29 +84,42 @@ export const CompetitorScoutPanel = ({ ideaName, ideaDescription, category, auto
 
       const { data, error } = await supabase.functions.invoke("help-assistant", {
         body: {
+          stream: false,
           messages: [
             {
               role: "user",
-              content: `I'm developing: "${ideaName}" — ${ideaDescription}
+              content: `I'm building: "${ideaName}" — ${ideaDescription}
 
-Here are the competitors I found:
+Here is my competitive landscape:
 ${competitorContext}
 
-Based on this competitive landscape, give me a sharp, actionable refinement strategy in 5-7 bullet points. Focus on:
-1. The strongest differentiator I should lean into
-2. Specific positioning to avoid head-to-head competition
-3. Pricing or business model angles competitors are missing
-4. Quick-win tactics for the first 90 days
-5. What to explicitly NOT do (avoid their mistakes)
+Give me a sharp, actionable 90-day differentiation strategy. Structure it as:
 
-Be specific, not generic. Reference the actual competitors by name.`,
+**🎯 Core Differentiator**
+The single strongest angle I should own, referencing specific competitor gaps.
+
+**🛡️ Positioning Strategy**
+How to position to avoid head-to-head competition with the strongest players. Be specific about which competitors to avoid and which to challenge.
+
+**💰 Business Model Angles**
+Pricing or revenue model opportunities that competitors are missing or doing poorly.
+
+**⚡ Quick Wins (First 90 Days)**
+3-4 specific, actionable tactics I can execute immediately to gain traction.
+
+**🚫 Anti-Patterns**
+What to explicitly NOT do — reference specific competitor mistakes by name.
+
+Be specific, bold, and reference the actual competitors by name. No generic advice.`,
             },
           ],
         },
       });
 
       if (error) throw error;
-      setRefinement(data?.reply || data?.choices?.[0]?.message?.content || "No refinement generated.");
+      const reply = data?.reply;
+      if (!reply) throw new Error("No response from AI");
+      setRefinement(reply);
     } catch (err: any) {
       toast.error(err.message || "Refinement failed");
     } finally {
@@ -372,11 +386,13 @@ Be specific, not generic. Reference the actual competitors by name.`,
 
       {/* Refinement output */}
       {refinement && (
-        <div className="p-3 rounded-lg bg-accent/30 border border-accent space-y-2">
-          <p className="typo-card-eyebrow flex items-center gap-1">
-            <Sparkles size={11} /> Competitive Refinement Strategy
+        <div className="p-4 rounded-lg bg-accent/30 border border-accent space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 text-primary">
+            <Sparkles size={11} /> 90-Day Differentiation Strategy
           </p>
-          <div className="text-xs text-foreground/85 leading-relaxed whitespace-pre-line">{refinement}</div>
+          <div className="text-xs text-foreground/85 leading-relaxed prose prose-sm prose-headings:text-sm prose-headings:font-bold prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1 prose-li:my-0.5 max-w-none">
+            <ReactMarkdown>{refinement}</ReactMarkdown>
+          </div>
         </div>
       )}
     </div>

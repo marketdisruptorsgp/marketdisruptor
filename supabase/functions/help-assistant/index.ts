@@ -27,7 +27,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, context } = await req.json();
+    const { messages, context, stream: useStream = true } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -42,12 +42,12 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: useStream ? "google/gemini-2.5-flash-lite" : "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT + contextNote },
           ...messages,
         ],
-        stream: true,
+        stream: useStream,
       }),
     });
 
@@ -67,6 +67,15 @@ serve(async (req) => {
       console.error("AI gateway error:", status, t);
       return new Response(JSON.stringify({ error: "AI service unavailable" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Non-streaming: extract reply and return JSON
+    if (!useStream) {
+      const result = await response.json();
+      const reply = result.choices?.[0]?.message?.content || "";
+      return new Response(JSON.stringify({ reply }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
