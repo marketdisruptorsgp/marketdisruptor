@@ -102,6 +102,7 @@ interface AnalysisContextType {
   handleManualSave: () => Promise<void>;
   handleLoadSaved: (analysis: any) => void;
   saveAnalysis: (products: Product[], params: { category: string; era: string; batchSize: number }) => Promise<void>;
+  createAnalysis: (title: string, analysisType: string, extraFields?: Record<string, unknown>) => Promise<string>;
   saveStepData: (stepKey: string, data: unknown) => Promise<void>;
 
   // Analysis ID for routing
@@ -499,6 +500,46 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Auto-save failed:", err);
     }
+  }, [user?.id]);
+
+  const createAnalysis = useCallback(async (title: string, analysisType: string, extraFields?: Record<string, unknown>): Promise<string> => {
+    if (!user?.id) throw new Error("User not authenticated");
+
+    // Check for duplicate titles and append version
+    let finalTitle = title;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: existing } = await (supabase.from("saved_analyses") as any)
+      .select("title")
+      .eq("user_id", user.id)
+      .like("title", `${title}%`);
+    if (existing && existing.length > 0) {
+      const versions = existing.map((e: { title: string }) => {
+        const match = e.title.match(/ v(\d+)$/);
+        return match ? parseInt(match[1]) : 1;
+      });
+      const nextVersion = Math.max(...versions) + 1;
+      finalTitle = `${title} v${nextVersion}`;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.from("saved_analyses") as any).insert({
+      user_id: user.id,
+      title: finalTitle,
+      category: extraFields?.category || "Business Model",
+      era: "All Eras / Current",
+      audience: (extraFields?.audience as string) || "General",
+      analysis_type: analysisType,
+      products: extraFields?.products || [],
+      analysis_data: extraFields?.analysis_data || {},
+      ...(extraFields?.batch_size != null ? { batch_size: extraFields.batch_size } : {}),
+      ...(extraFields?.product_count != null ? { product_count: extraFields.product_count } : {}),
+    }).select("id").single();
+
+    if (error || !data?.id) throw new Error(error?.message || "Failed to create analysis record");
+
+    setAnalysisId(data.id);
+    setSavedRefreshTrigger((n) => n + 1);
+    return data.id;
   }, [user?.id]);
 
   const handleAnalyze = useCallback(async (params: {
@@ -1402,7 +1443,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       visitedBusinessStressTestTabs, setVisitedBusinessStressTestTabs,
       generatingIdeasFor, savedRefreshTrigger, setSavedRefreshTrigger,
       loadedFromSaved, setLoadedFromSaved,
-      handleAnalyze, handleRegenerateIdeas, handleManualSave, handleLoadSaved, saveAnalysis, saveStepData,
+      handleAnalyze, handleRegenerateIdeas, handleManualSave, handleLoadSaved, saveAnalysis, createAnalysis, saveStepData,
       analysisId, setAnalysisId,
       outdatedSteps, markStepOutdated, clearStepOutdated,
       userScores, setUserScore,

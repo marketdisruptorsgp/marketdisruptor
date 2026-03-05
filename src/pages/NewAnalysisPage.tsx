@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useAuth } from "@/hooks/useAuth";
+
 import { AnalysisStepIndicator } from "@/components/AnalysisStepIndicator";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
@@ -103,7 +103,7 @@ const PHOTO_EXAMPLES = [
 export default function NewAnalysisPage() {
   const navigate = useNavigate();
   const { tier } = useSubscription();
-  const { user } = useAuth();
+  
   const analysis = useAnalysis();
   const { setModeRouting } = analysis;
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
@@ -429,26 +429,19 @@ export default function NewAnalysisPage() {
         analysis.setMainTab("business");
         analysis.setActiveMode("business");
 
-        // 1. Create DB row FIRST — let the database generate the canonical ID
-        const { data: insertedRow, error: insertError } = await (supabase.from("saved_analyses") as any).insert({
-          user_id: user?.id,
-          title: name || "Business Model Analysis",
-          category: "Business Model",
-          era: "All Eras / Current",
-          audience: "General",
-          analysis_type: "business_model",
-          products: [],
-          analysis_data: {},
-        }).select("id").single();
-
-        if (insertError || !insertedRow?.id) {
+        // 1. Create DB row via centralized context method
+        let analysisId: string;
+        try {
+          analysisId = await analysis.createAnalysis(
+            name || "Business Model Analysis",
+            "business_model",
+            { category: "Business Model" }
+          );
+        } catch (createErr) {
           toast.error("Failed to create analysis record");
           setLaunching(false);
           return;
         }
-
-        const analysisId = insertedRow.id;
-        analysis.setAnalysisId(analysisId);
 
         // 2. Call edge function
         const { data: result, error } = await invokeWithTimeout("business-model-analysis", {
@@ -473,7 +466,7 @@ export default function NewAnalysisPage() {
           return;
         }
 
-        // 3. Persist results into the same row
+        // 3. Persist results via context saveStepData
         analysis.setBusinessAnalysisData(result.analysis);
         analysis.setBusinessModelInput({
           type: name,
@@ -482,12 +475,7 @@ export default function NewAnalysisPage() {
           painPoints: notes,
         });
 
-        await (supabase.from("saved_analyses") as any)
-          .update({
-            analysis_data: { businessAnalysis: result.analysis },
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", analysisId);
+        await analysis.saveStepData("businessAnalysis", result.analysis);
 
         toast.success("Business model analysis complete!");
         navigate(`/business/${analysisId}`);
