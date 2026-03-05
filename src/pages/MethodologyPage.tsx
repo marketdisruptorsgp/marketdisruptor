@@ -185,7 +185,7 @@ export default function MethodologyPage() {
 
       {/* Hero */}
       <div className="border-b border-border bg-card">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-7 sm:py-9">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-7 sm:py-9">
           <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Methodology</p>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight mb-1.5">
             How the Engine Works
@@ -196,7 +196,7 @@ export default function MethodologyPage() {
         </div>
       </div>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10">
 
         {/* ── Section 1: Reasoning Engine ── */}
         <section>

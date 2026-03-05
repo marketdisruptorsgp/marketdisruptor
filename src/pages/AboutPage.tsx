@@ -80,7 +80,7 @@ export default function AboutPage() {
         <div className="absolute inset-0 pointer-events-none" style={{
           background: "radial-gradient(ellipse 80% 50% at 50% 0%, hsl(var(--primary) / 0.06) 0%, transparent 70%)",
         }} />
-        <div className="max-w-4xl mx-auto px-4 sm:px-10 pt-16 sm:pt-24 md:pt-32 pb-12 sm:pb-20 relative">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 md:pt-32 pb-12 sm:pb-20 relative">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -117,7 +117,7 @@ export default function AboutPage() {
 
       {/* ── Philosophy pull-quote ── */}
       <section className="border-y border-border" style={{ background: "hsl(var(--muted) / 0.4)" }}>
-        <div className="max-w-4xl mx-auto px-6 sm:px-10 py-10 sm:py-14">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
           <div className="flex gap-4 items-start">
             <div className="flex-shrink-0 w-1 rounded-full self-stretch" style={{ background: "hsl(var(--primary))" }} />
             <div className="space-y-3">
@@ -132,7 +132,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <main className="max-w-5xl mx-auto px-6 sm:px-10 py-16 sm:py-20">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
         {/* ── What It Does ── */}
         <section className="mb-20">
           <div className="text-center mb-10">

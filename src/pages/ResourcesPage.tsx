@@ -67,7 +67,7 @@ export default function ResourcesPage() {
     <div className="min-h-screen bg-background">
       <PlatformNav tier={tier} />
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">Resources</p>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight mb-10">
           Learn How It Works
