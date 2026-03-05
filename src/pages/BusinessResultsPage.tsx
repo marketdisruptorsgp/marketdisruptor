@@ -60,13 +60,10 @@ export default function BusinessResultsPage() {
   const { tier } = useSubscription();
   const theme = useModeTheme("business");
 
-  // Derive initial step from existing data so remounts don't reset to step 2
-  const deriveInitialStep = (): number => {
-    if (analysis.pitchDeckData) return 5;
-    if (analysis.businessStressTestData) return 4;
-    if (analysis.businessAnalysisData) return 2;
-    return 2;
-  };
+  // Always open on Intelligence Report (Step 2) — users navigate forward manually.
+  // Previously this derived the furthest completed step, causing completed analyses
+  // to skip directly to Pitch Deck and bypass the intelligence layer UI.
+  const deriveInitialStep = (): number => 2;
   const [activeStep, setActiveStep] = React.useState(deriveInitialStep);
   const [visitedSteps, setVisitedSteps] = React.useState<Set<number>>(() => {
     const steps = new Set([2]);
