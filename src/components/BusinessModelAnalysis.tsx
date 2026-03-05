@@ -69,51 +69,51 @@ interface HiddenAssumption {
 }
 
 export interface BusinessModelAnalysisData {
-  businessSummary: {
-    trueJobToBeDone: string;
-    currentModel: string;
-    marketPosition: string;
-    hiddenStrengths: string[];
+  businessSummary?: {
+    trueJobToBeDone?: string;
+    currentModel?: string;
+    marketPosition?: string;
+    hiddenStrengths?: string[];
   };
-  operationalAudit: {
-    customerJourney: string[];
-    frictionPoints: FrictionPoint[];
-    costStructure: {
-      biggestCostDrivers: string[];
-      fixedVsVariable: string;
-      eliminationCandidates: string[];
+  operationalAudit?: {
+    customerJourney?: string[];
+    frictionPoints?: FrictionPoint[];
+    costStructure?: {
+      biggestCostDrivers?: string[];
+      fixedVsVariable?: string;
+      eliminationCandidates?: string[];
     };
-    revenueLeaks: string[];
+    revenueLeaks?: string[];
   };
-  hiddenAssumptions: HiddenAssumption[];
-  technologyLeverage: {
-    currentTechLevel: string;
-    automationOpportunities: AutomationOpportunity[];
-    aiOpportunities: string[];
-    platformOpportunity: string;
+  hiddenAssumptions?: HiddenAssumption[];
+  technologyLeverage?: {
+    currentTechLevel?: string;
+    automationOpportunities?: AutomationOpportunity[];
+    aiOpportunities?: string[];
+    platformOpportunity?: string;
   };
-  revenueReinvention: {
-    currentRevenueMix: string;
-    untappedStreams: UntappedStream[];
-    pricingRedesign: string;
-    bundleOpportunities: string[];
+  revenueReinvention?: {
+    currentRevenueMix?: string;
+    untappedStreams?: UntappedStream[];
+    pricingRedesign?: string;
+    bundleOpportunities?: string[];
   };
-  disruptionAnalysis: {
-    vulnerabilities: string[];
-    disruptorProfile: string;
-    defenseMoves: string[];
-    attackMoves: string;
+  disruptionAnalysis?: {
+    vulnerabilities?: string[];
+    disruptorProfile?: string;
+    defenseMoves?: string[];
+    attackMoves?: string;
   };
-  reinventedModel: {
-    modelName: string;
-    coreShift: string;
-    keyChanges: string[];
-    newValueProposition: string;
-    economicTransformation: string;
-    implementationRoadmap: ImplementationPhase[];
-    estimatedROI: string;
-    biggestRisk: string;
-    requiredCapabilities: string[];
+  reinventedModel?: {
+    modelName?: string;
+    coreShift?: string;
+    keyChanges?: string[];
+    newValueProposition?: string;
+    economicTransformation?: string;
+    implementationRoadmap?: ImplementationPhase[];
+    estimatedROI?: string;
+    biggestRisk?: string;
+    requiredCapabilities?: string[];
   };
   visualSpecs?: import("@/lib/visualContract").VisualSpec[];
   actionPlans?: import("@/lib/visualContract").ActionPlan[];
@@ -424,18 +424,18 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="businessModel">
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>True Job To Be Done</p>
-            <p className="text-sm text-foreground leading-relaxed">{data.businessSummary.trueJobToBeDone}</p>
+            <p className="text-sm text-foreground leading-relaxed">{data.businessSummary?.trueJobToBeDone || "Not available"}</p>
             <InsightRating sectionId="biz-jtbd" compact />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
               <p className="typo-card-eyebrow text-muted-foreground mb-1">How Money Flows</p>
-              <p className="typo-card-body text-foreground/80 leading-relaxed">{data.businessSummary.currentModel}</p>
+              <p className="typo-card-body text-foreground/80 leading-relaxed">{data.businessSummary?.currentModel || "Not available"}</p>
             </div>
             <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
               <p className="typo-card-eyebrow text-muted-foreground mb-1">Market Position</p>
-              <p className="typo-card-body text-foreground/80 leading-relaxed">{data.businessSummary.marketPosition}</p>
+              <p className="typo-card-body text-foreground/80 leading-relaxed">{data.businessSummary?.marketPosition || "Not available"}</p>
             </div>
           </div>
 
@@ -466,18 +466,18 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           ) : (<>
           {/* Customer Journey — compact */}
           <div className="flex flex-wrap gap-1.5 items-center">
-            {(data.operationalAudit.customerJourney || []).slice(0, 5).map((step, i) => (
+            {(data.operationalAudit?.customerJourney || []).slice(0, 5).map((step, i) => (
               <div key={i} className="flex items-center gap-1">
                 <span className="px-2 py-1 rounded typo-card-meta font-semibold" style={{ background: "hsl(var(--muted))" }}>
                   {i + 1}. {step}
                 </span>
-                {i < Math.min((data.operationalAudit.customerJourney || []).length, 5) - 1 && <ChevronRight size={10} className="text-muted-foreground" />}
+                {i < Math.min((data.operationalAudit?.customerJourney || []).length, 5) - 1 && <ChevronRight size={10} className="text-muted-foreground" />}
               </div>
             ))}
           </div>
 
           {/* Friction — top 2 */}
-          {(data.operationalAudit.frictionPoints || []).slice(0, 2).map((fp, i) => {
+          {(data.operationalAudit?.frictionPoints || []).slice(0, 2).map((fp, i) => {
             const col = IMPACT_COLORS[fp.impact] || IMPACT_COLORS.medium;
             return (
               <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
@@ -490,10 +490,10 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             );
           })}
 
-          {(data.operationalAudit.frictionPoints || []).length > 2 && (
-            <DetailPanel title={`${(data.operationalAudit.frictionPoints || []).length - 2} more friction points`} icon={AlertTriangle}>
+          {(data.operationalAudit?.frictionPoints || []).length > 2 && (
+            <DetailPanel title={`${(data.operationalAudit?.frictionPoints || []).length - 2} more friction points`} icon={AlertTriangle}>
               <div className="space-y-2 mb-2">
-                {(data.operationalAudit.frictionPoints || []).slice(2).map((fp, i) => {
+                {(data.operationalAudit?.frictionPoints || []).slice(2).map((fp, i) => {
                   const col = IMPACT_COLORS[fp.impact] || IMPACT_COLORS.medium;
                   return (
                     <div key={i} className="p-3 rounded-lg" style={{ background: col.bg, border: `1px solid ${col.border}` }}>
@@ -508,11 +508,11 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
 
           <DetailPanel title="Cost Structure & Revenue Leaks" icon={BarChart3}>
             <div className="space-y-3 mb-2">
-              <p className="text-xs text-foreground/80">{data.operationalAudit.costStructure?.fixedVsVariable}</p>
+              <p className="text-xs text-foreground/80">{data.operationalAudit?.costStructure?.fixedVsVariable || "Not available"}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <p className="typo-card-eyebrow text-muted-foreground">Biggest Cost Drivers</p>
-                  {(data.operationalAudit.costStructure?.biggestCostDrivers || []).map((c, i) => (
+                  {(data.operationalAudit?.costStructure?.biggestCostDrivers || []).map((c, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs">
                       <ChevronRight size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{c}</span>
@@ -521,7 +521,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
                 </div>
                 <div className="space-y-1">
                   <p className="typo-card-eyebrow text-muted-foreground">Revenue Leaks</p>
-                  {(data.operationalAudit.revenueLeaks || []).slice(0, 3).map((leak, i) => (
+                  {(data.operationalAudit?.revenueLeaks || []).slice(0, 3).map((leak, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs">
                       <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                       <span className="text-foreground/80">{leak}</span>
@@ -595,11 +595,11 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           ) : (<>
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
             <p className="typo-card-eyebrow text-muted-foreground mb-1">Current Tech Level</p>
-            <p className="text-xs text-foreground/80 leading-relaxed">{data.technologyLeverage.currentTechLevel}</p>
+            <p className="text-xs text-foreground/80 leading-relaxed">{data.technologyLeverage?.currentTechLevel || "Not available"}</p>
           </div>
 
           {/* Top 2 automation opps */}
-          {(data.technologyLeverage.automationOpportunities || []).slice(0, 2).map((opp, i) => {
+          {(data.technologyLeverage?.automationOpportunities || []).slice(0, 2).map((opp, i) => {
             const diff = DIFFICULTY_COLORS[opp.implementationDifficulty] || DIFFICULTY_COLORS.medium;
             return (
               <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
@@ -613,15 +613,15 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             );
           })}
 
-          <DetailPanel title={`Technology Opportunities & Platform Potential (${(data.technologyLeverage.aiOpportunities || []).length + ((data.technologyLeverage.automationOpportunities || []).length > 2 ? (data.technologyLeverage.automationOpportunities || []).length - 2 : 0)})`} icon={Brain}>
+          <DetailPanel title={`Technology Opportunities & Platform Potential (${(data.technologyLeverage?.aiOpportunities || []).length + ((data.technologyLeverage?.automationOpportunities || []).length > 2 ? (data.technologyLeverage?.automationOpportunities || []).length - 2 : 0)})`} icon={Brain}>
             <div className="space-y-2 mb-2">
-              {(data.technologyLeverage.automationOpportunities || []).slice(2).map((opp, i) => (
+              {(data.technologyLeverage?.automationOpportunities || []).slice(2).map((opp, i) => (
                 <div key={`auto-${i}`} className="p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))" }}>
                   <p className="font-bold text-foreground">{opp.process}</p>
                   <p className="text-muted-foreground">→ {opp.technology} · {opp.costSaving}</p>
                 </div>
               ))}
-              {(data.technologyLeverage.aiOpportunities || []).map((opp, i) => (
+              {(data.technologyLeverage?.aiOpportunities || []).map((opp, i) => (
                 <div key={`ai-${i}`} className="flex items-start gap-2 text-xs">
                   <Lightbulb size={10} style={{ color: "hsl(271 81% 45%)", flexShrink: 0, marginTop: 2 }} />
                   <span className="text-foreground/80">{opp}</span>
@@ -629,7 +629,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               ))}
               <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 <p className="typo-card-meta font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Platform Opportunity</p>
-                <p className="text-xs text-foreground/80">{data.technologyLeverage.platformOpportunity}</p>
+                <p className="text-xs text-foreground/80">{data.technologyLeverage?.platformOpportunity || "Not available"}</p>
               </div>
             </div>
           </DetailPanel>
@@ -650,11 +650,11 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
 
           <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
             <p className="typo-card-eyebrow text-muted-foreground mb-1">Current Revenue Mix</p>
-            <p className="text-xs text-foreground/80">{data.revenueReinvention.currentRevenueMix}</p>
+            <p className="text-xs text-foreground/80">{data.revenueReinvention?.currentRevenueMix || "Not available"}</p>
           </div>
 
           {/* Top 2 untapped streams */}
-          {(data.revenueReinvention.untappedStreams || []).slice(0, 2).map((stream, i) => {
+          {(data.revenueReinvention?.untappedStreams || []).slice(0, 2).map((stream, i) => {
             const eff = EFFORT_COLORS[stream.effort] || EFFORT_COLORS.medium;
             return (
               <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
@@ -668,9 +668,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             );
           })}
 
-          <DetailPanel title={`Pricing Redesign & Bundles (${(data.revenueReinvention.bundleOpportunities || []).length + ((data.revenueReinvention.untappedStreams || []).length > 2 ? (data.revenueReinvention.untappedStreams || []).length - 2 : 0) + 1})`} icon={FlipHorizontal}>
+          <DetailPanel title={`Pricing Redesign & Bundles (${(data.revenueReinvention?.bundleOpportunities || []).length + ((data.revenueReinvention?.untappedStreams || []).length > 2 ? (data.revenueReinvention?.untappedStreams || []).length - 2 : 0) + 1})`} icon={FlipHorizontal}>
             <div className="space-y-3 mb-2">
-              {(data.revenueReinvention.untappedStreams || []).slice(2).map((stream, i) => (
+              {(data.revenueReinvention?.untappedStreams || []).slice(2).map((stream, i) => (
                 <div key={i} className="p-2 rounded-lg text-xs" style={{ background: "hsl(var(--muted))" }}>
                   <p className="font-bold text-foreground">{stream.stream}</p>
                   <p className="text-muted-foreground">{stream.mechanism} · Est: {stream.estimatedSize}</p>
@@ -678,9 +678,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               ))}
               <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 <p className="typo-card-meta font-bold mb-1" style={{ color: "hsl(var(--primary))" }}>Bold Pricing Redesign</p>
-                <p className="text-xs text-foreground/80">{data.revenueReinvention.pricingRedesign}</p>
+                <p className="text-xs text-foreground/80">{data.revenueReinvention?.pricingRedesign || "Not available"}</p>
               </div>
-              {(data.revenueReinvention.bundleOpportunities || []).map((b, i) => (
+              {(data.revenueReinvention?.bundleOpportunities || []).map((b, i) => (
                 <BundleDeepDive key={i} opportunity={b} businessContext={{ type: input.type, description: input.description }} index={i} />
               ))}
             </div>
@@ -703,13 +703,13 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           {/* Disruptor profile — key insight */}
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--destructive))" }}>The Startup That Could Kill This Business</p>
-            <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis.disruptorProfile}</p>
+            <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis?.disruptorProfile || "Not available"}</p>
             <InsightRating sectionId="biz-disruptor" compact />
           </div>
 
-          <DetailPanel title={`Vulnerabilities (${(data.disruptionAnalysis.vulnerabilities || []).length}) & Defense Moves (${(data.disruptionAnalysis.defenseMoves || []).length})`} icon={AlertTriangle}>
+          <DetailPanel title={`Vulnerabilities (${(data.disruptionAnalysis?.vulnerabilities || []).length}) & Defense Moves (${(data.disruptionAnalysis?.defenseMoves || []).length})`} icon={AlertTriangle}>
             <div className="space-y-2 mb-2">
-              {(data.disruptionAnalysis.vulnerabilities || []).map((v, i) => (
+              {(data.disruptionAnalysis?.vulnerabilities || []).map((v, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs">
                   <AlertTriangle size={10} style={{ color: "hsl(var(--destructive))", flexShrink: 0, marginTop: 2 }} />
                   <span className="text-foreground/80">{v}</span>
@@ -717,7 +717,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               ))}
               <div className="pt-2" style={{ borderTop: "1px solid hsl(var(--border))" }}>
                 <p className="typo-card-eyebrow text-muted-foreground mb-1">Defense Moves</p>
-                {(data.disruptionAnalysis.defenseMoves || []).map((m, i) => (
+                {(data.disruptionAnalysis?.defenseMoves || []).map((m, i) => (
                   <div key={i} className="flex items-start gap-2 text-xs mb-1">
                     <CheckCircle2 size={10} style={{ color: "hsl(142 70% 40%)", flexShrink: 0, marginTop: 2 }} />
                     <span className="text-foreground/80">{m}</span>
@@ -729,7 +729,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
 
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>If You Were Disrupting With $1M…</p>
-            <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis.attackMoves}</p>
+            <p className="text-sm text-foreground/85 leading-relaxed">{data.disruptionAnalysis?.attackMoves || "Not available"}</p>
             <InsightRating sectionId="biz-attack" compact />
           </div>
 
@@ -752,8 +752,8 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             style={{ background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)", color: "white" }}>
             <div className="relative">
               <p className="typo-card-eyebrow opacity-80 mb-2">Reinvented Business Model</p>
-              <h2 className="text-xl font-black mb-1">{data.reinventedModel.modelName}</h2>
-              <p className="text-xs leading-relaxed opacity-80">{data.reinventedModel.coreShift}</p>
+              <h2 className="text-xl font-black mb-1">{data.reinventedModel?.modelName || "Reinvented Model"}</h2>
+              <p className="text-xs leading-relaxed opacity-80">{data.reinventedModel?.coreShift || ""}</p>
               <InsightRating sectionId="biz-reinvented" compact />
             </div>
           </div>
@@ -762,7 +762,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} suppressText={false} step="businessModel">
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {(data.reinventedModel.keyChanges || []).slice(0, 3).map((c, i) => (
+            {(data.reinventedModel?.keyChanges || []).slice(0, 3).map((c, i) => (
               <div key={i} className="flex gap-2 items-start p-2 rounded-lg text-xs"
                 style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 <CheckCircle2 size={11} style={{ color: "hsl(var(--primary))", flexShrink: 0, marginTop: 1 }} />
@@ -775,17 +775,17 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
               <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(142 70% 30%)" }}>New Value Proposition</p>
-              <p className="text-xs text-foreground/80">{data.reinventedModel.newValueProposition}</p>
+              <p className="text-xs text-foreground/80">{data.reinventedModel?.newValueProposition || "Not available"}</p>
             </div>
             <div className="p-3 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
               <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(217 91% 40%)" }}>Economic Transformation</p>
-              <p className="text-xs text-foreground/80">{data.reinventedModel.economicTransformation}</p>
+              <p className="text-xs text-foreground/80">{data.reinventedModel?.economicTransformation || "Not available"}</p>
             </div>
           </div>
 
-          <DetailPanel title={`Implementation Roadmap (${(data.reinventedModel.implementationRoadmap || []).length} phases) & Risk`} icon={Clock}>
+          <DetailPanel title={`Implementation Roadmap (${(data.reinventedModel?.implementationRoadmap || []).length} phases) & Risk`} icon={Clock}>
             <div className="space-y-3 mb-2">
-              {(data.reinventedModel.implementationRoadmap || []).map((phase, i) => (
+              {(data.reinventedModel?.implementationRoadmap || []).map((phase, i) => (
                 <div key={i} className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                   <span className="px-2 py-0.5 rounded-full typo-card-meta font-bold" style={{ background: "hsl(var(--primary))", color: "white" }}>{phase.phase}</span>
                   <div className="space-y-1 mt-2">
@@ -802,15 +802,15 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                   <p className="typo-card-eyebrow text-muted-foreground">ROI</p>
-                  <p className="text-xs text-foreground/80">{data.reinventedModel.estimatedROI}</p>
+                  <p className="text-xs text-foreground/80">{data.reinventedModel?.estimatedROI || "—"}</p>
                 </div>
                 <div className="p-3 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.2)" }}>
                   <p className="typo-card-eyebrow" style={{ color: "hsl(var(--destructive))" }}>Biggest Risk</p>
-                  <p className="text-xs text-foreground/80">{data.reinventedModel.biggestRisk}</p>
+                  <p className="text-xs text-foreground/80">{data.reinventedModel?.biggestRisk || "—"}</p>
                 </div>
                 <div className="p-3 rounded-lg" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
                   <p className="typo-card-eyebrow text-muted-foreground">Capabilities</p>
-                  {(data.reinventedModel.requiredCapabilities || []).slice(0, 3).map((c, i) => (
+                  {(data.reinventedModel?.requiredCapabilities || []).slice(0, 3).map((c, i) => (
                     <p key={i} className="text-xs text-foreground/80">• {c}</p>
                   ))}
                 </div>
