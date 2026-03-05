@@ -492,11 +492,10 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
               {data.counterExamples.map((ex, i) => (
                 <EvidenceCard
                   key={i}
-                  claim={`${ex.name} (${ex.year})`}
-                  evidence={`Lesson: ${ex.lesson}`}
+                  statement={`${ex.name} (${ex.year}) — Lesson: ${ex.lesson}`}
                   source={ex.similarity}
                   confidence={ex.outcome === "succeeded" ? "high" : ex.outcome === "pivoted" ? "medium" : "low"}
-                  action={<PitchDeckToggle contentKey={`precedent-${i}`} label="Pitch" />}
+                  detail={ex.lesson}
                 />
               ))}
             </VisualGrid>
