@@ -16,9 +16,9 @@ const ANALYZE_TASKS = [
   { label: "Deep Analysis", detail: "Parsing all collected data" },
   { label: "Pricing Intel", detail: "Market prices, margins" },
   { label: "Supply Chain", detail: "Suppliers, distributors" },
-  { label: "Flip Ideas", detail: "Innovations from pain points" },
-  { label: "Action Plans", detail: "Scoring + execution steps" },
-  { label: "Visual Intel", detail: "Product visuals & assets" },
+  { label: "Patent Scan", detail: "IP filings & opportunities" },
+  { label: "Community Intel", detail: "Sentiment & pain points" },
+  { label: "User Journey", detail: "Workflow & friction mapping" },
 ];
 
 export function LoadingTracker({ step, elapsedSeconds, loadingLog }: LoadingTrackerProps) {
