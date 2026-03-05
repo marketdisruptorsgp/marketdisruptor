@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
 import { FirstPrinciplesAnalysis } from "@/components/FirstPrinciplesAnalysis";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard } from "lucide-react";
+import { Brain, ChevronDown, Atom, ArrowRight, Route, Network, LayoutDashboard, Loader2 } from "lucide-react";
 import { type StrategicHypothesis } from "@/lib/strategicOS";
 import type { Product } from "@/data/mockProducts";
 import { type LensType } from "@/lib/multiLensEngine";
-import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
+import { buildSystemIntelligence, invalidateIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { SystemLeverageMapView } from "@/components/SystemLeverageMap";
 import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
 
@@ -468,6 +468,17 @@ export function StructureTab({
         const flipIdeas = (disruptData?.flippedIdeas || selectedProduct?.flippedIdeas || []) as unknown[];
         const activeModes = (analysis.adaptiveContext?.activeModes || [analysis.mainTab === "service" ? "service" : analysis.mainTab === "business" ? "business" : "product"]) as LensType[];
 
+        // Loading fallback: if governed data isn't ready yet, show skeleton
+        if (!governedData) {
+          return (
+            <div className="rounded-xl p-8 flex flex-col items-center gap-3 animate-fade-in" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+              <Loader2 size={24} className="animate-spin text-muted-foreground" />
+              <p className="text-sm font-semibold text-muted-foreground">Building System Intelligence…</p>
+              <p className="text-xs text-muted-foreground/60">Analyzing structural constraints and leverage points</p>
+            </div>
+          );
+        }
+
         const intelligenceInput: SystemIntelligenceInput = {
           analysisId: selectedProduct.id || "unknown",
           governedData,
@@ -561,7 +572,7 @@ export function StructureTab({
           externalData={analysis.disruptData}
           runTrigger={runTrigger}
           onLoadingChange={onLoadingChange}
-          onAnalysisStarted={() => { analysis.setGovernedData(null); }}
+          onAnalysisStarted={() => { analysis.setGovernedData(null); invalidateIntelligence(selectedProduct.id || "unknown"); }}
           onDataLoaded={(d: unknown) => {
             analysis.setDisruptData(d);
             analysis.saveStepData("disrupt", d);

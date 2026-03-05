@@ -11,7 +11,7 @@ import ReactFlow, {
   Controls,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { Network, Layers, Eye, EyeOff } from "lucide-react";
+import { Network, Layers, Eye, EyeOff, Focus, Maximize2 } from "lucide-react";
 import {
   type SystemLeverageMap,
   type LeverageNode,
@@ -41,10 +41,14 @@ const LeverageMapNode = memo(({ data, selected }: NodeProps) => {
   const activeLenses = (data.activeLenses || []) as LensType[];
   const lensScores = (data.lensScores || []) as { lens: LensType; score: number }[];
   const confidence = data.confidence as string;
+  const isHighlighted = data._highlighted as boolean | undefined;
+  const isDimmed = data._dimmed as boolean | undefined;
 
   // Determine dominant lens color for this node
-  const dominantLens = lensScores.sort((a, b) => b.score - a.score)[0];
+  const dominantLens = [...lensScores].sort((a, b) => b.score - a.score)[0];
   const nodeColor = dominantLens ? `hsl(${getLensColor(dominantLens.lens)})` : meta.color;
+
+  const showDetail = hovered || selected || isHighlighted;
 
   return (
     <div
@@ -54,19 +58,22 @@ const LeverageMapNode = memo(({ data, selected }: NodeProps) => {
         background: isConvergence
           ? `linear-gradient(135deg, hsl(${getLensColor("product")} / 0.06), hsl(${getLensColor("business")} / 0.06))`
           : `hsl(var(--vi-surface-elevated))`,
-        border: `${isConvergence ? 2.5 : 1.5}px ${confidence === "high" ? "solid" : "dashed"} ${hovered || selected ? nodeColor : `${nodeColor}44`}`,
+        border: `${isConvergence ? 2.5 : 1.5}px ${confidence === "high" ? "solid" : "dashed"} ${showDetail ? nodeColor : `${nodeColor}44`}`,
         borderRadius: layer === 3 ? 16 : 12,
         padding: "12px 16px",
         minWidth: layer === 2 ? 200 : 170,
         maxWidth: 260,
-        boxShadow: hovered
-          ? `0 8px 32px -8px ${nodeColor}33, 0 0 0 1px ${nodeColor}22`
-          : isConvergence
-            ? `0 4px 16px -4px ${nodeColor}22`
-            : "var(--shadow-vi-node)",
-        transition: "all 0.2s ease",
+        opacity: isDimmed ? 0.25 : 1,
+        boxShadow: isHighlighted
+          ? `0 0 0 3px ${nodeColor}33, 0 8px 32px -8px ${nodeColor}44`
+          : hovered
+            ? `0 8px 32px -8px ${nodeColor}33, 0 0 0 1px ${nodeColor}22`
+            : isConvergence
+              ? `0 4px 16px -4px ${nodeColor}22`
+              : "var(--shadow-vi-node)",
+        transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
         cursor: "pointer",
-        transform: hovered ? "translateY(-1px)" : "none",
+        transform: isHighlighted ? "scale(1.04)" : hovered ? "translateY(-1px)" : "none",
         position: "relative" as const,
       }}
     >
@@ -116,8 +123,8 @@ const LeverageMapNode = memo(({ data, selected }: NodeProps) => {
         {data.label}
       </p>
 
-      {/* Lens score pills — visible on hover */}
-      {hovered && activeLenses.length > 0 && (
+      {/* Lens score pills — visible on hover/highlight */}
+      {showDetail && activeLenses.length > 0 && (
         <div style={{
           display: "flex", gap: 4, marginTop: 8,
           borderTop: "1px solid hsl(var(--border) / 0.5)",
@@ -137,7 +144,7 @@ const LeverageMapNode = memo(({ data, selected }: NodeProps) => {
       )}
 
       {/* Attributes */}
-      {hovered && data.attributes && (
+      {showDetail && data.attributes && (
         <p style={{
           margin: "4px 0 0", fontSize: 10, lineHeight: 1.35,
           color: "hsl(var(--muted-foreground))",
@@ -154,13 +161,98 @@ LeverageMapNode.displayName = "LeverageMapNode";
 
 const nodeTypes = { leverageNode: LeverageMapNode };
 
+/* ── Highlight helpers ── */
+function getConnectedIds(
+  nodeId: string,
+  nodeType: string,
+  mapEdges: { from: string; to: string }[],
+): Set<string> {
+  const connected = new Set<string>();
+  connected.add(nodeId);
+
+  if (nodeType === "constraint") {
+    // Downstream: leverage + opportunities
+    for (const e of mapEdges) {
+      if (e.from === nodeId) connected.add(e.to);
+      if (e.to === nodeId) connected.add(e.from);
+    }
+    // Second hop for opportunities reachable through leverage
+    const firstHop = new Set(connected);
+    for (const e of mapEdges) {
+      if (firstHop.has(e.from)) connected.add(e.to);
+    }
+  } else if (nodeType === "leverage") {
+    // Upstream constraints + downstream opportunities
+    for (const e of mapEdges) {
+      if (e.from === nodeId || e.to === nodeId) {
+        connected.add(e.from);
+        connected.add(e.to);
+      }
+    }
+  } else {
+    // Opportunity: upstream leverage + constraints
+    for (const e of mapEdges) {
+      if (e.to === nodeId) connected.add(e.from);
+    }
+    const firstHop = new Set(connected);
+    for (const e of mapEdges) {
+      if (firstHop.has(e.to)) connected.add(e.from);
+    }
+  }
+
+  return connected;
+}
+
+function getConnectedEdgeIds(
+  connectedNodeIds: Set<string>,
+  mapEdges: { from: string; to: string }[],
+): Set<number> {
+  const edgeIndices = new Set<number>();
+  mapEdges.forEach((e, i) => {
+    if (connectedNodeIds.has(e.from) && connectedNodeIds.has(e.to)) {
+      edgeIndices.add(i);
+    }
+  });
+  return edgeIndices;
+}
+
+/* ── Focus Mode filter ── */
+function filterFocusNodes(map: SystemLeverageMap): SystemLeverageMap {
+  const IMPACT_THRESHOLD = 6;
+  const keepIds = new Set<string>();
+
+  for (const n of map.nodes) {
+    if (n.isConvergenceZone) { keepIds.add(n.id); continue; }
+    if (n.impact >= IMPACT_THRESHOLD) { keepIds.add(n.id); continue; }
+    if (n.type === "constraint" && n.confidence === "high") { keepIds.add(n.id); continue; }
+  }
+
+  // Keep nodes connected to kept nodes
+  for (const e of map.edges) {
+    if (keepIds.has(e.from) || keepIds.has(e.to)) {
+      keepIds.add(e.from);
+      keepIds.add(e.to);
+    }
+  }
+
+  return {
+    ...map,
+    nodes: map.nodes.filter(n => keepIds.has(n.id)),
+    edges: map.edges.filter(e => keepIds.has(e.from) && keepIds.has(e.to)),
+  };
+}
+
 /* ── Layout engine ── */
-function layoutNodes(map: SystemLeverageMap, activeLenses: LensType[]): { nodes: Node[]; edges: Edge[] } {
+function layoutNodes(
+  map: SystemLeverageMap,
+  activeLenses: LensType[],
+  highlightedIds: Set<string> | null,
+  highlightedEdges: Set<number> | null,
+): { nodes: Node[]; edges: Edge[] } {
   const CARD_W = 220;
   const GAP_X = 70;
   const GAP_Y = 140;
 
-  // Group by layer
   const layers: Map<number, LeverageNode[]> = new Map();
   for (const n of map.nodes) {
     if (!layers.has(n.layer)) layers.set(n.layer, []);
@@ -176,6 +268,9 @@ function layoutNodes(map: SystemLeverageMap, activeLenses: LensType[]): { nodes:
     const startX = (maxWidth * (CARD_W + GAP_X) - totalW) / 2;
 
     layerNodes.forEach((n, i) => {
+      const isHighlighted = highlightedIds ? highlightedIds.has(n.id) : false;
+      const isDimmed = highlightedIds ? !highlightedIds.has(n.id) : false;
+
       rfNodes.push({
         id: n.id,
         type: "leverageNode",
@@ -189,6 +284,8 @@ function layoutNodes(map: SystemLeverageMap, activeLenses: LensType[]): { nodes:
           activeLenses,
           attributes: n.attributes,
           impact: n.impact,
+          _highlighted: isHighlighted,
+          _dimmed: isDimmed,
         },
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top,
@@ -199,6 +296,8 @@ function layoutNodes(map: SystemLeverageMap, activeLenses: LensType[]): { nodes:
   const rfEdges: Edge[] = map.edges.map((e, i) => {
     const sourceNode = map.nodes.find(n => n.id === e.from);
     const isHighStrength = e.strength > 0.7;
+    const isEdgeHighlighted = highlightedEdges ? highlightedEdges.has(i) : false;
+    const isEdgeDimmed = highlightedEdges ? !highlightedEdges.has(i) : false;
 
     return {
       id: `le-${i}`,
@@ -206,14 +305,23 @@ function layoutNodes(map: SystemLeverageMap, activeLenses: LensType[]): { nodes:
       target: e.to,
       label: e.relationship,
       type: "smoothstep",
-      animated: isHighStrength,
-      markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: "hsl(var(--vi-edge))" },
+      animated: isHighStrength || isEdgeHighlighted,
+      markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: isEdgeHighlighted ? "hsl(var(--primary))" : "hsl(var(--vi-edge))" },
       style: {
-        stroke: sourceNode?.isConvergenceZone ? "hsl(var(--warning))" : "hsl(var(--vi-edge))",
-        strokeWidth: isHighStrength ? 2 : 1.5,
-        strokeDasharray: isHighStrength ? undefined : "6 4",
+        stroke: isEdgeHighlighted
+          ? "hsl(var(--primary))"
+          : sourceNode?.isConvergenceZone
+            ? "hsl(var(--warning))"
+            : "hsl(var(--vi-edge))",
+        strokeWidth: isEdgeHighlighted ? 2.5 : isHighStrength ? 2 : 1.5,
+        strokeDasharray: isHighStrength || isEdgeHighlighted ? undefined : "6 4",
+        opacity: isEdgeDimmed ? 0.15 : 1,
+        transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
       },
-      labelStyle: { fontSize: 9, fontWeight: 600, fill: "hsl(var(--muted-foreground))" },
+      labelStyle: {
+        fontSize: 9, fontWeight: 600,
+        fill: isEdgeDimmed ? "hsl(var(--muted-foreground) / 0.3)" : "hsl(var(--muted-foreground))",
+      },
       labelBgStyle: { fill: "hsl(var(--vi-surface-elevated) / 0.92)", fillOpacity: 0.92 },
       labelBgPadding: [6, 3] as [number, number],
       labelBgBorderRadius: 4,
@@ -259,19 +367,45 @@ export function SystemLeverageMapView({
   availableLenses?: LensType[];
 }) {
   const [activeLenses, setActiveLenses] = useState<LensType[]>(availableLenses);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [focusMode, setFocusMode] = useState(false);
 
   const toggleLens = useCallback((lens: LensType) => {
     setActiveLenses(prev => {
       if (prev.includes(lens)) {
-        return prev.length > 1 ? prev.filter(l => l !== lens) : prev; // keep at least 1
+        return prev.length > 1 ? prev.filter(l => l !== lens) : prev;
       }
       return [...prev, lens];
     });
   }, []);
 
-  const { nodes, edges } = useMemo(() => layoutNodes(map, activeLenses), [map, activeLenses]);
+  // Apply focus mode filter
+  const displayMap = useMemo(() => focusMode ? filterFocusNodes(map) : map, [map, focusMode]);
 
-  const layerCount = new Set(map.nodes.map(n => n.layer)).size;
+  // Compute highlight sets based on selected node
+  const { highlightedIds, highlightedEdges } = useMemo(() => {
+    if (!selectedNodeId) return { highlightedIds: null, highlightedEdges: null };
+    const selectedNode = displayMap.nodes.find(n => n.id === selectedNodeId);
+    if (!selectedNode) return { highlightedIds: null, highlightedEdges: null };
+    const ids = getConnectedIds(selectedNodeId, selectedNode.type, displayMap.edges);
+    const edgeIds = getConnectedEdgeIds(ids, displayMap.edges);
+    return { highlightedIds: ids, highlightedEdges: edgeIds };
+  }, [selectedNodeId, displayMap]);
+
+  const { nodes, edges } = useMemo(
+    () => layoutNodes(displayMap, activeLenses, highlightedIds, highlightedEdges),
+    [displayMap, activeLenses, highlightedIds, highlightedEdges],
+  );
+
+  const handleNodeClick = useCallback((_: unknown, node: Node) => {
+    setSelectedNodeId(prev => prev === node.id ? null : node.id);
+  }, []);
+
+  const handlePaneClick = useCallback(() => {
+    setSelectedNodeId(null);
+  }, []);
+
+  const layerCount = new Set(displayMap.nodes.map(n => n.layer)).size;
   const containerH = Math.max(380, layerCount * 220 + 100);
 
   return (
@@ -303,20 +437,36 @@ export function SystemLeverageMapView({
           </div>
         </div>
 
-        {/* Lens toggles */}
-        {availableLenses.length > 1 && (
-          <div className="flex items-center gap-1.5">
-            <Layers size={12} className="text-muted-foreground" />
-            {availableLenses.map(lens => (
-              <LensToggle
-                key={lens}
-                lens={lens}
-                active={activeLenses.includes(lens)}
-                onToggle={toggleLens}
-              />
-            ))}
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Focus Mode toggle */}
+          <button
+            onClick={() => { setFocusMode(f => !f); setSelectedNodeId(null); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
+            style={{
+              background: focusMode ? "hsl(var(--primary) / 0.12)" : "hsl(var(--muted))",
+              color: focusMode ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+              border: `1.5px solid ${focusMode ? "hsl(var(--primary) / 0.3)" : "transparent"}`,
+            }}
+          >
+            {focusMode ? <Focus size={12} /> : <Maximize2 size={12} />}
+            {focusMode ? "Focus" : "Full Map"}
+          </button>
+
+          {/* Lens toggles */}
+          {availableLenses.length > 1 && (
+            <div className="flex items-center gap-1.5">
+              <Layers size={12} className="text-muted-foreground" />
+              {availableLenses.map(lens => (
+                <LensToggle
+                  key={lens}
+                  lens={lens}
+                  active={activeLenses.includes(lens)}
+                  onToggle={toggleLens}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Convergence callout */}
@@ -338,6 +488,38 @@ export function SystemLeverageMapView({
         </div>
       )}
 
+      {/* Selected node info bar */}
+      {selectedNodeId && (() => {
+        const node = displayMap.nodes.find(n => n.id === selectedNodeId);
+        if (!node) return null;
+        const layerLabel = LAYER_META[node.layer]?.label || "Node";
+        const layerColor = LAYER_META[node.layer]?.color || "hsl(var(--foreground))";
+        return (
+          <div
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl animate-fade-in"
+            style={{
+              background: "hsl(var(--card))",
+              border: `1.5px solid ${layerColor}33`,
+            }}
+          >
+            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: layerColor }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-foreground">{node.label}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {layerLabel} · Impact {node.impact}/10 · {node.evidence?.[0] || ""}
+              </p>
+            </div>
+            <button
+              onClick={() => setSelectedNodeId(null)}
+              className="text-[10px] font-bold px-2 py-1 rounded-md transition-colors"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
+            >
+              Clear
+            </button>
+          </div>
+        );
+      })()}
+
       {/* ReactFlow canvas */}
       <div
         className="rounded-xl overflow-hidden relative group"
@@ -352,6 +534,8 @@ export function SystemLeverageMapView({
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
+          onNodeClick={handleNodeClick}
+          onPaneClick={handlePaneClick}
           fitView
           fitViewOptions={{ padding: 0.3 }}
           connectionLineType={ConnectionLineType.SmoothStep}
@@ -407,7 +591,7 @@ export function SystemLeverageMapView({
         {/* Interaction hint */}
         <div className="absolute bottom-3 left-3 opacity-60 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none">
           <span className="text-[10px] font-semibold text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md">
-            Hover nodes for lens scores · Scroll to zoom
+            Click nodes to explore connections · Scroll to zoom
           </span>
         </div>
       </div>
