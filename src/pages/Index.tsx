@@ -324,6 +324,7 @@ export default function Index() {
       toast.success("Business model analysis loaded!");
       setTimeout(() => businessResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     } else if (analysis.analysis_type === "first_principles") {
+      // Legacy: first_principles is not a mode — treat as product analysis
       if (analysis.products && analysis.products.length > 0) {
         setProducts(analysis.products);
         setSelectedProduct(analysis.products[0]);
@@ -334,7 +335,7 @@ export default function Index() {
       setExpandedSection("detail");
       setDetailTab("overview");
       setActiveStep(3);
-      toast.success("First principles analysis loaded — re-run to see full results.");
+      toast.success("Analysis loaded — starting from Structural Analysis");
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     } else if (analysis.analysis_type === "service") {
       setProducts(analysis.products);

@@ -1235,7 +1235,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       toast.success("Business model analysis loaded!");
       navigate(`/business/${analysis.id}`);
     } else if (analysis.analysis_type === "first_principles") {
-      toast.success("First principles analysis loaded — re-run to see full results.");
+      toast.success("Analysis loaded — starting from Structural Analysis");
       navigate(`/analysis/${analysis.id}/disrupt`);
     } else {
       if (sanitizedProducts.length === 0) {

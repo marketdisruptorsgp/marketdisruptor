@@ -7,14 +7,14 @@ import { BarChart3, TrendingUp, Layers, Target, Users, Lightbulb, Compass, Flame
 
 const MODE_COLORS: Record<string, string> = {
   product: "hsl(var(--mode-product))",
-  first_principles: "hsl(var(--mode-business))",
+  first_principles: "hsl(var(--mode-product))",
   service: "hsl(var(--mode-service))",
   business_model: "hsl(var(--primary))",
 };
 
 const MODE_LABELS: Record<string, string> = {
   product: "Product",
-  first_principles: "First Principles",
+  first_principles: "Product",
   service: "Service",
   business_model: "Business Model",
 };
@@ -77,7 +77,7 @@ export function PlatformAnalyticsVisual({ overview, topCategories, notableScores
         {[
           { icon: Layers, label: "Analyses Run", value: totalAnalyses, sub: "Total disruption analyses completed by all users on the platform", accent: "hsl(var(--primary))" },
           { icon: TrendingUp, label: "Avg Revival Score", value: `${avgScore}/10`, sub: "Mean score across all completed analyses — higher means stronger disruption potential", accent: "hsl(var(--warning))" },
-          { icon: Users, label: "Analysis Modes Used", value: modeCount, sub: `Users have explored ${modeCount} of 4 available modes (Product, Service, Business, First Principles)`, accent: "hsl(271 81% 55%)" },
+          { icon: Users, label: "Analysis Modes Used", value: modeCount, sub: `Users have explored ${modeCount} of 3 available modes (Product, Service, Business Model)`, accent: "hsl(271 81% 55%)" },
           { icon: Target, label: "High-Potential Finds", value: highScorers, sub: "Analyses scoring 8+/10 — ideas the platform flagged as strong disruption candidates", accent: "hsl(142 76% 36%)" },
         ].map(s => (
           <div key={s.label} className="rounded-xl border border-border bg-card p-4" style={{ borderLeft: `3px solid ${s.accent}` }}>
