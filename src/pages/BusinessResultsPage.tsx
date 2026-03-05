@@ -76,10 +76,10 @@ export default function BusinessResultsPage() {
     reviews: [],
     socialSignals: [],
     competitors: [],
-    assumptionsMap: (businessAnalysisData.hiddenAssumptions || []).map((a: { assumption: string; challengeIdea: string }) => ({ assumption: a.assumption, challenge: a.challengeIdea })),
+    assumptionsMap: (businessAnalysisData?.hiddenAssumptions || []).map((a: { assumption: string; challengeIdea: string }) => ({ assumption: a.assumption, challenge: a.challengeIdea })),
     flippedIdeas: [],
     confidenceScores: { adoptionLikelihood: 7, feasibility: 7, emotionalResonance: 6 },
-    marketSizeEstimate: businessAnalysisData.revenueReinvention?.currentRevenueMix,
+    marketSizeEstimate: businessAnalysisData?.revenueReinvention?.currentRevenueMix,
   };
 
   return (
