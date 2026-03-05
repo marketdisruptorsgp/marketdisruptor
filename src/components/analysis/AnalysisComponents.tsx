@@ -266,7 +266,7 @@ const SIGNAL_STYLES: Record<string, { dot: string; bg: string; border: string }>
   weakness:    { dot: "bg-red-500",    bg: "hsl(0 60% 97%)",   border: "hsl(0 40% 88%)" },
   opportunity: { dot: "bg-blue-500",   bg: "hsl(217 70% 96%)", border: "hsl(217 40% 87%)" },
   threat:      { dot: "bg-amber-500",  bg: "hsl(38 70% 96%)",  border: "hsl(38 40% 87%)" },
-  neutral:     { dot: "bg-gray-400",   bg: "hsl(var(--muted))", border: "hsl(var(--border))" },
+  neutral:     { dot: "bg-muted-foreground", bg: "hsl(var(--muted))", border: "hsl(var(--border))" },
 };
 
 export function SignalCard({ label, score, type = "neutral", explanation, detail, className }: SignalCardProps) {

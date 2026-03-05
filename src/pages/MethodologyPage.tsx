@@ -66,9 +66,9 @@ const FRAMEWORKS = [
     status: "parallel" as const,
     where: "Overall pipeline structure",
     how: "The 6-step pipeline (Intel → Disrupt → Redesign → Stress Test → Pitch) mirrors Empathize → Define → Ideate → Prototype → Test. Diverges from IDEO by using data-driven decomposition instead of ethnographic observation.",
-    accent: "border-l-gray-400",
-    bg: "bg-gray-500/8",
-    iconColor: "text-gray-500",
+    accent: "border-l-border",
+    bg: "bg-muted",
+    iconColor: "text-muted-foreground",
   },
 ];
 
