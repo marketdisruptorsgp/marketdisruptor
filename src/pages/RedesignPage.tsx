@@ -107,17 +107,19 @@ export default function RedesignPage() {
         iconColor="hsl(38 92% 50%)"
       />
 
-      {/* ── Concept Visuals ── */}
-      {activeTab === "concept" && hasData && (() => {
+      {/* ── Concept Visuals (mounted early to pre-generate AI images) ── */}
+      {hasData && (() => {
         const rd = analysis.redesignData as any;
         const concept = rd?.redesignedConcept || rd?.concept;
         if (!concept?.conceptName) return null;
         return (
-          <RedesignVisualGenerator
-            productName={selectedProduct.name}
-            concept={concept}
-            accentColor="hsl(38 92% 50%)"
-          />
+          <div style={{ display: activeTab === "concept" ? undefined : "none" }}>
+            <RedesignVisualGenerator
+              productName={selectedProduct.name}
+              concept={concept}
+              accentColor="hsl(38 92% 50%)"
+            />
+          </div>
         );
       })()}
 
