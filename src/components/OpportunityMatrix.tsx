@@ -3,18 +3,20 @@
  *
  * Renders:
  *   - Friction / Leverage meter bars
+ *   - Expanded Friction dashboard (1-10 scale)
  *   - Priority classification badges
  *   - Scored opportunity cards
  *   - Quadrant summary
  */
 
 import { memo } from "react";
-import { TrendingUp, ShieldAlert, Zap, Target } from "lucide-react";
+import { TrendingUp, ShieldAlert, Zap, Target, Activity } from "lucide-react";
 import {
   type ScoredOpportunity,
   type FrictionScore,
   type LeverageScore,
   type OpportunityPriority,
+  type ExpandedFrictionScore,
   PRIORITY_META,
 } from "@/lib/frictionEngine";
 import type { GovernanceReport } from "@/lib/insightGovernance";
@@ -185,6 +187,106 @@ function GovernanceBadge({ report }: { report: GovernanceReport }) {
   );
 }
 
+/* ── Expanded Friction Dashboard ── */
+const EXPANDED_DIM_LABELS: Record<string, string> = {
+  customerEffort: "Customer Effort",
+  timeDelays: "Time Delays",
+  costInefficiency: "Cost Inefficiency",
+  processComplexity: "Process Complexity",
+  informationAsymmetry: "Info Asymmetry",
+  industryInertia: "Industry Inertia",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  valueDelivery: "Value Delivery",
+  customerExperience: "Customer Experience",
+  operationalFlow: "Operational Flow",
+  marketStructure: "Market Structure",
+};
+
+export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard({
+  friction,
+}: {
+  friction: ExpandedFrictionScore;
+}) {
+  const overallColor = friction.overall <= 4 ? "hsl(152 60% 44%)" : friction.overall <= 6 ? "hsl(38 92% 50%)" : "hsl(0 72% 50%)";
+
+  return (
+    <div className="space-y-4">
+      {/* Overall score */}
+      <div className="flex items-center gap-3">
+        <Activity size={16} style={{ color: overallColor }} />
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">System Friction Index</span>
+            <span className="text-sm font-bold tabular-nums" style={{ color: overallColor }}>{friction.overall.toFixed(1)}/10</span>
+          </div>
+          <ScoreBar value={friction.overall} max={10} color={overallColor} />
+        </div>
+      </div>
+
+      {/* Category scores */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {Object.entries(friction.category).map(([key, value]) => {
+          const catColor = value <= 4 ? "hsl(152 60% 44%)" : value <= 6 ? "hsl(38 92% 50%)" : "hsl(0 72% 50%)";
+          return (
+            <div
+              key={key}
+              className="rounded-xl p-3 space-y-1.5"
+              style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
+            >
+              <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                {CATEGORY_LABELS[key] || key}
+              </p>
+              <p className="text-lg font-extrabold tabular-nums" style={{ color: catColor }}>{value.toFixed(1)}</p>
+              <ScoreBar value={value} max={10} color={catColor} />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Dimension breakdown */}
+      <div className="space-y-1.5">
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Friction Dimensions</p>
+        {Object.entries(friction.dimensions).map(([key, value]) => {
+          const dimColor = value <= 4 ? "hsl(152 60% 44%)" : value <= 6 ? "hsl(38 92% 50%)" : "hsl(0 72% 50%)";
+          return (
+            <div key={key} className="flex items-center gap-2">
+              <span className="text-[9px] font-semibold text-muted-foreground w-24 flex-shrink-0">
+                {EXPANDED_DIM_LABELS[key] || key}
+              </span>
+              <div className="flex-1">
+                <ScoreBar value={value} max={10} color={dimColor} />
+              </div>
+              <span className="text-[10px] font-bold tabular-nums w-6 text-right" style={{ color: dimColor }}>
+                {value}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Top friction points */}
+      {friction.topFactors.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {friction.topFactors.map(f => (
+            <span
+              key={f.dimension}
+              className="px-2.5 py-1 rounded-full text-[10px] font-bold"
+              style={{
+                background: f.score >= 7 ? "hsl(0 72% 50% / 0.12)" : "hsl(38 92% 50% / 0.12)",
+                color: f.score >= 7 ? "hsl(0 72% 50%)" : "hsl(38 92% 50%)",
+              }}
+            >
+              {EXPANDED_DIM_LABELS[f.dimension] || f.dimension}: {f.score}/10
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
 /* ── Main Component ── */
 export interface OpportunityMatrixProps {
   opportunities: ScoredOpportunity[];
@@ -197,6 +299,7 @@ export interface OpportunityMatrixProps {
     avgLeverage: number;
   };
   governanceReport?: GovernanceReport;
+  expandedFriction?: ExpandedFrictionScore;
   compact?: boolean;
 }
 
@@ -204,12 +307,18 @@ export const OpportunityMatrix = memo(function OpportunityMatrix({
   opportunities,
   summary,
   governanceReport,
+  expandedFriction,
   compact = false,
 }: OpportunityMatrixProps) {
   if (opportunities.length === 0) return null;
 
   return (
     <div className="space-y-4">
+      {/* Expanded Friction Dashboard */}
+      {expandedFriction && (
+        <ExpandedFrictionDashboard friction={expandedFriction} />
+      )}
+
       {/* Quadrant overview */}
       <QuadrantSummary summary={summary} />
 

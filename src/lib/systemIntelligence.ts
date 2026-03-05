@@ -35,12 +35,22 @@ import {
   scoreOpportunities,
   type ScoredOpportunity,
   type ScoringOutput,
+  computeExpandedFriction,
+  type ExpandedFrictionScore,
 } from "@/lib/frictionEngine";
 import {
   governInsights,
   type GovernedInsight,
   type GovernanceReport,
 } from "@/lib/insightGovernance";
+import {
+  extractCanonicalModel,
+  type CanonicalModel,
+} from "@/lib/canonicalSchema";
+import {
+  buildProvenanceRegistry,
+  type ProvenanceRegistry,
+} from "@/lib/insightProvenance";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -94,6 +104,10 @@ export interface SystemIntelligence {
   scoringSummary: ScoringOutput["summary"] | null;
   governanceReport: GovernanceReport | null;
   provenanceReport: { artifactScored: number; heuristicScored: number };
+  // Canonical schema + provenance
+  canonicalModel: CanonicalModel | null;
+  provenanceRegistry: ProvenanceRegistry | null;
+  expandedFriction: ExpandedFrictionScore | null;
   computedAt: number;
 }
 
@@ -209,6 +223,31 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
     convergenceZones,
   };
 
+  // ── Stage 5: Canonical Model ──
+  const canonicalModel = extractCanonicalModel(
+    dominantLens, governedData, disruptData, businessAnalysisData,
+  );
+
+  // ── Stage 6: Provenance Registry ──
+  const provenanceRegistry = buildProvenanceRegistry(
+    constraints, leveragePoints, opportunities, dominantLens,
+  );
+
+  // ── Stage 7: Expanded Friction Index (system-wide) ──
+  const allLabels = [
+    ...constraints.map(c => c.label),
+    ...leveragePoints.map(l => l.label),
+    ...opportunities.map(o => o.label),
+  ];
+  const allEvidence = [
+    ...constraints.flatMap(c => c.evidence),
+    ...leveragePoints.flatMap(l => l.evidence),
+    ...opportunities.flatMap(o => o.evidence),
+  ];
+  const expandedFriction = allLabels.length > 0
+    ? computeExpandedFriction(allLabels.join(" "), allEvidence)
+    : null;
+
   const result: SystemIntelligence = {
     analysisId,
     lenses,
@@ -222,6 +261,9 @@ export function buildSystemIntelligence(input: SystemIntelligenceInput): SystemI
     scoringSummary: scoringResult?.summary || null,
     governanceReport: governed.report,
     provenanceReport: leverageMap?.provenanceReport || { artifactScored: 0, heuristicScored: 0 },
+    canonicalModel,
+    provenanceRegistry,
+    expandedFriction,
     computedAt: Date.now(),
   };
 
@@ -246,5 +288,7 @@ export function runMultiLensAnalysis(input: SystemIntelligenceInput): SystemInte
 
 // Re-export types needed by consumers
 export type { LensType, LeverageNode, SystemLeverageMap } from "@/lib/multiLensEngine";
-export type { ScoredOpportunity, ScoringOutput } from "@/lib/frictionEngine";
+export type { ScoredOpportunity, ScoringOutput, ExpandedFrictionScore } from "@/lib/frictionEngine";
 export type { GovernanceReport } from "@/lib/insightGovernance";
+export type { CanonicalModel } from "@/lib/canonicalSchema";
+export type { ProvenanceRegistry } from "@/lib/insightProvenance";

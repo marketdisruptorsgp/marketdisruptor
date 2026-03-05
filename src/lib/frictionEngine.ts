@@ -4,11 +4,15 @@
  * Quantifies how difficult an assumption, constraint, or insight
  * would be to change in the real world.
  *
- * Four dimensions scored 1–5:
+ * Strategic Friction (4 dimensions, scored 1–5):
  *   Structural  — infrastructure, supply chains, capital intensity, regulation
  *   Economic    — cost structure, switching costs, margin compression, complexity
  *   Behavioral  — customer habits, trust, adoption inertia, cultural norms
  *   Competitive — incumbents, network effects, lock-in, distribution power
+ *
+ * Expanded Friction (6 dimensions, scored 1–10):
+ *   Customer Effort, Time Delays, Cost Inefficiency,
+ *   Process Complexity, Information Asymmetry, Industry Inertia
  *
  * Mode-aware weighting adjusts emphasis per analysis lens.
  */
@@ -286,6 +290,110 @@ export function scoreOpportunities(input: ScoringInput): ScoringOutput {
   };
 
   return { scored, summary };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EXPANDED FRICTION INDEX (1–10 scale, 6 dimensions)
+// ═══════════════════════════════════════════════════════════════
+
+export interface ExpandedFrictionDimensions {
+  customerEffort: number;       // 1–10
+  timeDelays: number;
+  costInefficiency: number;
+  processComplexity: number;
+  informationAsymmetry: number;
+  industryInertia: number;
+}
+
+export interface ExpandedFrictionScore {
+  dimensions: ExpandedFrictionDimensions;
+  overall: number; // weighted average 1-10
+  topFactors: { dimension: string; score: number }[];
+  category: {
+    valueDelivery: number;
+    customerExperience: number;
+    operationalFlow: number;
+    marketStructure: number;
+  };
+}
+
+const EXPANDED_KEYWORDS: Record<keyof ExpandedFrictionDimensions, string[]> = {
+  customerEffort: [
+    "effort", "manual", "complex", "difficult", "confusing", "frustrat",
+    "time-consuming", "steps", "requires", "must", "learn", "training",
+  ],
+  timeDelays: [
+    "delay", "wait", "slow", "latency", "lead time", "queue", "backlog",
+    "turnaround", "processing time", "lag", "weeks", "months",
+  ],
+  costInefficiency: [
+    "cost", "expensive", "overhead", "waste", "inefficien", "margin",
+    "overpriced", "premium", "markup", "bloat", "redundan",
+  ],
+  processComplexity: [
+    "process", "steps", "workflow", "bureaucra", "compliance", "approval",
+    "integration", "legacy", "handoff", "silo", "coordination",
+  ],
+  informationAsymmetry: [
+    "information", "transparency", "hidden", "opaque", "asymmetr",
+    "unclear", "confus", "unknown", "undisclosed", "obscure",
+  ],
+  industryInertia: [
+    "legacy", "tradition", "inertia", "incumben", "standard", "always been",
+    "industry norm", "conventional", "established", "entrenched",
+  ],
+};
+
+function scoreDimensionExpanded(text: string, keywords: string[]): number {
+  const lower = text.toLowerCase();
+  let hits = 0;
+  for (const kw of keywords) {
+    if (lower.includes(kw)) hits++;
+  }
+  if (hits === 0) return 3; // baseline
+  if (hits === 1) return 5;
+  if (hits === 2) return 7;
+  if (hits === 3) return 8;
+  return 10;
+}
+
+export function computeExpandedFriction(
+  label: string,
+  evidence: string[],
+): ExpandedFrictionScore {
+  const text = [label, ...evidence].join(" ");
+
+  const dimensions: ExpandedFrictionDimensions = {
+    customerEffort: scoreDimensionExpanded(text, EXPANDED_KEYWORDS.customerEffort),
+    timeDelays: scoreDimensionExpanded(text, EXPANDED_KEYWORDS.timeDelays),
+    costInefficiency: scoreDimensionExpanded(text, EXPANDED_KEYWORDS.costInefficiency),
+    processComplexity: scoreDimensionExpanded(text, EXPANDED_KEYWORDS.processComplexity),
+    informationAsymmetry: scoreDimensionExpanded(text, EXPANDED_KEYWORDS.informationAsymmetry),
+    industryInertia: scoreDimensionExpanded(text, EXPANDED_KEYWORDS.industryInertia),
+  };
+
+  const vals = Object.values(dimensions);
+  const overall = round2(vals.reduce((s, v) => s + v, 0) / vals.length);
+
+  // Category aggregation
+  const category = {
+    valueDelivery: round2((dimensions.costInefficiency + dimensions.processComplexity) / 2),
+    customerExperience: round2((dimensions.customerEffort + dimensions.timeDelays) / 2),
+    operationalFlow: round2((dimensions.processComplexity + dimensions.timeDelays) / 2),
+    marketStructure: round2((dimensions.industryInertia + dimensions.informationAsymmetry) / 2),
+  };
+
+  // Top factors
+  const sorted = Object.entries(dimensions)
+    .map(([dimension, score]) => ({ dimension, score }))
+    .sort((a, b) => b.score - a.score);
+
+  return {
+    dimensions,
+    overall,
+    topFactors: sorted.slice(0, 3),
+    category,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════
