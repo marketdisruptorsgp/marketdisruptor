@@ -463,6 +463,158 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
   "business-model-analysis": {
     type: "object",
     properties: {
+      businessSummary: {
+        type: "object",
+        properties: {
+          trueJobToBeDone: { type: "string" },
+          currentModel: { type: "string" },
+          marketPosition: { type: "string" },
+          hiddenStrengths: { type: "array", items: { type: "string" } },
+          whatAlreadyWorks: { type: "array", items: { type: "string" } },
+          keepVsChange: { type: "string" },
+        },
+        required: ["trueJobToBeDone", "currentModel", "marketPosition", "hiddenStrengths"],
+        additionalProperties: false,
+      },
+      operationalAudit: {
+        type: "object",
+        properties: {
+          customerJourney: { type: "array", items: { type: "string" } },
+          frictionPoints: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                stage: { type: "string" },
+                friction: { type: "string" },
+                impact: { type: "string", enum: ["high", "medium", "low"] },
+                rootCause: { type: "string" },
+              },
+              required: ["stage", "friction", "impact"],
+              additionalProperties: false,
+            },
+          },
+          costStructure: {
+            type: "object",
+            properties: {
+              biggestCostDrivers: { type: "array", items: { type: "string" } },
+              fixedVsVariable: { type: "string" },
+              eliminationCandidates: { type: "array", items: { type: "string" } },
+            },
+            required: ["biggestCostDrivers", "fixedVsVariable"],
+            additionalProperties: false,
+          },
+          revenueLeaks: { type: "array", items: { type: "string" } },
+        },
+        required: ["customerJourney", "frictionPoints", "costStructure"],
+        additionalProperties: false,
+      },
+      hiddenAssumptions: {
+        type: "array",
+        minItems: 3,
+        items: {
+          type: "object",
+          properties: {
+            assumption: { type: "string" },
+            currentAnswer: { type: "string" },
+            category: { type: "string" },
+            isChallengeable: { type: "boolean" },
+            challengeIdea: { type: "string" },
+            leverageScore: { type: "number" },
+          },
+          required: ["assumption", "currentAnswer", "challengeIdea", "leverageScore"],
+          additionalProperties: false,
+        },
+      },
+      technologyLeverage: {
+        type: "object",
+        properties: {
+          currentTechLevel: { type: "string" },
+          automationOpportunities: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                process: { type: "string" },
+                technology: { type: "string" },
+                costSaving: { type: "string" },
+                implementationDifficulty: { type: "string", enum: ["easy", "medium", "hard"] },
+              },
+              required: ["process", "technology", "costSaving"],
+              additionalProperties: false,
+            },
+          },
+          aiOpportunities: { type: "array", items: { type: "string" } },
+          platformOpportunity: { type: "string" },
+        },
+        required: ["currentTechLevel", "automationOpportunities"],
+        additionalProperties: false,
+      },
+      revenueReinvention: {
+        type: "object",
+        properties: {
+          currentRevenueMix: { type: "string" },
+          untappedStreams: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                stream: { type: "string" },
+                mechanism: { type: "string" },
+                estimatedSize: { type: "string" },
+                effort: { type: "string", enum: ["low", "medium", "high"] },
+              },
+              required: ["stream", "mechanism", "effort"],
+              additionalProperties: false,
+            },
+          },
+          pricingRedesign: { type: "string" },
+          bundleOpportunities: { type: "array", items: { type: "string" } },
+        },
+        required: ["currentRevenueMix", "untappedStreams", "pricingRedesign"],
+        additionalProperties: false,
+      },
+      disruptionAnalysis: {
+        type: "object",
+        properties: {
+          vulnerabilities: { type: "array", items: { type: "string" } },
+          disruptorProfile: { type: "string" },
+          defenseMoves: { type: "array", items: { type: "string" } },
+          attackMoves: { type: "string" },
+        },
+        required: ["vulnerabilities", "disruptorProfile", "defenseMoves"],
+        additionalProperties: false,
+      },
+      reinventedModel: {
+        type: "object",
+        properties: {
+          modelName: { type: "string" },
+          coreShift: { type: "string" },
+          keyChanges: { type: "array", items: { type: "string" } },
+          newValueProposition: { type: "string" },
+          economicTransformation: { type: "string" },
+          implementationRoadmap: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                phase: { type: "string" },
+                actions: { type: "array", items: { type: "string" } },
+                milestone: { type: "string" },
+              },
+              required: ["phase", "actions", "milestone"],
+              additionalProperties: false,
+            },
+          },
+          estimatedROI: { type: "string" },
+          biggestRisk: { type: "string" },
+          requiredCapabilities: { type: "array", items: { type: "string" } },
+        },
+        required: ["modelName", "coreShift", "keyChanges", "newValueProposition"],
+        additionalProperties: false,
+      },
+      visualSpecs: { type: "array", items: { type: "object", additionalProperties: true } },
+      actionPlans: { type: "array", items: { type: "object", additionalProperties: true } },
       governed: {
         type: "object",
         properties: {
@@ -477,7 +629,7 @@ const GOVERNED_SCHEMAS: Record<string, Record<string, unknown>> = {
         additionalProperties: true,
       },
     },
-    required: ["governed"],
+    required: ["businessSummary", "operationalAudit", "hiddenAssumptions", "technologyLeverage", "revenueReinvention", "disruptionAnalysis", "reinventedModel", "governed"],
     additionalProperties: true,
   },
 };

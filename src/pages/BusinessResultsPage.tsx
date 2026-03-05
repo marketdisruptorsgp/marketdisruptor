@@ -150,14 +150,12 @@ export default function BusinessResultsPage() {
         />
 
         {/* ── Back navigation bar ── */}
-        {backNav && (
-          backNav.step === 0
-            ? <StepNavBar backLabel="Home" backPath="/" accentColor={modeAccent} />
-            : <StepNavBar
-                backLabel={backNav.label}
-                backPath="#"
-                accentColor={modeAccent}
-              />
+        {backNav && backNav.step !== 0 && (
+          <StepNavBar
+            backLabel={backNav.label}
+            backPath="#"
+            accentColor={modeAccent}
+          />
         )}
 
         {/* ── Persistent analysis title ── */}
