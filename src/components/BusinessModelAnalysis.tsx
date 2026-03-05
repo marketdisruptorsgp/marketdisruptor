@@ -418,6 +418,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
         <div className="space-y-4">
           <SectionHeader current={currentTabIdx + 1} total={tabs.length} label="Business Reality" icon={Eye} />
 
+          {!data.businessSummary ? (
+            <p className="text-sm text-muted-foreground italic">Business summary data unavailable.</p>
+          ) : (
           <AnalysisVisualLayer analysis={data as unknown as Record<string, unknown>} step="businessModel">
           <div className="p-4 rounded-lg" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
             <p className="typo-card-eyebrow mb-1" style={{ color: "hsl(var(--primary))" }}>True Job To Be Done</p>
@@ -436,9 +439,9 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
             </div>
           </div>
 
-          <DetailPanel title={`Hidden Strengths (${data.businessSummary.hiddenStrengths.length})`} icon={Lightbulb}>
+          <DetailPanel title={`Hidden Strengths (${(data.businessSummary.hiddenStrengths || []).length})`} icon={Lightbulb}>
             <div className="space-y-1.5 mb-2">
-              {data.businessSummary.hiddenStrengths.map((s, i) => (
+              {(data.businessSummary.hiddenStrengths || []).map((s, i) => (
                 <div key={i} className="flex gap-2 items-start text-xs">
                   <CheckCircle2 size={10} style={{ color: "hsl(38 92% 40%)", flexShrink: 0, marginTop: 2 }} />
                   <span className="text-foreground/80">{s}</span>
@@ -449,6 +452,7 @@ export const BusinessModelAnalysis = ({ initialData, onSaved, renderMode, onAnal
 
           {nextTab && <NextSectionButton label={nextTab.label} onClick={goNext} />}
           </AnalysisVisualLayer>
+          )}
         </div>
       )}
 
