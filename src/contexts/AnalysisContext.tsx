@@ -559,6 +559,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setPitchDeckData(null);
     setRedesignData(null);
     setGovernedData(null);
+    setBusinessAnalysisData(null);
+    setBusinessStressTestData(null);
     setActiveBranchIdState(null);
     setUserScores({});
     setOutdatedSteps(new Set());
@@ -566,7 +568,17 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setSteeringText("");
     setPitchDeckImages([]);
     setPitchDeckExclusions(new Set());
+    setScoutedCompetitors([]);
+    setAdaptiveContext(null);
+    setGeoData(null);
+    setRegulatoryData(null);
     // Keep activeLens — user may want to run analysis with their lens
+
+    // Clear intelligence cache to prevent cross-analysis contamination
+    import("@/lib/systemIntelligence").then(({ clearIntelligenceCache }) => {
+      clearIntelligenceCache();
+    }).catch(() => { /* non-critical */ });
+
     startLoadingTimer();
 
     const hasCustom = customProducts && customProducts.length > 0;
@@ -1123,6 +1135,11 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     setGeoData(null);
     setRegulatoryData(null);
 
+    // Clear intelligence cache to prevent cross-analysis contamination
+    import("@/lib/systemIntelligence").then(({ clearIntelligenceCache }) => {
+      clearIntelligenceCache();
+    }).catch(() => { /* non-critical */ });
+
     // If analysis_data is missing (e.g. workspace list query), fetch the full record first
     let analysis = rawAnalysis;
     if (!analysis.analysis_data && analysis.id) {
@@ -1309,20 +1326,53 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // ── AUTO-HYDRATION: Load analysis from URL when context is empty ──
   // This handles direct navigation (bookmarks, shared links, page refresh)
-  const autoHydratedRef = useRef(false);
+  // Also re-triggers when the URL changes to a DIFFERENT analysis ID
+  const autoHydratedIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (autoHydratedRef.current) return;
-    if (step !== "idle" || products.length > 0) return;
-
     // Extract analysis ID from URL path: /analysis/:id/... or /business/:id
     const match = window.location.pathname.match(/(?:\/analysis|\/business)\/([0-9a-f-]{36})/);
     if (!match) return;
     const urlAnalysisId = match[1];
     if (!urlAnalysisId || !user?.id) return;
 
-    autoHydratedRef.current = true;
+    // Skip if we already hydrated THIS specific analysis
+    if (autoHydratedIdRef.current === urlAnalysisId) return;
+    // Skip if context already has the correct analysis loaded
+    if (analysisId === urlAnalysisId && step === "done" && products.length > 0) {
+      autoHydratedIdRef.current = urlAnalysisId;
+      return;
+    }
+    // Don't interrupt an active analysis pipeline (scraping/analyzing)
+    if (step === "scraping" || step === "analyzing") return;
+
+    autoHydratedIdRef.current = urlAnalysisId;
     setIsHydrating(true);
     console.log("[AutoHydrate] Loading analysis from URL:", urlAnalysisId);
+
+    // ── CRITICAL: Clear ALL previous state to prevent cross-analysis leakage ──
+    setDisruptData(null);
+    setStressTestData(null);
+    setPitchDeckData(null);
+    setRedesignData(null);
+    setGovernedData(null);
+    setBusinessAnalysisData(null);
+    setBusinessStressTestData(null);
+    setActiveBranchIdState(null);
+    setUserScores({});
+    setOutdatedSteps(new Set());
+    setInsightPreferences({});
+    setSteeringText("");
+    setPitchDeckImages([]);
+    setPitchDeckExclusions(new Set());
+    setScoutedCompetitors([]);
+    setAdaptiveContext(null);
+    setGeoData(null);
+    setRegulatoryData(null);
+
+    // Clear intelligence cache for the previous analysis to prevent stale data
+    import("@/lib/systemIntelligence").then(({ clearIntelligenceCache }) => {
+      clearIntelligenceCache();
+    }).catch(() => { /* non-critical */ });
 
     (async () => {
       try {
@@ -1342,7 +1392,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Use handleLoadSaved but suppress its navigation — we're already on the right page
         const rawProducts = Array.isArray(data.products) ? data.products : [];
         const sanitizedProducts = rawProducts.map((p: any, idx: number) => {
           const base = {
@@ -1365,51 +1414,49 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           return normalizeProductFields({ ...p, ...base });
         });
 
-        if (sanitizedProducts.length === 0) {
+        if (sanitizedProducts.length === 0 && data.analysis_type !== "business_model") {
           console.warn("[AutoHydrate] Analysis has no products");
           return;
         }
 
         const ad = data.analysis_data as Record<string, unknown> | null;
 
-        // Restore all state
+        // Restore all state — set analysisId FIRST to ensure saveStepData targets the right row
+        setAnalysisId(data.id);
         setLoadedFromSaved(true);
         setProducts(sanitizedProducts);
-        setSelectedProduct(sanitizedProducts[0]);
+        setSelectedProduct(sanitizedProducts[0] || null);
         setAnalysisParams({ category: data.category, era: data.era || "All Eras / Current", batchSize: data.batch_size ?? 5 });
         const isService = data.analysis_type === "service" || isServiceCategory(data.category || "");
         setMainTab(isService ? "service" : data.analysis_type === "business_model" ? "business" : "custom");
         setActiveMode(isService ? "service" : data.analysis_type === "business_model" ? "business" : "custom");
         setStep("done");
-        setAnalysisId(data.id);
 
-        // Restore persisted data
-        if (ad?.governed) setGovernedData(ad.governed as Record<string, unknown>);
-        if (ad?.activeBranchId) setActiveBranchIdState(ad.activeBranchId as string);
+        // Restore persisted data — use explicit null fallbacks to clear any stale state
+        setGovernedData(ad?.governed ? (ad.governed as Record<string, unknown>) : null);
+        setActiveBranchIdState(ad?.activeBranchId ? (ad.activeBranchId as string) : null);
         if (ad?.strategicProfile) setStrategicProfileState(ad.strategicProfile as StrategicProfile);
-        if (ad?.disrupt) setDisruptData(ad.disrupt);
-        if (ad?.stressTest) setStressTestData(ad.stressTest);
-        if (ad?.pitchDeck) setPitchDeckData(ad.pitchDeck);
-        if (ad?.businessStressTest) setBusinessStressTestData(ad.businessStressTest);
-        if (ad?.redesign) setRedesignData(ad.redesign);
-        if (ad?.geoOpportunity) setGeoData(ad.geoOpportunity);
-        if (ad?.regulatoryContext) setRegulatoryData(ad.regulatoryContext);
-        if (ad?.userScores) setUserScores(ad.userScores as Record<string, Record<string, number>>);
-        if (ad?.insightPreferences) setInsightPreferences(ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">);
-        if (ad?.steeringText) setSteeringText(ad.steeringText as string);
-        if (ad?.adaptiveContext) setAdaptiveContext(ad.adaptiveContext as AdaptiveContextData);
-        if (ad?.pitchDeckImages) setPitchDeckImages(ad.pitchDeckImages as { url: string; ideaName: string }[]);
-        if (ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions)) setPitchDeckExclusions(new Set(ad.pitchDeckExclusions as string[]));
-        if (ad?.scoutedCompetitors && Array.isArray(ad.scoutedCompetitors)) setScoutedCompetitors(ad.scoutedCompetitors as unknown[]);
+        setDisruptData(ad?.disrupt || null);
+        setStressTestData(ad?.stressTest || null);
+        setPitchDeckData(ad?.pitchDeck || null);
+        setBusinessStressTestData(ad?.businessStressTest || null);
+        setRedesignData(ad?.redesign || null);
+        setGeoData(ad?.geoOpportunity || null);
+        setRegulatoryData(ad?.regulatoryContext || null);
+        setUserScores(ad?.userScores ? (ad.userScores as Record<string, Record<string, number>>) : {});
+        setInsightPreferences(ad?.insightPreferences ? (ad.insightPreferences as Record<string, "liked" | "dismissed" | "neutral">) : {});
+        setSteeringText(ad?.steeringText ? (ad.steeringText as string) : "");
+        setAdaptiveContext(ad?.adaptiveContext ? (ad.adaptiveContext as AdaptiveContextData) : null);
+        setPitchDeckImages(ad?.pitchDeckImages ? (ad.pitchDeckImages as { url: string; ideaName: string }[]) : []);
+        setPitchDeckExclusions(ad?.pitchDeckExclusions && Array.isArray(ad.pitchDeckExclusions) ? new Set(ad.pitchDeckExclusions as string[]) : new Set());
+        setScoutedCompetitors(ad?.scoutedCompetitors && Array.isArray(ad.scoutedCompetitors) ? (ad.scoutedCompetitors as unknown[]) : []);
         if (!ad?.activeLensId) setActiveLensState(null);
-        if (ad?.outdatedSteps && Array.isArray(ad.outdatedSteps)) setOutdatedSteps(new Set(ad.outdatedSteps as string[]));
-        else setOutdatedSteps(new Set());
+        setOutdatedSteps(ad?.outdatedSteps && Array.isArray(ad.outdatedSteps) ? new Set(ad.outdatedSteps as string[]) : new Set());
 
-        // Business model routing — always restore businessAnalysisData for business analyses
+        // Business model routing
         if (data.analysis_type === "business_model") {
           setBusinessAnalysisData(data.analysis_data as BusinessModelAnalysisData);
           if (ad?.businessPitchDeck) setPitchDeckData(ad.businessPitchDeck);
-          // Extract business model input from title
           const titleParts = (data.title || "").split(" — ");
           if (titleParts.length > 0) {
             setBusinessModelInput({ type: titleParts[0], description: "" } as BusinessModelInput);
@@ -1423,7 +1470,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         setIsHydrating(false);
       }
     })();
-  }, [step, products.length, user?.id]);
+  }, [step, products.length, user?.id, analysisId]);
 
   return (
     <AnalysisContext.Provider value={{
