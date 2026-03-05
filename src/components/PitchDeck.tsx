@@ -453,7 +453,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
             <div style={{ display: "grid", gridTemplateColumns: selectedImages.length > 1 ? "1fr 1fr" : "1fr", gap: 16 }}>
               {selectedImages.map((img, i) => (
                 <div key={i} style={{ ...panel, padding: 0, overflow: "hidden" }}>
-                  <img src={img.url} alt={img.ideaName} style={{ width: "100%", height: 240, objectFit: "cover", borderRadius: "10px 10px 0 0" }} />
+                  <img src={img.url} alt={img.ideaName} style={{ width: "100%", height: 240, objectFit: "contain", borderRadius: "10px 10px 0 0", background: "#f4f4f5" }} />
                   <div style={{ padding: "10px 14px" }}>
                     <p style={{ ...lbl, marginBottom: 4, fontSize: 11 }}>Selected Concept</p>
                     <p style={{ fontSize: 16, fontWeight: 700, color: "#0f0f12" }}>{img.ideaName}</p>
