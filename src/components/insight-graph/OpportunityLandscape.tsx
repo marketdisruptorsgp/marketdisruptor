@@ -1,10 +1,9 @@
 /**
- * Opportunity Landscape
+ * Opportunity Landscape — Enhanced
  *
- * 2-axis scatter plot mapping strategic opportunities:
- * X = Feasibility (confidence), Y = Strategic Impact
+ * 2-axis scatter plot: X = Feasibility, Y = Strategic Impact
  * Node size = influence, Color = node type
- * Quadrants: Incremental Wins, Strategic Plays, Long Bets, Breakthrough Opportunities
+ * With glow states, animation, and breakthrough highlighting.
  */
 
 import { memo, useMemo, useState } from "react";
@@ -12,11 +11,11 @@ import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, ReferenceLine, Label,
 } from "recharts";
-import { Star } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Star, Maximize2 } from "lucide-react";
 import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
 import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 
-/* ── Opportunity types we plot ── */
 const OPPORTUNITY_TYPES: InsightNodeType[] = [
   "outcome", "leverage_point", "flipped_idea", "concept",
 ];
@@ -24,9 +23,9 @@ const OPPORTUNITY_TYPES: InsightNodeType[] = [
 const CONF_MAP: Record<string, number> = { high: 8.5, medium: 5.5, low: 2.5 };
 
 interface PlotPoint {
-  x: number; // feasibility (from confidence)
-  y: number; // impact
-  z: number; // influence → bubble size
+  x: number;
+  y: number;
+  z: number;
   node: InsightGraphNode;
 }
 
@@ -39,7 +38,6 @@ function toPlot(n: InsightGraphNode): PlotPoint {
   };
 }
 
-/* ── Quadrant labels ── */
 const QUADRANTS = [
   { label: "Long Bets",                 x: 2.2,  y: 8.5 },
   { label: "Breakthrough Opportunities", x: 7,    y: 8.5 },
@@ -53,27 +51,39 @@ function CustomTooltip({ active, payload }: any) {
   const pt: PlotPoint = payload[0].payload;
   const cfg = NODE_TYPE_CONFIG[pt.node.type];
   return (
-    <div
-      className="rounded-xl px-4 py-3 shadow-2xl max-w-64"
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-xl px-4 py-3 shadow-2xl max-w-72"
       style={{
         background: "hsl(var(--card))",
-        border: `1.5px solid ${cfg.borderColor}`,
-        backdropFilter: "blur(12px)",
+        border: `2px solid ${cfg.borderColor}`,
+        boxShadow: `0 8px 32px hsl(0 0% 0% / 0.15), 0 0 0 1px ${cfg.borderColor}`,
       }}
     >
-      <div className="flex items-center gap-1.5 mb-1">
-        <div className="w-2.5 h-2.5 rounded-full" style={{ background: cfg.color }} />
-        <span className="text-[9px] font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div
+          className="w-3 h-3 rounded-full"
+          style={{ background: cfg.color, boxShadow: `0 0 8px ${cfg.color}60` }}
+        />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
           {cfg.label}
         </span>
       </div>
       <p className="text-sm font-bold text-foreground leading-snug mb-2">{pt.node.label}</p>
-      <div className="flex gap-3 text-[10px] font-bold text-muted-foreground">
-        <span>Impact <span style={{ color: cfg.color }}>{pt.y}/10</span></span>
-        <span>Feasibility <span style={{ color: cfg.color }}>{pt.node.confidence}</span></span>
-        <span>Influence <span style={{ color: cfg.color }}>{pt.z}</span></span>
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: "Impact", value: `${pt.y}/10` },
+          { label: "Feasibility", value: pt.node.confidence },
+          { label: "Influence", value: String(pt.z) },
+        ].map(m => (
+          <div key={m.label} className="text-center">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-foreground/50">{m.label}</p>
+            <p className="text-xs font-bold" style={{ color: cfg.color }}>{m.value}</p>
+          </div>
+        ))}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -85,26 +95,30 @@ function TypeChip({
   return (
     <button
       onClick={onToggle}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all"
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all"
       style={{
         background: active ? cfg.bgColor : "hsl(var(--muted))",
-        border: `1px solid ${active ? cfg.borderColor : "hsl(var(--border))"}`,
-        color: active ? cfg.color : "hsl(var(--muted-foreground))",
+        border: `1.5px solid ${active ? cfg.borderColor : "hsl(var(--border))"}`,
+        color: active ? cfg.color : "hsl(var(--foreground) / 0.5)",
         opacity: active ? 1 : 0.5,
       }}
     >
-      <div className="w-2 h-2 rounded-full" style={{ background: active ? cfg.color : "hsl(var(--muted-foreground))" }} />
+      <div
+        className="w-2.5 h-2.5 rounded-full"
+        style={{
+          background: active ? cfg.color : "hsl(var(--foreground) / 0.3)",
+          boxShadow: active ? `0 0 6px ${cfg.color}60` : "none",
+        }}
+      />
       {cfg.label} ({count})
     </button>
   );
 }
 
 /* ── Main ── */
-
 interface OpportunityLandscapeProps {
   graph: InsightGraph;
   onSelectNode?: (nodeId: string) => void;
-  /** compact mode for embedding in Command Deck */
   compact?: boolean;
 }
 
@@ -140,11 +154,8 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
 
   if (opportunities.length === 0) {
     return (
-      <div
-        className="flex items-center justify-center rounded-xl py-10"
-        style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
-      >
-        <p className="text-xs text-muted-foreground">Run the analysis pipeline to populate the Opportunity Landscape.</p>
+      <div className="flex items-center justify-center rounded-xl py-10 bg-muted border border-border">
+        <p className="text-sm text-foreground">Run the analysis pipeline to populate the Opportunity Landscape.</p>
       </div>
     );
   }
@@ -166,22 +177,32 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
 
       {/* Breakthrough callout */}
       {breakthrough && !compact && (
-        <div
-          className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl"
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2.5 px-4 py-3 rounded-xl"
           style={{
             background: "hsl(152 60% 44% / 0.08)",
-            border: "1.5px solid hsl(152 60% 44% / 0.2)",
+            border: "1.5px solid hsl(152 60% 44% / 0.25)",
+            boxShadow: "0 0 20px hsl(152 60% 44% / 0.06)",
           }}
         >
-          <Star size={14} style={{ color: "hsl(152 60% 44%)" }} />
-          <p className="text-xs font-bold text-foreground">
-            Top Breakthrough:{" "}
-            <span className="font-semibold text-foreground/70">{breakthrough.label.slice(0, 80)}</span>
-            <span className="ml-2 text-[10px] font-bold tabular-nums" style={{ color: "hsl(152 60% 44%)" }}>
-              Influence {breakthrough.influence}
-            </span>
-          </p>
-        </div>
+          <div
+            className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "hsl(152 60% 44% / 0.15)" }}
+          >
+            <Star size={12} style={{ color: "hsl(152 60% 44%)" }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(152 60% 44%)" }}>
+              Top Breakthrough
+            </p>
+            <p className="text-sm font-bold text-foreground leading-snug truncate">{breakthrough.label}</p>
+          </div>
+          <span className="text-sm font-bold tabular-nums flex-shrink-0" style={{ color: "hsl(152 60% 44%)" }}>
+            Inf. {breakthrough.influence}
+          </span>
+        </motion.div>
       )}
 
       {/* Chart */}
@@ -204,7 +225,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
               dataKey="x"
               domain={[0, 10]}
               ticks={[0, 2.5, 5, 7.5, 10]}
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 600 }}
               tickLine={false}
               axisLine={{ stroke: "hsl(var(--border))" }}
             >
@@ -212,7 +233,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
                 value="Feasibility →"
                 position="insideBottom"
                 offset={-15}
-                style={{ fontSize: 11, fontWeight: 700, fill: "hsl(var(--muted-foreground))" }}
+                style={{ fontSize: 12, fontWeight: 700, fill: "hsl(var(--foreground))" }}
               />
             </XAxis>
             <YAxis
@@ -220,7 +241,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
               dataKey="y"
               domain={[0, 10]}
               ticks={[0, 2.5, 5, 7.5, 10]}
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 600 }}
               tickLine={false}
               axisLine={{ stroke: "hsl(var(--border))" }}
             >
@@ -229,11 +250,10 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
                 angle={-90}
                 position="insideLeft"
                 offset={5}
-                style={{ fontSize: 11, fontWeight: 700, fill: "hsl(var(--muted-foreground))" }}
+                style={{ fontSize: 12, fontWeight: 700, fill: "hsl(var(--foreground))" }}
               />
             </YAxis>
 
-            {/* Quadrant dividers */}
             <ReferenceLine x={5} stroke="hsl(var(--border))" strokeDasharray="6 4" />
             <ReferenceLine y={5} stroke="hsl(var(--border))" strokeDasharray="6 4" />
 
@@ -247,12 +267,12 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
               {points.map((pt, i) => {
                 const cfg = NODE_TYPE_CONFIG[pt.node.type];
                 const isBreakthrough = breakthrough && pt.node.id === breakthrough.id;
-                const radius = Math.max(6, Math.min(22, pt.z / 4));
+                const radius = Math.max(7, Math.min(24, pt.z / 3.5));
                 return (
                   <Cell
                     key={i}
                     fill={cfg.color}
-                    fillOpacity={isBreakthrough ? 1 : 0.7}
+                    fillOpacity={isBreakthrough ? 1 : 0.75}
                     stroke={isBreakthrough ? "hsl(38 92% 50%)" : cfg.borderColor}
                     strokeWidth={isBreakthrough ? 3 : 1.5}
                     r={radius}
@@ -263,16 +283,17 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
           </ScatterChart>
         </ResponsiveContainer>
 
-        {/* Quadrant labels (overlaid) */}
+        {/* Quadrant labels */}
         <div className="relative" style={{ marginTop: -height, height, pointerEvents: "none" }}>
           {QUADRANTS.map(q => (
             <span
               key={q.label}
-              className="absolute text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground/30 select-none"
+              className="absolute text-[10px] font-extrabold uppercase tracking-widest select-none"
               style={{
                 left: `${(q.x / 10) * 100}%`,
                 top: `${100 - (q.y / 10) * 100}%`,
                 transform: "translate(-50%, -50%)",
+                color: "hsl(var(--foreground) / 0.15)",
               }}
             >
               {q.label}
@@ -283,11 +304,11 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
 
       {/* Stats */}
       <div className="flex items-center gap-4 px-1">
-        <span className="text-[10px] font-bold text-muted-foreground">
+        <span className="text-xs font-bold text-foreground/60">
           {points.length} opportunities plotted
         </span>
         {breakthrough && (
-          <span className="text-[10px] font-bold" style={{ color: NODE_TYPE_CONFIG[breakthrough.type].color }}>
+          <span className="text-xs font-bold" style={{ color: NODE_TYPE_CONFIG[breakthrough.type].color }}>
             ★ {breakthrough.label.slice(0, 50)}
           </span>
         )}

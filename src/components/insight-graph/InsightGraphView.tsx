@@ -22,6 +22,8 @@ import type { InsightGraph, InsightGraphNode, InsightNodeType, EdgeRelation } fr
 import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 import { InsightNodeCard } from "./InsightNodeCard";
 import { OpportunityLandscape } from "./OpportunityLandscape";
+import { ConstraintMap } from "./ConstraintMap";
+import { StrategicPathways } from "./StrategicPathways";
 
 // ═══════════════════════════════════════════════════════════════
 //  FILTER
@@ -168,7 +170,7 @@ interface InsightGraphViewProps {
 
 export const InsightGraphView = memo(function InsightGraphView({ graph }: InsightGraphViewProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"graph" | "landscape">("graph");
+  const [activeTab, setActiveTab] = useState<"graph" | "landscape" | "constraints" | "pathways">("graph");
   const [filterTypes, setFilterTypes] = useState<Set<InsightNodeType>>(new Set(ALL_NODE_TYPES));
   const [filterStep, setFilterStep] = useState<string | null>(null);
 
@@ -241,25 +243,34 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
   return (
     <div className="space-y-3">
       {/* Tab switcher */}
-      <div className="flex items-center gap-1">
-        {(["graph", "landscape"] as const).map(tab => (
+      <div className="flex items-center gap-1 flex-wrap">
+        {([
+          { id: "graph", label: "Network Graph" },
+          { id: "landscape", label: "Opportunity Landscape" },
+          { id: "constraints", label: "Constraint Map" },
+          { id: "pathways", label: "Strategic Pathways" },
+        ] as const).map(tab => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
             className="px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all"
             style={{
-              background: activeTab === tab ? "hsl(var(--primary) / 0.1)" : "transparent",
-              border: `1px solid ${activeTab === tab ? "hsl(var(--primary) / 0.3)" : "transparent"}`,
-              color: activeTab === tab ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+              background: activeTab === tab.id ? "hsl(var(--primary) / 0.1)" : "transparent",
+              border: `1.5px solid ${activeTab === tab.id ? "hsl(var(--primary) / 0.3)" : "transparent"}`,
+              color: activeTab === tab.id ? "hsl(var(--primary))" : "hsl(var(--foreground) / 0.6)",
             }}
           >
-            {tab === "graph" ? "Network Graph" : "Opportunity Landscape"}
+            {tab.label}
           </button>
         ))}
       </div>
 
       {activeTab === "landscape" ? (
         <OpportunityLandscape graph={graph} onSelectNode={setSelectedNodeId} />
+      ) : activeTab === "constraints" ? (
+        <ConstraintMap graph={graph} onSelectNode={setSelectedNodeId} />
+      ) : activeTab === "pathways" ? (
+        <StrategicPathways graph={graph} onSelectNode={setSelectedNodeId} />
       ) : (
       <>
       {/* Filter Bar */}
