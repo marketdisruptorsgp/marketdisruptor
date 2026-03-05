@@ -51,7 +51,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
   const totalSteps = steps.length + 1;
   const accent = accentColor || "hsl(var(--primary))";
   return (
-    <div className="sticky top-0 z-20 -mx-4 px-3 sm:px-4 py-3 sm:py-3.5 bg-background/95 backdrop-blur-sm border-b border-border">
+    <div className="sticky top-0 z-20 -mx-4 px-3 sm:px-4 py-3 sm:py-3.5 bg-background/98 backdrop-blur-md border-b" style={{ borderColor: "hsl(var(--border))" }}>
       <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide relative">
         {/* Right fade hint for scrollability */}
         <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background/95 to-transparent pointer-events-none z-10 sm:hidden" />
