@@ -5,13 +5,13 @@
  * must use these components. No custom card types permitted.
  * 
  * Components:
- *   StepCanvas       — Primary container for step content
+ *   StepCanvas       — Primary container for step content (staggered entry)
  *   InsightCard      — Key insight with optional expandable detail
  *   FrameworkPanel   — Structured analytical framework container
  *   SignalCard       — Single signal indicator
  *   OpportunityCard  — Structured opportunity summary
  *   VisualGrid       — Grid layout for frameworks/visuals
- *   ExpandableDetail — Collapsible detail content
+ *   ExpandableDetail — Collapsible detail content (animated)
  *   MetricCard       — Single metric with label and trend
  *   EvidenceCard     — Evidence/proof point with source & confidence
  *   HypothesisCard   — Strategic hypothesis with fragility score
@@ -19,11 +19,34 @@
  */
 
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight, TrendingUp, TrendingDown, Minus, ExternalLink, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/* ── Shared animation presets ── */
+const cardVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as const } },
+};
+
+const expandVariants = {
+  collapsed: { height: 0, opacity: 0 },
+  expanded: { height: "auto" as const, opacity: 1, transition: { duration: 0.25, ease: "easeOut" as const } },
+  exit: { height: 0, opacity: 0, transition: { duration: 0.2, ease: "easeIn" as const } },
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.07 } },
+};
+
+const hoverLift = {
+  rest: { y: 0, boxShadow: "0 1px 3px 0 hsl(220 20% 80% / 0.12)" },
+  hover: { y: -2, boxShadow: "0 8px 24px -4px hsl(220 20% 80% / 0.18)", transition: { duration: 0.2, ease: "easeOut" as const } },
+};
+
 /* ═══════════════════════════════════════════════════════
-   1. STEP CANVAS — Primary step content container
+   1. STEP CANVAS — Primary step content container (staggered)
    ═══════════════════════════════════════════════════════ */
 
 interface StepCanvasProps {
@@ -33,9 +56,16 @@ interface StepCanvasProps {
 
 export function StepCanvas({ children, className }: StepCanvasProps) {
   return (
-    <div className={cn("space-y-4", className)}>
-      {children}
-    </div>
+    <motion.div
+      className={cn("space-y-4", className)}
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
+      {React.Children.map(children, (child) =>
+        child ? <motion.div variants={cardVariants}>{child}</motion.div> : null
+      )}
+    </motion.div>
   );
 }
 
@@ -44,57 +74,38 @@ export function StepCanvas({ children, className }: StepCanvasProps) {
    ═══════════════════════════════════════════════════════ */
 
 interface InsightCardProps {
-  /** Icon displayed in the header */
   icon?: React.ElementType;
-  /** Short headline (1-2 lines max) */
   headline: string;
-  /** Optional 1-line supporting context */
   subtext?: string;
-  /** Optional accent color for the left border */
   accentColor?: string;
-  /** Expandable detail content */
   detail?: React.ReactNode;
-  /** Whether detail starts expanded */
   defaultExpanded?: boolean;
-  /** Optional badge text */
   badge?: string;
-  /** Badge color */
   badgeColor?: string;
-  /** Optional action slot (top-right) */
   action?: React.ReactNode;
-  /** Direct children rendered below headline */
   children?: React.ReactNode;
   className?: string;
 }
 
 export function InsightCard({
-  icon: Icon,
-  headline,
-  subtext,
-  accentColor,
-  detail,
-  defaultExpanded = false,
-  badge,
-  badgeColor,
-  action,
-  children,
-  className,
+  icon: Icon, headline, subtext, accentColor, detail,
+  defaultExpanded = false, badge, badgeColor, action, children, className,
 }: InsightCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const hasDetail = !!detail;
 
   return (
-    <div
+    <motion.div
       className={cn(
-        "rounded-xl overflow-hidden transition-shadow duration-200",
-        "bg-card border border-border",
-        hasDetail && "hover:shadow-md",
+        "rounded-xl overflow-hidden bg-card border border-border",
         className,
       )}
       style={accentColor ? { borderLeft: `3px solid ${accentColor}` } : undefined}
+      initial="rest"
+      whileHover={hasDetail ? "hover" : "rest"}
+      variants={hoverLift}
     >
       <div className="p-4 sm:p-5">
-        {/* Header row */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0 flex-1">
             {Icon && (
@@ -120,45 +131,47 @@ export function InsightCard({
                   </span>
                 )}
               </div>
-              {subtext && (
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{subtext}</p>
-              )}
+              {subtext && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{subtext}</p>}
             </div>
           </div>
           {action && <div className="flex-shrink-0">{action}</div>}
         </div>
 
-        {/* Direct children content */}
         {children && <div className="mt-3">{children}</div>}
 
-        {/* Expandable detail trigger */}
         {hasDetail && (
           <button
             onClick={() => setExpanded(!expanded)}
             className="mt-3 flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ChevronDown
-              size={12}
-              className="transition-transform duration-200"
-              style={{ transform: expanded ? "rotate(180deg)" : "none" }}
-            />
+            <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <ChevronDown size={12} />
+            </motion.span>
             {expanded ? "Hide detail" : "View detail"}
           </button>
         )}
       </div>
 
-      {/* Expanded detail panel */}
-      {hasDetail && expanded && (
-        <div
-          className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0 border-t border-border/50"
-          style={{ background: "hsl(var(--muted) / 0.3)" }}
-        >
-          <div className="pt-3 text-sm text-foreground leading-relaxed">
-            {detail}
-          </div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence initial={false}>
+        {hasDetail && expanded && (
+          <motion.div
+            key="detail"
+            variants={expandVariants}
+            initial="collapsed"
+            animate="expanded"
+            exit="exit"
+            className="overflow-hidden"
+          >
+            <div
+              className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0 border-t border-border/50"
+              style={{ background: "hsl(var(--muted) / 0.3)" }}
+            >
+              <div className="pt-3 text-sm text-foreground leading-relaxed">{detail}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -167,61 +180,37 @@ export function InsightCard({
    ═══════════════════════════════════════════════════════ */
 
 interface FrameworkPanelProps {
-  /** Framework title */
   title: string;
-  /** Optional subtitle/description */
   subtitle?: string;
-  /** Icon */
   icon?: React.ElementType;
-  /** Accent color for header */
   accentColor?: string;
-  /** The framework visualization content */
   children: React.ReactNode;
-  /** Optional expandable deep-dive */
   detail?: React.ReactNode;
-  /** Default expanded state */
   defaultExpanded?: boolean;
   className?: string;
 }
 
 export function FrameworkPanel({
-  title,
-  subtitle,
-  icon: Icon,
-  accentColor,
-  children,
-  detail,
-  defaultExpanded = false,
-  className,
+  title, subtitle, icon: Icon, accentColor, children,
+  detail, defaultExpanded = false, className,
 }: FrameworkPanelProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
-    <div
-      className={cn(
-        "rounded-xl overflow-hidden bg-card border border-border",
-        className,
-      )}
+    <motion.div
+      className={cn("rounded-xl overflow-hidden bg-card border border-border", className)}
+      variants={cardVariants}
     >
-      {/* Header */}
-      <div
-        className="px-5 py-4 flex items-center justify-between"
-        style={{ borderBottom: "1px solid hsl(var(--border))" }}
-      >
+      <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
         <div className="flex items-center gap-3">
           {Icon && (
-            <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center"
-              style={{ background: "hsl(var(--foreground))" }}
-            >
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--foreground))" }}>
               <Icon size={16} style={{ color: "hsl(var(--background))" }} />
             </div>
           )}
           <div>
             <h3 className="text-sm font-bold text-foreground">{title}</h3>
-            {subtitle && (
-              <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
-            )}
+            {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
           </div>
         </div>
         {detail && (
@@ -230,32 +219,32 @@ export function FrameworkPanel({
             className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
             {expanded ? "Collapse" : "Deep dive"}
-            <ChevronDown
-              size={12}
-              className="transition-transform duration-200"
-              style={{ transform: expanded ? "rotate(180deg)" : "none" }}
-            />
+            <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <ChevronDown size={12} />
+            </motion.span>
           </button>
         )}
       </div>
 
-      {/* Framework content */}
-      <div className="p-4 sm:p-5">
-        {children}
-      </div>
+      <div className="p-4 sm:p-5">{children}</div>
 
-      {/* Deep-dive detail */}
-      {detail && expanded && (
-        <div
-          className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-border/50"
-          style={{ background: "hsl(var(--muted) / 0.3)" }}
-        >
-          <div className="pt-3 text-sm text-foreground leading-relaxed">
-            {detail}
-          </div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence initial={false}>
+        {detail && expanded && (
+          <motion.div
+            key="fw-detail"
+            variants={expandVariants}
+            initial="collapsed"
+            animate="expanded"
+            exit="exit"
+            className="overflow-hidden"
+          >
+            <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-border/50" style={{ background: "hsl(var(--muted) / 0.3)" }}>
+              <div className="pt-3 text-sm text-foreground leading-relaxed">{detail}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -264,15 +253,10 @@ export function FrameworkPanel({
    ═══════════════════════════════════════════════════════ */
 
 interface SignalCardProps {
-  /** Signal label */
   label: string;
-  /** Signal strength/score (0-10) */
   score?: number;
-  /** Signal type indicator */
   type?: "strength" | "weakness" | "opportunity" | "threat" | "neutral";
-  /** Short explanation */
   explanation?: string;
-  /** Expandable detail */
   detail?: React.ReactNode;
   className?: string;
 }
@@ -290,9 +274,12 @@ export function SignalCard({ label, score, type = "neutral", explanation, detail
   const style = SIGNAL_STYLES[type];
 
   return (
-    <div
-      className={cn("rounded-lg overflow-hidden transition-shadow", className)}
+    <motion.div
+      className={cn("rounded-lg overflow-hidden", className)}
       style={{ background: style.bg, border: `1px solid ${style.border}` }}
+      initial="rest"
+      whileHover="hover"
+      variants={{ rest: { scale: 1 }, hover: { scale: 1.015, transition: { duration: 0.15 } } }}
     >
       <div className="p-3 flex items-start gap-2.5">
         <span className={cn("w-2 h-2 rounded-full mt-1.5 flex-shrink-0", style.dot)} />
@@ -300,31 +287,40 @@ export function SignalCard({ label, score, type = "neutral", explanation, detail
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs font-bold text-foreground leading-snug">{label}</p>
             {score !== undefined && (
-              <span className="text-xs font-bold tabular-nums text-foreground/70 flex-shrink-0">
-                {score.toFixed(1)}
-              </span>
+              <span className="text-xs font-bold tabular-nums text-foreground/70 flex-shrink-0">{score.toFixed(1)}</span>
             )}
           </div>
-          {explanation && (
-            <p className="text-[11px] text-foreground/70 mt-1 leading-relaxed">{explanation}</p>
-          )}
+          {explanation && <p className="text-[11px] text-foreground/70 mt-1 leading-relaxed">{explanation}</p>}
           {detail && (
             <button
               onClick={() => setExpanded(!expanded)}
               className="mt-1.5 text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1"
             >
-              <ChevronRight size={10} className="transition-transform" style={{ transform: expanded ? "rotate(90deg)" : "none" }} />
+              <motion.span animate={{ rotate: expanded ? 90 : 0 }} transition={{ duration: 0.15 }}>
+                <ChevronRight size={10} />
+              </motion.span>
               {expanded ? "Less" : "More"}
             </button>
           )}
         </div>
       </div>
-      {detail && expanded && (
-        <div className="px-3 pb-3 pt-0 text-[11px] text-foreground/80 leading-relaxed border-t" style={{ borderColor: style.border }}>
-          <div className="pt-2">{detail}</div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence initial={false}>
+        {detail && expanded && (
+          <motion.div
+            key="sig-detail"
+            variants={expandVariants}
+            initial="collapsed"
+            animate="expanded"
+            exit="exit"
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-3 pt-0 text-[11px] text-foreground/80 leading-relaxed border-t" style={{ borderColor: style.border }}>
+              <div className="pt-2">{detail}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -333,52 +329,38 @@ export function SignalCard({ label, score, type = "neutral", explanation, detail
    ═══════════════════════════════════════════════════════ */
 
 interface OpportunityCardProps {
-  /** Opportunity title */
   title: string;
-  /** 1-line impact statement */
   impact: string;
-  /** Feasibility score (0-10) */
   feasibility?: number;
-  /** Potential score (0-10) */
   potential?: number;
-  /** Category badge */
   category?: string;
-  /** Expandable detail */
   detail?: React.ReactNode;
-  /** Accent color */
   accentColor?: string;
   className?: string;
 }
 
 export function OpportunityCard({
-  title,
-  impact,
-  feasibility,
-  potential,
-  category,
-  detail,
-  accentColor,
-  className,
+  title, impact, feasibility, potential, category, detail, accentColor, className,
 }: OpportunityCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div
+    <motion.div
       className={cn("rounded-xl overflow-hidden bg-card border border-border", className)}
       style={accentColor ? { borderTop: `3px solid ${accentColor}` } : undefined}
+      initial="rest"
+      whileHover="hover"
+      variants={hoverLift}
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h4 className="text-sm font-bold text-foreground leading-snug">{title}</h4>
           {category && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary flex-shrink-0">
-              {category}
-            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary flex-shrink-0">{category}</span>
           )}
         </div>
         <p className="text-xs text-foreground/80 leading-relaxed">{impact}</p>
 
-        {/* Score bars */}
         {(feasibility !== undefined || potential !== undefined) && (
           <div className="mt-3 grid grid-cols-2 gap-3">
             {feasibility !== undefined && (
@@ -388,10 +370,12 @@ export function OpportunityCard({
                   <span className="tabular-nums">{feasibility}/10</span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden bg-muted">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
+                  <motion.div
+                    className="h-full rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${feasibility * 10}%` }}
+                    transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
                     style={{
-                      width: `${feasibility * 10}%`,
                       background: feasibility >= 7 ? "hsl(152 60% 44%)" : feasibility >= 4 ? "hsl(38 80% 50%)" : "hsl(0 72% 52%)",
                     }}
                   />
@@ -405,12 +389,12 @@ export function OpportunityCard({
                   <span className="tabular-nums">{potential}/10</span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden bg-muted">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${potential * 10}%`,
-                      background: "hsl(var(--primary))",
-                    }}
+                  <motion.div
+                    className="h-full rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${potential * 10}%` }}
+                    transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
+                    style={{ background: "hsl(var(--primary))" }}
                   />
                 </div>
               </div>
@@ -423,18 +407,31 @@ export function OpportunityCard({
             onClick={() => setExpanded(!expanded)}
             className="mt-3 flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ChevronDown size={12} style={{ transform: expanded ? "rotate(180deg)" : "none" }} />
+            <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <ChevronDown size={12} />
+            </motion.span>
             {expanded ? "Hide detail" : "View detail"}
           </button>
         )}
       </div>
 
-      {detail && expanded && (
-        <div className="px-4 pb-4 pt-0 border-t border-border/50" style={{ background: "hsl(var(--muted) / 0.3)" }}>
-          <div className="pt-3 text-sm text-foreground leading-relaxed">{detail}</div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence initial={false}>
+        {detail && expanded && (
+          <motion.div
+            key="opp-detail"
+            variants={expandVariants}
+            initial="collapsed"
+            animate="expanded"
+            exit="exit"
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pt-0 border-t border-border/50" style={{ background: "hsl(var(--muted) / 0.3)" }}>
+              <div className="pt-3 text-sm text-foreground leading-relaxed">{detail}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -443,7 +440,6 @@ export function OpportunityCard({
    ═══════════════════════════════════════════════════════ */
 
 interface VisualGridProps {
-  /** Number of columns on desktop (default: 2) */
   columns?: 1 | 2 | 3 | 4;
   children: React.ReactNode;
   className?: string;
@@ -465,27 +461,18 @@ export function VisualGrid({ columns = 2, children, className }: VisualGridProps
 }
 
 /* ═══════════════════════════════════════════════════════
-   7. EXPANDABLE DETAIL — Standalone collapsible detail
+   7. EXPANDABLE DETAIL — Standalone collapsible detail (animated)
    ═══════════════════════════════════════════════════════ */
 
 interface ExpandableDetailProps {
-  /** Trigger label */
   label: string;
-  /** Optional icon */
   icon?: React.ElementType;
-  /** Default state */
   defaultExpanded?: boolean;
   children: React.ReactNode;
   className?: string;
 }
 
-export function ExpandableDetail({
-  label,
-  icon: Icon,
-  defaultExpanded = false,
-  children,
-  className,
-}: ExpandableDetailProps) {
+export function ExpandableDetail({ label, icon: Icon, defaultExpanded = false, children, className }: ExpandableDetailProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
@@ -498,33 +485,37 @@ export function ExpandableDetail({
           {Icon && <Icon size={14} className="text-muted-foreground" />}
           <span className="text-xs font-bold text-foreground">{label}</span>
         </div>
-        <ChevronDown
-          size={14}
-          className="text-muted-foreground transition-transform duration-200"
-          style={{ transform: expanded ? "rotate(180deg)" : "none" }}
-        />
+        <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown size={14} className="text-muted-foreground" />
+        </motion.span>
       </button>
-      {expanded && (
-        <div className="px-4 pb-4 pt-0 text-sm text-foreground leading-relaxed">
-          {children}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="exp-detail"
+            variants={expandVariants}
+            initial="collapsed"
+            animate="expanded"
+            exit="exit"
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pt-0 text-sm text-foreground leading-relaxed">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════
-   8. METRIC CARD — Single metric with label
+   8. METRIC CARD — Single metric with label (animated value)
    ═══════════════════════════════════════════════════════ */
 
 interface MetricCardProps {
   label: string;
   value: string | number;
-  /** Trend direction */
   trend?: "up" | "down" | "flat";
-  /** Accent color for the value */
   accentColor?: string;
-  /** Optional subtext */
   subtext?: string;
   className?: string;
 }
@@ -533,7 +524,12 @@ export function MetricCard({ label, value, trend, accentColor, subtext, classNam
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
 
   return (
-    <div className={cn("rounded-xl p-4 bg-card border border-border", className)}>
+    <motion.div
+      className={cn("rounded-xl p-4 bg-card border border-border", className)}
+      initial="rest"
+      whileHover="hover"
+      variants={{ rest: { scale: 1 }, hover: { scale: 1.02, transition: { duration: 0.15 } } }}
+    >
       <div className="flex items-center justify-between mb-1">
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
         {trend && (
@@ -545,16 +541,17 @@ export function MetricCard({ label, value, trend, accentColor, subtext, classNam
           />
         )}
       </div>
-      <p
+      <motion.p
         className="text-xl font-bold tabular-nums"
         style={{ color: accentColor || "hsl(var(--foreground))" }}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15 }}
       >
         {value}
-      </p>
-      {subtext && (
-        <p className="text-[11px] text-muted-foreground mt-1">{subtext}</p>
-      )}
-    </div>
+      </motion.p>
+      {subtext && <p className="text-[11px] text-muted-foreground mt-1">{subtext}</p>}
+    </motion.div>
   );
 }
 
@@ -563,17 +560,11 @@ export function MetricCard({ label, value, trend, accentColor, subtext, classNam
    ═══════════════════════════════════════════════════════ */
 
 interface EvidenceCardProps {
-  /** Evidence statement */
   statement: string;
-  /** Source label */
   source?: string;
-  /** Source URL */
   sourceUrl?: string;
-  /** Confidence level */
   confidence?: "high" | "medium" | "low" | "unverified";
-  /** Category tag */
   category?: string;
-  /** Optional detail content */
   detail?: React.ReactNode;
   className?: string;
 }
@@ -590,22 +581,21 @@ export function EvidenceCard({ statement, source, sourceUrl, confidence = "unver
   const confStyle = CONFIDENCE_STYLES[confidence];
 
   return (
-    <div className={cn("rounded-lg overflow-hidden border border-border bg-card", className)}>
+    <motion.div
+      className={cn("rounded-lg overflow-hidden border border-border bg-card", className)}
+      variants={cardVariants}
+    >
       <div className="p-3">
         <div className="flex items-start gap-2.5">
           <CheckCircle2 size={13} className="flex-shrink-0 mt-0.5" style={{ color: confStyle.text }} />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-foreground leading-snug">{statement}</p>
-
-            {/* Tags row */}
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: confStyle.bg, color: confStyle.text }}>
                 {confStyle.label}
               </span>
               {category && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">
-                  {category}
-                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">{category}</span>
               )}
               {source && (
                 sourceUrl ? (
@@ -618,25 +608,37 @@ export function EvidenceCard({ statement, source, sourceUrl, confidence = "unver
                 )
               )}
             </div>
-
             {detail && (
               <button
                 onClick={() => setExpanded(!expanded)}
                 className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-foreground transition-colors"
               >
-                <ChevronRight size={10} className="transition-transform" style={{ transform: expanded ? "rotate(90deg)" : "none" }} />
+                <motion.span animate={{ rotate: expanded ? 90 : 0 }} transition={{ duration: 0.15 }}>
+                  <ChevronRight size={10} />
+                </motion.span>
                 {expanded ? "Less" : "More"}
               </button>
             )}
           </div>
         </div>
       </div>
-      {detail && expanded && (
-        <div className="px-3 pb-3 pt-0 text-sm text-foreground leading-relaxed border-t border-border/50">
-          <div className="pt-2">{detail}</div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence initial={false}>
+        {detail && expanded && (
+          <motion.div
+            key="ev-detail"
+            variants={expandVariants}
+            initial="collapsed"
+            animate="expanded"
+            exit="exit"
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-3 pt-0 text-sm text-foreground leading-relaxed border-t border-border/50">
+              <div className="pt-2">{detail}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -645,35 +647,20 @@ export function EvidenceCard({ statement, source, sourceUrl, confidence = "unver
    ═══════════════════════════════════════════════════════ */
 
 interface HypothesisCardProps {
-  /** Hypothesis statement */
   hypothesis: string;
-  /** Fragility score (0-10, higher = more fragile) */
   fragilityScore?: number;
-  /** Constraint type */
   constraintType?: string;
-  /** Friction sources */
   frictionSources?: string[];
-  /** Downstream implications */
   implications?: string;
-  /** Whether this is the active/primary hypothesis */
   isActive?: boolean;
-  /** Accent color */
   accentColor?: string;
-  /** Expandable detail */
   detail?: React.ReactNode;
   className?: string;
 }
 
 export function HypothesisCard({
-  hypothesis,
-  fragilityScore,
-  constraintType,
-  frictionSources,
-  implications,
-  isActive,
-  accentColor,
-  detail,
-  className,
+  hypothesis, fragilityScore, constraintType, frictionSources,
+  implications, isActive, accentColor, detail, className,
 }: HypothesisCardProps) {
   const [expanded, setExpanded] = useState(false);
   const fragilityColor = fragilityScore !== undefined
@@ -681,15 +668,17 @@ export function HypothesisCard({
     : undefined;
 
   return (
-    <div
-      className={cn("rounded-xl overflow-hidden bg-card border transition-shadow", isActive ? "shadow-md" : "", className)}
+    <motion.div
+      className={cn("rounded-xl overflow-hidden bg-card border", className)}
       style={{
         borderColor: isActive ? (accentColor || "hsl(var(--primary))") : "hsl(var(--border))",
         borderWidth: isActive ? "2px" : "1px",
       }}
+      initial="rest"
+      whileHover="hover"
+      variants={hoverLift}
     >
       <div className="p-4">
-        {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -699,26 +688,25 @@ export function HypothesisCard({
                 </span>
               )}
               {constraintType && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-foreground">
-                  {constraintType}
-                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-foreground">{constraintType}</span>
               )}
             </div>
             <p className="text-sm font-bold text-foreground leading-snug">{hypothesis}</p>
           </div>
 
-          {/* Fragility gauge */}
           {fragilityScore !== undefined && (
-            <div className="flex flex-col items-center flex-shrink-0">
-              <span className="text-lg font-black tabular-nums" style={{ color: fragilityColor }}>
-                {fragilityScore.toFixed(1)}
-              </span>
+            <motion.div
+              className="flex flex-col items-center flex-shrink-0"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <span className="text-lg font-black tabular-nums" style={{ color: fragilityColor }}>{fragilityScore.toFixed(1)}</span>
               <span className="text-[9px] font-bold text-muted-foreground uppercase">Fragility</span>
-            </div>
+            </motion.div>
           )}
         </div>
 
-        {/* Friction sources — compact chips */}
         {frictionSources && frictionSources.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {frictionSources.slice(0, 3).map((src, i) => (
@@ -727,38 +715,47 @@ export function HypothesisCard({
               </span>
             ))}
             {frictionSources.length > 3 && (
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold text-muted-foreground">
-                +{frictionSources.length - 3} more
-              </span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold text-muted-foreground">+{frictionSources.length - 3} more</span>
             )}
           </div>
         )}
 
-        {/* Implications preview */}
         {implications && (
           <p className="text-xs text-foreground/80 mt-2 leading-relaxed">
             {implications.length > 120 ? implications.slice(0, 120) + "…" : implications}
           </p>
         )}
 
-        {/* Expand toggle */}
         {detail && (
           <button
             onClick={() => setExpanded(!expanded)}
             className="mt-2 flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ChevronDown size={12} style={{ transform: expanded ? "rotate(180deg)" : "none" }} />
+            <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <ChevronDown size={12} />
+            </motion.span>
             {expanded ? "Hide detail" : "View detail"}
           </button>
         )}
       </div>
 
-      {detail && expanded && (
-        <div className="px-4 pb-4 pt-0 border-t border-border/50" style={{ background: "hsl(var(--muted) / 0.3)" }}>
-          <div className="pt-3 text-sm text-foreground leading-relaxed">{detail}</div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence initial={false}>
+        {detail && expanded && (
+          <motion.div
+            key="hyp-detail"
+            variants={expandVariants}
+            initial="collapsed"
+            animate="expanded"
+            exit="exit"
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pt-0 border-t border-border/50" style={{ background: "hsl(var(--muted) / 0.3)" }}>
+              <div className="pt-3 text-sm text-foreground leading-relaxed">{detail}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -767,42 +764,27 @@ export function HypothesisCard({
    ═══════════════════════════════════════════════════════ */
 
 interface AnalysisPanelProps {
-  /** Panel title */
   title: string;
-  /** Optional subtitle */
   subtitle?: string;
-  /** Icon */
   icon?: React.ElementType;
-  /** Category eyebrow text above title */
   eyebrow?: string;
-  /** Eyebrow color */
   eyebrowColor?: string;
-  /** Optional action slot */
   action?: React.ReactNode;
-  /** Panel content */
   children: React.ReactNode;
-  /** Optional accent border */
   accentColor?: string;
   className?: string;
 }
 
 export function AnalysisPanel({
-  title,
-  subtitle,
-  icon: Icon,
-  eyebrow,
-  eyebrowColor,
-  action,
-  children,
-  accentColor,
-  className,
+  title, subtitle, icon: Icon, eyebrow, eyebrowColor,
+  action, children, accentColor, className,
 }: AnalysisPanelProps) {
   return (
-    <div
+    <motion.div
       className={cn("rounded-xl overflow-hidden bg-card border border-border", className)}
       style={accentColor ? { borderTop: `3px solid ${accentColor}` } : undefined}
+      variants={cardVariants}
     >
-      {/* Header */}
       <div className="px-5 py-4 flex items-start justify-between gap-3" style={{ borderBottom: "1px solid hsl(var(--border))" }}>
         <div className="flex items-center gap-3">
           {Icon && (
@@ -822,11 +804,7 @@ export function AnalysisPanel({
         </div>
         {action && <div className="flex-shrink-0">{action}</div>}
       </div>
-
-      {/* Content */}
-      <div className="p-4 sm:p-5">
-        {children}
-      </div>
-    </div>
+      <div className="p-4 sm:p-5">{children}</div>
+    </motion.div>
   );
 }
