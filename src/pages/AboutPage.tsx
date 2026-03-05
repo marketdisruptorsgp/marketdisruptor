@@ -80,12 +80,12 @@ export default function AboutPage() {
         <div className="absolute inset-0 pointer-events-none" style={{
           background: "radial-gradient(ellipse 80% 50% at 50% 0%, hsl(var(--primary) / 0.06) 0%, transparent 70%)",
         }} />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 md:pt-32 pb-12 sm:pb-20 relative">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 md:pt-20 pb-8 sm:pb-12 relative">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-4"
+            className="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4"
           >
             About Market Disruptor
           </motion.p>
@@ -132,11 +132,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         {/* ── What It Does ── */}
         <section className="mb-20">
           <div className="text-center mb-10">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">What It Does</p>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">What It Does</p>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
               Four layers of strategic intelligence
             </h2>
@@ -176,7 +176,7 @@ export default function AboutPage() {
         {/* ── First Principles ── */}
         <section className="mb-20">
           <div className="text-center mb-10">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">The Foundation</p>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground mb-3">The Foundation</p>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
               Built on First Principles Thinking
             </h2>
@@ -226,7 +226,7 @@ export default function AboutPage() {
                       <span className="text-primary text-xs font-extrabold">{item.num}</span>
                     </div>
                     <p className="text-sm font-bold text-foreground mb-1.5">{item.title}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
                   </motion.div>
                 ))}
               </div>
