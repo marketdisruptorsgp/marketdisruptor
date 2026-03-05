@@ -878,7 +878,7 @@ export default function Index() {
                     const currentIdx = DETAIL_TABS.findIndex(t => t.id === detailTab);
                     return (
                     <>
-                  <div ref={sectionTabsRef} className="flex gap-1 border-b pb-2" style={{ borderColor: "hsl(var(--border))" }}>
+                  <div ref={sectionTabsRef} className="flex gap-1 border-b pb-2 overflow-x-auto scrollbar-hide" style={{ borderColor: "hsl(var(--border))" }}>
                     {DETAIL_TABS.map(({ id, label, icon: Icon }) => {
                       const isActive = detailTab === id;
                       const isUnvisited = !isActive && !visitedDetailTabs.has(id);
@@ -886,7 +886,7 @@ export default function Index() {
                         <button
                           key={id}
                           onClick={() => { setDetailTab(id); setVisitedDetailTabs(prev => new Set([...prev, id])); setTimeout(() => sectionTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-medium transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-medium transition-colors flex-shrink-0 whitespace-nowrap"
                           style={{
                             background: isActive ? "hsl(var(--primary))" : "transparent",
                             color: isActive ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",
