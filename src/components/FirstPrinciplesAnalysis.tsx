@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { InsightRating } from "./InsightRating";
 import { SectionWorkflowNav } from "@/components/SectionNav";
+import { StructuralDiagnosisPanel } from "@/components/StructuralDiagnosisPanel";
 
 const DISRUPT_SECTION_DESCRIPTIONS: Record<string, string> = {
   assumptions: "Hidden assumptions & challenge ideas",
@@ -1332,6 +1333,9 @@ export const FirstPrinciplesAnalysis = ({ product, onSaved, flippedIdeas, onRege
       </DetailPanel>
 
       {/* Single section — no nav needed */}
+
+      {/* ═══════ STRUCTURAL DIAGNOSIS (above assumptions) ═══════ */}
+      <StructuralDiagnosisPanel constraintMap={analysisCtx.governedData?.constraint_map as any} />
 
       {/* ═══════ SECTION CONTENT ═══════ */}
 
