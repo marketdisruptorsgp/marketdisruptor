@@ -212,7 +212,7 @@ export function EvolutionView({ analysisData, productName, accentColor = "hsl(va
             <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: node.color }}>
               {node.label}
             </p>
-            <p className="text-xs text-foreground/80 leading-relaxed pr-6">{node.summary}</p>
+            <p className="text-xs text-foreground leading-relaxed pr-6">{node.summary}</p>
           </div>
         );
       })()}

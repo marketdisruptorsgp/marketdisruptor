@@ -21,10 +21,10 @@ export const AssumptionsMap = ({ product }: AssumptionsMapProps) => {
               borderLeft: "3px solid hsl(var(--muted-foreground) / 0.4)",
             }}
           >
-            <p className="typo-status-label font-bold uppercase tracking-wider text-foreground/60 mb-1">
+            <p className="typo-status-label font-bold uppercase tracking-wider text-muted-foreground mb-1">
               Assumption
             </p>
-            <p className="text-foreground/80 typo-card-body leading-relaxed">{item.assumption}</p>
+            <p className="text-foreground typo-card-body leading-relaxed">{item.assumption}</p>
           </div>
 
           {/* Arrow */}

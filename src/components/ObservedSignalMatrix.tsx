@@ -799,7 +799,7 @@ function SignalRow({
               {signal.quotes.slice(0, 3).map((q, i) => (
                 <blockquote
                   key={i}
-                  className="text-xs text-foreground/80 border-l-2 border-foreground/15 pl-3 italic"
+                  className="text-xs text-foreground border-l-2 border-muted-foreground pl-3 italic"
                 >
                   "{q}"
                 </blockquote>

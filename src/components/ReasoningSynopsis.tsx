@@ -151,7 +151,7 @@ function LensInfluenceRadar({ synopsis }: { synopsis: SynopsisData }) {
       {/* Amplified factors */}
       {prioritized.length > 0 && (
         <div className="mb-3">
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
             Amplified — weighted higher in this analysis
           </p>
           <div className="space-y-1.5">
@@ -169,7 +169,7 @@ function LensInfluenceRadar({ synopsis }: { synopsis: SynopsisData }) {
       {/* Suppressed factors */}
       {deprioritized.length > 0 && (
         <div className="mb-3">
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
             Suppressed — weighted lower or excluded
           </p>
           <div className="space-y-1.5">
@@ -177,7 +177,7 @@ function LensInfluenceRadar({ synopsis }: { synopsis: SynopsisData }) {
               <div key={i} className="flex items-center gap-2.5 rounded-lg px-3 py-2"
                 style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                 <div className="w-1.5 h-6 rounded-full flex-shrink-0" style={{ background: "hsl(var(--muted-foreground) / 0.3)" }} />
-                <span className="text-sm font-medium text-foreground/70">{f}</span>
+                <span className="text-sm font-medium text-foreground">{f}</span>
               </div>
             ))}
           </div>
@@ -332,12 +332,12 @@ function KeyAssumptionsPanel({ assumptions }: { assumptions: KeyAssumption[] }) 
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">If Wrong</p>
-                  <p className="text-[11px] text-foreground leading-relaxed">{a.impact_if_wrong}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">If Wrong</p>
+                  <p className="text-xs text-foreground leading-relaxed">{a.impact_if_wrong}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Validation</p>
-                  <p className="text-[11px] text-foreground leading-relaxed">{a.validation_method}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Validation</p>
+                  <p className="text-xs text-foreground leading-relaxed">{a.validation_method}</p>
                 </div>
               </div>
             </motion.div>
@@ -375,7 +375,7 @@ function CounterfactualPanel({ scenarios }: { scenarios: CounterfactualScenario[
               </div>
               <div className="flex items-start gap-1.5 mt-1">
                 <ArrowRight size={11} className="mt-0.5 flex-shrink-0" style={{ color: lc }} />
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{s.outcome_shift}</p>
+                <p className="text-xs text-foreground leading-relaxed">{s.outcome_shift}</p>
               </div>
             </motion.div>
           );
@@ -400,7 +400,7 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
         </p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {synopsis.problem_framing.success_criteria.map((c, i) => (
-            <span key={i} className="px-2 py-0.5 rounded-md text-[10px] font-semibold"
+            <span key={i} className="px-2 py-0.5 rounded-md text-xs font-semibold"
               style={{ background: `${COLORS.mechanism}10`, color: COLORS.mechanism, border: `1px solid ${COLORS.mechanism}20` }}>
               {c}
             </span>
@@ -408,8 +408,8 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
         </div>
         {synopsis.problem_framing.scope_boundaries && (
           <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Scope Boundaries</p>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">{synopsis.problem_framing.scope_boundaries}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Scope Boundaries</p>
+            <p className="text-xs text-foreground leading-relaxed">{synopsis.problem_framing.scope_boundaries}</p>
           </div>
         )}
       </SynopsisCard>
