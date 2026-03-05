@@ -34,7 +34,7 @@ function ImpactBadge({ impact, confidence }: { impact: number; confidence: strin
   const color = impact >= 8 ? "hsl(0 70% 50%)" : impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--foreground) / 0.5)";
   return (
     <span
-      className="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-full"
+      className="text-xs font-bold tabular-nums px-2 py-0.5 rounded-full"
       style={{ background: `${color}18`, color }}
     >
       {impact}/10{confidence !== "high" && ` · ${confidence}`}
@@ -86,7 +86,7 @@ function LeverageRow({ node, onTrace }: { node: LeverageNode; onTrace?: () => vo
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold text-foreground leading-snug">{node.label}</p>
         {node.isConvergenceZone && (
-          <span className="text-[10px] font-bold" style={{ color: "hsl(38 92% 50%)" }}>★ Multi-lens convergence</span>
+          <span className="text-xs font-bold" style={{ color: "hsl(38 92% 50%)" }}>★ Multi-lens convergence</span>
         )}
       </div>
       <ImpactBadge impact={node.impact} confidence={node.confidence} />
@@ -122,10 +122,10 @@ function SectionHeader({ icon: Icon, label, count }: { icon: React.ElementType; 
       >
         <Icon size={12} className="text-foreground" />
       </div>
-      <p className="text-[11px] font-extrabold uppercase tracking-widest text-foreground">
+      <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
         {label}
       </p>
-      <span className="text-[11px] font-bold text-foreground/50">({count})</span>
+      <span className="text-xs font-bold text-foreground/50">({count})</span>
     </div>
   );
 }
@@ -182,7 +182,7 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
             <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "hsl(152 60% 44% / 0.1)" }}>
               <Lightbulb size={12} style={{ color: "hsl(152 60% 44%)" }} />
             </div>
-            <p className="text-[11px] font-extrabold uppercase tracking-widest text-foreground">
+            <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
               Opportunity Landscape
             </p>
           </div>
@@ -200,10 +200,10 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
         >
           <div className="flex items-center gap-2">
             <Zap size={14} style={{ color: "hsl(38 92% 50%)" }} />
-            <p className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(38 92% 50%)" }}>
+            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(38 92% 50%)" }}>
               Convergence Zones
             </p>
-            <span className="text-[11px] font-bold text-foreground/50">({convergenceZoneDetails.length})</span>
+            <span className="text-xs font-bold text-foreground/50">({convergenceZoneDetails.length})</span>
           </div>
           {convergenceZoneDetails.slice(0, 5).map(zone => (
             <div key={zone.id} className="flex items-center gap-2.5 py-1">
@@ -215,18 +215,18 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
                 <p className="text-sm font-bold text-foreground leading-snug">{zone.label}</p>
                 <div className="flex gap-1 mt-0.5">
                   {zone.lenses.map(l => (
-                    <span key={l} className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
+                    <span key={l} className="px-1.5 py-0.5 rounded text-xs font-bold uppercase" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
                       {l}
                     </span>
                   ))}
                   {zone.isStrategic && (
-                    <span className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase" style={{ background: "hsl(38 92% 50% / 0.15)", color: "hsl(38 92% 50%)" }}>
+                    <span className="px-1.5 py-0.5 rounded text-xs font-bold uppercase" style={{ background: "hsl(38 92% 50% / 0.15)", color: "hsl(38 92% 50%)" }}>
                       Strategic
                     </span>
                   )}
                 </div>
               </div>
-              <span className="text-[10px] font-bold tabular-nums text-muted-foreground">
+              <span className="text-xs font-bold tabular-nums text-foreground/60">
                 {(zone.strength * 100).toFixed(0)}%
               </span>
             </div>

@@ -52,19 +52,19 @@ function TraceStep({ record, isLast }: { record: ProvenanceRecord; isLast: boole
       {/* Content */}
       <div className="flex-1 pb-4 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: meta.color }}>
+          <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: meta.color }}>
             {meta.label}
           </span>
           {record.lens !== "cross-lens" ? (
             <span
-              className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
-              style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
+              className="px-1.5 py-0.5 rounded text-xs font-bold uppercase"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}
             >
               {record.lens}
             </span>
           ) : (
             <span
-              className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
+              className="px-1.5 py-0.5 rounded text-xs font-bold uppercase"
               style={{ background: "hsl(38 92% 50% / 0.12)", color: "hsl(38 92% 50%)" }}
             >
               Cross-Lens
@@ -77,7 +77,7 @@ function TraceStep({ record, isLast }: { record: ProvenanceRecord; isLast: boole
         {record.evidence.length > 0 && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 mt-1.5 text-[10px] font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            className="flex items-center gap-1 mt-1.5 text-xs font-bold text-foreground/60 hover:text-foreground transition-colors cursor-pointer"
           >
             <ChevronDown
               size={10}
@@ -129,7 +129,7 @@ export const InsightTracePanel = memo(function InsightTracePanel({
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
           <Eye size={14} className="text-muted-foreground" />
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-foreground/60">
             Insight Trace
           </p>
         </div>
@@ -163,7 +163,7 @@ export const InsightTracePanel = memo(function InsightTracePanel({
       {/* Summary */}
       {displayChain.length > 0 && (
         <div className="px-4 py-3 border-t border-border" style={{ background: "hsl(var(--muted))" }}>
-          <p className="text-[10px] font-semibold text-muted-foreground">
+          <p className="text-xs font-semibold text-foreground/60">
             {displayChain.length} reasoning step{displayChain.length !== 1 ? "s" : ""} · 
             {" "}{new Set(displayChain.map(r => r.lens)).size} lens{new Set(displayChain.map(r => r.lens)).size !== 1 ? "es" : ""} involved
           </p>
