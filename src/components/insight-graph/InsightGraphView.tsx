@@ -42,6 +42,7 @@ const PIPELINE_STEPS = ["report", "disrupt", "redesign", "stress_test", "pitch"]
 const ALL_NODE_TYPES: InsightNodeType[] = [
   "signal", "constraint", "assumption", "driver", "outcome",
   "leverage_point", "flipped_idea", "concept", "risk", "evidence",
+  "simulation",
 ];
 
 /** Tiered layout columns: left-to-right reasoning flow per spec */
