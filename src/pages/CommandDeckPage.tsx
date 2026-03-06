@@ -432,6 +432,18 @@ export default function CommandDeckPage() {
     return keywords;
   }, [autoAnalysis.insights, narrative]);
 
+  // Reasoning-driven tool recommendations from insight layer
+  const reasoningToolRecs = useMemo(() => {
+    return narrative?.recommendedTools ?? [];
+  }, [narrative]);
+
+  // Scenario saved handler — triggers recompute
+  const [scenarioTrigger, setScenarioTrigger] = useState(0);
+  const handleScenarioSaved = useCallback((scenario: ToolScenario) => {
+    setScenarioTrigger(t => t + 1);
+    toast.success("Intelligence recomputing with new scenario data…");
+  }, []);
+
   const handleRecomputeAll = useCallback(() => {
     toast.info("Recomputing analysis intelligence…");
     // Trigger auto-analysis recomputation by staying on the Command Deck
