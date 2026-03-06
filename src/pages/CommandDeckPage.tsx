@@ -21,6 +21,7 @@ import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { HeroSection } from "@/components/HeroSection";
 import { ModeBadge } from "@/components/ModeBadge";
+import { TierDiscoveryPanel } from "@/components/TierDiscoveryPanel";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, GitBranch, Target, Shield, Lightbulb,
@@ -32,7 +33,8 @@ import {
   computeCommandDeckMetrics, aggregateOpportunities,
   type CommandDeckMetrics as DeckMetrics,
 } from "@/lib/commandDeckMetrics";
-import { extractAllEvidence, type MetricDomain } from "@/lib/evidenceEngine";
+import { extractAllEvidence, type MetricDomain, type EvidenceTier } from "@/lib/evidenceEngine";
+import { computeTierState, filterEvidenceByTier, TIER_META, type TierNumber, type TierState } from "@/lib/tierDiscoveryEngine";
 import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 
 const PIPELINE_STEPS = [
@@ -246,7 +248,7 @@ function PipelineStep({ step, status, analysisId, signalCount }: {
  * OPPORTUNITY TABLE
  * ════════════════════════════════════════════════════════ */
 function OpportunityTable({ opps, analysisId }: {
-  opps: { id: string; label: string; impact: number; confidence: string; step: string; source: string }[];
+  opps: { id: string; label: string; impact: number; confidence: string; step: string; source: string; tier?: EvidenceTier }[];
   analysisId: string;
 }) {
   const navigate = useNavigate();
@@ -265,10 +267,15 @@ function OpportunityTable({ opps, analysisId }: {
     else { setSortKey(key); setSortDir("desc"); }
   };
 
+  const tierColors: Record<string, string> = {
+    structural: "hsl(0 72% 52%)", system: "hsl(38 92% 50%)", optimization: "hsl(229 89% 63%)",
+  };
+
   return (
     <div className="overflow-x-auto">
-      <div className="grid grid-cols-[1fr_70px_70px_80px] sm:grid-cols-[1fr_120px_70px_70px_80px] gap-2 px-3 py-2 border-b border-border min-w-[400px]">
+      <div className="grid grid-cols-[1fr_60px_70px_70px_80px] sm:grid-cols-[1fr_60px_120px_70px_70px_80px] gap-2 px-3 py-2 border-b border-border min-w-[450px]">
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Opportunity</span>
+        <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Tier</span>
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground hidden sm:block">Source</span>
         <button onClick={() => toggleSort("impact")}
           className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-0.5 justify-center">
@@ -282,12 +289,15 @@ function OpportunityTable({ opps, analysisId }: {
       </div>
       {sorted.map(opp => {
         const ic = opp.impact >= 8 ? "hsl(152 60% 44%)" : opp.impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
+        const tc = opp.tier ? tierColors[opp.tier] : "hsl(var(--muted-foreground))";
+        const tLabel = opp.tier ? opp.tier.charAt(0).toUpperCase() + opp.tier.slice(1, 4) : "—";
         return (
           <button key={opp.id}
             onClick={() => navigate(`/analysis/${analysisId}/insight-graph?node=${opp.id}`)}
-            className="grid grid-cols-[1fr_70px_70px_80px] sm:grid-cols-[1fr_120px_70px_70px_80px] gap-2 items-center px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[44px] min-w-[400px]"
+            className="grid grid-cols-[1fr_60px_70px_70px_80px] sm:grid-cols-[1fr_60px_120px_70px_70px_80px] gap-2 items-center px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[44px] min-w-[450px]"
           >
             <span className="text-sm font-semibold text-foreground truncate">{opp.label}</span>
+            <span className="text-[9px] font-bold text-center px-1.5 py-0.5 rounded-full" style={{ background: `${tc}12`, color: tc }}>{tLabel}</span>
             <span className="text-[10px] text-muted-foreground truncate hidden sm:block">{opp.source}</span>
             <span className="text-sm font-bold tabular-nums text-center" style={{ color: ic }}>{opp.impact}/10</span>
             <span className="text-[10px] font-bold capitalize text-center text-muted-foreground">{opp.confidence}</span>
@@ -298,7 +308,6 @@ function OpportunityTable({ opps, analysisId }: {
     </div>
   );
 }
-
 /* ════════════════════════════════════════════════════════
  * MAIN PAGE
  * ════════════════════════════════════════════════════════ */
@@ -344,6 +353,32 @@ export default function CommandDeckPage() {
   const metrics: DeckMetrics = useMemo(() => computeCommandDeckMetrics(metricsInput), [metricsInput]);
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
   const allEvidence = useMemo(() => extractAllEvidence(metricsInput), [metricsInput]);
+
+  // ── Tier Discovery State ──
+  const [tierFilter, setTierFilter] = useState<EvidenceTier | null>(null);
+  const [manualUnlocks, setManualUnlocks] = useState<Set<TierNumber>>(new Set());
+  const tierState: TierState = useMemo(() => computeTierState(allEvidence, manualUnlocks), [allEvidence, manualUnlocks]);
+  const filteredEvidence = useMemo(() => filterEvidenceByTier(allEvidence, tierFilter), [allEvidence, tierFilter]);
+
+  const handleSelectTier = useCallback((tier: TierNumber) => {
+    const tierKey = TIER_META[tier].tier;
+    setTierFilter(prev => prev === tierKey ? null : tierKey);
+  }, []);
+
+  const handleMarkComplete = useCallback((tier: TierNumber) => {
+    const nextTier = (tier + 1) as TierNumber;
+    setManualUnlocks(prev => new Set(prev).add(nextTier));
+  }, []);
+
+  // Filter opportunities by tier
+  const filteredOpps = useMemo(() => {
+    if (!tierFilter) return topOpps;
+    return topOpps.filter((o: any) => {
+      // Try to match by tier if available, otherwise show all
+      if (o.tier) return o.tier === tierFilter;
+      return true;
+    });
+  }, [topOpps, tierFilter]);
 
   // ── Drilldown state ──
   const [explorerDomain, setExplorerDomain] = useState<MetricDomain | null>(null);
@@ -437,12 +472,25 @@ export default function CommandDeckPage() {
         </div>
 
         {/* ═══ ZONE 1 — METRIC CARDS ═══ */}
+        {tierFilter && (
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-[10px] font-bold text-muted-foreground">Filtered to:</span>
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
+              style={{
+                background: `${tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)"}15`,
+                color: tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)",
+              }}>
+              {tierFilter.charAt(0).toUpperCase() + tierFilter.slice(1)} tier
+            </span>
+            <button onClick={() => setTierFilter(null)} className="text-[10px] font-bold text-muted-foreground underline">Clear</button>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <MetricCard
             label="Opportunity Score"
             value={metrics.opportunityScore}
             evidence={`${metrics.opportunitiesIdentified} opportunities detected`}
-            evidenceCount={allEvidence.opportunity.evidenceCount}
+            evidenceCount={filteredEvidence.opportunity.evidenceCount}
             description="Potential value from redesign and leverage signals"
             icon={Lightbulb}
             color="hsl(152 60% 44%)"
@@ -454,7 +502,7 @@ export default function CommandDeckPage() {
             label="Friction Index"
             value={metrics.frictionIndex}
             evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
-            evidenceCount={allEvidence.friction.evidenceCount}
+            evidenceCount={filteredEvidence.friction.evidenceCount}
             description="Customer complaints, friction points, and constraints"
             icon={AlertTriangle}
             color="hsl(0 72% 52%)"
@@ -466,7 +514,7 @@ export default function CommandDeckPage() {
             label="Constraints"
             value={metrics.constraintsCount}
             evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
-            evidenceCount={allEvidence.constraint.evidenceCount}
+            evidenceCount={filteredEvidence.constraint.evidenceCount}
             description="Structural constraints and assumptions discovered"
             icon={Crosshair}
             color="hsl(0 72% 52%)"
@@ -478,7 +526,7 @@ export default function CommandDeckPage() {
             label="Leverage Score"
             value={metrics.leverageScore}
             evidence={`${metrics.leveragePoints} leverage signals`}
-            evidenceCount={allEvidence.leverage.evidenceCount}
+            evidenceCount={filteredEvidence.leverage.evidenceCount}
             description="Hidden value and high-leverage opportunities"
             icon={Zap}
             color="hsl(38 92% 50%)"
@@ -490,7 +538,7 @@ export default function CommandDeckPage() {
             label="Risk Score"
             value={metrics.riskScore}
             evidence={`${metrics.riskSignals} risk signals`}
-            evidenceCount={allEvidence.risk.evidenceCount}
+            evidenceCount={filteredEvidence.risk.evidenceCount}
             description="Execution, feasibility, and market risk"
             icon={Shield}
             color="hsl(0 72% 52%)"
@@ -499,6 +547,14 @@ export default function CommandDeckPage() {
             onClick={() => openExplorer("risk")}
           />
         </div>
+
+        {/* ═══ DISCOVERY TIERS ═══ */}
+        <TierDiscoveryPanel
+          tierState={tierState}
+          activeTierFilter={tierFilter}
+          onSelectTier={handleSelectTier}
+          onMarkComplete={handleMarkComplete}
+        />
 
         {/* ═══ ZONE 2 — PIPELINE + SIGNAL ACCUMULATION ═══ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -601,7 +657,7 @@ export default function CommandDeckPage() {
             <div className="flex items-center gap-2">
               <Lightbulb size={14} style={{ color: "hsl(152 60% 44%)" }} />
               <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Top Strategic Opportunities</p>
-              <span className="text-[10px] font-bold text-muted-foreground">({topOpps.length})</span>
+              <span className="text-[10px] font-bold text-muted-foreground">({filteredOpps.length})</span>
             </div>
             {graph && graph.nodes.length > 0 && (
               <button
@@ -614,8 +670,8 @@ export default function CommandDeckPage() {
             )}
           </div>
 
-          {topOpps.length > 0 ? (
-            <OpportunityTable opps={topOpps} analysisId={analysisId!} />
+          {filteredOpps.length > 0 ? (
+            <OpportunityTable opps={filteredOpps} analysisId={analysisId!} />
           ) : (
             <div className="text-center py-10">
               <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-muted mb-3">
@@ -712,7 +768,7 @@ export default function CommandDeckPage() {
         open={explorerDomain !== null}
         onClose={closeExplorer}
         domain={explorerDomain}
-        evidence={allEvidence}
+        evidence={filteredEvidence}
       />
     </div>
   );

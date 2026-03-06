@@ -3,13 +3,14 @@
  *
  * Opens as a sheet/drawer when a MetricCard is clicked.
  * Shows structured evidence items traced to pipeline steps.
+ * Supports tier + type filtering and confidence sorting.
  */
 
-import { useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, Layers, Search, Lightbulb, AlertTriangle, Crosshair, Zap, Shield } from "lucide-react";
+import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowRight, Layers, Search, Lightbulb, AlertTriangle, Crosshair, Zap, Shield, Filter } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import type { MetricDomain, MetricEvidence, Evidence, EvidenceTier } from "@/lib/evidenceEngine";
+import type { MetricDomain, MetricEvidence, Evidence, EvidenceTier, EvidenceType } from "@/lib/evidenceEngine";
 
 const DOMAIN_META: Record<MetricDomain, { title: string; icon: React.ElementType; color: string }> = {
   opportunity: { title: "Opportunity Explorer", icon: Lightbulb, color: "hsl(152 60% 44%)" },
@@ -19,16 +20,36 @@ const DOMAIN_META: Record<MetricDomain, { title: string; icon: React.ElementType
   risk:        { title: "Risk Explorer",         icon: Shield, color: "hsl(0 72% 52%)" },
 };
 
-const TIER_LABELS: Record<EvidenceTier, { label: string; color: string }> = {
-  structural:   { label: "Structural", color: "hsl(0 72% 52%)" },
-  system:       { label: "System",     color: "hsl(38 92% 50%)" },
-  optimization: { label: "Optimization", color: "hsl(229 89% 63%)" },
-};
+const TIER_CHIPS: { key: EvidenceTier; label: string; color: string }[] = [
+  { key: "structural",   label: "Structural",    color: "hsl(0 72% 52%)" },
+  { key: "system",       label: "System",        color: "hsl(38 92% 50%)" },
+  { key: "optimization", label: "Optimization",  color: "hsl(229 89% 63%)" },
+];
+
+const TYPE_CHIPS: { key: EvidenceType; label: string }[] = [
+  { key: "assumption",  label: "Assumption" },
+  { key: "signal",      label: "Signal" },
+  { key: "constraint",  label: "Constraint" },
+  { key: "opportunity", label: "Opportunity" },
+  { key: "risk",        label: "Risk" },
+  { key: "leverage",    label: "Leverage" },
+];
 
 const STEP_LABELS: Record<string, string> = {
   report: "Report", disrupt: "Disrupt", redesign: "Redesign",
   stress_test: "Stress Test", pitch: "Pitch",
 };
+
+function ConfidenceBadge({ score }: { score: number }) {
+  const color = score >= 0.7 ? "hsl(152 60% 44%)" : score >= 0.5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
+  const label = score >= 0.7 ? "High" : score >= 0.5 ? "Med" : "Low";
+  return (
+    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+      style={{ background: `${color}12`, color }}>
+      {label} {(score * 100).toFixed(0)}%
+    </span>
+  );
+}
 
 interface EvidenceExplorerProps {
   open: boolean;
@@ -43,16 +64,36 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
   const meta = DOMAIN_META[safeDomain];
   const Icon = meta.icon;
 
+  // Filters
+  const [tierFilter, setTierFilter] = useState<EvidenceTier | null>(null);
+  const [typeFilters, setTypeFilters] = useState<Set<EvidenceType>>(new Set());
+
+  const toggleType = (t: EvidenceType) => {
+    setTypeFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(t)) next.delete(t); else next.add(t);
+      return next;
+    });
+  };
+
+  // Filtered + sorted items
+  const filteredItems = useMemo(() => {
+    let items = data.items;
+    if (tierFilter) items = items.filter(i => i.tier === tierFilter);
+    if (typeFilters.size > 0) items = items.filter(i => typeFilters.has(i.type));
+    return [...items].sort((a, b) => (b.confidenceScore ?? 0) - (a.confidenceScore ?? 0));
+  }, [data.items, tierFilter, typeFilters]);
+
   // Group by pipeline step
   const grouped = useMemo(() => {
     const groups: Record<string, Evidence[]> = {};
-    data.items.forEach(item => {
+    filteredItems.forEach(item => {
       const key = item.pipelineStep;
       if (!groups[key]) groups[key] = [];
       groups[key].push(item);
     });
     return groups;
-  }, [data.items]);
+  }, [filteredItems]);
 
   // Tier distribution
   const tierCounts = useMemo(() => {
@@ -60,6 +101,8 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
     data.items.forEach(item => { counts[item.tier]++; });
     return counts;
   }, [data.items]);
+
+  const hasActiveFilters = tierFilter !== null || typeFilters.size > 0;
 
   if (!domain) return null;
 
@@ -77,34 +120,73 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
               <div className="flex-1 min-w-0">
                 <SheetTitle className="text-base font-extrabold text-foreground">{meta.title}</SheetTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {data.evidenceCount} evidence items from pipeline analysis
+                  {filteredItems.length}{hasActiveFilters ? ` of ${data.evidenceCount}` : ""} evidence items
                 </p>
               </div>
             </div>
           </SheetHeader>
 
           {/* Tier distribution bar */}
-          <div className="flex items-center gap-3 mt-4">
-            {(Object.entries(tierCounts) as [EvidenceTier, number][]).filter(([, c]) => c > 0).map(([tier, count]) => {
-              const t = TIER_LABELS[tier];
+          <div className="flex items-center gap-3 mt-3">
+            {TIER_CHIPS.filter(t => tierCounts[t.key] > 0).map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTierFilter(tierFilter === t.key ? null : t.key)}
+                className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-full transition-colors"
+                style={{
+                  background: tierFilter === t.key ? `${t.color}20` : "transparent",
+                  color: tierFilter === t.key ? t.color : "hsl(var(--muted-foreground))",
+                  border: tierFilter === t.key ? `1.5px solid ${t.color}40` : "1px solid hsl(var(--border))",
+                }}
+              >
+                <span className="w-2 h-2 rounded-full" style={{ background: t.color }} />
+                <span>{tierCounts[t.key]}</span>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Type filter chips */}
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            <Filter size={10} className="text-muted-foreground mr-0.5" />
+            {TYPE_CHIPS.map(t => {
+              const active = typeFilters.has(t.key);
               return (
-                <span key={tier} className="inline-flex items-center gap-1.5 text-[10px] font-bold">
-                  <span className="w-2 h-2 rounded-full" style={{ background: t.color }} />
-                  <span style={{ color: t.color }}>{count}</span>
-                  <span className="text-muted-foreground">{t.label}</span>
-                </span>
+                <button
+                  key={t.key}
+                  onClick={() => toggleType(t.key)}
+                  className="text-[9px] font-bold px-2 py-0.5 rounded-full transition-colors"
+                  style={{
+                    background: active ? "hsl(var(--primary) / 0.15)" : "hsl(var(--muted))",
+                    color: active ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                  }}
+                >
+                  {t.label}
+                </button>
               );
             })}
+            {hasActiveFilters && (
+              <button
+                onClick={() => { setTierFilter(null); setTypeFilters(new Set()); }}
+                className="text-[9px] font-bold text-muted-foreground underline ml-1"
+              >
+                Clear
+              </button>
+            )}
           </div>
         </div>
 
         {/* Evidence items grouped by step */}
         <div className="px-5 py-4 space-y-5">
-          {data.items.length === 0 ? (
+          {filteredItems.length === 0 ? (
             <div className="text-center py-12">
               <Search size={24} className="mx-auto text-muted-foreground mb-3" />
-              <p className="text-sm font-bold text-foreground">No evidence collected yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Run pipeline steps to generate evidence.</p>
+              <p className="text-sm font-bold text-foreground">
+                {hasActiveFilters ? "No evidence matches filters" : "No evidence collected yet"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {hasActiveFilters ? "Try adjusting your filter criteria." : "Run pipeline steps to generate evidence."}
+              </p>
             </div>
           ) : (
             Object.entries(grouped).map(([step, items]) => (
@@ -118,7 +200,7 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
                 </div>
                 <div className="space-y-1.5">
                   {items.map((item, i) => {
-                    const tierInfo = TIER_LABELS[item.tier];
+                    const tierChip = TIER_CHIPS.find(t => t.key === item.tier);
                     return (
                       <motion.div
                         key={item.id}
@@ -129,7 +211,7 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
                       >
                         <div className="flex items-start gap-2">
                           <div className="w-1 h-full min-h-[20px] rounded-full flex-shrink-0 mt-0.5"
-                            style={{ background: tierInfo.color }} />
+                            style={{ background: tierChip?.color || "hsl(var(--muted-foreground))" }} />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-foreground leading-snug">{item.label}</p>
                             {item.description && (
@@ -137,15 +219,23 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
                             )}
                             <div className="flex items-center gap-2 mt-2 flex-wrap">
                               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                                style={{ background: `${tierInfo.color}12`, color: tierInfo.color }}>
-                                {tierInfo.label}
+                                style={{ background: `${tierChip?.color || "gray"}12`, color: tierChip?.color }}>
+                                {tierChip?.label || item.tier}
                               </span>
                               <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                                 {item.type}
                               </span>
+                              {item.confidenceScore != null && (
+                                <ConfidenceBadge score={item.confidenceScore} />
+                              )}
                               {item.impact != null && (
                                 <span className="text-[9px] font-bold tabular-nums" style={{ color: meta.color }}>
                                   Impact: {item.impact}/10
+                                </span>
+                              )}
+                              {item.relatedSignals && item.relatedSignals.length > 0 && (
+                                <span className="text-[9px] font-bold text-muted-foreground">
+                                  {item.relatedSignals.length} related
                                 </span>
                               )}
                             </div>
@@ -160,7 +250,7 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
           )}
 
           {/* Traceability note */}
-          {data.items.length > 0 && (
+          {filteredItems.length > 0 && (
             <div className="rounded-lg bg-muted/50 px-4 py-3 mt-4">
               <p className="text-[10px] font-bold text-muted-foreground leading-relaxed">
                 <ArrowRight size={10} className="inline mr-1" />
