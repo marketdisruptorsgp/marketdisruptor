@@ -162,6 +162,19 @@ function confidenceLabel(score?: number): "high" | "medium" | "low" {
   return score >= 0.7 ? "high" : score >= 0.4 ? "medium" : "low";
 }
 
+/** Strip internal ID prefixes (C1:, F_1:, etc.) and code artifacts from user-facing labels */
+function humanizeGraphLabel(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/^[A-Z]_?\d+\s*[:\.]\s*/i, "")
+    .replace(/^Binding Constraint\s*[:\.]\s*/i, "")
+    .replace(/^Counterfactual\s*[:\.]\s*/i, "")
+    .replace(/\s*\(\+\d+ related\)$/i, "")
+    .replace(/_/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 /**
  * Build insight graph from Evidence objects (canonical pipeline).
  * Optionally accepts insights and scenarios to generate higher-level nodes.
