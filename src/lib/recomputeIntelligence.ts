@@ -78,7 +78,7 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
   }
 
   // 3. Generate insights from evidence
-  const insights = generateInsights(flat, mode);
+  const insights = clusterEvidenceIntoInsights(flat);
   if (insights.length > 0) {
     events.push(`${insights.length} insights generated from ${flat.length} evidence items`);
   }
