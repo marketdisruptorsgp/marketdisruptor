@@ -27,8 +27,9 @@ import {
   LayoutDashboard, GitBranch, Target, Shield, Lightbulb,
   Activity, Crosshair, AlertTriangle, CheckCircle2, Circle,
   ChevronRight, Rocket, TrendingUp, ArrowRight, ArrowUpDown,
-  Zap, BarChart3, ExternalLink,
+  Zap, BarChart3, ExternalLink, RefreshCw,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   computeCommandDeckMetrics, aggregateOpportunities,
   type CommandDeckMetrics as DeckMetrics,
