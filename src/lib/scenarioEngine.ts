@@ -1,10 +1,12 @@
 /**
  * SCENARIO ENGINE — Strategy Simulation → Evidence Feedback Loop
  *
- * Manages tool scenario persistence and converts simulation outputs
- * into canonical Evidence objects that feed back into the intelligence engine.
+ * Manages tool scenario persistence (database + in-memory cache)
+ * and converts simulation outputs into canonical Evidence objects
+ * that feed back into the intelligence engine.
  */
 
+import { supabase } from "@/integrations/supabase/client";
 import type { Evidence, EvidenceMode, EvidencePipelineStep } from "@/lib/evidenceEngine";
 
 // ═══════════════════════════════════════════════════════════════
@@ -23,10 +25,10 @@ export interface ToolScenario {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  SCENARIO STORAGE (in-memory + analysis_data persistence)
+//  IN-MEMORY CACHE (fast reads, synced with DB)
 // ═══════════════════════════════════════════════════════════════
 
-const scenarioStore = new Map<string, ToolScenario[]>();
+const scenarioCache = new Map<string, ToolScenario[]>();
 
 let scenarioIdCounter = 0;
 
@@ -34,30 +36,136 @@ export function generateScenarioId(): string {
   return `scenario-${Date.now()}-${++scenarioIdCounter}`;
 }
 
-export function saveScenario(scenario: ToolScenario): void {
+// ═══════════════════════════════════════════════════════════════
+//  DATABASE PERSISTENCE
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Save scenario to database and update in-memory cache.
+ */
+export async function saveScenarioToDb(scenario: ToolScenario): Promise<void> {
+  // Update in-memory cache immediately for fast UI response
+  saveScenarioToCache(scenario);
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return; // Anonymous users fall back to cache only
+
+    const { error } = await supabase
+      .from("tool_scenarios" as any)
+      .upsert({
+        id: scenario.scenarioId,
+        analysis_id: scenario.analysisId,
+        user_id: user.id,
+        tool_id: scenario.toolId,
+        scenario_name: scenario.scenarioName,
+        inputs: scenario.inputVariables,
+        outputs: scenario.outputResults,
+        strategic_impact: scenario.strategicImpact,
+        updated_at: new Date().toISOString(),
+      } as any, { onConflict: "id" });
+
+    if (error) {
+      console.warn("[ScenarioEngine] DB save failed, using cache:", error.message);
+    }
+  } catch {
+    // Silent fallback to cache-only
+  }
+}
+
+/**
+ * Load scenarios from database for an analysis.
+ */
+export async function loadScenariosFromDb(analysisId: string): Promise<ToolScenario[]> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return getScenarios(analysisId);
+
+    const { data, error } = await supabase
+      .from("tool_scenarios" as any)
+      .select("*")
+      .eq("analysis_id", analysisId)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true }) as any;
+
+    if (error || !data) return getScenarios(analysisId);
+
+    const scenarios: ToolScenario[] = (data as any[]).map((row: any) => ({
+      scenarioId: row.id,
+      analysisId: row.analysis_id,
+      toolId: row.tool_id,
+      scenarioName: row.scenario_name,
+      inputVariables: row.inputs || {},
+      outputResults: row.outputs || {},
+      strategicImpact: row.strategic_impact || "medium",
+      timestamp: new Date(row.created_at).getTime(),
+    }));
+
+    // Sync to cache
+    if (scenarios.length > 0) {
+      scenarioCache.set(analysisId, scenarios);
+    }
+
+    return scenarios;
+  } catch {
+    return getScenarios(analysisId);
+  }
+}
+
+/**
+ * Delete scenario from database and cache.
+ */
+export async function deleteScenarioFromDb(analysisId: string, scenarioId: string): Promise<void> {
+  deleteScenario(analysisId, scenarioId);
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase
+      .from("tool_scenarios" as any)
+      .delete()
+      .eq("id", scenarioId)
+      .eq("user_id", user.id);
+  } catch {
+    // Silent fallback
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  IN-MEMORY CACHE OPERATIONS (synchronous, for fast reads)
+// ═══════════════════════════════════════════════════════════════
+
+function saveScenarioToCache(scenario: ToolScenario): void {
   const key = scenario.analysisId;
-  const existing = scenarioStore.get(key) || [];
-  // Replace if same scenarioId exists, otherwise append
+  const existing = scenarioCache.get(key) || [];
   const idx = existing.findIndex(s => s.scenarioId === scenario.scenarioId);
   if (idx >= 0) {
     existing[idx] = scenario;
   } else {
     existing.push(scenario);
   }
-  scenarioStore.set(key, existing);
+  scenarioCache.set(key, existing);
+}
+
+/** @deprecated Use saveScenarioToDb for persistence */
+export function saveScenario(scenario: ToolScenario): void {
+  saveScenarioToCache(scenario);
+  // Fire-and-forget DB save
+  saveScenarioToDb(scenario).catch(() => {});
 }
 
 export function getScenarios(analysisId: string): ToolScenario[] {
-  return scenarioStore.get(analysisId) || [];
+  return scenarioCache.get(analysisId) || [];
 }
 
 export function deleteScenario(analysisId: string, scenarioId: string): void {
-  const existing = scenarioStore.get(analysisId) || [];
-  scenarioStore.set(analysisId, existing.filter(s => s.scenarioId !== scenarioId));
+  const existing = scenarioCache.get(analysisId) || [];
+  scenarioCache.set(analysisId, existing.filter(s => s.scenarioId !== scenarioId));
 }
 
 export function clearScenarios(analysisId: string): void {
-  scenarioStore.delete(analysisId);
+  scenarioCache.delete(analysisId);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -70,7 +178,7 @@ export function serializeScenarios(analysisId: string): ToolScenario[] {
 
 export function hydrateScenarios(analysisId: string, scenarios: ToolScenario[]): void {
   if (Array.isArray(scenarios) && scenarios.length > 0) {
-    scenarioStore.set(analysisId, scenarios);
+    scenarioCache.set(analysisId, scenarios);
   }
 }
 
@@ -106,7 +214,6 @@ export function scenarioToEvidence(
 ): Evidence {
   const evidenceType = TOOL_EVIDENCE_TYPE_MAP[scenario.toolId] || "signal";
 
-  // Build a description from key outputs
   const outputEntries = Object.entries(scenario.outputResults).slice(0, 4);
   const outputDesc = outputEntries
     .map(([k, v]) => `${k.replace(/([A-Z])/g, " $1").trim()}: ${typeof v === "number" ? v.toLocaleString() : v}`)
@@ -122,10 +229,10 @@ export function scenarioToEvidence(
     pipelineStep: "stress_test" as EvidencePipelineStep,
     tier: "system",
     impact: impactScore,
-    confidenceScore: 0.85, // Simulations have high confidence (deterministic)
+    confidenceScore: 0.85,
     category: "simulation",
     mode,
-    sourceEngine: "pipeline" as const, // Use pipeline as source since simulations are user-driven
+    sourceEngine: "pipeline" as const,
   };
 }
 
