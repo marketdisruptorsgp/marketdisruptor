@@ -42,6 +42,7 @@ export interface IntelligenceOutput {
   metrics: CommandDeckMetrics;
   opportunities: any[];
   events: string[];
+  scenarioCount: number;
 }
 
 // ═══════════════════════════════════════════════════════════════
