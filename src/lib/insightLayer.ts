@@ -357,7 +357,7 @@ function generateStructuralInsights(insights: Insight[], evidence: Evidence[]): 
   const result: Insight[] = [];
 
   // Find high-impact constraint clusters → structural insights
-  const constraintClusters = insights.filter(i => i.insightType === "constraint_cluster" && (i.impact ?? 0) >= 6);
+  const constraintClusters = insights.filter(i => i.insightType === "constraint_cluster" && (i.impact ?? 0) >= 3);
   for (const cc of constraintClusters.slice(0, 3)) {
     const relatedEvidence = evidence.filter(e => cc.evidenceIds.includes(e.id));
     const toolRecs = deriveToolRecommendations(
@@ -413,16 +413,18 @@ function generateStrategicPathways(insights: Insight[], evidence: Evidence[]): I
   const result: Insight[] = [];
 
   // Combine high-impact opportunities with constraint clusters to form pathways
-  const opportunities = insights.filter(i => i.insightType === "emerging_opportunity" && (i.impact ?? 0) >= 5);
+  const opportunities = insights.filter(i => i.insightType === "emerging_opportunity" && (i.impact ?? 0) >= 3);
   const constraints = insights.filter(i => i.insightType === "constraint_cluster");
 
   for (const opp of opportunities.slice(0, 3)) {
     // Find related constraints (shared evidence or same tier)
-    const relatedConstraints = constraints.filter(c =>
+    let relatedConstraints = constraints.filter(c =>
       c.tier === opp.tier || c.evidenceIds.some(eid => opp.evidenceIds.includes(eid))
     );
 
-    if (relatedConstraints.length === 0) continue;
+    if (relatedConstraints.length === 0 && constraints.length > 0) {
+      relatedConstraints = [constraints[0]];
+    }
 
     const allEvidenceIds = [...new Set([...opp.evidenceIds, ...relatedConstraints.flatMap(c => c.evidenceIds)])];
     const relatedInsightIds = [opp.id, ...relatedConstraints.map(c => c.id)];
@@ -542,36 +544,32 @@ function inferConstraintsFromBottlenecks(insights: Insight[], evidence: Evidence
   const now = Date.now();
   const result: Insight[] = [];
 
-  // 1. Repeated assumptions → constraint (assumption appears in 2+ clusters)
+  // 1. Repeated assumptions → constraint (even 1 cluster qualifies if evidence is rich)
   const assumptionClusters = insights.filter(i => i.insightType === "assumption_cluster");
-  if (assumptionClusters.length >= 2) {
-    const sharedEvIds = assumptionClusters[0].evidenceIds.filter(eid =>
-      assumptionClusters.slice(1).some(ac => ac.evidenceIds.includes(eid))
-    );
-    if (sharedEvIds.length > 0 || assumptionClusters.length >= 2) {
-      result.push({
-        id: `insight-inferred-con-${++insightCounter}`,
-        label: `Structural bottleneck: ${assumptionClusters[0].label}`,
-        description: `Repeated assumption patterns across ${assumptionClusters.length} clusters indicate a structural constraint limiting strategic options.`,
-        insightType: "constraint_cluster",
-        evidenceIds: [...new Set(assumptionClusters.flatMap(a => a.evidenceIds))].slice(0, 8),
-        relatedInsightIds: assumptionClusters.map(a => a.id),
-        recommendedTools: deriveToolRecommendations(
-          { label: assumptionClusters[0].label, insightType: "constraint_cluster", confidenceScore: 0.6 },
-          evidence.filter(e => assumptionClusters[0].evidenceIds.includes(e.id)),
-        ),
-        tier: "structural",
-        mode: assumptionClusters[0].mode,
-        confidenceScore: 0.65,
-        impact: Math.max(...assumptionClusters.map(a => a.impact ?? 5)),
-        timestamp: now,
-      });
-    }
+  if (assumptionClusters.length >= 1) {
+    const topCluster = assumptionClusters[0];
+    result.push({
+      id: `insight-inferred-con-${++insightCounter}`,
+      label: `Structural bottleneck: ${topCluster.label}`,
+      description: `${assumptionClusters.length > 1 ? `Repeated assumption patterns across ${assumptionClusters.length} clusters` : "Assumption pattern"} indicates a structural constraint limiting strategic options.`,
+      insightType: "constraint_cluster",
+      evidenceIds: [...new Set(assumptionClusters.flatMap(a => a.evidenceIds))].slice(0, 8),
+      relatedInsightIds: assumptionClusters.map(a => a.id),
+      recommendedTools: deriveToolRecommendations(
+        { label: topCluster.label, insightType: "constraint_cluster", confidenceScore: 0.6 },
+        evidence.filter(e => topCluster.evidenceIds.includes(e.id)),
+      ),
+      tier: "structural",
+      mode: topCluster.mode,
+      confidenceScore: assumptionClusters.length >= 2 ? 0.65 : 0.5,
+      impact: Math.max(...assumptionClusters.map(a => a.impact ?? 5)),
+      timestamp: now,
+    });
   }
 
   // 2. High-friction signals → constraint
-  const frictionEvidence = evidence.filter(e => e.type === "friction" && (e.impact ?? 0) >= 6);
-  if (frictionEvidence.length >= 2) {
+  const frictionEvidence = evidence.filter(e => e.type === "friction" && (e.impact ?? 0) >= 4);
+  if (frictionEvidence.length >= 1) {
     result.push({
       id: `insight-inferred-con-${++insightCounter}`,
       label: `Operational friction: ${frictionEvidence[0].label}`,
@@ -588,8 +586,8 @@ function inferConstraintsFromBottlenecks(insights: Insight[], evidence: Evidence
   }
 
   // 3. Risk clusters → constraint
-  const riskEvidence = evidence.filter(e => e.type === "risk" && (e.impact ?? 0) >= 5);
-  if (riskEvidence.length >= 2) {
+  const riskEvidence = evidence.filter(e => e.type === "risk" && (e.impact ?? 0) >= 4);
+  if (riskEvidence.length >= 1) {
     result.push({
       id: `insight-inferred-con-${++insightCounter}`,
       label: `Risk concentration: ${riskEvidence[0].label}`,
@@ -615,7 +613,7 @@ function inferConstraintsFromBottlenecks(insights: Insight[], evidence: Evidence
 function generateConstraintResolutionOpportunities(insights: Insight[], evidence: Evidence[]): Insight[] {
   const now = Date.now();
   const result: Insight[] = [];
-  const constraintInsights = insights.filter(i => i.insightType === "constraint_cluster" && (i.impact ?? 0) >= 5);
+  const constraintInsights = insights.filter(i => i.insightType === "constraint_cluster" && (i.impact ?? 0) >= 3);
 
   // Check if we already have enough opportunities
   const existingOpps = insights.filter(i => i.insightType === "emerging_opportunity");

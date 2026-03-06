@@ -5,6 +5,8 @@
  * Watches for step completion, input changes, and navigation events.
  * Produces canonical Evidence, SystemIntelligence, InsightGraph,
  * ScenarioComparison, and SensitivityReports.
+ *
+ * Includes full pipeline diagnostics tracing and hash-guarded recompute.
  */
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
@@ -33,6 +35,7 @@ import {
 import { getScenarios, allScenariosToEvidence } from "@/lib/scenarioEngine";
 import { compareScenarios, type ScenarioComparison } from "@/lib/scenarioComparisonEngine";
 import { computeAllSensitivityReports, type SensitivityReport } from "@/lib/sensitivityEngine";
+import { traceStage, buildDiagnostic, type PipelineStageResult } from "@/lib/pipelineDiagnostics";
 
 const DEBOUNCE_MS = 600;
 
@@ -103,6 +106,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     setIsComputing(true);
 
     try {
+      const stages: PipelineStageResult[] = [];
       invalidateIntelligence(analysisId);
 
       const input: SystemIntelligenceInput = {
@@ -115,25 +119,30 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         activeLenses: [],
       };
 
-      const newIntelligence = buildSystemIntelligence(input);
+      const { result: newIntelligence, stage: s0 } = traceStage("System Intelligence", 1, () =>
+        buildSystemIntelligence(input)
+      );
+      stages.push(s0);
 
       // ── Evidence Pipeline ──
-      // Step 1: Extract canonical evidence from all pipeline data
-      const newEvidence = extractAllEvidence({
-        products,
-        selectedProduct,
-        disruptData,
-        redesignData,
-        stressTestData,
-        pitchDeckData,
-        governedData,
-        businessAnalysisData,
-        intelligence: newIntelligence,
-        analysisType: analysisMode,
-      });
+      const { result: newEvidence, stage: s1 } = traceStage("Evidence Extraction", 1, () =>
+        extractAllEvidence({
+          products,
+          selectedProduct,
+          disruptData,
+          redesignData,
+          stressTestData,
+          pitchDeckData,
+          governedData,
+          businessAnalysisData,
+          intelligence: newIntelligence,
+          analysisType: analysisMode,
+        })
+      );
+      stages.push(s1);
 
       // Step 2: Merge simulation evidence
-      const allEvItems = Object.values(newEvidence).flatMap(m => m.items);
+      const allEvItems = Object.values(newEvidence).flatMap((m: any) => m.items || []);
       const mode = analysisMode === "service" ? "service" as const
         : analysisMode === "business_model" ? "business_model" as const
         : "product" as const;
@@ -141,10 +150,23 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       const mergedEvidence = simEvidence.length > 0 ? [...allEvItems, ...simEvidence] : allEvItems;
 
       // Step 3: Cluster evidence into Insights
-      const newInsights = clusterEvidenceIntoInsights(mergedEvidence);
+      const { result: newInsights, stage: s2 } = traceStage("Insight Clustering", mergedEvidence.length, () =>
+        clusterEvidenceIntoInsights(mergedEvidence)
+      );
+      stages.push(s2);
+
+      // Log insight type distribution
+      const insightsByType: Record<string, number> = {};
+      for (const ins of newInsights) {
+        insightsByType[ins.insightType] = (insightsByType[ins.insightType] || 0) + 1;
+      }
+      console.log("[AutoAnalysis] Insight distribution:", insightsByType);
 
       // Step 4: Generate opportunities from insights
-      const newOpps = generateOpportunities(newInsights, mergedEvidence);
+      const { result: newOpps, stage: s3 } = traceStage("Opportunity Generation", newInsights.length, () =>
+        generateOpportunities(newInsights, mergedEvidence)
+      );
+      stages.push(s3);
 
       // Step 5: Generate strategic narrative
       const newNarrative = generateStrategicNarrative(newInsights, mergedEvidence);
@@ -162,13 +184,18 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         recommendedTools: i.recommendedTools,
       }));
       const scenariosForGraph = newComparison?.scenarios;
-      const newGraph = buildInsightGraph(
-        newEvidence, undefined, undefined, undefined, undefined,
-        insightsForGraph.length > 0 ? insightsForGraph : undefined,
-        scenariosForGraph && scenariosForGraph.length > 0 ? scenariosForGraph : undefined,
-      );
 
-      // (scenario comparison already computed above)
+      const { result: newGraph, stage: s4 } = traceStage("Graph Construction", mergedEvidence.length + newInsights.length, () =>
+        buildInsightGraph(
+          newEvidence, undefined, undefined, undefined, undefined,
+          insightsForGraph.length > 0 ? insightsForGraph : undefined,
+          scenariosForGraph && scenariosForGraph.length > 0 ? scenariosForGraph : undefined,
+        )
+      );
+      stages.push(s4);
+
+      // Build diagnostic summary
+      buildDiagnostic(stages, newGraph.nodes, mergedEvidence.length, newInsights.length, scenarios.length);
 
       setIntelligence(newIntelligence);
       setGraph(newGraph);
