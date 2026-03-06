@@ -32,7 +32,7 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
               action={
                 <div className="flex items-center gap-2">
                   {leverageScore != null && (
-                    <span className="text-[11px] font-bold tabular-nums" style={{
+                    <span className="text-xs font-bold tabular-nums" style={{
                       color: leverageScore >= 8 ? "hsl(var(--primary))" : leverageScore >= 6 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))",
                     }}>
                       {leverageScore}/10
@@ -46,11 +46,11 @@ function FlipCardList({ flips, assumptions, showLimit }: { flips: FlippedLogicIt
                 <div className="space-y-3">
                   <VisualGrid columns={2}>
                     <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">Why This Creates Value</p>
+                      <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-2">Why This Creates Value</p>
                       <p className="text-xs text-foreground/80 leading-relaxed">{item.rationale}</p>
                     </div>
                     <div className="p-3.5 rounded-xl" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">How It Works</p>
+                      <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-2">How It Works</p>
                       <p className="text-xs text-foreground/80 leading-relaxed">{item.physicalMechanism}</p>
                     </div>
                   </VisualGrid>

@@ -24,7 +24,7 @@ export function ScanModeToggle({ mode, onChange }: ScanModeToggleProps) {
     >
       <button
         onClick={() => onChange("scan")}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all relative"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all relative"
         style={{
           background: mode === "scan" ? "hsl(var(--primary))" : "transparent",
           color: mode === "scan" ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",
@@ -42,7 +42,7 @@ export function ScanModeToggle({ mode, onChange }: ScanModeToggleProps) {
       </button>
       <button
         onClick={() => onChange("deep")}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all relative"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all relative"
         style={{
           background: mode === "deep" ? "hsl(var(--primary))" : "transparent",
           color: mode === "deep" ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",

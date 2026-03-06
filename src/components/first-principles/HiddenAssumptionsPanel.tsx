@@ -35,13 +35,13 @@ function AssumptionCardList({ assumptions, showLimit }: { assumptions: HiddenAss
               action={
                 <div className="flex items-center gap-2">
                   {a.urgencySignal === "eroding" && (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "hsl(0 70% 50% / 0.1)", color: "hsl(0 70% 50%)" }}>↓ Eroding</span>
+                    <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ background: "hsl(0 70% 50% / 0.1)", color: "hsl(0 70% 50%)" }}>↓ Eroding</span>
                   )}
                   {a.urgencySignal === "emerging" && (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "hsl(142 70% 40% / 0.1)", color: "hsl(142 70% 35%)" }}>↑ Emerging</span>
+                    <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ background: "hsl(142 70% 40% / 0.1)", color: "hsl(142 70% 35%)" }}>↑ Emerging</span>
                   )}
                   {a.leverageScore != null && (
-                    <span className="text-[11px] font-bold tabular-nums" style={{ color: leverageColor }}>{a.leverageScore}/10</span>
+                    <span className="text-xs font-bold tabular-nums" style={{ color: leverageColor }}>{a.leverageScore}/10</span>
                   )}
                   {a.isChallengeable && (
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} title="Challengeable" />
@@ -154,7 +154,7 @@ export function HiddenAssumptionsPanel({ data, governedData, onRerun, loading, r
                     <Flame size={14} style={{ color: "hsl(var(--background))" }} />
                     <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--background) / 0.7)" }}>Highest-Leverage Move</p>
                     {erodingCount > 0 && (
-                      <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "hsl(0 70% 50% / 0.2)", color: "hsl(0 70% 65%)" }}>
+                      <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: "hsl(0 70% 50% / 0.2)", color: "hsl(0 70% 65%)" }}>
                         {erodingCount} eroding now
                       </span>
                     )}

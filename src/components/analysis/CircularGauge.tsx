@@ -87,11 +87,11 @@ export function CircularGauge({
         />
       </div>
       <div className="text-center">
-        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+        <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
           {label}
         </p>
         {subtext && (
-          <p className="text-[9px] text-muted-foreground/70 mt-0.5">{subtext}</p>
+          <p className="text-xs text-muted-foreground/70 mt-0.5">{subtext}</p>
         )}
       </div>
     </div>

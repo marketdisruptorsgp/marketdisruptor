@@ -65,7 +65,7 @@ export function StreakBadge() {
       <Flame size={13} style={{ color: "hsl(25 95% 53%)" }} />
       Week {streakWeeks} streak
       {thisWeekCount > 0 && (
-        <span className="text-[10px] font-medium" style={{ color: "hsl(25 95% 53% / 0.7)" }}>
+        <span className="text-xs font-medium" style={{ color: "hsl(25 95% 53% / 0.7)" }}>
           · {thisWeekCount} this week
         </span>
       )}

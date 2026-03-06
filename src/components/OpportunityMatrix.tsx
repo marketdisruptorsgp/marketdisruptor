@@ -51,12 +51,12 @@ function FrictionMeter({ friction }: { friction: FrictionScore }) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Friction</span>
+        <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Friction</span>
         <span className="text-xs font-bold tabular-nums" style={{ color }}>{friction.index.toFixed(1)}/5</span>
       </div>
       {DIMS.map(d => (
         <div key={d.key} className="flex items-center gap-2">
-          <span className="text-[9px] font-semibold text-muted-foreground w-16 flex-shrink-0">{d.label}</span>
+          <span className="text-xs font-semibold text-muted-foreground w-16 flex-shrink-0">{d.label}</span>
           <ScoreBar value={friction.dimensions[d.key]} color={color} />
         </div>
       ))}
@@ -77,12 +77,12 @@ function LeverageMeter({ leverage }: { leverage: LeverageScore }) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Leverage</span>
+        <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Leverage</span>
         <span className="text-xs font-bold tabular-nums" style={{ color }}>{leverage.index.toFixed(1)}/5</span>
       </div>
       {DIMS.map(d => (
         <div key={d.key} className="flex items-center gap-2">
-          <span className="text-[9px] font-semibold text-muted-foreground w-16 flex-shrink-0">{d.label}</span>
+          <span className="text-xs font-semibold text-muted-foreground w-16 flex-shrink-0">{d.label}</span>
           <ScoreBar value={leverage.dimensions[d.key]} color={color} />
         </div>
       ))}
@@ -95,7 +95,7 @@ function PriorityBadge({ priority }: { priority: OpportunityPriority }) {
   const meta = PRIORITY_META[priority];
   return (
     <span
-      className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+      className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
       style={{ background: meta.bg, color: meta.color }}
     >
       {meta.label}
@@ -157,7 +157,7 @@ function QuadrantSummary({ summary }: {
             <q.icon size={16} style={{ color: meta.color }} />
             <div>
               <p className="text-lg font-extrabold tabular-nums" style={{ color: meta.color }}>{q.count}</p>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{meta.label}</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{meta.label}</p>
             </div>
           </div>
         );
@@ -174,7 +174,7 @@ function GovernanceBadge({ report }: { report: GovernanceReport }) {
 
   return (
     <div
-      className="flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-semibold"
+      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
       style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
     >
       <ShieldAlert size={12} />
@@ -235,7 +235,7 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
               className="rounded-xl p-3 space-y-1.5"
               style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}
             >
-              <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 {CATEGORY_LABELS[key] || key}
               </p>
               <p className="text-lg font-extrabold tabular-nums" style={{ color: catColor }}>{value.toFixed(1)}</p>
@@ -247,18 +247,18 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
 
       {/* Dimension breakdown */}
       <div className="space-y-1.5">
-        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Friction Dimensions</p>
+        <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Friction Dimensions</p>
         {Object.entries(friction.dimensions).map(([key, value]) => {
           const dimColor = value <= 4 ? "hsl(152 60% 44%)" : value <= 6 ? "hsl(38 92% 50%)" : "hsl(0 72% 50%)";
           return (
             <div key={key} className="flex items-center gap-2">
-              <span className="text-[9px] font-semibold text-muted-foreground w-24 flex-shrink-0">
+              <span className="text-xs font-semibold text-muted-foreground w-24 flex-shrink-0">
                 {EXPANDED_DIM_LABELS[key] || key}
               </span>
               <div className="flex-1">
                 <ScoreBar value={value} max={10} color={dimColor} />
               </div>
-              <span className="text-[10px] font-bold tabular-nums w-6 text-right" style={{ color: dimColor }}>
+              <span className="text-xs font-bold tabular-nums w-6 text-right" style={{ color: dimColor }}>
                 {value}
               </span>
             </div>
@@ -272,7 +272,7 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
           {friction.topFactors.map(f => (
             <span
               key={f.dimension}
-              className="px-2.5 py-1 rounded-full text-[10px] font-bold"
+              className="px-2.5 py-1 rounded-full text-xs font-bold"
               style={{
                 background: f.score >= 7 ? "hsl(0 72% 50% / 0.12)" : "hsl(38 92% 50% / 0.12)",
                 color: f.score >= 7 ? "hsl(0 72% 50%)" : "hsl(38 92% 50%)",

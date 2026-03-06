@@ -19,7 +19,7 @@ export function RedTeamPanel({ verdict, arguments: args, killShot }: RedTeamPane
         </div>
         <div>
           <p className="text-sm font-extrabold text-white tracking-tight">Red Team</p>
-          <p className="text-[11px] text-white/70 font-medium">Against This Idea</p>
+          <p className="text-xs text-white/70 font-medium">Against This Idea</p>
         </div>
       </div>
 

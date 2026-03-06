@@ -60,7 +60,7 @@ export function StructuralDiagnosisPanel({ constraintMap }: { constraintMap?: Co
         <div className="rounded-xl p-4" style={{ background: "hsl(var(--foreground))", border: "none" }}>
           <div className="flex items-center gap-2 mb-2">
             <Zap size={13} style={{ color: "hsl(var(--background))" }} />
-            <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--background) / 0.6)" }}>
+            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--background) / 0.6)" }}>
               Binding Constraint
             </p>
           </div>
@@ -100,7 +100,7 @@ export function StructuralDiagnosisPanel({ constraintMap }: { constraintMap?: Co
               {/* Header row */}
               <div className="px-4 py-3.5 flex items-start gap-3">
                 <span
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5"
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
                   style={{
                     background: isBinding ? "hsl(0 70% 50%)" : "hsl(var(--foreground))",
                     color: "hsl(var(--background))",
@@ -113,16 +113,16 @@ export function StructuralDiagnosisPanel({ constraintMap }: { constraintMap?: Co
                     {chain.structural_constraint}
                   </p>
                   {isBinding && (
-                    <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-[9px] font-bold" style={{ background: "hsl(0 70% 50% / 0.1)", color: "hsl(0 70% 45%)" }}>
+                    <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-xs font-bold" style={{ background: "hsl(0 70% 50% / 0.1)", color: "hsl(0 70% 45%)" }}>
                       System-Limiting
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: impactColor.bg, color: impactColor.text }}>
+                  <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ background: impactColor.bg, color: impactColor.text }}>
                     {impactDim || "impact"}
                   </span>
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: confStyle.bg, color: confStyle.text }}>
+                  <span className="px-1.5 py-0.5 rounded text-xs font-bold" style={{ background: confStyle.bg, color: confStyle.text }}>
                     {confidence}
                   </span>
                   <ChevronDown
@@ -137,11 +137,11 @@ export function StructuralDiagnosisPanel({ constraintMap }: { constraintMap?: Co
               {isExpanded && (
                 <div className="px-4 pb-4 pt-0 space-y-3" style={{ borderTop: "1px solid hsl(var(--border))" }}>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/60 mb-1">Market Impact</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-foreground/60 mb-1">Market Impact</p>
                     <p className="text-sm text-foreground leading-relaxed">{chain.system_impact}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/60 mb-1">Impact Dimension</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-foreground/60 mb-1">Impact Dimension</p>
                     <p className="text-sm text-foreground">{chain.impact_dimension}</p>
                   </div>
                 </div>

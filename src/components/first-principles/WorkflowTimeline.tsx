@@ -78,7 +78,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
           <Route size={13} style={{ color: "hsl(var(--background))" }} />
         </div>
         <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Current Journey</p>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
+        <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}>
           {steps.length} steps
         </span>
       </div>
@@ -123,13 +123,13 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
                 {isExpanded && friction && (
                   <div className="mt-2.5 space-y-2 pt-2.5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">What happens</p>
-                      <p className="text-[13px] text-foreground/80 leading-relaxed">{friction.friction}</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">What happens</p>
+                      <p className="text-sm text-foreground/80 leading-relaxed">{friction.friction}</p>
                     </div>
                     {friction.rootCause && (
                       <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Root cause</p>
-                        <p className="text-[13px] text-foreground/80 leading-relaxed">{friction.rootCause}</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Root cause</p>
+                        <p className="text-sm text-foreground/80 leading-relaxed">{friction.rootCause}</p>
                       </div>
                     )}
                   </div>
@@ -137,7 +137,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
 
                 {isExpanded && !friction && (
                   <div className="mt-2.5 pt-2.5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
-                    <p className="text-[11px] text-muted-foreground italic">No friction points identified at this step.</p>
+                    <p className="text-xs text-muted-foreground italic">No friction points identified at this step.</p>
                   </div>
                 )}
               </button>
@@ -149,7 +149,7 @@ export function WorkflowTimeline({ steps, frictionPoints }: { steps: string[]; f
       {frictionPoints?.length > 0 && (
         <div className="flex items-center gap-2 pt-2 mt-1" style={{ borderTop: "1px solid hsl(var(--border))" }}>
           <AlertTriangle size={12} style={{ color: "hsl(var(--muted-foreground))" }} />
-          <span className="text-[11px] font-semibold text-muted-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">
             {frictionPoints.length} friction point{frictionPoints.length !== 1 ? "s" : ""} identified
           </span>
         </div>
