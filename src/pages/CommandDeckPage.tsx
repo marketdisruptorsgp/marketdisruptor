@@ -527,12 +527,15 @@ export default function CommandDeckPage() {
 
   // ── AUTO-RECOMPUTE: trigger intelligence pipeline on data changes ──
   const lastRecomputeHash = useRef<string>("");
+  const savedScenarios = useMemo(() => getScenarios(analysisId || ""), [analysisId, intelligenceEvents.length]);
 
   useEffect(() => {
     const hash = JSON.stringify({
       steps: Array.from(completedSteps),
       sigCount: totalSignals,
       evCount: metrics.totalEvidenceCount,
+      scenarioCount: savedScenarios.length,
+      scenarioHash: savedScenarios.map(s => s.scenarioId + s.timestamp).join(","),
     });
     if (hash === lastRecomputeHash.current) return;
     lastRecomputeHash.current = hash;
@@ -557,12 +560,15 @@ export default function CommandDeckPage() {
         if (result.flatEvidence.length > 0 && result.insights.length > 0) {
           addEvent(`Intelligence: ${result.insights.length} insights from ${result.flatEvidence.length} evidence`);
         }
+        if (result.scenarioCount > 0) {
+          addEvent(`${result.scenarioCount} simulation scenarios integrated`);
+        }
       } catch {
         // Silent fail for auto-recompute
       }
     }, 600);
     return () => clearTimeout(timer);
-  }, [completedSteps, totalSignals, metrics.totalEvidenceCount]);
+  }, [completedSteps, totalSignals, metrics.totalEvidenceCount, savedScenarios]);
 
 
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
