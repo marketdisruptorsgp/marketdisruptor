@@ -315,65 +315,58 @@ export default function CommandDeckPage() {
           mode={modeKey}
         />
 
-        {/* ═══ 2-COLUMN LAYOUT: Main Zones + Lens Panel ═══ */}
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
-          <div className="space-y-5 min-w-0">
+        {/* ═══════════════════════════════════════════════════
+            5-ZONE STRATEGIC COMMAND CENTER LAYOUT
+            ═══════════════════════════════════════════════════ */}
 
-            {/* ═══ ZONE 1 — STRATEGIC SNAPSHOT ═══ */}
-            <StrategicSnapshot
-              metrics={metrics}
+        {/* ROW 1 — Strategic Snapshot (full width) */}
+        <StrategicSnapshot
+          metrics={metrics}
+          opportunities={filteredOpps}
+          strategicPotential={strategicPotential}
+        />
+
+        {/* ROW 2 — Opportunity Map (65%) + Constraint Radar (35%) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="lg:col-span-8 transition-all duration-200 hover:scale-[1.003]">
+            <OpportunityMap
               opportunities={filteredOpps}
-              strategicPotential={strategicPotential}
+              onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
             />
+          </div>
+          <div className="lg:col-span-4 transition-all duration-200 hover:scale-[1.003]">
+            <ConstraintRadar
+              metrics={metrics}
+              insights={autoAnalysis.insights}
+            />
+          </div>
+        </div>
 
-            {/* ═══ ZONE 2 + 3 — Opportunity Map & Constraint Radar side-by-side ═══ */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              <OpportunityMap
-                opportunities={filteredOpps}
-                onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
-              />
-              <ConstraintRadar
-                metrics={metrics}
-                insights={autoAnalysis.insights}
-              />
-            </div>
-
-            {/* ═══ ZONE 4 — STRATEGIC LEVERAGE SIGNALS ═══ */}
+        {/* ROW 3 — Strategic Leverage Signals (60%) + Action Path (40%) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="lg:col-span-7">
             <StrategicLeverageSignals
               insights={autoAnalysis.insights}
               onViewGraph={() => navigate(`${baseUrl}/insight-graph`)}
             />
-
-            {/* ═══ ZONE 5 — ACTION PATH ═══ */}
+          </div>
+          <div className="lg:col-span-5">
             <ActionPath
               analysisId={analysisId!}
               completedSteps={completedSteps}
               mode={modeKey}
             />
           </div>
-
-          {/* ── RIGHT COLUMN: Lens Intelligence Panel ── */}
-          <aside className="hidden xl:block space-y-5 sticky top-4 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
-            <LensIntelligencePanel
-              analysisMode={analysis.activeMode || "product"}
-              signalKeywords={lensSignalKeywords}
-              analysisId={analysisId || ""}
-              recommendedToolIds={reasoningToolRecs}
-              onScenarioSaved={handleScenarioSaved}
-            />
-          </aside>
         </div>
 
-        {/* Mobile Lens Intelligence */}
-        <div className="xl:hidden">
-          <LensIntelligencePanel
-            analysisMode={analysis.activeMode || "product"}
-            signalKeywords={lensSignalKeywords}
-            analysisId={analysisId || ""}
-            recommendedToolIds={reasoningToolRecs}
-            onScenarioSaved={handleScenarioSaved}
-          />
-        </div>
+        {/* ═══ LENS INTELLIGENCE PANEL (below zones) ═══ */}
+        <LensIntelligencePanel
+          analysisMode={analysis.activeMode || "product"}
+          signalKeywords={lensSignalKeywords}
+          analysisId={analysisId || ""}
+          recommendedToolIds={reasoningToolRecs}
+          onScenarioSaved={handleScenarioSaved}
+        />
       </main>
     </div>
   );
