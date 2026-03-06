@@ -127,7 +127,8 @@
   }
 
   /* ── Command Center theme (analysis pages only) ── */
-  [data-command-deck] {
+  /* Applied to <html> by useWorkspaceTheme hook */
+  :root[data-command-deck] {
     --background: 222 28% 7%;
     --foreground: 210 20% 92%;
 
