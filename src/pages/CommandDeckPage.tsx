@@ -38,6 +38,7 @@ import { extractAllEvidence, type MetricDomain, type EvidenceTier } from "@/lib/
 import { computeTierState, filterEvidenceByTier, TIER_META, type TierNumber, type TierState } from "@/lib/tierDiscoveryEngine";
 import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
+import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -418,6 +419,18 @@ export default function CommandDeckPage() {
   const hasBusinessContext = !!businessAnalysisData;
   const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
 
+  const lensSignalKeywords = useMemo(() => {
+    const keywords: string[] = [];
+    if (autoAnalysis.insights) {
+      autoAnalysis.insights.forEach(i => {
+        if (i.label) keywords.push(i.label);
+        if (i.description) keywords.push(i.description);
+      });
+    }
+    if (narrative?.narrativeSummary) keywords.push(narrative.narrativeSummary);
+    return keywords;
+  }, [autoAnalysis.insights, narrative]);
+
   const handleRecomputeAll = useCallback(() => {
     toast.info("Recomputing analysis intelligence…");
     // Trigger auto-analysis recomputation by staying on the Command Deck
@@ -782,6 +795,12 @@ export default function CommandDeckPage() {
             </div>
           )}
         </motion.div>
+
+        {/* ═══ LENS INTELLIGENCE ═══ */}
+        <LensIntelligencePanel
+          analysisMode={analysis.activeMode || "product"}
+          signalKeywords={lensSignalKeywords}
+        />
 
         {/* ═══ ZONE 4 — INSIGHT GRAPH PREVIEW ═══ */}
         <motion.div {...fadeUp} transition={{ delay: 0.25 }}

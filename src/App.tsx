@@ -104,6 +104,13 @@ function LazyRoute({ children }: { children: ReactNode }) {
   );
 }
 
+/** Redirect /analysis/:id → /analysis/:id/command-deck */
+function CommandDeckRedirect() {
+  const id = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/)?.[1];
+  if (id) return <Navigate to={`/analysis/${id}/command-deck`} replace />;
+  return <Navigate to="/workspace" replace />;
+}
+
 function AppRoutes() {
   const { user, loading } = useAuth();
 
@@ -158,6 +165,8 @@ function AppRoutes() {
         <Route path="/intelligence" element={<LazyRoute><IntelligencePage /></LazyRoute>} />
         <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
         <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
+        {/* Default analysis landing → Command Deck */}
+        <Route path="/analysis/:id" element={<LazyRoute><CommandDeckRedirect /></LazyRoute>} />
         <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
         <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
         <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
