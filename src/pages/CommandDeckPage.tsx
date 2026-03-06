@@ -538,7 +538,7 @@ export default function CommandDeckPage() {
             label="Risk Score"
             value={metrics.riskScore}
             evidence={`${metrics.riskSignals} risk signals`}
-            evidenceCount={allEvidence.risk.evidenceCount}
+            evidenceCount={filteredEvidence.risk.evidenceCount}
             description="Execution, feasibility, and market risk"
             icon={Shield}
             color="hsl(0 72% 52%)"
