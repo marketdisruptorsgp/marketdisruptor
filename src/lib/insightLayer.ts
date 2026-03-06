@@ -611,7 +611,7 @@ function inferConstraintsFromBottlenecks(insights: Insight[], evidence: Evidence
 function generateConstraintResolutionOpportunities(insights: Insight[], evidence: Evidence[]): Insight[] {
   const now = Date.now();
   const result: Insight[] = [];
-  const constraintInsights = insights.filter(i => i.insightType === "constraint_cluster" && (i.impact ?? 0) >= 5);
+  const constraintInsights = insights.filter(i => i.insightType === "constraint_cluster" && (i.impact ?? 0) >= 3);
 
   // Check if we already have enough opportunities
   const existingOpps = insights.filter(i => i.insightType === "emerging_opportunity");
