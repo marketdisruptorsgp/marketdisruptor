@@ -176,10 +176,10 @@
   }
 
   /* Override signal card backgrounds in command deck */
-  [data-command-deck] .signal-strength { background: hsl(152 60% 15%) !important; border-color: hsl(152 40% 25%) !important; }
-  [data-command-deck] .signal-weakness { background: hsl(0 40% 15%) !important; border-color: hsl(0 30% 25%) !important; }
-  [data-command-deck] .signal-opportunity { background: hsl(217 40% 15%) !important; border-color: hsl(217 30% 25%) !important; }
-  [data-command-deck] .signal-threat { background: hsl(38 40% 15%) !important; border-color: hsl(38 30% 25%) !important; }
+  :root[data-command-deck] .signal-strength { background: hsl(152 60% 15%) !important; border-color: hsl(152 40% 25%) !important; }
+  :root[data-command-deck] .signal-weakness { background: hsl(0 40% 15%) !important; border-color: hsl(0 30% 25%) !important; }
+  :root[data-command-deck] .signal-opportunity { background: hsl(217 40% 15%) !important; border-color: hsl(217 30% 25%) !important; }
+  :root[data-command-deck] .signal-threat { background: hsl(38 40% 15%) !important; border-color: hsl(38 30% 25%) !important; }
 }
 
 @layer base {
