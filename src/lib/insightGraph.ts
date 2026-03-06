@@ -36,7 +36,10 @@ export type InsightNodeType =
   | "evidence"
   | "friction"
   | "competitor"
-  | "simulation";
+  | "simulation"
+  | "insight"
+  | "pathway"
+  | "scenario";
 
 export type EdgeRelation =
   | "causes"
@@ -45,7 +48,11 @@ export type EdgeRelation =
   | "supports"
   | "unlocks"
   | "depends_on"
-  | "invalidates";
+  | "invalidates"
+  | "creates"
+  | "enables"
+  | "blocks"
+  | "tests";
 
 export interface InsightGraphNode {
   id: string;
