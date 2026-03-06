@@ -178,5 +178,12 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
     }
   }
 
+  // Hydrate scenarios from DB (fire-and-forget)
+  if (analysisRow.id) {
+    import("@/lib/scenarioEngine").then(({ loadScenariosFromDb }) => {
+      loadScenariosFromDb(analysisRow.id).catch(() => {});
+    });
+  }
+
   return { sanitizedProducts, analysisData: ad };
 }
