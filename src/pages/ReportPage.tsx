@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { PricingIntelCard } from "@/components/PricingIntelCard";
 import { supabase } from "@/integrations/supabase/client";
 import { isServiceCategory } from "@/utils/normalizeProduct";
@@ -20,6 +20,9 @@ import { ProjectNotesEditor } from "@/components/portfolio/ProjectNotesEditor";
 import { ScoreBar } from "@/components/ScoreBar";
 import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
+import { buildInsightGraph } from "@/lib/insightGraph";
+import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
+import { StrategicDashboard } from "@/components/analysis/StrategicDashboard";
 import {
   Target, RefreshCw,
   ExternalLink, MessageSquare,
@@ -27,6 +30,7 @@ import {
   Factory,
   ShieldAlert, Lightbulb,
   Clock, ScrollText, StickyNote,
+  LayoutDashboard,
 } from "lucide-react";
 import type { Product } from "@/data/mockProducts";
 
@@ -59,6 +63,7 @@ import {
 /* ── Section tab config ── */
 function getAvailableSections(selectedProduct: any, isService: boolean): TabDef[] {
   const tabs: TabDef[] = [
+    { id: "dashboard", label: "Command Deck", icon: LayoutDashboard },
     { id: "overview", label: "Overview", icon: Target },
   ];
   const uw = (selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney;
@@ -80,7 +85,7 @@ export default function ReportPage() {
   const { tier } = useSubscription();
   const [isSaving, setIsSaving] = React.useState(false);
   const [refreshingJourney, setRefreshingJourney] = useState(false);
-  const [activeSection, setActiveSection] = useState<string>("overview");
+  const [activeSection, setActiveSection] = useState<string>("dashboard");
 
   const handleRefreshJourney = async () => {
     if (!selectedProduct || refreshingJourney) return;
@@ -112,6 +117,45 @@ export default function ReportPage() {
   const { shouldRedirectHome } = useHydrationGuard();
   const isRunning = analysis.step === "scraping" || analysis.step === "analyzing";
 
+  const modeAccent = theme.primary;
+
+  // Build intelligence + graph for dashboard (hooks must be before early returns)
+  const intelligence = useMemo(() => {
+    if (!selectedProduct || !analysisId) return null;
+    try {
+      const input: SystemIntelligenceInput = {
+        analysisId,
+        governedData: analysis.governedData,
+        disruptData: analysis.disruptData as Record<string, unknown> | null,
+        businessAnalysisData: analysis.businessAnalysisData as Record<string, unknown> | null,
+        intelData: null,
+        flipIdeas: null,
+        activeLenses: [],
+      };
+      return buildSystemIntelligence(input);
+    } catch { return null; }
+  }, [selectedProduct, analysisId, analysis.disruptData, analysis.governedData, analysis.businessAnalysisData]);
+
+  const graph = useMemo(() => {
+    return buildInsightGraph(
+      products,
+      intelligence,
+      analysis.disruptData,
+      analysis.redesignData,
+      analysis.stressTestData,
+    );
+  }, [products, intelligence, analysis.disruptData, analysis.redesignData, analysis.stressTestData]);
+
+  const completedSteps = useMemo(() => {
+    const set = new Set<string>();
+    if (products.length > 0) set.add("report");
+    if (analysis.disruptData) set.add("disrupt");
+    if (analysis.redesignData) set.add("redesign");
+    if (analysis.stressTestData) set.add("stress-test");
+    if (analysis.pitchDeckData) set.add("pitch");
+    return set;
+  }, [products, analysis.disruptData, analysis.redesignData, analysis.stressTestData, analysis.pitchDeckData]);
+
   if (isRunning) {
     return (
       <AnalysisPageShell tier={tier}>
@@ -129,7 +173,6 @@ export default function ReportPage() {
     return <AnalysisLoadingSpinner message="Loading analysis..." />;
   }
 
-  const modeAccent = theme.primary;
   const isService = selectedProduct?.category === "Service" || isServiceCategory(selectedProduct?.category || "");
   const baseUrl = `/analysis/${analysisId}`;
   const ci = (selectedProduct as any).communityInsights || (selectedProduct as any).customerSentiment;
@@ -174,6 +217,18 @@ export default function ReportPage() {
       />
 
       <AnalysisDivider />
+
+      {/* ── Strategic Command Deck — dashboard tab ── */}
+      {activeSection === "dashboard" && (
+        <StrategicDashboard
+          analysisId={analysisId || ""}
+          analysisTitle={selectedProduct.name}
+          accentColor={modeAccent}
+          graph={graph}
+          commandDeck={intelligence?.commandDeck ?? null}
+          completedSteps={completedSteps}
+        />
+      )}
 
       {/* ── Intelligence Report Context Banner — overview only ── */}
       {activeSection === "overview" && (
