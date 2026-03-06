@@ -1,15 +1,16 @@
 /**
  * Insight Node Detail Card — Reasoning Explorer Panel
  *
- * Expanded view shown when a user clicks a node in the Insight Graph.
- * Displays: headline, reasoning, leverage score, linked nodes, evidence chain.
+ * Right-side panel shown when a user clicks a node in the Insight Graph.
+ * Displays: headline, reasoning, leverage score, linked nodes, evidence chain,
+ * downstream opportunities influenced.
  */
 
 import { memo, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { X, ArrowDown, ChevronDown, ExternalLink, Zap } from "lucide-react";
+import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target } from "lucide-react";
 import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
-import { getInsightChain, NODE_TYPE_CONFIG } from "@/lib/insightGraph";
+import { getInsightChain, NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 
 interface InsightNodeCardProps {
   node: InsightGraphNode;
@@ -52,13 +53,36 @@ export const InsightNodeCard = memo(function InsightNodeCard({
       .filter(d => d.node);
   }, [graph, node.id]);
 
+  // Opportunities influenced (downstream BFS)
+  const influencedOpportunities = useMemo(() => {
+    const visited = new Set<string>();
+    const opps: InsightGraphNode[] = [];
+    const queue = [node.id];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+      const outgoing = graph.edges.filter(e => e.source === current);
+      for (const e of outgoing) {
+        const target = graph.nodes.find(n => n.id === e.target);
+        if (target && OPPORTUNITY_NODE_TYPES.includes(target.type)) {
+          opps.push(target);
+        }
+        if (!visited.has(e.target)) queue.push(e.target);
+      }
+    }
+    return opps;
+  }, [graph, node.id]);
+
   const isTopLeverage = graph.topNodes.primaryConstraint?.id === node.id;
+  const isBreakthrough = graph.topNodes.breakthroughOpportunity?.id === node.id;
 
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
+      transition={{ duration: 0.25 }}
       className="absolute right-4 top-4 w-80 max-h-[calc(100%-32px)] overflow-y-auto rounded-2xl shadow-2xl z-30"
       style={{
         background: "hsl(var(--card))",
@@ -87,14 +111,11 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         </button>
       </div>
 
-      {/* Top leverage badge */}
+      {/* System Leverage Point badge */}
       {isTopLeverage && (
         <div
           className="mx-4 mb-3 flex items-center gap-2 px-3 py-2 rounded-lg"
-          style={{
-            background: `${config.color}15`,
-            border: `1px solid ${config.color}30`,
-          }}
+          style={{ background: `${config.color}15`, border: `1px solid ${config.color}30` }}
         >
           <Zap size={14} style={{ color: config.color }} />
           <span className="text-xs font-bold" style={{ color: config.color }}>
@@ -103,11 +124,25 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         </div>
       )}
 
+      {/* Breakthrough Opportunity badge */}
+      {isBreakthrough && (
+        <div
+          className="mx-4 mb-3 flex items-center gap-2 px-3 py-2 rounded-lg"
+          style={{ background: `${config.color}15`, border: `1px solid ${config.color}30` }}
+        >
+          <Target size={14} style={{ color: config.color }} />
+          <span className="text-xs font-bold" style={{ color: config.color }}>
+            Breakthrough Opportunity — Highest leverage potential
+          </span>
+        </div>
+      )}
+
       {/* Metrics Row */}
-      <div className="px-4 pb-3 grid grid-cols-3 gap-2">
+      <div className="px-4 pb-3 grid grid-cols-4 gap-1.5">
         <MetricPill label="Impact" value={`${node.impact}/10`} color={config.color} />
+        <MetricPill label="Leverage" value={`${node.leverageScore}`} color={config.color} />
         <MetricPill label="Influence" value={`${node.influence}`} color={config.color} />
-        <MetricPill label="Confidence" value={node.confidence} color={config.color} />
+        <MetricPill label="Conf." value={node.confidence} color={config.color} />
       </div>
 
       {/* Reasoning */}
@@ -119,6 +154,31 @@ export const InsightNodeCard = memo(function InsightNodeCard({
           <p className="text-sm text-foreground leading-relaxed italic">
             "{node.reasoning}"
           </p>
+        </div>
+      )}
+
+      {/* Opportunities influenced */}
+      {influencedOpportunities.length > 0 && (
+        <div className="px-4 pb-3">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+            Opportunities Influenced ({influencedOpportunities.length})
+          </p>
+          <div className="space-y-1">
+            {influencedOpportunities.slice(0, 4).map(opp => {
+              const oc = NODE_TYPE_CONFIG[opp.type];
+              return (
+                <button
+                  key={opp.id}
+                  onClick={() => onSelectNode(opp.id)}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors text-left"
+                >
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: oc.color }} />
+                  <p className="text-xs font-semibold text-foreground truncate flex-1">{opp.label}</p>
+                  <span className="text-xs font-bold tabular-nums" style={{ color: oc.color }}>Lev. {opp.leverageScore}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -281,7 +341,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
 
 function MetricPill({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="text-center px-2 py-1.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
+    <div className="text-center px-1.5 py-1.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
       <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="text-sm font-extrabold capitalize" style={{ color }}>{value}</p>
     </div>
