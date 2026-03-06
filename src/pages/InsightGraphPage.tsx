@@ -58,7 +58,7 @@ export default function InsightGraphPage() {
 
   // Build system intelligence
   const intelligence = useMemo(() => {
-    if (!selectedProduct || !analysisId) return null;
+    if (!analysisId) return null;
     try {
       const input: SystemIntelligenceInput = {
         analysisId,
@@ -73,7 +73,7 @@ export default function InsightGraphPage() {
     } catch {
       return null;
     }
-  }, [selectedProduct, analysisId, disruptData, analysis.governedData, analysis.businessAnalysisData]);
+  }, [analysisId, disruptData, analysis.governedData, analysis.businessAnalysisData]);
 
   // Build insight graph
   const graph = useMemo(() => {
