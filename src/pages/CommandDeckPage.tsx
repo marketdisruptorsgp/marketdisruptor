@@ -410,15 +410,12 @@ export default function CommandDeckPage() {
   const closeExplorer = useCallback(() => setExplorerDomain(null), []);
 
   // ── Strategic Potential Score ──
-  const savedScenarios = useMemo(() => getScenarios(analysisId || ""), [analysisId, intelligenceEvents.length]);
-
   const strategicPotential = useMemo(() => {
-    const simBoost = Math.min(savedScenarios.length * 0.3, 1.5);
-    const raw = (metrics.opportunityScore + metrics.leverageScore + simBoost)
+    const raw = (metrics.opportunityScore + metrics.leverageScore)
       - (metrics.frictionIndex * 0.5)
       - (metrics.riskScore * 0.3);
     return Math.max(0, Math.min(10, Math.round(raw * 10) / 10));
-  }, [metrics, savedScenarios.length]);
+  }, [metrics]);
 
   const pipelinePct = metrics.pipelineCompletion;
   const baseUrl = `/analysis/${analysisId}`;
