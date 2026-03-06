@@ -33,9 +33,9 @@ export const TIER_META = {
   },
   3: {
     tier: "optimization" as EvidenceTier,
-    label: "Optimization Signals",
-    narrative: "Refine the model with incremental improvements",
-    description: "Process efficiency, cost reduction, feature optimization",
+    label: "Optimization Opportunities",
+    narrative: "Improve execution and performance",
+    description: "UX improvements, pricing adjustments, packaging, messaging, funnel, features",
     color: "hsl(229 89% 63%)",
     bgColor: "hsl(229 89% 63% / 0.08)",
     borderColor: "hsl(229 89% 63% / 0.2)",
