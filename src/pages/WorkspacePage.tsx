@@ -39,6 +39,7 @@ const CATEGORY_MAP: Record<string, { label: string; color: string }> = {
   product: { label: "Product", color: "hsl(var(--mode-product))" },
   service: { label: "Service", color: "hsl(var(--mode-service))" },
   business: { label: "Business", color: "hsl(var(--mode-business))" },
+  business_model: { label: "Business", color: "hsl(var(--mode-business))" },
   first_principles: { label: "First Principles", color: "hsl(var(--score-high))" },
 };
 

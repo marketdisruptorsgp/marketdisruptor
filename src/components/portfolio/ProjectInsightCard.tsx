@@ -24,6 +24,7 @@ const CATEGORY_MAP: Record<string, { label: string; color: string }> = {
   product: { label: "Product", color: "#1249a3" },
   service: { label: "Service", color: "#df2060" },
   business: { label: "Business", color: "#8b3fd9" },
+  business_model: { label: "Business", color: "#8b3fd9" },
   first_principles: { label: "First Principles", color: "#0d9488" },
 };
 
