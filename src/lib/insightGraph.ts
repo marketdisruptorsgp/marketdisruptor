@@ -55,6 +55,8 @@ export interface InsightGraphNode {
   evidence: string[];
   reasoning?: string;
   relatedNodeIds: string[];
+  /** Discovery tier: structural / system / optimization */
+  tier?: "structural" | "system" | "optimization";
 }
 
 export interface InsightGraphEdge {
