@@ -82,6 +82,10 @@ export interface Evidence {
   relatedEvidence?: string[];
   /** How many engines independently produced this signal */
   sourceCount?: number;
+  /** Lens-specific relevance scores */
+  lensScores?: { operator?: number; investor?: number; innovator?: number; customer?: number };
+  /** Archetype relevance scores */
+  archetypeScores?: { operator?: number; eta?: number; rollup?: number; venture?: number; bootstrapped?: number };
 }
 
 export type MetricDomain = "opportunity" | "friction" | "constraint" | "leverage" | "risk";
