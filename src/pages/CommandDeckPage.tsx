@@ -43,6 +43,11 @@ import { allScenariosToEvidence, scenarioToEvidence, getScenarios, type ToolScen
 import { recomputeIntelligence } from "@/lib/recomputeIntelligence";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
+import { StrategicSummaryStrip } from "@/components/command-deck/StrategicSummaryStrip";
+import { KeyInsightSignals } from "@/components/command-deck/KeyInsightSignals";
+import { OpportunityBoard } from "@/components/command-deck/OpportunityBoard";
+import { PathwayGenerator } from "@/components/command-deck/PathwayGenerator";
+import { ScenarioSimulationPanel } from "@/components/command-deck/ScenarioSimulationPanel";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
