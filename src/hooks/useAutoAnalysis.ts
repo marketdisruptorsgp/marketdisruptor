@@ -93,7 +93,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
 
   // Debounced recompute on data changes
   useEffect(() => {
-    if (!analysisId || !selectedProduct) return;
+    const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
+    if (!analysisId || !hasComputableData) return;
 
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -104,18 +105,19 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [
-    analysisId, selectedProduct,
+    analysisId, selectedProduct, businessAnalysisData,
     governedData, disruptData, redesignData,
-    stressTestData, pitchDeckData, businessAnalysisData,
+    stressTestData, pitchDeckData,
     compute,
   ]);
 
   // Initial compute
   useEffect(() => {
-    if (analysisId && selectedProduct && !intelligence) {
+    const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
+    if (analysisId && hasComputableData && !intelligence) {
       compute();
     }
-  }, [analysisId, selectedProduct, compute, intelligence]);
+  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, compute, intelligence]);
 
   return {
     intelligence,
