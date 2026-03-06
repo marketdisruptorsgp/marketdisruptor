@@ -423,7 +423,7 @@ function generateOpportunities(
     const label = `Unlock: ${con.label.slice(0, 60)}`;
     if (insights.some(i => jaccardSimilarity(i.label, label) >= 0.5)) continue;
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("opportunity"),
       analysisId,
       insightType: "emerging_opportunity",
@@ -434,7 +434,7 @@ function generateOpportunities(
       impact: Math.max(lev.impact, con.impact),
       confidence: Math.round(((lev.confidence + con.confidence) / 2) * 100) / 100,
       createdAt: now,
-    });
+    }));
   }
 
   return insights;
