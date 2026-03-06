@@ -487,11 +487,11 @@ export default function CommandDeckPage() {
         )}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <MetricCard
-            label="Opportunity Score"
+            label="Opportunity Signals"
             value={metrics.opportunityScore}
-            evidence={`${metrics.opportunitiesIdentified} opportunities detected`}
+            evidence={`${metrics.opportunitiesIdentified} evidence points detected`}
             evidenceCount={filteredEvidence.opportunity.evidenceCount}
-            description="Potential value from redesign and leverage signals"
+            description="Discovery signals from redesign and leverage analysis"
             icon={Lightbulb}
             color="hsl(152 60% 44%)"
             trend={getTrend(metrics.opportunityScore)}
@@ -499,11 +499,11 @@ export default function CommandDeckPage() {
             onClick={() => openExplorer("opportunity")}
           />
           <MetricCard
-            label="Friction Index"
+            label="Constraint Signals"
             value={metrics.frictionIndex}
             evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
             evidenceCount={filteredEvidence.friction.evidenceCount}
-            description="Customer complaints, friction points, and constraints"
+            description="Structural friction and industry constraints"
             icon={AlertTriangle}
             color="hsl(0 72% 52%)"
             trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
@@ -511,11 +511,11 @@ export default function CommandDeckPage() {
             onClick={() => openExplorer("friction")}
           />
           <MetricCard
-            label="Constraints"
+            label="Assumptions Mapped"
             value={metrics.constraintsCount}
             evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
             evidenceCount={filteredEvidence.constraint.evidenceCount}
-            description="Structural constraints and assumptions discovered"
+            description="Industry assumptions and structural constraints identified"
             icon={Crosshair}
             color="hsl(0 72% 52%)"
             trend="neutral"
@@ -523,11 +523,11 @@ export default function CommandDeckPage() {
             onClick={() => openExplorer("constraint")}
           />
           <MetricCard
-            label="Leverage Score"
+            label="Leverage Points"
             value={metrics.leverageScore}
             evidence={`${metrics.leveragePoints} leverage signals`}
             evidenceCount={filteredEvidence.leverage.evidenceCount}
-            description="Hidden value and high-leverage opportunities"
+            description="Structural leverage and hidden value signals"
             icon={Zap}
             color="hsl(38 92% 50%)"
             trend={getTrend(metrics.leverageScore)}
@@ -535,11 +535,11 @@ export default function CommandDeckPage() {
             onClick={() => openExplorer("leverage")}
           />
           <MetricCard
-            label="Risk Score"
+            label="Risk Indicators"
             value={metrics.riskScore}
             evidence={`${metrics.riskSignals} risk signals`}
             evidenceCount={filteredEvidence.risk.evidenceCount}
-            description="Execution, feasibility, and market risk"
+            description="Execution, feasibility, and market risk signals"
             icon={Shield}
             color="hsl(0 72% 52%)"
             trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
