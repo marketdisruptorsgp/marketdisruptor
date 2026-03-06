@@ -308,6 +308,17 @@ export default function CommandDeckPage() {
           ))}
         </div>
 
+        {/* ═══ STRATEGIC NARRATIVE ═══ */}
+        {narrative && (
+          <StrategicNarrativePanel
+            primaryConstraint={narrative.primaryConstraint}
+            keyAssumption={narrative.keyAssumption}
+            leveragePoint={narrative.leveragePoint}
+            breakthroughOpportunity={narrative.breakthroughOpportunity}
+            narrativeSummary={narrative.narrativeSummary}
+          />
+        )}
+
         {/* ═══ STRATEGIC SIGNAL BANNER ═══ */}
         <StrategicSignalBanner
           opportunities={filteredOpps}

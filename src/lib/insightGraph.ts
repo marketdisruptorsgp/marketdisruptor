@@ -255,7 +255,23 @@ function buildGraphFromEvidence(
   // Also generate synthetic Constraint and Opportunity nodes from insights
   // when the evidence pipeline didn't produce them directly.
   if (insights) {
-    for (const ins of insights.slice(0, 16)) {
+    // Process ALL insights — don't cap at 16, instead cap per type to ensure coverage
+    const insightsByType: Record<string, typeof insights> = {};
+    for (const ins of insights) {
+      const t = ins.insightType || "pattern";
+      if (!insightsByType[t]) insightsByType[t] = [];
+      insightsByType[t].push(ins);
+    }
+
+    // Ensure at least 4 of each type get through, up to 8 for high-priority types
+    const priorityTypes = ["constraint_cluster", "emerging_opportunity", "strategic_pathway"];
+    const selectedInsights: typeof insights = [];
+    for (const [type, items] of Object.entries(insightsByType)) {
+      const limit = priorityTypes.includes(type) ? 8 : 4;
+      selectedInsights.push(...items.slice(0, limit));
+    }
+
+    for (const ins of selectedInsights) {
       const rawLabel = typeof ins.label === "string" ? ins.label : "";
       if (!rawLabel || rawLabel === "[object Object]") continue;
 
@@ -274,6 +290,15 @@ function buildGraphFromEvidence(
       } else if (ins.insightType === "assumption_cluster") {
         nodeType = "assumption";
         layer = "evidence";
+      } else if (ins.insightType === "structural_insight") {
+        nodeType = "leverage_point";
+        layer = "insight";
+      } else if (ins.insightType === "tool_recommendation") {
+        nodeType = "insight";
+        layer = "opportunity";
+      } else if (ins.insightType === "reasoning_chain") {
+        nodeType = "driver";
+        layer = "insight";
       }
 
       const insNodeId = `insight-${ins.id}`;
