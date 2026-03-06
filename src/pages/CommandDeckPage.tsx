@@ -548,6 +548,14 @@ export default function CommandDeckPage() {
           />
         </div>
 
+        {/* ═══ DISCOVERY TIERS ═══ */}
+        <TierDiscoveryPanel
+          tierState={tierState}
+          activeTierFilter={tierFilter}
+          onSelectTier={handleSelectTier}
+          onMarkComplete={handleMarkComplete}
+        />
+
         {/* ═══ ZONE 2 — PIPELINE + SIGNAL ACCUMULATION ═══ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pipeline Progress */}
