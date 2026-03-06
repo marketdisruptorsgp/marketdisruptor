@@ -244,8 +244,6 @@ export default function CommandDeckPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <HeroSection tier={tier} remainingAnalyses={null} />
-
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
         <RecomputeOverlay isActive={isRecomputing || engineComputing} />
 
