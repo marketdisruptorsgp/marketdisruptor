@@ -609,6 +609,8 @@ export default function CommandDeckPage() {
 
   const modeLabel = analysis.activeMode === "custom" ? "Product"
     : analysis.activeMode === "service" ? "Service" : "Business Model";
+  const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
+    : analysis.activeMode === "business" ? "business" : "product";
 
   return (
     <div className="min-h-screen bg-background">
