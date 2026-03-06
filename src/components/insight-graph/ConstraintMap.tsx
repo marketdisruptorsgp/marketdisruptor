@@ -63,18 +63,18 @@ function ConstraintFlowNode({ data }: NodeProps) {
             boxShadow: isHigh ? `0 0 8px ${cfg.color}60` : "none",
           }}
         />
-        <span className="text-[9px] font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
+        <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
           {cfg.label}
         </span>
       </div>
       <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">{data.label}</p>
       <div className="flex items-center gap-2 mt-1.5">
-        <span className="text-[10px] font-bold tabular-nums" style={{ color: cfg.color }}>
+        <span className="text-xs font-bold tabular-nums" style={{ color: cfg.color }}>
           Impact {data.impact}/10
         </span>
         {isHigh && (
           <span
-            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+            className="text-xs font-bold px-1.5 py-0.5 rounded-full"
             style={{ background: `${cfg.color}15`, color: cfg.color }}
           >
             ★ {influence}
@@ -191,7 +191,7 @@ export const ConstraintMap = memo(function ConstraintMap({
             >
               <div className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
               {col.label}
-              <span className="text-foreground/50 ml-0.5">({count})</span>
+              <span className="text-muted-foreground ml-0.5">({count})</span>
             </div>
           );
         })}

@@ -86,22 +86,22 @@ function InsightNode({ data }: NodeProps) {
 
       <div className="flex items-center gap-1.5 mb-1">
         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: config.color }} />
-        <span className="text-[8px] font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
+        <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
           {config.label}
         </span>
         {isHighInfluence && (
-          <span className="text-[7px] font-bold px-1.5 py-0.5 rounded-full ml-auto"
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full ml-auto"
             style={{ background: `${config.color}20`, color: config.color }}>
             ★ {influence}
           </span>
         )}
       </div>
-      <p className="text-[11px] font-bold text-foreground leading-snug line-clamp-2">{data.label}</p>
+      <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">{data.label}</p>
       <div className="flex items-center gap-2 mt-1.5">
-        <span className="text-[9px] font-bold tabular-nums" style={{ color: config.color }}>
+        <span className="text-xs font-bold tabular-nums" style={{ color: config.color }}>
           {data.impact}/10
         </span>
-        <span className="text-[9px] text-muted-foreground capitalize">{data.confidence}</span>
+        <span className="text-xs text-muted-foreground capitalize">{data.confidence}</span>
       </div>
     </div>
   );
@@ -253,11 +253,11 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all"
+            className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
             style={{
               background: activeTab === tab.id ? "hsl(var(--primary) / 0.1)" : "transparent",
               border: `1.5px solid ${activeTab === tab.id ? "hsl(var(--primary) / 0.3)" : "transparent"}`,
-              color: activeTab === tab.id ? "hsl(var(--primary))" : "hsl(var(--foreground) / 0.6)",
+              color: activeTab === tab.id ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
             }}
           >
             {tab.label}
@@ -285,7 +285,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
             <button
               key={type}
               onClick={() => toggleType(type)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
               style={{
                 background: active ? config.bgColor : "hsl(var(--muted))",
                 border: `1px solid ${active ? config.borderColor : "hsl(var(--border))"}`,
@@ -309,7 +309,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
             <button
               key={step}
               onClick={() => setFilterStep(active ? null : step)}
-              className="px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all"
+              className="px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
               style={{
                 background: active ? "hsl(var(--primary) / 0.1)" : "hsl(var(--muted))",
                 border: `1px solid ${active ? "hsl(var(--primary) / 0.3)" : "hsl(var(--border))"}`,
@@ -360,16 +360,16 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
 
       {/* Stats Bar */}
       <div className="flex items-center gap-4 px-2">
-        <span className="text-[10px] font-bold text-muted-foreground">
+        <span className="text-xs font-bold text-muted-foreground">
           {filteredNodes.length} nodes · {filteredEdges.length} connections
         </span>
         {graph.topNodes.primaryConstraint && (
-          <span className="text-[10px] font-bold" style={{ color: NODE_TYPE_CONFIG.constraint.color }}>
+          <span className="text-xs font-bold" style={{ color: NODE_TYPE_CONFIG.constraint.color }}>
             Top Constraint: {graph.topNodes.primaryConstraint.label.slice(0, 40)}
           </span>
         )}
         {graph.topNodes.breakthroughOpportunity && (
-          <span className="text-[10px] font-bold" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
+          <span className="text-xs font-bold" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
             Top Opportunity: {graph.topNodes.breakthroughOpportunity.label.slice(0, 40)}
           </span>
         )}

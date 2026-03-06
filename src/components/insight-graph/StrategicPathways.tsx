@@ -91,16 +91,16 @@ function PathwayNode({ node, index }: { node: InsightGraphNode; index: number })
             boxShadow: isHigh ? `0 0 6px ${cfg.color}80` : "none",
           }}
         />
-        <span className="text-[9px] font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
+        <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
           {cfg.label}
         </span>
       </div>
       <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">{node.label}</p>
       <div className="flex items-center gap-1.5 mt-1">
-        <span className="text-[10px] font-bold tabular-nums" style={{ color: cfg.color }}>
+        <span className="text-xs font-bold tabular-nums" style={{ color: cfg.color }}>
           {node.impact}/10
         </span>
-        <span className="text-[10px] font-bold tabular-nums text-foreground/50">
+        <span className="text-xs font-bold tabular-nums text-muted-foreground">
           Inf. {node.influence}
         </span>
       </div>
@@ -117,7 +117,7 @@ function FlowArrow({ delay }: { delay: number }) {
       className="flex items-center justify-center flex-shrink-0 px-1"
     >
       <div className="relative">
-        <ArrowRight size={14} className="text-foreground/30" />
+        <ArrowRight size={14} className="text-muted-foreground" />
         <motion.div
           className="absolute inset-0 flex items-center justify-center"
           animate={{ x: [0, 4, 0] }}
@@ -164,7 +164,7 @@ export const StrategicPathways = memo(function StrategicPathways({
           <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
             Strategic Pathways
           </p>
-          <p className="text-[11px] text-foreground/60">
+          <p className="text-xs text-muted-foreground">
             {pathways.length} causal chain{pathways.length !== 1 ? "s" : ""} from constraints to opportunities
           </p>
         </div>
@@ -192,7 +192,7 @@ export const StrategicPathways = memo(function StrategicPathways({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span
-                className="text-[10px] font-extrabold tabular-nums w-5 h-5 rounded flex items-center justify-center"
+                className="text-xs font-extrabold tabular-nums w-5 h-5 rounded flex items-center justify-center"
                 style={{
                   background: pwIdx === 0 ? "hsl(var(--primary) / 0.15)" : "hsl(var(--muted))",
                   color: pwIdx === 0 ? "hsl(var(--primary))" : "hsl(var(--foreground))",
@@ -200,11 +200,11 @@ export const StrategicPathways = memo(function StrategicPathways({
               >
                 {pwIdx + 1}
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/60">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 {pwIdx === 0 ? "Primary Pathway" : `Pathway ${pwIdx + 1}`}
               </span>
             </div>
-            <span className="text-[10px] font-bold tabular-nums text-foreground/40">
+            <span className="text-xs font-bold tabular-nums text-muted-foreground">
               Σ Influence {pw.totalInfluence}
             </span>
           </div>
