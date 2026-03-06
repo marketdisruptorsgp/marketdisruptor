@@ -139,6 +139,13 @@ function MetricCard({ label, value, description, icon: Icon, color, trend, evide
           {/* DESCRIPTION */}
           <p className="text-[10px] text-muted-foreground mt-1 leading-snug line-clamp-2">{description}</p>
 
+          {/* EVIDENCE COUNT BADGE */}
+          {onClick && evidenceCount != null && evidenceCount > 0 && (
+            <p className="text-[9px] font-bold text-muted-foreground mt-1.5 underline decoration-dotted underline-offset-2">
+              Inspect {evidenceCount} evidence items →
+            </p>
+          )}
+
           {/* TREND */}
           {trendInfo && TrendIcon && (
             <div className="flex items-center justify-center gap-1 mt-auto pt-1.5">
