@@ -142,7 +142,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       stages.push(s1);
 
       // Step 2: Merge simulation evidence
-      const allEvItems = Object.values(newEvidence).flatMap(m => m.items);
+      const allEvItems = Object.values(newEvidence).flatMap((m: any) => m.items || []);
       const mode = analysisMode === "service" ? "service" as const
         : analysisMode === "business_model" ? "business_model" as const
         : "product" as const;
