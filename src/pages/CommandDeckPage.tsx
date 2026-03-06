@@ -411,11 +411,12 @@ export default function CommandDeckPage() {
 
   // ── Strategic Potential Score ──
   const strategicPotential = useMemo(() => {
-    const raw = (metrics.opportunityScore + metrics.leverageScore)
+    const simBoost = Math.min(savedScenarios.length * 0.3, 1.5);
+    const raw = (metrics.opportunityScore + metrics.leverageScore + simBoost)
       - (metrics.frictionIndex * 0.5)
       - (metrics.riskScore * 0.3);
     return Math.max(0, Math.min(10, Math.round(raw * 10) / 10));
-  }, [metrics]);
+  }, [metrics, savedScenarios.length]);
 
   const pipelinePct = metrics.pipelineCompletion;
   const baseUrl = `/analysis/${analysisId}`;
