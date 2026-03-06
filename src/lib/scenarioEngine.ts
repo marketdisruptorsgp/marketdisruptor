@@ -186,23 +186,7 @@ export function hydrateScenarios(analysisId: string, scenarios: ToolScenario[]):
 //  SCENARIO → EVIDENCE BRIDGE
 // ═══════════════════════════════════════════════════════════════
 
-const TOOL_EVIDENCE_TYPE_MAP: Record<string, Evidence["type"]> = {
-  "sba-loan-calculator": "signal",
-  "deal-structure-simulator": "signal",
-  "dscr-calculator": "signal",
-  "acquisition-roi-model": "signal",
-  "tam-calculator": "signal",
-  "unit-economics-model": "signal",
-  "revenue-model-simulator": "signal",
-  "cash-flow-quality": "signal",
-  "industry-fragmentation-detector": "opportunity",
-  "seller-motivation-signals": "signal",
-  "deal-risk-scanner": "risk",
-  "competitive-moat-analyzer": "signal",
-  "assumption-stress-tester": "assumption",
-  "innovation-pathway-mapper": "opportunity",
-  "value-chain-analyzer": "leverage",
-};
+// Tool IDs retained for reference only; all scenarios produce type="simulation" evidence
 
 /**
  * Convert a saved scenario into a canonical Evidence object.
