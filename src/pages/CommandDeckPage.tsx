@@ -502,7 +502,7 @@ export default function CommandDeckPage() {
             label="Friction Index"
             value={metrics.frictionIndex}
             evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
-            evidenceCount={allEvidence.friction.evidenceCount}
+            evidenceCount={filteredEvidence.friction.evidenceCount}
             description="Customer complaints, friction points, and constraints"
             icon={AlertTriangle}
             color="hsl(0 72% 52%)"
