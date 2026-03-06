@@ -606,7 +606,10 @@ function discoverLeverage(
       const semanticOverlap = jaccard(constraint.label, driver.label) >= 0.25;
 
       if (sharedEvidence.length > 0 || semanticOverlap) {
-        const label = `Break "${constraint.label.slice(0, 35)}" via "${driver.label.slice(0, 35)}"`;
+        // Generate a human-readable leverage label
+        const conText = humanize(constraint.label).slice(0, 40);
+        const drvText = humanize(driver.label).slice(0, 40);
+        const label = `Address ${conText} through ${drvText}`;
         if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
         insights.push(makeInsight({
@@ -614,7 +617,7 @@ function discoverLeverage(
           analysisId,
           insightType: "leverage_point",
           label,
-          description: `Addressing "${constraint.label}" through "${driver.label}" creates a structural intervention point.`,
+          description: `Targeting "${humanize(constraint.label)}" by working on "${humanize(driver.label)}" creates a high-impact intervention point.`,
           evidenceIds: [...new Set([...constraint.evidenceIds, ...driver.evidenceIds])],
           relatedInsightIds: [constraint.id, driver.id],
           impact: Math.round((constraint.impact + driver.impact) / 2),
