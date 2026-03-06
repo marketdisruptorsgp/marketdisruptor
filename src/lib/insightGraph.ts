@@ -196,7 +196,10 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
     const rawLabel = typeof ev.label === "string" ? ev.label : String(ev.label ?? "");
     if (!rawLabel || rawLabel === "[object Object]" || rawLabel.startsWith("[object")) continue;
     
-    const nodeType = EVIDENCE_TO_NODE[ev.type] || "evidence";
+    // Simulation-sourced evidence becomes simulation nodes
+    const isSimulation = ev.category === "simulation" || ev.id.startsWith("sim-");
+    const nodeType: InsightNodeType = isSimulation ? "simulation" : (EVIDENCE_TO_NODE[ev.type] || "evidence");
+    
     addNode({
       id: ev.id,
       type: nodeType,
