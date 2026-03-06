@@ -3,7 +3,8 @@
  *
  * Replaces manual "Run Analysis" triggers with automatic debounced computation.
  * Watches for step completion, input changes, and navigation events.
- * Produces canonical Evidence, SystemIntelligence, and InsightGraph.
+ * Produces canonical Evidence, SystemIntelligence, InsightGraph,
+ * ScenarioComparison, and SensitivityReports.
  */
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
@@ -29,6 +30,9 @@ import {
   type MetricDomain,
   type MetricEvidence,
 } from "@/lib/evidenceEngine";
+import { getScenarios, allScenariosToEvidence } from "@/lib/scenarioEngine";
+import { compareScenarios, type ScenarioComparison } from "@/lib/scenarioComparisonEngine";
+import { computeAllSensitivityReports, type SensitivityReport } from "@/lib/sensitivityEngine";
 
 const DEBOUNCE_MS = 600;
 
@@ -39,6 +43,8 @@ export interface AutoAnalysisResult {
   insights: Insight[];
   opportunities: Opportunity[];
   narrative: StrategicNarrative | null;
+  scenarioComparison: ScenarioComparison | null;
+  sensitivityReports: SensitivityReport[];
   isComputing: boolean;
   completedSteps: Set<string>;
   pipelineCompletion: number;
