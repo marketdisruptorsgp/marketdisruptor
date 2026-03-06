@@ -248,7 +248,7 @@ function PipelineStep({ step, status, analysisId, signalCount }: {
  * OPPORTUNITY TABLE
  * ════════════════════════════════════════════════════════ */
 function OpportunityTable({ opps, analysisId }: {
-  opps: { id: string; label: string; impact: number; confidence: string; step: string; source: string }[];
+  opps: { id: string; label: string; impact: number; confidence: string; step: string; source: string; tier?: EvidenceTier }[];
   analysisId: string;
 }) {
   const navigate = useNavigate();
@@ -267,10 +267,15 @@ function OpportunityTable({ opps, analysisId }: {
     else { setSortKey(key); setSortDir("desc"); }
   };
 
+  const tierColors: Record<string, string> = {
+    structural: "hsl(0 72% 52%)", system: "hsl(38 92% 50%)", optimization: "hsl(229 89% 63%)",
+  };
+
   return (
     <div className="overflow-x-auto">
-      <div className="grid grid-cols-[1fr_70px_70px_80px] sm:grid-cols-[1fr_120px_70px_70px_80px] gap-2 px-3 py-2 border-b border-border min-w-[400px]">
+      <div className="grid grid-cols-[1fr_60px_70px_70px_80px] sm:grid-cols-[1fr_60px_120px_70px_70px_80px] gap-2 px-3 py-2 border-b border-border min-w-[450px]">
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Opportunity</span>
+        <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Tier</span>
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground hidden sm:block">Source</span>
         <button onClick={() => toggleSort("impact")}
           className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-0.5 justify-center">
@@ -284,12 +289,15 @@ function OpportunityTable({ opps, analysisId }: {
       </div>
       {sorted.map(opp => {
         const ic = opp.impact >= 8 ? "hsl(152 60% 44%)" : opp.impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
+        const tc = opp.tier ? tierColors[opp.tier] : "hsl(var(--muted-foreground))";
+        const tLabel = opp.tier ? opp.tier.charAt(0).toUpperCase() + opp.tier.slice(1, 4) : "—";
         return (
           <button key={opp.id}
             onClick={() => navigate(`/analysis/${analysisId}/insight-graph?node=${opp.id}`)}
-            className="grid grid-cols-[1fr_70px_70px_80px] sm:grid-cols-[1fr_120px_70px_70px_80px] gap-2 items-center px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[44px] min-w-[400px]"
+            className="grid grid-cols-[1fr_60px_70px_70px_80px] sm:grid-cols-[1fr_60px_120px_70px_70px_80px] gap-2 items-center px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[44px] min-w-[450px]"
           >
             <span className="text-sm font-semibold text-foreground truncate">{opp.label}</span>
+            <span className="text-[9px] font-bold text-center px-1.5 py-0.5 rounded-full" style={{ background: `${tc}12`, color: tc }}>{tLabel}</span>
             <span className="text-[10px] text-muted-foreground truncate hidden sm:block">{opp.source}</span>
             <span className="text-sm font-bold tabular-nums text-center" style={{ color: ic }}>{opp.impact}/10</span>
             <span className="text-[10px] font-bold capitalize text-center text-muted-foreground">{opp.confidence}</span>
@@ -300,7 +308,6 @@ function OpportunityTable({ opps, analysisId }: {
     </div>
   );
 }
-
 /* ════════════════════════════════════════════════════════
  * MAIN PAGE
  * ════════════════════════════════════════════════════════ */
