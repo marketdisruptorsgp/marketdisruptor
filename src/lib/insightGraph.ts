@@ -164,7 +164,7 @@ function confidenceLabel(score?: number): "high" | "medium" | "low" {
 
 /**
  * Build insight graph from Evidence objects (canonical pipeline).
- * Also accepts legacy product/intelligence args for backward compat.
+ * Optionally accepts insights and scenarios to generate higher-level nodes.
  */
 export function buildInsightGraph(
   productsOrEvidence: any[] | Record<MetricDomain, MetricEvidence>,
@@ -172,20 +172,22 @@ export function buildInsightGraph(
   disruptData?: unknown,
   redesignData?: unknown,
   stressTestData?: unknown,
+  /** Optional: clustered insights from the insight layer */
+  insights?: Array<{ id: string; label: string; description?: string; insightType: string; impact?: number; confidenceScore?: number; evidenceIds: string[]; recommendedTools?: string[] }>,
+  /** Optional: ranked scenarios from the comparison engine */
+  scenarios?: Array<{ scenarioId: string; scenarioName: string; toolId: string; projectedReturn: number; riskScore: number; capitalRequired: number; feasibilityScore: number; overallScore: number; strategicImpact: string }>,
 ): InsightGraph {
   edgeCounter = 0;
 
   // Determine if called with Evidence or legacy args
   let allEvidence: Evidence[];
   if (productsOrEvidence && !Array.isArray(productsOrEvidence) && "opportunity" in productsOrEvidence) {
-    // Evidence-first path
     allEvidence = flattenEvidence(productsOrEvidence as Record<MetricDomain, MetricEvidence>);
   } else {
-    // Legacy path — still works but won't have full canonical fields
     allEvidence = buildLegacyEvidence(productsOrEvidence as any[], intelligence, disruptData, redesignData, stressTestData);
   }
 
-  return buildGraphFromEvidence(allEvidence);
+  return buildGraphFromEvidence(allEvidence, insights, scenarios);
 }
 
 function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
