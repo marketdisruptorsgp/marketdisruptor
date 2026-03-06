@@ -142,7 +142,7 @@ export const StrategicSnapshot = memo(function StrategicSnapshot({
             {/* Label */}
             <div className="flex items-center gap-1.5">
               <Icon size={13} style={{ color }} />
-              <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground leading-tight">
+              <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground leading-tight">
                 {card.label}
               </p>
             </div>
