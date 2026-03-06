@@ -34,7 +34,8 @@ export type EvidenceType =
   | "opportunity"
   | "leverage"
   | "risk"
-  | "competitor";
+  | "competitor"
+  | "simulation";
 
 export type EvidenceMode = "product" | "service" | "business_model";
 
