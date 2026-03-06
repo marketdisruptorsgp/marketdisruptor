@@ -6,7 +6,7 @@
  *           breakthrough opportunity badges, hover tooltips, expanded detail panel.
  */
 
-import { memo, useMemo, useState, useCallback } from "react";
+import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { TIER_META } from "@/lib/tierDiscoveryEngine";
 import ReactFlow, {
   Background,
@@ -42,18 +42,19 @@ const PIPELINE_STEPS = ["report", "disrupt", "redesign", "stress_test", "pitch"]
 const ALL_NODE_TYPES: InsightNodeType[] = [
   "signal", "constraint", "assumption", "driver", "outcome",
   "leverage_point", "flipped_idea", "concept", "risk", "evidence",
-  "simulation",
+  "simulation", "insight", "pathway", "scenario",
 ];
 
-/** Tiered layout columns: left-to-right reasoning flow per spec */
+/** Layer-based columns: Evidence → Insight → Opportunity → Simulation → Strategy */
 const TIER_CONFIG: { types: InsightNodeType[]; label: string; colIndex: number }[] = [
-  { types: ["signal"],                             label: "Signals",       colIndex: 0 },
-  { types: ["constraint"],                         label: "Constraints",   colIndex: 1 },
-  { types: ["assumption"],                         label: "Assumptions",   colIndex: 2 },
+  { types: ["signal", "evidence"],                 label: "Evidence",      colIndex: 0 },
+  { types: ["assumption", "friction"],             label: "Assumptions",   colIndex: 1 },
+  { types: ["constraint", "insight"],              label: "Insights",      colIndex: 2 },
   { types: ["driver", "leverage_point"],           label: "Leverage",      colIndex: 3 },
   { types: ["outcome", "flipped_idea", "concept"], label: "Opportunities", colIndex: 4 },
-  { types: ["risk", "evidence"],                   label: "Validation",    colIndex: 5 },
-  { types: ["simulation"],                         label: "Simulations",   colIndex: 6 },
+  { types: ["risk", "competitor"],                 label: "Validation",    colIndex: 5 },
+  { types: ["simulation", "scenario"],             label: "Simulations",   colIndex: 6 },
+  { types: ["pathway"],                            label: "Strategy",      colIndex: 7 },
 ];
 
 /** Zoom level definitions */
@@ -61,13 +62,13 @@ type ZoomLevel = "overview" | "structural" | "full";
 const ZOOM_LEVEL_CONFIG: Record<ZoomLevel, { label: string; description: string; types: InsightNodeType[] }> = {
   overview: {
     label: "Overview",
-    description: "Signals, Constraints, Opportunities",
-    types: ["signal", "constraint", "outcome", "flipped_idea", "concept", "simulation"],
+    description: "Key nodes: Constraints, Opportunities, Scenarios, Pathways",
+    types: ["constraint", "outcome", "flipped_idea", "concept", "scenario", "pathway", "insight"],
   },
   structural: {
     label: "Structural",
     description: "All reasoning layers",
-    types: ["signal", "constraint", "assumption", "driver", "leverage_point", "outcome", "flipped_idea", "concept", "simulation"],
+    types: ["signal", "constraint", "assumption", "driver", "leverage_point", "outcome", "flipped_idea", "concept", "simulation", "insight", "scenario", "pathway"],
   },
   full: {
     label: "Full Reasoning",
@@ -84,6 +85,10 @@ const RELATION_COLORS: Record<EdgeRelation, string> = {
   unlocks: "hsl(262 83% 58%)",
   depends_on: "hsl(210 14% 53%)",
   invalidates: "hsl(0 72% 52%)",
+  creates: "hsl(172 66% 50%)",
+  enables: "hsl(152 60% 44%)",
+  blocks: "hsl(14 90% 55%)",
+  tests: "hsl(271 81% 55%)",
 };
 
 const RELATION_LABELS: Record<EdgeRelation, string> = {
@@ -94,6 +99,10 @@ const RELATION_LABELS: Record<EdgeRelation, string> = {
   unlocks: "unlocks",
   depends_on: "depends on",
   invalidates: "invalidates",
+  creates: "creates",
+  enables: "enables",
+  blocks: "blocks",
+  tests: "tests",
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -369,6 +378,8 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   const [showOpportunityPaths, setShowOpportunityPaths] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTypeFilters, setActiveTypeFilters] = useState<Set<InsightNodeType>>(new Set());
   const [simPanelOpen, setSimPanelOpen] = useState(false);
   const [simTool, setSimTool] = useState<LensTool | null>(null);
   const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
@@ -388,6 +399,25 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
     ].slice(0, 10));
     onScenarioSaved?.(scenario);
   }, [onScenarioSaved]);
+
+  // ── Auto-focus from URL ?node= param ──
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nodeParam = params.get("node");
+    if (nodeParam && graph.nodes.find(n => n.id === nodeParam)) {
+      setSelectedNodeId(nodeParam);
+      setShowOnboarding(false);
+    }
+  }, [graph.nodes]);
+
+  // Toggle node type filter
+  const toggleTypeFilter = useCallback((type: InsightNodeType) => {
+    setActiveTypeFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type); else next.add(type);
+      return next;
+    });
+  }, []);
 
   // Identify top leverage constraint + breakthrough opportunity
   const topLeverageId = useMemo(() => graph.topNodes.primaryConstraint?.id ?? null, [graph.topNodes]);
@@ -412,16 +442,19 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
     return ids;
   }, [highlightedIds, graph.edges]);
 
-  // Apply zoom level + opportunity path filter + tier filter
+  // Apply zoom level + opportunity path filter + tier filter + search + type filter
   const filteredNodes = useMemo(() => {
     const zoomTypes = new Set(ZOOM_LEVEL_CONFIG[zoomLevel].types);
+    const query = searchQuery.toLowerCase().trim();
     return graph.nodes.filter(n => {
       if (!zoomTypes.has(n.type)) return false;
       if (showOpportunityPaths && !opportunityPathIds.has(n.id)) return false;
       if (tierFilter !== "all" && n.tier !== tierFilter) return false;
+      if (activeTypeFilters.size > 0 && !activeTypeFilters.has(n.type)) return false;
+      if (query && !n.label.toLowerCase().includes(query) && !(n.detail?.toLowerCase().includes(query))) return false;
       return true;
     });
-  }, [graph.nodes, zoomLevel, showOpportunityPaths, opportunityPathIds, tierFilter]);
+  }, [graph.nodes, zoomLevel, showOpportunityPaths, opportunityPathIds, tierFilter, searchQuery, activeTypeFilters]);
 
   const filteredNodeIds = useMemo(() => new Set(filteredNodes.map(n => n.id)), [filteredNodes]);
 
@@ -540,92 +573,129 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
 
         {/* Row 2: Controls (desktop only — mobile uses bottom bar) */}
         {activeTab === "graph" && !isMobile && (
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Zoom levels */}
-            <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              {(Object.keys(ZOOM_LEVEL_CONFIG) as ZoomLevel[]).map(level => (
+          <div className="space-y-2">
+            {/* Search + zoom */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Search */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search nodes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-8 w-44 rounded-lg border border-border bg-muted px-3 py-1 text-xs font-semibold text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Zoom levels */}
+              <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                {(Object.keys(ZOOM_LEVEL_CONFIG) as ZoomLevel[]).map(level => (
+                  <button
+                    key={level}
+                    onClick={() => setZoomLevel(level)}
+                    className="px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all"
+                    style={{
+                      background: zoomLevel === level ? "hsl(var(--card))" : "transparent",
+                      color: zoomLevel === level ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                      boxShadow: zoomLevel === level ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
+                    }}
+                    title={ZOOM_LEVEL_CONFIG[level].description}
+                  >
+                    {ZOOM_LEVEL_CONFIG[level].label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tier filter chips */}
+              <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+                {TIER_FILTERS.map(tf => {
+                  const count = tf.key === "all"
+                    ? graph.nodes.length
+                    : graph.nodes.filter(n => n.tier === tf.key).length;
+                  if (count === 0 && tf.key !== "all") return null;
+                  return (
+                    <button
+                      key={tf.key}
+                      onClick={() => setTierFilter(tf.key)}
+                      className="px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1"
+                      style={{
+                        background: tierFilter === tf.key ? "hsl(var(--card))" : "transparent",
+                        color: tierFilter === tf.key ? tf.color : "hsl(var(--muted-foreground))",
+                        boxShadow: tierFilter === tf.key ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
+                      }}
+                    >
+                      {tf.key !== "all" && <span className="w-2 h-2 rounded-full" style={{ background: tf.color }} />}
+                      {tf.label}
+                      {tf.key !== "all" && <span className="text-[10px] opacity-70">({count})</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Opportunity paths toggle */}
+              <button
+                onClick={() => setShowOpportunityPaths(!showOpportunityPaths)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.bgColor : "hsl(var(--muted))",
+                  border: `1.5px solid ${showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.borderColor : "hsl(var(--border))"}`,
+                  color: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))",
+                }}
+              >
+                <div className="w-2 h-2 rounded-full" style={{ background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))" }} />
+                Opp. Paths
+              </button>
+
+              {selectedNodeId && (
                 <button
-                  key={level}
-                  onClick={() => setZoomLevel(level)}
-                  className="px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all"
-                  style={{
-                    background: zoomLevel === level ? "hsl(var(--card))" : "transparent",
-                    color: zoomLevel === level ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                    boxShadow: zoomLevel === level ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
-                  }}
-                  title={ZOOM_LEVEL_CONFIG[level].description}
+                  onClick={() => setSelectedNodeId(null)}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-muted border border-border text-foreground hover:bg-card transition-colors"
                 >
-                  {ZOOM_LEVEL_CONFIG[level].label}
+                  ✕ Clear
                 </button>
-              ))}
+              )}
             </div>
 
-            {/* Tier filter chips */}
-            <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-              {TIER_FILTERS.map(tf => {
-                const count = tf.key === "all"
-                  ? graph.nodes.length
-                  : graph.nodes.filter(n => n.tier === tf.key).length;
-                if (count === 0 && tf.key !== "all") return null;
+            {/* Row 3: Node type filter toggles */}
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mr-1 flex-shrink-0">Filter:</span>
+              {(["signal", "constraint", "insight", "outcome", "scenario", "risk", "pathway", "simulation"] as InsightNodeType[]).map(type => {
+                const cfg = NODE_TYPE_CONFIG[type];
+                const count = graph.nodes.filter(n => n.type === type).length;
+                if (count === 0) return null;
+                const isActive = activeTypeFilters.has(type);
                 return (
                   <button
-                    key={tf.key}
-                    onClick={() => setTierFilter(tf.key)}
-                    className="px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1"
+                    key={type}
+                    onClick={() => toggleTypeFilter(type)}
+                    className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex-shrink-0"
                     style={{
-                      background: tierFilter === tf.key ? "hsl(var(--card))" : "transparent",
-                      color: tierFilter === tf.key ? tf.color : "hsl(var(--muted-foreground))",
-                      boxShadow: tierFilter === tf.key ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
+                      background: isActive ? cfg.bgColor : "transparent",
+                      color: isActive ? cfg.color : "hsl(var(--muted-foreground))",
+                      border: isActive ? `1px solid ${cfg.borderColor}` : "1px solid transparent",
                     }}
                   >
-                    {tf.key !== "all" && <span className="w-2 h-2 rounded-full" style={{ background: tf.color }} />}
-                    {tf.label}
-                    {tf.key !== "all" && <span className="text-[10px] opacity-70">({count})</span>}
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: cfg.color }} />
+                    {cfg.label} ({count})
                   </button>
                 );
               })}
-            </div>
-
-            {/* Opportunity paths toggle */}
-            <button
-              onClick={() => setShowOpportunityPaths(!showOpportunityPaths)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={{
-                background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.bgColor : "hsl(var(--muted))",
-                border: `1.5px solid ${showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.borderColor : "hsl(var(--border))"}`,
-                color: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))",
-              }}
-            >
-              <div className="w-2 h-2 rounded-full" style={{ background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))" }} />
-              Opp. Paths
-            </button>
-
-            {selectedNodeId && (
-              <button
-                onClick={() => setSelectedNodeId(null)}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-muted border border-border text-foreground hover:bg-card transition-colors"
-              >
-                ✕ Clear
-              </button>
-            )}
-
-            {/* Tier legend (desktop) */}
-            <div className="flex items-center gap-1 ml-auto overflow-x-auto scrollbar-hide">
-              {TIER_CONFIG.map((tier) => {
-                const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
-                if (count === 0) return null;
-                const cfg = NODE_TYPE_CONFIG[tier.types[0]];
-                return (
-                  <span
-                    key={tier.label}
-                    className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold"
-                    style={{ color: cfg.color }}
-                  >
-                    <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
-                    {tier.label} ({count})
-                  </span>
-                );
-              })}
+              {activeTypeFilters.size > 0 && (
+                <button
+                  onClick={() => setActiveTypeFilters(new Set())}
+                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground px-2 py-1 flex-shrink-0"
+                >
+                  Clear filters
+                </button>
+              )}
             </div>
           </div>
         )}

@@ -79,9 +79,8 @@ export default function InsightGraphPage() {
     }
   }, [analysisId, disruptData, analysis.governedData, analysis.businessAnalysisData]);
 
-  // Build insight graph from evidence (evidence-first path)
+  // Build insight graph from evidence + insights + scenarios
   const graph = useMemo(() => {
-    // Extract canonical evidence
     const evidenceData = extractAllEvidence({
       products,
       selectedProduct,
@@ -94,9 +93,16 @@ export default function InsightGraphPage() {
       intelligence,
       analysisType: (analysis as any).activeMode === "service" ? "service" : (analysis as any).activeMode === "business" ? "business_model" : "product",
     });
-    // Build graph from evidence (not raw products)
-    return buildInsightGraph(evidenceData);
-  }, [products, selectedProduct, intelligence, disruptData, redesignData, stressTestData, analysis.pitchDeckData, analysis.governedData, businessAnalysisData, (analysis as any).activeMode]);
+    // Pass insights and scenarios for higher-level node generation
+    const insightsData = autoAnalysis.insights?.map(i => ({
+      id: i.id, label: i.label, description: i.description,
+      insightType: i.insightType, impact: i.impact,
+      confidenceScore: i.confidenceScore, evidenceIds: i.evidenceIds,
+      recommendedTools: i.recommendedTools,
+    }));
+    const scenariosData = autoAnalysis.scenarioComparison?.scenarios;
+    return buildInsightGraph(evidenceData, undefined, undefined, undefined, undefined, insightsData, scenariosData);
+  }, [products, selectedProduct, intelligence, disruptData, redesignData, stressTestData, analysis.pitchDeckData, analysis.governedData, businessAnalysisData, (analysis as any).activeMode, autoAnalysis.insights, autoAnalysis.scenarioComparison]);
 
   const { completedSteps } = autoAnalysis;
 

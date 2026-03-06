@@ -36,7 +36,10 @@ export type InsightNodeType =
   | "evidence"
   | "friction"
   | "competitor"
-  | "simulation";
+  | "simulation"
+  | "insight"
+  | "pathway"
+  | "scenario";
 
 export type EdgeRelation =
   | "causes"
@@ -45,7 +48,11 @@ export type EdgeRelation =
   | "supports"
   | "unlocks"
   | "depends_on"
-  | "invalidates";
+  | "invalidates"
+  | "creates"
+  | "enables"
+  | "blocks"
+  | "tests";
 
 export interface InsightGraphNode {
   id: string;
@@ -65,6 +72,14 @@ export interface InsightGraphNode {
   mode?: EvidenceMode;
   sourceEngine?: string;
   confidenceScore?: number;
+  /** Scenario-specific fields */
+  projectedReturn?: number;
+  riskScore?: number;
+  feasibilityScore?: number;
+  capitalRequired?: number;
+  relatedScenarioId?: string;
+  /** Intelligence layer for clustering */
+  intelligenceLayer?: "evidence" | "insight" | "opportunity" | "simulation" | "strategy";
 }
 
 export interface InsightGraphEdge {
@@ -110,6 +125,9 @@ export const NODE_TYPE_CONFIG: Record<InsightNodeType, {
   friction:       { color: "hsl(0 72% 52%)",    bgColor: "hsl(0 72% 52% / 0.08)",   borderColor: "hsl(0 72% 52% / 0.25)",   icon: "AlertTriangle", label: "Friction" },
   competitor:     { color: "hsl(262 83% 58%)",  bgColor: "hsl(262 83% 58% / 0.08)", borderColor: "hsl(262 83% 58% / 0.25)", icon: "Building2",     label: "Competitor" },
   simulation:     { color: "hsl(172 66% 50%)",  bgColor: "hsl(172 66% 50% / 0.08)", borderColor: "hsl(172 66% 50% / 0.25)", icon: "FlaskConical",  label: "Simulation" },
+  insight:        { color: "hsl(229 89% 63%)",  bgColor: "hsl(229 89% 63% / 0.08)", borderColor: "hsl(229 89% 63% / 0.25)", icon: "Brain",         label: "Insight" },
+  pathway:        { color: "hsl(45 93% 47%)",   bgColor: "hsl(45 93% 47% / 0.10)",  borderColor: "hsl(45 93% 47% / 0.30)",  icon: "Route",         label: "Strategic Pathway" },
+  scenario:       { color: "hsl(271 81% 55%)",  bgColor: "hsl(271 81% 55% / 0.08)", borderColor: "hsl(271 81% 55% / 0.25)", icon: "FlaskConical",  label: "Scenario" },
 };
 
 export const OPPORTUNITY_NODE_TYPES: InsightNodeType[] = [
@@ -146,7 +164,7 @@ function confidenceLabel(score?: number): "high" | "medium" | "low" {
 
 /**
  * Build insight graph from Evidence objects (canonical pipeline).
- * Also accepts legacy product/intelligence args for backward compat.
+ * Optionally accepts insights and scenarios to generate higher-level nodes.
  */
 export function buildInsightGraph(
   productsOrEvidence: any[] | Record<MetricDomain, MetricEvidence>,
@@ -154,23 +172,29 @@ export function buildInsightGraph(
   disruptData?: unknown,
   redesignData?: unknown,
   stressTestData?: unknown,
+  /** Optional: clustered insights from the insight layer */
+  insights?: Array<{ id: string; label: string; description?: string; insightType: string; impact?: number; confidenceScore?: number; evidenceIds: string[]; recommendedTools?: string[] }>,
+  /** Optional: ranked scenarios from the comparison engine */
+  scenarios?: Array<{ scenarioId: string; scenarioName: string; toolId: string; projectedReturn: number; riskScore: number; capitalRequired: number; feasibilityScore: number; overallScore: number; strategicImpact: string }>,
 ): InsightGraph {
   edgeCounter = 0;
 
   // Determine if called with Evidence or legacy args
   let allEvidence: Evidence[];
   if (productsOrEvidence && !Array.isArray(productsOrEvidence) && "opportunity" in productsOrEvidence) {
-    // Evidence-first path
     allEvidence = flattenEvidence(productsOrEvidence as Record<MetricDomain, MetricEvidence>);
   } else {
-    // Legacy path — still works but won't have full canonical fields
     allEvidence = buildLegacyEvidence(productsOrEvidence as any[], intelligence, disruptData, redesignData, stressTestData);
   }
 
-  return buildGraphFromEvidence(allEvidence);
+  return buildGraphFromEvidence(allEvidence, insights, scenarios);
 }
 
-function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
+function buildGraphFromEvidence(
+  allEvidence: Evidence[],
+  insights?: Array<{ id: string; label: string; description?: string; insightType: string; impact?: number; confidenceScore?: number; evidenceIds: string[]; recommendedTools?: string[] }>,
+  scenarios?: Array<{ scenarioId: string; scenarioName: string; toolId: string; projectedReturn: number; riskScore: number; capitalRequired: number; feasibilityScore: number; overallScore: number; strategicImpact: string }>,
+): InsightGraph {
   const nodes: InsightGraphNode[] = [];
   const edges: InsightGraphEdge[] = [];
   const nodeIndex = new Map<string, InsightGraphNode>();
@@ -193,14 +217,19 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
 
   // ── Step 1: Convert Evidence → Graph Nodes ──
   for (const ev of allEvidence) {
-    // Sanitize: skip [object Object] or empty labels
     const rawLabel = typeof ev.label === "string" ? ev.label : String(ev.label ?? "");
     if (!rawLabel || rawLabel === "[object Object]" || rawLabel.startsWith("[object")) continue;
     
-    // Simulation-sourced evidence becomes simulation nodes
     const isSimulation = ev.category === "simulation" || ev.id.startsWith("sim-");
     const nodeType: InsightNodeType = isSimulation ? "simulation" : (EVIDENCE_TO_NODE[ev.type] || "evidence");
     
+    const layerMap: Record<string, InsightGraphNode["intelligenceLayer"]> = {
+      signal: "evidence", evidence: "evidence", assumption: "evidence", friction: "evidence",
+      constraint: "insight", leverage_point: "insight", driver: "insight",
+      outcome: "opportunity", concept: "opportunity", flipped_idea: "opportunity",
+      risk: "evidence", competitor: "evidence", simulation: "simulation",
+    };
+
     addNode({
       id: ev.id,
       type: nodeType,
@@ -218,11 +247,66 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
       mode: ev.mode,
       sourceEngine: ev.sourceEngine,
       confidenceScore: ev.confidenceScore,
+      intelligenceLayer: layerMap[nodeType] || "evidence",
     });
   }
 
+  // ── Step 1b: Generate Insight nodes from clustered insights ──
+  if (insights) {
+    for (const ins of insights.slice(0, 12)) {
+      const rawLabel = typeof ins.label === "string" ? ins.label : "";
+      if (!rawLabel || rawLabel === "[object Object]") continue;
+      addNode({
+        id: `insight-${ins.id}`,
+        type: "insight",
+        label: rawLabel.slice(0, 120),
+        detail: ins.description,
+        impact: ins.impact ?? 6,
+        confidence: confidenceLabel(ins.confidenceScore),
+        evidenceCount: ins.evidenceIds.length,
+        influence: 0,
+        leverageScore: 0,
+        pipelineStep: "disrupt",
+        evidence: ins.evidenceIds,
+        relatedNodeIds: [],
+        confidenceScore: ins.confidenceScore,
+        intelligenceLayer: "insight",
+      });
+      // Link insight → its source evidence
+      for (const evId of ins.evidenceIds.slice(0, 4)) {
+        addEdge(evId, `insight-${ins.id}`, "creates", 0.6);
+      }
+    }
+  }
+
+  // ── Step 1c: Generate Scenario nodes from comparison engine ──
+  if (scenarios) {
+    for (const sc of scenarios.slice(0, 8)) {
+      addNode({
+        id: `scenario-${sc.scenarioId}`,
+        type: "scenario",
+        label: sc.scenarioName.slice(0, 120),
+        detail: `${sc.toolId.replace(/-/g, " ")} · Return ${sc.projectedReturn.toFixed(1)}% · Risk ${sc.riskScore.toFixed(1)}`,
+        impact: Math.round(sc.overallScore),
+        confidence: sc.feasibilityScore >= 7 ? "high" : sc.feasibilityScore >= 4 ? "medium" : "low",
+        evidenceCount: 1,
+        influence: 0,
+        leverageScore: 0,
+        pipelineStep: "stress_test",
+        evidence: [],
+        relatedNodeIds: [],
+        projectedReturn: sc.projectedReturn,
+        riskScore: sc.riskScore,
+        feasibilityScore: sc.feasibilityScore,
+        capitalRequired: sc.capitalRequired,
+        relatedScenarioId: sc.scenarioId,
+        intelligenceLayer: "simulation",
+      });
+    }
+  }
+
   // ── Deduplicate nodes with similar labels ──
-  const seen = new Map<string, string>(); // normalized label → node id
+  const seen = new Map<string, string>();
   const dupeIds = new Set<string>();
   for (const n of nodes) {
     const normalized = n.label.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -232,7 +316,6 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
       seen.set(normalized, n.id);
     }
   }
-  // Remove duplicates
   for (let i = nodes.length - 1; i >= 0; i--) {
     if (dupeIds.has(nodes[i].id)) {
       nodeIndex.delete(nodes[i].id);
@@ -241,7 +324,6 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
   }
 
   // ── Step 2: Build causal edges based on reasoning chain ──
-  // signal → assumption (same tier, signal from report, assumption from disrupt)
   const signals = nodes.filter(n => n.type === "signal");
   const assumptions = nodes.filter(n => n.type === "assumption");
   const constraints = nodes.filter(n => n.type === "constraint");
@@ -250,57 +332,125 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
   const opportunities = nodes.filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type));
   const risks = nodes.filter(n => n.type === "risk");
   const simulations = nodes.filter(n => n.type === "simulation");
+  const insightNodes = nodes.filter(n => n.type === "insight");
+  const scenarioNodes = nodes.filter(n => n.type === "scenario");
 
   // Simulation → Opportunity (simulations support opportunities)
   for (const sim of simulations.slice(0, 8)) {
     for (const opp of opportunities.slice(0, 3)) {
       addEdge(sim.id, opp.id, "supports", 0.7);
     }
-    // Simulation → Constraint (simulations can address constraints)
     for (const con of constraints.filter(c => c.tier === sim.tier).slice(0, 2)) {
       addEdge(sim.id, con.id, "supports", 0.5);
     }
   }
 
-  // Signal → Assumption (signals reveal assumptions)
+  // Signal → Assumption
   for (const sig of signals.slice(0, 8)) {
     for (const asm of assumptions.filter(a => a.tier === sig.tier).slice(0, 2)) {
       addEdge(sig.id, asm.id, "leads_to", 0.5);
     }
   }
 
-  // Assumption → Constraint (assumptions create constraints)
+  // Assumption → Constraint
   for (const asm of assumptions.slice(0, 8)) {
     for (const con of constraints.filter(c => c.tier === asm.tier).slice(0, 2)) {
       addEdge(asm.id, con.id, "causes", 0.6);
     }
   }
 
-  // Constraint → Friction (constraints produce friction)
+  // Constraint → Friction
   for (const con of constraints.slice(0, 8)) {
     for (const fric of frictions.filter(f => f.tier === con.tier).slice(0, 2)) {
       addEdge(con.id, fric.id, "causes", 0.6);
     }
   }
 
-  // Constraint → Leverage (constraints unlock leverage)
+  // Constraint → Leverage
   for (const con of constraints.slice(0, 6)) {
     for (const lev of leverages.slice(0, 3)) {
       addEdge(con.id, lev.id, "leads_to", 0.6);
     }
   }
 
-  // Leverage → Opportunity (leverage unlocks opportunity)
+  // Leverage → Opportunity
   for (const lev of leverages.slice(0, 6)) {
     for (const opp of opportunities.slice(0, 3)) {
       addEdge(lev.id, opp.id, "unlocks", 0.7);
     }
   }
 
-  // Risk → Opportunity (risks contradict opportunities)
+  // Risk → Opportunity (risks contradict)
   for (const rsk of risks.slice(0, 5)) {
     for (const opp of opportunities.slice(0, 2)) {
       addEdge(rsk.id, opp.id, "contradicts", 0.5);
+    }
+  }
+
+  // Constraint → Risk (constraints create risks)
+  for (const con of constraints.slice(0, 5)) {
+    for (const rsk of risks.filter(r => r.tier === con.tier).slice(0, 2)) {
+      addEdge(con.id, rsk.id, "creates", 0.5);
+    }
+  }
+
+  // Insight → Opportunity (insights create opportunities)
+  for (const ins of insightNodes.slice(0, 8)) {
+    for (const opp of opportunities.slice(0, 3)) {
+      addEdge(ins.id, opp.id, "creates", 0.7);
+    }
+    // Insight → Constraint (insights reveal constraints)
+    for (const con of constraints.slice(0, 2)) {
+      addEdge(ins.id, con.id, "supports", 0.4);
+    }
+  }
+
+  // Scenario → Opportunity (scenarios test opportunities)
+  for (const sc of scenarioNodes.slice(0, 6)) {
+    for (const opp of opportunities.slice(0, 2)) {
+      addEdge(opp.id, sc.id, "tests", 0.7);
+    }
+  }
+
+  // ── Step 2b: Generate Strategic Pathway nodes ──
+  // A pathway represents a chain: Constraint → Insight → Opportunity → Scenario
+  const pathwayNodes: InsightGraphNode[] = [];
+  if (opportunities.length > 0 && (insightNodes.length > 0 || constraints.length > 0)) {
+    const topOpp = opportunities[0];
+    const relConstraint = constraints[0];
+    const relInsight = insightNodes[0];
+    
+    const pathwayLabel = topOpp
+      ? `${relConstraint ? relConstraint.label.slice(0, 30) + " → " : ""}${topOpp.label.slice(0, 50)}`
+      : "Strategic Pathway";
+
+    const pathwayNode: InsightGraphNode = {
+      id: `pathway-${topOpp.id}`,
+      type: "pathway",
+      label: pathwayLabel.slice(0, 120),
+      detail: `Strategic pathway derived from ${constraints.length} constraints and ${opportunities.length} opportunities`,
+      impact: Math.min(10, Math.round(topOpp.impact * 1.2)),
+      confidence: topOpp.confidence,
+      evidenceCount: topOpp.evidenceCount + (relConstraint?.evidenceCount ?? 0),
+      influence: 0,
+      leverageScore: 0,
+      pipelineStep: "redesign",
+      evidence: [],
+      relatedNodeIds: [],
+      intelligenceLayer: "strategy",
+    };
+    addNode(pathwayNode);
+    pathwayNodes.push(pathwayNode);
+
+    // Link: Opportunity → Pathway
+    addEdge(topOpp.id, pathwayNode.id, "enables", 0.8);
+    // Link: Scenario → Pathway (if scenarios exist)
+    if (scenarioNodes.length > 0) {
+      addEdge(scenarioNodes[0].id, pathwayNode.id, "enables", 0.7);
+    }
+    // Link: Insight → Pathway
+    if (relInsight) {
+      addEdge(relInsight.id, pathwayNode.id, "creates", 0.6);
     }
   }
 
