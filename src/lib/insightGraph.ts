@@ -125,6 +125,9 @@ export const NODE_TYPE_CONFIG: Record<InsightNodeType, {
   friction:       { color: "hsl(0 72% 52%)",    bgColor: "hsl(0 72% 52% / 0.08)",   borderColor: "hsl(0 72% 52% / 0.25)",   icon: "AlertTriangle", label: "Friction" },
   competitor:     { color: "hsl(262 83% 58%)",  bgColor: "hsl(262 83% 58% / 0.08)", borderColor: "hsl(262 83% 58% / 0.25)", icon: "Building2",     label: "Competitor" },
   simulation:     { color: "hsl(172 66% 50%)",  bgColor: "hsl(172 66% 50% / 0.08)", borderColor: "hsl(172 66% 50% / 0.25)", icon: "FlaskConical",  label: "Simulation" },
+  insight:        { color: "hsl(229 89% 63%)",  bgColor: "hsl(229 89% 63% / 0.08)", borderColor: "hsl(229 89% 63% / 0.25)", icon: "Brain",         label: "Insight" },
+  pathway:        { color: "hsl(45 93% 47%)",   bgColor: "hsl(45 93% 47% / 0.10)",  borderColor: "hsl(45 93% 47% / 0.30)",  icon: "Route",         label: "Strategic Pathway" },
+  scenario:       { color: "hsl(271 81% 55%)",  bgColor: "hsl(271 81% 55% / 0.08)", borderColor: "hsl(271 81% 55% / 0.25)", icon: "FlaskConical",  label: "Scenario" },
 };
 
 export const OPPORTUNITY_NODE_TYPES: InsightNodeType[] = [

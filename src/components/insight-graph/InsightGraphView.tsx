@@ -84,6 +84,10 @@ const RELATION_COLORS: Record<EdgeRelation, string> = {
   unlocks: "hsl(262 83% 58%)",
   depends_on: "hsl(210 14% 53%)",
   invalidates: "hsl(0 72% 52%)",
+  creates: "hsl(172 66% 50%)",
+  enables: "hsl(152 60% 44%)",
+  blocks: "hsl(14 90% 55%)",
+  tests: "hsl(271 81% 55%)",
 };
 
 const RELATION_LABELS: Record<EdgeRelation, string> = {
@@ -94,6 +98,10 @@ const RELATION_LABELS: Record<EdgeRelation, string> = {
   unlocks: "unlocks",
   depends_on: "depends on",
   invalidates: "invalidates",
+  creates: "creates",
+  enables: "enables",
+  blocks: "blocks",
+  tests: "tests",
 };
 
 // ═══════════════════════════════════════════════════════════════
