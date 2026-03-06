@@ -243,11 +243,11 @@ export const InsightNodeCard = memo(function InsightNodeCard({
       )}
 
       {/* Section tabs */}
-      <div className="px-4 pb-2 flex items-center gap-1">
-        {(["chain", "linked", "evidence"] as const).map(s => (
+      <div className="px-4 pb-2 flex items-center gap-1 flex-wrap">
+        {(["chain", "linked", "evidence", ...(relatedTools.length > 0 ? ["tools" as const] : [])] as const).map(s => (
           <button
             key={s}
-            onClick={() => setActiveSection(s)}
+            onClick={() => setActiveSection(s as any)}
             className="px-2.5 py-1 rounded-md text-xs font-bold capitalize transition-all"
             style={{
               background: activeSection === s ? config.bgColor : "transparent",
@@ -255,7 +255,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
               border: activeSection === s ? `1px solid ${config.borderColor}` : "1px solid transparent",
             }}
           >
-            {s === "chain" ? `Chain (${chain.length})` : s === "linked" ? `Linked (${linkedNodes.length})` : `Evidence (${node.evidenceCount})`}
+            {s === "chain" ? `Chain (${chain.length})` : s === "linked" ? `Linked (${linkedNodes.length})` : s === "tools" ? `Tools (${relatedTools.length})` : `Evidence (${node.evidenceCount})`}
           </button>
         ))}
       </div>
