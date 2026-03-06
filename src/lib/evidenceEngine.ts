@@ -261,6 +261,37 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
+  // ── Business Model: governed friction tiers ──
+  const bizGov = input.businessAnalysisData?.governed;
+  if (bizGov?.friction_tiers) {
+    const ft = bizGov.friction_tiers;
+    safeArr(ft.tier_1).forEach((f: any, i: number) => {
+      const label = f.description || f.label || `Tier 1 Friction ${i + 1}`;
+      const desc = f.system_impact || f.description;
+      items.push({
+        id: makeId("fric-bm-t1"), type: "friction", label, description: desc,
+        pipelineStep: "report", tier: "structural", impact: 9, mode, sourceEngine: "pipeline",
+        category: "operational_dependency",
+      });
+    });
+    safeArr(ft.tier_2).forEach((f: any, i: number) => {
+      const label = f.description || f.label || `Tier 2 Friction ${i + 1}`;
+      const desc = f.optimization_target || f.description;
+      items.push({
+        id: makeId("fric-bm-t2"), type: "friction", label, description: desc,
+        pipelineStep: "report", tier: "system", impact: 6, mode, sourceEngine: "pipeline",
+        category: "operational_dependency",
+      });
+    });
+    safeArr(ft.tier_3).forEach((f: any, i: number) => {
+      const label = f.description || f.label || `Tier 3 Friction ${i + 1}`;
+      items.push({
+        id: makeId("fric-bm-t3"), type: "friction", label,
+        pipelineStep: "report", tier: "optimization", impact: 3, mode, sourceEngine: "pipeline",
+      });
+    });
+  }
+
   return items;
 }
 
@@ -297,29 +328,137 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     }
   }
 
-  // Business model specific constraints
+  // ── Business Model: governed constraint_map ──
+  const bizGov = input.businessAnalysisData?.governed;
+  if (bizGov) {
+    // Causal chains from constraint_map
+    const cm = bizGov.constraint_map;
+    if (cm) {
+      safeArr(cm.causal_chains).forEach((chain: any, i: number) => {
+        const label = chain.structural_constraint || chain.label || `Structural Constraint ${i + 1}`;
+        const desc = chain.system_impact || chain.description;
+        items.push({
+          id: makeId("con-bm-cc"), type: "constraint", label, description: desc,
+          pipelineStep: "report", tier: "structural", impact: 9,
+          mode, sourceEngine: "pipeline", category: chain.impact_dimension || "operational_dependency",
+        });
+      });
+      // Binding constraint
+      if (cm.binding_constraint_id && cm.dominance_proof) {
+        items.push({
+          id: makeId("con-bm-bind"), type: "constraint",
+          label: `Binding Constraint: ${cm.binding_constraint_id}`,
+          description: cm.dominance_proof,
+          pipelineStep: "report", tier: "structural", impact: 10,
+          mode, sourceEngine: "pipeline", category: "cost_structure",
+        });
+      }
+    }
+
+    // First principles: viability assumptions
+    const fp = bizGov.first_principles;
+    if (fp) {
+      safeArr(fp.viability_assumptions).forEach((a: any, i: number) => {
+        const label = a.assumption || a.label || `Viability Assumption ${i + 1}`;
+        const desc = `Evidence: ${a.evidence_status || "unknown"}. Leverage if wrong: ${a.leverage_if_wrong ?? "N/A"}/10`;
+        items.push({
+          id: makeId("con-bm-va"), type: "assumption", label, description: desc,
+          pipelineStep: "report", tier: "structural",
+          impact: a.leverage_if_wrong || 7,
+          confidenceScore: a.evidence_status === "verified" ? 0.9 : a.evidence_status === "modeled" ? 0.5 : 0.2,
+          mode, sourceEngine: "pipeline", category: "demand_signal",
+        });
+      });
+      // Fundamental constraints
+      safeArr(fp.fundamental_constraints).forEach((c: any, i: number) => {
+        const label = typeof c === "string" ? c : (c.label || `Fundamental Constraint ${i + 1}`);
+        items.push({
+          id: makeId("con-bm-fc"), type: "constraint", label,
+          pipelineStep: "report", tier: "structural", impact: 8,
+          mode, sourceEngine: "pipeline",
+        });
+      });
+      // Dependency structure
+      safeArr(fp.dependency_structure).forEach((d: any, i: number) => {
+        const label = typeof d === "string" ? d : (d.label || `Dependency ${i + 1}`);
+        items.push({
+          id: makeId("con-bm-dep"), type: "constraint", label,
+          pipelineStep: "report", tier: "system", impact: 6,
+          mode, sourceEngine: "pipeline", category: "operational_dependency",
+        });
+      });
+      // Resource limits
+      safeArr(fp.resource_limits).forEach((r: any, i: number) => {
+        const label = typeof r === "string" ? r : (r.label || `Resource Limit ${i + 1}`);
+        items.push({
+          id: makeId("con-bm-rl"), type: "constraint", label,
+          pipelineStep: "report", tier: "system", impact: 7,
+          mode, sourceEngine: "pipeline", category: "cost_structure",
+        });
+      });
+      // Behavioral realities
+      safeArr(fp.behavioral_realities).forEach((b: any, i: number) => {
+        const label = typeof b === "string" ? b : (b.label || `Behavioral Reality ${i + 1}`);
+        items.push({
+          id: makeId("con-bm-br"), type: "signal", label,
+          pipelineStep: "report", tier: "system", impact: 5,
+          mode, sourceEngine: "pipeline", category: "customer_behavior",
+        });
+      });
+    }
+
+    // Root hypotheses from governed data
+    safeArr(bizGov.root_hypotheses).forEach((h: any, i: number) => {
+      const label = h.hypothesis_statement || h.label || `Root Hypothesis ${i + 1}`;
+      const desc = h.downstream_implications || h.description;
+      items.push({
+        id: makeId("con-bm-rh"), type: "assumption", label, description: desc,
+        pipelineStep: "report", tier: "structural",
+        impact: h.impact_score || 8,
+        confidenceScore: (h.confidence || 80) / 100,
+        mode, sourceEngine: "pipeline", category: h.constraint_type || "demand_signal",
+      });
+      // Extract friction sources from hypotheses
+      safeArr(h.friction_sources).forEach((fs: any, fi: number) => {
+        const fsLabel = typeof fs === "string" ? fs : (fs.label || `Friction Source ${fi + 1}`);
+        items.push({
+          id: makeId("con-bm-fs"), type: "friction", label: fsLabel,
+          pipelineStep: "report", tier: "structural", impact: h.impact_score || 7,
+          mode, sourceEngine: "pipeline",
+        });
+      });
+    });
+  }
+
+  // Legacy flat business model fields
   const biz = input.businessAnalysisData;
   if (biz && mode === "business_model") {
     safeArr(biz.revenueRisks || biz.revenueModelAssumptions).forEach((r: any, i: number) => {
       const label = typeof r === "string" ? r : (r.label || r.name || `Revenue Assumption ${i + 1}`);
-      items.push({
-        id: makeId("con-rev"), type: "assumption", label, pipelineStep: "report",
-        tier: "structural", mode, sourceEngine: "pipeline", category: "revenue_model",
-      });
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("con-rev"), type: "assumption", label, pipelineStep: "report",
+          tier: "structural", mode, sourceEngine: "pipeline", category: "revenue_model",
+        });
+      }
     });
     safeArr(biz.distributionConstraints || biz.channelBottlenecks).forEach((d: any, i: number) => {
       const label = typeof d === "string" ? d : (d.label || d.name || `Distribution Constraint ${i + 1}`);
-      items.push({
-        id: makeId("con-dist"), type: "constraint", label, pipelineStep: "report",
-        tier: "structural", mode, sourceEngine: "pipeline", category: "distribution",
-      });
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("con-dist"), type: "constraint", label, pipelineStep: "report",
+          tier: "structural", mode, sourceEngine: "pipeline", category: "distribution",
+        });
+      }
     });
     safeArr(biz.costStructureRisks || biz.costInefficiencies).forEach((c: any, i: number) => {
       const label = typeof c === "string" ? c : (c.label || c.name || `Cost Structure Issue ${i + 1}`);
-      items.push({
-        id: makeId("con-cost"), type: "constraint", label, pipelineStep: "report",
-        tier: "system", mode, sourceEngine: "pipeline", category: "cost_structure",
-      });
+      if (!items.some(e => e.label === label)) {
+        items.push({
+          id: makeId("con-cost"), type: "constraint", label, pipelineStep: "report",
+          tier: "system", mode, sourceEngine: "pipeline", category: "cost_structure",
+        });
+      }
     });
   }
 
@@ -355,6 +494,28 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
+  // ── Business Model: counterfactual removal as leverage signal ──
+  const bizGov = input.businessAnalysisData?.governed;
+  if (bizGov?.constraint_map?.counterfactual_removal_result) {
+    items.push({
+      id: makeId("lev-bm-cf"), type: "leverage",
+      label: "Counterfactual: Remove Binding Constraint",
+      description: bizGov.constraint_map.counterfactual_removal_result,
+      pipelineStep: "report", tier: "structural", impact: 9,
+      mode, sourceEngine: "pipeline", category: "operational_dependency",
+    });
+  }
+  // First principles: minimum viable system as leverage insight
+  if (bizGov?.first_principles?.minimum_viable_system) {
+    items.push({
+      id: makeId("lev-bm-mvs"), type: "leverage",
+      label: "Minimum Viable System",
+      description: bizGov.first_principles.minimum_viable_system,
+      pipelineStep: "report", tier: "structural", impact: 7,
+      mode, sourceEngine: "pipeline",
+    });
+  }
+
   return items;
 }
 
@@ -379,6 +540,44 @@ function extractRiskEvidence(input: EvidenceInput): Evidence[] {
     safeArr(biz.risks || biz.vulnerabilities).forEach((r: any, i: number) => {
       const label = typeof r === "string" ? r : (r.label || r.name || `Model Risk ${i + 1}`);
       items.push({ id: makeId("risk-biz"), type: "risk", label, pipelineStep: "report", tier: "system", mode, sourceEngine: "pipeline" });
+    });
+  }
+
+  // ── Business Model: governed decision_synthesis blocking uncertainties ──
+  const bizGov = input.businessAnalysisData?.governed;
+  if (bizGov?.decision_synthesis) {
+    const ds = bizGov.decision_synthesis;
+    safeArr(ds.blocking_uncertainties).forEach((u: any, i: number) => {
+      const label = typeof u === "string" ? u : (u.label || `Blocking Uncertainty ${i + 1}`);
+      items.push({
+        id: makeId("risk-bm-bu"), type: "risk", label,
+        pipelineStep: "report", tier: "structural", impact: 8,
+        mode, sourceEngine: "pipeline", category: "demand_signal",
+      });
+    });
+    if (ds.decision_grade === "blocked" || ds.confidence_score < 40) {
+      items.push({
+        id: makeId("risk-bm-dg"), type: "risk",
+        label: `Decision Grade: ${ds.decision_grade || "low confidence"} (${ds.confidence_score || 0}%)`,
+        description: ds.next_required_evidence || "Insufficient evidence for confident decision",
+        pipelineStep: "report", tier: "structural", impact: 9,
+        mode, sourceEngine: "pipeline",
+      });
+    }
+  }
+
+  // Fragility scores from root hypotheses
+  if (bizGov?.root_hypotheses) {
+    safeArr(bizGov.root_hypotheses).forEach((h: any) => {
+      if (h.fragility_score && h.fragility_score <= 3) {
+        items.push({
+          id: makeId("risk-bm-frag"), type: "risk",
+          label: `High Fragility: ${h.hypothesis_statement?.substring(0, 80) || "hypothesis"}`,
+          description: `Fragility score: ${h.fragility_score}/10 — highly vulnerable to disruption`,
+          pipelineStep: "report", tier: "structural", impact: 8,
+          mode, sourceEngine: "pipeline",
+        });
+      }
     });
   }
 
