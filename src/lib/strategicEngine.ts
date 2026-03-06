@@ -336,7 +336,7 @@ function calculateLeveragePoints(
       .filter(d => d.evidenceIds.some(eid => flat.find(e => e.id === eid)?.tier === lev.tier))
       .map(d => d.id);
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("leverage"),
       analysisId,
       insightType: "leverage_point",
@@ -347,7 +347,7 @@ function calculateLeveragePoints(
       impact: lev.impact ?? 7,
       confidence: lev.confidenceScore ?? 0.6,
       createdAt: now,
-    });
+    }));
   }
 
   // Derive leverage from constraint-driver intersections
