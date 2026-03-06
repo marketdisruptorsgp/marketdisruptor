@@ -207,6 +207,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     insights,
     opportunities,
     narrative,
+    scenarioComparison,
+    sensitivityReports,
     isComputing,
     completedSteps,
     pipelineCompletion,
