@@ -234,6 +234,8 @@ function inferInsightType(evidence: Evidence[]): InsightType {
   if (types.has("constraint")) return "constraint_cluster";
   if (types.has("assumption")) return "assumption_cluster";
   if (types.has("opportunity") || types.has("leverage")) return "emerging_opportunity";
+  // Infer constraints from friction/risk clusters (structural bottlenecks)
+  if (types.has("friction") || types.has("risk")) return "constraint_cluster";
   return "pattern";
 }
 
