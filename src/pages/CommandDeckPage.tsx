@@ -10,7 +10,7 @@
  *   Zone 4  — Insight Graph preview
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSubscription } from "@/hooks/useSubscription";
