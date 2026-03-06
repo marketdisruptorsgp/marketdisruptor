@@ -127,7 +127,7 @@ function nextInsightId(prefix: string): string {
 
 /** Default compat fields for Insight interface */
 const COMPAT_DEFAULTS = {
-  tier: "tier1" as const,
+  tier: "structural" as const,
   mode: "product" as const,
   confidenceScore: undefined as number | undefined,
   recommendedTools: [] as string[],
