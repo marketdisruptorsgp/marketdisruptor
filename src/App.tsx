@@ -9,6 +9,8 @@ import { lazy, Suspense, useEffect, Component } from "react";
 import type { ReactNode, ErrorInfo } from "react";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { CommandNavigation } from "@/components/layout/CommandNavigation";
 import AuthPage from "./pages/AuthPage";
 import { HelpAssistantPanel } from "@/components/HelpAssistantPanel";
 
