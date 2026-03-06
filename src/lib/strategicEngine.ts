@@ -781,12 +781,21 @@ function buildStrategicNarrative(
 
   const h = (s: string | null | undefined) => s ? humanize(s) : null;
 
+  /** Truncate at word boundary */
+  function trimAt(s: string | null | undefined, max: number): string {
+    if (!s) return "";
+    const clean = humanize(s);
+    if (clean.length <= max) return clean;
+    const cut = clean.lastIndexOf(" ", max);
+    return clean.slice(0, cut > max * 0.5 ? cut : max) + "…";
+  }
+
+  // Build a readable narrative — no raw labels, no truncation artifacts
   const parts: string[] = [];
-  if (topConstraint) parts.push(`The primary constraint is: ${h(topConstraint.label)}.`);
-  if (topDriver) parts.push(`The key driver underlying this is: ${h(topDriver.label)}.`);
-  if (topLeverage) parts.push(`Leverage can be applied at: ${h(topLeverage.label)}.`);
-  if (topOpp) parts.push(`This unlocks the opportunity: ${h(topOpp.label)}.`);
-  if (topPathway) parts.push(`Recommended pathway: ${h(topPathway.label)}.`);
+  if (topConstraint) parts.push(`The primary constraint is ${trimAt(topConstraint.label, 120)}.`);
+  if (topDriver) parts.push(`This is driven by: ${trimAt(topDriver.label, 100)}.`);
+  if (topLeverage) parts.push(`A key intervention point exists: ${trimAt(topLeverage.label, 100)}.`);
+  if (topOpp) parts.push(`This opens the opportunity to ${trimAt(topOpp.label, 100).toLowerCase()}.`);
 
   if (parts.length === 0) {
     parts.push("Insufficient evidence to generate a complete strategic narrative. Add more inputs to pipeline steps.");
