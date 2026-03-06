@@ -5,6 +5,8 @@
  * Watches for step completion, input changes, and navigation events.
  * Produces canonical Evidence, SystemIntelligence, InsightGraph,
  * ScenarioComparison, and SensitivityReports.
+ *
+ * Includes full pipeline diagnostics tracing and hash-guarded recompute.
  */
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
