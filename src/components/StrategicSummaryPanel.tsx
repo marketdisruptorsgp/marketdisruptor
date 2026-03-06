@@ -140,7 +140,7 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
         <div className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
             Strategic Command Deck
           </div>
-          <div className="text-xs text-foreground/60">Executive intelligence briefing</div>
+          <div className="text-xs text-muted-foreground">Executive intelligence briefing</div>
         </div>
       </div>
 

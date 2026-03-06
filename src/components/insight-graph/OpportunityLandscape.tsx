@@ -66,7 +66,7 @@ function CustomTooltip({ active, payload }: any) {
           className="w-3 h-3 rounded-full"
           style={{ background: cfg.color, boxShadow: `0 0 8px ${cfg.color}60` }}
         />
-        <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
+        <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
           {cfg.label}
         </span>
       </div>
@@ -78,7 +78,7 @@ function CustomTooltip({ active, payload }: any) {
           { label: "Influence", value: String(pt.z) },
         ].map(m => (
           <div key={m.label} className="text-center">
-            <p className="text-[9px] font-bold uppercase tracking-wider text-foreground/50">{m.label}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{m.label}</p>
             <p className="text-xs font-bold" style={{ color: cfg.color }}>{m.value}</p>
           </div>
         ))}
@@ -95,18 +95,18 @@ function TypeChip({
   return (
     <button
       onClick={onToggle}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all"
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
       style={{
         background: active ? cfg.bgColor : "hsl(var(--muted))",
         border: `1.5px solid ${active ? cfg.borderColor : "hsl(var(--border))"}`,
-        color: active ? cfg.color : "hsl(var(--foreground) / 0.5)",
+        color: active ? cfg.color : "hsl(var(--muted-foreground))",
         opacity: active ? 1 : 0.5,
       }}
     >
       <div
         className="w-2.5 h-2.5 rounded-full"
         style={{
-          background: active ? cfg.color : "hsl(var(--foreground) / 0.3)",
+          background: active ? cfg.color : "hsl(var(--muted-foreground))",
           boxShadow: active ? `0 0 6px ${cfg.color}60` : "none",
         }}
       />
@@ -194,7 +194,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
             <Star size={12} style={{ color: "hsl(152 60% 44%)" }} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(152 60% 44%)" }}>
+            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(152 60% 44%)" }}>
               Top Breakthrough
             </p>
             <p className="text-sm font-bold text-foreground leading-snug truncate">{breakthrough.label}</p>
@@ -288,12 +288,13 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
           {QUADRANTS.map(q => (
             <span
               key={q.label}
-              className="absolute text-[10px] font-extrabold uppercase tracking-widest select-none"
+              className="absolute text-xs font-extrabold uppercase tracking-widest select-none"
               style={{
                 left: `${(q.x / 10) * 100}%`,
                 top: `${100 - (q.y / 10) * 100}%`,
                 transform: "translate(-50%, -50%)",
-                color: "hsl(var(--foreground) / 0.15)",
+                color: "hsl(var(--muted-foreground))",
+                opacity: 0.3,
               }}
             >
               {q.label}
@@ -304,7 +305,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
 
       {/* Stats */}
       <div className="flex items-center gap-4 px-1">
-        <span className="text-xs font-bold text-foreground/60">
+        <span className="text-xs font-bold text-muted-foreground">
           {points.length} opportunities plotted
         </span>
         {breakthrough && (

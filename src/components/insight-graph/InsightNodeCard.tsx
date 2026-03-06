@@ -50,7 +50,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
           </div>
         </div>
         <button onClick={onClose} className="p-1 rounded-md hover:bg-muted transition-colors flex-shrink-0">
-          <X size={14} className="text-foreground/60" />
+          <X size={14} className="text-muted-foreground" />
         </button>
       </div>
 
@@ -64,7 +64,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
       {/* Evidence — collapsible */}
       {node.evidence.length > 0 && (
         <div className="px-4 pb-3">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-foreground/60 mb-1.5">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
             Evidence ({node.evidenceCount})
           </p>
           <div className="space-y-1.5">
@@ -78,7 +78,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
           {node.evidence.length > 2 && (
             <button
               onClick={() => setShowAllEvidence(!showAllEvidence)}
-              className="flex items-center gap-1 mt-2 text-xs font-bold text-foreground/60 hover:text-foreground transition-colors"
+              className="flex items-center gap-1 mt-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronDown
                 size={12}
@@ -94,7 +94,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
       {/* Insight Chain — threading */}
       {chain.length > 1 && (
         <div className="px-4 pb-4">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-foreground/60 mb-2">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
             Insight Chain
           </p>
           <div className="space-y-1">
@@ -120,14 +120,14 @@ export const InsightNodeCard = memo(function InsightNodeCard({
                   </button>
                   {i < Math.min(chain.length, 5) - 1 && (
                     <div className="flex justify-center py-0.5">
-                      <ArrowDown size={12} className="text-foreground/30" />
+                      <ArrowDown size={12} className="text-muted-foreground" />
                     </div>
                   )}
                 </div>
               );
             })}
             {chain.length > 5 && (
-              <p className="text-xs text-foreground/50 text-center pt-1">
+              <p className="text-xs text-muted-foreground text-center pt-1">
                 +{chain.length - 5} more steps
               </p>
             )}
@@ -151,7 +151,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
 function MetricPill({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div className="text-center px-2 py-1.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
-      <p className="text-xs font-bold uppercase tracking-wider text-foreground/60">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="text-sm font-extrabold" style={{ color }}>{value}</p>
     </div>
   );
