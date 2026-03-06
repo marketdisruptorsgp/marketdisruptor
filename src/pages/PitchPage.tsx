@@ -81,6 +81,14 @@ export default function PitchPage() {
         analysisId={analysisId || ""}
         accentColor={theme.primary}
         completedSteps={autoAnalysis.completedSteps}
+        products={analysis.products}
+        selectedProduct={selectedProduct}
+        disruptData={analysis.disruptData}
+        redesignData={analysis.redesignData}
+        stressTestData={analysis.stressTestData}
+        pitchDeckData={analysis.pitchDeckData}
+        governedData={analysis.governedData as Record<string, unknown> | null}
+        businessAnalysisData={analysis.businessAnalysisData}
       />
 
       {/* Content — always mounted so loading lifecycle completes */}

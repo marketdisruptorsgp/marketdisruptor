@@ -254,6 +254,14 @@ export default function ReportPage() {
         analysisId={analysisId || ""}
         accentColor={modeAccent}
         completedSteps={autoAnalysis.completedSteps}
+        products={products}
+        selectedProduct={selectedProduct}
+        disruptData={analysis.disruptData}
+        redesignData={analysis.redesignData}
+        stressTestData={analysis.stressTestData}
+        pitchDeckData={analysis.pitchDeckData}
+        governedData={analysis.governedData as Record<string, unknown> | null}
+        businessAnalysisData={analysis.businessAnalysisData}
       />
 
       {/* ── Strategic Command Deck — dashboard tab ── */}

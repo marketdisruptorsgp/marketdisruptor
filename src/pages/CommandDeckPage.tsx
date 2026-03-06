@@ -30,6 +30,10 @@ import {
 } from "recharts";
 import { KPIGauge } from "@/components/analysis/KPIGauge";
 import { StepVisualOutput } from "@/components/analysis/StepVisualOutput";
+import {
+  computeCommandDeckMetrics, computeTrendData, aggregateOpportunities,
+  type CommandDeckMetrics as DeckMetrics,
+} from "@/lib/commandDeckMetrics";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -178,64 +182,29 @@ export default function CommandDeckPage() {
   const modeAccent = theme.primary;
   const { intelligence, graph, completedSteps, pipelineCompletion } = autoAnalysis;
 
-  // ── Compute 5 KPI metrics ──
-  const constraints = intelligence?.unifiedConstraintGraph || [];
-  const leveragePoints = intelligence?.leveragePoints || [];
-  const opportunities = intelligence?.opportunities || [];
-  const friction = intelligence?.expandedFriction;
+  // ── Aggregated Metrics (all pipeline steps) ──
+  const metricsInput = useMemo(() => ({
+    products: analysis.products,
+    selectedProduct,
+    disruptData: analysis.disruptData,
+    redesignData: analysis.redesignData,
+    stressTestData: analysis.stressTestData,
+    pitchDeckData: analysis.pitchDeckData,
+    governedData: analysis.governedData as Record<string, unknown> | null,
+    businessAnalysisData: analysis.businessAnalysisData,
+    intelligence,
+    completedSteps,
+  }), [
+    analysis.products, selectedProduct, analysis.disruptData, analysis.redesignData,
+    analysis.stressTestData, analysis.pitchDeckData, analysis.governedData,
+    analysis.businessAnalysisData, intelligence, completedSteps,
+  ]);
 
-  // 1. Insight Density — total nodes in the reasoning graph
-  const insightDensity = constraints.length + leveragePoints.length + opportunities.length;
+  const metrics: DeckMetrics = useMemo(() => computeCommandDeckMetrics(metricsInput), [metricsInput]);
+  const trendData = useMemo(() => computeTrendData(metricsInput), [metricsInput]);
+  const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
 
-  // 2. Constraint Severity — avg impact of constraints (0-10)
-  const constraintSeverity = constraints.length > 0
-    ? Math.round(constraints.reduce((s, c) => s + c.impact, 0) / constraints.length * 10) / 10
-    : 0;
-
-  // 3. Breakthrough Potential — count of high-impact (>=7) opportunities
-  const breakthroughPotential = opportunities.filter(o => o.impact >= 7).length;
-
-  // 4. Leverage Index — avg impact of leverage points (0-10)
-  const leverageIndex = leveragePoints.length > 0
-    ? Math.round(leveragePoints.reduce((s, l) => s + l.impact, 0) / leveragePoints.length * 10) / 10
-    : 0;
-
-  // 5. Pipeline Completion
-  const pipelinePct = pipelineCompletion;
-
-  // ── Trend data ──
-  const trendData = useMemo(() => {
-    const oppScore = opportunities.length > 0
-      ? Math.round(opportunities.reduce((s, o) => s + o.impact, 0) / opportunities.length * 10)
-      : 0;
-    return [
-      { step: "Report", score: completedSteps.has("report") ? Math.max(20, oppScore * 0.3) : 0 },
-      { step: "Disrupt", score: completedSteps.has("disrupt") ? Math.max(30, oppScore * 0.5) : 0 },
-      { step: "Redesign", score: completedSteps.has("redesign") ? Math.max(40, oppScore * 0.7) : 0 },
-      { step: "Stress Test", score: completedSteps.has("stress-test") ? Math.max(50, oppScore * 0.85) : 0 },
-      { step: "Pitch", score: completedSteps.has("pitch") ? oppScore : 0 },
-    ];
-  }, [completedSteps, opportunities]);
-
-  // ── Top opportunities for table ──
-  const topOpps = useMemo(() => {
-    const allOpps = [...(intelligence?.commandDeck.topOpportunities || [])];
-    // Enrich with additional opportunities if < 8
-    if (allOpps.length < 8) {
-      const remaining = opportunities
-        .filter(o => !allOpps.some(ao => ao.id === o.id))
-        .slice(0, 8 - allOpps.length);
-      allOpps.push(...remaining);
-    }
-    return allOpps.slice(0, 8).map(opp => ({
-      id: opp.id,
-      label: opp.label,
-      impact: opp.impact,
-      confidence: opp.confidence,
-      step: "Disrupt",
-      source: opp.evidence?.[0]?.slice(0, 40) || "Analysis",
-    }));
-  }, [intelligence, opportunities]);
+  const pipelinePct = metrics.pipelineCompletion;
 
   if (analysis.step !== "done" || !selectedProduct) {
     if (shouldRedirectHome) return null;
@@ -294,12 +263,22 @@ export default function CommandDeckPage() {
 
         {/* KPI Metrics — Circular Gauges */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <KPIGauge label="Insight Density" value={insightDensity} max={Math.max(insightDensity, 20)} subtitle="Total signals" icon={Zap} color="hsl(229 89% 63%)" delay={0.1} />
-          <KPIGauge label="Constraint" value={constraintSeverity} max={10} subtitle="Avg. severity" icon={Shield} color="hsl(0 72% 52%)" delay={0.15} />
-          <KPIGauge label="Breakthrough" value={breakthroughPotential} max={Math.max(breakthroughPotential, 5)} subtitle="High-impact" icon={Lightbulb} color="hsl(152 60% 44%)" delay={0.2} />
-          <KPIGauge label="Leverage" value={leverageIndex} max={10} subtitle="Avg. leverage" icon={Gauge} color="hsl(38 92% 50%)" delay={0.25} />
+          <KPIGauge label="Opportunity" value={metrics.opportunityScore} max={10} subtitle={metrics.isPartial ? "Partial" : "Weighted"} icon={Zap} color="hsl(229 89% 63%)" delay={0.1} />
+          <KPIGauge label="Friction" value={metrics.frictionIndex} max={10} subtitle="Systemic" icon={Shield} color="hsl(0 72% 52%)" delay={0.15} />
+          <KPIGauge label="Constraints" value={metrics.constraintsCount} max={Math.max(metrics.constraintsCount, 10)} subtitle="Blockers" icon={AlertTriangle} color="hsl(38 92% 50%)" delay={0.2} />
+          <KPIGauge label="Leverage" value={metrics.leverageScore} max={10} subtitle="Potential" icon={Gauge} color="hsl(152 60% 44%)" delay={0.25} />
           <KPIGauge label="Pipeline" value={`${pipelinePct}%`} max={100} subtitle={`${completedSteps.size}/5 steps`} icon={BarChart3} color={modeAccent} delay={0.3} />
         </div>
+
+        {/* Partial analysis indicator */}
+        {metrics.isPartial && metrics.contributingSources.length > 0 && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
+            <Activity size={12} style={{ color: "hsl(38 92% 50%)" }} />
+            <p className="text-[10px] font-bold text-foreground">
+              Partial analysis — metrics derived from: {metrics.contributingSources.join(", ")}
+            </p>
+          </div>
+        )}
 
         {/* Pipeline Status */}
         <motion.div {...fadeUp} transition={{ delay: 0.05 }}
