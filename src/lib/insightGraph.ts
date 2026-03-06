@@ -245,6 +245,18 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
   const leverages = nodes.filter(n => n.type === "leverage_point");
   const opportunities = nodes.filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type));
   const risks = nodes.filter(n => n.type === "risk");
+  const simulations = nodes.filter(n => n.type === "simulation");
+
+  // Simulation → Opportunity (simulations support opportunities)
+  for (const sim of simulations.slice(0, 8)) {
+    for (const opp of opportunities.slice(0, 3)) {
+      addEdge(sim.id, opp.id, "supports", 0.7);
+    }
+    // Simulation → Constraint (simulations can address constraints)
+    for (const con of constraints.filter(c => c.tier === sim.tier).slice(0, 2)) {
+      addEdge(sim.id, con.id, "supports", 0.5);
+    }
+  }
 
   // Signal → Assumption (signals reveal assumptions)
   for (const sig of signals.slice(0, 8)) {
