@@ -401,7 +401,7 @@ export function clusterEvidenceIntoInsights(evidence: Evidence[]): Insight[] {
         mode: con.mode,
         confidenceScore: 0.55,
         impact: con.impact ?? 5,
-        timestamp: now,
+        timestamp: fallbackNow,
       });
     }
   }
