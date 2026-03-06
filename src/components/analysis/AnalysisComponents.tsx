@@ -16,7 +16,22 @@
  *   EvidenceCard     — Evidence/proof point with source & confidence
  *   HypothesisCard   — Strategic hypothesis with fragility score
  *   AnalysisPanel    — Generic titled panel for analysis sections
+ *
+ * Visual Intelligence (Phase 4):
+ *   ConstraintBlock, LeverageIndicator, SignalCluster,
+ *   SignalPillRow, ImpactMeter, ConfidenceBadge, CausalChainVisual
  */
+
+// Re-export Phase 4 visual intelligence components
+export {
+  ConstraintBlock,
+  LeverageIndicator,
+  SignalCluster,
+  SignalPillRow,
+  ImpactMeter,
+  ConfidenceBadge,
+  CausalChainVisual,
+} from "./VisualIntelligenceComponents";
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";

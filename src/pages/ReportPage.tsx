@@ -52,6 +52,8 @@ import {
   MetricCard,
   VisualGrid,
   ExpandableDetail,
+  SignalCluster,
+  SignalPillRow,
 } from "@/components/analysis/AnalysisComponents";
 
 /* ── Section tab config ── */
@@ -227,6 +229,22 @@ export default function ReportPage() {
                     accentColor={modeAccent}
                   />
                 </VisualGrid>
+
+                {/* Key signal pills — quick visual scan */}
+                {(() => {
+                  const pills: string[] = [];
+                  if (selectedProduct.trendAnalysis) pills.push(selectedProduct.trendAnalysis.split('.')[0]);
+                  const ci = (selectedProduct as any).communityInsights;
+                  if (ci?.topComplaints?.[0]) pills.push(ci.topComplaints[0]);
+                  if (ci?.improvementRequests?.[0]) pills.push(ci.improvementRequests[0]);
+                  if ((selectedProduct.pricingIntel as any)?.strategy) pills.push((selectedProduct.pricingIntel as any).strategy);
+                  return pills.length > 0 ? (
+                    <div className="mt-3">
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1.5">Key Signals</p>
+                      <SignalPillRow signals={pills} max={4} accentColor={modeAccent} />
+                    </div>
+                  ) : null;
+                })()}
               </InsightCard>
             )}
 
@@ -289,30 +307,49 @@ export default function ReportPage() {
             const sentiment = ci.communitySentiment || ci.redditSentiment;
             const hasReal = sentiment && !/no direct.*found|not found/i.test(sentiment);
             return (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {hasReal && (
                   <InsightCard headline="Community Sentiment" subtext={sentiment} accentColor="hsl(217 91% 45%)" />
                 )}
+
+                {/* Aggregated complaint clusters — visual signal visualization */}
                 {ci.topComplaints?.length > 0 && (
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Top Complaints</p>
-                    <VisualGrid columns={2}>
-                      {ci.topComplaints.map((c: string, i: number) => (
-                        <SignalCard key={i} label={c} type="weakness" />
-                      ))}
-                    </VisualGrid>
-                  </div>
+                  <SignalCluster
+                    title="Top Complaints"
+                    items={ci.topComplaints.map((c: string, i: number) => ({
+                      theme: c,
+                      count: Math.max(1, ci.topComplaints.length - i),
+                      type: "complaint" as const,
+                    }))}
+                  />
                 )}
+
+                {/* Improvement request clusters */}
                 {ci.improvementRequests?.length > 0 && (
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Improvement Requests</p>
-                    <VisualGrid columns={2}>
-                      {ci.improvementRequests.map((r: string, i: number) => (
-                        <SignalCard key={i} label={r} type="opportunity" />
-                      ))}
-                    </VisualGrid>
-                  </div>
+                  <SignalCluster
+                    title="Improvement Requests"
+                    items={ci.improvementRequests.map((r: string, i: number) => ({
+                      theme: r,
+                      count: Math.max(1, ci.improvementRequests.length - i),
+                      type: "request" as const,
+                    }))}
+                  />
                 )}
+
+                {/* Signal pills for quick scan */}
+                {(() => {
+                  const allSignals = [
+                    ...(ci.topComplaints || []).slice(0, 2),
+                    ...(ci.improvementRequests || []).slice(0, 2),
+                  ].filter(Boolean);
+                  return allSignals.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Key Signals</p>
+                      <SignalPillRow signals={allSignals} max={6} />
+                    </div>
+                  ) : null;
+                })()}
+
                 {selectedProduct.reviews?.length > 0 && (
                   <ExpandableDetail label={`${selectedProduct.reviews.length} Reviews`} icon={MessageSquare}>
                     <div className="space-y-2 mt-2">
