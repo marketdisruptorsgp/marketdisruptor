@@ -62,13 +62,13 @@ type ZoomLevel = "overview" | "structural" | "full";
 const ZOOM_LEVEL_CONFIG: Record<ZoomLevel, { label: string; description: string; types: InsightNodeType[] }> = {
   overview: {
     label: "Overview",
-    description: "Signals, Constraints, Opportunities",
-    types: ["signal", "constraint", "outcome", "flipped_idea", "concept", "simulation"],
+    description: "Key nodes: Constraints, Opportunities, Scenarios, Pathways",
+    types: ["constraint", "outcome", "flipped_idea", "concept", "scenario", "pathway", "insight"],
   },
   structural: {
     label: "Structural",
     description: "All reasoning layers",
-    types: ["signal", "constraint", "assumption", "driver", "leverage_point", "outcome", "flipped_idea", "concept", "simulation"],
+    types: ["signal", "constraint", "assumption", "driver", "leverage_point", "outcome", "flipped_idea", "concept", "simulation", "insight", "scenario", "pathway"],
   },
   full: {
     label: "Full Reasoning",
