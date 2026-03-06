@@ -5,7 +5,7 @@
  * All styling lives here — mode pages only supply logic, data, and content.
  */
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { ModeBadge } from "@/components/ModeBadge";
@@ -16,11 +16,12 @@ import { ShareAnalysis } from "@/components/ShareAnalysis";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save, RefreshCw, GitBranch } from "lucide-react";
+import { FileDown, Save, RefreshCw, GitBranch, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import type { TierKey } from "@/hooks/useSubscription";
 import { scrollToTop } from "@/utils/scrollToTop";
 import type { StrategicProfile } from "@/lib/strategicOS";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 /* ═══════════════════════════════════════════════════════════
    1. PAGE SHELL — outermost wrapper for every analysis page
@@ -117,6 +118,20 @@ export function AnalysisActionToolbar({
   extraActions, onPdf, hideRun, hideShare,
 }: AnalysisActionToolbarProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close overflow menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [menuOpen]);
+
   const handlePdf = () => {
     if (onPdf) { onPdf(); return; }
     if (!selectedProduct) return;
@@ -129,6 +144,41 @@ export function AnalysisActionToolbar({
       .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
   };
 
+  /* Secondary actions (Graph, PDF, Save, Share) — collapsed on mobile */
+  const secondaryActions = (
+    <>
+      {analysisId && (
+        <button
+          onClick={() => { setMenuOpen(false); navigate(`/analysis/${analysisId}/insight-graph`); }}
+          className="flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold bg-background border border-border text-foreground hover:bg-muted transition-colors w-full sm:w-auto"
+          title="Insight Graph"
+        >
+          <GitBranch size={14} /> Graph
+        </button>
+      )}
+      {extraActions}
+      <button
+        onClick={() => { setMenuOpen(false); handlePdf(); }}
+        className="flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold bg-background border border-border text-foreground hover:bg-muted transition-colors w-full sm:w-auto"
+      >
+        <FileDown size={14} /> PDF
+      </button>
+      <button
+        onClick={() => { setMenuOpen(false); analysis.handleManualSave(); }}
+        className="flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-colors w-full sm:w-auto"
+      >
+        <Save size={14} /> Save
+      </button>
+      {!hideShare && (
+        <ShareAnalysis
+          analysisId={analysisId || ""}
+          analysisTitle={analysisTitle}
+          accentColor={accentColor}
+        />
+      )}
+    </>
+  );
+
   return (
     <>
       {/* Persistent analysis title */}
@@ -137,30 +187,20 @@ export function AnalysisActionToolbar({
       </h1>
 
       {/* Compact header: step title + action buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-        <h2 className="typo-section-title">{stepTitle}</h2>
-        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+      <div className="flex items-center justify-between gap-3 px-1">
+        <h2 className="typo-section-title flex-1 min-w-0 truncate">{stepTitle}</h2>
+        <div className="flex items-center gap-2 flex-shrink-0">
           {strategicProfile && onChangeProfile && (
             <StrategicProfileSelector
               profile={strategicProfile}
               onChangeProfile={onChangeProfile}
             />
           )}
-          {analysisId && (
-            <button
-              onClick={() => navigate(`/analysis/${analysisId}/insight-graph`)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground hover:bg-muted transition-colors"
-              title="Insight Graph"
-            >
-              <GitBranch size={12} /> Graph
-            </button>
-          )}
-          {extraActions}
           {!hideRun && onRun && (
             <button
               onClick={onRun}
               disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all"
+              className="flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-lg font-bold text-sm transition-all"
               style={{
                 background: isLoading ? "hsl(var(--primary) / 0.6)" : "hsl(var(--primary))",
                 color: "hsl(var(--primary-foreground))",
@@ -168,27 +208,35 @@ export function AnalysisActionToolbar({
               }}
             >
               {isLoading ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-              {hasData ? "Re-run Analysis" : "Run Analysis"}
+              <span className="hidden sm:inline">{hasData ? "Re-run" : "Run"}</span>
             </button>
           )}
-          <button
-            onClick={handlePdf}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-background border border-border text-foreground"
-          >
-            <FileDown size={12} /> PDF
-          </button>
-          <button
-            onClick={() => analysis.handleManualSave()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded typo-button-secondary bg-primary text-primary-foreground"
-          >
-            <Save size={12} /> Save
-          </button>
-          {!hideShare && (
-            <ShareAnalysis
-              analysisId={analysisId || ""}
-              analysisTitle={analysisTitle}
-              accentColor={accentColor}
-            />
+
+          {/* Desktop: show all buttons inline */}
+          {!isMobile && (
+            <div className="hidden sm:flex items-center gap-2">
+              {secondaryActions}
+            </div>
+          )}
+
+          {/* Mobile: overflow menu */}
+          {isMobile && (
+            <div className="relative sm:hidden" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg bg-muted border border-border text-foreground hover:bg-accent transition-colors"
+                aria-label="More actions"
+              >
+                <MoreHorizontal size={18} />
+              </button>
+              {menuOpen && (
+                <div
+                  className="absolute right-0 top-full mt-1 z-50 min-w-[180px] rounded-xl bg-card border border-border shadow-lg p-1.5 flex flex-col gap-1 animate-in fade-in-0 zoom-in-95"
+                >
+                  {secondaryActions}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -235,7 +283,7 @@ export function AnalysisTabBar<T extends string>({
             key={tab.id}
             onClick={() => !isDisabled && onTabChange(tab.id)}
             disabled={isDisabled}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap flex-shrink-0"
+            className="flex items-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap flex-shrink-0"
             style={{
               background: isActive ? tabColor : "hsl(var(--muted))",
               color: isActive ? "white" : "hsl(var(--foreground))",
