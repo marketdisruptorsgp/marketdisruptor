@@ -349,33 +349,68 @@ export function clusterEvidenceIntoInsights(evidence: Evidence[]): Insight[] {
   ];
 
   // ── FALLBACK: Enforce complete reasoning chain ──
-  // If any stage of the chain is missing, generate synthetic nodes
-  const hasConstraints = allInsights.some(i => i.insightType === "constraint_cluster");
-  const hasOpportunities = allInsights.some(i => i.insightType === "emerging_opportunity");
-  const hasPathways = allInsights.some(i => i.insightType === "strategic_pathway");
+  // Minimum counts: constraints≥2, opportunities≥2, leverage≥2, pathways≥1
+  const now = Date.now();
 
-  if (!hasConstraints && baseInsights.length > 0) {
-    // Fallback: derive constraint from highest-impact assumption or pattern
-    const topInsight = baseInsights.sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0))[0];
-    allInsights.push({
-      id: `insight-fallback-con-${++insightCounter}`,
-      label: `Inferred constraint: ${topInsight.label}`,
-      description: `No explicit constraints detected. This insight represents the strongest structural limitation inferred from ${baseInsights.length} evidence patterns.`,
-      insightType: "constraint_cluster",
-      evidenceIds: topInsight.evidenceIds,
-      relatedInsightIds: [topInsight.id],
-      recommendedTools: topInsight.recommendedTools,
-      tier: "structural",
-      mode: topInsight.mode,
-      confidenceScore: 0.45,
-      impact: topInsight.impact ?? 5,
-      timestamp: Date.now(),
-    });
+  const countByType = (t: InsightType) => allInsights.filter(i => i.insightType === t).length;
+  const hasConstraints = countByType("constraint_cluster");
+  const hasOpportunities = countByType("emerging_opportunity");
+  const hasStructural = countByType("structural_insight"); // maps to leverage_point
+  const hasPathways = countByType("strategic_pathway");
+
+  // --- Fallback constraints (need ≥ 2) ---
+  if (hasConstraints < 2 && baseInsights.length > 0) {
+    const sorted = [...baseInsights].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
+    for (let fi = 0; fi < Math.min(2 - hasConstraints, sorted.length); fi++) {
+      const topInsight = sorted[fi];
+      allInsights.push({
+        id: `insight-fallback-con-${++insightCounter}`,
+        label: `Inferred constraint: ${topInsight.label}`,
+        description: `Structural limitation inferred from ${baseInsights.length} evidence patterns. ${topInsight.description || ""}`.trim(),
+        insightType: "constraint_cluster",
+        evidenceIds: topInsight.evidenceIds,
+        relatedInsightIds: [topInsight.id],
+        recommendedTools: topInsight.recommendedTools,
+        tier: "structural",
+        mode: topInsight.mode,
+        confidenceScore: 0.45,
+        impact: topInsight.impact ?? 5,
+        timestamp: now,
+      });
+    }
   }
 
-  if (!hasOpportunities && allInsights.length > 0) {
-    const constraint = allInsights.find(i => i.insightType === "constraint_cluster");
-    if (constraint) {
+  // --- Fallback leverage points (need ≥ 2) ---
+  if (hasStructural < 2) {
+    const constraintInsights = allInsights.filter(i => i.insightType === "constraint_cluster");
+    for (let fi = 0; fi < Math.min(2 - hasStructural, constraintInsights.length); fi++) {
+      const con = constraintInsights[fi];
+      const relEvidence = evidence.filter(e => con.evidenceIds.includes(e.id));
+      allInsights.push({
+        id: `insight-fallback-lev-${++insightCounter}`,
+        label: `Leverage: Resolve ${con.label.replace(/^(Inferred constraint|Structural bottleneck|Operational friction|Risk concentration): /i, "")}`,
+        description: `Resolving this constraint creates a high-leverage intervention point. ${con.description || ""}`.trim(),
+        insightType: "structural_insight",
+        evidenceIds: con.evidenceIds,
+        relatedInsightIds: [con.id],
+        recommendedTools: deriveToolRecommendations(
+          { label: con.label, insightType: "structural_insight", confidenceScore: 0.55 },
+          relEvidence,
+        ),
+        tier: "structural",
+        mode: con.mode,
+        confidenceScore: 0.55,
+        impact: con.impact ?? 5,
+        timestamp: now,
+      });
+    }
+  }
+
+  // --- Fallback opportunities (need ≥ 2) ---
+  if (hasOpportunities < 2) {
+    const constraintInsights = allInsights.filter(i => i.insightType === "constraint_cluster");
+    for (let fi = 0; fi < Math.min(2 - hasOpportunities, constraintInsights.length); fi++) {
+      const constraint = constraintInsights[fi];
       allInsights.push({
         id: `insight-fallback-opp-${++insightCounter}`,
         label: `Opportunity: Resolve ${constraint.label.replace(/^(Inferred constraint|Structural bottleneck|Operational friction|Risk concentration): /i, "")}`,
@@ -388,12 +423,13 @@ export function clusterEvidenceIntoInsights(evidence: Evidence[]): Insight[] {
         mode: constraint.mode,
         confidenceScore: 0.4,
         impact: Math.max(5, (constraint.impact ?? 5) - 1),
-        timestamp: Date.now(),
+        timestamp: now,
       });
     }
   }
 
-  if (!hasPathways && allInsights.length > 0) {
+  // --- Fallback pathways (need ≥ 1) ---
+  if (hasPathways < 1) {
     const constraint = allInsights.find(i => i.insightType === "constraint_cluster");
     const opportunity = allInsights.find(i => i.insightType === "emerging_opportunity");
     if (constraint && opportunity) {
@@ -409,7 +445,7 @@ export function clusterEvidenceIntoInsights(evidence: Evidence[]): Insight[] {
         mode: constraint.mode,
         confidenceScore: 0.4,
         impact: Math.max(constraint.impact ?? 5, opportunity.impact ?? 5),
-        timestamp: Date.now(),
+        timestamp: now,
       });
     }
   }
