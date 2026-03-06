@@ -400,6 +400,25 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
     onScenarioSaved?.(scenario);
   }, [onScenarioSaved]);
 
+  // ── Auto-focus from URL ?node= param ──
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nodeParam = params.get("node");
+    if (nodeParam && graph.nodes.find(n => n.id === nodeParam)) {
+      setSelectedNodeId(nodeParam);
+      setShowOnboarding(false);
+    }
+  }, [graph.nodes]);
+
+  // Toggle node type filter
+  const toggleTypeFilter = useCallback((type: InsightNodeType) => {
+    setActiveTypeFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type); else next.add(type);
+      return next;
+    });
+  }, []);
+
   // Identify top leverage constraint + breakthrough opportunity
   const topLeverageId = useMemo(() => graph.topNodes.primaryConstraint?.id ?? null, [graph.topNodes]);
   const breakthroughId = useMemo(() => graph.topNodes.breakthroughOpportunity?.id ?? null, [graph.topNodes]);
@@ -423,16 +442,19 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
     return ids;
   }, [highlightedIds, graph.edges]);
 
-  // Apply zoom level + opportunity path filter + tier filter
+  // Apply zoom level + opportunity path filter + tier filter + search + type filter
   const filteredNodes = useMemo(() => {
     const zoomTypes = new Set(ZOOM_LEVEL_CONFIG[zoomLevel].types);
+    const query = searchQuery.toLowerCase().trim();
     return graph.nodes.filter(n => {
       if (!zoomTypes.has(n.type)) return false;
       if (showOpportunityPaths && !opportunityPathIds.has(n.id)) return false;
       if (tierFilter !== "all" && n.tier !== tierFilter) return false;
+      if (activeTypeFilters.size > 0 && !activeTypeFilters.has(n.type)) return false;
+      if (query && !n.label.toLowerCase().includes(query) && !(n.detail?.toLowerCase().includes(query))) return false;
       return true;
     });
-  }, [graph.nodes, zoomLevel, showOpportunityPaths, opportunityPathIds, tierFilter]);
+  }, [graph.nodes, zoomLevel, showOpportunityPaths, opportunityPathIds, tierFilter, searchQuery, activeTypeFilters]);
 
   const filteredNodeIds = useMemo(() => new Set(filteredNodes.map(n => n.id)), [filteredNodes]);
 
