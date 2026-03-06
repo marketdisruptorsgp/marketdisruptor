@@ -490,7 +490,7 @@ export default function CommandDeckPage() {
             label="Opportunity Score"
             value={metrics.opportunityScore}
             evidence={`${metrics.opportunitiesIdentified} opportunities detected`}
-            evidenceCount={allEvidence.opportunity.evidenceCount}
+            evidenceCount={filteredEvidence.opportunity.evidenceCount}
             description="Potential value from redesign and leverage signals"
             icon={Lightbulb}
             color="hsl(152 60% 44%)"
