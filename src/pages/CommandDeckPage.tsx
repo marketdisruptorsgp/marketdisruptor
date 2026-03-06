@@ -45,6 +45,7 @@ import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 import { StrategicSummaryStrip } from "@/components/command-deck/StrategicSummaryStrip";
 import { StrategicSummaryTriad } from "@/components/command-deck/StrategicSummaryTriad";
+import { StrategicSignalBanner } from "@/components/command-deck/StrategicSignalBanner";
 import { KeyInsightSignals } from "@/components/command-deck/KeyInsightSignals";
 import { OpportunityBoard } from "@/components/command-deck/OpportunityBoard";
 import { OpportunityRadar } from "@/components/command-deck/OpportunityRadar";
