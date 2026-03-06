@@ -28,7 +28,43 @@ export const InsightNodeCard = memo(function InsightNodeCard({
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
   const [showAllEvidence, setShowAllEvidence] = useState(false);
-  const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence">("chain");
+  const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence" | "tools">("chain");
+
+  // Derive related tools from node keywords
+  const relatedTools = useMemo(() => {
+    const text = `${node.label} ${node.detail || ""} ${node.reasoning || ""}`.toLowerCase();
+    const toolIds = ["sba-loan-calculator", "deal-structure-simulator", "dscr-calculator",
+      "acquisition-roi-model", "tam-calculator", "unit-economics-model", "competitive-moat-analyzer",
+      "industry-fragmentation-detector", "seller-motivation-signals", "assumption-stress-tester",
+      "innovation-pathway-mapper", "revenue-model-simulator", "value-chain-analyzer",
+      "deal-risk-scanner", "cash-flow-quality"];
+    const TOOL_KEYWORDS: Record<string, string[]> = {
+      "sba-loan-calculator": ["loan", "sba", "financing", "debt", "leverage", "acquisition"],
+      "deal-structure-simulator": ["deal", "equity", "ownership", "structure", "seller"],
+      "dscr-calculator": ["dscr", "debt service", "coverage"],
+      "acquisition-roi-model": ["roi", "return", "exit", "multiple"],
+      "tam-calculator": ["market", "tam", "addressable", "opportunity"],
+      "unit-economics-model": ["unit economics", "cac", "ltv", "margin"],
+      "competitive-moat-analyzer": ["moat", "defensibility", "barrier", "switching"],
+      "industry-fragmentation-detector": ["fragmented", "consolidation", "rollup"],
+      "seller-motivation-signals": ["retiring", "succession", "seller", "owner"],
+      "assumption-stress-tester": ["assumption", "convention", "belief"],
+      "innovation-pathway-mapper": ["innovation", "breakthrough", "redesign"],
+      "revenue-model-simulator": ["revenue", "subscription", "pricing"],
+      "value-chain-analyzer": ["value chain", "middleman", "supply"],
+      "deal-risk-scanner": ["risk", "concentration", "dependency"],
+      "cash-flow-quality": ["cash flow", "revenue quality", "addback"],
+    };
+    const matched: LensTool[] = [];
+    for (const tid of toolIds) {
+      const kws = TOOL_KEYWORDS[tid] || [];
+      if (kws.some(kw => text.includes(kw))) {
+        const tool = getToolById(tid);
+        if (tool) matched.push(tool);
+      }
+    }
+    return matched.slice(0, 3);
+  }, [node]);
 
   // Linked nodes (direct connections)
   const linkedNodes = useMemo(() => {
