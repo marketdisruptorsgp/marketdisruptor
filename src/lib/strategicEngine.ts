@@ -382,12 +382,17 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
 
       const sorted = [...uncovered].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
       const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+      // Use the highest-impact item's label for specificity, not a generic "X Cluster"
+      const primaryLabel = humanize(sorted[0].label);
+      const signalLabel = uncovered.length > 2
+        ? `${primaryLabel} and ${uncovered.length - 1} related ${type}s`
+        : primaryLabel;
 
       signals.push({
         id: nextId("signal"),
         analysisId,
-        label: `${typeLabel} Cluster`,
-        description: `${uncovered.length} ${type} indicators identified: ${sorted.slice(0, 3).map(e => e.label).join(", ")}.`,
+        label: signalLabel,
+        description: `${uncovered.length} ${type} indicators identified: ${sorted.slice(0, 3).map(e => humanize(e.label)).join(", ")}.`,
         evidenceIds: uncovered.map(e => e.id),
         strength: Math.round((uncovered.reduce((s, e) => s + (e.impact ?? 5), 0) / uncovered.length) * 10) / 10,
         confidence: Math.round((uncovered.reduce((s, e) => s + (e.confidenceScore ?? 0.5), 0) / uncovered.length) * 100) / 100,
