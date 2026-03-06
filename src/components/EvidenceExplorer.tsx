@@ -8,7 +8,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Layers, Search, Lightbulb, AlertTriangle, Crosshair, Zap, Shield, Filter } from "lucide-react";
+import { ArrowRight, Layers, Search, Lightbulb, AlertTriangle, Crosshair, Zap, Shield, Filter, Building2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { MetricDomain, MetricEvidence, Evidence, EvidenceTier, EvidenceType } from "@/lib/evidenceEngine";
 
