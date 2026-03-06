@@ -966,7 +966,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       // ── CONTEXT SWITCH CHECK: Abort if user switched during DB read ──
-      if (analysisId !== capturedId) {
+      if (!targetAnalysisId && analysisId !== capturedId) {
         console.warn(`[saveStepData] Context switched during DB read. Aborting.`);
         return;
       }
