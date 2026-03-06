@@ -478,7 +478,7 @@ export default function NewAnalysisPage() {
           painPoints: notes,
         });
 
-        await analysis.saveStepData("businessAnalysis", result.analysis);
+        await analysis.saveStepData("businessAnalysis", result.analysis, analysisId);
 
         toast.success("Business model analysis complete!");
         navigate(`/business/${analysisId}`);
