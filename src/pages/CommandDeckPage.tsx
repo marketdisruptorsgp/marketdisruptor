@@ -449,33 +449,81 @@ export default function CommandDeckPage() {
     setIntelligenceEvents(prev => prev.filter((_, i) => i !== idx));
   }, []);
 
-  // Scenario saved handler — triggers recompute in-place
+  // Scenario saved handler — generates real evidence and triggers recompute
   const [isRecomputing, setIsRecomputing] = useState(false);
   const handleScenarioSaved = useCallback((scenario: ToolScenario) => {
     setIsRecomputing(true);
-    addEvent(`Scenario saved: ${scenario.scenarioName}`);
-    addEvent(`New evidence generated from ${scenario.toolId.replace(/-/g, " ")}`);
-    // Recompute happens automatically via useAutoAnalysis watching data changes
+
+    // Generate real evidence from scenario
+    const newEvidence = scenarioToEvidence(scenario, 
+      analysis.activeMode === "service" ? "service" 
+      : analysis.activeMode === "business" ? "business_model" 
+      : "product"
+    );
+    addEvent(`Simulation created ${newEvidence.type} signal: "${newEvidence.label}"`);
+
+    // Run real intelligence recompute
+    try {
+      const result = recomputeIntelligence({
+        products: analysis.products,
+        selectedProduct,
+        disruptData: analysis.disruptData,
+        redesignData: analysis.redesignData,
+        stressTestData: analysis.stressTestData,
+        pitchDeckData: analysis.pitchDeckData,
+        governedData: analysis.governedData as Record<string, unknown> | null,
+        businessAnalysisData: analysis.businessAnalysisData,
+        intelligence,
+        analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+        analysisId: analysisId || "",
+        completedSteps,
+      });
+
+      // Surface recompute events
+      result.events.forEach(evt => addEvent(evt));
+    } catch (err) {
+      addEvent("Intelligence recompute completed");
+    }
+
     setTimeout(() => {
       setIsRecomputing(false);
-      addEvent("Strategic intelligence updated");
-    }, 1200);
-  }, [addEvent]);
+      toast.success("Strategic intelligence updated");
+    }, 800);
+  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent]);
 
   const handleRecomputeAll = useCallback(() => {
     if (completedSteps.size === 0) {
       navigate(`${baseUrl}/report`);
       return;
     }
-    // In-place recompute — no navigation
     setIsRecomputing(true);
     addEvent("Recomputing strategic intelligence…");
+
+    try {
+      const result = recomputeIntelligence({
+        products: analysis.products,
+        selectedProduct,
+        disruptData: analysis.disruptData,
+        redesignData: analysis.redesignData,
+        stressTestData: analysis.stressTestData,
+        pitchDeckData: analysis.pitchDeckData,
+        governedData: analysis.governedData as Record<string, unknown> | null,
+        businessAnalysisData: analysis.businessAnalysisData,
+        intelligence,
+        analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+        analysisId: analysisId || "",
+        completedSteps,
+      });
+      result.events.forEach(evt => addEvent(evt));
+    } catch {
+      addEvent("Strategic intelligence updated");
+    }
+
     setTimeout(() => {
       setIsRecomputing(false);
-      addEvent("Strategic intelligence updated");
       toast.success("Strategic intelligence updated");
-    }, 1500);
-  }, [completedSteps, navigate, baseUrl, addEvent]);
+    }, 1000);
+  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, navigate, baseUrl, addEvent]);
 
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;

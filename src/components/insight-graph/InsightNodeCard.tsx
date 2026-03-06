@@ -361,28 +361,31 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         </div>
       )}
 
-      {/* Related Tools */}
-      {activeSection === "tools" && relatedTools.length > 0 && (
+      {/* Recommended Tools (reasoning-driven) */}
+      {activeSection === "tools" && toolRecommendations.length > 0 && (
         <div className="px-4 pb-4 space-y-2">
           <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
-            Related Tools
+            Recommended Tools
           </p>
-          {relatedTools.map(tool => {
-            const ToolIcon = tool.icon;
+          {toolRecommendations.map(rec => {
+            const ToolIcon = rec.tool.icon;
             return (
               <button
-                key={tool.id}
-                onClick={() => onOpenTool?.(tool)}
+                key={rec.tool.id}
+                onClick={() => onOpenTool?.(rec.tool)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/40 transition-all text-left"
               >
-                <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: `${tool.accentColor}12` }}>
-                  <ToolIcon size={13} style={{ color: tool.accentColor }} />
+                <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: `${rec.tool.accentColor}12` }}>
+                  <ToolIcon size={13} style={{ color: rec.tool.accentColor }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-foreground">{tool.title}</p>
-                  <p className="text-[10px] text-muted-foreground line-clamp-1">{tool.description}</p>
+                  <p className="text-xs font-bold text-foreground">{rec.tool.title}</p>
+                  <p className="text-[10px] text-muted-foreground line-clamp-1">{rec.reason}</p>
                 </div>
-                <ChevronRight size={12} className="text-muted-foreground flex-shrink-0" />
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span className="text-[9px] font-bold tabular-nums text-muted-foreground">{Math.round(rec.score * 100)}%</span>
+                  <ChevronRight size={12} className="text-muted-foreground" />
+                </div>
               </button>
             );
           })}
