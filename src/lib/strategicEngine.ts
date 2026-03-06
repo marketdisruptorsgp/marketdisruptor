@@ -727,10 +727,10 @@ function constructStrategicPathways(
       l.relatedInsightIds.includes(con.id) || opp.relatedInsightIds.includes(l.id)
     );
 
-    const parts = [con.label.slice(0, 30)];
-    if (driver) parts.push(driver.label.slice(0, 30));
-    if (leverage) parts.push(leverage.label.slice(0, 30));
-    parts.push(opp.label.slice(0, 30));
+    const parts = [humanize(con.label).slice(0, 35)];
+    if (driver) parts.push(humanize(driver.label).slice(0, 35));
+    if (leverage) parts.push(humanize(leverage.label).slice(0, 35));
+    parts.push(humanize(opp.label).slice(0, 35));
     const label = parts.join(" → ");
 
     insights.push(makeInsight({
