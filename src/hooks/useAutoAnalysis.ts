@@ -168,10 +168,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         scenariosForGraph && scenariosForGraph.length > 0 ? scenariosForGraph : undefined,
       );
 
-      // Step 7: Scenario comparison & sensitivity
-      const scenarios = getScenarios(analysisId);
-      const newComparison = scenarios.length > 0 ? compareScenarios(scenarios) : null;
-      const newSensitivity = computeAllSensitivityReports(scenarios);
+      // (scenario comparison already computed above)
 
       setIntelligence(newIntelligence);
       setGraph(newGraph);

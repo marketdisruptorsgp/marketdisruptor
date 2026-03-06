@@ -328,7 +328,19 @@ export function clusterEvidenceIntoInsights(evidence: Evidence[]): Insight[] {
   const reasoningChains = generateReasoningChains(baseInsights, evidence);
   const toolRecommendations = generateToolRecommendationInsights(baseInsights, evidence);
 
-  const allInsights = [...baseInsights, ...structuralInsights, ...strategicPathways, ...reasoningChains, ...toolRecommendations];
+  // ── Infer synthetic constraints from repeated assumptions & bottlenecks ──
+  const syntheticConstraints = inferConstraintsFromBottlenecks(baseInsights, evidence);
+
+  // ── Generate opportunities from constraint resolution ──
+  const constraintResolutionOpps = generateConstraintResolutionOpportunities(
+    [...baseInsights, ...syntheticConstraints], evidence
+  );
+
+  const allInsights = [
+    ...baseInsights, ...structuralInsights, ...strategicPathways,
+    ...reasoningChains, ...toolRecommendations,
+    ...syntheticConstraints, ...constraintResolutionOpps,
+  ];
 
   // Wire relatedInsightIds
   wireRelatedInsights(allInsights);
