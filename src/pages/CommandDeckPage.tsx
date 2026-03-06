@@ -311,6 +311,31 @@ export default function CommandDeckPage() {
           />
         )}
 
+        {/* ═══ DIAGNOSTIC PANEL ═══ */}
+        {diagnostic && (
+          <div className="rounded-xl bg-card border border-border px-4 py-3">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">Pipeline Diagnostics</p>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { label: "Evidence", count: diagnostic.evidenceCount, warn: diagnostic.insufficientEvidence },
+                { label: "Constraints", count: diagnostic.constraintCount },
+                { label: "Drivers", count: diagnostic.driverCount },
+                { label: "Leverage", count: diagnostic.leverageCount },
+                { label: "Opportunities", count: diagnostic.opportunityCount },
+                { label: "Pathways", count: diagnostic.pathwayCount },
+              ].map(d => (
+                <div key={d.label} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold ${d.warn ? 'bg-destructive/10 text-destructive' : 'bg-muted text-foreground'}`}>
+                  <span className="text-lg font-black">{d.count}</span>
+                  <span className="text-muted-foreground">{d.label}</span>
+                </div>
+              ))}
+            </div>
+            {diagnostic.message && (
+              <p className="mt-2 text-xs text-destructive font-semibold">⚠ {diagnostic.message}</p>
+            )}
+          </div>
+        )}
+
         {/* ═══ STRATEGIC SIGNAL BANNER ═══ */}
         <StrategicSignalBanner
           opportunities={filteredOpps}
