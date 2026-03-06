@@ -670,8 +670,8 @@ export default function CommandDeckPage() {
             )}
           </div>
 
-          {topOpps.length > 0 ? (
-            <OpportunityTable opps={topOpps} analysisId={analysisId!} />
+          {filteredOpps.length > 0 ? (
+            <OpportunityTable opps={filteredOpps} analysisId={analysisId!} />
           ) : (
             <div className="text-center py-10">
               <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-muted mb-3">
