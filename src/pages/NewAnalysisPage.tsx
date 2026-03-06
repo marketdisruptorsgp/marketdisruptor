@@ -477,8 +477,32 @@ export default function NewAnalysisPage() {
           revenueModel: extraction?.revenue_engine?.revenue_sources?.join(", ") || "",
           painPoints: notes,
         });
+        analysis.setStep("done");
 
-        await analysis.saveStepData("businessAnalysis", result.analysis, analysisId);
+        // Save business analysis data — use direct update as primary path
+        // to avoid governed extraction complexity that was silently dropping the key
+        try {
+          const { data: existingRow } = await supabase
+            .from("saved_analyses")
+            .select("analysis_data")
+            .eq("id", analysisId)
+            .single() as any;
+          const prev = (existingRow?.analysis_data as Record<string, unknown>) || {};
+          const merged = { ...prev, businessAnalysis: result.analysis };
+          const { error: updateErr } = await (supabase.from("saved_analyses") as any)
+            .update({ analysis_data: merged, updated_at: new Date().toISOString() })
+            .eq("id", analysisId);
+          if (updateErr) {
+            console.error("[BusinessSave] Direct update failed:", updateErr);
+            // Fallback to RPC
+            await analysis.saveStepData("businessAnalysis", result.analysis, analysisId);
+          } else {
+            console.log("[BusinessSave] Successfully saved businessAnalysis via direct update");
+          }
+        } catch (saveErr) {
+          console.error("[BusinessSave] Save error:", saveErr);
+          await analysis.saveStepData("businessAnalysis", result.analysis, analysisId);
+        }
 
         toast.success("Business model analysis complete!");
         navigate(`/business/${analysisId}`);

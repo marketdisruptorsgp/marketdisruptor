@@ -164,7 +164,13 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
 
   // Business model routing
   if (analysisRow.analysis_type === "business_model") {
-    setters.setBusinessAnalysisData(analysisRow.analysis_data as BusinessModelAnalysisData);
+    // Extract businessAnalysis from nested key; fall back to full blob for legacy records
+    const bizData = ad?.businessAnalysis
+      ? (ad.businessAnalysis as BusinessModelAnalysisData)
+      : (ad && Object.keys(ad).some(k => !["governed","activeLensId","outdatedSteps","governedHashes","previousSnapshot","adaptiveContext"].includes(k))
+        ? (analysisRow.analysis_data as BusinessModelAnalysisData)
+        : null);
+    setters.setBusinessAnalysisData(bizData);
     if (ad?.businessPitchDeck) setters.setPitchDeckData(ad.businessPitchDeck);
     const titleParts = (analysisRow.title || "").split(" — ");
     if (titleParts.length > 0) {
