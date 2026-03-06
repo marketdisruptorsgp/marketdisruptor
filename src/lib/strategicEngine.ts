@@ -125,6 +125,18 @@ function nextInsightId(prefix: string): string {
   return `${prefix}-${++insightIdCounter}`;
 }
 
+/** Default compat fields for Insight interface */
+const COMPAT_DEFAULTS = {
+  tier: "tier1" as const,
+  mode: "product" as const,
+  confidenceScore: undefined as number | undefined,
+  recommendedTools: [] as string[],
+};
+
+function makeInsight(partial: Omit<StrategicInsight, "tier" | "mode" | "confidenceScore" | "recommendedTools">): StrategicInsight {
+  return { ...partial, ...COMPAT_DEFAULTS, confidenceScore: partial.confidence };
+}
+
 function jaccardSimilarity(a: string, b: string): number {
   const tokA = new Set(a.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(t => t.length > 2));
   const tokB = new Set(b.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(t => t.length > 2));
