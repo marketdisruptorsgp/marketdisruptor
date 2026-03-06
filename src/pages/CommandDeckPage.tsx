@@ -784,6 +784,22 @@ export default function CommandDeckPage() {
           )}
         </motion.div>
 
+        {/* ═══ LENS INTELLIGENCE ═══ */}
+        <LensIntelligencePanel
+          analysisMode={analysis.activeMode || "product"}
+          signalKeywords={useMemo(() => {
+            const keywords: string[] = [];
+            if (autoAnalysis.insights) {
+              autoAnalysis.insights.forEach(i => {
+                if (i.label) keywords.push(i.label);
+                if (i.description) keywords.push(i.description);
+              });
+            }
+            if (narrative?.narrativeSummary) keywords.push(narrative.narrativeSummary);
+            return keywords;
+          }, [autoAnalysis.insights, narrative])}
+        />
+
         {/* ═══ ZONE 4 — INSIGHT GRAPH PREVIEW ═══ */}
         <motion.div {...fadeUp} transition={{ delay: 0.25 }}
           className="rounded-xl overflow-hidden border border-border bg-card"
