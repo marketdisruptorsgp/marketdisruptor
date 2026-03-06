@@ -400,7 +400,7 @@ function generateOpportunities(
       .filter(l => l.evidenceIds.some(eid => flat.find(e => e.id === eid)?.tier === opp.tier))
       .map(l => l.id);
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("opportunity"),
       analysisId,
       insightType: "emerging_opportunity",
@@ -411,7 +411,7 @@ function generateOpportunities(
       impact: opp.impact ?? 7,
       confidence: opp.confidenceScore ?? 0.5,
       createdAt: now,
-    });
+    }));
   }
 
   // Derive opportunities from leverage-constraint resolution
