@@ -41,6 +41,7 @@ const DemoPage = lazy(() => import("./pages/DemoPage"));
 const PipelinePage = lazy(() => import("./pages/PipelinePage"));
 const PipelineObservabilityPage = lazy(() => import("./pages/PipelineObservabilityPage"));
 const AdminArchitecturePage = lazy(() => import("./pages/AdminArchitecturePage"));
+const CommandDeckPage = lazy(() => import("./pages/CommandDeckPage"));
 
 const queryClient = new QueryClient();
 
@@ -156,6 +157,7 @@ function AppRoutes() {
           <Route path="/start/product" element={<Navigate to="/analysis/new" replace />} />
           <Route path="/start/service" element={<Navigate to="/analysis/new" replace />} />
           <Route path="/start/business" element={<Navigate to="/analysis/new" replace />} />
+          <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
           <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
           <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
           <Route path="/analysis/:id/redesign" element={<LazyRoute><RedesignPage /></LazyRoute>} />
