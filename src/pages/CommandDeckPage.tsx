@@ -1,9 +1,13 @@
 /**
- * Command Deck Page — Strategic overview of the entire analysis.
+ * Command Deck V2 — Strategic Mission Control Dashboard
  * URL: /analysis/:analysisId/command-deck
  *
- * Displays 5 KPI metrics, trend graph, pipeline status, sortable opportunities table,
- * and insight graph preview. Monitoring layer — no run triggers.
+ * Five zones:
+ *   Header  — Analysis name, mode, Strategic Potential Score
+ *   Zone 1  — 5 strategic metric cards
+ *   Zone 2  — Pipeline intelligence (progress + trend chart)
+ *   Zone 3  — Strategic opportunities table
+ *   Zone 4  — Insight Graph preview + system intelligence
  */
 
 import { useMemo, useState } from "react";
@@ -22,14 +26,12 @@ import {
   LayoutDashboard, GitBranch, Target, Shield, Lightbulb,
   Activity, Crosshair, AlertTriangle, CheckCircle2, Circle,
   ChevronRight, Rocket, TrendingUp, ArrowRight, ArrowUpDown,
-  Zap, Gauge, BarChart3,
+  Zap, Gauge, BarChart3, Info, ExternalLink,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { KPIGauge } from "@/components/analysis/KPIGauge";
-import { StepVisualOutput } from "@/components/analysis/StepVisualOutput";
 import {
   computeCommandDeckMetrics, computeTrendData, aggregateOpportunities,
   type CommandDeckMetrics as DeckMetrics,
@@ -45,33 +47,100 @@ const PIPELINE_STEPS = [
 
 const fadeUp = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
 
-/* ── KPI Metric Card ── */
-function KPICard({ label, value, subtitle, icon: Icon, color, delay = 0 }: {
-  label: string; value: string | number; subtitle?: string;
-  icon: React.ElementType; color: string; delay?: number;
-}) {
+/* ════════════════════════════════════════════════════════
+ * STRATEGIC POTENTIAL GAUGE — Large headline metric
+ * ════════════════════════════════════════════════════════ */
+function StrategicPotentialGauge({ score, accent }: { score: number; accent: string }) {
+  const r = 54;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.min(score / 10, 1);
+  const offset = circ * (1 - pct);
+  const tier = score >= 7 ? "High" : score >= 4 ? "Moderate" : "Low";
+  const tierColor = score >= 7 ? "hsl(152 60% 44%)" : score >= 4 ? "hsl(38 92% 50%)" : "hsl(0 72% 52%)";
+
   return (
-    <motion.div {...fadeUp} transition={{ delay, duration: 0.4 }}
-      className="rounded-xl p-5 flex items-start gap-4 bg-card border border-border"
-    >
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ background: `${color}12` }}>
-        <Icon size={22} style={{ color }} />
+    <div className="flex items-center gap-5">
+      <div className="relative flex-shrink-0">
+        <svg width="124" height="124" viewBox="0 0 124 124" className="transform -rotate-90">
+          <circle cx="62" cy="62" r={r} fill="none" stroke="hsl(var(--border))" strokeWidth="7" />
+          <motion.circle
+            cx="62" cy="62" r={r} fill="none"
+            stroke={accent} strokeWidth="7" strokeLinecap="round"
+            strokeDasharray={circ}
+            initial={{ strokeDashoffset: circ }}
+            animate={{ strokeDashoffset: offset }}
+            transition={{ duration: 1.4, ease: "easeOut", delay: 0.3 }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <motion.p
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-3xl font-extrabold tabular-nums text-foreground leading-none"
+          >
+            {score.toFixed(1)}
+          </motion.p>
+          <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-0.5">/ 10</p>
+        </div>
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground leading-none">{label}</p>
-        <p className="text-3xl font-extrabold tabular-nums text-foreground mt-1.5 leading-none">{value}</p>
-        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+      <div>
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Strategic Potential</p>
+        <p className="text-sm font-bold mt-0.5" style={{ color: tierColor }}>{tier} Potential</p>
+        <p className="text-xs text-muted-foreground mt-1 max-w-[200px] leading-relaxed">
+          Composite of opportunity, leverage, constraint, and risk signals.
+        </p>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-/* ── Pipeline Step Row ── */
-function PipelineRow({ step, status, analysisId }: {
+/* ════════════════════════════════════════════════════════
+ * METRIC CARD — With trend indicator + tooltip
+ * ════════════════════════════════════════════════════════ */
+function MetricCard({ label, value, description, icon: Icon, color, delay = 0, trend, onClick }: {
+  label: string; value: string | number; description: string;
+  icon: React.ElementType; color: string; delay?: number;
+  trend?: "up" | "down" | "neutral"; onClick?: () => void;
+}) {
+  const trendIcon = trend === "up" ? "↑" : trend === "down" ? "↓" : "—";
+  const trendColor = trend === "up" ? "hsl(152 60% 44%)" : trend === "down" ? "hsl(0 72% 52%)" : "hsl(var(--muted-foreground))";
+
+  return (
+    <motion.button
+      {...fadeUp}
+      transition={{ delay, duration: 0.4 }}
+      onClick={onClick}
+      className="rounded-xl p-4 text-left bg-card border border-border hover:border-primary/20 transition-all group min-h-[120px] flex flex-col justify-between"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: `${color}12` }}>
+          <Icon size={18} style={{ color }} />
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-sm font-bold" style={{ color: trendColor }}>{trendIcon}</span>
+        </div>
+      </div>
+      <div className="mt-3">
+        <p className="text-2xl font-extrabold tabular-nums text-foreground leading-none">{value}</p>
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">{label}</p>
+        <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity">
+          {description}
+        </p>
+      </div>
+    </motion.button>
+  );
+}
+
+/* ════════════════════════════════════════════════════════
+ * PIPELINE STEP — Compact row
+ * ════════════════════════════════════════════════════════ */
+function PipelineStep({ step, status, analysisId, accent }: {
   step: typeof PIPELINE_STEPS[number];
   status: "completed" | "outdated" | "not_run";
   analysisId: string;
+  accent: string;
 }) {
   const navigate = useNavigate();
   const StepIcon = step.icon;
@@ -80,41 +149,42 @@ function PipelineRow({ step, status, analysisId }: {
     : "hsl(var(--muted-foreground))";
   const StatusIcon = status === "completed" ? CheckCircle2
     : status === "outdated" ? AlertTriangle : Circle;
-  const statusLabel = status === "completed" ? "Completed"
+  const statusLabel = status === "completed" ? "Done"
     : status === "outdated" ? "Outdated" : "Not Run";
 
   return (
     <button
       onClick={() => navigate(`/analysis/${analysisId}/${step.route}`)}
-      className="flex items-center gap-3 px-3 py-3 rounded-lg transition-colors hover:bg-muted/50 w-full text-left min-h-[52px]"
+      className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors hover:bg-muted/50 w-full text-left min-h-[48px]"
       style={status === "outdated" ? {
-        background: "hsl(38 92% 50% / 0.05)",
-        border: "1px solid hsl(38 92% 50% / 0.15)",
+        background: "hsl(38 92% 50% / 0.04)",
+        border: "1px solid hsl(38 92% 50% / 0.12)",
       } : { border: "1px solid transparent" }}
     >
-      <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-        style={{ background: `${statusColor}12` }}>
-        <StepIcon size={16} style={{ color: statusColor }} />
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ background: `${statusColor}10` }}>
+        <StepIcon size={14} style={{ color: statusColor }} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold text-foreground leading-none">{step.label}</p>
-        <div className="flex items-center gap-1.5 mt-1">
-          <StatusIcon size={10} style={{ color: statusColor }} />
-          <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: statusColor }}>
-            {statusLabel}
-          </span>
-        </div>
       </div>
-      <ChevronRight size={14} className="text-muted-foreground flex-shrink-0" />
+      <div className="flex items-center gap-1.5">
+        <StatusIcon size={10} style={{ color: statusColor }} />
+        <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: statusColor }}>
+          {statusLabel}
+        </span>
+      </div>
+      <ChevronRight size={12} className="text-muted-foreground flex-shrink-0" />
     </button>
   );
 }
 
-/* ── Sortable Opportunity Table ── */
-function OpportunityTable({ opps, analysisId, modeAccent }: {
+/* ════════════════════════════════════════════════════════
+ * OPPORTUNITY TABLE — Sortable
+ * ════════════════════════════════════════════════════════ */
+function OpportunityTable({ opps, analysisId }: {
   opps: { id: string; label: string; impact: number; confidence: string; step: string; source: string }[];
   analysisId: string;
-  modeAccent: string;
 }) {
   const navigate = useNavigate();
   const [sortKey, setSortKey] = useState<"impact" | "confidence">("impact");
@@ -133,34 +203,33 @@ function OpportunityTable({ opps, analysisId, modeAccent }: {
   };
 
   return (
-    <div>
+    <div className="overflow-x-auto">
       {/* Header */}
-      <div className="grid grid-cols-[1fr_80px_80px_90px] sm:grid-cols-[1fr_120px_80px_80px_90px] gap-2 px-3 py-2 border-b border-border">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Opportunity</span>
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground hidden sm:block">Source</span>
+      <div className="grid grid-cols-[1fr_70px_70px_80px] sm:grid-cols-[1fr_120px_70px_70px_80px] gap-2 px-3 py-2 border-b border-border min-w-[400px]">
+        <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Opportunity</span>
+        <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground hidden sm:block">Source</span>
         <button onClick={() => toggleSort("impact")}
-          className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-1 justify-center">
-          Impact <ArrowUpDown size={8} />
+          className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-0.5 justify-center">
+          Impact <ArrowUpDown size={7} />
         </button>
         <button onClick={() => toggleSort("confidence")}
-          className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-1 justify-center">
-          Confidence <ArrowUpDown size={8} />
+          className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-0.5 justify-center">
+          Conf. <ArrowUpDown size={7} />
         </button>
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Step</span>
+        <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Step</span>
       </div>
-      {/* Rows */}
       {sorted.map(opp => {
-        const impactColor = opp.impact >= 8 ? "hsl(152 60% 44%)" : opp.impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
+        const ic = opp.impact >= 8 ? "hsl(152 60% 44%)" : opp.impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
         return (
           <button key={opp.id}
             onClick={() => navigate(`/analysis/${analysisId}/insight-graph?node=${opp.id}`)}
-            className="grid grid-cols-[1fr_80px_80px_90px] sm:grid-cols-[1fr_120px_80px_80px_90px] gap-2 items-center px-3 py-3 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[48px]"
+            className="grid grid-cols-[1fr_70px_70px_80px] sm:grid-cols-[1fr_120px_70px_70px_80px] gap-2 items-center px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[44px] min-w-[400px]"
           >
             <span className="text-sm font-semibold text-foreground truncate">{opp.label}</span>
-            <span className="text-xs text-muted-foreground truncate hidden sm:block">{opp.source}</span>
-            <span className="text-sm font-bold tabular-nums text-center" style={{ color: impactColor }}>{opp.impact}/10</span>
-            <span className="text-xs font-bold capitalize text-center text-muted-foreground">{opp.confidence}</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-center text-muted-foreground">{opp.step}</span>
+            <span className="text-[10px] text-muted-foreground truncate hidden sm:block">{opp.source}</span>
+            <span className="text-sm font-bold tabular-nums text-center" style={{ color: ic }}>{opp.impact}/10</span>
+            <span className="text-[10px] font-bold capitalize text-center text-muted-foreground">{opp.confidence}</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-center text-muted-foreground">{opp.step}</span>
           </button>
         );
       })}
@@ -168,7 +237,9 @@ function OpportunityTable({ opps, analysisId, modeAccent }: {
   );
 }
 
-/* ── Main Page ── */
+/* ════════════════════════════════════════════════════════
+ * MAIN PAGE
+ * ════════════════════════════════════════════════════════ */
 export default function CommandDeckPage() {
   const analysis = useAnalysis();
   const { tier } = useSubscription();
@@ -180,9 +251,9 @@ export default function CommandDeckPage() {
 
   const { selectedProduct, analysisId } = analysis;
   const modeAccent = theme.primary;
-  const { intelligence, graph, completedSteps, pipelineCompletion } = autoAnalysis;
+  const { intelligence, graph, completedSteps } = autoAnalysis;
 
-  // ── Aggregated Metrics (all pipeline steps) ──
+  // ── Aggregated Metrics ──
   const metricsInput = useMemo(() => ({
     products: analysis.products,
     selectedProduct,
@@ -204,7 +275,21 @@ export default function CommandDeckPage() {
   const trendData = useMemo(() => computeTrendData(metricsInput), [metricsInput]);
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
 
+  // ── Strategic Potential Score ──
+  const strategicPotential = useMemo(() => {
+    const raw = (metrics.opportunityScore + metrics.leverageScore)
+      - (metrics.frictionIndex * 0.5)
+      - (metrics.riskScore * 0.3);
+    // Normalize to 0-10 range
+    return Math.max(0, Math.min(10, Math.round(raw * 10) / 10));
+  }, [metrics]);
+
+  // ── Trend indicators for metric cards ──
+  const getTrend = (value: number): "up" | "down" | "neutral" =>
+    value >= 6 ? "up" : value >= 3 ? "neutral" : "down";
+
   const pipelinePct = metrics.pipelineCompletion;
+  const baseUrl = `/analysis/${analysisId}`;
 
   if (analysis.step !== "done" || !selectedProduct) {
     if (shouldRedirectHome) return null;
@@ -217,33 +302,53 @@ export default function CommandDeckPage() {
     );
   }
 
-  const baseUrl = `/analysis/${analysisId}`;
+  // Mode label
+  const modeLabel = analysis.activeMode === "custom" ? "Product"
+    : analysis.activeMode === "service" ? "Service" : "Business Model";
 
   return (
     <div className="min-h-screen bg-background" data-command-deck={workspaceTheme === "dark" ? "" : undefined}>
       <HeroSection tier={tier} remainingAnalyses={null} />
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <ModeBadge />
-              <h1 className="typo-h1 truncate">{selectedProduct.name}</h1>
-            </div>
-          </div>
-          <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
-        </div>
 
-        {/* Workspace Nav */}
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
+
+        {/* ═══ HEADER — Analysis name + Strategic Potential ═══ */}
+        <motion.div {...fadeUp} className="rounded-2xl p-5 sm:p-6 bg-card border border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2.5 flex-wrap mb-2">
+                <ModeBadge />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
+                  {modeLabel}
+                </span>
+                {metrics.isPartial && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
+                    style={{ background: "hsl(38 92% 50% / 0.1)", color: "hsl(38 92% 50%)" }}>
+                    Partial
+                  </span>
+                )}
+              </div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate">{selectedProduct.name}</h1>
+              <p className="text-xs text-muted-foreground mt-1">
+                {completedSteps.size}/{PIPELINE_STEPS.length} steps completed
+                {metrics.contributingSources.length > 0 && ` · Sources: ${metrics.contributingSources.join(", ")}`}
+              </p>
+            </div>
+            <StrategicPotentialGauge score={strategicPotential} accent={modeAccent} />
+          </div>
+        </motion.div>
+
+        {/* ═══ WORKSPACE NAV ═══ */}
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+          <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
           {[
             { label: "Command Deck", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
-            { label: "Report", icon: Target, path: `${baseUrl}/report`, active: false },
-            { label: "Disrupt", icon: Crosshair, path: `${baseUrl}/disrupt`, active: false },
-            { label: "Redesign", icon: Lightbulb, path: `${baseUrl}/redesign`, active: false },
-            { label: "Stress Test", icon: AlertTriangle, path: `${baseUrl}/stress-test`, active: false },
-            { label: "Pitch", icon: Rocket, path: `${baseUrl}/pitch`, active: false },
-            { label: "Insight Graph", icon: GitBranch, path: `${baseUrl}/insight-graph`, active: false },
+            { label: "Report", icon: Target, path: `${baseUrl}/report` },
+            { label: "Disrupt", icon: Crosshair, path: `${baseUrl}/disrupt` },
+            { label: "Redesign", icon: Lightbulb, path: `${baseUrl}/redesign` },
+            { label: "Stress Test", icon: AlertTriangle, path: `${baseUrl}/stress-test` },
+            { label: "Pitch", icon: Rocket, path: `${baseUrl}/pitch` },
+            { label: "Insight Graph", icon: GitBranch, path: `${baseUrl}/insight-graph` },
           ].map(nav => (
             <button
               key={nav.label}
@@ -256,164 +361,234 @@ export default function CommandDeckPage() {
               }}
             >
               <nav.icon size={14} />
-              {nav.label}
+              <span className="hidden sm:inline">{nav.label}</span>
             </button>
           ))}
         </div>
 
-        {/* KPI Metrics — Circular Gauges */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <KPIGauge label="Opportunity" value={metrics.opportunityScore} max={10} subtitle={metrics.isPartial ? "Partial" : "Weighted"} icon={Zap} color="hsl(229 89% 63%)" delay={0.1} />
-          <KPIGauge label="Friction" value={metrics.frictionIndex} max={10} subtitle="Systemic" icon={Shield} color="hsl(0 72% 52%)" delay={0.15} />
-          <KPIGauge label="Constraints" value={metrics.constraintsCount} max={Math.max(metrics.constraintsCount, 10)} subtitle="Blockers" icon={AlertTriangle} color="hsl(38 92% 50%)" delay={0.2} />
-          <KPIGauge label="Leverage" value={metrics.leverageScore} max={10} subtitle="Potential" icon={Gauge} color="hsl(152 60% 44%)" delay={0.25} />
-          <KPIGauge label="Pipeline" value={`${pipelinePct}%`} max={100} subtitle={`${completedSteps.size}/5 steps`} icon={BarChart3} color={modeAccent} delay={0.3} />
+        {/* ═══ ZONE 1 — STRATEGIC METRICS ═══ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <MetricCard
+            label="Opportunity Score" value={metrics.opportunityScore} icon={Zap}
+            color="hsl(229 89% 63%)" delay={0.05}
+            description="Weighted opportunity potential across all pipeline steps."
+            trend={getTrend(metrics.opportunityScore)}
+          />
+          <MetricCard
+            label="Friction Index" value={metrics.frictionIndex} icon={Activity}
+            color="hsl(0 72% 52%)" delay={0.1}
+            description="Systemic resistance from constraints and customer friction."
+            trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
+          />
+          <MetricCard
+            label="Constraints" value={metrics.constraintsCount} icon={Shield}
+            color="hsl(38 92% 50%)" delay={0.15}
+            description="Structural blockers detected in the analysis."
+            trend={metrics.constraintsCount >= 8 ? "down" : "neutral"}
+          />
+          <MetricCard
+            label="Leverage Index" value={metrics.leverageScore} icon={Gauge}
+            color="hsl(152 60% 44%)" delay={0.2}
+            description="Hidden value and underserved market signals."
+            trend={getTrend(metrics.leverageScore)}
+          />
+          <MetricCard
+            label="Risk Score" value={metrics.riskScore} icon={AlertTriangle}
+            color="hsl(0 72% 52%)" delay={0.25}
+            description="Feasibility, execution, and market adoption risks."
+            trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
+          />
         </div>
 
-        {/* Partial analysis indicator */}
-        {metrics.isPartial && metrics.contributingSources.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(38 92% 50% / 0.06)", border: "1px solid hsl(38 92% 50% / 0.15)" }}>
-            <Activity size={12} style={{ color: "hsl(38 92% 50%)" }} />
-            <p className="text-[10px] font-bold text-foreground">
-              Partial analysis — metrics derived from: {metrics.contributingSources.join(", ")}
-            </p>
-          </div>
-        )}
+        {/* ═══ ZONE 2 — PIPELINE INTELLIGENCE ═══ */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-4">
+          {/* Pipeline Progress */}
+          <motion.div {...fadeUp} transition={{ delay: 0.1 }}
+            className="rounded-xl p-5 space-y-3 bg-card border border-border"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BarChart3 size={14} className="text-foreground" />
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Pipeline Status</p>
+              </div>
+              <span className="text-sm font-extrabold tabular-nums" style={{ color: modeAccent }}>
+                {pipelinePct}%
+              </span>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden bg-muted">
+              <motion.div
+                className="h-full rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${pipelinePct}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                style={{ background: modeAccent }}
+              />
+            </div>
+            <div className="space-y-0.5">
+              {PIPELINE_STEPS.map(s => {
+                const isDone = completedSteps.has(s.key);
+                const isOutdated = analysis.outdatedSteps.has(s.key);
+                const status: "completed" | "outdated" | "not_run" =
+                  isOutdated ? "outdated" : isDone ? "completed" : "not_run";
+                return <PipelineStep key={s.key} step={s} status={status} analysisId={analysisId!} accent={modeAccent} />;
+              })}
+            </div>
+          </motion.div>
 
-        {/* Pipeline Status */}
-        <motion.div {...fadeUp} transition={{ delay: 0.05 }}
-          className="rounded-xl p-5 space-y-3 bg-card border border-border"
-        >
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Pipeline Status</p>
-            <span className="text-sm font-extrabold tabular-nums" style={{ color: modeAccent }}>
-              {completedSteps.size}/{PIPELINE_STEPS.length}
-            </span>
-          </div>
-          <div className="h-2 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
-            <div className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${pipelinePct}%`, background: modeAccent }} />
-          </div>
-          <div className="space-y-1">
-            {PIPELINE_STEPS.map(s => {
-              const isDone = completedSteps.has(s.key);
-              const isOutdated = analysis.outdatedSteps.has(s.key);
-              const status: "completed" | "outdated" | "not_run" =
-                isOutdated ? "outdated" : isDone ? "completed" : "not_run";
-              return <PipelineRow key={s.key} step={s} status={status} analysisId={analysisId!} />;
-            })}
-          </div>
-        </motion.div>
+          {/* Trend Chart */}
+          <motion.div {...fadeUp} transition={{ delay: 0.15 }}
+            className="rounded-xl p-5 bg-card border border-border"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp size={14} className="text-foreground" />
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">
+                Opportunity Score — Pipeline Progression
+              </p>
+            </div>
+            <div className="h-[220px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendData} margin={{ top: 5, right: 15, bottom: 5, left: -10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+                  <XAxis dataKey="step" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} domain={[0, 100]} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      fontSize: "11px",
+                      color: "hsl(var(--foreground))",
+                    }}
+                  />
+                  <Line
+                    type="monotone" dataKey="score"
+                    stroke={modeAccent} strokeWidth={2.5}
+                    dot={{ r: 4, fill: modeAccent, strokeWidth: 2, stroke: "hsl(var(--card))" }}
+                    activeDot={{ r: 6, fill: modeAccent }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        </div>
 
-        {/* Trend Graph */}
+        {/* ═══ ZONE 3 — STRATEGIC OPPORTUNITIES ═══ */}
         <motion.div {...fadeUp} transition={{ delay: 0.2 }}
           className="rounded-xl p-5 bg-card border border-border"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={14} className="text-foreground" />
-            <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
-              Insight Score — Pipeline Progression
-            </p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Lightbulb size={14} style={{ color: "hsl(152 60% 44%)" }} />
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Strategic Opportunities</p>
+              <span className="text-[10px] font-bold text-muted-foreground">({topOpps.length})</span>
+            </div>
+            {graph && graph.nodes.length > 0 && (
+              <button
+                onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors hover:opacity-80 min-h-[36px]"
+                style={{ background: `${modeAccent}10`, color: modeAccent }}
+              >
+                <GitBranch size={11} /> View in Graph
+              </button>
+            )}
           </div>
-          <div className="h-[200px] sm:h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                <XAxis dataKey="step" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} domain={[0, 100]} />
-                <Tooltip
-                  contentStyle={{
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                    color: "hsl(var(--foreground))",
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="score"
-                  stroke={modeAccent}
-                  strokeWidth={2.5}
-                  dot={{ r: 5, fill: modeAccent, strokeWidth: 2, stroke: "hsl(var(--card))" }}
-                  activeDot={{ r: 7, fill: modeAccent }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+
+          {topOpps.length > 0 ? (
+            <OpportunityTable opps={topOpps} analysisId={analysisId!} />
+          ) : (
+            <div className="text-center py-10">
+              <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-muted mb-3">
+                <Lightbulb size={20} className="text-muted-foreground" />
+              </div>
+              <p className="text-sm font-bold text-foreground">No opportunities detected yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Run the analysis pipeline to discover strategic opportunities.</p>
+              <button
+                onClick={() => navigate(`${baseUrl}/report`)}
+                className="mt-4 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors min-h-[44px]"
+                style={{ background: `${modeAccent}12`, color: modeAccent }}
+              >
+                <ArrowRight size={14} /> Start Analysis
+              </button>
+            </div>
+          )}
         </motion.div>
 
-        {/* Visual Intelligence + Top Opportunities — side by side */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
-          {/* Top Opportunities Table */}
-          <motion.div {...fadeUp} transition={{ delay: 0.25 }}
-            className="rounded-xl p-5 bg-card border border-border"
-          >
+        {/* ═══ ZONE 4 — SYSTEM INTELLIGENCE (Insight Graph Preview) ═══ */}
+        <motion.div {...fadeUp} transition={{ delay: 0.25 }}
+          className="rounded-xl overflow-hidden border border-border bg-card"
+        >
+          <div className="p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Lightbulb size={14} style={{ color: "hsl(152 60% 44%)" }} />
-                <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Top Opportunities</p>
+                <GitBranch size={14} style={{ color: modeAccent }} />
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">System Intelligence</p>
               </div>
-              {graph && graph.nodes.length > 0 && (
-                <button
-                  onClick={() => navigate(`${baseUrl}/insight-graph`)}
-                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
-                  style={{ background: `${modeAccent}12`, color: modeAccent }}
-                >
-                  <GitBranch size={12} /> Explore Graph
-                </button>
-              )}
             </div>
 
-            {topOpps.length > 0 ? (
-              <OpportunityTable opps={topOpps} analysisId={analysisId!} modeAccent={modeAccent} />
+            {graph && graph.nodes.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Node count */}
+                <div className="rounded-xl p-4 text-center bg-muted/50">
+                  <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">{graph.nodes.length}</p>
+                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">Insight Nodes</p>
+                </div>
+                {/* Connection count */}
+                <div className="rounded-xl p-4 text-center bg-muted/50">
+                  <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">{graph.edges.length}</p>
+                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">Connections</p>
+                </div>
+                {/* Intelligence density */}
+                <div className="rounded-xl p-4 text-center bg-muted/50">
+                  <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">
+                    {graph.nodes.length > 0 ? (graph.edges.length / graph.nodes.length).toFixed(1) : "0"}
+                  </p>
+                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">Density</p>
+                </div>
+              </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-sm text-muted-foreground">
-                  Run the analysis pipeline to discover opportunities.
-                </p>
-                <button
-                  onClick={() => navigate(`${baseUrl}/report`)}
-                  className="mt-3 flex items-center gap-1.5 mx-auto px-4 py-2 rounded-lg text-sm font-bold transition-colors"
-                  style={{ background: `${modeAccent}15`, color: modeAccent }}
-                >
-                  <ArrowRight size={14} /> Start with Report
-                </button>
+                <div className="w-10 h-10 mx-auto rounded-lg flex items-center justify-center bg-muted mb-2">
+                  <GitBranch size={18} className="text-muted-foreground" />
+                </div>
+                <p className="text-xs text-muted-foreground">Graph builds as analysis progresses</p>
               </div>
             )}
-          </motion.div>
 
-          {/* Visual Intelligence Sidebar */}
-          <motion.div {...fadeUp} transition={{ delay: 0.3 }}>
-            <StepVisualOutput
-              step="report"
-              intelligence={intelligence}
-              governedData={analysis.governedData as Record<string, unknown> | null}
-              product={selectedProduct as unknown as Record<string, unknown>}
-              accentColor={modeAccent}
-            />
-          </motion.div>
-        </div>
+            {/* Node type breakdown */}
+            {graph && graph.nodes.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {["signal", "constraint", "leverage_point", "concept"].map(type => {
+                  const count = graph.nodes.filter(n => n.type === type).length;
+                  if (count === 0) return null;
+                  const colors: Record<string, string> = {
+                    signal: "hsl(229 89% 63%)", constraint: "hsl(0 72% 52%)",
+                    leverage_point: "hsl(38 92% 50%)", concept: "hsl(152 60% 44%)",
+                  };
+                  return (
+                    <span key={type} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold"
+                      style={{ background: `${colors[type]}10`, color: colors[type] }}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: colors[type] }} />
+                      {count} {type.replace("_", " ")}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-        {/* Insight Graph CTA */}
-        {graph && graph.nodes.length > 0 && (
-          <motion.button {...fadeUp} transition={{ delay: 0.3 }}
+          {/* CTA */}
+          <button
             onClick={() => navigate(`${baseUrl}/insight-graph`)}
-            className="w-full rounded-xl p-4 flex items-center justify-between gap-4 transition-all hover:shadow-md group bg-card border border-border"
+            className="flex items-center justify-between gap-3 w-full px-5 py-3.5 border-t border-border transition-colors hover:bg-muted/30 min-h-[48px]"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: `${modeAccent}12` }}>
-                <GitBranch size={18} style={{ color: modeAccent }} />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-foreground">Open Insight Graph Explorer</p>
-                <p className="text-xs text-muted-foreground">{graph.nodes.length} nodes · {graph.edges.length} connections</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <ExternalLink size={14} style={{ color: modeAccent }} />
+              <span className="text-sm font-bold text-foreground">Explore Insight Graph</span>
             </div>
-            <ChevronRight size={18} className="text-muted-foreground group-hover:translate-x-1 transition-transform" />
-          </motion.button>
-        )}
+            <ChevronRight size={14} className="text-muted-foreground" />
+          </button>
+        </motion.div>
+
       </main>
     </div>
   );
