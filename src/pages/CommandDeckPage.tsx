@@ -447,7 +447,7 @@ export default function CommandDeckPage() {
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
           <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
           {[
-            { label: "Command Deck", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
+            { label: "Situation Room", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
             { label: "Report", icon: Target, path: `${baseUrl}/report` },
             { label: "Disrupt", icon: Crosshair, path: `${baseUrl}/disrupt` },
             { label: "Redesign", icon: Lightbulb, path: `${baseUrl}/redesign` },
