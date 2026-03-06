@@ -391,23 +391,29 @@ function buildGraphFromEvidence(
     }
   }
 
-  // Signal → Assumption
-  for (const sig of signals.slice(0, 8)) {
-    for (const asm of assumptions.filter(a => a.tier === sig.tier).slice(0, 2)) {
+  // Signal → Assumption (prefer same tier, fallback any)
+  for (const sig of signals.slice(0, 10)) {
+    const sameTier = assumptions.filter(a => a.tier === sig.tier).slice(0, 2);
+    const targets = sameTier.length > 0 ? sameTier : assumptions.slice(0, 2);
+    for (const asm of targets) {
       addEdge(sig.id, asm.id, "leads_to", 0.5);
     }
   }
 
-  // Assumption → Constraint
-  for (const asm of assumptions.slice(0, 8)) {
-    for (const con of constraints.filter(c => c.tier === asm.tier).slice(0, 2)) {
+  // Assumption → Constraint (prefer same tier, fallback any)
+  for (const asm of assumptions.slice(0, 10)) {
+    const sameTier = constraints.filter(c => c.tier === asm.tier).slice(0, 2);
+    const targets = sameTier.length > 0 ? sameTier : constraints.slice(0, 2);
+    for (const con of targets) {
       addEdge(asm.id, con.id, "causes", 0.6);
     }
   }
 
   // Constraint → Friction
   for (const con of constraints.slice(0, 8)) {
-    for (const fric of frictions.filter(f => f.tier === con.tier).slice(0, 2)) {
+    const sameTier = frictions.filter(f => f.tier === con.tier).slice(0, 2);
+    const targets = sameTier.length > 0 ? sameTier : frictions.slice(0, 2);
+    for (const fric of targets) {
       addEdge(con.id, fric.id, "causes", 0.6);
     }
   }
@@ -416,6 +422,13 @@ function buildGraphFromEvidence(
   for (const con of constraints.slice(0, 6)) {
     for (const lev of leverages.slice(0, 3)) {
       addEdge(con.id, lev.id, "leads_to", 0.6);
+    }
+  }
+
+  // Constraint → Opportunity (direct edge for reasoning chain)
+  for (const con of constraints.slice(0, 6)) {
+    for (const opp of opportunities.slice(0, 3)) {
+      addEdge(con.id, opp.id, "unlocks", 0.5);
     }
   }
 
@@ -435,7 +448,9 @@ function buildGraphFromEvidence(
 
   // Constraint → Risk (constraints create risks)
   for (const con of constraints.slice(0, 5)) {
-    for (const rsk of risks.filter(r => r.tier === con.tier).slice(0, 2)) {
+    const sameTier = risks.filter(r => r.tier === con.tier).slice(0, 2);
+    const targets = sameTier.length > 0 ? sameTier : risks.slice(0, 2);
+    for (const rsk of targets) {
       addEdge(con.id, rsk.id, "creates", 0.5);
     }
   }
@@ -451,10 +466,37 @@ function buildGraphFromEvidence(
     }
   }
 
+  // Driver → Constraint, Driver → Opportunity
+  const drivers = nodes.filter(n => n.type === "driver");
+  for (const drv of drivers.slice(0, 6)) {
+    for (const con of constraints.slice(0, 2)) {
+      addEdge(drv.id, con.id, "leads_to", 0.5);
+    }
+    for (const opp of opportunities.slice(0, 2)) {
+      addEdge(drv.id, opp.id, "creates", 0.5);
+    }
+  }
+
   // Scenario → Opportunity (scenarios test opportunities)
   for (const sc of scenarioNodes.slice(0, 6)) {
     for (const opp of opportunities.slice(0, 2)) {
       addEdge(opp.id, sc.id, "tests", 0.7);
+    }
+  }
+
+  // ── Existing pathway nodes from insights (already added as type "pathway") ──
+  const existingPathways = nodes.filter(n => n.type === "pathway");
+  // Link existing pathways to their related constraints/opportunities
+  for (const pw of existingPathways) {
+    // Connect to nearest constraint and opportunity
+    for (const con of constraints.slice(0, 2)) {
+      addEdge(con.id, pw.id, "leads_to", 0.6);
+    }
+    for (const opp of opportunities.slice(0, 2)) {
+      addEdge(opp.id, pw.id, "enables", 0.7);
+    }
+    for (const sc of scenarioNodes.slice(0, 1)) {
+      addEdge(sc.id, pw.id, "enables", 0.6);
     }
   }
 
