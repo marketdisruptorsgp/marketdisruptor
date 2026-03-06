@@ -18,6 +18,7 @@ interface InsightNodeCardProps {
   graph: InsightGraph;
   onClose: () => void;
   onSelectNode: (nodeId: string) => void;
+  onOpenTool?: (tool: LensTool) => void;
   isMobile?: boolean;
 }
 
