@@ -111,7 +111,8 @@ export default function WorkspacePage() {
       .order("created_at", { ascending: false })
       .limit(100);
     const all = ((data as unknown as SavedAnalysis[]) || []).filter(
-      (a) => a.analysis_type !== "first_principles"
+      (a) => a.analysis_type !== "first_principles" &&
+        Array.isArray(a.products) && a.products.length > 0
     );
     setAnalyses(all);
     setLoading(false);
