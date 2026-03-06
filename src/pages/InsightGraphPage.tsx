@@ -34,6 +34,7 @@ export default function InsightGraphPage() {
   const theme = useModeTheme();
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
+  const autoAnalysis = useAutoAnalysis();
 
   const {
     selectedProduct,
