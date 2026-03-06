@@ -168,7 +168,7 @@ export const ConstraintMap = memo(function ConstraintMap({
     );
   }
 
-  const height = compact ? 340 : 480;
+  const height = compact ? 380 : 560;
 
   return (
     <div className="space-y-3">
