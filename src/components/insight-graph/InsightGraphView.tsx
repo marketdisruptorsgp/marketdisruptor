@@ -7,6 +7,7 @@
  */
 
 import { memo, useMemo, useState, useCallback } from "react";
+import { TIER_META } from "@/lib/tierDiscoveryEngine";
 import ReactFlow, {
   Background,
   Controls,
