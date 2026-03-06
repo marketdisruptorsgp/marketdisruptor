@@ -35,7 +35,8 @@ export type InsightNodeType =
   | "risk"
   | "evidence"
   | "friction"
-  | "competitor";
+  | "competitor"
+  | "simulation";
 
 export type EdgeRelation =
   | "causes"
