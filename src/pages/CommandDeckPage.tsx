@@ -1058,12 +1058,13 @@ export default function CommandDeckPage() {
                   )}
                   {graph && graph.nodes.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-3">
-                      {["signal", "constraint", "leverage_point", "concept"].map(type => {
+                      {["signal", "constraint", "leverage_point", "concept", "simulation"].map(type => {
                         const count = graph.nodes.filter(n => n.type === type).length;
                         if (count === 0) return null;
                         const colors: Record<string, string> = {
                           signal: "hsl(229 89% 63%)", constraint: "hsl(0 72% 52%)",
                           leverage_point: "hsl(38 92% 50%)", concept: "hsl(152 60% 44%)",
+                          simulation: "hsl(172 66% 50%)",
                         };
                         return (
                           <button
