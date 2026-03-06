@@ -254,7 +254,7 @@ function normalizeEvidence(flat: Evidence[]): Evidence[] {
     // Ensure scores exist
     const normalized: Evidence = {
       ...ev,
-      tags: [...new Set([...(ev.tags || []), category])],
+      category,
       impact: ev.impact ?? 5,
       confidenceScore: ev.confidenceScore ?? 0.5,
     };
