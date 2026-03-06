@@ -106,9 +106,7 @@ function LazyRoute({ children }: { children: ReactNode }) {
 
 /** Redirect /analysis/:id → /analysis/:id/command-deck */
 function CommandDeckRedirect() {
-  // useParams would be ideal but we're outside a route context wrapper,
-  // so extract from the URL directly
-  const id = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/)?.[1];
+  const { id } = useParams<{ id: string }>();
   if (!id) return <Navigate to="/workspace" replace />;
   return <Navigate to={`/analysis/${id}/command-deck`} replace />;
 }
