@@ -15,6 +15,12 @@ import type { EvidenceTier } from "@/lib/evidenceEngine";
 
 const SIGNALS_CAP = 8;
 
+const TIER_TOOLTIPS: Record<number, string> = {
+  1: "Challenge the assumptions that define the current model.",
+  2: "Explore alternative ways the system could operate.",
+  3: "Improve how the model executes and performs.",
+};
+
 interface TierDiscoveryPanelProps {
   tierState: TierState;
   activeTierFilter: EvidenceTier | null;
