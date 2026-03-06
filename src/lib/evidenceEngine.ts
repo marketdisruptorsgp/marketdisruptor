@@ -51,7 +51,8 @@ export type EvidenceSourceEngine =
   | "signal_detection"
   | "financial_model"
   | "competitor_scout"
-  | "system_intelligence";
+  | "system_intelligence"
+  | "scenario_engine";
 
 export interface Evidence {
   id: string;

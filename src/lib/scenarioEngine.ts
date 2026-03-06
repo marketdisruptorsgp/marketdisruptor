@@ -212,8 +212,6 @@ export function scenarioToEvidence(
   scenario: ToolScenario,
   mode: EvidenceMode = "product",
 ): Evidence {
-  const evidenceType = TOOL_EVIDENCE_TYPE_MAP[scenario.toolId] || "signal";
-
   const outputEntries = Object.entries(scenario.outputResults).slice(0, 4);
   const outputDesc = outputEntries
     .map(([k, v]) => `${k.replace(/([A-Z])/g, " $1").trim()}: ${typeof v === "number" ? v.toLocaleString() : v}`)
@@ -223,16 +221,16 @@ export function scenarioToEvidence(
 
   return {
     id: `sim-${scenario.scenarioId}`,
-    type: evidenceType,
+    type: "simulation" as const,
     label: `${scenario.scenarioName} (${scenario.toolId.replace(/-/g, " ")})`,
     description: `Simulation output: ${outputDesc}`,
-    pipelineStep: "stress_test" as EvidencePipelineStep,
+    pipelineStep: "simulation" as EvidencePipelineStep,
     tier: "system",
     impact: impactScore,
     confidenceScore: 0.85,
     category: "simulation",
     mode,
-    sourceEngine: "pipeline" as const,
+    sourceEngine: "scenario_engine" as const,
   };
 }
 
