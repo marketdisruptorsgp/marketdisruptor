@@ -527,7 +527,6 @@ export default function CommandDeckPage() {
 
   // ── AUTO-RECOMPUTE: trigger intelligence pipeline on data changes ──
   const lastRecomputeHash = useRef<string>("");
-  const totalSignals = metrics.stepSignals.reduce((s, ss) => s + (ss.hasData ? ss.signals : 0), 0);
 
   useEffect(() => {
     const hash = JSON.stringify({
