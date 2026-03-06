@@ -350,7 +350,7 @@ export function clusterEvidenceIntoInsights(evidence: Evidence[]): Insight[] {
 
   // ── FALLBACK: Enforce complete reasoning chain ──
   // Minimum counts: constraints≥2, opportunities≥2, leverage≥2, pathways≥1
-  const now = Date.now();
+  const fallbackNow = Date.now();
 
   const countByType = (t: InsightType) => allInsights.filter(i => i.insightType === t).length;
   const hasConstraints = countByType("constraint_cluster");
