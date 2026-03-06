@@ -323,6 +323,7 @@ function layoutTiered(graphNodes: InsightGraphNode[]): Node[] {
           confidence: gn.confidence,
           influence: gn.influence,
           leverageScore: gn.leverageScore,
+          tier: gn.tier,
           isTopLeverage: false,
           isBreakthrough: false,
           isHighlighted: false,
