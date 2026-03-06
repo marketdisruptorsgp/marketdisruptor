@@ -1057,7 +1057,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
 
       // ── FINAL CONTEXT SWITCH CHECK before write ──
-      if (analysisId !== capturedId) {
+      if (!targetAnalysisId && analysisId !== capturedId) {
         console.warn(`[saveStepData] Context switched before final write. Aborting.`);
         return;
       }
