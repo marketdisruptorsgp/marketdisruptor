@@ -318,6 +318,7 @@ export default function CommandDeckPage() {
             <div className="flex flex-wrap gap-3">
               {[
                 { label: "Evidence", count: diagnostic.evidenceCount, warn: diagnostic.insufficientEvidence },
+                { label: "Signals", count: diagnostic.signalCount },
                 { label: "Constraints", count: diagnostic.constraintCount },
                 { label: "Drivers", count: diagnostic.driverCount },
                 { label: "Leverage", count: diagnostic.leverageCount },
@@ -330,6 +331,16 @@ export default function CommandDeckPage() {
                 </div>
               ))}
             </div>
+            {/* Threshold indicators */}
+            {diagnostic.thresholds && diagnostic.thresholds.some(t => !t.met) && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {diagnostic.thresholds.filter(t => !t.met).map(t => (
+                  <span key={t.stage} className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold">
+                    {t.stage}: need {t.required} evidence (have {t.current})
+                  </span>
+                ))}
+              </div>
+            )}
             {diagnostic.message && (
               <p className="mt-2 text-xs text-destructive font-semibold">⚠ {diagnostic.message}</p>
             )}
