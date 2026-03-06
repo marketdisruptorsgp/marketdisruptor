@@ -296,7 +296,7 @@ function identifyDrivers(flat: Evidence[], constraints: StrategicInsight[], anal
   const signals = flat.filter(e => e.type === "signal" && (e.impact ?? 0) >= 5);
   for (const sig of signals.slice(0, 5)) {
     if (insights.some(i => jaccardSimilarity(i.label, sig.label) >= 0.5)) continue;
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("driver"),
       analysisId,
       insightType: "driver",
@@ -307,7 +307,7 @@ function identifyDrivers(flat: Evidence[], constraints: StrategicInsight[], anal
       impact: sig.impact ?? 5,
       confidence: sig.confidenceScore ?? 0.5,
       createdAt: now,
-    });
+    }));
   }
 
   return insights;
