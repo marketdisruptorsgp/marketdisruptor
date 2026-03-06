@@ -1,4 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
+import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { useNavigate } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -103,6 +105,7 @@ const PHOTO_EXAMPLES = [
 export default function NewAnalysisPage() {
   const navigate = useNavigate();
   const { tier } = useSubscription();
+  const { theme, toggle: toggleTheme } = useWorkspaceTheme();
   
   const analysis = useAnalysis();
   const { setModeRouting } = analysis;
@@ -528,9 +531,12 @@ export default function NewAnalysisPage() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <AnalysisStepIndicator currentStep={showManualClarifier || useDeconstruct ? 2 : 1} />
 
-        <h1 className="typo-page-title text-2xl sm:text-3xl tracking-tight mb-1">
-          Select Analysis Mode
-        </h1>
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="typo-page-title text-2xl sm:text-3xl tracking-tight">
+            Select Analysis Mode
+          </h1>
+          <WorkspaceThemeToggle theme={theme} onToggle={toggleTheme} />
+        </div>
         <p className="typo-page-meta text-sm sm:text-base max-w-3xl leading-relaxed mb-5">
           Pick a mode if you already know your focus — or describe your challenge below for auto-detection.
         </p>

@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
+import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -81,6 +83,7 @@ function DashCard({ children, className = "", span = "" }: { children: React.Rea
 export default function WorkspacePage() {
   const { user } = useAuth();
   const { tier } = useSubscription();
+  const { theme, toggle: toggleTheme } = useWorkspaceTheme();
   const navigate = useNavigate();
   const analysis = useAnalysis();
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
@@ -204,13 +207,16 @@ export default function WorkspacePage() {
             <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">My Workspace</h1>
             <p className="text-xs text-muted-foreground mt-0.5">Your operating surface for analyses and strategic work</p>
           </div>
-          <button
-            onClick={() => navigate("/analysis/new")}
-            className="hidden sm:inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md hover:shadow-lg"
-          >
-            <PlusCircle size={14} />
-            New Analysis
-          </button>
+          <div className="flex items-center gap-2">
+            <WorkspaceThemeToggle theme={theme} onToggle={toggleTheme} />
+            <button
+              onClick={() => navigate("/analysis/new")}
+              className="hidden sm:inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md hover:shadow-lg"
+            >
+              <PlusCircle size={14} />
+              New Analysis
+            </button>
+          </div>
         </div>
 
         {/* Mobile CTA */}
