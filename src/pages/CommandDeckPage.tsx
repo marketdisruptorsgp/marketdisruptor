@@ -37,6 +37,7 @@ import {
 import { extractAllEvidence, type MetricDomain, type EvidenceTier } from "@/lib/evidenceEngine";
 import { computeTierState, filterEvidenceByTier, TIER_META, type TierNumber, type TierState } from "@/lib/tierDiscoveryEngine";
 import { EvidenceExplorer } from "@/components/EvidenceExplorer";
+import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -331,7 +332,7 @@ export default function CommandDeckPage() {
   const analysisId = ctxAnalysisId || urlAnalysisId;
 
   const modeAccent = theme.primary;
-  const { intelligence, graph, completedSteps } = autoAnalysis;
+  const { intelligence, graph, completedSteps, narrative } = autoAnalysis;
 
   // ── Aggregated Metrics ──
   const allEvidence = useMemo(() => extractAllEvidence({
@@ -513,6 +514,19 @@ export default function CommandDeckPage() {
             </button>
           ))}
         </div>
+
+        {/* ═══ STRATEGIC NARRATIVE ═══ */}
+        {narrative && (narrative.primaryConstraint || narrative.keyAssumption || narrative.leveragePoint || narrative.breakthroughOpportunity) && (
+          <motion.div {...fadeUp} transition={{ delay: 0.08 }}>
+            <StrategicNarrativePanel
+              primaryConstraint={narrative.primaryConstraint}
+              keyAssumption={narrative.keyAssumption}
+              leveragePoint={narrative.leveragePoint}
+              breakthroughOpportunity={narrative.breakthroughOpportunity}
+              narrativeSummary={narrative.narrativeSummary}
+            />
+          </motion.div>
+        )}
 
         {/* ═══ ZONE 1 — METRIC CARDS ═══ */}
         {tierFilter && (

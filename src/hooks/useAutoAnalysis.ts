@@ -9,6 +9,14 @@
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
+  clusterEvidenceIntoInsights,
+  generateOpportunities,
+  generateStrategicNarrative,
+  type Insight,
+  type Opportunity,
+  type StrategicNarrative,
+} from "@/lib/insightLayer";
+import {
   buildSystemIntelligence,
   invalidateIntelligence,
   type SystemIntelligenceInput,
@@ -28,6 +36,9 @@ export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
   graph: InsightGraph | null;
   evidence: Record<MetricDomain, MetricEvidence> | null;
+  insights: Insight[];
+  opportunities: Opportunity[];
+  narrative: StrategicNarrative | null;
   isComputing: boolean;
   completedSteps: Set<string>;
   pipelineCompletion: number;
@@ -44,6 +55,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
   const [graph, setGraph] = useState<InsightGraph | null>(null);
   const [evidence, setEvidence] = useState<Record<MetricDomain, MetricEvidence> | null>(null);
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [narrative, setNarrative] = useState<StrategicNarrative | null>(null);
   const [isComputing, setIsComputing] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -110,12 +124,25 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         analysisType: analysisMode,
       });
 
-      // Step 2: Build insight graph from evidence (evidence-first path)
+      // Step 2: Cluster evidence into Insights
+      const allEvItems = Object.values(newEvidence).flatMap(m => m.items);
+      const newInsights = clusterEvidenceIntoInsights(allEvItems);
+
+      // Step 3: Generate opportunities from insights
+      const newOpps = generateOpportunities(newInsights, allEvItems);
+
+      // Step 4: Generate strategic narrative
+      const newNarrative = generateStrategicNarrative(newInsights, allEvItems);
+
+      // Step 5: Build insight graph from evidence (evidence-first path)
       const newGraph = buildInsightGraph(newEvidence);
 
       setIntelligence(newIntelligence);
       setGraph(newGraph);
       setEvidence(newEvidence);
+      setInsights(newInsights);
+      setOpportunities(newOpps);
+      setNarrative(newNarrative);
     } catch (err) {
       console.warn("[AutoAnalysis] Computation error:", err);
     } finally {
@@ -155,6 +182,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     intelligence,
     graph,
     evidence,
+    insights,
+    opportunities,
+    narrative,
     isComputing,
     completedSteps,
     pipelineCompletion,
