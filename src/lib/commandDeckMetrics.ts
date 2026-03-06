@@ -79,6 +79,9 @@ export interface AggregatedOpportunity {
   source: string;
   tier?: EvidenceTier;
   mode?: EvidenceMode;
+  opportunityScore?: number;
+  simulationCount?: number;
+  riskLevel?: "low" | "moderate" | "high";
 }
 
 // ═══════════════════════════════════════════════════════════════
