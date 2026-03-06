@@ -63,12 +63,12 @@ export function DiscoverySystemAudit({ evidence }: AuditProps) {
     });
 
     const local: AuditResult[] = [
-      engineStatus("pipeline"),
-      engineStatus("innovation"),
-      engineStatus("signal_detection"),
-      engineStatus("financial_model"),
-      engineStatus("competitor_scout"),
-      engineStatus("system_intelligence"),
+      engineStatus("Pipeline", "pipeline"),
+      engineStatus("Innovation", "innovation"),
+      engineStatus("Signal Detection", "signal_detection"),
+      engineStatus("Financial Model", "financial_model"),
+      engineStatus("Competitor Scout", "competitor_scout"),
+      engineStatus("System Intelligence", "system_intelligence"),
     ];
 
     const typeNames = ["signal", "assumption", "constraint", "friction", "opportunity", "leverage", "risk", "competitor"];
