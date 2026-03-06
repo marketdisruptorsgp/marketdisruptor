@@ -410,8 +410,11 @@ export default function CommandDeckPage() {
   const closeExplorer = useCallback(() => setExplorerDomain(null), []);
 
   // ── Strategic Potential Score ──
+  // Strategic Potential - computed after savedScenarios (below) via ref
+  const scenarioCountRef = useRef(0);
   const strategicPotential = useMemo(() => {
-    const raw = (metrics.opportunityScore + metrics.leverageScore)
+    const simBoost = Math.min(scenarioCountRef.current * 0.3, 1.5);
+    const raw = (metrics.opportunityScore + metrics.leverageScore + simBoost)
       - (metrics.frictionIndex * 0.5)
       - (metrics.riskScore * 0.3);
     return Math.max(0, Math.min(10, Math.round(raw * 10) / 10));
