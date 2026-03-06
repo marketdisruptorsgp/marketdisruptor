@@ -215,14 +215,14 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
             <span className="text-xs font-bold text-foreground/50">({convergenceZoneDetails.length})</span>
           </div>
           {convergenceZoneDetails.slice(0, 5).map(zone => (
-            <div key={zone.id} className="flex items-center gap-2.5 py-1">
+            <div key={zone.id} className="flex items-center gap-2.5 py-2.5 px-2 rounded-lg transition-colors hover:bg-background/40 cursor-default min-h-[44px]">
               <div
                 className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ background: zone.isStrategic ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))" }}
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground leading-snug">{zone.label}</p>
-                <div className="flex gap-1 mt-0.5">
+                <div className="flex gap-1 mt-0.5 flex-wrap">
                   {zone.lenses.map(l => (
                     <span key={l} className="px-1.5 py-0.5 rounded text-xs font-bold uppercase" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
                       {l}
