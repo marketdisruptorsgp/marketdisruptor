@@ -36,6 +36,9 @@ export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
   graph: InsightGraph | null;
   evidence: Record<MetricDomain, MetricEvidence> | null;
+  insights: Insight[];
+  opportunities: Opportunity[];
+  narrative: StrategicNarrative | null;
   isComputing: boolean;
   completedSteps: Set<string>;
   pipelineCompletion: number;
