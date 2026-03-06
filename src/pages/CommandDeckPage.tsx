@@ -40,6 +40,8 @@ import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { allScenariosToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
+import { RecomputeOverlay } from "@/components/RecomputeOverlay";
+import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
