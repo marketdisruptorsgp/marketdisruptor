@@ -732,10 +732,17 @@ function constructStrategicPathways(
       l.relatedInsightIds.includes(con.id) || opp.relatedInsightIds.includes(l.id)
     );
 
-    const parts = [humanize(con.label).slice(0, 35)];
-    if (driver) parts.push(humanize(driver.label).slice(0, 35));
-    if (leverage) parts.push(humanize(leverage.label).slice(0, 35));
-    parts.push(humanize(opp.label).slice(0, 35));
+    // Build pathway label with word-boundary-safe truncation
+    const trimWord = (s: string, max: number) => {
+      const clean = humanize(s);
+      if (clean.length <= max) return clean;
+      const cut = clean.lastIndexOf(" ", max);
+      return clean.slice(0, cut > max * 0.4 ? cut : max) + "…";
+    };
+    const parts = [trimWord(con.label, 40)];
+    if (driver) parts.push(trimWord(driver.label, 40));
+    if (leverage) parts.push(trimWord(leverage.label, 40));
+    parts.push(trimWord(opp.label, 40));
     const label = parts.join(" → ");
 
     insights.push(makeInsight({
