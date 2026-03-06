@@ -99,6 +99,22 @@ export const TierDiscoveryPanel = memo(function TierDiscoveryPanel({
                     <p className="text-sm font-extrabold text-foreground">
                       Tier {tierNum} — {meta.label}
                     </p>
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-0.5 rounded-full hover:bg-muted/50 transition-colors"
+                          >
+                            <Info size={12} className="text-muted-foreground" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[220px] text-xs">
+                          {TIER_TOOLTIPS[tierNum]}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     {isActive && (
                       <span className="text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full"
                         style={{ background: `${meta.color}20`, color: meta.color }}>

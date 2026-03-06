@@ -277,7 +277,7 @@ export default function StartPage() {
               <p className="text-base font-extrabold text-foreground">Instant Photo Analysis</p>
             </div>
             <p className="text-[13px] text-foreground/70 leading-relaxed mb-4">
-              Snap a photo of any product and get an AI-powered competitive teardown in seconds.
+              Snap a photo of any product and get an instant structural teardown in seconds.
             </p>
             <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 group-hover:gap-2.5 transition-all">
               Try It <ArrowRight size={13} />
