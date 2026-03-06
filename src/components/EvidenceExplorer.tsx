@@ -38,10 +38,9 @@ interface EvidenceExplorerProps {
 }
 
 export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceExplorerProps) {
-  if (!domain) return null;
-
-  const data = evidence[domain];
-  const meta = DOMAIN_META[domain];
+  const safeDomain = domain || "opportunity";
+  const data = evidence[safeDomain];
+  const meta = DOMAIN_META[safeDomain];
   const Icon = meta.icon;
 
   // Group by pipeline step
@@ -61,6 +60,8 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
     data.items.forEach(item => { counts[item.tier]++; });
     return counts;
   }, [data.items]);
+
+  if (!domain) return null;
 
   return (
     <Sheet open={open} onOpenChange={v => !v && onClose()}>
