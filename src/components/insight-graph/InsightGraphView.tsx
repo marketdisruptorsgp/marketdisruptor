@@ -6,7 +6,7 @@
  *           breakthrough opportunity badges, hover tooltips, expanded detail panel.
  */
 
-import { memo, useMemo, useState, useCallback, useRef } from "react";
+import { memo, useMemo, useState, useCallback } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -189,8 +189,8 @@ const nodeTypes = { insightNode: InsightNode };
 //  HOVER TOOLTIP — anchored relative to graph container, not mouse
 // ═══════════════════════════════════════════════════════════════
 
-function GraphTooltip({ node, graph, anchorRef }: {
-  node: InsightGraphNode; graph: InsightGraph; anchorRef: React.RefObject<HTMLDivElement | null>;
+function GraphTooltip({ node, graph }: {
+  node: InsightGraphNode; graph: InsightGraph;
 }) {
   const config = NODE_TYPE_CONFIG[node.type];
   const downstream = graph.edges.filter(e => e.source === node.id);
@@ -200,12 +200,6 @@ function GraphTooltip({ node, graph, anchorRef }: {
     return t && OPPORTUNITY_NODE_TYPES.includes(t.type);
   }).length;
 
-  // Position tooltip at top-left of graph container instead of tracking mouse
-  const pos = useMemo(() => {
-    if (!anchorRef.current) return { top: 12, left: 12 };
-    return { top: 12, left: 12 };
-  }, [anchorRef]);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 4 }}
@@ -213,8 +207,8 @@ function GraphTooltip({ node, graph, anchorRef }: {
       exit={{ opacity: 0 }}
       className="absolute z-40 pointer-events-none rounded-xl px-4 py-3 shadow-2xl"
       style={{
-        top: pos.top,
-        left: pos.left,
+        top: 12,
+        left: 12,
         maxWidth: 280,
         background: "hsl(var(--card))",
         border: `2px solid ${config.borderColor}`,
@@ -332,8 +326,6 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
   const [activeTab, setActiveTab] = useState<"graph" | "landscape" | "constraints" | "pathways">("graph");
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>("structural");
   const [showOpportunityPaths, setShowOpportunityPaths] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const graphCanvasRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
   // Identify top leverage constraint + breakthrough opportunity
@@ -454,7 +446,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
   }
 
   return (
-    <div className="space-y-3" ref={containerRef}>
+    <div className="space-y-3">
       {/* Tab switcher */}
       <div className="flex items-center gap-1 flex-wrap">
         {([
@@ -487,7 +479,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
       ) : (
       <>
       {/* Zoom Level + Opportunity Path Toggle */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 overflow-x-auto">
         {/* Zoom levels */}
         <div className="flex items-center gap-1 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
           {(Object.keys(ZOOM_LEVEL_CONFIG) as ZoomLevel[]).map(level => (
@@ -540,7 +532,8 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
       </div>
 
       {/* Tier legend */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-1">
+      {!isMobile && (
+      <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
         {TIER_CONFIG.map((tier) => {
           const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
           if (count === 0) return null;
@@ -562,6 +555,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
           );
         })}
       </div>
+      )}
 
       {/* Active path indicator */}
       <AnimatePresence>
@@ -636,7 +630,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
 
       {/* Graph Canvas */}
       <div
-        ref={graphCanvasRef}
+        
         className="relative rounded-2xl overflow-hidden"
         style={{
           height: isMobile ? "calc(100vh - 320px)" : 580,
@@ -654,7 +648,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
           onNodeMouseLeave={onNodeMouseLeave}
           onPaneClick={onPaneClick}
           fitView
-          fitViewOptions={{ padding: 0.25 }}
+          fitViewOptions={{ padding: isMobile ? 0.15 : 0.3 }}
           minZoom={0.25}
           maxZoom={2.5}
           proOptions={{ hideAttribution: true }}
@@ -676,7 +670,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
         {/* Hover Tooltip — anchored inside graph canvas */}
         <AnimatePresence>
           {hoveredNode && activeTab === "graph" && !selectedNodeId && !isMobile && (
-            <GraphTooltip node={hoveredNode} graph={graph} anchorRef={graphCanvasRef} />
+            <GraphTooltip node={hoveredNode} graph={graph} />
           )}
         </AnimatePresence>
 
