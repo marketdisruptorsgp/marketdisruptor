@@ -84,35 +84,65 @@ const trendIcons: Record<string, { icon: typeof TrendingUp; color: string; label
   down: { icon: AlertTriangle, color: "hsl(0 72% 52%)", label: "Needs attention" },
 };
 
-function MetricCard({ label, value, description, icon: Icon, color, trend, delay = 0 }: {
-  label: string; value: number; description: string;
-  icon: React.ElementType; color: string; trend: "up" | "neutral" | "down"; delay?: number;
-}) {
-  const max = label === "Constraints" ? Math.max(value, 10) : 10;
-  const trendInfo = trendIcons[trend];
-  const TrendIcon = trendInfo.icon;
+interface MetricCardProps {
+  label: string;
+  value: string | number;
+  description: string;
+  icon: React.ElementType;
+  color: string;
+  trend?: "up" | "down" | "neutral";
+  evidence?: string;
+  delay?: number;
+  onClick?: () => void;
+}
+
+function MetricCard({ label, value, description, icon: Icon, color, trend, evidence, delay = 0, onClick }: MetricCardProps) {
+  const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
+  const max = label === "Constraints" ? Math.max(numValue, 10) : 10;
+  const trendInfo = trend ? trendIcons[trend] : null;
+  const TrendIcon = trendInfo?.icon;
 
   return (
     <motion.div
       {...fadeUp}
       transition={{ delay, duration: 0.4 }}
-      className="rounded-xl p-4 bg-card border border-border flex flex-col items-center gap-2 min-h-[180px]"
     >
-      <div className="relative">
-        <CircularGauge value={value} max={max} color={color} size={76} strokeWidth={5} delay={delay + 0.1} />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Icon size={18} style={{ color }} />
+      <div
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onClick={onClick}
+        className={`rounded-xl p-4 bg-card border border-border flex flex-col items-center gap-2 min-h-[200px] w-full ${onClick ? "cursor-pointer hover:border-primary/30 transition-colors" : ""}`}
+      >
+        {/* ICON inside gauge */}
+        <div className="relative">
+          <CircularGauge value={numValue} max={max} color={color} size={76} strokeWidth={5} delay={delay + 0.1} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Icon size={18} style={{ color }} />
+          </div>
         </div>
-      </div>
-      <div className="text-center flex-1 flex flex-col justify-between">
-        <div>
+
+        <div className="text-center flex-1 flex flex-col">
+          {/* VALUE */}
           <p className="text-2xl font-extrabold tabular-nums text-foreground leading-none">{value}</p>
+
+          {/* LABEL */}
           <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1">{label}</p>
-        </div>
-        <p className="text-[10px] text-muted-foreground mt-1.5 leading-snug line-clamp-2">{description}</p>
-        <div className="flex items-center justify-center gap-1 mt-1.5">
-          <TrendIcon size={10} style={{ color: trendInfo.color }} />
-          <span className="text-[9px] font-bold" style={{ color: trendInfo.color }}>{trendInfo.label}</span>
+
+          {/* EVIDENCE LINE */}
+          {evidence && (
+            <p className="text-[10px] font-semibold mt-1.5" style={{ color }}>{evidence}</p>
+          )}
+
+          {/* DESCRIPTION */}
+          <p className="text-[10px] text-muted-foreground mt-1 leading-snug line-clamp-2">{description}</p>
+
+          {/* TREND */}
+          {trendInfo && TrendIcon && (
+            <div className="flex items-center justify-center gap-1 mt-auto pt-1.5">
+              <TrendIcon size={10} style={{ color: trendInfo.color }} />
+              <span className="text-[9px] font-bold" style={{ color: trendInfo.color }}>{trendInfo.label}</span>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -387,7 +417,8 @@ export default function CommandDeckPage() {
           <MetricCard
             label="Opportunity Score"
             value={metrics.opportunityScore}
-            description="Potential value created by redesign opportunities and leverage signals"
+            evidence={`${metrics.opportunitiesIdentified} opportunities detected`}
+            description="Potential value from redesign and leverage signals"
             icon={Lightbulb}
             color="hsl(152 60% 44%)"
             trend={getTrend(metrics.opportunityScore)}
@@ -396,6 +427,7 @@ export default function CommandDeckPage() {
           <MetricCard
             label="Friction Index"
             value={metrics.frictionIndex}
+            evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
             description="Customer complaints, friction points, and constraints"
             icon={AlertTriangle}
             color="hsl(0 72% 52%)"
@@ -405,6 +437,7 @@ export default function CommandDeckPage() {
           <MetricCard
             label="Constraints"
             value={metrics.constraintsCount}
+            evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
             description="Structural constraints and assumptions discovered"
             icon={Crosshair}
             color="hsl(0 72% 52%)"
@@ -414,6 +447,7 @@ export default function CommandDeckPage() {
           <MetricCard
             label="Leverage Score"
             value={metrics.leverageScore}
+            evidence={`${metrics.leveragePoints} leverage signals`}
             description="Hidden value and high-leverage opportunities"
             icon={Zap}
             color="hsl(38 92% 50%)"
@@ -423,6 +457,7 @@ export default function CommandDeckPage() {
           <MetricCard
             label="Risk Score"
             value={metrics.riskScore}
+            evidence={`${metrics.riskSignals} risk signals`}
             description="Execution, feasibility, and market risk"
             icon={Shield}
             color="hsl(0 72% 52%)"
