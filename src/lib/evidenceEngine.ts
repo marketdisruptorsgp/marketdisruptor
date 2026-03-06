@@ -303,6 +303,11 @@ function computeConfidenceScores(allItems: Evidence[]): void {
     }
 
     item.confidenceScore = Math.round(confidence * 100) / 100;
+
+    // Boost confidence when competitor analogs exist
+    if (item.competitorReferences && item.competitorReferences.length > 0) {
+      item.confidenceScore = Math.min(1, item.confidenceScore + 0.1);
+    }
   });
 
   // Build related signals (same tier, different step)

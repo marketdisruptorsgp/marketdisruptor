@@ -3,19 +3,24 @@
  *
  * Inserted into Command Deck between Zone 1 and Zone 2.
  * Shows three tiers with unlock state, signal counts, and narratives.
+ * Limits visible signals to 8-12 per tier with "Explore More Signals" expansion.
  */
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, CheckCircle2, ChevronRight, Layers } from "lucide-react";
+import { Lock, CheckCircle2, ChevronRight, Layers, ArrowRight } from "lucide-react";
 import { TIER_META, type TierNumber, type TierState, getUnlockCondition } from "@/lib/tierDiscoveryEngine";
 import type { EvidenceTier } from "@/lib/evidenceEngine";
+
+const SIGNALS_CAP = 8;
 
 interface TierDiscoveryPanelProps {
   tierState: TierState;
   activeTierFilter: EvidenceTier | null;
   onSelectTier: (tier: TierNumber) => void;
   onMarkComplete: (tier: TierNumber) => void;
+  /** Opens Evidence Explorer pre-filtered to a tier */
+  onExploreTier?: (tier: EvidenceTier) => void;
 }
 
 export const TierDiscoveryPanel = memo(function TierDiscoveryPanel({
@@ -23,6 +28,7 @@ export const TierDiscoveryPanel = memo(function TierDiscoveryPanel({
   activeTierFilter,
   onSelectTier,
   onMarkComplete,
+  onExploreTier,
 }: TierDiscoveryPanelProps) {
   const tiers: TierNumber[] = [1, 2, 3];
 
@@ -50,6 +56,7 @@ export const TierDiscoveryPanel = memo(function TierDiscoveryPanel({
           const signalCount = tierState.tierSignalCounts[tierNum - 1];
           const isActive = activeTierFilter === meta.tier;
           const unlockCondition = getUnlockCondition(tierNum, tierState);
+          const remaining = Math.max(0, signalCount - SIGNALS_CAP);
 
           return (
             <button
@@ -117,7 +124,7 @@ export const TierDiscoveryPanel = memo(function TierDiscoveryPanel({
                         />
                       </div>
                       <span className="text-sm font-extrabold tabular-nums" style={{ color: meta.color }}>
-                        {signalCount}
+                        {Math.min(signalCount, SIGNALS_CAP)}{remaining > 0 ? `+${remaining}` : ""}
                       </span>
                     </div>
                     <ChevronRight size={14} className="text-muted-foreground" />
@@ -126,6 +133,20 @@ export const TierDiscoveryPanel = memo(function TierDiscoveryPanel({
                   <Lock size={14} className="text-muted-foreground flex-shrink-0" />
                 )}
               </div>
+
+              {/* "Explore More Signals" button for active tier with overflow */}
+              {unlocked && isActive && remaining > 0 && onExploreTier && (
+                <div className="mt-3 pt-3 border-t" style={{ borderColor: `${meta.color}20` }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onExploreTier(meta.tier); }}
+                    className="flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
+                    style={{ background: `${meta.color}12`, color: meta.color }}
+                  >
+                    <ArrowRight size={12} />
+                    Explore {remaining} more signals
+                  </button>
+                </div>
+              )}
 
               {/* Mark complete button for active tier */}
               {unlocked && isActive && tierNum < 3 && !tierState.tierUnlocked[tierNum as 1 | 2] && (
