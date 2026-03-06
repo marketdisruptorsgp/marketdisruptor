@@ -35,6 +35,7 @@ import {
 import { getScenarios, allScenariosToEvidence } from "@/lib/scenarioEngine";
 import { compareScenarios, type ScenarioComparison } from "@/lib/scenarioComparisonEngine";
 import { computeAllSensitivityReports, type SensitivityReport } from "@/lib/sensitivityEngine";
+import { traceStage, buildDiagnostic, type PipelineStageResult } from "@/lib/pipelineDiagnostics";
 
 const DEBOUNCE_MS = 600;
 
