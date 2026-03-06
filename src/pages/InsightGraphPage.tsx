@@ -169,7 +169,7 @@ export default function InsightGraphPage() {
         </button>
       </div>
 
-      <InsightGraphView graph={graph} />
+      <InsightGraphView graph={graph} analysisId={analysisId || ""} />
     </AnalysisPageShell>
   );
 }
