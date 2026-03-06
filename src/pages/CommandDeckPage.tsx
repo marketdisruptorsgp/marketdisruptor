@@ -554,6 +554,10 @@ export default function CommandDeckPage() {
           activeTierFilter={tierFilter}
           onSelectTier={handleSelectTier}
           onMarkComplete={handleMarkComplete}
+          onExploreTier={(tier) => {
+            // Open Evidence Explorer on "opportunity" domain (most relevant) with tier pre-selected
+            openExplorer("opportunity");
+          }}
         />
 
         {/* ═══ ZONE 2 — PIPELINE + SIGNAL ACCUMULATION ═══ */}

@@ -31,6 +31,8 @@ export interface Evidence {
   relatedSignals?: string[];
   /** Semantic category (ownership, logistics, ux, etc.) */
   category?: string;
+  /** Competitor analogs that validate this evidence */
+  competitorReferences?: { name: string; modelType?: string }[];
 }
 
 export type MetricDomain = "opportunity" | "friction" | "constraint" | "leverage" | "risk";
@@ -100,6 +102,10 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
     safeArr(disrupt.flippedIdeas || disrupt.ideas).forEach((idea: any, i: number) => {
       const label = idea.name || idea.title || idea.label || `Flipped Idea ${i + 1}`;
       const desc = idea.description;
+      // Extract competitor references from flipped idea
+      const competitors = safeArr(idea.competitorReferences || idea.competitors || idea.analogs)
+        .map((c: any) => ({ name: typeof c === "string" ? c : (c.name || c.company), modelType: c.modelType }))
+        .filter((c: any) => c.name);
       items.push({
         id: idea.id || makeId("opp-flip"),
         type: "opportunity",
@@ -109,6 +115,7 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
         tier: autoTier(label, desc, "structural"),
         impact: idea.impact || idea.score,
         category: idea.category || idea.structuralChangeType,
+        competitorReferences: competitors.length > 0 ? competitors : undefined,
       });
     });
   }
@@ -296,6 +303,11 @@ function computeConfidenceScores(allItems: Evidence[]): void {
     }
 
     item.confidenceScore = Math.round(confidence * 100) / 100;
+
+    // Boost confidence when competitor analogs exist
+    if (item.competitorReferences && item.competitorReferences.length > 0) {
+      item.confidenceScore = Math.min(1, item.confidenceScore + 0.1);
+    }
   });
 
   // Build related signals (same tier, different step)

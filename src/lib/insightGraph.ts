@@ -15,6 +15,7 @@
 import type { Product } from "@/data/mockProducts";
 import type { SystemIntelligence, ConstraintNode, OpportunityNode, CommandDeck } from "@/lib/systemIntelligence";
 import type { LeverageNode } from "@/lib/multiLensEngine";
+import { classifyTier } from "@/lib/tierDiscoveryEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -55,6 +56,8 @@ export interface InsightGraphNode {
   evidence: string[];
   reasoning?: string;
   relatedNodeIds: string[];
+  /** Discovery tier: structural / system / optimization */
+  tier?: "structural" | "system" | "optimization";
 }
 
 export interface InsightGraphEdge {
@@ -117,20 +120,22 @@ function makeNode(
   label: string,
   opts: Partial<Omit<InsightGraphNode, "id" | "type" | "label">> = {},
 ): InsightGraphNode {
+  const trimmedLabel = label.slice(0, 120);
   return {
     id,
     type,
-    label: label.slice(0, 120),
+    label: trimmedLabel,
     detail: opts.detail,
     impact: opts.impact ?? 5,
     confidence: opts.confidence ?? "medium",
     evidenceCount: opts.evidenceCount ?? (opts.evidence?.length ?? 0),
-    influence: 0, // computed later
-    leverageScore: 0, // computed later
+    influence: 0,
+    leverageScore: 0,
     pipelineStep: opts.pipelineStep ?? "report",
     evidence: opts.evidence ?? [],
     reasoning: opts.reasoning,
     relatedNodeIds: opts.relatedNodeIds ?? [],
+    tier: opts.tier ?? classifyTier(trimmedLabel),
   };
 }
 

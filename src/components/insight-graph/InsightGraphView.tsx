@@ -7,6 +7,7 @@
  */
 
 import { memo, useMemo, useState, useCallback } from "react";
+import { TIER_META } from "@/lib/tierDiscoveryEngine";
 import ReactFlow, {
   Background,
   Controls,
@@ -101,9 +102,11 @@ function InsightNode({ data }: NodeProps) {
   const isHighlighted = data.isHighlighted as boolean;
   const isDimmed = data.isDimmed as boolean;
   const isHighLeverage = leverageScore >= 60;
+  const tier = data.tier as "structural" | "system" | "optimization" | undefined;
+  const tierMeta = tier ? TIER_META[tier === "structural" ? 1 : tier === "system" ? 2 : 3] : null;
 
   // Size scales with leverage score
-  const sizeScale = 1 + (leverageScore / 100) * 0.15; // 1.0 to 1.15
+  const sizeScale = 1 + (leverageScore / 100) * 0.15;
 
   return (
     <div
@@ -128,6 +131,18 @@ function InsightNode({ data }: NodeProps) {
       <Handle type="target" position={Position.Left} style={{ opacity: 0, width: 1, height: 1 }} />
       <Handle type="source" position={Position.Right} style={{ opacity: 0, width: 1, height: 1 }} />
 
+      {/* Tier ring — visual tier grouping */}
+      {tierMeta && (
+        <div
+          className="absolute -inset-0.5 rounded-xl pointer-events-none"
+          style={{
+            border: `2.5px solid ${tierMeta.color}`,
+            opacity: isDimmed ? 0.1 : 0.55,
+            borderRadius: "0.85rem",
+          }}
+        />
+      )}
+
       {/* Pulsing ring for top leverage or breakthrough */}
       {(isTopLeverage || isBreakthrough) && (
         <div
@@ -150,6 +165,14 @@ function InsightNode({ data }: NodeProps) {
         <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
           {config.label}
         </span>
+        {tierMeta && (
+          <span
+            className="text-[8px] font-bold px-1 py-0.5 rounded-full"
+            style={{ background: `${tierMeta.color}15`, color: tierMeta.color }}
+          >
+            T{tier === "structural" ? 1 : tier === "system" ? 2 : 3}
+          </span>
+        )}
         {isBreakthrough && (
           <span
             className="text-xs font-bold px-1.5 py-0.5 rounded-full ml-auto"
@@ -300,6 +323,7 @@ function layoutTiered(graphNodes: InsightGraphNode[]): Node[] {
           confidence: gn.confidence,
           influence: gn.influence,
           leverageScore: gn.leverageScore,
+          tier: gn.tier,
           isTopLeverage: false,
           isBreakthrough: false,
           isHighlighted: false,
