@@ -5,18 +5,20 @@
  * Accessible as a tab within any analysis.
  */
 
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
+import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { buildInsightGraph } from "@/lib/insightGraph";
 import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { InsightGraphView } from "@/components/insight-graph/InsightGraphView";
-import { GitBranch } from "lucide-react";
+import { GitBranch, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   AnalysisPageShell,
