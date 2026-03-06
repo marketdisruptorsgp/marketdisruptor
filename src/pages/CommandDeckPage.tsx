@@ -657,7 +657,7 @@ export default function CommandDeckPage() {
             <div className="flex items-center gap-2">
               <Lightbulb size={14} style={{ color: "hsl(152 60% 44%)" }} />
               <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Top Strategic Opportunities</p>
-              <span className="text-[10px] font-bold text-muted-foreground">({topOpps.length})</span>
+              <span className="text-[10px] font-bold text-muted-foreground">({filteredOpps.length})</span>
             </div>
             {graph && graph.nodes.length > 0 && (
               <button
