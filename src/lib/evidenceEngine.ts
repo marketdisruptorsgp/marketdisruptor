@@ -34,7 +34,8 @@ export type EvidenceType =
   | "opportunity"
   | "leverage"
   | "risk"
-  | "competitor";
+  | "competitor"
+  | "simulation";
 
 export type EvidenceMode = "product" | "service" | "business_model";
 
@@ -42,7 +43,7 @@ export type EvidenceLens = "market" | "product" | "economics" | "operations" | "
 
 export type EvidenceArchetype = "operator" | "venture" | "bootstrap" | "enterprise" | "eta";
 
-export type EvidencePipelineStep = "report" | "disrupt" | "redesign" | "stress_test" | "pitch";
+export type EvidencePipelineStep = "report" | "disrupt" | "redesign" | "stress_test" | "pitch" | "simulation";
 
 export type EvidenceSourceEngine =
   | "pipeline"
@@ -50,7 +51,8 @@ export type EvidenceSourceEngine =
   | "signal_detection"
   | "financial_model"
   | "competitor_scout"
-  | "system_intelligence";
+  | "system_intelligence"
+  | "scenario_engine";
 
 export interface Evidence {
   id: string;
@@ -552,7 +554,7 @@ export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, M
 
   // Re-split by domain
   const dedupedByDomain = {
-    opportunity: allDeduped.filter(e => e.type === "opportunity" || (e.type === "signal" && e.pipelineStep === "report")),
+    opportunity: allDeduped.filter(e => e.type === "opportunity" || e.type === "simulation" || (e.type === "signal" && e.pipelineStep === "report")),
     friction: allDeduped.filter(e => e.type === "friction" || (e.type === "constraint" && e.pipelineStep === "disrupt")),
     constraint: allDeduped.filter(e => e.type === "assumption" || (e.type === "constraint" && e.pipelineStep !== "disrupt")),
     leverage: allDeduped.filter(e => e.type === "leverage" || (e.type === "signal" && e.pipelineStep === "redesign")),

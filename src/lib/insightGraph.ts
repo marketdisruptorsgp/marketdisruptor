@@ -129,6 +129,7 @@ const EVIDENCE_TO_NODE: Record<EvidenceType, InsightNodeType> = {
   leverage: "leverage_point",
   risk: "risk",
   competitor: "competitor",
+  simulation: "simulation",
 };
 
 // ═══════════════════════════════════════════════════════════════

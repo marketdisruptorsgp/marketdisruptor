@@ -186,23 +186,7 @@ export function hydrateScenarios(analysisId: string, scenarios: ToolScenario[]):
 //  SCENARIO → EVIDENCE BRIDGE
 // ═══════════════════════════════════════════════════════════════
 
-const TOOL_EVIDENCE_TYPE_MAP: Record<string, Evidence["type"]> = {
-  "sba-loan-calculator": "signal",
-  "deal-structure-simulator": "signal",
-  "dscr-calculator": "signal",
-  "acquisition-roi-model": "signal",
-  "tam-calculator": "signal",
-  "unit-economics-model": "signal",
-  "revenue-model-simulator": "signal",
-  "cash-flow-quality": "signal",
-  "industry-fragmentation-detector": "opportunity",
-  "seller-motivation-signals": "signal",
-  "deal-risk-scanner": "risk",
-  "competitive-moat-analyzer": "signal",
-  "assumption-stress-tester": "assumption",
-  "innovation-pathway-mapper": "opportunity",
-  "value-chain-analyzer": "leverage",
-};
+// Tool IDs retained for reference only; all scenarios produce type="simulation" evidence
 
 /**
  * Convert a saved scenario into a canonical Evidence object.
@@ -212,8 +196,6 @@ export function scenarioToEvidence(
   scenario: ToolScenario,
   mode: EvidenceMode = "product",
 ): Evidence {
-  const evidenceType = TOOL_EVIDENCE_TYPE_MAP[scenario.toolId] || "signal";
-
   const outputEntries = Object.entries(scenario.outputResults).slice(0, 4);
   const outputDesc = outputEntries
     .map(([k, v]) => `${k.replace(/([A-Z])/g, " $1").trim()}: ${typeof v === "number" ? v.toLocaleString() : v}`)
@@ -223,16 +205,16 @@ export function scenarioToEvidence(
 
   return {
     id: `sim-${scenario.scenarioId}`,
-    type: evidenceType,
+    type: "simulation" as const,
     label: `${scenario.scenarioName} (${scenario.toolId.replace(/-/g, " ")})`,
     description: `Simulation output: ${outputDesc}`,
-    pipelineStep: "stress_test" as EvidencePipelineStep,
+    pipelineStep: "simulation" as EvidencePipelineStep,
     tier: "system",
     impact: impactScore,
     confidenceScore: 0.85,
     category: "simulation",
     mode,
-    sourceEngine: "pipeline" as const,
+    sourceEngine: "scenario_engine" as const,
   };
 }
 
