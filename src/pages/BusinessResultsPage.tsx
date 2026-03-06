@@ -130,6 +130,7 @@ export default function BusinessResultsPage() {
         accentColor={modeAccent}
         backLabel={backNav?.label || "Home"}
         backPath="#"
+        analysisId={analysis.analysisId}
       />
 
       <AnalysisActionToolbar

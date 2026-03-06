@@ -89,6 +89,7 @@ export default function DisruptPage() {
         accentColor={theme.primary}
         backLabel="Intelligence Report"
         backPath={`${baseUrl}/report`}
+        analysisId={analysisId}
       />
 
       <AnalysisActionToolbar

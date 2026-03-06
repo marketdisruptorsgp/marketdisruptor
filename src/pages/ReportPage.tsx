@@ -195,6 +195,7 @@ export default function ReportPage() {
         accentColor={modeAccent}
         backLabel="Home"
         backPath="/"
+        analysisId={analysisId}
       />
 
       <AnalysisActionToolbar

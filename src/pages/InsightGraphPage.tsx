@@ -89,6 +89,7 @@ export default function InsightGraphPage() {
         accentColor={modeAccent}
         backLabel="Report"
         backPath={`${baseUrl}/report`}
+        analysisId={analysisId}
       />
 
       <AnalysisActionToolbar

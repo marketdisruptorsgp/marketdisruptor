@@ -94,6 +94,7 @@ export default function StressTestPage() {
         backLabel="Redesign"
         backPath={`${baseUrl}/redesign`}
         outdatedStepName={isOutdated ? "Strategy Development" : undefined}
+        analysisId={analysisId}
       />
 
       <AnalysisActionToolbar
