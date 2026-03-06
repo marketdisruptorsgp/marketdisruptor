@@ -1,4 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
+import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { useNavigate } from "react-router-dom";
 import { HeroSection } from "@/components/HeroSection";
 import { useSubscription } from "@/hooks/useSubscription";

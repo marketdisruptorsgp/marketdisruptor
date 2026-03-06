@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
+import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
