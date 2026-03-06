@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ScrollToTopProvider } from "@/components/ScrollToTopProvider";
-import { lazy, Suspense, useEffect, Component } from "react";
+import { lazy, Suspense, useEffect, useMemo, Component } from "react";
 import type { ReactNode, ErrorInfo } from "react";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
@@ -112,7 +112,6 @@ function AppRoutes() {
     import("@/lib/analyticsTracker").then(({ initAnalyticsTracker }) => initAnalyticsTracker());
   }, []);
 
-  // Global safety net: catch unhandled async rejections to prevent white screens
   useEffect(() => {
     const handler = (event: PromiseRejectionEvent) => {
       console.error("[App] Unhandled rejection:", event.reason);
@@ -120,6 +119,17 @@ function AppRoutes() {
     };
     window.addEventListener("unhandledrejection", handler);
     return () => window.removeEventListener("unhandledrejection", handler);
+  }, []);
+
+  // Must be before early returns to satisfy hook rules
+  const shouldShowSidebar = useMemo(() => {
+    const path = window.location.pathname;
+    return (
+      path.startsWith("/workspace") ||
+      path.startsWith("/analysis/") ||
+      path.startsWith("/intelligence") ||
+      path.startsWith("/business/")
+    );
   }, []);
 
   if (loading) {
@@ -151,51 +161,74 @@ function AppRoutes() {
     );
   }
 
-  return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <CommandNavigation />
-        <div className="flex-1 flex flex-col min-w-0">
-          <Routes>
-            <Route path="/admin/analytics" element={<LazyRoute><AdminAnalyticsPage /></LazyRoute>} />
-            <Route path="/admin/health" element={<LazyRoute><AdminHealthPage /></LazyRoute>} />
-            <Route path="/admin/governance" element={<LazyRoute><GovernanceAuditPage /></LazyRoute>} />
-            <Route path="/admin/architecture" element={<LazyRoute><AdminArchitecturePage /></LazyRoute>} />
-            <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
-            <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
-            <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
-            <Route path="/analysis/share/:id" element={<LazyRoute><ShareableAnalysisPage /></LazyRoute>} />
-            <Route path="/" element={<LazyRoute><StartPage /></LazyRoute>} />
-            <Route path="/workspace" element={<LazyRoute><WorkspacePage /></LazyRoute>} />
-            <Route path="/analysis/new" element={<LazyRoute><NewAnalysisPage /></LazyRoute>} />
-            <Route path="/intelligence" element={<LazyRoute><IntelligencePage /></LazyRoute>} />
-            {/* Legacy redirects */}
-            <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
-            <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
-            <Route path="/start/product" element={<Navigate to="/analysis/new" replace />} />
-            <Route path="/start/service" element={<Navigate to="/analysis/new" replace />} />
-            <Route path="/start/business" element={<Navigate to="/analysis/new" replace />} />
-            <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
-            <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
-            <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
-            <Route path="/analysis/:id/redesign" element={<LazyRoute><RedesignPage /></LazyRoute>} />
-            <Route path="/analysis/:id/stress-test" element={<LazyRoute><StressTestPage /></LazyRoute>} />
-            <Route path="/analysis/:id/pitch" element={<LazyRoute><PitchPage /></LazyRoute>} />
-            <Route path="/analysis/:id/insight-graph" element={<LazyRoute><InsightGraphPage /></LazyRoute>} />
-            <Route path="/business/:id" element={<LazyRoute><BusinessResultsPage /></LazyRoute>} />
-            <Route path="/pricing" element={<LazyRoute><PricingPage /></LazyRoute>} />
-            <Route path="/about" element={<LazyRoute><AboutPage /></LazyRoute>} />
-            <Route path="/resources" element={<LazyRoute><ResourcesPage /></LazyRoute>} />
-            <Route path="/methodology" element={<LazyRoute><MethodologyPage /></LazyRoute>} />
-            <Route path="/faqs" element={<LazyRoute><FaqsPage /></LazyRoute>} />
-            <Route path="/api" element={<LazyRoute><ApiPage /></LazyRoute>} />
-            <Route path="/pipeline" element={<LazyRoute><PipelinePage /></LazyRoute>} />
-            <Route path="/admin/pipeline" element={<LazyRoute><PipelineObservabilityPage /></LazyRoute>} />
-            <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
-          </Routes>
+
+  // Routes that get the sidebar layout
+  const sidebarRoutes = (
+    <>
+      <Route path="/workspace" element={<LazyRoute><WorkspacePage /></LazyRoute>} />
+      <Route path="/analysis/new" element={<LazyRoute><NewAnalysisPage /></LazyRoute>} />
+      <Route path="/intelligence" element={<LazyRoute><IntelligencePage /></LazyRoute>} />
+      <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
+      <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
+      <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
+      <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
+      <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
+      <Route path="/analysis/:id/redesign" element={<LazyRoute><RedesignPage /></LazyRoute>} />
+      <Route path="/analysis/:id/stress-test" element={<LazyRoute><StressTestPage /></LazyRoute>} />
+      <Route path="/analysis/:id/pitch" element={<LazyRoute><PitchPage /></LazyRoute>} />
+      <Route path="/analysis/:id/insight-graph" element={<LazyRoute><InsightGraphPage /></LazyRoute>} />
+      <Route path="/business/:id" element={<LazyRoute><BusinessResultsPage /></LazyRoute>} />
+    </>
+  );
+
+  // Routes without sidebar (public pages, marketing, admin)
+  const fullWidthRoutes = (
+    <>
+      <Route path="/admin/analytics" element={<LazyRoute><AdminAnalyticsPage /></LazyRoute>} />
+      <Route path="/admin/health" element={<LazyRoute><AdminHealthPage /></LazyRoute>} />
+      <Route path="/admin/governance" element={<LazyRoute><GovernanceAuditPage /></LazyRoute>} />
+      <Route path="/admin/architecture" element={<LazyRoute><AdminArchitecturePage /></LazyRoute>} />
+      <Route path="/admin/pipeline" element={<LazyRoute><PipelineObservabilityPage /></LazyRoute>} />
+      <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
+      <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
+      <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
+      <Route path="/analysis/share/:id" element={<LazyRoute><ShareableAnalysisPage /></LazyRoute>} />
+      <Route path="/" element={<LazyRoute><StartPage /></LazyRoute>} />
+      <Route path="/pricing" element={<LazyRoute><PricingPage /></LazyRoute>} />
+      <Route path="/about" element={<LazyRoute><AboutPage /></LazyRoute>} />
+      <Route path="/resources" element={<LazyRoute><ResourcesPage /></LazyRoute>} />
+      <Route path="/methodology" element={<LazyRoute><MethodologyPage /></LazyRoute>} />
+      <Route path="/faqs" element={<LazyRoute><FaqsPage /></LazyRoute>} />
+      <Route path="/api" element={<LazyRoute><ApiPage /></LazyRoute>} />
+      <Route path="/pipeline" element={<LazyRoute><PipelinePage /></LazyRoute>} />
+      <Route path="/start/product" element={<Navigate to="/analysis/new" replace />} />
+      <Route path="/start/service" element={<Navigate to="/analysis/new" replace />} />
+      <Route path="/start/business" element={<Navigate to="/analysis/new" replace />} />
+      <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
+    </>
+  );
+
+  if (shouldShowSidebar) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <CommandNavigation />
+          <div className="flex-1 flex flex-col min-w-0">
+            <Routes>
+              {sidebarRoutes}
+              {fullWidthRoutes}
+            </Routes>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    );
+  }
+
+  return (
+    <Routes>
+      {fullWidthRoutes}
+      {sidebarRoutes}
+    </Routes>
   );
 }
 

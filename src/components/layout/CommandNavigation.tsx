@@ -1,8 +1,8 @@
 /**
  * COMMAND NAVIGATION — Strategic OS Left Navigation
  *
- * Persistent sidebar navigation replacing scattered top nav.
- * Sections: Discovery, Analysis Pipeline, Intelligence, System, Settings.
+ * Only renders on workspace/analysis routes.
+ * Uses semantic design tokens for full light/dark theme compliance.
  */
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -11,8 +11,8 @@ import {
   LayoutDashboard, GitBranch, Search, Compass,
   Radio, HelpCircle, Lightbulb, Route, Layers,
   Building2, Shield, BarChart3, Radar,
-  User, Palette, Brain, FolderOpen,
-  PlusCircle, Zap, ChevronRight,
+  User, Brain, FolderOpen,
+  PlusCircle, Zap,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -28,7 +28,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-// Extract analysis ID from current URL
 function useAnalysisId(): string | null {
   const location = useLocation();
   const match = location.pathname.match(/\/analysis\/([0-9a-f-]{36})/);
@@ -39,7 +38,6 @@ interface NavItem {
   label: string;
   icon: React.ElementType;
   path: string | ((id: string | null) => string);
-  /** Only show when inside an analysis context */
   requiresAnalysis?: boolean;
 }
 
@@ -52,7 +50,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: "Discovery",
     items: [
-      { label: "Command Deck", icon: LayoutDashboard, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace", requiresAnalysis: false },
+      { label: "Command Deck", icon: LayoutDashboard, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace" },
       { label: "Insight Graph", icon: GitBranch, path: (id) => id ? `/analysis/${id}/insight-graph` : "/workspace", requiresAnalysis: true },
       { label: "Evidence Explorer", icon: Search, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace", requiresAnalysis: true },
       { label: "Opportunity Landscape", icon: Compass, path: (id) => id ? `/analysis/${id}/insight-graph` : "/workspace", requiresAnalysis: true },
@@ -96,7 +94,6 @@ export function CommandNavigation() {
   const analysisId = useAnalysisId();
   const currentPath = location.pathname;
 
-  // Determine which section should be expanded based on current route
   const expandedSection = useMemo(() => {
     if (currentPath.includes("/command-deck") || currentPath.includes("/insight-graph")) return "Discovery";
     if (currentPath.includes("/report") || currentPath.includes("/disrupt") || currentPath.includes("/redesign") || currentPath.includes("/stress-test") || currentPath.includes("/pitch")) return "Analysis Pipeline";
@@ -115,19 +112,19 @@ export function CommandNavigation() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
-      <SidebarContent className="pt-2">
-        {/* Logo / Brand */}
+    <Sidebar collapsible="icon" className="border-r border-border bg-sidebar">
+      <SidebarContent className="pt-2 bg-sidebar">
+        {/* Logo */}
         <div className="px-3 py-2 mb-1">
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/workspace")}
             className="flex items-center gap-2 w-full"
           >
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-primary text-primary-foreground">
               <Zap size={15} />
             </div>
             {!collapsed && (
-              <span className="text-sm font-extrabold tracking-tight text-foreground">
+              <span className="text-sm font-extrabold tracking-tight text-sidebar-foreground">
                 Market Disruptor
               </span>
             )}
@@ -135,7 +132,6 @@ export function CommandNavigation() {
         </div>
 
         {NAV_SECTIONS.map((section) => {
-          const isExpanded = expandedSection === section.label;
           const visibleItems = section.items.filter(
             item => !item.requiresAnalysis || analysisId
           );
@@ -143,7 +139,7 @@ export function CommandNavigation() {
 
           return (
             <SidebarGroup key={section.label}>
-              <SidebarGroupLabel className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground px-3">
+              <SidebarGroupLabel className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-sidebar-foreground/50 px-3">
                 {section.label}
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -164,17 +160,15 @@ export function CommandNavigation() {
                               disabled
                                 ? "opacity-40 cursor-not-allowed"
                                 : active
-                                  ? "bg-primary/10 text-primary font-semibold"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                             }`}
-                            activeClassName="bg-primary/10 text-primary font-semibold"
+                            activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
                             onClick={(e) => {
-                              if (disabled) {
-                                e.preventDefault();
-                              }
+                              if (disabled) e.preventDefault();
                             }}
                           >
-                            <Icon size={16} className={active ? "text-primary" : "text-muted-foreground"} />
+                            <Icon size={16} className={active ? "text-primary" : "text-sidebar-foreground/60"} />
                             {!collapsed && <span>{item.label}</span>}
                             {active && !collapsed && (
                               <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
@@ -191,9 +185,9 @@ export function CommandNavigation() {
         })}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-border">
+      <SidebarFooter className="p-3 border-t border-sidebar-border bg-sidebar">
         {!collapsed && (
-          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-sidebar-foreground/50 uppercase tracking-widest">
             <Zap size={10} />
             Strategic Discovery OS
           </div>
