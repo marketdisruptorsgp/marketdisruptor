@@ -738,7 +738,7 @@ function constructStrategicPathways(
       analysisId,
       insightType: "strategic_pathway",
       label,
-      description: `Strategic pathway: address "${con.label}" ${driver ? `(caused by "${driver.label}")` : ""} ${leverage ? `through "${leverage.label}"` : ""} to achieve "${opp.label}".`,
+      description: `Strategic pathway: address "${humanize(con.label)}" ${driver ? `(caused by "${humanize(driver.label)}")` : ""} ${leverage ? `through "${humanize(leverage.label)}"` : ""} to achieve "${humanize(opp.label)}".`,
       evidenceIds: [...new Set([
         ...con.evidenceIds, ...opp.evidenceIds,
         ...(driver?.evidenceIds ?? []), ...(leverage?.evidenceIds ?? []),

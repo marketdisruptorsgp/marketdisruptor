@@ -103,7 +103,7 @@ function layoutConstraintMap(graph: InsightGraph): { nodes: Node[]; edges: Edge[
       flowNodes.push({
         id: gn.id,
         type: "constraintFlowNode",
-        position: { x: col.x, y: row * 100 + 60 },
+        position: { x: col.x, y: row * 120 + 60 },
         data: {
           label: gn.label,
           nodeType: gn.type,
