@@ -300,7 +300,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
                 pendingMode === "service" ? "btn-mode-service" : pendingMode === "business" ? "btn-mode-business" : "btn-mode-product"
               }`}
             >
-              Start Analysis
+              Start Strategic Discovery
             </button>
           </div>
         </div>
