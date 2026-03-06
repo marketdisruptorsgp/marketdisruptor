@@ -190,7 +190,6 @@ export default function WorkspacePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <HeroSection tier={tier} remainingAnalyses={null} />
         <div className="flex items-center justify-center py-20">
           <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
         </div>
