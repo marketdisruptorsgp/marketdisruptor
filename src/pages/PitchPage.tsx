@@ -52,6 +52,7 @@ export default function PitchPage() {
         backLabel="Stress Test"
         backPath={`${baseUrl}/stress-test`}
         outdatedStepName={isOutdated ? "Pitch Deck" : undefined}
+        analysisId={analysisId}
       />
 
       <AnalysisActionToolbar

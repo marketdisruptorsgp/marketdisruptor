@@ -16,7 +16,7 @@ import { ShareAnalysis } from "@/components/ShareAnalysis";
 import StrategicProfileSelector from "@/components/StrategicProfileSelector";
 import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
 import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
-import { FileDown, Save, RefreshCw, GitBranch, MoreHorizontal } from "lucide-react";
+import { FileDown, Save, RefreshCw, GitBranch, MoreHorizontal, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
 import type { TierKey } from "@/hooks/useSubscription";
 import { scrollToTop } from "@/utils/scrollToTop";
@@ -58,12 +58,18 @@ interface AnalysisStepHeaderProps {
   backPath: string;
   /** Optional outdated banner */
   outdatedStepName?: string;
+  /** Analysis ID for Command Deck / Graph navigation */
+  analysisId?: string | null;
 }
 
 export function AnalysisStepHeader({
   steps, activeStep, visitedSteps, onStepChange,
   outdatedSteps, accentColor, backLabel, backPath, outdatedStepName,
+  analysisId,
 }: AnalysisStepHeaderProps) {
+  const navigate = useNavigate();
+  const baseUrl = analysisId ? `/analysis/${analysisId}` : "";
+
   return (
     <>
       <ModeBadge />
@@ -75,7 +81,30 @@ export function AnalysisStepHeader({
         outdatedSteps={outdatedSteps}
         accentColor={accentColor}
       />
-      <StepNavBar backLabel={backLabel} backPath={backPath} accentColor={accentColor} />
+
+      {/* Workspace Navigation: Home + Command Deck + Graph */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <StepNavBar backLabel={backLabel} backPath={backPath} accentColor={accentColor} />
+        {analysisId && (
+          <>
+            <button
+              onClick={() => navigate(`${baseUrl}/report`)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:opacity-80 min-h-[40px]"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+            >
+              <LayoutDashboard size={14} /> Command Deck
+            </button>
+            <button
+              onClick={() => navigate(`${baseUrl}/insight-graph`)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:opacity-80 min-h-[40px]"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+            >
+              <GitBranch size={14} /> Insight Graph
+            </button>
+          </>
+        )}
+      </div>
+
       {outdatedStepName && <OutdatedBanner stepName={outdatedStepName} accentColor={accentColor} />}
     </>
   );

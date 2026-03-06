@@ -75,6 +75,7 @@ export default function RedesignPage() {
         backLabel="Deconstruct"
         backPath={`${baseUrl}/disrupt`}
         outdatedStepName={isOutdated ? "Redesign" : undefined}
+        analysisId={analysisId}
       />
 
       <AnalysisActionToolbar
