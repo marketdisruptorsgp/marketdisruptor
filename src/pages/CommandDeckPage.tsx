@@ -496,6 +496,9 @@ export default function CommandDeckPage() {
 
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
 
+        {/* In-place Recompute Overlay */}
+        <RecomputeOverlay isActive={isRecomputing || autoAnalysis.isComputing} />
+
         {/* ═══ HEADER ═══ */}
         <motion.div {...fadeUp} className="rounded-2xl p-5 sm:p-6 bg-card border border-border">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
