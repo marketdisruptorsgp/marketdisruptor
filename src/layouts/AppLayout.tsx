@@ -9,8 +9,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CommandNavigation } from "@/components/layout/CommandNavigation";
 
 const WORKSPACE_PREFIXES = [
-  "/analysis",
-  "/workspace",
+  "/analysis/",    // /analysis/:id/* but NOT /analysis/new
   "/command-deck",
   "/insight-graph",
   "/evidence-explorer",
@@ -18,7 +17,13 @@ const WORKSPACE_PREFIXES = [
   "/business/",
 ];
 
+const EXCLUDED_WORKSPACE = [
+  "/analysis/new",
+  "/analysis/share",
+];
+
 function isWorkspaceRoute(pathname: string): boolean {
+  if (EXCLUDED_WORKSPACE.some((ex) => pathname.startsWith(ex))) return false;
   return WORKSPACE_PREFIXES.some((p) => pathname.startsWith(p));
 }
 

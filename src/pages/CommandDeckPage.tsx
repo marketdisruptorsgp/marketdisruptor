@@ -27,7 +27,7 @@ import {
   LayoutDashboard, GitBranch, Target, Shield, Lightbulb,
   Activity, Crosshair, AlertTriangle, CheckCircle2, Circle,
   ChevronRight, Rocket, TrendingUp, ArrowRight, ArrowUpDown,
-  Zap, BarChart3, ExternalLink, RefreshCw,
+  Zap, BarChart3, ExternalLink, RefreshCw, Brain,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -419,13 +419,17 @@ export default function CommandDeckPage() {
   const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
 
   const handleRecomputeAll = useCallback(() => {
-    const stepsToRun = ["report", "disrupt", "redesign", "stress-test", "pitch"];
-    const firstIncomplete = stepsToRun.find(s => !completedSteps.has(s));
-    const firstOutdated = stepsToRun.find(s => analysis.outdatedSteps.has(s));
-    const target = firstOutdated || firstIncomplete || "report";
-    toast.info("Navigating to recompute pipeline…");
-    navigate(`${baseUrl}/${target}`);
-  }, [completedSteps, analysis.outdatedSteps, navigate, baseUrl]);
+    toast.info("Recomputing analysis intelligence…");
+    // Trigger auto-analysis recomputation by staying on the Command Deck
+    // The useAutoAnalysis hook will detect data changes and recompute
+    // If no steps are completed, guide user to the first step
+    if (completedSteps.size === 0) {
+      navigate(`${baseUrl}/report`);
+    } else {
+      // Stay on Command Deck — intelligence recomputes automatically
+      toast.success("Intelligence updated on Command Deck.");
+    }
+  }, [completedSteps, navigate, baseUrl]);
 
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
@@ -525,6 +529,34 @@ export default function CommandDeckPage() {
               breakthroughOpportunity={narrative.breakthroughOpportunity}
               narrativeSummary={narrative.narrativeSummary}
             />
+          </motion.div>
+        )}
+
+        {/* ═══ AUTO-SURFACED STRUCTURAL INSIGHT ═══ */}
+        {narrative?.narrativeSummary && (
+          <motion.div {...fadeUp} transition={{ delay: 0.12 }}
+            className="rounded-xl p-5 bg-card border border-border"
+            style={{ borderLeft: `3px solid ${modeAccent}` }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${modeAccent}15` }}>
+                <Brain size={13} style={{ color: modeAccent }} />
+              </div>
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Structural Insight</p>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Auto-generated</span>
+            </div>
+            <p className="text-sm font-semibold text-foreground leading-relaxed max-w-3xl">
+              {narrative.narrativeSummary}
+            </p>
+            {graph && graph.nodes.length > 3 && (
+              <button
+                onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                className="mt-3 flex items-center gap-1.5 text-[11px] font-bold transition-colors hover:opacity-80"
+                style={{ color: modeAccent }}
+              >
+                <GitBranch size={12} /> Explore full reasoning chain →
+              </button>
+            )}
           </motion.div>
         )}
 
