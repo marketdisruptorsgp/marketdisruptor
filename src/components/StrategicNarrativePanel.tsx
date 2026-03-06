@@ -2,25 +2,27 @@
  * Strategic Narrative Panel — Command Deck
  *
  * Displays the core strategic reasoning chain:
- * Primary Constraint → Key Assumption → Leverage Point → Breakthrough Opportunity
+ * Primary Constraint → Key Driver → Leverage Point → Breakthrough Opportunity → Strategic Pathway
  */
 
 import { memo } from "react";
-import { Shield, HelpCircle, Crosshair, Lightbulb, ArrowRight } from "lucide-react";
+import { Shield, TrendingUp, Crosshair, Lightbulb, Route, ArrowRight } from "lucide-react";
 
 interface StrategicNarrativePanelProps {
   primaryConstraint: string | null;
-  keyAssumption: string | null;
+  keyDriver: string | null;
   leveragePoint: string | null;
   breakthroughOpportunity: string | null;
+  strategicPathway: string | null;
   narrativeSummary: string;
 }
 
 const CHAIN = [
   { key: "primaryConstraint", label: "Primary Constraint", icon: Shield, color: "hsl(0 72% 52%)" },
-  { key: "keyAssumption", label: "Key Assumption", icon: HelpCircle, color: "hsl(271 81% 55%)" },
+  { key: "keyDriver", label: "Key Driver", icon: TrendingUp, color: "hsl(262 83% 58%)" },
   { key: "leveragePoint", label: "Leverage Point", icon: Crosshair, color: "hsl(229 89% 63%)" },
   { key: "breakthroughOpportunity", label: "Breakthrough Opportunity", icon: Lightbulb, color: "hsl(152 60% 44%)" },
+  { key: "strategicPathway", label: "Strategic Pathway", icon: Route, color: "hsl(45 93% 47%)" },
 ] as const;
 
 export const StrategicNarrativePanel = memo(function StrategicNarrativePanel(props: StrategicNarrativePanelProps) {
@@ -46,22 +48,31 @@ export const StrategicNarrativePanel = memo(function StrategicNarrativePanel(pro
           {CHAIN.map((item, i) => {
             const value = props[item.key];
             const Icon = item.icon;
-            if (!value) return null;
 
             return (
               <div key={item.key} className="flex items-center gap-0 flex-1 min-w-0">
-                <div className="flex-1 min-w-0 rounded-lg p-3" style={{ background: `${item.color}08`, border: `1px solid ${item.color}20` }}>
+                <div
+                  className="flex-1 min-w-0 rounded-lg p-3"
+                  style={{
+                    background: value ? `${item.color}08` : "hsl(var(--muted) / 0.3)",
+                    border: `1px solid ${value ? `${item.color}20` : "hsl(var(--border))"}`,
+                    opacity: value ? 1 : 0.5,
+                  }}
+                >
                   <div className="flex items-center gap-1.5 mb-1">
-                    <Icon size={12} style={{ color: item.color }} />
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: item.color }}>
+                    <Icon size={12} style={{ color: value ? item.color : "hsl(var(--muted-foreground))" }} />
+                    <span
+                      className="text-[10px] font-extrabold uppercase tracking-widest"
+                      style={{ color: value ? item.color : "hsl(var(--muted-foreground))" }}
+                    >
                       {item.label}
                     </span>
                   </div>
                   <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2">
-                    {value}
+                    {value || "Additional inputs required to generate this insight."}
                   </p>
                 </div>
-                {i < CHAIN.length - 1 && props[CHAIN[i + 1]?.key] && (
+                {i < CHAIN.length - 1 && (
                   <ArrowRight size={14} className="text-muted-foreground flex-shrink-0 mx-1 hidden sm:block" />
                 )}
               </div>
