@@ -525,7 +525,47 @@ export default function CommandDeckPage() {
     }, 1000);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, navigate, baseUrl, addEvent]);
 
-  if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
+  // ── AUTO-RECOMPUTE: trigger intelligence pipeline on data changes ──
+  const lastRecomputeHash = useRef<string>("");
+  const totalSignals = metrics.stepSignals.reduce((s, ss) => s + (ss.hasData ? ss.signals : 0), 0);
+
+  useEffect(() => {
+    const hash = JSON.stringify({
+      steps: Array.from(completedSteps),
+      sigCount: totalSignals,
+      evCount: metrics.totalEvidenceCount,
+    });
+    if (hash === lastRecomputeHash.current) return;
+    lastRecomputeHash.current = hash;
+    if (completedSteps.size === 0) return;
+
+    const timer = setTimeout(() => {
+      try {
+        const result = recomputeIntelligence({
+          products: analysis.products,
+          selectedProduct,
+          disruptData: analysis.disruptData,
+          redesignData: analysis.redesignData,
+          stressTestData: analysis.stressTestData,
+          pitchDeckData: analysis.pitchDeckData,
+          governedData: analysis.governedData as Record<string, unknown> | null,
+          businessAnalysisData: analysis.businessAnalysisData,
+          intelligence,
+          analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+          analysisId: analysisId || "",
+          completedSteps,
+        });
+        if (result.flatEvidence.length > 0 && result.insights.length > 0) {
+          addEvent(`Intelligence: ${result.insights.length} insights from ${result.flatEvidence.length} evidence`);
+        }
+      } catch {
+        // Silent fail for auto-recompute
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [completedSteps, totalSignals, metrics.totalEvidenceCount]);
+
+
     if (shouldRedirectHome) return null;
     return (
       <div className="min-h-screen bg-background">
