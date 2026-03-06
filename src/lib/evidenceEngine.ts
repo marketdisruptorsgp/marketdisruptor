@@ -3,7 +3,15 @@
  *
  * Extracts structured evidence from pipeline data.
  * Every metric on the Command Deck traces back to concrete evidence items.
+ *
+ * Extended with:
+ *   - confidenceScore (0-1)
+ *   - relatedSignals
+ *   - category
+ *   - tier classification
  */
+
+import { classifyTier } from "@/lib/tierDiscoveryEngine";
 
 export type EvidenceTier = "structural" | "system" | "optimization";
 
@@ -17,6 +25,12 @@ export interface Evidence {
   pipelineStep: "report" | "disrupt" | "redesign" | "stress_test" | "pitch";
   tier: EvidenceTier;
   impact?: number;
+  /** 0-1 confidence based on evidence density and corroboration */
+  confidenceScore?: number;
+  /** IDs of related evidence items */
+  relatedSignals?: string[];
+  /** Semantic category (ownership, logistics, ux, etc.) */
+  category?: string;
 }
 
 export type MetricDomain = "opportunity" | "friction" | "constraint" | "leverage" | "risk";
@@ -37,54 +51,68 @@ function makeId(prefix: string): string {
   return `${prefix}-${++eid}`;
 }
 
+/* ── Auto-classify tier from label+description ── */
+function autoTier(label: string, description?: string, fallback: EvidenceTier = "optimization"): EvidenceTier {
+  const text = `${label} ${description || ""}`;
+  const classified = classifyTier(text);
+  // Only override fallback if classification found strong signal
+  const lower = text.toLowerCase();
+  const hasKeywords = lower.length > 5;
+  return hasKeywords ? classified : fallback;
+}
+
 /* ── Extract opportunity evidence ── */
 function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
   const items: Evidence[] = [];
 
-  // Redesign opportunities
   const redesign = input.redesignData;
   if (redesign) {
     const concepts = safeArr(redesign.redesignedConcepts || redesign.concepts || redesign.opportunities);
     concepts.forEach((c: any, i: number) => {
+      const label = c.name || c.label || c.title || `Redesign Concept ${i + 1}`;
+      const desc = c.description || c.rationale;
       items.push({
         id: c.id || makeId("opp-redesign"),
         type: "opportunity",
-        label: c.name || c.label || c.title || `Redesign Concept ${i + 1}`,
-        description: c.description || c.rationale,
+        label,
+        description: desc,
         pipelineStep: "redesign",
-        tier: "structural",
+        tier: autoTier(label, desc, "structural"),
         impact: c.impact || c.score,
+        category: c.category,
       });
     });
     safeArr(redesign.leveragePoints).forEach((lp: any, i: number) => {
+      const label = typeof lp === "string" ? lp : (lp.label || lp.name || `Leverage Point ${i + 1}`);
       items.push({
         id: makeId("opp-lev"),
         type: "leverage",
-        label: typeof lp === "string" ? lp : (lp.label || lp.name || `Leverage Point ${i + 1}`),
+        label,
         pipelineStep: "redesign",
-        tier: "system",
+        tier: autoTier(label, undefined, "system"),
         impact: lp.impact,
       });
     });
   }
 
-  // Disrupt ideas
   const disrupt = input.disruptData;
   if (disrupt) {
     safeArr(disrupt.flippedIdeas || disrupt.ideas).forEach((idea: any, i: number) => {
+      const label = idea.name || idea.title || idea.label || `Flipped Idea ${i + 1}`;
+      const desc = idea.description;
       items.push({
         id: idea.id || makeId("opp-flip"),
         type: "opportunity",
-        label: idea.name || idea.title || idea.label || `Flipped Idea ${i + 1}`,
-        description: idea.description,
+        label,
+        description: desc,
         pipelineStep: "disrupt",
-        tier: "structural",
+        tier: autoTier(label, desc, "structural"),
         impact: idea.impact || idea.score,
+        category: idea.category || idea.structuralChangeType,
       });
     });
   }
 
-  // Report market gaps
   const product = input.selectedProduct;
   if (product) {
     const ci = product.communityInsights || product.customerSentiment || {};
@@ -95,12 +123,11 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
         type: "signal",
         label,
         pipelineStep: "report",
-        tier: "optimization",
+        tier: autoTier(label, undefined, "optimization"),
       });
     });
   }
 
-  // Intelligence opportunities
   const si = input.intelligence;
   if (si) {
     safeArr(si.opportunities).forEach((o: any) => {
@@ -110,7 +137,7 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
           type: "opportunity",
           label: o.label,
           pipelineStep: "disrupt",
-          tier: "system",
+          tier: autoTier(o.label, undefined, "system"),
           impact: o.impact,
         });
       }
@@ -129,11 +156,11 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
     const ci = product.communityInsights || product.customerSentiment || {};
     safeArr(ci.topComplaints).forEach((c: any, i: number) => {
       const label = typeof c === "string" ? c : (c.text || c.label || `Complaint ${i + 1}`);
-      items.push({ id: makeId("fric-comp"), type: "signal", label, pipelineStep: "report", tier: "optimization" });
+      items.push({ id: makeId("fric-comp"), type: "signal", label, pipelineStep: "report", tier: autoTier(label, undefined, "optimization") });
     });
     safeArr(ci.frictionPoints).forEach((f: any, i: number) => {
       const label = typeof f === "string" ? f : (f.text || f.label || `Friction ${i + 1}`);
-      items.push({ id: makeId("fric-fp"), type: "signal", label, pipelineStep: "report", tier: "system" });
+      items.push({ id: makeId("fric-fp"), type: "signal", label, pipelineStep: "report", tier: autoTier(label, undefined, "system") });
     });
   }
 
@@ -141,7 +168,10 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
   if (disrupt) {
     safeArr(disrupt.constraints || disrupt.structuralConstraints).forEach((c: any, i: number) => {
       const label = typeof c === "string" ? c : (c.name || c.label || `Constraint ${i + 1}`);
-      items.push({ id: makeId("fric-con"), type: "constraint", label, pipelineStep: "disrupt", tier: "structural", impact: c.impact || c.severity });
+      items.push({
+        id: makeId("fric-con"), type: "constraint", label, pipelineStep: "disrupt",
+        tier: autoTier(label, undefined, "structural"), impact: c.impact || c.severity,
+      });
     });
   }
 
@@ -156,7 +186,10 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
   if (disrupt) {
     safeArr(disrupt.assumptions || disrupt.hiddenAssumptions).forEach((a: any, i: number) => {
       const label = typeof a === "string" ? a : (a.text || a.label || a.assumption || `Assumption ${i + 1}`);
-      items.push({ id: makeId("con-asm"), type: "assumption", label, pipelineStep: "disrupt", tier: "structural" });
+      items.push({
+        id: makeId("con-asm"), type: "assumption", label, pipelineStep: "disrupt",
+        tier: autoTier(label, undefined, "structural"), category: a.category,
+      });
     });
     safeArr(disrupt.structuralBlockers).forEach((b: any, i: number) => {
       const label = typeof b === "string" ? b : (b.name || b.label || `Blocker ${i + 1}`);
@@ -171,7 +204,7 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
       safeArr(synopsis.key_assumptions).forEach((a: any, i: number) => {
         const label = typeof a === "string" ? a : (a.text || a.label || `Governed Assumption ${i + 1}`);
         if (!items.some(e => e.label === label)) {
-          items.push({ id: makeId("con-gov"), type: "assumption", label, pipelineStep: "disrupt", tier: "system" });
+          items.push({ id: makeId("con-gov"), type: "assumption", label, pipelineStep: "disrupt", tier: autoTier(label, undefined, "system") });
         }
       });
     }
@@ -188,7 +221,7 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
   if (redesign) {
     safeArr(redesign.leveragePoints).forEach((lp: any, i: number) => {
       const label = typeof lp === "string" ? lp : (lp.label || lp.name || `Leverage ${i + 1}`);
-      items.push({ id: makeId("lev-pt"), type: "leverage", label, pipelineStep: "redesign", tier: "system", impact: lp.impact });
+      items.push({ id: makeId("lev-pt"), type: "leverage", label, pipelineStep: "redesign", tier: autoTier(label, undefined, "system"), impact: lp.impact });
     });
     safeArr(redesign.convergenceZones).forEach((z: any, i: number) => {
       const label = typeof z === "string" ? z : (z.label || z.name || `Convergence Zone ${i + 1}`);
@@ -196,7 +229,7 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
     });
     safeArr(redesign.hiddenValues || redesign.underservedSegments).forEach((v: any, i: number) => {
       const label = typeof v === "string" ? v : (v.label || v.name || `Hidden Value ${i + 1}`);
-      items.push({ id: makeId("lev-hv"), type: "signal", label, pipelineStep: "redesign", tier: "optimization" });
+      items.push({ id: makeId("lev-hv"), type: "signal", label, pipelineStep: "redesign", tier: autoTier(label, undefined, "optimization") });
     });
   }
 
@@ -204,7 +237,7 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
   if (si) {
     safeArr(si.leveragePoints).forEach((lp: any) => {
       if (!items.some(e => e.id === lp.id)) {
-        items.push({ id: lp.id || makeId("lev-si"), type: "leverage", label: lp.label || lp.name, pipelineStep: "redesign", tier: "system", impact: lp.impact });
+        items.push({ id: lp.id || makeId("lev-si"), type: "leverage", label: lp.label || lp.name, pipelineStep: "redesign", tier: autoTier(lp.label || "", undefined, "system"), impact: lp.impact });
       }
     });
   }
@@ -239,6 +272,41 @@ function extractRiskEvidence(input: EvidenceInput): Evidence[] {
   return items;
 }
 
+/* ── Confidence scoring pass ── */
+function computeConfidenceScores(allItems: Evidence[]): void {
+  // Build domain co-occurrence map
+  const tierCounts: Record<EvidenceTier, number> = { structural: 0, system: 0, optimization: 0 };
+  const stepCounts: Record<string, number> = {};
+  allItems.forEach(item => {
+    tierCounts[item.tier]++;
+    stepCounts[item.pipelineStep] = (stepCounts[item.pipelineStep] || 0) + 1;
+  });
+
+  allItems.forEach(item => {
+    const corroboration = tierCounts[item.tier];
+    const stepDensity = stepCounts[item.pipelineStep] || 0;
+
+    let confidence: number;
+    if (item.impact != null && item.impact >= 7 && corroboration >= 5) {
+      confidence = 0.8 + Math.min(corroboration / 50, 0.2); // 0.8-1.0
+    } else if ((item.impact ?? 5) >= 5 || corroboration >= 3) {
+      confidence = 0.5 + Math.min(stepDensity / 20, 0.2); // 0.5-0.7
+    } else {
+      confidence = 0.3 + Math.min(corroboration / 20, 0.2); // 0.3-0.5
+    }
+
+    item.confidenceScore = Math.round(confidence * 100) / 100;
+  });
+
+  // Build related signals (same tier, different step)
+  allItems.forEach(item => {
+    item.relatedSignals = allItems
+      .filter(other => other.id !== item.id && other.tier === item.tier && other.pipelineStep !== item.pipelineStep)
+      .slice(0, 5)
+      .map(other => other.id);
+  });
+}
+
 /* ── Input shape ── */
 export interface EvidenceInput {
   products: any[];
@@ -263,6 +331,10 @@ export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, M
   const constraint = extractConstraintEvidence(input);
   const leverage = extractLeverageEvidence(input);
   const risk = extractRiskEvidence(input);
+
+  // Run confidence scoring across ALL items
+  const allItems = [...opportunity, ...friction, ...constraint, ...leverage, ...risk];
+  computeConfidenceScores(allItems);
 
   return {
     opportunity: { domain: "opportunity", evidenceCount: opportunity.length, items: opportunity },
