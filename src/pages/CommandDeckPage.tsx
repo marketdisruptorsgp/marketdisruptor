@@ -427,51 +427,61 @@ export default function CommandDeckPage() {
             label="Opportunity Score"
             value={metrics.opportunityScore}
             evidence={`${metrics.opportunitiesIdentified} opportunities detected`}
+            evidenceCount={allEvidence.opportunity.evidenceCount}
             description="Potential value from redesign and leverage signals"
             icon={Lightbulb}
             color="hsl(152 60% 44%)"
             trend={getTrend(metrics.opportunityScore)}
             delay={0.05}
+            onClick={() => openExplorer("opportunity")}
           />
           <MetricCard
             label="Friction Index"
             value={metrics.frictionIndex}
             evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
+            evidenceCount={allEvidence.friction.evidenceCount}
             description="Customer complaints, friction points, and constraints"
             icon={AlertTriangle}
             color="hsl(0 72% 52%)"
             trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
             delay={0.1}
+            onClick={() => openExplorer("friction")}
           />
           <MetricCard
             label="Constraints"
             value={metrics.constraintsCount}
             evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
+            evidenceCount={allEvidence.constraint.evidenceCount}
             description="Structural constraints and assumptions discovered"
             icon={Crosshair}
             color="hsl(0 72% 52%)"
             trend="neutral"
             delay={0.15}
+            onClick={() => openExplorer("constraint")}
           />
           <MetricCard
             label="Leverage Score"
             value={metrics.leverageScore}
             evidence={`${metrics.leveragePoints} leverage signals`}
+            evidenceCount={allEvidence.leverage.evidenceCount}
             description="Hidden value and high-leverage opportunities"
             icon={Zap}
             color="hsl(38 92% 50%)"
             trend={getTrend(metrics.leverageScore)}
             delay={0.2}
+            onClick={() => openExplorer("leverage")}
           />
           <MetricCard
             label="Risk Score"
             value={metrics.riskScore}
             evidence={`${metrics.riskSignals} risk signals`}
+            evidenceCount={allEvidence.risk.evidenceCount}
             description="Execution, feasibility, and market risk"
             icon={Shield}
             color="hsl(0 72% 52%)"
             trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
             delay={0.25}
+            onClick={() => openExplorer("risk")}
           />
         </div>
 
