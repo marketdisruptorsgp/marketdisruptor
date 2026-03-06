@@ -69,10 +69,17 @@ interface AnalysisStepHeaderProps {
 export function AnalysisStepHeader({
   steps, activeStep, visitedSteps, onStepChange,
   outdatedSteps, accentColor, backLabel, backPath, outdatedStepName,
-  analysisId,
+  analysisId: propAnalysisId,
 }: AnalysisStepHeaderProps) {
   const navigate = useNavigate();
   const { theme: workspaceTheme, toggle: toggleTheme } = useWorkspaceTheme();
+
+  // Fallback: extract analysis ID from URL if prop is null
+  const urlFallbackId = React.useMemo(() => {
+    const match = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/);
+    return match?.[1] || null;
+  }, []);
+  const analysisId = propAnalysisId || urlFallbackId;
   const baseUrl = analysisId ? `/analysis/${analysisId}` : "";
 
   return (
