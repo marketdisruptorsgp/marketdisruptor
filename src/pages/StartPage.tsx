@@ -126,13 +126,13 @@ export default function StartPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
           <div className="text-center mb-10">
             <p className="text-xs font-bold uppercase tracking-[0.2em] mb-2 text-primary flex items-center justify-center gap-1.5">
-              <Sparkles size={12} /> How It Works
+              <Sparkles size={12} /> How Discovery Works
             </p>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-              Six stages of structured analysis
+              Six stages of strategic discovery
             </h2>
             <p className="text-sm text-foreground/60 mt-1.5">
-              Each step builds on the last — from raw data to investor-ready output
+              Each step builds on the last — from mapping the system to redesigning it
             </p>
           </div>
 
