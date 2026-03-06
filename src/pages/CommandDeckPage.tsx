@@ -435,7 +435,7 @@ export default function CommandDeckPage() {
                   </span>
                 )}
               </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate">{selectedProduct.name}</h1>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate">{analysisDisplayName}</h1>
               <p className="text-xs text-muted-foreground mt-1">
                 {completedSteps.size}/{PIPELINE_STEPS.length} steps · {totalSignals} signals detected
                 {metrics.contributingSources.length > 0 && ` · ${metrics.contributingSources.join(", ")}`}
