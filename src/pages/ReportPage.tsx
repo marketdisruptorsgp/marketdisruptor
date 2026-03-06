@@ -66,7 +66,7 @@ import {
 /* ── Section tab config ── */
 function getAvailableSections(selectedProduct: any, isService: boolean): TabDef[] {
   const tabs: TabDef[] = [
-    { id: "dashboard", label: "Command Deck", icon: LayoutDashboard },
+    { id: "dashboard", label: "Situation Room", icon: LayoutDashboard },
     { id: "overview", label: "Overview", icon: Target },
   ];
   const uw = (selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney;

@@ -139,7 +139,7 @@ export default function DashboardPage() {
             className="inline-flex items-center gap-2 px-5 sm:px-7 py-2.5 rounded-full typo-nav-primary text-primary-foreground transition-colors"
             style={{ background: "hsl(var(--primary))" }}>
 
-            Start Analysis <ArrowRight size={15} />
+            Start Discovery <ArrowRight size={15} />
           </button>
         </div>
       </div>

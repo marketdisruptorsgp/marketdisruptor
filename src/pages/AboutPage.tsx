@@ -274,7 +274,7 @@ export default function AboutPage() {
               See what a deep deconstruction reveals about your market.
             </p>
             <button onClick={() => navigate("/analysis/new")} className="btn-primary inline-flex items-center gap-2 px-8 py-3 text-sm">
-              Start Analysis <ArrowRight size={14} />
+              Start Discovery <ArrowRight size={14} />
             </button>
           </div>
         </motion.section>

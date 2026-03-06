@@ -234,7 +234,7 @@ export default function StartPage() {
             onClick={() => navigate("/analysis/new")}
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-background text-foreground text-sm font-bold hover:bg-background/90 transition-colors shadow-lg"
           >
-            Start Analysis <ArrowRight size={15} />
+            Start Discovery <ArrowRight size={15} />
           </button>
         </div>
       </section>
