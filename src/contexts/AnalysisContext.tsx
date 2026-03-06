@@ -1231,20 +1231,20 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       toast.info("This analysis used an older framework — regenerate steps to get improved insights");
     }
 
-    // Route-specific navigation
+    // Always open at Command Deck across all modes
     if (analysis.analysis_type === "business_model") {
       toast.success("Business model analysis loaded!");
-      navigate(`/business/${analysis.id}`);
+      navigate(`/analysis/${analysis.id}/command-deck`);
     } else if (analysis.analysis_type === "first_principles") {
-      toast.success("Analysis loaded — starting from Structural Analysis");
-      navigate(`/analysis/${analysis.id}/disrupt`);
+      toast.success("Analysis loaded — opening Command Deck");
+      navigate(`/analysis/${analysis.id}/command-deck`);
     } else {
       if (sanitizedProducts.length === 0) {
         toast.error("This analysis has no product data to display.");
         return;
       }
-      toast.success("Analysis loaded — starting from Intelligence Report");
-      navigate(`/analysis/${analysis.id}/report`);
+      toast.success("Analysis loaded — opening Command Deck");
+      navigate(`/analysis/${analysis.id}/command-deck`);
     }
   }, [navigate, hydrationSetters]);
 
