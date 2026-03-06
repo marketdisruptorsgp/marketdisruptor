@@ -681,14 +681,14 @@ export default function CommandDeckPage() {
               <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-muted mb-3">
                 <Lightbulb size={20} className="text-muted-foreground" />
               </div>
-              <p className="text-sm font-bold text-foreground">No opportunities detected yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Run the analysis pipeline to discover strategic opportunities.</p>
+              <p className="text-sm font-bold text-foreground">No opportunities discovered yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Start your strategic discovery to uncover hidden opportunities.</p>
               <button
                 onClick={() => navigate(`${baseUrl}/report`)}
                 className="mt-4 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors min-h-[44px]"
                 style={{ background: `${modeAccent}12`, color: modeAccent }}
               >
-                <ArrowRight size={14} /> Start Analysis
+                <ArrowRight size={14} /> Start Discovery
               </button>
             </div>
           )}

@@ -433,7 +433,7 @@ export const AnalysisForm = ({ onAnalyze, onBusinessAnalysis, isLoading, mode: e
               disabled={isLoading || !customName}
               className={`w-full py-3 rounded-lg typo-button-primary text-white transition-colors disabled:opacity-50 ${mode === "service" ? "btn-mode-service" : "btn-mode-product"}`}
             >
-              {isLoading ? "Analyzing..." : "Start Analysis"}
+              {isLoading ? "Discovering..." : "Start Strategic Discovery"}
             </button>
           </form>
         )}
