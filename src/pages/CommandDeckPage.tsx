@@ -768,7 +768,7 @@ export default function CommandDeckPage() {
         open={explorerDomain !== null}
         onClose={closeExplorer}
         domain={explorerDomain}
-        evidence={allEvidence}
+        evidence={filteredEvidence}
       />
     </div>
   );
