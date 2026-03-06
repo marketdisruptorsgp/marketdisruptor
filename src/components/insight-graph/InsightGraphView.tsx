@@ -27,6 +27,11 @@ import { InsightNodeCard } from "./InsightNodeCard";
 import { OpportunityLandscape } from "./OpportunityLandscape";
 import { ConstraintMap } from "./ConstraintMap";
 import { StrategicPathways } from "./StrategicPathways";
+import { SimulationPanel } from "@/components/SimulationPanel";
+import { RecomputeOverlay } from "@/components/RecomputeOverlay";
+import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
+import { type LensTool } from "@/lib/lensToolkitRegistry";
+import { type ToolScenario } from "@/lib/scenarioEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // ═══════════════════════════════════════════════════════════════
