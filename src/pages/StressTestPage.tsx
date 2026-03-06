@@ -2,6 +2,8 @@ import React from "react";
 import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
+import { SplitStepLayout } from "@/components/analysis/SplitStepLayout";
+import { StepVisualOutput } from "@/components/analysis/StepVisualOutput";
 import { StepLoadingTracker, STRESS_TEST_TASKS } from "@/components/StepLoadingTracker";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -159,59 +161,96 @@ export default function StressTestPage() {
         </AnalysisLoadingCard>
       )}
 
-      {/* ── Opportunities Tab ── */}
-      {activeTab === "opportunities" && !analysisLoading && (
-        <AnalysisContentCard>
-          {systemIntelligence && systemIntelligence.scoredOpportunities.length > 0 && systemIntelligence.scoringSummary ? (
-            <OpportunityMatrix
-              opportunities={systemIntelligence.scoredOpportunities}
-              summary={systemIntelligence.scoringSummary}
-              governanceReport={systemIntelligence.governanceReport || undefined}
-              expandedFriction={systemIntelligence.expandedFriction || undefined}
-            />
-          ) : (
-            <div className="text-center py-12 space-y-2">
-              <Crosshair size={28} className="mx-auto text-muted-foreground" />
-              <p className="text-sm font-bold text-foreground">No opportunities scored yet</p>
-              <p className="text-xs text-muted-foreground">Run the Structural Analysis step first to generate opportunity data.</p>
-            </div>
-          )}
-        </AnalysisContentCard>
-      )}
-
-      {/* ── Strategy Tab ── */}
-      {activeTab === "strategy" && !analysisLoading && (
-        <div className="space-y-3">
-          {systemIntelligence ? (
-            <>
-              <AnalysisContentCard>
-                <StrategicCommandDeck
-                  commandDeck={systemIntelligence.commandDeck}
-                  convergenceCount={systemIntelligence.convergenceZones.length}
-                  expandedFriction={systemIntelligence.expandedFriction}
-                  provenanceRegistry={systemIntelligence.provenanceRegistry}
-                  convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
-                />
-              </AnalysisContentCard>
-              <AnalysisContentCard>
-                <ETAExecutionPanel
-                  commandDeck={systemIntelligence.commandDeck}
-                  expandedFriction={systemIntelligence.expandedFriction}
-                  governedData={governedData}
-                />
-              </AnalysisContentCard>
-            </>
-          ) : (
-            <AnalysisContentCard>
+      {/* Split Layout: main content + visual sidebar */}
+      <SplitStepLayout
+        showVisual={!!systemIntelligence}
+        visualOutput={
+          <StepVisualOutput
+            step="stress-test"
+            intelligence={autoAnalysis.intelligence}
+            governedData={governedData}
+            product={selectedProduct as unknown as Record<string, unknown>}
+            accentColor={theme.primary}
+          />
+        }
+      >
+        {/* ── Opportunities Tab ── */}
+        {activeTab === "opportunities" && !analysisLoading && (
+          <AnalysisContentCard>
+            {systemIntelligence && systemIntelligence.scoredOpportunities.length > 0 && systemIntelligence.scoringSummary ? (
+              <OpportunityMatrix
+                opportunities={systemIntelligence.scoredOpportunities}
+                summary={systemIntelligence.scoringSummary}
+                governanceReport={systemIntelligence.governanceReport || undefined}
+                expandedFriction={systemIntelligence.expandedFriction || undefined}
+              />
+            ) : (
               <div className="text-center py-12 space-y-2">
-                <LayoutDashboard size={28} className="mx-auto text-muted-foreground" />
-                <p className="text-sm font-bold text-foreground">No strategic intelligence yet</p>
-                <p className="text-xs text-muted-foreground">Run the Structural Analysis step first.</p>
+                <Crosshair size={28} className="mx-auto text-muted-foreground" />
+                <p className="text-sm font-bold text-foreground">No opportunities scored yet</p>
+                <p className="text-xs text-muted-foreground">Run the Structural Analysis step first to generate opportunity data.</p>
               </div>
+            )}
+          </AnalysisContentCard>
+        )}
+
+        {/* ── Strategy Tab ── */}
+        {activeTab === "strategy" && !analysisLoading && (
+          <div className="space-y-3">
+            {systemIntelligence ? (
+              <>
+                <AnalysisContentCard>
+                  <StrategicCommandDeck
+                    commandDeck={systemIntelligence.commandDeck}
+                    convergenceCount={systemIntelligence.convergenceZones.length}
+                    expandedFriction={systemIntelligence.expandedFriction}
+                    provenanceRegistry={systemIntelligence.provenanceRegistry}
+                    convergenceZoneDetails={systemIntelligence.convergenceZoneDetails}
+                  />
+                </AnalysisContentCard>
+                <AnalysisContentCard>
+                  <ETAExecutionPanel
+                    commandDeck={systemIntelligence.commandDeck}
+                    expandedFriction={systemIntelligence.expandedFriction}
+                    governedData={governedData}
+                  />
+                </AnalysisContentCard>
+              </>
+            ) : (
+              <AnalysisContentCard>
+                <div className="text-center py-12 space-y-2">
+                  <LayoutDashboard size={28} className="mx-auto text-muted-foreground" />
+                  <p className="text-sm font-bold text-foreground">No strategic intelligence yet</p>
+                  <p className="text-xs text-muted-foreground">Run the Structural Analysis step first.</p>
+                </div>
+              </AnalysisContentCard>
+            )}
+          </div>
+        )}
+
+        {/* ── Red Team / Validate Tabs (original stress test content) ── */}
+        {(activeTab === "debate" || activeTab === "validate") && (
+          <div style={{ display: analysisLoading ? "none" : undefined }}>
+            <AnalysisContentCard>
+              <CriticalValidation
+                product={selectedProduct}
+                analysisData={selectedProduct}
+                activeTab={activeTab === "debate" ? "debate" : "validate"}
+                externalData={analysis.stressTestData}
+                runTrigger={runTrigger}
+                onLoadingChange={setAnalysisLoading}
+                competitorIntel={analysis.scoutedCompetitors}
+                onDataLoaded={(d) => {
+                  analysis.setStressTestData(d);
+                  analysis.saveStepData("stressTest", d);
+                  analysis.clearStepOutdated("stressTest");
+                  analysis.markStepOutdated("pitchDeck");
+                }}
+              />
             </AnalysisContentCard>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </SplitStepLayout>
 
       {/* ── Red Team / Validate Tabs (original stress test content) ── */}
       {(activeTab === "debate" || activeTab === "validate") && (

@@ -28,6 +28,8 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { KPIGauge } from "@/components/analysis/KPIGauge";
+import { StepVisualOutput } from "@/components/analysis/StepVisualOutput";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -290,13 +292,13 @@ export default function CommandDeckPage() {
           ))}
         </div>
 
-        {/* KPI Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <KPICard label="Insight Density" value={insightDensity} subtitle="Total signals" icon={Zap} color="hsl(229 89% 63%)" delay={0.1} />
-          <KPICard label="Constraint Severity" value={constraintSeverity} subtitle="Avg. impact" icon={Shield} color="hsl(0 72% 52%)" delay={0.15} />
-          <KPICard label="Breakthrough" value={breakthroughPotential} subtitle="High-impact opps" icon={Lightbulb} color="hsl(152 60% 44%)" delay={0.2} />
-          <KPICard label="Leverage Index" value={leverageIndex} subtitle="Avg. leverage" icon={Gauge} color="hsl(38 92% 50%)" delay={0.25} />
-          <KPICard label="Pipeline" value={`${pipelinePct}%`} subtitle={`${completedSteps.size}/5 steps`} icon={BarChart3} color={modeAccent} delay={0.3} />
+        {/* KPI Metrics — Circular Gauges */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <KPIGauge label="Insight Density" value={insightDensity} max={Math.max(insightDensity, 20)} subtitle="Total signals" icon={Zap} color="hsl(229 89% 63%)" delay={0.1} />
+          <KPIGauge label="Constraint" value={constraintSeverity} max={10} subtitle="Avg. severity" icon={Shield} color="hsl(0 72% 52%)" delay={0.15} />
+          <KPIGauge label="Breakthrough" value={breakthroughPotential} max={Math.max(breakthroughPotential, 5)} subtitle="High-impact" icon={Lightbulb} color="hsl(152 60% 44%)" delay={0.2} />
+          <KPIGauge label="Leverage" value={leverageIndex} max={10} subtitle="Avg. leverage" icon={Gauge} color="hsl(38 92% 50%)" delay={0.25} />
+          <KPIGauge label="Pipeline" value={`${pipelinePct}%`} max={100} subtitle={`${completedSteps.size}/5 steps`} icon={BarChart3} color={modeAccent} delay={0.3} />
         </div>
 
         {/* Pipeline Status */}
@@ -362,43 +364,57 @@ export default function CommandDeckPage() {
           </div>
         </motion.div>
 
-        {/* Top Opportunities Table */}
-        <motion.div {...fadeUp} transition={{ delay: 0.25 }}
-          className="rounded-xl p-5 bg-card border border-border"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Lightbulb size={14} style={{ color: "hsl(152 60% 44%)" }} />
-              <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Top Opportunities</p>
+        {/* Visual Intelligence + Top Opportunities — side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+          {/* Top Opportunities Table */}
+          <motion.div {...fadeUp} transition={{ delay: 0.25 }}
+            className="rounded-xl p-5 bg-card border border-border"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Lightbulb size={14} style={{ color: "hsl(152 60% 44%)" }} />
+                <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Top Opportunities</p>
+              </div>
+              {graph && graph.nodes.length > 0 && (
+                <button
+                  onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
+                  style={{ background: `${modeAccent}12`, color: modeAccent }}
+                >
+                  <GitBranch size={12} /> Explore Graph
+                </button>
+              )}
             </div>
-            {graph && graph.nodes.length > 0 && (
-              <button
-                onClick={() => navigate(`${baseUrl}/insight-graph`)}
-                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
-                style={{ background: `${modeAccent}12`, color: modeAccent }}
-              >
-                <GitBranch size={12} /> Explore Graph
-              </button>
-            )}
-          </div>
 
-          {topOpps.length > 0 ? (
-            <OpportunityTable opps={topOpps} analysisId={analysisId!} modeAccent={modeAccent} />
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground">
-                Run the analysis pipeline to discover opportunities.
-              </p>
-              <button
-                onClick={() => navigate(`${baseUrl}/report`)}
-                className="mt-3 flex items-center gap-1.5 mx-auto px-4 py-2 rounded-lg text-sm font-bold transition-colors"
-                style={{ background: `${modeAccent}15`, color: modeAccent }}
-              >
-                <ArrowRight size={14} /> Start with Report
-              </button>
-            </div>
-          )}
-        </motion.div>
+            {topOpps.length > 0 ? (
+              <OpportunityTable opps={topOpps} analysisId={analysisId!} modeAccent={modeAccent} />
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground">
+                  Run the analysis pipeline to discover opportunities.
+                </p>
+                <button
+                  onClick={() => navigate(`${baseUrl}/report`)}
+                  className="mt-3 flex items-center gap-1.5 mx-auto px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+                  style={{ background: `${modeAccent}15`, color: modeAccent }}
+                >
+                  <ArrowRight size={14} /> Start with Report
+                </button>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Visual Intelligence Sidebar */}
+          <motion.div {...fadeUp} transition={{ delay: 0.3 }}>
+            <StepVisualOutput
+              step="report"
+              intelligence={intelligence}
+              governedData={analysis.governedData as Record<string, unknown> | null}
+              product={selectedProduct as unknown as Record<string, unknown>}
+              accentColor={modeAccent}
+            />
+          </motion.div>
+        </div>
 
         {/* Insight Graph CTA */}
         {graph && graph.nodes.length > 0 && (
