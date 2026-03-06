@@ -60,6 +60,11 @@ export interface StrategicInsight {
   impact: number;
   confidence: number;
   createdAt: number;
+  /** Compat with Insight interface */
+  tier: import("@/lib/evidenceEngine").EvidenceTier;
+  mode: import("@/lib/evidenceEngine").EvidenceMode;
+  confidenceScore?: number;
+  recommendedTools?: string[];
 }
 
 export interface StrategicNarrative {
@@ -118,6 +123,18 @@ export interface StrategicAnalysisOutput {
 let insightIdCounter = 0;
 function nextInsightId(prefix: string): string {
   return `${prefix}-${++insightIdCounter}`;
+}
+
+/** Default compat fields for Insight interface */
+const COMPAT_DEFAULTS = {
+  tier: "structural" as const,
+  mode: "product" as const,
+  confidenceScore: undefined as number | undefined,
+  recommendedTools: [] as string[],
+};
+
+function makeInsight(partial: Omit<StrategicInsight, "tier" | "mode" | "confidenceScore" | "recommendedTools">): StrategicInsight {
+  return { ...partial, ...COMPAT_DEFAULTS, confidenceScore: partial.confidence };
 }
 
 function jaccardSimilarity(a: string, b: string): number {
@@ -192,7 +209,7 @@ function detectConstraints(flat: Evidence[], analysisId: string): StrategicInsig
       ? `${primary.label} (+${cluster.length - 1} related)`
       : primary.label;
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("constraint"),
       analysisId,
       insightType: "constraint_cluster",
@@ -203,14 +220,14 @@ function detectConstraints(flat: Evidence[], analysisId: string): StrategicInsig
       impact: Math.max(...cluster.map(e => e.impact ?? 5)),
       confidence: cluster.reduce((s, e) => s + (e.confidenceScore ?? 0.5), 0) / cluster.length,
       createdAt: now,
-    });
+    }));
   }
 
   // Risk evidence that indicates structural constraints
   const riskEvidence = flat.filter(e => e.type === "risk" && (e.impact ?? 0) >= 5);
   for (const risk of riskEvidence.slice(0, 3)) {
     if (insights.some(i => jaccardSimilarity(i.label, risk.label) >= 0.5)) continue;
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("constraint"),
       analysisId,
       insightType: "constraint_cluster",
@@ -221,7 +238,7 @@ function detectConstraints(flat: Evidence[], analysisId: string): StrategicInsig
       impact: risk.impact ?? 6,
       confidence: risk.confidenceScore ?? 0.5,
       createdAt: now,
-    });
+    }));
   }
 
   return insights;
@@ -261,7 +278,7 @@ function identifyDrivers(flat: Evidence[], constraints: StrategicInsight[], anal
       .map(c => c.id);
 
     const primary = cluster[0];
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("driver"),
       analysisId,
       insightType: "driver",
@@ -272,14 +289,14 @@ function identifyDrivers(flat: Evidence[], constraints: StrategicInsight[], anal
       impact: Math.max(...cluster.map(e => e.impact ?? 5)),
       confidence: cluster.reduce((s, e) => s + (e.confidenceScore ?? 0.5), 0) / cluster.length,
       createdAt: now,
-    });
+    }));
   }
 
   // Signals as supplementary drivers
   const signals = flat.filter(e => e.type === "signal" && (e.impact ?? 0) >= 5);
   for (const sig of signals.slice(0, 5)) {
     if (insights.some(i => jaccardSimilarity(i.label, sig.label) >= 0.5)) continue;
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("driver"),
       analysisId,
       insightType: "driver",
@@ -290,7 +307,7 @@ function identifyDrivers(flat: Evidence[], constraints: StrategicInsight[], anal
       impact: sig.impact ?? 5,
       confidence: sig.confidenceScore ?? 0.5,
       createdAt: now,
-    });
+    }));
   }
 
   return insights;
@@ -319,7 +336,7 @@ function calculateLeveragePoints(
       .filter(d => d.evidenceIds.some(eid => flat.find(e => e.id === eid)?.tier === lev.tier))
       .map(d => d.id);
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("leverage"),
       analysisId,
       insightType: "leverage_point",
@@ -330,7 +347,7 @@ function calculateLeveragePoints(
       impact: lev.impact ?? 7,
       confidence: lev.confidenceScore ?? 0.6,
       createdAt: now,
-    });
+    }));
   }
 
   // Derive leverage from constraint-driver intersections
@@ -344,7 +361,7 @@ function calculateLeveragePoints(
         const label = `Resolve "${constraint.label.slice(0, 40)}" via "${driver.label.slice(0, 40)}"`;
         if (insights.some(i => jaccardSimilarity(i.label, label) >= 0.5)) continue;
 
-        insights.push({
+        insights.push(makeInsight({
           id: nextInsightId("leverage"),
           analysisId,
           insightType: "leverage_point",
@@ -355,7 +372,7 @@ function calculateLeveragePoints(
           impact: Math.round((constraint.impact + driver.impact) / 2),
           confidence: Math.round(((constraint.confidence + driver.confidence) / 2) * 100) / 100,
           createdAt: now,
-        });
+        }));
       }
     }
   }
@@ -383,7 +400,7 @@ function generateOpportunities(
       .filter(l => l.evidenceIds.some(eid => flat.find(e => e.id === eid)?.tier === opp.tier))
       .map(l => l.id);
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("opportunity"),
       analysisId,
       insightType: "emerging_opportunity",
@@ -394,7 +411,7 @@ function generateOpportunities(
       impact: opp.impact ?? 7,
       confidence: opp.confidenceScore ?? 0.5,
       createdAt: now,
-    });
+    }));
   }
 
   // Derive opportunities from leverage-constraint resolution
@@ -406,7 +423,7 @@ function generateOpportunities(
     const label = `Unlock: ${con.label.slice(0, 60)}`;
     if (insights.some(i => jaccardSimilarity(i.label, label) >= 0.5)) continue;
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("opportunity"),
       analysisId,
       insightType: "emerging_opportunity",
@@ -417,7 +434,7 @@ function generateOpportunities(
       impact: Math.max(lev.impact, con.impact),
       confidence: Math.round(((lev.confidence + con.confidence) / 2) * 100) / 100,
       createdAt: now,
-    });
+    }));
   }
 
   return insights;
@@ -450,7 +467,7 @@ function constructStrategicPathways(
 
     const label = `${con.label.slice(0, 35)} → ${opp.label.slice(0, 45)}`;
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("pathway"),
       analysisId,
       insightType: "strategic_pathway",
@@ -463,7 +480,7 @@ function constructStrategicPathways(
       impact: Math.max(con.impact, opp.impact),
       confidence: Math.round(((con.confidence + opp.confidence) / 2) * 100) / 100,
       createdAt: now,
-    });
+    }));
   }
 
   return insights;

@@ -35,7 +35,9 @@ export type InsightType =
   | "structural_insight"
   | "strategic_pathway"
   | "reasoning_chain"
-  | "tool_recommendation";
+  | "tool_recommendation"
+  | "driver"
+  | "leverage_point";
 
 export interface Insight {
   id: string;

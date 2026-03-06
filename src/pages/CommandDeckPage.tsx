@@ -69,7 +69,7 @@ export default function CommandDeckPage() {
   }, []);
   const analysisId = ctxAnalysisId || urlAnalysisId;
   const modeAccent = theme.primary;
-  const { intelligence, graph, completedSteps, narrative } = autoAnalysis;
+  const { intelligence, graph, completedSteps, narrative, diagnostic, runAnalysis, hasRun, isComputing: engineComputing } = autoAnalysis;
 
   // ── Aggregated Metrics ──
   const allEvidence = useMemo(() => extractAllEvidence({
@@ -145,7 +145,7 @@ export default function CommandDeckPage() {
     return keywords;
   }, [autoAnalysis.insights, narrative]);
 
-  const reasoningToolRecs = useMemo(() => narrative?.recommendedTools ?? [], [narrative]);
+  const reasoningToolRecs = useMemo<string[]>(() => [], []);
 
   // ── Intelligence events ──
   const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
@@ -182,21 +182,12 @@ export default function CommandDeckPage() {
   const handleRecomputeAll = useCallback(() => {
     if (completedSteps.size === 0) { navigate(`${baseUrl}/report`); return; }
     setIsRecomputing(true);
-    addEvent("Recomputing strategic intelligence…");
+    addEvent("Running strategic analysis…");
     try {
-      const result = recomputeIntelligence({
-        products: analysis.products, selectedProduct,
-        disruptData: analysis.disruptData, redesignData: analysis.redesignData,
-        stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
-        governedData: analysis.governedData as Record<string, unknown> | null,
-        businessAnalysisData: analysis.businessAnalysisData, intelligence,
-        analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
-        analysisId: analysisId || "", completedSteps,
-      });
-      result.events.forEach(evt => addEvent(evt));
+      runAnalysis();
     } catch { addEvent("Strategic intelligence updated"); }
-    setTimeout(() => { setIsRecomputing(false); toast.success("Strategic intelligence updated"); }, 1000);
-  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, navigate, baseUrl, addEvent]);
+    setTimeout(() => { setIsRecomputing(false); toast.success("Strategic analysis complete"); }, 1000);
+  }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis]);
 
   // ── AUTO-RECOMPUTE ──
   const lastRecomputeHash = useRef<string>("");
@@ -256,7 +247,7 @@ export default function CommandDeckPage() {
       <HeroSection tier={tier} remainingAnalyses={null} />
 
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
-        <RecomputeOverlay isActive={isRecomputing || autoAnalysis.isComputing} />
+        <RecomputeOverlay isActive={isRecomputing || engineComputing} />
 
         {/* ═══ HEADER — Compact ═══ */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl px-4 py-3 bg-card border border-border">
@@ -270,15 +261,15 @@ export default function CommandDeckPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {(isRecomputing || autoAnalysis.isComputing) && (
+            {(isRecomputing || engineComputing) && (
               <span className="flex items-center gap-1 text-[10px] font-bold text-primary animate-pulse">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Computing…
               </span>
             )}
             <button onClick={handleRecomputeAll}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
-              style={{ background: `${modeAccent}10`, color: modeAccent, border: `1px solid ${modeAccent}20` }}>
-              <RefreshCw size={13} className={isRecomputing ? "animate-spin" : ""} /> Recompute
+              style={{ background: `${modeAccent}15`, color: modeAccent, border: `1.5px solid ${modeAccent}30` }}>
+              <RefreshCw size={13} className={isRecomputing ? "animate-spin" : ""} /> Run Strategic Analysis
             </button>
             <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
           </div>
@@ -312,11 +303,37 @@ export default function CommandDeckPage() {
         {narrative && (
           <StrategicNarrativePanel
             primaryConstraint={narrative.primaryConstraint}
-            keyAssumption={narrative.keyAssumption}
+            keyDriver={narrative.keyDriver}
             leveragePoint={narrative.leveragePoint}
             breakthroughOpportunity={narrative.breakthroughOpportunity}
+            strategicPathway={narrative.strategicPathway}
             narrativeSummary={narrative.narrativeSummary}
           />
+        )}
+
+        {/* ═══ DIAGNOSTIC PANEL ═══ */}
+        {diagnostic && (
+          <div className="rounded-xl bg-card border border-border px-4 py-3">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">Pipeline Diagnostics</p>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { label: "Evidence", count: diagnostic.evidenceCount, warn: diagnostic.insufficientEvidence },
+                { label: "Constraints", count: diagnostic.constraintCount },
+                { label: "Drivers", count: diagnostic.driverCount },
+                { label: "Leverage", count: diagnostic.leverageCount },
+                { label: "Opportunities", count: diagnostic.opportunityCount },
+                { label: "Pathways", count: diagnostic.pathwayCount },
+              ].map(d => (
+                <div key={d.label} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold ${d.warn ? 'bg-destructive/10 text-destructive' : 'bg-muted text-foreground'}`}>
+                  <span className="text-lg font-black">{d.count}</span>
+                  <span className="text-muted-foreground">{d.label}</span>
+                </div>
+              ))}
+            </div>
+            {diagnostic.message && (
+              <p className="mt-2 text-xs text-destructive font-semibold">⚠ {diagnostic.message}</p>
+            )}
+          </div>
         )}
 
         {/* ═══ STRATEGIC SIGNAL BANNER ═══ */}
