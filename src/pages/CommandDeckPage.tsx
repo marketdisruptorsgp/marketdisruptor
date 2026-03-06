@@ -320,7 +320,7 @@ export default function CommandDeckPage() {
   const { theme: workspaceTheme, toggle: toggleTheme } = useWorkspaceTheme();
   const autoAnalysis = useAutoAnalysis();
 
-  const { selectedProduct, analysisId: ctxAnalysisId } = analysis;
+  const { selectedProduct, analysisId: ctxAnalysisId, businessAnalysisData, businessModelInput } = analysis;
 
   // Fallback: extract analysis ID from URL if context is null (e.g. direct navigation)
   const urlAnalysisId = useMemo(() => {
