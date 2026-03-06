@@ -1,5 +1,5 @@
 /**
- * Command Deck — Strategic Intelligence Dashboard
+ * Strategic Situation Room — Discovery Intelligence Surface
  * URL: /analysis/:analysisId/command-deck
  *
  * Zones:
