@@ -27,8 +27,9 @@ import {
   LayoutDashboard, GitBranch, Target, Shield, Lightbulb,
   Activity, Crosshair, AlertTriangle, CheckCircle2, Circle,
   ChevronRight, Rocket, TrendingUp, ArrowRight, ArrowUpDown,
-  Zap, BarChart3, ExternalLink,
+  Zap, BarChart3, ExternalLink, RefreshCw,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   computeCommandDeckMetrics, aggregateOpportunities,
   type CommandDeckMetrics as DeckMetrics,
@@ -399,6 +400,15 @@ export default function CommandDeckPage() {
   const hasBusinessContext = !!businessAnalysisData;
   const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
 
+  const handleRecomputeAll = useCallback(() => {
+    const stepsToRun = ["report", "disrupt", "redesign", "stress-test", "pitch"];
+    const firstIncomplete = stepsToRun.find(s => !completedSteps.has(s));
+    const firstOutdated = stepsToRun.find(s => analysis.outdatedSteps.has(s));
+    const target = firstOutdated || firstIncomplete || "report";
+    toast.info("Navigating to recompute pipeline…");
+    navigate(`${baseUrl}/${target}`);
+  }, [completedSteps, analysis.outdatedSteps, navigate, baseUrl]);
+
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
     return (
@@ -441,7 +451,21 @@ export default function CommandDeckPage() {
                 {metrics.contributingSources.length > 0 && ` · ${metrics.contributingSources.join(", ")}`}
               </p>
             </div>
-            <StrategicPotentialGauge score={strategicPotential} accent={modeAccent} />
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleRecomputeAll}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
+                style={{
+                  background: `${modeAccent}15`,
+                  color: modeAccent,
+                  border: `1.5px solid ${modeAccent}30`,
+                }}
+              >
+                <RefreshCw size={15} />
+                Recompute Analysis
+              </button>
+              <StrategicPotentialGauge score={strategicPotential} accent={modeAccent} />
+            </div>
           </div>
         </motion.div>
 
@@ -744,11 +768,14 @@ export default function CommandDeckPage() {
                     leverage_point: "hsl(38 92% 50%)", concept: "hsl(152 60% 44%)",
                   };
                   return (
-                    <span key={type} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold"
-                      style={{ background: `${colors[type]}10`, color: colors[type] }}>
+                    <button
+                      key={type}
+                      onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-bold cursor-pointer transition-all hover:scale-105 active:scale-95 min-h-[32px]"
+                      style={{ background: `${colors[type]}12`, color: colors[type], border: `1px solid ${colors[type]}20` }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: colors[type] }} />
                       {count} {type.replace("_", " ")}
-                    </span>
+                    </button>
                   );
                 })}
               </div>

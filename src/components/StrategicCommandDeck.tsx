@@ -59,7 +59,10 @@ function ConstraintRow({ node, onTrace }: { node: ConstraintNode; onTrace?: () =
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
-      className="flex items-center gap-2.5 py-2"
+      onClick={onTrace}
+      role={onTrace ? "button" : undefined}
+      tabIndex={onTrace ? 0 : undefined}
+      className={`flex items-center gap-2.5 py-2.5 px-2 rounded-lg transition-colors min-h-[44px] ${onTrace ? "cursor-pointer hover:bg-muted/60 active:bg-muted" : ""}`}
     >
       <div
         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -67,7 +70,7 @@ function ConstraintRow({ node, onTrace }: { node: ConstraintNode; onTrace?: () =
       />
       <p className="text-sm font-bold text-foreground flex-1 leading-snug">{node.label}</p>
       <ImpactBadge impact={node.impact} confidence={node.confidence} />
-      {onTrace && <TraceButton onTrace={onTrace} />}
+      {onTrace && <Eye size={13} className="text-muted-foreground flex-shrink-0" />}
     </motion.div>
   );
 }
@@ -77,7 +80,10 @@ function LeverageRow({ node, onTrace }: { node: LeverageNode; onTrace?: () => vo
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
-      className="flex items-center gap-2.5 py-2"
+      onClick={onTrace}
+      role={onTrace ? "button" : undefined}
+      tabIndex={onTrace ? 0 : undefined}
+      className={`flex items-center gap-2.5 py-2.5 px-2 rounded-lg transition-colors min-h-[44px] ${onTrace ? "cursor-pointer hover:bg-muted/60 active:bg-muted" : ""}`}
     >
       <div
         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -90,7 +96,7 @@ function LeverageRow({ node, onTrace }: { node: LeverageNode; onTrace?: () => vo
         )}
       </div>
       <ImpactBadge impact={node.impact} confidence={node.confidence} />
-      {onTrace && <TraceButton onTrace={onTrace} />}
+      {onTrace && <Eye size={13} className="text-muted-foreground flex-shrink-0" />}
     </motion.div>
   );
 }
@@ -100,7 +106,10 @@ function OpportunityRow({ node, onTrace }: { node: OpportunityNode; onTrace?: ()
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
-      className="flex items-center gap-2.5 py-2"
+      onClick={onTrace}
+      role={onTrace ? "button" : undefined}
+      tabIndex={onTrace ? 0 : undefined}
+      className={`flex items-center gap-2.5 py-2.5 px-2 rounded-lg transition-colors min-h-[44px] ${onTrace ? "cursor-pointer hover:bg-muted/60 active:bg-muted" : ""}`}
     >
       <div
         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -108,7 +117,7 @@ function OpportunityRow({ node, onTrace }: { node: OpportunityNode; onTrace?: ()
       />
       <p className="text-sm font-bold text-foreground flex-1 leading-snug">{node.label}</p>
       <ImpactBadge impact={node.impact} confidence={node.confidence} />
-      {onTrace && <TraceButton onTrace={onTrace} />}
+      {onTrace && <Eye size={13} className="text-muted-foreground flex-shrink-0" />}
     </motion.div>
   );
 }
@@ -206,14 +215,14 @@ export const StrategicCommandDeck = memo(function StrategicCommandDeck({
             <span className="text-xs font-bold text-foreground/50">({convergenceZoneDetails.length})</span>
           </div>
           {convergenceZoneDetails.slice(0, 5).map(zone => (
-            <div key={zone.id} className="flex items-center gap-2.5 py-1">
+            <div key={zone.id} className="flex items-center gap-2.5 py-2.5 px-2 rounded-lg transition-colors hover:bg-background/40 cursor-default min-h-[44px]">
               <div
                 className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ background: zone.isStrategic ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))" }}
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground leading-snug">{zone.label}</p>
-                <div className="flex gap-1 mt-0.5">
+                <div className="flex gap-1 mt-0.5 flex-wrap">
                   {zone.lenses.map(l => (
                     <span key={l} className="px-1.5 py-0.5 rounded text-xs font-bold uppercase" style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }}>
                       {l}
