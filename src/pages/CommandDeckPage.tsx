@@ -39,6 +39,7 @@ import { computeTierState, filterEvidenceByTier, TIER_META, type TierNumber, typ
 import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
+import { allScenariosToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -430,6 +431,18 @@ export default function CommandDeckPage() {
     if (narrative?.narrativeSummary) keywords.push(narrative.narrativeSummary);
     return keywords;
   }, [autoAnalysis.insights, narrative]);
+
+  // Reasoning-driven tool recommendations from insight layer
+  const reasoningToolRecs = useMemo(() => {
+    return narrative?.recommendedTools ?? [];
+  }, [narrative]);
+
+  // Scenario saved handler — triggers recompute
+  const [scenarioTrigger, setScenarioTrigger] = useState(0);
+  const handleScenarioSaved = useCallback((scenario: ToolScenario) => {
+    setScenarioTrigger(t => t + 1);
+    toast.success("Intelligence recomputing with new scenario data…");
+  }, []);
 
   const handleRecomputeAll = useCallback(() => {
     toast.info("Recomputing analysis intelligence…");
@@ -882,6 +895,9 @@ export default function CommandDeckPage() {
             <LensIntelligencePanel
               analysisMode={analysis.activeMode || "product"}
               signalKeywords={lensSignalKeywords}
+              analysisId={analysisId || ""}
+              recommendedToolIds={reasoningToolRecs}
+              onScenarioSaved={handleScenarioSaved}
             />
           </aside>
         </div>
@@ -891,6 +907,9 @@ export default function CommandDeckPage() {
           <LensIntelligencePanel
             analysisMode={analysis.activeMode || "product"}
             signalKeywords={lensSignalKeywords}
+            analysisId={analysisId || ""}
+            recommendedToolIds={reasoningToolRecs}
+            onScenarioSaved={handleScenarioSaved}
           />
         </div>
 

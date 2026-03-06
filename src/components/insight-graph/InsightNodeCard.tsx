@@ -8,25 +8,63 @@
 
 import { memo, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target } from "lucide-react";
+import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRight } from "lucide-react";
 import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
 import { getInsightChain, NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
+import { getToolById, type LensTool } from "@/lib/lensToolkitRegistry";
 
 interface InsightNodeCardProps {
   node: InsightGraphNode;
   graph: InsightGraph;
   onClose: () => void;
   onSelectNode: (nodeId: string) => void;
+  onOpenTool?: (tool: LensTool) => void;
   isMobile?: boolean;
 }
 
 export const InsightNodeCard = memo(function InsightNodeCard({
-  node, graph, onClose, onSelectNode, isMobile = false,
+  node, graph, onClose, onSelectNode, onOpenTool, isMobile = false,
 }: InsightNodeCardProps) {
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
   const [showAllEvidence, setShowAllEvidence] = useState(false);
-  const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence">("chain");
+  const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence" | "tools">("chain");
+
+  // Derive related tools from node keywords
+  const relatedTools = useMemo(() => {
+    const text = `${node.label} ${node.detail || ""} ${node.reasoning || ""}`.toLowerCase();
+    const toolIds = ["sba-loan-calculator", "deal-structure-simulator", "dscr-calculator",
+      "acquisition-roi-model", "tam-calculator", "unit-economics-model", "competitive-moat-analyzer",
+      "industry-fragmentation-detector", "seller-motivation-signals", "assumption-stress-tester",
+      "innovation-pathway-mapper", "revenue-model-simulator", "value-chain-analyzer",
+      "deal-risk-scanner", "cash-flow-quality"];
+    const TOOL_KEYWORDS: Record<string, string[]> = {
+      "sba-loan-calculator": ["loan", "sba", "financing", "debt", "leverage", "acquisition"],
+      "deal-structure-simulator": ["deal", "equity", "ownership", "structure", "seller"],
+      "dscr-calculator": ["dscr", "debt service", "coverage"],
+      "acquisition-roi-model": ["roi", "return", "exit", "multiple"],
+      "tam-calculator": ["market", "tam", "addressable", "opportunity"],
+      "unit-economics-model": ["unit economics", "cac", "ltv", "margin"],
+      "competitive-moat-analyzer": ["moat", "defensibility", "barrier", "switching"],
+      "industry-fragmentation-detector": ["fragmented", "consolidation", "rollup"],
+      "seller-motivation-signals": ["retiring", "succession", "seller", "owner"],
+      "assumption-stress-tester": ["assumption", "convention", "belief"],
+      "innovation-pathway-mapper": ["innovation", "breakthrough", "redesign"],
+      "revenue-model-simulator": ["revenue", "subscription", "pricing"],
+      "value-chain-analyzer": ["value chain", "middleman", "supply"],
+      "deal-risk-scanner": ["risk", "concentration", "dependency"],
+      "cash-flow-quality": ["cash flow", "revenue quality", "addback"],
+    };
+    const matched: LensTool[] = [];
+    for (const tid of toolIds) {
+      const kws = TOOL_KEYWORDS[tid] || [];
+      if (kws.some(kw => text.includes(kw))) {
+        const tool = getToolById(tid);
+        if (tool) matched.push(tool);
+      }
+    }
+    return matched.slice(0, 3);
+  }, [node]);
 
   // Linked nodes (direct connections)
   const linkedNodes = useMemo(() => {
@@ -205,11 +243,11 @@ export const InsightNodeCard = memo(function InsightNodeCard({
       )}
 
       {/* Section tabs */}
-      <div className="px-4 pb-2 flex items-center gap-1">
-        {(["chain", "linked", "evidence"] as const).map(s => (
+      <div className="px-4 pb-2 flex items-center gap-1 flex-wrap">
+        {(["chain", "linked", "evidence", ...(relatedTools.length > 0 ? ["tools" as const] : [])] as const).map(s => (
           <button
             key={s}
-            onClick={() => setActiveSection(s)}
+            onClick={() => setActiveSection(s as any)}
             className="px-2.5 py-1 rounded-md text-xs font-bold capitalize transition-all"
             style={{
               background: activeSection === s ? config.bgColor : "transparent",
@@ -217,7 +255,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
               border: activeSection === s ? `1px solid ${config.borderColor}` : "1px solid transparent",
             }}
           >
-            {s === "chain" ? `Chain (${chain.length})` : s === "linked" ? `Linked (${linkedNodes.length})` : `Evidence (${node.evidenceCount})`}
+            {s === "chain" ? `Chain (${chain.length})` : s === "linked" ? `Linked (${linkedNodes.length})` : s === "tools" ? `Tools (${relatedTools.length})` : `Evidence (${node.evidenceCount})`}
           </button>
         ))}
       </div>
@@ -345,6 +383,34 @@ export const InsightNodeCard = memo(function InsightNodeCard({
           ) : (
             <p className="text-xs text-muted-foreground text-center py-4">No evidence collected</p>
           )}
+        </div>
+      )}
+
+      {/* Related Tools */}
+      {activeSection === "tools" && relatedTools.length > 0 && (
+        <div className="px-4 pb-4 space-y-2">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
+            Related Tools
+          </p>
+          {relatedTools.map(tool => {
+            const ToolIcon = tool.icon;
+            return (
+              <button
+                key={tool.id}
+                onClick={() => onOpenTool?.(tool)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/40 transition-all text-left"
+              >
+                <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: `${tool.accentColor}12` }}>
+                  <ToolIcon size={13} style={{ color: tool.accentColor }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-foreground">{tool.title}</p>
+                  <p className="text-[10px] text-muted-foreground line-clamp-1">{tool.description}</p>
+                </div>
+                <ChevronRight size={12} className="text-muted-foreground flex-shrink-0" />
+              </button>
+            );
+          })}
         </div>
       )}
 
