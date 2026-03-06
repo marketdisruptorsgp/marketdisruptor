@@ -99,7 +99,7 @@ interface MetricCardProps {
   onClick?: () => void;
 }
 
-function MetricCard({ label, value, description, icon: Icon, color, trend, evidence, delay = 0, onClick }: MetricCardProps) {
+function MetricCard({ label, value, description, icon: Icon, color, trend, evidence, evidenceCount, delay = 0, onClick }: MetricCardProps) {
   const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
   const max = label === "Constraints" ? Math.max(numValue, 10) : 10;
   const trendInfo = trend ? trendIcons[trend] : null;
