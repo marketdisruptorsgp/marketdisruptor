@@ -252,13 +252,34 @@ function buildGraphFromEvidence(
   }
 
   // ── Step 1b: Generate Insight nodes from clustered insights ──
+  // Also generate synthetic Constraint and Opportunity nodes from insights
+  // when the evidence pipeline didn't produce them directly.
   if (insights) {
-    for (const ins of insights.slice(0, 12)) {
+    for (const ins of insights.slice(0, 16)) {
       const rawLabel = typeof ins.label === "string" ? ins.label : "";
       if (!rawLabel || rawLabel === "[object Object]") continue;
+
+      // Map insight types to graph node types for richer coverage
+      let nodeType: InsightNodeType = "insight";
+      let layer: InsightGraphNode["intelligenceLayer"] = "insight";
+      if (ins.insightType === "constraint_cluster") {
+        nodeType = "constraint";
+        layer = "insight";
+      } else if (ins.insightType === "emerging_opportunity") {
+        nodeType = "concept";
+        layer = "opportunity";
+      } else if (ins.insightType === "strategic_pathway") {
+        nodeType = "pathway";
+        layer = "strategy";
+      } else if (ins.insightType === "assumption_cluster") {
+        nodeType = "assumption";
+        layer = "evidence";
+      }
+
+      const insNodeId = `insight-${ins.id}`;
       addNode({
-        id: `insight-${ins.id}`,
-        type: "insight",
+        id: insNodeId,
+        type: nodeType,
         label: rawLabel.slice(0, 120),
         detail: ins.description,
         impact: ins.impact ?? 6,
@@ -270,11 +291,11 @@ function buildGraphFromEvidence(
         evidence: ins.evidenceIds,
         relatedNodeIds: [],
         confidenceScore: ins.confidenceScore,
-        intelligenceLayer: "insight",
+        intelligenceLayer: layer,
       });
       // Link insight → its source evidence
       for (const evId of ins.evidenceIds.slice(0, 4)) {
-        addEdge(evId, `insight-${ins.id}`, "creates", 0.6);
+        addEdge(evId, insNodeId, "creates", 0.6);
       }
     }
   }
@@ -413,22 +434,30 @@ function buildGraphFromEvidence(
   }
 
   // ── Step 2b: Generate Strategic Pathway nodes ──
-  // A pathway represents a chain: Constraint → Insight → Opportunity → Scenario
+  // Create multiple pathways from different constraint→opportunity chains
   const pathwayNodes: InsightGraphNode[] = [];
-  if (opportunities.length > 0 && (insightNodes.length > 0 || constraints.length > 0)) {
-    const topOpp = opportunities[0];
-    const relConstraint = constraints[0];
-    const relInsight = insightNodes[0];
-    
-    const pathwayLabel = topOpp
-      ? `${relConstraint ? relConstraint.label.slice(0, 30) + " → " : ""}${topOpp.label.slice(0, 50)}`
-      : "Strategic Pathway";
+  const usedOppIds = new Set<string>();
+
+  // Generate up to 3 pathways from top opportunities
+  const topOppsForPathways = opportunities.slice(0, 3);
+  for (let pi = 0; pi < topOppsForPathways.length; pi++) {
+    const topOpp = topOppsForPathways[pi];
+    if (usedOppIds.has(topOpp.id)) continue;
+    usedOppIds.add(topOpp.id);
+
+    const relConstraint = constraints[pi] || constraints[0];
+    const relInsight = insightNodes[pi] || insightNodes[0];
+    const relScenario = scenarioNodes[pi];
+
+    const pathwayLabel = relConstraint
+      ? `${relConstraint.label.slice(0, 30)} → ${topOpp.label.slice(0, 50)}`
+      : `Strategy: ${topOpp.label.slice(0, 70)}`;
 
     const pathwayNode: InsightGraphNode = {
       id: `pathway-${topOpp.id}`,
       type: "pathway",
       label: pathwayLabel.slice(0, 120),
-      detail: `Strategic pathway derived from ${constraints.length} constraints and ${opportunities.length} opportunities`,
+      detail: `Strategic pathway: resolve constraints, leverage ${opportunities.length} opportunities${scenarioNodes.length > 0 ? `, validated by ${scenarioNodes.length} scenarios` : ""}`,
       impact: Math.min(10, Math.round(topOpp.impact * 1.2)),
       confidence: topOpp.confidence,
       evidenceCount: topOpp.evidenceCount + (relConstraint?.evidenceCount ?? 0),
@@ -444,9 +473,15 @@ function buildGraphFromEvidence(
 
     // Link: Opportunity → Pathway
     addEdge(topOpp.id, pathwayNode.id, "enables", 0.8);
-    // Link: Scenario → Pathway (if scenarios exist)
-    if (scenarioNodes.length > 0) {
-      addEdge(scenarioNodes[0].id, pathwayNode.id, "enables", 0.7);
+    // Link: Scenario → Pathway
+    if (relScenario) {
+      addEdge(relScenario.id, pathwayNode.id, "enables", 0.7);
+    } else if (scenarioNodes.length > 0) {
+      addEdge(scenarioNodes[0].id, pathwayNode.id, "enables", 0.6);
+    }
+    // Link: Constraint → Pathway
+    if (relConstraint) {
+      addEdge(relConstraint.id, pathwayNode.id, "leads_to", 0.6);
     }
     // Link: Insight → Pathway
     if (relInsight) {
