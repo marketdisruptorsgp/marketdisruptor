@@ -670,9 +670,12 @@ function generateOpportunities(
     const relatedConstraints = constraints.filter(c => lev.relatedInsightIds.includes(c.id));
     const con = relatedConstraints[0];
 
+    const conText = con ? humanize(con.label).slice(0, 55) : "";
+    const levText = humanize(lev.label).slice(0, 55);
+
     const label = con
-      ? `Unlock: ${con.label.slice(0, 50)}`
-      : `Capitalize: ${lev.label.slice(0, 50)}`;
+      ? `Resolve ${conText} to unlock growth`
+      : `Leverage ${levText} for strategic advantage`;
 
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
@@ -682,8 +685,8 @@ function generateOpportunities(
       insightType: "emerging_opportunity",
       label,
       description: con
-        ? `Resolving "${con.label}" via "${lev.label}" opens strategic value.`
-        : `Leveraging "${lev.label}" creates an emerging strategic opportunity.`,
+        ? `Addressing "${humanize(con.label)}" through "${humanize(lev.label)}" opens a clear path to strategic value.`
+        : `"${humanize(lev.label)}" represents an emerging strategic opportunity worth pursuing.`,
       evidenceIds: [...new Set([...lev.evidenceIds, ...(con?.evidenceIds ?? [])])],
       relatedInsightIds: [lev.id, ...(con ? [con.id] : [])],
       impact: Math.max(lev.impact, con?.impact ?? 0),
