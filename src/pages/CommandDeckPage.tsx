@@ -691,6 +691,14 @@ export default function CommandDeckPage() {
         </motion.div>
 
       </main>
+
+      {/* Evidence Explorer Drilldown */}
+      <EvidenceExplorer
+        open={explorerDomain !== null}
+        onClose={closeExplorer}
+        domain={explorerDomain}
+        evidence={allEvidence}
+      />
     </div>
   );
 }
