@@ -97,8 +97,8 @@ export default function InsightGraphPage() {
     const insightsData = autoAnalysis.insights?.map(i => ({
       id: i.id, label: i.label, description: i.description,
       insightType: i.insightType, impact: i.impact,
-      confidenceScore: i.confidenceScore, evidenceIds: i.evidenceIds,
-      recommendedTools: i.recommendedTools,
+      confidenceScore: i.confidence ?? i.confidenceScore ?? 0.5, evidenceIds: i.evidenceIds,
+      recommendedTools: i.recommendedTools ?? [],
     }));
     const scenariosData = autoAnalysis.scenarioComparison?.scenarios;
     return buildInsightGraph(evidenceData, undefined, undefined, undefined, undefined, insightsData, scenariosData);

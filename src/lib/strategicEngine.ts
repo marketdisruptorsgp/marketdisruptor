@@ -60,6 +60,11 @@ export interface StrategicInsight {
   impact: number;
   confidence: number;
   createdAt: number;
+  /** Compat with Insight interface */
+  tier: import("@/lib/evidenceEngine").EvidenceTier;
+  mode: import("@/lib/evidenceEngine").EvidenceMode;
+  confidenceScore?: number;
+  recommendedTools?: string[];
 }
 
 export interface StrategicNarrative {

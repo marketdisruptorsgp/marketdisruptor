@@ -312,9 +312,10 @@ export default function CommandDeckPage() {
         {narrative && (
           <StrategicNarrativePanel
             primaryConstraint={narrative.primaryConstraint}
-            keyAssumption={narrative.keyAssumption}
+            keyDriver={narrative.keyDriver}
             leveragePoint={narrative.leveragePoint}
             breakthroughOpportunity={narrative.breakthroughOpportunity}
+            strategicPathway={narrative.strategicPathway}
             narrativeSummary={narrative.narrativeSummary}
           />
         )}
