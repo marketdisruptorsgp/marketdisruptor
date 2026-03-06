@@ -334,6 +334,23 @@ export default function CommandDeckPage() {
   const { intelligence, graph, completedSteps } = autoAnalysis;
 
   // ── Aggregated Metrics ──
+  const allEvidence = useMemo(() => extractAllEvidence({
+    products: analysis.products,
+    selectedProduct,
+    disruptData: analysis.disruptData,
+    redesignData: analysis.redesignData,
+    stressTestData: analysis.stressTestData,
+    pitchDeckData: analysis.pitchDeckData,
+    governedData: analysis.governedData as Record<string, unknown> | null,
+    businessAnalysisData: analysis.businessAnalysisData,
+    intelligence,
+    analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+  }), [
+    analysis.products, selectedProduct, analysis.disruptData, analysis.redesignData,
+    analysis.stressTestData, analysis.pitchDeckData, analysis.governedData,
+    analysis.businessAnalysisData, intelligence, analysis.activeMode,
+  ]);
+
   const metricsInput = useMemo(() => ({
     products: analysis.products,
     selectedProduct,
@@ -345,15 +362,15 @@ export default function CommandDeckPage() {
     businessAnalysisData: analysis.businessAnalysisData,
     intelligence,
     completedSteps,
+    evidence: allEvidence,
   }), [
     analysis.products, selectedProduct, analysis.disruptData, analysis.redesignData,
     analysis.stressTestData, analysis.pitchDeckData, analysis.governedData,
-    analysis.businessAnalysisData, intelligence, completedSteps,
+    analysis.businessAnalysisData, intelligence, completedSteps, allEvidence,
   ]);
 
   const metrics: DeckMetrics = useMemo(() => computeCommandDeckMetrics(metricsInput), [metricsInput]);
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
-  const allEvidence = useMemo(() => extractAllEvidence(metricsInput), [metricsInput]);
 
   // ── Tier Discovery State ──
   const [tierFilter, setTierFilter] = useState<EvidenceTier | null>(null);

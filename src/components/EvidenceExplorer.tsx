@@ -3,14 +3,21 @@
  *
  * Opens as a sheet/drawer when a MetricCard is clicked.
  * Shows structured evidence items traced to pipeline steps.
- * Supports tier + type filtering and confidence sorting.
+ * Supports tier, type, mode, and source engine filtering.
  */
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Layers, Search, Lightbulb, AlertTriangle, Crosshair, Zap, Shield, Filter, Building2, ChevronRight } from "lucide-react";
+import {
+  ArrowRight, Layers, Search, Lightbulb, AlertTriangle,
+  Crosshair, Zap, Shield, Filter, Building2, ChevronRight,
+  Globe, Radio, Cpu, BarChart3,
+} from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import type { MetricDomain, MetricEvidence, Evidence, EvidenceTier, EvidenceType } from "@/lib/evidenceEngine";
+import type {
+  MetricDomain, MetricEvidence, Evidence,
+  EvidenceTier, EvidenceType, EvidenceMode, EvidenceSourceEngine,
+} from "@/lib/evidenceEngine";
 
 const DOMAIN_META: Record<MetricDomain, { title: string; icon: React.ElementType; color: string }> = {
   opportunity: { title: "Opportunity Explorer", icon: Lightbulb, color: "hsl(152 60% 44%)" },
@@ -30,14 +37,26 @@ const TYPE_CHIPS: { key: EvidenceType; label: string }[] = [
   { key: "assumption",  label: "Assumption" },
   { key: "signal",      label: "Signal" },
   { key: "constraint",  label: "Constraint" },
+  { key: "friction",    label: "Friction" },
   { key: "opportunity", label: "Opportunity" },
   { key: "risk",        label: "Risk" },
   { key: "leverage",    label: "Leverage" },
+  { key: "competitor",  label: "Competitor" },
 ];
 
 const STEP_LABELS: Record<string, string> = {
   report: "Report", disrupt: "Disrupt", redesign: "Redesign",
   stress_test: "Stress Test", pitch: "Pitch",
+};
+
+const MODE_LABELS: Record<EvidenceMode, string> = {
+  product: "Product", service: "Service", business_model: "Business Model",
+};
+
+const ENGINE_LABELS: Record<string, string> = {
+  pipeline: "Pipeline", innovation: "Innovation Engine",
+  signal_detection: "Signal Detection", financial_model: "Financial Model",
+  competitor_scout: "Competitor Scout", system_intelligence: "System Intelligence",
 };
 
 function ConfidenceBadge({ score }: { score: number }) {
@@ -75,6 +94,24 @@ function EvidenceItemContent({ item, tierChip, metaColor }: { item: Evidence; ti
               Impact: {item.impact}/10
             </span>
           )}
+          {item.mode && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+              {MODE_LABELS[item.mode]}
+            </span>
+          )}
+          {item.sourceEngine && item.sourceEngine !== "pipeline" && (
+            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+              style={{ background: "hsl(199 89% 48% / 0.08)", color: "hsl(199 89% 48%)" }}>
+              <Cpu size={7} />
+              {ENGINE_LABELS[item.sourceEngine] || item.sourceEngine}
+            </span>
+          )}
+          {item.sourceCount != null && item.sourceCount > 1 && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+              style={{ background: "hsl(152 60% 44% / 0.08)", color: "hsl(152 60% 44%)" }}>
+              {item.sourceCount}× corroborated
+            </span>
+          )}
           {item.relatedSignals && item.relatedSignals.length > 0 && (
             <span className="text-[9px] font-bold text-muted-foreground">
               {item.relatedSignals.length} related
@@ -109,6 +146,8 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
   // Filters
   const [tierFilter, setTierFilter] = useState<EvidenceTier | null>(null);
   const [typeFilters, setTypeFilters] = useState<Set<EvidenceType>>(new Set());
+  const [modeFilter, setModeFilter] = useState<EvidenceMode | null>(null);
+  const [stepFilter, setStepFilter] = useState<string | null>(null);
 
   const toggleType = (t: EvidenceType) => {
     setTypeFilters(prev => {
@@ -123,8 +162,10 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
     let items = data.items;
     if (tierFilter) items = items.filter(i => i.tier === tierFilter);
     if (typeFilters.size > 0) items = items.filter(i => typeFilters.has(i.type));
+    if (modeFilter) items = items.filter(i => i.mode === modeFilter);
+    if (stepFilter) items = items.filter(i => i.pipelineStep === stepFilter);
     return [...items].sort((a, b) => (b.confidenceScore ?? 0) - (a.confidenceScore ?? 0));
-  }, [data.items, tierFilter, typeFilters]);
+  }, [data.items, tierFilter, typeFilters, modeFilter, stepFilter]);
 
   // Group by pipeline step
   const grouped = useMemo(() => {
@@ -144,7 +185,16 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
     return counts;
   }, [data.items]);
 
-  const hasActiveFilters = tierFilter !== null || typeFilters.size > 0;
+  // Step distribution
+  const stepCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    data.items.forEach(item => {
+      counts[item.pipelineStep] = (counts[item.pipelineStep] || 0) + 1;
+    });
+    return counts;
+  }, [data.items]);
+
+  const hasActiveFilters = tierFilter !== null || typeFilters.size > 0 || modeFilter !== null || stepFilter !== null;
 
   if (!domain) return null;
 
@@ -174,7 +224,7 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
               <button
                 key={t.key}
                 onClick={() => setTierFilter(tierFilter === t.key ? null : t.key)}
-                className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-full transition-colors"
+                className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-full transition-colors min-h-[28px]"
                 style={{
                   background: tierFilter === t.key ? `${t.color}20` : "transparent",
                   color: tierFilter === t.key ? t.color : "hsl(var(--muted-foreground))",
@@ -188,16 +238,36 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
             ))}
           </div>
 
+          {/* Pipeline step filter */}
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            <Layers size={10} className="text-muted-foreground mr-0.5" />
+            {Object.entries(stepCounts).map(([step, count]) => (
+              <button
+                key={step}
+                onClick={() => setStepFilter(stepFilter === step ? null : step)}
+                className="text-[9px] font-bold px-2 py-0.5 rounded-full transition-colors min-h-[24px]"
+                style={{
+                  background: stepFilter === step ? "hsl(var(--primary) / 0.15)" : "hsl(var(--muted))",
+                  color: stepFilter === step ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                }}
+              >
+                {STEP_LABELS[step] || step} ({count})
+              </button>
+            ))}
+          </div>
+
           {/* Type filter chips */}
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
             <Filter size={10} className="text-muted-foreground mr-0.5" />
             {TYPE_CHIPS.map(t => {
               const active = typeFilters.has(t.key);
+              const hasItems = data.items.some(i => i.type === t.key);
+              if (!hasItems) return null;
               return (
                 <button
                   key={t.key}
                   onClick={() => toggleType(t.key)}
-                  className="text-[9px] font-bold px-2 py-0.5 rounded-full transition-colors"
+                  className="text-[9px] font-bold px-2 py-0.5 rounded-full transition-colors min-h-[24px]"
                   style={{
                     background: active ? "hsl(var(--primary) / 0.15)" : "hsl(var(--muted))",
                     color: active ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
@@ -209,10 +279,10 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
             })}
             {hasActiveFilters && (
               <button
-                onClick={() => { setTierFilter(null); setTypeFilters(new Set()); }}
-                className="text-[9px] font-bold text-muted-foreground underline ml-1"
+                onClick={() => { setTierFilter(null); setTypeFilters(new Set()); setModeFilter(null); setStepFilter(null); }}
+                className="text-[9px] font-bold text-muted-foreground underline ml-1 min-h-[24px]"
               >
-                Clear
+                Clear all
               </button>
             )}
           </div>
@@ -254,7 +324,7 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
                       >
                         {isLowConf ? (
                           <details className="group">
-                            <summary className="p-3 cursor-pointer list-none flex items-center gap-2 text-muted-foreground">
+                            <summary className="p-3 cursor-pointer list-none flex items-center gap-2 text-muted-foreground min-h-[44px]">
                               <div className="w-1 h-4 rounded-full flex-shrink-0" style={{ background: tierChip?.color || "hsl(var(--muted-foreground))" }} />
                               <span className="text-xs font-medium opacity-60 flex-1 truncate">{item.label}</span>
                               <ConfidenceBadge score={item.confidenceScore ?? 0} />
@@ -282,7 +352,7 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
             <div className="rounded-lg bg-muted/50 px-4 py-3 mt-4">
               <p className="text-[10px] font-bold text-muted-foreground leading-relaxed">
                 <ArrowRight size={10} className="inline mr-1" />
-                Every insight is derived from evidence. Trace: Metric → Signal → Pipeline Step → Source Insight.
+                Every insight traces to evidence. Pipeline: Signal → Engine → Evidence → Tier → Graph → Metric.
               </p>
             </div>
           )}
