@@ -104,7 +104,7 @@ interface AnalysisContextType {
   handleLoadSaved: (analysis: any) => void;
   saveAnalysis: (products: Product[], params: { category: string; era: string; batchSize: number }) => Promise<void>;
   createAnalysis: (title: string, analysisType: string, extraFields?: Record<string, unknown>) => Promise<string>;
-  saveStepData: (stepKey: string, data: unknown) => Promise<void>;
+  saveStepData: (stepKey: string, data: unknown, targetAnalysisId?: string) => Promise<void>;
 
   // Analysis ID for routing
   analysisId: string | null;
