@@ -161,16 +161,6 @@ function AppRoutes() {
     );
   }
 
-  // Determine if sidebar should show (only workspace/analysis/intelligence routes)
-  const shouldShowSidebar = useMemo(() => {
-    const path = window.location.pathname;
-    return (
-      path.startsWith("/workspace") ||
-      path.startsWith("/analysis/") ||
-      path.startsWith("/intelligence") ||
-      path.startsWith("/business/")
-    );
-  }, []);
 
   // Routes that get the sidebar layout
   const sidebarRoutes = (
