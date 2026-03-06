@@ -584,8 +584,8 @@ function inferConstraintsFromBottlenecks(insights: Insight[], evidence: Evidence
   }
 
   // 3. Risk clusters → constraint
-  const riskEvidence = evidence.filter(e => e.type === "risk" && (e.impact ?? 0) >= 5);
-  if (riskEvidence.length >= 2) {
+  const riskEvidence = evidence.filter(e => e.type === "risk" && (e.impact ?? 0) >= 4);
+  if (riskEvidence.length >= 1) {
     result.push({
       id: `insight-inferred-con-${++insightCounter}`,
       label: `Risk concentration: ${riskEvidence[0].label}`,
