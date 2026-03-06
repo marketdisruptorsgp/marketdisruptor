@@ -514,7 +514,7 @@ export default function CommandDeckPage() {
             label="Constraints"
             value={metrics.constraintsCount}
             evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
-            evidenceCount={allEvidence.constraint.evidenceCount}
+            evidenceCount={filteredEvidence.constraint.evidenceCount}
             description="Structural constraints and assumptions discovered"
             icon={Crosshair}
             color="hsl(0 72% 52%)"
