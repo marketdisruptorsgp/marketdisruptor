@@ -94,6 +94,7 @@ interface MetricCardProps {
   color: string;
   trend?: "up" | "down" | "neutral";
   evidence?: string;
+  evidenceCount?: number;
   delay?: number;
   onClick?: () => void;
 }
