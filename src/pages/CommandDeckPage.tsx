@@ -247,7 +247,7 @@ export default function CommandDeckPage() {
       <HeroSection tier={tier} remainingAnalyses={null} />
 
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
-        <RecomputeOverlay isActive={isRecomputing || autoAnalysis.isComputing} />
+        <RecomputeOverlay isActive={isRecomputing || engineComputing} />
 
         {/* ═══ HEADER — Compact ═══ */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl px-4 py-3 bg-card border border-border">
