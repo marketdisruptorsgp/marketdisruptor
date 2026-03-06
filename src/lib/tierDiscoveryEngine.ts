@@ -16,8 +16,8 @@ export const TIER_META = {
   1: {
     tier: "structural" as EvidenceTier,
     label: "Structural Assumptions",
-    narrative: "Challenge what the industry believes must exist",
-    description: "Pricing structures, delivery models, customer segments, cost architecture",
+    narrative: "Break the industry's assumptions",
+    description: "Revenue models, ownership, customer definitions, distribution, value metrics, cost structure",
     color: "hsl(0 72% 52%)",
     bgColor: "hsl(0 72% 52% / 0.08)",
     borderColor: "hsl(0 72% 52% / 0.2)",
