@@ -361,7 +361,7 @@ function calculateLeveragePoints(
         const label = `Resolve "${constraint.label.slice(0, 40)}" via "${driver.label.slice(0, 40)}"`;
         if (insights.some(i => jaccardSimilarity(i.label, label) >= 0.5)) continue;
 
-        insights.push({
+        insights.push(makeInsight({
           id: nextInsightId("leverage"),
           analysisId,
           insightType: "leverage_point",
@@ -372,7 +372,7 @@ function calculateLeveragePoints(
           impact: Math.round((constraint.impact + driver.impact) / 2),
           confidence: Math.round(((constraint.confidence + driver.confidence) / 2) * 100) / 100,
           createdAt: now,
-        });
+        }));
       }
     }
   }
