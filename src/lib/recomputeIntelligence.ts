@@ -7,7 +7,8 @@
  * Merges simulation evidence into the canonical evidence set
  * before running the reasoning engine.
  *
- * Now includes full diagnostic tracing and hash-guarded recompute.
+ * Dynamic hash guard includes lens state, tool output signatures,
+ * and scenario timestamps to ensure recompute triggers on all changes.
  */
 
 import { extractAllEvidence, flattenEvidence, type Evidence, type MetricDomain, type MetricEvidence } from "@/lib/evidenceEngine";
@@ -21,7 +22,6 @@ import type { SystemIntelligence } from "@/lib/systemIntelligence";
 import {
   traceStage,
   buildDiagnostic,
-  computeRecomputeHash,
   shouldRecompute,
   type PipelineStageResult,
 } from "@/lib/pipelineDiagnostics";
@@ -45,6 +45,8 @@ export interface IntelligenceInput {
   completedSteps: Set<string>;
   /** If true, skip hash guard and force recompute */
   force?: boolean;
+  /** Current lens state for hash computation */
+  lensState?: string;
 }
 
 export interface IntelligenceOutput {
@@ -101,11 +103,15 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
   });
   stages.push(s2);
 
-  // 3. Hash guard — skip if nothing changed (unless forced)
-  // Include scenario timestamps so saving a new scenario with same count still triggers recompute
+  // 3. Dynamic hash guard — includes evidence count, scenario state, lens state, and tool outputs
   const scenarios = getScenarios(input.analysisId);
   const scenarioSig = scenarios.map(s => `${s.scenarioId}:${s.timestamp}`).join(",");
-  const hash = `${flat.length}:${scenarios.length}:${scenarioSig}`;
+  const toolOutputSig = scenarios.map(s => JSON.stringify(s.outputs || {})).join("|").slice(0, 200);
+  const signalCount = flat.filter(e => e.type === "signal").length;
+  const assumptionCount = flat.filter(e => e.type === "assumption").length;
+  const constraintCount = flat.filter(e => e.type === "constraint").length;
+  const hash = `${flat.length}:${signalCount}:${assumptionCount}:${constraintCount}:${scenarios.length}:${scenarioSig}:${toolOutputSig}:${input.lensState || ""}`;
+
   if (!input.force && !shouldRecompute(hash)) {
     events.push("No intelligence changes detected — skipping recompute");
     console.log("[Pipeline] Recompute skipped (hash unchanged)");
@@ -124,7 +130,7 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
     };
   }
 
-  // 4. Generate insights from evidence
+  // 4. Generate insights from evidence (with reasoning chain guarantee)
   const { result: insights, stage: s3 } = traceStage("Insight Clustering", flat.length, () =>
     clusterEvidenceIntoInsights(flat)
   );
@@ -141,7 +147,6 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
   }
   console.log("[Pipeline] Insight distribution:", insightsByType);
 
-  // Tool recommendation count
   const toolRecs = insights.filter(i => i.recommendedTools && i.recommendedTools.length > 0);
   if (toolRecs.length > 0) {
     const totalTools = toolRecs.reduce((sum, i) => sum + (i.recommendedTools?.length || 0), 0);

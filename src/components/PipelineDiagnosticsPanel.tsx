@@ -1,8 +1,8 @@
 /**
  * Pipeline Diagnostics Panel — Developer debugging overlay
  *
- * Shows full reasoning chain counts, graph node type distribution,
- * pipeline stage timings, and any warnings.
+ * Shows full reasoning chain health, graph node distribution,
+ * pipeline stage timings, and warnings.
  */
 
 import { memo, useState, useEffect } from "react";
@@ -28,24 +28,11 @@ const NODE_TYPE_COLORS: Record<string, string> = {
   competitor: "hsl(262 83% 58%)",
 };
 
-// Required minimum node counts for the reasoning chain
-const REQUIRED_MINIMUMS: Record<string, number> = {
-  signal: 1,
-  assumption: 4,
-  constraint: 2,
-  leverage_point: 2,
-  concept: 2, // opportunity nodes
-  outcome: 0,
-  pathway: 1,
-  scenario: 0,
-};
-
 export const PipelineDiagnosticsPanel = memo(function PipelineDiagnosticsPanel() {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [diag, setDiag] = useState<PipelineDiagnostic | null>(null);
 
-  // Poll for diagnostic updates
   useEffect(() => {
     if (!open) return;
     const refresh = () => setDiag(getLastDiagnostic());
@@ -67,7 +54,7 @@ export const PipelineDiagnosticsPanel = memo(function PipelineDiagnosticsPanel()
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80 max-h-[560px] overflow-y-auto rounded-xl border border-border bg-card/95 backdrop-blur-xl shadow-2xl">
+    <div className="fixed bottom-4 right-4 z-50 w-80 max-h-[600px] overflow-y-auto rounded-xl border border-border bg-card/95 backdrop-blur-xl shadow-2xl">
       <div className="flex items-center justify-between px-3 py-2 border-b border-border">
         <div className="flex items-center gap-2">
           <Bug className="w-4 h-4 text-muted-foreground" />
@@ -89,40 +76,36 @@ export const PipelineDiagnosticsPanel = memo(function PipelineDiagnosticsPanel()
         </div>
       ) : (
         <div className="p-3 space-y-3">
-          {/* Reasoning chain health */}
+          {/* Reasoning Chain Health */}
           <div>
-            <p className="text-xs font-bold text-muted-foreground mb-1.5">Reasoning Chain</p>
+            <p className="text-xs font-bold text-muted-foreground mb-1.5">
+              Reasoning Chain
+              {diag.reasoningChain && (
+                <span className="ml-1.5 font-normal">
+                  ({diag.reasoningChain.filter(r => r.ok).length}/{diag.reasoningChain.filter(r => r.minimum > 0).length} passing)
+                </span>
+              )}
+            </p>
             <div className="space-y-1">
-              {[
-                { label: "Signals", key: "signal" },
-                { label: "Assumptions", key: "assumption" },
-                { label: "Constraints", key: "constraint" },
-                { label: "Leverage", key: "leverage_point" },
-                { label: "Opportunities", key: "concept" },
-                { label: "Pathways", key: "pathway" },
-                { label: "Scenarios", key: "scenario" },
-              ].map(item => {
-                const count = diag.graphNodeCounts[item.key] || 0;
-                const min = REQUIRED_MINIMUMS[item.key] ?? 0;
-                const ok = count >= min;
-                return (
-                  <div key={item.key} className="flex items-center gap-2">
-                    {ok ? (
-                      <CheckCircle className="w-3 h-3 flex-shrink-0" style={{ color: "hsl(var(--success, 152 60% 44%))" }} />
-                    ) : (
-                      <AlertTriangle className="w-3 h-3 flex-shrink-0" style={{ color: "hsl(var(--destructive))" }} />
-                    )}
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ background: NODE_TYPE_COLORS[item.key] || "hsl(var(--muted-foreground))" }}
-                    />
-                    <span className="text-xs text-muted-foreground flex-1">{item.label}</span>
-                    <span className={`text-xs font-bold tabular-nums ${ok ? "text-foreground" : "text-destructive"}`}>
-                      {count}{min > 0 ? `/${min}` : ""}
-                    </span>
-                  </div>
-                );
-              })}
+              {(diag.reasoningChain || []).map(item => (
+                <div key={item.type} className="flex items-center gap-2">
+                  {item.ok ? (
+                    <CheckCircle className="w-3 h-3 flex-shrink-0" style={{ color: "hsl(152 60% 44%)" }} />
+                  ) : item.minimum > 0 ? (
+                    <AlertTriangle className="w-3 h-3 flex-shrink-0" style={{ color: "hsl(var(--destructive))" }} />
+                  ) : (
+                    <div className="w-3 h-3 flex-shrink-0" />
+                  )}
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ background: NODE_TYPE_COLORS[item.type] || "hsl(var(--muted-foreground))" }}
+                  />
+                  <span className="text-xs text-muted-foreground flex-1">{item.label}</span>
+                  <span className={`text-xs font-bold tabular-nums ${item.ok || item.minimum === 0 ? "text-foreground" : "text-destructive"}`}>
+                    {item.count}{item.minimum > 0 ? `/${item.minimum}` : ""}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -131,14 +114,16 @@ export const PipelineDiagnosticsPanel = memo(function PipelineDiagnosticsPanel()
             <CountBox label="Evidence" count={diag.totalEvidence} />
             <CountBox label="Insights" count={diag.totalInsights} />
             <CountBox label="Constraints" count={diag.totalConstraints} warn={diag.totalConstraints < 2} />
+            <CountBox label="Leverage" count={diag.totalLeverage} warn={diag.totalLeverage < 2} />
             <CountBox label="Opportunities" count={diag.totalOpportunities} warn={diag.totalOpportunities < 2} />
-            <CountBox label="Scenarios" count={diag.totalScenarios} />
             <CountBox label="Pathways" count={diag.totalPathways} warn={diag.totalPathways < 1} />
           </div>
 
           {/* Graph node breakdown */}
           <div>
-            <p className="text-xs font-bold text-muted-foreground mb-1">All Graph Nodes ({Object.values(diag.graphNodeCounts).reduce((s, c) => s + c, 0)})</p>
+            <p className="text-xs font-bold text-muted-foreground mb-1">
+              All Graph Nodes ({Object.values(diag.graphNodeCounts).reduce((s, c) => s + c, 0)})
+            </p>
             <div className="space-y-1">
               {Object.entries(diag.graphNodeCounts)
                 .sort(([, a], [, b]) => b - a)

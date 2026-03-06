@@ -3,6 +3,8 @@
  *
  * Provides stage-by-stage logging, validation, hash-guarded
  * recompute protection, and a diagnostic summary for debugging.
+ *
+ * Tracks reasoning chain health across all node types.
  */
 
 export interface PipelineStageResult {
@@ -11,6 +13,14 @@ export interface PipelineStageResult {
   outputCount: number;
   durationMs: number;
   warnings: string[];
+}
+
+export interface ReasoningChainHealth {
+  type: string;
+  label: string;
+  count: number;
+  minimum: number;
+  ok: boolean;
 }
 
 export interface PipelineDiagnostic {
@@ -22,6 +32,8 @@ export interface PipelineDiagnostic {
   totalOpportunities: number;
   totalScenarios: number;
   totalPathways: number;
+  totalLeverage: number;
+  reasoningChain: ReasoningChainHealth[];
   warnings: string[];
   lastHash: string;
   timestamp: number;
@@ -111,6 +123,18 @@ export function validateNodePosition(node: { position?: { x: number; y: number }
   return errors;
 }
 
+// Reasoning chain definitions (order = visual flow)
+const REASONING_CHAIN_DEFS: { type: string; label: string; graphKey: string; minimum: number }[] = [
+  { type: "signal", label: "Signals", graphKey: "signal", minimum: 1 },
+  { type: "assumption", label: "Assumptions", graphKey: "assumption", minimum: 4 },
+  { type: "constraint", label: "Constraints", graphKey: "constraint", minimum: 2 },
+  { type: "leverage_point", label: "Leverage", graphKey: "leverage_point", minimum: 2 },
+  { type: "opportunity", label: "Opportunities", graphKey: "concept", minimum: 2 },
+  { type: "pathway", label: "Pathways", graphKey: "pathway", minimum: 1 },
+  { type: "scenario", label: "Scenarios", graphKey: "scenario", minimum: 0 },
+  { type: "simulation", label: "Simulations", graphKey: "simulation", minimum: 0 },
+];
+
 /** Build diagnostic summary from pipeline outputs */
 export function buildDiagnostic(
   stages: PipelineStageResult[],
@@ -130,11 +154,35 @@ export function buildDiagnostic(
   const totalOpportunities = (graphNodeCounts["outcome"] || 0) + (graphNodeCounts["concept"] || 0) + (graphNodeCounts["flipped_idea"] || 0);
   const totalScenarios = graphNodeCounts["scenario"] || 0;
   const totalPathways = graphNodeCounts["pathway"] || 0;
+  const totalLeverage = graphNodeCounts["leverage_point"] || 0;
+
+  // Build reasoning chain health
+  const reasoningChain: ReasoningChainHealth[] = REASONING_CHAIN_DEFS.map(def => {
+    let count: number;
+    if (def.type === "opportunity") {
+      count = totalOpportunities;
+    } else {
+      count = graphNodeCounts[def.graphKey] || 0;
+    }
+    return {
+      type: def.type,
+      label: def.label,
+      count,
+      minimum: def.minimum,
+      ok: count >= def.minimum,
+    };
+  });
 
   // Check for incomplete graph
   if (totalConstraints === 0) warnings.push("[PipelineWarning] No constraint nodes in graph");
   if (totalOpportunities === 0) warnings.push("[PipelineWarning] No opportunity nodes in graph");
   if (totalPathways === 0) warnings.push("[PipelineWarning] No pathway nodes in graph");
+  if (totalLeverage === 0) warnings.push("[PipelineWarning] No leverage_point nodes in graph");
+
+  const chainFailures = reasoningChain.filter(r => !r.ok && r.minimum > 0);
+  for (const f of chainFailures) {
+    warnings.push(`[ReasoningChain] ${f.label}: ${f.count}/${f.minimum} (below minimum)`);
+  }
 
   const hash = computeRecomputeHash(evidenceCount, insightCount, scenarioCount);
 
@@ -147,6 +195,8 @@ export function buildDiagnostic(
     totalOpportunities,
     totalScenarios,
     totalPathways,
+    totalLeverage,
+    reasoningChain,
     warnings,
     lastHash: hash,
     timestamp: Date.now(),
@@ -159,10 +209,11 @@ export function buildDiagnostic(
     evidence: evidenceCount,
     insights: insightCount,
     constraints: totalConstraints,
+    leverage: totalLeverage,
     opportunities: totalOpportunities,
     scenarios: totalScenarios,
     pathways: totalPathways,
-    graphNodeCounts,
+    chainHealth: reasoningChain.map(r => `${r.label}:${r.count}/${r.minimum}`).join(" | "),
   });
 
   _lastDiagnostic = diagnostic;
