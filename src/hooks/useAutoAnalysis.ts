@@ -42,13 +42,13 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   // Track completed steps
   const completedSteps = useMemo(() => {
     const set = new Set<string>();
-    if (products.length > 0) set.add("report");
+    if (products.length > 0 || businessAnalysisData) set.add("report");
     if (disruptData) set.add("disrupt");
     if (redesignData) set.add("redesign");
     if (stressTestData) set.add("stress-test");
     if (pitchDeckData) set.add("pitch");
     return set;
-  }, [products, disruptData, redesignData, stressTestData, pitchDeckData]);
+  }, [products, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData]);
 
   const pipelineCompletion = Math.round((completedSteps.size / 5) * 100);
 
