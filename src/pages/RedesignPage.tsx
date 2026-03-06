@@ -2,6 +2,8 @@ import React from "react";
 import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
+import { SplitStepLayout } from "@/components/analysis/SplitStepLayout";
+import { StepVisualOutput } from "@/components/analysis/StepVisualOutput";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
@@ -149,36 +151,50 @@ export default function RedesignPage() {
         </AnalysisLoadingCard>
       )}
 
-      {/* Content */}
-      <AnalysisContentCard hidden={analysisLoading}>
-        <FirstPrinciplesAnalysis
-          product={selectedProduct}
-          onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
-          flippedIdeas={selectedProduct.flippedIdeas}
-          onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
-          generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
-          renderMode="redesign"
-          autoTrigger={shouldAutoTrigger}
-          externalData={isOutdated ? null : (analysis.redesignData ?? analysis.disruptData)}
-          runTrigger={runTrigger}
-          onLoadingChange={setAnalysisLoading}
-          activeSection={activeTab}
-          onDataLoaded={(d) => {
-            analysis.setRedesignData(d);
-            analysis.saveStepData("redesign", d);
-            analysis.clearStepOutdated("redesign");
-            analysis.markStepOutdated("pitchDeck");
-          }}
-          onPatentSave={(patentData) => {
-            const updated = products.map(p =>
-              p.id === selectedProduct.id ? { ...p, patentData } : p
-            );
-            analysis.setProducts(updated);
-            analysis.setSelectedProduct({ ...selectedProduct, patentData });
-            if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
-          }}
-        />
-      </AnalysisContentCard>
+      {/* Split layout: content + visual sidebar */}
+      <SplitStepLayout
+        showVisual={hasData}
+        visualOutput={
+          <StepVisualOutput
+            step="redesign"
+            intelligence={autoAnalysis.intelligence}
+            governedData={analysis.governedData as Record<string, unknown> | null}
+            product={selectedProduct as unknown as Record<string, unknown>}
+            accentColor={theme.primary}
+          />
+        }
+      >
+        {/* Content */}
+        <AnalysisContentCard hidden={analysisLoading}>
+          <FirstPrinciplesAnalysis
+            product={selectedProduct}
+            onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
+            flippedIdeas={selectedProduct.flippedIdeas}
+            onRegenerateIdeas={(ctx) => analysis.handleRegenerateIdeas(selectedProduct, ctx)}
+            generatingIdeas={analysis.generatingIdeasFor === selectedProduct.id}
+            renderMode="redesign"
+            autoTrigger={shouldAutoTrigger}
+            externalData={isOutdated ? null : (analysis.redesignData ?? analysis.disruptData)}
+            runTrigger={runTrigger}
+            onLoadingChange={setAnalysisLoading}
+            activeSection={activeTab}
+            onDataLoaded={(d) => {
+              analysis.setRedesignData(d);
+              analysis.saveStepData("redesign", d);
+              analysis.clearStepOutdated("redesign");
+              analysis.markStepOutdated("pitchDeck");
+            }}
+            onPatentSave={(patentData) => {
+              const updated = products.map(p =>
+                p.id === selectedProduct.id ? { ...p, patentData } : p
+              );
+              analysis.setProducts(updated);
+              analysis.setSelectedProduct({ ...selectedProduct, patentData });
+              if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
+            }}
+          />
+        </AnalysisContentCard>
+      </SplitStepLayout>
 
       <PipelineProgressBar
         completedSteps={autoAnalysis.completedSteps}

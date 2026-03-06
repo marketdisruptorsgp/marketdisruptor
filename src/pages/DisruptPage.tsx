@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
+import { SplitStepLayout } from "@/components/analysis/SplitStepLayout";
+import { StepVisualOutput } from "@/components/analysis/StepVisualOutput";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
@@ -165,6 +167,18 @@ export default function DisruptPage() {
       )}
 
       {/* ── Tab Content ── */}
+      <SplitStepLayout
+        showVisual={hasDisruptData}
+        visualOutput={
+          <StepVisualOutput
+            step="disrupt"
+            intelligence={autoAnalysis.intelligence}
+            governedData={governedData as Record<string, unknown> | null}
+            product={selectedProduct as unknown as Record<string, unknown>}
+            accentColor={theme.primary}
+          />
+        }
+      >
       <div style={{ display: analysisLoading || !hasDisruptData ? "none" : undefined }} className="min-h-[400px]">
         {effectiveTab === "assumptions" && (
           <StructureTab
@@ -313,6 +327,7 @@ export default function DisruptPage() {
           </AnalysisContentCard>
         )}
       </div>
+      </SplitStepLayout>
 
       {/* Pipeline Progress Bar */}
       <PipelineProgressBar

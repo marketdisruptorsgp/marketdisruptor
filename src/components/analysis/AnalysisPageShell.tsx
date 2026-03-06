@@ -40,7 +40,7 @@ export function AnalysisPageShell({ tier, children }: AnalysisPageShellProps) {
   return (
     <div className="min-h-screen bg-background" {...(isDark ? { "data-command-deck": "" } : {})}>
       <HeroSection tier={tier} remainingAnalyses={null} />
-      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
         {children}
       </main>
     </div>
