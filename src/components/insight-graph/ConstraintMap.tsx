@@ -24,10 +24,10 @@ import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 /* ── Causal flow columns ── */
 const FLOW_COLUMNS: { types: InsightNodeType[]; label: string; x: number }[] = [
   { types: ["signal"], label: "SIGNALS", x: 0 },
-  { types: ["assumption"], label: "ASSUMPTIONS", x: 300 },
-  { types: ["constraint"], label: "CONSTRAINTS", x: 600 },
-  { types: ["leverage_point", "driver"], label: "LEVERAGE", x: 900 },
-  { types: ["outcome", "flipped_idea", "concept"], label: "OPPORTUNITIES", x: 1200 },
+  { types: ["assumption"], label: "ASSUMPTIONS", x: 320 },
+  { types: ["constraint"], label: "CONSTRAINTS", x: 640 },
+  { types: ["leverage_point", "driver"], label: "LEVERAGE", x: 960 },
+  { types: ["outcome", "flipped_idea", "concept"], label: "OPPORTUNITIES", x: 1280 },
 ];
 
 /* ── Custom node ── */
@@ -48,8 +48,8 @@ function ConstraintFlowNode({ data }: NodeProps) {
         boxShadow: isHigh
           ? `0 0 24px ${cfg.color}25, 0 4px 16px hsl(0 0% 0% / 0.08)`
           : "0 2px 8px hsl(0 0% 0% / 0.05)",
-        minWidth: 160,
-        maxWidth: 200,
+        minWidth: 180,
+        maxWidth: 260,
       }}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0, width: 1, height: 1 }} />
@@ -67,7 +67,7 @@ function ConstraintFlowNode({ data }: NodeProps) {
           {cfg.label}
         </span>
       </div>
-      <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">{data.label}</p>
+      <p className="text-xs font-bold text-foreground leading-snug line-clamp-3">{data.label}</p>
       <div className="flex items-center gap-2 mt-1.5">
         <span className="text-xs font-bold tabular-nums" style={{ color: cfg.color }}>
           Impact {data.impact}/10
@@ -103,7 +103,7 @@ function layoutConstraintMap(graph: InsightGraph): { nodes: Node[]; edges: Edge[
       flowNodes.push({
         id: gn.id,
         type: "constraintFlowNode",
-        position: { x: col.x, y: row * 100 + 60 },
+        position: { x: col.x, y: row * 120 + 60 },
         data: {
           label: gn.label,
           nodeType: gn.type,
@@ -168,7 +168,7 @@ export const ConstraintMap = memo(function ConstraintMap({
     );
   }
 
-  const height = compact ? 340 : 480;
+  const height = compact ? 380 : 560;
 
   return (
     <div className="space-y-3">

@@ -158,6 +158,28 @@ function nextId(prefix: string): string {
   return `${prefix}-${++idCounter}`;
 }
 
+/**
+ * Humanize internal labels — strip ID prefixes, code artifacts, and jargon.
+ * Applied to all user-facing insight labels system-wide.
+ */
+function humanize(text: string): string {
+  if (!text) return text;
+  return text
+    // Strip constraint ID prefixes like "C1: ", "F_1: ", "C2: "
+    .replace(/^[A-Z]_?\d+\s*[:\.]\s*/i, "")
+    // Strip "Binding Constraint: " prefix
+    .replace(/^Binding Constraint\s*[:\.]\s*/i, "")
+    // Strip "Counterfactual: " prefix
+    .replace(/^Counterfactual\s*[:\.]\s*/i, "")
+    // Strip "(+N related)" suffixes
+    .replace(/\s*\(\+\d+ related\)$/i, "")
+    // Convert snake_case to Title Case
+    .replace(/_/g, " ")
+    // Clean up double spaces
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 const COMPAT_DEFAULTS = {
   tier: "structural" as const,
   mode: "product" as const,
@@ -166,7 +188,7 @@ const COMPAT_DEFAULTS = {
 };
 
 function makeInsight(partial: Omit<StrategicInsight, "tier" | "mode" | "confidenceScore" | "recommendedTools">): StrategicInsight {
-  return { ...partial, ...COMPAT_DEFAULTS, confidenceScore: partial.confidence };
+  return { ...partial, label: humanize(partial.label), ...COMPAT_DEFAULTS, confidenceScore: partial.confidence };
 }
 
 function jaccard(a: string, b: string): number {
@@ -360,12 +382,17 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
 
       const sorted = [...uncovered].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
       const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+      // Use the highest-impact item's label for specificity, not a generic "X Cluster"
+      const primaryLabel = humanize(sorted[0].label);
+      const signalLabel = uncovered.length > 2
+        ? `${primaryLabel} and ${uncovered.length - 1} related ${type}s`
+        : primaryLabel;
 
       signals.push({
         id: nextId("signal"),
         analysisId,
-        label: `${typeLabel} Cluster`,
-        description: `${uncovered.length} ${type} indicators identified: ${sorted.slice(0, 3).map(e => e.label).join(", ")}.`,
+        label: signalLabel,
+        description: `${uncovered.length} ${type} indicators identified: ${sorted.slice(0, 3).map(e => humanize(e.label)).join(", ")}.`,
         evidenceIds: uncovered.map(e => e.id),
         strength: Math.round((uncovered.reduce((s, e) => s + (e.impact ?? 5), 0) / uncovered.length) * 10) / 10,
         confidence: Math.round((uncovered.reduce((s, e) => s + (e.confidenceScore ?? 0.5), 0) / uncovered.length) * 100) / 100,
@@ -584,7 +611,10 @@ function discoverLeverage(
       const semanticOverlap = jaccard(constraint.label, driver.label) >= 0.25;
 
       if (sharedEvidence.length > 0 || semanticOverlap) {
-        const label = `Break "${constraint.label.slice(0, 35)}" via "${driver.label.slice(0, 35)}"`;
+        // Generate a human-readable leverage label
+        const conText = humanize(constraint.label).slice(0, 40);
+        const drvText = humanize(driver.label).slice(0, 40);
+        const label = `Address ${conText} through ${drvText}`;
         if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
         insights.push(makeInsight({
@@ -592,7 +622,7 @@ function discoverLeverage(
           analysisId,
           insightType: "leverage_point",
           label,
-          description: `Addressing "${constraint.label}" through "${driver.label}" creates a structural intervention point.`,
+          description: `Targeting "${humanize(constraint.label)}" by working on "${humanize(driver.label)}" creates a high-impact intervention point.`,
           evidenceIds: [...new Set([...constraint.evidenceIds, ...driver.evidenceIds])],
           relatedInsightIds: [constraint.id, driver.id],
           impact: Math.round((constraint.impact + driver.impact) / 2),
@@ -608,7 +638,7 @@ function discoverLeverage(
     ["demand_signal", "distribution_channel", "pricing_model"].includes(s.category) && s.strength >= 5
   );
   for (const gs of growthSignals.slice(0, 3)) {
-    const label = `Leverage ${gs.category.replace(/_/g, " ")}: ${gs.label.replace(/^[^:]+:\s*/, "").slice(0, 40)}`;
+    const label = `${gs.category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} opportunity: ${humanize(gs.label.replace(/^[^:]+:\s*/, "")).slice(0, 45)}`;
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
     insights.push(makeInsight({
@@ -645,9 +675,12 @@ function generateOpportunities(
     const relatedConstraints = constraints.filter(c => lev.relatedInsightIds.includes(c.id));
     const con = relatedConstraints[0];
 
+    const conText = con ? humanize(con.label).slice(0, 55) : "";
+    const levText = humanize(lev.label).slice(0, 55);
+
     const label = con
-      ? `Unlock: ${con.label.slice(0, 50)}`
-      : `Capitalize: ${lev.label.slice(0, 50)}`;
+      ? `Resolve ${conText} to unlock growth`
+      : `Leverage ${levText} for strategic advantage`;
 
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
@@ -657,8 +690,8 @@ function generateOpportunities(
       insightType: "emerging_opportunity",
       label,
       description: con
-        ? `Resolving "${con.label}" via "${lev.label}" opens strategic value.`
-        : `Leveraging "${lev.label}" creates an emerging strategic opportunity.`,
+        ? `Addressing "${humanize(con.label)}" through "${humanize(lev.label)}" opens a clear path to strategic value.`
+        : `"${humanize(lev.label)}" represents an emerging strategic opportunity worth pursuing.`,
       evidenceIds: [...new Set([...lev.evidenceIds, ...(con?.evidenceIds ?? [])])],
       relatedInsightIds: [lev.id, ...(con ? [con.id] : [])],
       impact: Math.max(lev.impact, con?.impact ?? 0),
@@ -699,10 +732,10 @@ function constructStrategicPathways(
       l.relatedInsightIds.includes(con.id) || opp.relatedInsightIds.includes(l.id)
     );
 
-    const parts = [con.label.slice(0, 30)];
-    if (driver) parts.push(driver.label.slice(0, 30));
-    if (leverage) parts.push(leverage.label.slice(0, 30));
-    parts.push(opp.label.slice(0, 30));
+    const parts = [humanize(con.label).slice(0, 35)];
+    if (driver) parts.push(humanize(driver.label).slice(0, 35));
+    if (leverage) parts.push(humanize(leverage.label).slice(0, 35));
+    parts.push(humanize(opp.label).slice(0, 35));
     const label = parts.join(" → ");
 
     insights.push(makeInsight({
@@ -710,7 +743,7 @@ function constructStrategicPathways(
       analysisId,
       insightType: "strategic_pathway",
       label,
-      description: `Strategic pathway: address "${con.label}" ${driver ? `(caused by "${driver.label}")` : ""} ${leverage ? `through "${leverage.label}"` : ""} to achieve "${opp.label}".`,
+      description: `Strategic pathway: address "${humanize(con.label)}" ${driver ? `(caused by "${humanize(driver.label)}")` : ""} ${leverage ? `through "${humanize(leverage.label)}"` : ""} to achieve "${humanize(opp.label)}".`,
       evidenceIds: [...new Set([
         ...con.evidenceIds, ...opp.evidenceIds,
         ...(driver?.evidenceIds ?? []), ...(leverage?.evidenceIds ?? []),
@@ -746,23 +779,25 @@ function buildStrategicNarrative(
   const topOpp = [...opportunities].sort((a, b) => b.impact - a.impact)[0] ?? null;
   const topPathway = [...pathways].sort((a, b) => b.impact - a.impact)[0] ?? null;
 
+  const h = (s: string | null | undefined) => s ? humanize(s) : null;
+
   const parts: string[] = [];
-  if (topConstraint) parts.push(`The primary constraint is: ${topConstraint.label}.`);
-  if (topDriver) parts.push(`The key driver underlying this is: ${topDriver.label}.`);
-  if (topLeverage) parts.push(`Leverage can be applied at: ${topLeverage.label}.`);
-  if (topOpp) parts.push(`This unlocks the opportunity: ${topOpp.label}.`);
-  if (topPathway) parts.push(`Recommended pathway: ${topPathway.label}.`);
+  if (topConstraint) parts.push(`The primary constraint is: ${h(topConstraint.label)}.`);
+  if (topDriver) parts.push(`The key driver underlying this is: ${h(topDriver.label)}.`);
+  if (topLeverage) parts.push(`Leverage can be applied at: ${h(topLeverage.label)}.`);
+  if (topOpp) parts.push(`This unlocks the opportunity: ${h(topOpp.label)}.`);
+  if (topPathway) parts.push(`Recommended pathway: ${h(topPathway.label)}.`);
 
   if (parts.length === 0) {
     parts.push("Insufficient evidence to generate a complete strategic narrative. Add more inputs to pipeline steps.");
   }
 
   return {
-    primaryConstraint: topConstraint?.label ?? null,
-    keyDriver: topDriver?.label ?? null,
-    leveragePoint: topLeverage?.label ?? null,
-    breakthroughOpportunity: topOpp?.label ?? null,
-    strategicPathway: topPathway?.label ?? null,
+    primaryConstraint: h(topConstraint?.label) ?? null,
+    keyDriver: h(topDriver?.label) ?? null,
+    leveragePoint: h(topLeverage?.label) ?? null,
+    breakthroughOpportunity: h(topOpp?.label) ?? null,
+    strategicPathway: h(topPathway?.label) ?? null,
     narrativeSummary: parts.join(" "),
   };
 }

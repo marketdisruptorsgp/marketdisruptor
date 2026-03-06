@@ -343,11 +343,21 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
           mode, sourceEngine: "pipeline", category: chain.impact_dimension || "operational_dependency",
         });
       });
-      // Binding constraint
+      // Binding constraint — resolve ID to human-readable label from causal_chains
       if (cm.binding_constraint_id && cm.dominance_proof) {
+        const bindingId = String(cm.binding_constraint_id);
+        // Look up the actual constraint text from causal chains
+        const matchingChain = safeArr(cm.causal_chains).find((c: any) =>
+          String(c.id || c.constraint_id || "").toUpperCase() === bindingId.toUpperCase() ||
+          String(c.structural_constraint || "").toLowerCase().includes(bindingId.toLowerCase())
+        );
+        const humanLabel = matchingChain?.structural_constraint
+          || cm.binding_constraint // fallback to a text field if it exists
+          || cm.dominance_proof?.slice(0, 80)
+          || `Primary system bottleneck`;
         items.push({
           id: makeId("con-bm-bind"), type: "constraint",
-          label: `Binding Constraint: ${cm.binding_constraint_id}`,
+          label: humanLabel,
           description: cm.dominance_proof,
           pipelineStep: "report", tier: "structural", impact: 10,
           mode, sourceEngine: "pipeline", category: "cost_structure",
@@ -497,10 +507,13 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
   // ── Business Model: counterfactual removal as leverage signal ──
   const bizGov = input.businessAnalysisData?.governed;
   if (bizGov?.constraint_map?.counterfactual_removal_result) {
+    const cfText = String(bizGov.constraint_map.counterfactual_removal_result);
+    // Use the actual counterfactual text as the label (trimmed to readable length)
+    const cfLabel = cfText.length > 80 ? cfText.slice(0, 77) + "..." : cfText;
     items.push({
       id: makeId("lev-bm-cf"), type: "leverage",
-      label: "Counterfactual: Remove Binding Constraint",
-      description: bizGov.constraint_map.counterfactual_removal_result,
+      label: cfLabel || "Remove primary bottleneck to unlock growth",
+      description: cfText,
       pipelineStep: "report", tier: "structural", impact: 9,
       mode, sourceEngine: "pipeline", category: "operational_dependency",
     });
