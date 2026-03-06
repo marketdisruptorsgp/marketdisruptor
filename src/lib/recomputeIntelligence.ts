@@ -95,23 +95,26 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
     events.push(`${totalTools} tool recommendations from reasoning engine`);
   }
 
-  // 4. Build insight graph — pass insights + scenarios for full node generation
+  // 4. Scenario comparison & sensitivity analysis (needed for graph)
+  const scenarios = getScenarios(input.analysisId);
+  const scenarioComparison: ScenarioComparison | null = scenarios.length > 0 ? compareScenarios(scenarios) : null;
+  const sensitivityReports = computeAllSensitivityReports(scenarios);
+
+  // 5. Build insight graph — pass insights + scenarios for full node generation
   const insightsForGraph = insights.map(i => ({
     id: i.id, label: i.label, description: i.description,
     insightType: i.insightType, impact: i.impact,
     confidenceScore: i.confidenceScore, evidenceIds: i.evidenceIds,
     recommendedTools: i.recommendedTools,
   }));
-  const scenariosForGraph = scenarios.length > 0
-    ? compareScenarios(scenarios).scenarios
-    : scenarioComparison?.scenarios;
+  const scenariosForGraph = scenarioComparison?.scenarios;
   const graph = buildInsightGraph(
     flat, undefined, undefined, undefined, undefined,
     insightsForGraph.length > 0 ? insightsForGraph : undefined,
     scenariosForGraph && scenariosForGraph.length > 0 ? scenariosForGraph : undefined,
   );
 
-  // 5. Compute command deck metrics
+  // 6. Compute command deck metrics
   const metricsInput = {
     products: input.products,
     selectedProduct: input.selectedProduct,
@@ -128,11 +131,6 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
 
   const metrics = computeCommandDeckMetrics(metricsInput);
   const opportunities = aggregateOpportunities(metricsInput);
-
-  // 6. Scenario comparison & sensitivity analysis
-  const scenarios = getScenarios(input.analysisId);
-  const scenarioComparison: ScenarioComparison | null = scenarios.length > 0 ? compareScenarios(scenarios) : null;
-  const sensitivityReports = computeAllSensitivityReports(scenarios);
 
   if (scenarioComparison && scenarioComparison.scenarios.length > 1) {
     events.push(`${scenarioComparison.scenarios.length} scenarios compared`);
