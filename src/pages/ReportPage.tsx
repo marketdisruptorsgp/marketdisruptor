@@ -170,6 +170,30 @@ export default function ReportPage() {
 
   if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
     if (shouldRedirectHome) return null;
+    // Show meaningful empty state instead of infinite spinner
+    if (analysis.step === "done" && products.length === 0) {
+      return (
+        <AnalysisPageShell tier={tier}>
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-muted">
+              <Target size={24} className="text-muted-foreground" />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-lg font-bold text-foreground">No Analysis Data</p>
+              <p className="text-sm text-muted-foreground max-w-md">
+                This analysis doesn't contain any product data yet. It may have been created but not completed.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/")}
+              className="mt-2 px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              Back to Home
+            </button>
+          </div>
+        </AnalysisPageShell>
+      );
+    }
     return <AnalysisLoadingSpinner message="Loading analysis..." />;
   }
 

@@ -312,7 +312,8 @@ export function SavedAnalyses({ onLoad, refreshTrigger, onCountChange, compact }
       toast.error("Could not load saved analyses");
     } else {
       const all = ((data as unknown) as SavedAnalysis[]) || [];
-      const filtered = all.filter((a) => a.analysis_type !== "first_principles");
+      const filtered = all.filter((a) => a.analysis_type !== "first_principles" &&
+        Array.isArray((a as any).products) && (a as any).products.length > 0);
       setAnalyses(filtered);
       onCountChange?.(filtered.length);
     }
