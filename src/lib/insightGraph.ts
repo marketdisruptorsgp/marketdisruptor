@@ -500,13 +500,12 @@ function buildGraphFromEvidence(
     }
   }
 
-  // ── Step 2b: Generate Strategic Pathway nodes ──
-  // Create multiple pathways from different constraint→opportunity chains
+  // ── Step 2b: Generate heuristic Pathway nodes (only if insights didn't produce any) ──
   const pathwayNodes: InsightGraphNode[] = [];
   const usedOppIds = new Set<string>();
 
-  // Generate up to 3 pathways from top opportunities
-  const topOppsForPathways = opportunities.slice(0, 3);
+  // Only generate heuristic pathways if no pathway nodes exist from insights
+  const topOppsForPathways = existingPathways.length === 0 ? opportunities.slice(0, 3) : [];
   for (let pi = 0; pi < topOppsForPathways.length; pi++) {
     const topOpp = topOppsForPathways[pi];
     if (usedOppIds.has(topOpp.id)) continue;
