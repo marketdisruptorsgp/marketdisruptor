@@ -31,7 +31,7 @@ import { SimulationPanel } from "@/components/SimulationPanel";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 import { type LensTool } from "@/lib/lensToolkitRegistry";
-import { type ToolScenario } from "@/lib/scenarioEngine";
+import { type ToolScenario, scenarioToEvidence } from "@/lib/scenarioEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // ═══════════════════════════════════════════════════════════════
