@@ -311,7 +311,15 @@ export default function CommandDeckPage() {
   const { theme: workspaceTheme, toggle: toggleTheme } = useWorkspaceTheme();
   const autoAnalysis = useAutoAnalysis();
 
-  const { selectedProduct, analysisId } = analysis;
+  const { selectedProduct, analysisId: ctxAnalysisId } = analysis;
+
+  // Fallback: extract analysis ID from URL if context is null (e.g. direct navigation)
+  const urlAnalysisId = useMemo(() => {
+    const match = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/);
+    return match?.[1] || null;
+  }, []);
+  const analysisId = ctxAnalysisId || urlAnalysisId;
+
   const modeAccent = theme.primary;
   const { intelligence, graph, completedSteps } = autoAnalysis;
 
@@ -369,7 +377,7 @@ export default function CommandDeckPage() {
     : analysis.activeMode === "service" ? "Service" : "Business Model";
 
   return (
-    <div className="min-h-screen bg-background" data-command-deck={workspaceTheme === "dark" ? "" : undefined}>
+    <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
 
       <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">

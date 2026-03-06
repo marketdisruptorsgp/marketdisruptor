@@ -35,10 +35,10 @@ interface AnalysisPageShellProps {
 }
 
 export function AnalysisPageShell({ tier, children }: AnalysisPageShellProps) {
-  const { theme, toggle } = useWorkspaceTheme();
-  const isDark = theme === "dark";
+  // useWorkspaceTheme now applies data-command-deck on <html> automatically
+  useWorkspaceTheme();
   return (
-    <div className="min-h-screen bg-background" {...(isDark ? { "data-command-deck": "" } : {})}>
+    <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
       <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
         {children}
@@ -69,10 +69,17 @@ interface AnalysisStepHeaderProps {
 export function AnalysisStepHeader({
   steps, activeStep, visitedSteps, onStepChange,
   outdatedSteps, accentColor, backLabel, backPath, outdatedStepName,
-  analysisId,
+  analysisId: propAnalysisId,
 }: AnalysisStepHeaderProps) {
   const navigate = useNavigate();
   const { theme: workspaceTheme, toggle: toggleTheme } = useWorkspaceTheme();
+
+  // Fallback: extract analysis ID from URL if prop is null
+  const urlFallbackId = React.useMemo(() => {
+    const match = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/);
+    return match?.[1] || null;
+  }, []);
+  const analysisId = propAnalysisId || urlFallbackId;
   const baseUrl = analysisId ? `/analysis/${analysisId}` : "";
 
   return (
