@@ -21,6 +21,7 @@ import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { HeroSection } from "@/components/HeroSection";
 import { ModeBadge } from "@/components/ModeBadge";
+import { TierDiscoveryPanel } from "@/components/TierDiscoveryPanel";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, GitBranch, Target, Shield, Lightbulb,
@@ -32,7 +33,8 @@ import {
   computeCommandDeckMetrics, aggregateOpportunities,
   type CommandDeckMetrics as DeckMetrics,
 } from "@/lib/commandDeckMetrics";
-import { extractAllEvidence, type MetricDomain } from "@/lib/evidenceEngine";
+import { extractAllEvidence, type MetricDomain, type EvidenceTier } from "@/lib/evidenceEngine";
+import { computeTierState, filterEvidenceByTier, TIER_META, type TierNumber, type TierState } from "@/lib/tierDiscoveryEngine";
 import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 
 const PIPELINE_STEPS = [
