@@ -105,6 +105,7 @@ const PHOTO_EXAMPLES = [
 export default function NewAnalysisPage() {
   const navigate = useNavigate();
   const { tier } = useSubscription();
+  const { theme, toggle: toggleTheme } = useWorkspaceTheme();
   
   const analysis = useAnalysis();
   const { setModeRouting } = analysis;

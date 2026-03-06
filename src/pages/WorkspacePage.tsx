@@ -82,7 +82,7 @@ function DashCard({ children, className = "", span = "" }: { children: React.Rea
 
 export default function WorkspacePage() {
   const { user } = useAuth();
-  const { tier } = useSubscription();
+  const { theme, toggle: toggleTheme } = useWorkspaceTheme();
   const navigate = useNavigate();
   const analysis = useAnalysis();
   const [analyses, setAnalyses] = useState<SavedAnalysis[]>([]);
