@@ -330,21 +330,28 @@ export function aggregateOpportunities(input: CommandDeckMetricsInput): Aggregat
     const opps = input.evidence.opportunity.items;
     const allItems = flattenEvidence(input.evidence);
     const simCount = allItems.filter(e => e.category === "simulation" || e.id.startsWith("sim-")).length;
-    const constraintClusterCount = allItems.filter(e => e.type === "constraint").length;
+    const constraintCount = allItems.filter(e => e.type === "constraint").length;
+    const leverageCount = allItems.filter(e => e.type === "leverage").length;
+    const signalCount = allItems.filter(e => e.type === "signal").length;
 
     return opps
       .map(e => {
-        // Evidence strength: count of items with similar labels
-        const evidenceStrength = (e.confidenceScore ?? 0.5) * (e.sourceCount ?? 1);
-        // Structural pressure from constraints
-        const structuralPressure = Math.min(constraintClusterCount / 10, 1);
-        // Market potential from impact
-        const marketPotential = (e.impact ?? 5) / 10;
-        // Simulation feasibility from scenarios
-        const simFeasibility = Math.min(simCount / 3, 1);
+        // Multi-factor scoring (upgraded formula)
+        const marketAttractiveness = clamp(((e.impact ?? 5) / 10) * 0.6 + Math.min(signalCount / 20, 1) * 0.4, 0, 1);
+        const structuralAdvantage = clamp(Math.min(constraintCount / 8, 1) * 0.6 + Math.min(leverageCount / 5, 1) * 0.4, 0, 1);
+        const simulationFeasibility = clamp(simCount > 0 ? Math.min(simCount / 3, 1) * 0.7 + 0.3 : 0, 0, 1);
+        const strategicLeverage = clamp((e.confidenceScore ?? 0.5) * 0.5 + Math.min(leverageCount / 5, 1) * 0.5, 0, 1);
+        const executionDifficulty = clamp(1 - (e.confidenceScore ?? 0.5) * 0.4 - Math.min(simCount / 5, 1) * 0.3, 0, 1);
 
+        // New weighted formula
         const opportunityScore = Math.round(
-          (evidenceStrength * 0.30 + structuralPressure * 0.25 + marketPotential * 0.25 + simFeasibility * 0.20) * 10 * 10
+          (
+            marketAttractiveness * 0.25 +
+            structuralAdvantage * 0.25 +
+            simulationFeasibility * 0.20 +
+            strategicLeverage * 0.20 -
+            executionDifficulty * 0.10
+          ) * 100
         ) / 10;
 
         const riskLevel: "low" | "moderate" | "high" =
@@ -364,6 +371,11 @@ export function aggregateOpportunities(input: CommandDeckMetricsInput): Aggregat
           opportunityScore,
           simulationCount: simCount,
           riskLevel,
+          marketAttractiveness: Math.round(marketAttractiveness * 100) / 10,
+          structuralAdvantage: Math.round(structuralAdvantage * 100) / 10,
+          simulationFeasibility: Math.round(simulationFeasibility * 100) / 10,
+          strategicLeverage: Math.round(strategicLeverage * 100) / 10,
+          executionDifficulty: Math.round(executionDifficulty * 100) / 10,
         };
       })
       .sort((a, b) => (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0))
