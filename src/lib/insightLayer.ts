@@ -234,6 +234,8 @@ function inferInsightType(evidence: Evidence[]): InsightType {
   if (types.has("constraint")) return "constraint_cluster";
   if (types.has("assumption")) return "assumption_cluster";
   if (types.has("opportunity") || types.has("leverage")) return "emerging_opportunity";
+  // Infer constraints from friction/risk clusters (structural bottlenecks)
+  if (types.has("friction") || types.has("risk")) return "constraint_cluster";
   return "pattern";
 }
 
@@ -326,7 +328,19 @@ export function clusterEvidenceIntoInsights(evidence: Evidence[]): Insight[] {
   const reasoningChains = generateReasoningChains(baseInsights, evidence);
   const toolRecommendations = generateToolRecommendationInsights(baseInsights, evidence);
 
-  const allInsights = [...baseInsights, ...structuralInsights, ...strategicPathways, ...reasoningChains, ...toolRecommendations];
+  // ── Infer synthetic constraints from repeated assumptions & bottlenecks ──
+  const syntheticConstraints = inferConstraintsFromBottlenecks(baseInsights, evidence);
+
+  // ── Generate opportunities from constraint resolution ──
+  const constraintResolutionOpps = generateConstraintResolutionOpportunities(
+    [...baseInsights, ...syntheticConstraints], evidence
+  );
+
+  const allInsights = [
+    ...baseInsights, ...structuralInsights, ...strategicPathways,
+    ...reasoningChains, ...toolRecommendations,
+    ...syntheticConstraints, ...constraintResolutionOpps,
+  ];
 
   // Wire relatedInsightIds
   wireRelatedInsights(allInsights);
@@ -513,6 +527,124 @@ function generateToolRecommendationInsights(insights: Insight[], evidence: Evide
       mode: topInsight.mode,
       confidenceScore: Math.min(1, data.count * 0.25),
       impact: topInsight.impact,
+      timestamp: now,
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Infer synthetic constraint insights from repeated assumptions,
+ * structural bottlenecks (friction/risk clusters), and economic inefficiencies.
+ */
+function inferConstraintsFromBottlenecks(insights: Insight[], evidence: Evidence[]): Insight[] {
+  const now = Date.now();
+  const result: Insight[] = [];
+
+  // 1. Repeated assumptions → constraint (assumption appears in 2+ clusters)
+  const assumptionClusters = insights.filter(i => i.insightType === "assumption_cluster");
+  if (assumptionClusters.length >= 2) {
+    const sharedEvIds = assumptionClusters[0].evidenceIds.filter(eid =>
+      assumptionClusters.slice(1).some(ac => ac.evidenceIds.includes(eid))
+    );
+    if (sharedEvIds.length > 0 || assumptionClusters.length >= 2) {
+      result.push({
+        id: `insight-inferred-con-${++insightCounter}`,
+        label: `Structural bottleneck: ${assumptionClusters[0].label}`,
+        description: `Repeated assumption patterns across ${assumptionClusters.length} clusters indicate a structural constraint limiting strategic options.`,
+        insightType: "constraint_cluster",
+        evidenceIds: [...new Set(assumptionClusters.flatMap(a => a.evidenceIds))].slice(0, 8),
+        relatedInsightIds: assumptionClusters.map(a => a.id),
+        recommendedTools: deriveToolRecommendations(
+          { label: assumptionClusters[0].label, insightType: "constraint_cluster", confidenceScore: 0.6 },
+          evidence.filter(e => assumptionClusters[0].evidenceIds.includes(e.id)),
+        ),
+        tier: "structural",
+        mode: assumptionClusters[0].mode,
+        confidenceScore: 0.65,
+        impact: Math.max(...assumptionClusters.map(a => a.impact ?? 5)),
+        timestamp: now,
+      });
+    }
+  }
+
+  // 2. High-friction signals → constraint
+  const frictionEvidence = evidence.filter(e => e.type === "friction" && (e.impact ?? 0) >= 6);
+  if (frictionEvidence.length >= 2) {
+    result.push({
+      id: `insight-inferred-con-${++insightCounter}`,
+      label: `Operational friction: ${frictionEvidence[0].label}`,
+      description: `${frictionEvidence.length} high-impact friction points indicate systematic operational constraints.`,
+      insightType: "constraint_cluster",
+      evidenceIds: frictionEvidence.map(e => e.id).slice(0, 6),
+      recommendedTools: [],
+      tier: "system",
+      mode: frictionEvidence[0].mode || "product",
+      confidenceScore: 0.6,
+      impact: Math.max(...frictionEvidence.map(e => e.impact ?? 5)),
+      timestamp: now,
+    });
+  }
+
+  // 3. Risk clusters → constraint
+  const riskEvidence = evidence.filter(e => e.type === "risk" && (e.impact ?? 0) >= 5);
+  if (riskEvidence.length >= 2) {
+    result.push({
+      id: `insight-inferred-con-${++insightCounter}`,
+      label: `Risk concentration: ${riskEvidence[0].label}`,
+      description: `${riskEvidence.length} compounding risk signals suggest a structural vulnerability.`,
+      insightType: "constraint_cluster",
+      evidenceIds: riskEvidence.map(e => e.id).slice(0, 6),
+      recommendedTools: [],
+      tier: "structural",
+      mode: riskEvidence[0].mode || "product",
+      confidenceScore: 0.55,
+      impact: Math.max(...riskEvidence.map(e => e.impact ?? 5)),
+      timestamp: now,
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Generate opportunity insights from constraint resolution logic.
+ * For each constraint, infer what strategic opportunity opens when the constraint is resolved.
+ */
+function generateConstraintResolutionOpportunities(insights: Insight[], evidence: Evidence[]): Insight[] {
+  const now = Date.now();
+  const result: Insight[] = [];
+  const constraintInsights = insights.filter(i => i.insightType === "constraint_cluster" && (i.impact ?? 0) >= 5);
+
+  // Check if we already have enough opportunities
+  const existingOpps = insights.filter(i => i.insightType === "emerging_opportunity");
+  if (existingOpps.length >= 4) return result;
+
+  for (const con of constraintInsights.slice(0, 3)) {
+    // Skip if we already have an opportunity derived from this constraint
+    if (existingOpps.some(o => o.relatedInsightIds?.includes(con.id))) continue;
+
+    const relatedEvidence = evidence.filter(e => con.evidenceIds.includes(e.id));
+    const toolRecs = deriveToolRecommendations(
+      { label: con.label, description: con.description, insightType: "emerging_opportunity", confidenceScore: con.confidenceScore },
+      relatedEvidence,
+    );
+
+    result.push({
+      id: `insight-resolve-${++insightCounter}`,
+      label: `Opportunity: Resolve ${con.label.replace(/^(Structural bottleneck|Operational friction|Risk concentration): /i, "")}`,
+      description: `Resolving the constraint "${con.label}" could unlock strategic value. ${con.description || ""}`.trim(),
+      insightType: "emerging_opportunity",
+      evidenceIds: con.evidenceIds,
+      relatedInsightIds: [con.id],
+      recommendedTools: toolRecs,
+      tier: con.tier,
+      mode: con.mode,
+      confidenceScore: Math.max(0.4, (con.confidenceScore ?? 0.5) - 0.1),
+      impact: Math.max(5, (con.impact ?? 5) - 1),
+      lensScores: con.lensScores,
+      archetypeScores: con.archetypeScores,
       timestamp: now,
     });
   }

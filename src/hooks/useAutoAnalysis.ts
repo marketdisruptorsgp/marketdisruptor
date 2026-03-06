@@ -149,13 +149,26 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       // Step 5: Generate strategic narrative
       const newNarrative = generateStrategicNarrative(newInsights, mergedEvidence);
 
-      // Step 6: Build insight graph from evidence
-      const newGraph = buildInsightGraph(newEvidence);
-
-      // Step 7: Scenario comparison & sensitivity
+      // Step 6: Scenario comparison & sensitivity (needed before graph)
       const scenarios = getScenarios(analysisId);
       const newComparison = scenarios.length > 0 ? compareScenarios(scenarios) : null;
       const newSensitivity = computeAllSensitivityReports(scenarios);
+
+      // Step 7: Build insight graph from evidence + insights + scenarios
+      const insightsForGraph = newInsights.map(i => ({
+        id: i.id, label: i.label, description: i.description,
+        insightType: i.insightType, impact: i.impact,
+        confidenceScore: i.confidenceScore, evidenceIds: i.evidenceIds,
+        recommendedTools: i.recommendedTools,
+      }));
+      const scenariosForGraph = newComparison?.scenarios;
+      const newGraph = buildInsightGraph(
+        newEvidence, undefined, undefined, undefined, undefined,
+        insightsForGraph.length > 0 ? insightsForGraph : undefined,
+        scenariosForGraph && scenariosForGraph.length > 0 ? scenariosForGraph : undefined,
+      );
+
+      // (scenario comparison already computed above)
 
       setIntelligence(newIntelligence);
       setGraph(newGraph);
