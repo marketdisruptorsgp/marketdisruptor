@@ -599,8 +599,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
     setAnalysisId(dbId);
 
-    // Navigate to report page so user sees loading progress in-place
-    navigate(`/analysis/${dbId}/report`);
+    // Navigate to Command Deck — primary strategic briefing surface
+    navigate(`/analysis/${dbId}/command-deck`);
 
     // isServiceMode already declared above
 
