@@ -396,8 +396,10 @@ export default function CommandDeckPage() {
   const pipelinePct = metrics.pipelineCompletion;
   const baseUrl = `/analysis/${analysisId}`;
   const totalSignals = metrics.stepSignals.reduce((s, ss) => s + (ss.hasData ? ss.signals : 0), 0);
+  const hasBusinessContext = !!businessAnalysisData;
+  const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
 
-  if (analysis.step !== "done" || !selectedProduct) {
+  if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
     return (
       <div className="min-h-screen bg-background">
