@@ -72,6 +72,14 @@ export interface InsightGraphNode {
   mode?: EvidenceMode;
   sourceEngine?: string;
   confidenceScore?: number;
+  /** Scenario-specific fields */
+  projectedReturn?: number;
+  riskScore?: number;
+  feasibilityScore?: number;
+  capitalRequired?: number;
+  relatedScenarioId?: string;
+  /** Intelligence layer for clustering */
+  intelligenceLayer?: "evidence" | "insight" | "opportunity" | "simulation" | "strategy";
 }
 
 export interface InsightGraphEdge {
