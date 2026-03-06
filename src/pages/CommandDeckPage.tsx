@@ -255,21 +255,22 @@ function PipelineStep({ step, status, analysisId, signalCount }: {
  * OPPORTUNITY TABLE
  * ════════════════════════════════════════════════════════ */
 function OpportunityTable({ opps, analysisId }: {
-  opps: { id: string; label: string; impact: number; confidence: string; step: string; source: string; tier?: EvidenceTier }[];
+  opps: { id: string; label: string; impact: number; confidence: string; step: string; source: string; tier?: EvidenceTier; opportunityScore?: number; riskLevel?: string }[];
   analysisId: string;
 }) {
   const navigate = useNavigate();
-  const [sortKey, setSortKey] = useState<"impact" | "confidence">("impact");
+  const [sortKey, setSortKey] = useState<"impact" | "confidence" | "score">("score");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const sorted = useMemo(() => {
     return [...opps].sort((a, b) => {
+      if (sortKey === "score") return sortDir === "desc" ? (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0) : (a.opportunityScore ?? 0) - (b.opportunityScore ?? 0);
       if (sortKey === "impact") return sortDir === "desc" ? b.impact - a.impact : a.impact - b.impact;
       return sortDir === "desc" ? b.confidence.localeCompare(a.confidence) : a.confidence.localeCompare(b.confidence);
     });
   }, [opps, sortKey, sortDir]);
 
-  const toggleSort = (key: "impact" | "confidence") => {
+  const toggleSort = (key: "impact" | "confidence" | "score") => {
     if (sortKey === key) setSortDir(d => d === "desc" ? "asc" : "desc");
     else { setSortKey(key); setSortDir("desc"); }
   };
@@ -280,8 +281,12 @@ function OpportunityTable({ opps, analysisId }: {
 
   return (
     <div className="overflow-x-auto">
-      <div className="grid grid-cols-[1fr_60px_70px_70px_80px] sm:grid-cols-[1fr_60px_120px_70px_70px_80px] gap-2 px-3 py-2 border-b border-border min-w-[450px]">
+      <div className="grid grid-cols-[1fr_50px_60px_60px_70px_70px] sm:grid-cols-[1fr_50px_60px_100px_60px_70px_70px] gap-2 px-3 py-2 border-b border-border min-w-[500px]">
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Opportunity</span>
+        <button onClick={() => toggleSort("score")}
+          className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-0.5 justify-center">
+          Score <ArrowUpDown size={7} />
+        </button>
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Tier</span>
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground hidden sm:block">Source</span>
         <button onClick={() => toggleSort("impact")}
@@ -292,23 +297,26 @@ function OpportunityTable({ opps, analysisId }: {
           className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-0.5 justify-center">
           Conf. <ArrowUpDown size={7} />
         </button>
-        <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Step</span>
+        <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Risk</span>
       </div>
       {sorted.map(opp => {
         const ic = opp.impact >= 8 ? "hsl(152 60% 44%)" : opp.impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
         const tc = opp.tier ? tierColors[opp.tier] : "hsl(var(--muted-foreground))";
         const tLabel = opp.tier ? opp.tier.charAt(0).toUpperCase() + opp.tier.slice(1, 4) : "—";
+        const sc = (opp.opportunityScore ?? 0) >= 6 ? "hsl(152 60% 44%)" : (opp.opportunityScore ?? 0) >= 3 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
+        const riskColor = opp.riskLevel === "low" ? "hsl(152 60% 44%)" : opp.riskLevel === "moderate" ? "hsl(38 92% 50%)" : "hsl(0 72% 52%)";
         return (
           <button key={opp.id}
             onClick={() => navigate(`/analysis/${analysisId}/insight-graph?node=${opp.id}`)}
-            className="grid grid-cols-[1fr_60px_70px_70px_80px] sm:grid-cols-[1fr_60px_120px_70px_70px_80px] gap-2 items-center px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[44px] min-w-[450px]"
+            className="grid grid-cols-[1fr_50px_60px_60px_70px_70px] sm:grid-cols-[1fr_50px_60px_100px_60px_70px_70px] gap-2 items-center px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[44px] min-w-[500px]"
           >
             <span className="text-sm font-semibold text-foreground truncate">{opp.label}</span>
+            <span className="text-sm font-extrabold tabular-nums text-center" style={{ color: sc }}>{(opp.opportunityScore ?? 0).toFixed(1)}</span>
             <span className="text-[9px] font-bold text-center px-1.5 py-0.5 rounded-full" style={{ background: `${tc}12`, color: tc }}>{tLabel}</span>
             <span className="text-[10px] text-muted-foreground truncate hidden sm:block">{opp.source}</span>
             <span className="text-sm font-bold tabular-nums text-center" style={{ color: ic }}>{opp.impact}/10</span>
             <span className="text-[10px] font-bold capitalize text-center text-muted-foreground">{opp.confidence}</span>
-            <span className="text-[9px] font-bold uppercase tracking-widest text-center text-muted-foreground">{opp.step}</span>
+            <span className="text-[9px] font-bold capitalize text-center" style={{ color: riskColor }}>{opp.riskLevel || "—"}</span>
           </button>
         );
       })}
