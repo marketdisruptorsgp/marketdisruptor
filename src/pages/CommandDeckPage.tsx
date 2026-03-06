@@ -1,5 +1,5 @@
 /**
- * Strategic Situation Room — Discovery Intelligence Surface
+ * Command Deck — Strategic Discovery Control Center
  * URL: /analysis/:analysisId/command-deck
  *
  * Zones:
