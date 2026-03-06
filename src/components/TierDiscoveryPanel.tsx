@@ -128,7 +128,7 @@ export const TierDiscoveryPanel = memo(function TierDiscoveryPanel({
               </div>
 
               {/* Mark complete button for active tier */}
-              {unlocked && isActive && tierNum < 3 && !tierState.tierUnlocked[tierNum] && (
+              {unlocked && isActive && tierNum < 3 && !tierState.tierUnlocked[tierNum as 1 | 2] && (
                 <div className="mt-3 pt-3 border-t" style={{ borderColor: `${meta.color}20` }}>
                   <button
                     onClick={(e) => { e.stopPropagation(); onMarkComplete(tierNum); }}
