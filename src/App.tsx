@@ -112,7 +112,6 @@ function AppRoutes() {
     import("@/lib/analyticsTracker").then(({ initAnalyticsTracker }) => initAnalyticsTracker());
   }, []);
 
-  // Global safety net: catch unhandled async rejections to prevent white screens
   useEffect(() => {
     const handler = (event: PromiseRejectionEvent) => {
       console.error("[App] Unhandled rejection:", event.reason);
@@ -120,6 +119,17 @@ function AppRoutes() {
     };
     window.addEventListener("unhandledrejection", handler);
     return () => window.removeEventListener("unhandledrejection", handler);
+  }, []);
+
+  // Must be before early returns to satisfy hook rules
+  const shouldShowSidebar = useMemo(() => {
+    const path = window.location.pathname;
+    return (
+      path.startsWith("/workspace") ||
+      path.startsWith("/analysis/") ||
+      path.startsWith("/intelligence") ||
+      path.startsWith("/business/")
+    );
   }, []);
 
   if (loading) {
