@@ -141,12 +141,12 @@ export interface StrategicAnalysisOutput {
 // ═══════════════════════════════════════════════════════════════
 
 const THRESHOLDS = {
-  signals: 3,
-  constraints: 5,
-  drivers: 7,
-  leverage: 10,
-  opportunities: 12,
-  pathways: 15,
+  signals: 4,
+  constraints: 8,
+  drivers: 11,
+  leverage: 15,
+  opportunities: 18,
+  pathways: 22,
 } as const;
 
 // ═══════════════════════════════════════════════════════════════
