@@ -400,6 +400,15 @@ export default function CommandDeckPage() {
   const hasBusinessContext = !!businessAnalysisData;
   const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
 
+  const handleRecomputeAll = useCallback(() => {
+    const stepsToRun = ["report", "disrupt", "redesign", "stress-test", "pitch"];
+    const firstIncomplete = stepsToRun.find(s => !completedSteps.has(s));
+    const firstOutdated = stepsToRun.find(s => analysis.outdatedSteps.has(s));
+    const target = firstOutdated || firstIncomplete || "report";
+    toast.info("Navigating to recompute pipeline…");
+    navigate(`${baseUrl}/${target}`);
+  }, [completedSteps, analysis.outdatedSteps, navigate, baseUrl]);
+
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
     return (
@@ -413,15 +422,6 @@ export default function CommandDeckPage() {
 
   const modeLabel = analysis.activeMode === "custom" ? "Product"
     : analysis.activeMode === "service" ? "Service" : "Business Model";
-
-  const handleRecomputeAll = useCallback(() => {
-    const stepsToRun = ["report", "disrupt", "redesign", "stress-test", "pitch"];
-    const firstIncomplete = stepsToRun.find(s => !completedSteps.has(s));
-    const firstOutdated = stepsToRun.find(s => analysis.outdatedSteps.has(s));
-    const target = firstOutdated || firstIncomplete || "report";
-    toast.info("Navigating to recompute pipeline…");
-    navigate(`${baseUrl}/${target}`);
-  }, [completedSteps, analysis.outdatedSteps, navigate, baseUrl]);
 
   return (
     <div className="min-h-screen bg-background">
