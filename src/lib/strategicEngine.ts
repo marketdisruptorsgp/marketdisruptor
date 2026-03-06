@@ -467,7 +467,7 @@ function constructStrategicPathways(
 
     const label = `${con.label.slice(0, 35)} → ${opp.label.slice(0, 45)}`;
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("pathway"),
       analysisId,
       insightType: "strategic_pathway",
@@ -480,7 +480,7 @@ function constructStrategicPathways(
       impact: Math.max(con.impact, opp.impact),
       confidence: Math.round(((con.confidence + opp.confidence) / 2) * 100) / 100,
       createdAt: now,
-    });
+    }));
   }
 
   return insights;
