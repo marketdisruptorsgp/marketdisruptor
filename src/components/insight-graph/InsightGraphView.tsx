@@ -31,7 +31,7 @@ import { SimulationPanel } from "@/components/SimulationPanel";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 import { type LensTool } from "@/lib/lensToolkitRegistry";
-import { type ToolScenario } from "@/lib/scenarioEngine";
+import { type ToolScenario, scenarioToEvidence } from "@/lib/scenarioEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // ═══════════════════════════════════════════════════════════════
@@ -378,9 +378,10 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   }, []);
 
   const handleSimScenarioSaved = useCallback((scenario: ToolScenario) => {
+    const evidence = scenarioToEvidence(scenario);
     setIntelligenceEvents(prev => [
-      `Scenario saved: ${scenario.scenarioName}`,
-      `New evidence from ${scenario.toolId.replace(/-/g, " ")}`,
+      `Simulation created ${evidence.type} signal: "${evidence.label}"`,
+      `Evidence confidence: ${Math.round((evidence.confidenceScore || 0) * 100)}%`,
       ...prev,
     ].slice(0, 10));
     onScenarioSaved?.(scenario);

@@ -12,6 +12,7 @@ import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRi
 import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
 import { getInsightChain, NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 import { getToolById, type LensTool } from "@/lib/lensToolkitRegistry";
+import { recommendToolsForInsight, type ToolRecommendation } from "@/lib/toolReasoningEngine";
 
 interface InsightNodeCardProps {
   node: InsightGraphNode;
@@ -30,41 +31,15 @@ export const InsightNodeCard = memo(function InsightNodeCard({
   const [showAllEvidence, setShowAllEvidence] = useState(false);
   const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence" | "tools">("chain");
 
-  // Derive related tools from node keywords
-  const relatedTools = useMemo(() => {
-    const text = `${node.label} ${node.detail || ""} ${node.reasoning || ""}`.toLowerCase();
-    const toolIds = ["sba-loan-calculator", "deal-structure-simulator", "dscr-calculator",
-      "acquisition-roi-model", "tam-calculator", "unit-economics-model", "competitive-moat-analyzer",
-      "industry-fragmentation-detector", "seller-motivation-signals", "assumption-stress-tester",
-      "innovation-pathway-mapper", "revenue-model-simulator", "value-chain-analyzer",
-      "deal-risk-scanner", "cash-flow-quality"];
-    const TOOL_KEYWORDS: Record<string, string[]> = {
-      "sba-loan-calculator": ["loan", "sba", "financing", "debt", "leverage", "acquisition"],
-      "deal-structure-simulator": ["deal", "equity", "ownership", "structure", "seller"],
-      "dscr-calculator": ["dscr", "debt service", "coverage"],
-      "acquisition-roi-model": ["roi", "return", "exit", "multiple"],
-      "tam-calculator": ["market", "tam", "addressable", "opportunity"],
-      "unit-economics-model": ["unit economics", "cac", "ltv", "margin"],
-      "competitive-moat-analyzer": ["moat", "defensibility", "barrier", "switching"],
-      "industry-fragmentation-detector": ["fragmented", "consolidation", "rollup"],
-      "seller-motivation-signals": ["retiring", "succession", "seller", "owner"],
-      "assumption-stress-tester": ["assumption", "convention", "belief"],
-      "innovation-pathway-mapper": ["innovation", "breakthrough", "redesign"],
-      "revenue-model-simulator": ["revenue", "subscription", "pricing"],
-      "value-chain-analyzer": ["value chain", "middleman", "supply"],
-      "deal-risk-scanner": ["risk", "concentration", "dependency"],
-      "cash-flow-quality": ["cash flow", "revenue quality", "addback"],
-    };
-    const matched: LensTool[] = [];
-    for (const tid of toolIds) {
-      const kws = TOOL_KEYWORDS[tid] || [];
-      if (kws.some(kw => text.includes(kw))) {
-        const tool = getToolById(tid);
-        if (tool) matched.push(tool);
-      }
-    }
-    return matched.slice(0, 3);
+  // Reasoning-driven tool recommendations
+  const toolRecommendations = useMemo(() => {
+    return recommendToolsForInsight(
+      { label: node.label, detail: node.detail, type: node.type, reasoning: node.reasoning },
+      node.evidence,
+    );
   }, [node]);
+
+  const relatedTools = useMemo(() => toolRecommendations.map(r => r.tool), [toolRecommendations]);
 
   // Linked nodes (direct connections)
   const linkedNodes = useMemo(() => {
@@ -386,28 +361,31 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         </div>
       )}
 
-      {/* Related Tools */}
-      {activeSection === "tools" && relatedTools.length > 0 && (
+      {/* Recommended Tools (reasoning-driven) */}
+      {activeSection === "tools" && toolRecommendations.length > 0 && (
         <div className="px-4 pb-4 space-y-2">
           <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
-            Related Tools
+            Recommended Tools
           </p>
-          {relatedTools.map(tool => {
-            const ToolIcon = tool.icon;
+          {toolRecommendations.map(rec => {
+            const ToolIcon = rec.tool.icon;
             return (
               <button
-                key={tool.id}
-                onClick={() => onOpenTool?.(tool)}
+                key={rec.tool.id}
+                onClick={() => onOpenTool?.(rec.tool)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/40 transition-all text-left"
               >
-                <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: `${tool.accentColor}12` }}>
-                  <ToolIcon size={13} style={{ color: tool.accentColor }} />
+                <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: `${rec.tool.accentColor}12` }}>
+                  <ToolIcon size={13} style={{ color: rec.tool.accentColor }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-foreground">{tool.title}</p>
-                  <p className="text-[10px] text-muted-foreground line-clamp-1">{tool.description}</p>
+                  <p className="text-xs font-bold text-foreground">{rec.tool.title}</p>
+                  <p className="text-[10px] text-muted-foreground line-clamp-1">{rec.reason}</p>
                 </div>
-                <ChevronRight size={12} className="text-muted-foreground flex-shrink-0" />
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span className="text-[9px] font-bold tabular-nums text-muted-foreground">{Math.round(rec.score * 100)}%</span>
+                  <ChevronRight size={12} className="text-muted-foreground" />
+                </div>
               </button>
             );
           })}
