@@ -423,7 +423,7 @@ export function clusterEvidenceIntoInsights(evidence: Evidence[]): Insight[] {
         mode: constraint.mode,
         confidenceScore: 0.4,
         impact: Math.max(5, (constraint.impact ?? 5) - 1),
-        timestamp: now,
+        timestamp: fallbackNow,
       });
     }
   }
