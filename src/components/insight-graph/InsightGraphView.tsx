@@ -749,101 +749,107 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
         )}
       </AnimatePresence>
 
-      {/* Graph Canvas */}
-      <div
-        className="relative rounded-2xl overflow-hidden"
-        style={{
-          height: isMobile ? "75vh" : 580,
-          minHeight: isMobile ? 400 : 360,
-          background: "hsl(var(--card))",
-          border: "1.5px solid hsl(var(--border))",
-        }}
-      >
-        {/* Column labels at top */}
-        {!isMobile && (
-          <div className="absolute top-2 left-0 right-0 z-10 flex pointer-events-none" style={{ paddingLeft: 60 }}>
-            {TIER_CONFIG.map((tier) => {
-              const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
-              if (count === 0) return null;
-              return (
-                <div key={tier.label} className="flex-1 text-center">
-                  <span className="typo-meta font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-card/80 backdrop-blur-sm border border-border/50" style={{ color: NODE_TYPE_CONFIG[tier.types[0]].color }}>
-                    {tier.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Onboarding overlay */}
-        {showOnboarding && !selectedNodeId && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-card/95 backdrop-blur-sm border border-border rounded-xl px-6 py-4 shadow-lg text-center max-w-xs pointer-events-auto"
-            >
-              <p className="typo-body font-semibold text-foreground mb-1">Click any node to explore its reasoning chain</p>
-              <p className="typo-meta mb-3">Nodes are connected by causal relationships across the analysis pipeline</p>
-              <button
-                onClick={() => setShowOnboarding(false)}
-                className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
-              >
-                Got it
-              </button>
-            </motion.div>
-          </div>
-        )}
-
-        <ReactFlow
-          nodes={flowNodes}
-          edges={flowEdges}
-          nodeTypes={nodeTypes}
-          onNodeClick={onNodeClick}
-          onNodeMouseEnter={onNodeMouseEnter}
-          onNodeMouseLeave={onNodeMouseLeave}
-          onPaneClick={onPaneClick}
-          fitView
-          fitViewOptions={{ padding: isMobile ? 0.15 : 0.3 }}
-          minZoom={0.25}
-          maxZoom={2.5}
-          proOptions={{ hideAttribution: true }}
+      {/* Graph Canvas + Side Panel Layout */}
+      <div className="flex gap-3">
+        {/* Graph Canvas */}
+        <div
+          className="relative rounded-2xl overflow-hidden flex-1"
+          style={{
+            height: isMobile ? "75vh" : 580,
+            minHeight: isMobile ? 400 : 360,
+            background: "hsl(var(--card))",
+            border: "1.5px solid hsl(var(--border))",
+          }}
         >
-          <Background gap={24} size={1} color="hsl(var(--border))" />
-          <Controls showInteractive={false} style={{ bottom: 12, left: 12 }} />
+          {/* Column labels at top */}
           {!isMobile && (
-            <MiniMap
-              nodeStrokeWidth={2}
-              style={{
-                background: "hsl(var(--muted))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: 8,
-              }}
-            />
+            <div className="absolute top-2 left-0 right-0 z-10 flex pointer-events-none" style={{ paddingLeft: 60 }}>
+              {TIER_CONFIG.map((tier) => {
+                const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
+                if (count === 0) return null;
+                return (
+                  <div key={tier.label} className="flex-1 text-center">
+                    <span className="typo-meta font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-card/80 backdrop-blur-sm border border-border/50" style={{ color: NODE_TYPE_CONFIG[tier.types[0]].color }}>
+                      {tier.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </ReactFlow>
 
-        {/* Hover Tooltip — anchored inside graph canvas */}
-        <AnimatePresence>
-          {hoveredNode && activeTab === "graph" && !selectedNodeId && !isMobile && (
-            <GraphTooltip node={hoveredNode} graph={graph} />
+          {/* Onboarding overlay */}
+          {showOnboarding && !selectedNodeId && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-card/95 backdrop-blur-sm border border-border rounded-xl px-6 py-4 shadow-lg text-center max-w-xs pointer-events-auto"
+              >
+                <p className="typo-body font-semibold text-foreground mb-1">Click any node to explore its reasoning chain</p>
+                <p className="typo-meta mb-3">Nodes are connected by causal relationships across the analysis pipeline</p>
+                <button
+                  onClick={() => setShowOnboarding(false)}
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                >
+                  Got it
+                </button>
+              </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
-        {/* Node detail card overlay — desktop only (right panel) */}
-        {!isMobile && (
-          <AnimatePresence>
-            {selectedNode && (
-              <InsightNodeCard
-                node={selectedNode}
-                graph={graph}
-                onClose={() => setSelectedNodeId(null)}
-                onSelectNode={setSelectedNodeId}
-                onOpenTool={handleOpenTool}
+          <ReactFlow
+            nodes={flowNodes}
+            edges={flowEdges}
+            nodeTypes={nodeTypes}
+            onNodeClick={onNodeClick}
+            onNodeMouseEnter={onNodeMouseEnter}
+            onNodeMouseLeave={onNodeMouseLeave}
+            onPaneClick={onPaneClick}
+            fitView
+            fitViewOptions={{ padding: isMobile ? 0.15 : 0.3 }}
+            minZoom={0.25}
+            maxZoom={2.5}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background gap={24} size={1} color="hsl(var(--border))" />
+            <Controls showInteractive={false} style={{ bottom: 12, left: 12 }} />
+            {!isMobile && (
+              <MiniMap
+                nodeStrokeWidth={2}
+                style={{
+                  background: "hsl(var(--muted))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: 8,
+                }}
               />
             )}
+          </ReactFlow>
+
+          {/* Hover Tooltip — anchored inside graph canvas */}
+          <AnimatePresence>
+            {hoveredNode && activeTab === "graph" && !selectedNodeId && !isMobile && (
+              <GraphTooltip node={hoveredNode} graph={graph} />
+            )}
           </AnimatePresence>
+        </div>
+
+        {/* Side Panel — desktop only, renders beside graph instead of on top */}
+        {!isMobile && selectedNode && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="w-[360px] flex-shrink-0 max-h-[580px] overflow-y-auto"
+          >
+            <InsightNodeCard
+              node={selectedNode}
+              graph={graph}
+              onClose={() => setSelectedNodeId(null)}
+              onSelectNode={setSelectedNodeId}
+              onOpenTool={handleOpenTool}
+            />
+          </motion.div>
         )}
       </div>
 
