@@ -180,6 +180,18 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         <MetricPill label="Conf." value={node.confidence} color={config.color} />
       </div>
 
+      {/* Scenario-specific metrics */}
+      {(node.type === "scenario" || node.type === "simulation") && (node.projectedReturn != null || node.riskScore != null) && (
+        <div className="px-4 pb-3 grid grid-cols-2 gap-1.5">
+          {node.projectedReturn != null && <MetricPill label="Return" value={`${node.projectedReturn.toFixed(1)}%`} color="hsl(152 60% 44%)" />}
+          {node.riskScore != null && <MetricPill label="Risk" value={`${node.riskScore.toFixed(1)}`} color="hsl(14 90% 55%)" />}
+          {node.feasibilityScore != null && <MetricPill label="Feasibility" value={`${node.feasibilityScore.toFixed(1)}`} color="hsl(172 66% 50%)" />}
+          {node.capitalRequired != null && node.capitalRequired > 0 && (
+            <MetricPill label="Capital" value={node.capitalRequired >= 1000000 ? `$${(node.capitalRequired/1000000).toFixed(1)}M` : `$${(node.capitalRequired/1000).toFixed(0)}K`} color="hsl(38 92% 50%)" />
+          )}
+        </div>
+      )}
+
       {/* ── INSIGHT — Core statement ── */}
       {node.reasoning && (
         <div className="px-4 pb-3">
