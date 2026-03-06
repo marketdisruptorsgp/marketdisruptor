@@ -924,7 +924,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
 
     // ── CONTEXT SWITCH CHECK: Abort if user switched analyses during validation ──
-    if (analysisId !== capturedId) {
+    if (!targetAnalysisId && analysisId !== capturedId) {
       console.warn(`[saveStepData] Context switched during save (${capturedId} → ${analysisId}). Aborting.`);
       return;
     }
