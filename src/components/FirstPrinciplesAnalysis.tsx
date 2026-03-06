@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
-import { supabase } from "@/integrations/supabase/client";
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
-import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import type { Product, FlippedIdea } from "@/data/mockProducts";
 import { Brain, Sparkles } from "lucide-react";
@@ -43,7 +41,7 @@ export const FirstPrinciplesAnalysis = ({
   externalData, onDataLoaded, onAnalysisStarted, renderMode, autoTrigger,
   userScores, onScoreChange, runTrigger, onLoadingChange, activeSection, onSaved,
 }: FirstPrinciplesAnalysisProps) => {
-  const { user } = useAuth();
+  
   const analysisCtx = useAnalysis();
   const [data, setData] = useState<any>((externalData as any) || null);
   const [loading, setLoading] = useState(false);
@@ -63,27 +61,8 @@ export const FirstPrinciplesAnalysis = ({
     if (externalData && !data) setData(externalData);
   }, [externalData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const saveToWorkspace = async (analysisData: any) => {
-    try {
-      await (supabase.from("saved_analyses") as any).insert({
-        user_id: user?.id,
-        title: `${product.name} — Disrupt`,
-        category: product.category || "Product",
-        era: product.era || "Unknown",
-        audience: "",
-        batch_size: 1,
-        products: [],
-        product_count: 0,
-        avg_revival_score: null,
-        analysis_type: "product",
-        analysis_data: JSON.parse(JSON.stringify(analysisData)),
-      });
-      onSaved?.();
-      toast.success("Structural analysis saved to workspace!");
-    } catch (err) {
-      console.error("Save failed:", err);
-    }
-  };
+  // saveToWorkspace removed — data is saved via onDataLoaded → saveStepData("disrupt")
+  // which atomically merges into the parent analysis record via merge_analysis_step RPC
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -164,7 +143,7 @@ export const FirstPrinciplesAnalysis = ({
       onDataLoaded?.(result.analysis);
       setActiveStep(renderMode === "redesign" ? "flip" : "assumptions");
       toast.success("Disrupt analysis complete!");
-      await saveToWorkspace(result.analysis);
+      // Data already saved via onDataLoaded callback
     } catch (err) {
       toast.error("Unexpected error: " + String(err));
     } finally {
