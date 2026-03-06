@@ -158,6 +158,28 @@ function nextId(prefix: string): string {
   return `${prefix}-${++idCounter}`;
 }
 
+/**
+ * Humanize internal labels — strip ID prefixes, code artifacts, and jargon.
+ * Applied to all user-facing insight labels system-wide.
+ */
+function humanize(text: string): string {
+  if (!text) return text;
+  return text
+    // Strip constraint ID prefixes like "C1: ", "F_1: ", "C2: "
+    .replace(/^[A-Z]_?\d+\s*[:\.]\s*/i, "")
+    // Strip "Binding Constraint: " prefix
+    .replace(/^Binding Constraint\s*[:\.]\s*/i, "")
+    // Strip "Counterfactual: " prefix
+    .replace(/^Counterfactual\s*[:\.]\s*/i, "")
+    // Strip "(+N related)" suffixes
+    .replace(/\s*\(\+\d+ related\)$/i, "")
+    // Convert snake_case to Title Case
+    .replace(/_/g, " ")
+    // Clean up double spaces
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 const COMPAT_DEFAULTS = {
   tier: "structural" as const,
   mode: "product" as const,
@@ -166,7 +188,7 @@ const COMPAT_DEFAULTS = {
 };
 
 function makeInsight(partial: Omit<StrategicInsight, "tier" | "mode" | "confidenceScore" | "recommendedTools">): StrategicInsight {
-  return { ...partial, ...COMPAT_DEFAULTS, confidenceScore: partial.confidence };
+  return { ...partial, label: humanize(partial.label), ...COMPAT_DEFAULTS, confidenceScore: partial.confidence };
 }
 
 function jaccard(a: string, b: string): number {
