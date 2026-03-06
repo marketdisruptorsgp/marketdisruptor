@@ -565,6 +565,7 @@ export default function CommandDeckPage() {
   }, [completedSteps, totalSignals, metrics.totalEvidenceCount]);
 
 
+  if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
     return (
       <div className="min-h-screen bg-background">
