@@ -332,7 +332,7 @@ export default function CommandDeckPage() {
   const analysisId = ctxAnalysisId || urlAnalysisId;
 
   const modeAccent = theme.primary;
-  const { intelligence, graph, completedSteps } = autoAnalysis;
+  const { intelligence, graph, completedSteps, narrative } = autoAnalysis;
 
   // ── Aggregated Metrics ──
   const allEvidence = useMemo(() => extractAllEvidence({
