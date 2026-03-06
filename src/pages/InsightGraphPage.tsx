@@ -79,16 +79,24 @@ export default function InsightGraphPage() {
     }
   }, [analysisId, disruptData, analysis.governedData, analysis.businessAnalysisData]);
 
-  // Build insight graph
+  // Build insight graph from evidence (evidence-first path)
   const graph = useMemo(() => {
-    return buildInsightGraph(
+    // Extract canonical evidence
+    const evidenceData = extractAllEvidence({
       products,
-      intelligence,
+      selectedProduct,
       disruptData,
       redesignData,
       stressTestData,
-    );
-  }, [products, intelligence, disruptData, redesignData, stressTestData]);
+      pitchDeckData: analysis.pitchDeckData,
+      governedData: analysis.governedData as Record<string, unknown> | null,
+      businessAnalysisData,
+      intelligence,
+      analysisType: (analysis as any).activeMode === "service" ? "service" : (analysis as any).activeMode === "business" ? "business_model" : "product",
+    });
+    // Build graph from evidence (not raw products)
+    return buildInsightGraph(evidenceData);
+  }, [products, selectedProduct, intelligence, disruptData, redesignData, stressTestData, analysis.pitchDeckData, analysis.governedData, businessAnalysisData, (analysis as any).activeMode]);
 
   const { completedSteps } = autoAnalysis;
 
