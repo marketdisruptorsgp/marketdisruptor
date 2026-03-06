@@ -102,12 +102,13 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
   stages.push(s2);
 
   // 3. Hash guard — skip if nothing changed (unless forced)
+  // Include scenario timestamps so saving a new scenario with same count still triggers recompute
   const scenarios = getScenarios(input.analysisId);
-  const hash = computeRecomputeHash(flat.length, 0, scenarios.length);
+  const scenarioSig = scenarios.map(s => `${s.scenarioId}:${s.timestamp}`).join(",");
+  const hash = `${flat.length}:${scenarios.length}:${scenarioSig}`;
   if (!input.force && !shouldRecompute(hash)) {
     events.push("No intelligence changes detected — skipping recompute");
     console.log("[Pipeline] Recompute skipped (hash unchanged)");
-    // Return minimal output (caller should use cached)
     return {
       evidence,
       flatEvidence: flat,

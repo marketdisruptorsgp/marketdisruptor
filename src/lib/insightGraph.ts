@@ -263,11 +263,20 @@ function buildGraphFromEvidence(
       insightsByType[t].push(ins);
     }
 
-    // Ensure at least 4 of each type get through, up to 8 for high-priority types
-    const priorityTypes = ["constraint_cluster", "emerging_opportunity", "strategic_pathway"];
+    // Type-based quotas per the directive
+    const typeQuotas: Record<string, number> = {
+      constraint_cluster: 8,
+      emerging_opportunity: 8,
+      strategic_pathway: 6,
+      assumption_cluster: 6,
+      pattern: 6,
+      structural_insight: 6,
+      reasoning_chain: 6,
+      tool_recommendation: 6,
+    };
     const selectedInsights: typeof insights = [];
     for (const [type, items] of Object.entries(insightsByType)) {
-      const limit = priorityTypes.includes(type) ? 8 : 4;
+      const limit = typeQuotas[type] ?? 4;
       selectedInsights.push(...items.slice(0, limit));
     }
 

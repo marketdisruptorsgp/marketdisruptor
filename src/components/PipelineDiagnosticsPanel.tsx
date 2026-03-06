@@ -1,13 +1,13 @@
 /**
  * Pipeline Diagnostics Panel — Developer debugging overlay
  *
- * Shows pipeline stage counts, graph node type distribution,
- * and any warnings from the intelligence pipeline.
+ * Shows full reasoning chain counts, graph node type distribution,
+ * pipeline stage timings, and any warnings.
  */
 
-import { memo, useState } from "react";
+import { memo, useState, useEffect } from "react";
 import { getLastDiagnostic, type PipelineDiagnostic } from "@/lib/pipelineDiagnostics";
-import { Bug, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Bug, ChevronDown, ChevronUp, X, CheckCircle, AlertTriangle } from "lucide-react";
 
 const NODE_TYPE_COLORS: Record<string, string> = {
   signal: "hsl(199 89% 48%)",
@@ -28,10 +28,31 @@ const NODE_TYPE_COLORS: Record<string, string> = {
   competitor: "hsl(262 83% 58%)",
 };
 
+// Required minimum node counts for the reasoning chain
+const REQUIRED_MINIMUMS: Record<string, number> = {
+  signal: 1,
+  assumption: 4,
+  constraint: 2,
+  leverage_point: 2,
+  concept: 2, // opportunity nodes
+  outcome: 0,
+  pathway: 1,
+  scenario: 0,
+};
+
 export const PipelineDiagnosticsPanel = memo(function PipelineDiagnosticsPanel() {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const diag = getLastDiagnostic();
+  const [diag, setDiag] = useState<PipelineDiagnostic | null>(null);
+
+  // Poll for diagnostic updates
+  useEffect(() => {
+    if (!open) return;
+    const refresh = () => setDiag(getLastDiagnostic());
+    refresh();
+    const id = setInterval(refresh, 2000);
+    return () => clearInterval(id);
+  }, [open]);
 
   if (!open) {
     return (
@@ -46,7 +67,7 @@ export const PipelineDiagnosticsPanel = memo(function PipelineDiagnosticsPanel()
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80 max-h-[500px] overflow-y-auto rounded-xl border border-border bg-card/95 backdrop-blur-xl shadow-2xl">
+    <div className="fixed bottom-4 right-4 z-50 w-80 max-h-[560px] overflow-y-auto rounded-xl border border-border bg-card/95 backdrop-blur-xl shadow-2xl">
       <div className="flex items-center justify-between px-3 py-2 border-b border-border">
         <div className="flex items-center gap-2">
           <Bug className="w-4 h-4 text-muted-foreground" />
@@ -68,19 +89,56 @@ export const PipelineDiagnosticsPanel = memo(function PipelineDiagnosticsPanel()
         </div>
       ) : (
         <div className="p-3 space-y-3">
+          {/* Reasoning chain health */}
+          <div>
+            <p className="text-xs font-bold text-muted-foreground mb-1.5">Reasoning Chain</p>
+            <div className="space-y-1">
+              {[
+                { label: "Signals", key: "signal" },
+                { label: "Assumptions", key: "assumption" },
+                { label: "Constraints", key: "constraint" },
+                { label: "Leverage", key: "leverage_point" },
+                { label: "Opportunities", key: "concept" },
+                { label: "Pathways", key: "pathway" },
+                { label: "Scenarios", key: "scenario" },
+              ].map(item => {
+                const count = diag.graphNodeCounts[item.key] || 0;
+                const min = REQUIRED_MINIMUMS[item.key] ?? 0;
+                const ok = count >= min;
+                return (
+                  <div key={item.key} className="flex items-center gap-2">
+                    {ok ? (
+                      <CheckCircle className="w-3 h-3 flex-shrink-0" style={{ color: "hsl(var(--success, 152 60% 44%))" }} />
+                    ) : (
+                      <AlertTriangle className="w-3 h-3 flex-shrink-0" style={{ color: "hsl(var(--destructive))" }} />
+                    )}
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ background: NODE_TYPE_COLORS[item.key] || "hsl(var(--muted-foreground))" }}
+                    />
+                    <span className="text-xs text-muted-foreground flex-1">{item.label}</span>
+                    <span className={`text-xs font-bold tabular-nums ${ok ? "text-foreground" : "text-destructive"}`}>
+                      {count}{min > 0 ? `/${min}` : ""}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Summary counts */}
           <div className="grid grid-cols-3 gap-2">
             <CountBox label="Evidence" count={diag.totalEvidence} />
             <CountBox label="Insights" count={diag.totalInsights} />
-            <CountBox label="Constraints" count={diag.totalConstraints} warn={diag.totalConstraints === 0} />
-            <CountBox label="Opportunities" count={diag.totalOpportunities} warn={diag.totalOpportunities === 0} />
+            <CountBox label="Constraints" count={diag.totalConstraints} warn={diag.totalConstraints < 2} />
+            <CountBox label="Opportunities" count={diag.totalOpportunities} warn={diag.totalOpportunities < 2} />
             <CountBox label="Scenarios" count={diag.totalScenarios} />
-            <CountBox label="Pathways" count={diag.totalPathways} warn={diag.totalPathways === 0} />
+            <CountBox label="Pathways" count={diag.totalPathways} warn={diag.totalPathways < 1} />
           </div>
 
           {/* Graph node breakdown */}
           <div>
-            <p className="text-xs font-bold text-muted-foreground mb-1">Graph Nodes by Type</p>
+            <p className="text-xs font-bold text-muted-foreground mb-1">All Graph Nodes ({Object.values(diag.graphNodeCounts).reduce((s, c) => s + c, 0)})</p>
             <div className="space-y-1">
               {Object.entries(diag.graphNodeCounts)
                 .sort(([, a], [, b]) => b - a)
@@ -128,7 +186,7 @@ export const PipelineDiagnosticsPanel = memo(function PipelineDiagnosticsPanel()
           )}
 
           <p className="text-xs text-muted-foreground/50">
-            Hash: {diag.lastHash} · {new Date(diag.timestamp).toLocaleTimeString()}
+            Hash: {diag.lastHash.slice(0, 30)}… · {new Date(diag.timestamp).toLocaleTimeString()}
           </p>
         </div>
       )}
