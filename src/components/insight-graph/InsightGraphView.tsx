@@ -344,6 +344,14 @@ interface InsightGraphViewProps {
   graph: InsightGraph;
 }
 
+type TierFilter = "all" | "structural" | "system" | "optimization";
+const TIER_FILTERS: { key: TierFilter; label: string; color: string }[] = [
+  { key: "all", label: "All Tiers", color: "hsl(var(--primary))" },
+  { key: "structural", label: "T1 Structural", color: "hsl(0 72% 52%)" },
+  { key: "system", label: "T2 System", color: "hsl(38 92% 50%)" },
+  { key: "optimization", label: "T3 Optimization", color: "hsl(229 89% 63%)" },
+];
+
 export const InsightGraphView = memo(function InsightGraphView({ graph }: InsightGraphViewProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
@@ -351,6 +359,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>("structural");
   const [showOpportunityPaths, setShowOpportunityPaths] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const isMobile = useIsMobile();
 
   // Identify top leverage constraint + breakthrough opportunity
@@ -376,15 +385,16 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
     return ids;
   }, [highlightedIds, graph.edges]);
 
-  // Apply zoom level + opportunity path filter
+  // Apply zoom level + opportunity path filter + tier filter
   const filteredNodes = useMemo(() => {
     const zoomTypes = new Set(ZOOM_LEVEL_CONFIG[zoomLevel].types);
     return graph.nodes.filter(n => {
       if (!zoomTypes.has(n.type)) return false;
       if (showOpportunityPaths && !opportunityPathIds.has(n.id)) return false;
+      if (tierFilter !== "all" && n.tier !== tierFilter) return false;
       return true;
     });
-  }, [graph.nodes, zoomLevel, showOpportunityPaths, opportunityPathIds]);
+  }, [graph.nodes, zoomLevel, showOpportunityPaths, opportunityPathIds, tierFilter]);
 
   const filteredNodeIds = useMemo(() => new Set(filteredNodes.map(n => n.id)), [filteredNodes]);
 
