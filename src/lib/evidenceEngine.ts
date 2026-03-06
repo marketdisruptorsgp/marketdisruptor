@@ -31,6 +31,8 @@ export interface Evidence {
   relatedSignals?: string[];
   /** Semantic category (ownership, logistics, ux, etc.) */
   category?: string;
+  /** Competitor analogs that validate this evidence */
+  competitorReferences?: { name: string; modelType?: string }[];
 }
 
 export type MetricDomain = "opportunity" | "friction" | "constraint" | "leverage" | "risk";
