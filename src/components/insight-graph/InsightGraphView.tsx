@@ -451,8 +451,8 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
   }
 
   return (
-    <div className="space-y-4">
-      {/* ── Unified Toolbar: Tabs + View Mode + Zoom + Toggle + Legend ── */}
+    <div className="space-y-3">
+      {/* ── Toolbar: Tabs + Controls (desktop only — mobile gets bottom bar) ── */}
       <div className="rounded-xl border border-border bg-card p-2 space-y-2">
         {/* Row 1: View tabs */}
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
@@ -465,7 +465,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
             <button
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); setSelectedNodeId(null); }}
-              className="min-h-[36px] px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0"
+              className="min-h-[44px] px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0"
               style={{
                 borderBottom: activeTab === tab.id ? "2px solid hsl(var(--primary))" : "2px solid transparent",
                 color: activeTab === tab.id ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
@@ -477,8 +477,8 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
           ))}
         </div>
 
-        {/* Row 2: Controls (only on graph tab) */}
-        {activeTab === "graph" && (
+        {/* Row 2: Controls (desktop only — mobile uses bottom bar) */}
+        {activeTab === "graph" && !isMobile && (
           <div className="flex flex-wrap items-center gap-2">
             {/* Zoom levels */}
             <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
@@ -522,33 +522,24 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
               </button>
             )}
 
-            {/* Tier legend (inline, desktop) */}
-            {!isMobile && (
-              <div className="flex items-center gap-1 ml-auto overflow-x-auto scrollbar-hide">
-                {TIER_CONFIG.map((tier) => {
-                  const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
-                  if (count === 0) return null;
-                  const cfg = NODE_TYPE_CONFIG[tier.types[0]];
-                  return (
-                    <span
-                      key={tier.label}
-                      className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold"
-                      style={{ color: cfg.color }}
-                    >
-                      <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
-                      {tier.label} ({count})
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Node count (mobile) */}
-            {isMobile && (
-              <span className="typo-meta ml-auto">
-                {filteredNodes.length} nodes · {filteredEdges.length} edges
-              </span>
-            )}
+            {/* Tier legend (desktop) */}
+            <div className="flex items-center gap-1 ml-auto overflow-x-auto scrollbar-hide">
+              {TIER_CONFIG.map((tier) => {
+                const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
+                if (count === 0) return null;
+                const cfg = NODE_TYPE_CONFIG[tier.types[0]];
+                return (
+                  <span
+                    key={tier.label}
+                    className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold"
+                    style={{ color: cfg.color }}
+                  >
+                    <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
+                    {tier.label} ({count})
+                  </span>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -605,8 +596,8 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
       <div
         className="relative rounded-2xl overflow-hidden"
         style={{
-          height: isMobile ? "calc(100vh - 320px)" : 580,
-          minHeight: 360,
+          height: isMobile ? "75vh" : 580,
+          minHeight: isMobile ? 400 : 360,
           background: "hsl(var(--card))",
           border: "1.5px solid hsl(var(--border))",
         }}
@@ -713,23 +704,72 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
         </AnimatePresence>
       )}
 
-      {/* Stats Bar */}
-      <div className="flex flex-wrap items-center gap-4 px-2">
-        <span className="typo-meta font-bold">
-          {ZOOM_LEVEL_CONFIG[zoomLevel].label} · {filteredNodes.length} nodes · {filteredEdges.length} edges
-          {showOpportunityPaths && " · Opportunity paths only"}
-        </span>
-        {graph.topNodes.primaryConstraint && (
-          <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.constraint.color }}>
-            ★ Top Constraint: {graph.topNodes.primaryConstraint.label.slice(0, 35)}
+      {/* Mobile Bottom Control Bar */}
+      {isMobile && activeTab === "graph" && (
+        <div
+          className="flex items-center gap-2 p-2 rounded-xl overflow-x-auto scrollbar-hide"
+          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+        >
+          {/* Zoom levels */}
+          {(Object.keys(ZOOM_LEVEL_CONFIG) as ZoomLevel[]).map(level => (
+            <button
+              key={level}
+              onClick={() => setZoomLevel(level)}
+              className="min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-all"
+              style={{
+                background: zoomLevel === level ? "hsl(var(--primary) / 0.1)" : "hsl(var(--muted))",
+                color: zoomLevel === level ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                border: zoomLevel === level ? "1px solid hsl(var(--primary) / 0.3)" : "1px solid hsl(var(--border))",
+              }}
+            >
+              {ZOOM_LEVEL_CONFIG[level].label}
+            </button>
+          ))}
+          {/* Opp paths */}
+          <button
+            onClick={() => setShowOpportunityPaths(!showOpportunityPaths)}
+            className="min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-all"
+            style={{
+              background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.bgColor : "hsl(var(--muted))",
+              border: `1px solid ${showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.borderColor : "hsl(var(--border))"}`,
+              color: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))",
+            }}
+          >
+            Paths
+          </button>
+          {selectedNodeId && (
+            <button
+              onClick={() => setSelectedNodeId(null)}
+              className="min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold bg-muted border border-border text-foreground whitespace-nowrap flex-shrink-0"
+            >
+              ✕ Clear
+            </button>
+          )}
+          <span className="text-xs text-muted-foreground whitespace-nowrap ml-auto flex-shrink-0">
+            {filteredNodes.length}n · {filteredEdges.length}e
           </span>
-        )}
-        {graph.topNodes.breakthroughOpportunity && (
-          <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
-            ★ Breakthrough: {graph.topNodes.breakthroughOpportunity.label.slice(0, 35)}
+        </div>
+      )}
+
+      {/* Stats Bar (desktop) */}
+      {!isMobile && (
+        <div className="flex flex-wrap items-center gap-4 px-2">
+          <span className="typo-meta font-bold">
+            {ZOOM_LEVEL_CONFIG[zoomLevel].label} · {filteredNodes.length} nodes · {filteredEdges.length} edges
+            {showOpportunityPaths && " · Opportunity paths only"}
           </span>
-        )}
-      </div>
+          {graph.topNodes.primaryConstraint && (
+            <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.constraint.color }}>
+              ★ Top Constraint: {graph.topNodes.primaryConstraint.label.slice(0, 35)}
+            </span>
+          )}
+          {graph.topNodes.breakthroughOpportunity && (
+            <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
+              ★ Breakthrough: {graph.topNodes.breakthroughOpportunity.label.slice(0, 35)}
+            </span>
+          )}
+        </div>
+      )}
       </>
       )}
     </div>
