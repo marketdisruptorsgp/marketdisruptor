@@ -145,7 +145,7 @@ export default function CommandDeckPage() {
     return keywords;
   }, [autoAnalysis.insights, narrative]);
 
-  const reasoningToolRecs = useMemo(() => narrative?.recommendedTools ?? [], [narrative]);
+  const reasoningToolRecs = useMemo<string[]>(() => [], []);
 
   // ── Intelligence events ──
   const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
