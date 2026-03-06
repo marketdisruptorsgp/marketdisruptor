@@ -1,4 +1,7 @@
 import React from "react";
+import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
+import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
+import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
@@ -48,6 +51,7 @@ export default function RedesignPage() {
   const { shouldRedirectHome } = useHydrationGuard();
 
   const { selectedProduct, analysisId, products } = analysis;
+  const autoAnalysis = useAutoAnalysis();
 
   if (analysis.step !== "done" || !selectedProduct) {
     return <AnalysisLoadingSpinner />;
@@ -90,6 +94,15 @@ export default function RedesignPage() {
         onRun={() => { setRunTrigger(t => t + 1); setActiveTab("flip"); }}
         strategicProfile={analysis.strategicProfile}
         onChangeProfile={analysis.setStrategicProfile}
+      />
+
+      {/* Insight Snapshot Panel */}
+      <InsightSnapshotPanel
+        intelligence={autoAnalysis.intelligence}
+        graph={autoAnalysis.graph}
+        analysisId={analysisId || ""}
+        accentColor={theme.primary}
+        completedSteps={autoAnalysis.completedSteps}
       />
 
       <AnalysisTabBar
@@ -166,6 +179,13 @@ export default function RedesignPage() {
           }}
         />
       </AnalysisContentCard>
+
+      <PipelineProgressBar
+        completedSteps={autoAnalysis.completedSteps}
+        outdatedSteps={analysis.outdatedSteps}
+        currentStep="redesign"
+        accentColor={theme.primary}
+      />
 
       <NextStepButton
         stepNumber={5}

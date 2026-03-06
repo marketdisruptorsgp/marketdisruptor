@@ -1,4 +1,7 @@
 import React from "react";
+import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
+import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
+import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { StepLoadingTracker, STRESS_TEST_TASKS } from "@/components/StepLoadingTracker";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -51,6 +54,8 @@ export default function StressTestPage() {
 
   const { selectedProduct, analysisId } = analysis;
 
+  const autoAnalysis = useAutoAnalysis();
+
   if (analysis.step !== "done" || !selectedProduct) {
     return <AnalysisLoadingSpinner />;
   }
@@ -95,6 +100,15 @@ export default function StressTestPage() {
         backPath={`${baseUrl}/redesign`}
         outdatedStepName={isOutdated ? "Strategy Development" : undefined}
         analysisId={analysisId}
+      />
+
+      {/* Insight Snapshot Panel */}
+      <InsightSnapshotPanel
+        intelligence={autoAnalysis.intelligence}
+        graph={autoAnalysis.graph}
+        analysisId={analysisId || ""}
+        accentColor={theme.primary}
+        completedSteps={autoAnalysis.completedSteps}
       />
 
       <AnalysisActionToolbar
@@ -221,6 +235,13 @@ export default function StressTestPage() {
           </AnalysisContentCard>
         </div>
       )}
+
+      <PipelineProgressBar
+        completedSteps={autoAnalysis.completedSteps}
+        outdatedSteps={analysis.outdatedSteps}
+        currentStep="stress-test"
+        accentColor={theme.primary}
+      />
 
       <NextStepButton
         stepNumber={6}

@@ -1,4 +1,7 @@
 import React from "react";
+import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
+import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
+import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
@@ -27,6 +30,8 @@ export default function PitchPage() {
   const { shouldRedirectHome } = useHydrationGuard();
 
   const { selectedProduct, analysisId } = analysis;
+
+  const autoAnalysis = useAutoAnalysis();
 
   if (analysis.step !== "done" || !selectedProduct) {
     return <AnalysisLoadingSpinner />;
@@ -69,6 +74,15 @@ export default function PitchPage() {
         onChangeProfile={analysis.setStrategicProfile}
       />
 
+      {/* Insight Snapshot Panel */}
+      <InsightSnapshotPanel
+        intelligence={autoAnalysis.intelligence}
+        graph={autoAnalysis.graph}
+        analysisId={analysisId || ""}
+        accentColor={theme.primary}
+        completedSteps={autoAnalysis.completedSteps}
+      />
+
       {/* Content — always mounted so loading lifecycle completes */}
       <PitchDeck
         product={selectedProduct}
@@ -88,6 +102,14 @@ export default function PitchPage() {
           analysis.saveStepData("pitchDeck", d);
           analysis.clearStepOutdated("pitch");
         }}
+      />
+
+      {/* Pipeline Progress Bar */}
+      <PipelineProgressBar
+        completedSteps={autoAnalysis.completedSteps}
+        outdatedSteps={analysis.outdatedSteps}
+        currentStep="pitch"
+        accentColor={theme.primary}
       />
     </AnalysisPageShell>
   );

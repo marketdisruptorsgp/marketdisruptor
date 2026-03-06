@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
+import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
+import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
@@ -47,6 +50,8 @@ export default function DisruptPage() {
   const { shouldRedirectHome } = useHydrationGuard();
 
   const { selectedProduct, analysisId, products } = analysis;
+
+  const autoAnalysis = useAutoAnalysis();
 
   if (analysis.step !== "done" || !selectedProduct) {
     return <AnalysisLoadingSpinner />;
@@ -114,6 +119,15 @@ export default function DisruptPage() {
         accentColor={theme.primary}
         hiddenTabs={hiddenTabs}
         disabledTabs={disabledTabs}
+      />
+
+      {/* Insight Snapshot Panel */}
+      <InsightSnapshotPanel
+        intelligence={autoAnalysis.intelligence}
+        graph={autoAnalysis.graph}
+        analysisId={analysisId || ""}
+        accentColor={theme.primary}
+        completedSteps={autoAnalysis.completedSteps}
       />
 
       {/* ── Loading Tracker ── */}
@@ -299,6 +313,14 @@ export default function DisruptPage() {
           </AnalysisContentCard>
         )}
       </div>
+
+      {/* Pipeline Progress Bar */}
+      <PipelineProgressBar
+        completedSteps={autoAnalysis.completedSteps}
+        outdatedSteps={analysis.outdatedSteps}
+        currentStep="disrupt"
+        accentColor={theme.primary}
+      />
 
       <NextStepButton
         stepNumber={4}
