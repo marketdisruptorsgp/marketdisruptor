@@ -542,31 +542,27 @@ function inferConstraintsFromBottlenecks(insights: Insight[], evidence: Evidence
   const now = Date.now();
   const result: Insight[] = [];
 
-  // 1. Repeated assumptions → constraint (assumption appears in 2+ clusters)
+  // 1. Repeated assumptions → constraint (even 1 cluster qualifies if evidence is rich)
   const assumptionClusters = insights.filter(i => i.insightType === "assumption_cluster");
-  if (assumptionClusters.length >= 2) {
-    const sharedEvIds = assumptionClusters[0].evidenceIds.filter(eid =>
-      assumptionClusters.slice(1).some(ac => ac.evidenceIds.includes(eid))
-    );
-    if (sharedEvIds.length > 0 || assumptionClusters.length >= 2) {
-      result.push({
-        id: `insight-inferred-con-${++insightCounter}`,
-        label: `Structural bottleneck: ${assumptionClusters[0].label}`,
-        description: `Repeated assumption patterns across ${assumptionClusters.length} clusters indicate a structural constraint limiting strategic options.`,
-        insightType: "constraint_cluster",
-        evidenceIds: [...new Set(assumptionClusters.flatMap(a => a.evidenceIds))].slice(0, 8),
-        relatedInsightIds: assumptionClusters.map(a => a.id),
-        recommendedTools: deriveToolRecommendations(
-          { label: assumptionClusters[0].label, insightType: "constraint_cluster", confidenceScore: 0.6 },
-          evidence.filter(e => assumptionClusters[0].evidenceIds.includes(e.id)),
-        ),
-        tier: "structural",
-        mode: assumptionClusters[0].mode,
-        confidenceScore: 0.65,
-        impact: Math.max(...assumptionClusters.map(a => a.impact ?? 5)),
-        timestamp: now,
-      });
-    }
+  if (assumptionClusters.length >= 1) {
+    const topCluster = assumptionClusters[0];
+    result.push({
+      id: `insight-inferred-con-${++insightCounter}`,
+      label: `Structural bottleneck: ${topCluster.label}`,
+      description: `${assumptionClusters.length > 1 ? `Repeated assumption patterns across ${assumptionClusters.length} clusters` : "Assumption pattern"} indicates a structural constraint limiting strategic options.`,
+      insightType: "constraint_cluster",
+      evidenceIds: [...new Set(assumptionClusters.flatMap(a => a.evidenceIds))].slice(0, 8),
+      relatedInsightIds: assumptionClusters.map(a => a.id),
+      recommendedTools: deriveToolRecommendations(
+        { label: topCluster.label, insightType: "constraint_cluster", confidenceScore: 0.6 },
+        evidence.filter(e => topCluster.evidenceIds.includes(e.id)),
+      ),
+      tier: "structural",
+      mode: topCluster.mode,
+      confidenceScore: assumptionClusters.length >= 2 ? 0.65 : 0.5,
+      impact: Math.max(...assumptionClusters.map(a => a.impact ?? 5)),
+      timestamp: now,
+    });
   }
 
   // 2. High-friction signals → constraint
