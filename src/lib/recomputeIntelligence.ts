@@ -9,7 +9,7 @@
  */
 
 import { extractAllEvidence, flattenEvidence, type Evidence, type MetricDomain, type MetricEvidence } from "@/lib/evidenceEngine";
-import { generateInsights, type Insight } from "@/lib/insightLayer";
+import { clusterEvidenceIntoInsights, type Insight } from "@/lib/insightLayer";
 import { buildInsightGraph, type InsightGraph } from "@/lib/insightGraph";
 import { computeCommandDeckMetrics, aggregateOpportunities, type CommandDeckMetrics } from "@/lib/commandDeckMetrics";
 import { allScenariosToEvidence } from "@/lib/scenarioEngine";
