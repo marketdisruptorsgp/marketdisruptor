@@ -47,9 +47,12 @@ function ScenarioCard({ scenario, onDelete }: {
 
   const outputs = Object.entries(scenario.outputResults).slice(0, 3);
 
+  // Show evidence generated from this scenario
+  const evidence = useMemo(() => scenarioToEvidence(scenario), [scenario]);
+
   return (
-    <div className="rounded-xl p-4 border border-border bg-card">
-      <div className="flex items-start justify-between gap-2 mb-2">
+    <div className="rounded-xl p-4 border border-border bg-card space-y-2">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-foreground truncate">{scenario.scenarioName}</p>
           <p className="text-[10px] text-muted-foreground">{scenario.toolId.replace(/-/g, " ")} · {new Date(scenario.timestamp).toLocaleDateString()}</p>
@@ -75,6 +78,16 @@ function ScenarioCard({ scenario, onDelete }: {
             </p>
           </div>
         ))}
+      </div>
+      {/* Evidence feedback indicator */}
+      <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-primary/5 border border-primary/10">
+        <Sparkles size={10} className="text-primary flex-shrink-0" />
+        <p className="text-[10px] font-bold text-primary truncate">
+          → {evidence.label}
+        </p>
+        <span className="text-[9px] font-bold text-muted-foreground ml-auto flex-shrink-0">
+          {Math.round((evidence.confidenceScore || 0) * 100)}%
+        </span>
       </div>
     </div>
   );
