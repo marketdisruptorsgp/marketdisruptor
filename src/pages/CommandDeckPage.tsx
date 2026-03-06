@@ -28,6 +28,7 @@ import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
 import { ConstraintRadar } from "@/components/command-deck/ConstraintRadar";
 import { StrategicLeverageSignals } from "@/components/command-deck/StrategicLeverageSignals";
 import { ActionPath } from "@/components/command-deck/ActionPath";
+import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
@@ -306,6 +307,17 @@ export default function CommandDeckPage() {
             </button>
           ))}
         </div>
+
+        {/* ═══ STRATEGIC NARRATIVE ═══ */}
+        {narrative && (
+          <StrategicNarrativePanel
+            primaryConstraint={narrative.primaryConstraint}
+            keyAssumption={narrative.keyAssumption}
+            leveragePoint={narrative.leveragePoint}
+            breakthroughOpportunity={narrative.breakthroughOpportunity}
+            narrativeSummary={narrative.narrativeSummary}
+          />
+        )}
 
         {/* ═══ STRATEGIC SIGNAL BANNER ═══ */}
         <StrategicSignalBanner

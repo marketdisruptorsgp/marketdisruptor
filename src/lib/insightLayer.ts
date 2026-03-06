@@ -324,23 +324,95 @@ export function clusterEvidenceIntoInsights(evidence: Evidence[]): Insight[] {
   // ── Generate higher-order insight types ──
 
   const structuralInsights = generateStructuralInsights(baseInsights, evidence);
-  const strategicPathways = generateStrategicPathways(baseInsights, evidence);
-  const reasoningChains = generateReasoningChains(baseInsights, evidence);
-  const toolRecommendations = generateToolRecommendationInsights(baseInsights, evidence);
 
   // ── Infer synthetic constraints from repeated assumptions & bottlenecks ──
   const syntheticConstraints = inferConstraintsFromBottlenecks(baseInsights, evidence);
 
+  // Merge constraints into base pool before generating pathways/opps
+  const insightsWithConstraints = [...baseInsights, ...structuralInsights, ...syntheticConstraints];
+
   // ── Generate opportunities from constraint resolution ──
   const constraintResolutionOpps = generateConstraintResolutionOpportunities(
-    [...baseInsights, ...syntheticConstraints], evidence
+    insightsWithConstraints, evidence
   );
 
+  // Merge opportunities before generating pathways
+  const insightsWithOpps = [...insightsWithConstraints, ...constraintResolutionOpps];
+
+  const strategicPathways = generateStrategicPathways(insightsWithOpps, evidence);
+  const reasoningChains = generateReasoningChains(insightsWithOpps, evidence);
+  const toolRecommendations = generateToolRecommendationInsights(insightsWithOpps, evidence);
+
   const allInsights = [
-    ...baseInsights, ...structuralInsights, ...strategicPathways,
+    ...insightsWithOpps, ...strategicPathways,
     ...reasoningChains, ...toolRecommendations,
-    ...syntheticConstraints, ...constraintResolutionOpps,
   ];
+
+  // ── FALLBACK: Enforce complete reasoning chain ──
+  // If any stage of the chain is missing, generate synthetic nodes
+  const hasConstraints = allInsights.some(i => i.insightType === "constraint_cluster");
+  const hasOpportunities = allInsights.some(i => i.insightType === "emerging_opportunity");
+  const hasPathways = allInsights.some(i => i.insightType === "strategic_pathway");
+
+  if (!hasConstraints && baseInsights.length > 0) {
+    // Fallback: derive constraint from highest-impact assumption or pattern
+    const topInsight = baseInsights.sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0))[0];
+    allInsights.push({
+      id: `insight-fallback-con-${++insightCounter}`,
+      label: `Inferred constraint: ${topInsight.label}`,
+      description: `No explicit constraints detected. This insight represents the strongest structural limitation inferred from ${baseInsights.length} evidence patterns.`,
+      insightType: "constraint_cluster",
+      evidenceIds: topInsight.evidenceIds,
+      relatedInsightIds: [topInsight.id],
+      recommendedTools: topInsight.recommendedTools,
+      tier: "structural",
+      mode: topInsight.mode,
+      confidenceScore: 0.45,
+      impact: topInsight.impact ?? 5,
+      timestamp: Date.now(),
+    });
+  }
+
+  if (!hasOpportunities && allInsights.length > 0) {
+    const constraint = allInsights.find(i => i.insightType === "constraint_cluster");
+    if (constraint) {
+      allInsights.push({
+        id: `insight-fallback-opp-${++insightCounter}`,
+        label: `Opportunity: Resolve ${constraint.label.replace(/^(Inferred constraint|Structural bottleneck|Operational friction|Risk concentration): /i, "")}`,
+        description: `Resolving "${constraint.label}" opens strategic value. Derived from constraint resolution logic.`,
+        insightType: "emerging_opportunity",
+        evidenceIds: constraint.evidenceIds,
+        relatedInsightIds: [constraint.id],
+        recommendedTools: constraint.recommendedTools,
+        tier: constraint.tier,
+        mode: constraint.mode,
+        confidenceScore: 0.4,
+        impact: Math.max(5, (constraint.impact ?? 5) - 1),
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  if (!hasPathways && allInsights.length > 0) {
+    const constraint = allInsights.find(i => i.insightType === "constraint_cluster");
+    const opportunity = allInsights.find(i => i.insightType === "emerging_opportunity");
+    if (constraint && opportunity) {
+      allInsights.push({
+        id: `insight-fallback-path-${++insightCounter}`,
+        label: `Pathway: ${constraint.label.replace(/^(Inferred constraint|Structural bottleneck): /i, "").slice(0, 30)} → ${opportunity.label.replace(/^Opportunity: (Resolve )?/i, "").slice(0, 40)}`,
+        description: `Strategic pathway connecting "${constraint.label}" to "${opportunity.label}".`,
+        insightType: "strategic_pathway",
+        evidenceIds: [...new Set([...constraint.evidenceIds, ...opportunity.evidenceIds])],
+        relatedInsightIds: [constraint.id, opportunity.id],
+        recommendedTools: [...new Set([...(constraint.recommendedTools ?? []), ...(opportunity.recommendedTools ?? [])])],
+        tier: "structural",
+        mode: constraint.mode,
+        confidenceScore: 0.4,
+        impact: Math.max(constraint.impact ?? 5, opportunity.impact ?? 5),
+        timestamp: Date.now(),
+      });
+    }
+  }
 
   // Wire relatedInsightIds
   wireRelatedInsights(allInsights);

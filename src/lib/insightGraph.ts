@@ -255,7 +255,23 @@ function buildGraphFromEvidence(
   // Also generate synthetic Constraint and Opportunity nodes from insights
   // when the evidence pipeline didn't produce them directly.
   if (insights) {
-    for (const ins of insights.slice(0, 16)) {
+    // Process ALL insights — don't cap at 16, instead cap per type to ensure coverage
+    const insightsByType: Record<string, typeof insights> = {};
+    for (const ins of insights) {
+      const t = ins.insightType || "pattern";
+      if (!insightsByType[t]) insightsByType[t] = [];
+      insightsByType[t].push(ins);
+    }
+
+    // Ensure at least 4 of each type get through, up to 8 for high-priority types
+    const priorityTypes = ["constraint_cluster", "emerging_opportunity", "strategic_pathway"];
+    const selectedInsights: typeof insights = [];
+    for (const [type, items] of Object.entries(insightsByType)) {
+      const limit = priorityTypes.includes(type) ? 8 : 4;
+      selectedInsights.push(...items.slice(0, limit));
+    }
+
+    for (const ins of selectedInsights) {
       const rawLabel = typeof ins.label === "string" ? ins.label : "";
       if (!rawLabel || rawLabel === "[object Object]") continue;
 
@@ -274,6 +290,15 @@ function buildGraphFromEvidence(
       } else if (ins.insightType === "assumption_cluster") {
         nodeType = "assumption";
         layer = "evidence";
+      } else if (ins.insightType === "structural_insight") {
+        nodeType = "leverage_point";
+        layer = "insight";
+      } else if (ins.insightType === "tool_recommendation") {
+        nodeType = "insight";
+        layer = "opportunity";
+      } else if (ins.insightType === "reasoning_chain") {
+        nodeType = "driver";
+        layer = "insight";
       }
 
       const insNodeId = `insight-${ins.id}`;
@@ -366,23 +391,29 @@ function buildGraphFromEvidence(
     }
   }
 
-  // Signal → Assumption
-  for (const sig of signals.slice(0, 8)) {
-    for (const asm of assumptions.filter(a => a.tier === sig.tier).slice(0, 2)) {
+  // Signal → Assumption (prefer same tier, fallback any)
+  for (const sig of signals.slice(0, 10)) {
+    const sameTier = assumptions.filter(a => a.tier === sig.tier).slice(0, 2);
+    const targets = sameTier.length > 0 ? sameTier : assumptions.slice(0, 2);
+    for (const asm of targets) {
       addEdge(sig.id, asm.id, "leads_to", 0.5);
     }
   }
 
-  // Assumption → Constraint
-  for (const asm of assumptions.slice(0, 8)) {
-    for (const con of constraints.filter(c => c.tier === asm.tier).slice(0, 2)) {
+  // Assumption → Constraint (prefer same tier, fallback any)
+  for (const asm of assumptions.slice(0, 10)) {
+    const sameTier = constraints.filter(c => c.tier === asm.tier).slice(0, 2);
+    const targets = sameTier.length > 0 ? sameTier : constraints.slice(0, 2);
+    for (const con of targets) {
       addEdge(asm.id, con.id, "causes", 0.6);
     }
   }
 
   // Constraint → Friction
   for (const con of constraints.slice(0, 8)) {
-    for (const fric of frictions.filter(f => f.tier === con.tier).slice(0, 2)) {
+    const sameTier = frictions.filter(f => f.tier === con.tier).slice(0, 2);
+    const targets = sameTier.length > 0 ? sameTier : frictions.slice(0, 2);
+    for (const fric of targets) {
       addEdge(con.id, fric.id, "causes", 0.6);
     }
   }
@@ -391,6 +422,13 @@ function buildGraphFromEvidence(
   for (const con of constraints.slice(0, 6)) {
     for (const lev of leverages.slice(0, 3)) {
       addEdge(con.id, lev.id, "leads_to", 0.6);
+    }
+  }
+
+  // Constraint → Opportunity (direct edge for reasoning chain)
+  for (const con of constraints.slice(0, 6)) {
+    for (const opp of opportunities.slice(0, 3)) {
+      addEdge(con.id, opp.id, "unlocks", 0.5);
     }
   }
 
@@ -410,7 +448,9 @@ function buildGraphFromEvidence(
 
   // Constraint → Risk (constraints create risks)
   for (const con of constraints.slice(0, 5)) {
-    for (const rsk of risks.filter(r => r.tier === con.tier).slice(0, 2)) {
+    const sameTier = risks.filter(r => r.tier === con.tier).slice(0, 2);
+    const targets = sameTier.length > 0 ? sameTier : risks.slice(0, 2);
+    for (const rsk of targets) {
       addEdge(con.id, rsk.id, "creates", 0.5);
     }
   }
@@ -426,6 +466,17 @@ function buildGraphFromEvidence(
     }
   }
 
+  // Driver → Constraint, Driver → Opportunity
+  const drivers = nodes.filter(n => n.type === "driver");
+  for (const drv of drivers.slice(0, 6)) {
+    for (const con of constraints.slice(0, 2)) {
+      addEdge(drv.id, con.id, "leads_to", 0.5);
+    }
+    for (const opp of opportunities.slice(0, 2)) {
+      addEdge(drv.id, opp.id, "creates", 0.5);
+    }
+  }
+
   // Scenario → Opportunity (scenarios test opportunities)
   for (const sc of scenarioNodes.slice(0, 6)) {
     for (const opp of opportunities.slice(0, 2)) {
@@ -433,13 +484,28 @@ function buildGraphFromEvidence(
     }
   }
 
-  // ── Step 2b: Generate Strategic Pathway nodes ──
-  // Create multiple pathways from different constraint→opportunity chains
+  // ── Existing pathway nodes from insights (already added as type "pathway") ──
+  const existingPathways = nodes.filter(n => n.type === "pathway");
+  // Link existing pathways to their related constraints/opportunities
+  for (const pw of existingPathways) {
+    // Connect to nearest constraint and opportunity
+    for (const con of constraints.slice(0, 2)) {
+      addEdge(con.id, pw.id, "leads_to", 0.6);
+    }
+    for (const opp of opportunities.slice(0, 2)) {
+      addEdge(opp.id, pw.id, "enables", 0.7);
+    }
+    for (const sc of scenarioNodes.slice(0, 1)) {
+      addEdge(sc.id, pw.id, "enables", 0.6);
+    }
+  }
+
+  // ── Step 2b: Generate heuristic Pathway nodes (only if insights didn't produce any) ──
   const pathwayNodes: InsightGraphNode[] = [];
   const usedOppIds = new Set<string>();
 
-  // Generate up to 3 pathways from top opportunities
-  const topOppsForPathways = opportunities.slice(0, 3);
+  // Only generate heuristic pathways if no pathway nodes exist from insights
+  const topOppsForPathways = existingPathways.length === 0 ? opportunities.slice(0, 3) : [];
   for (let pi = 0; pi < topOppsForPathways.length; pi++) {
     const topOpp = topOppsForPathways[pi];
     if (usedOppIds.has(topOpp.id)) continue;
