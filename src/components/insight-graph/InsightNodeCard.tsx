@@ -438,11 +438,6 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         </div>
       )}
 
-              </button>
-            );
-          })}
-        </div>
-      )}
 
       {/* Strategic Actions */}
       <div className="px-4 pb-3">
