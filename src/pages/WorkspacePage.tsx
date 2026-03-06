@@ -199,8 +199,6 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <HeroSection tier={tier} remainingAnalyses={null} />
-
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* ── Page Header ── */}
         <div className="flex items-center justify-between mb-5">
