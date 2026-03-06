@@ -51,6 +51,48 @@ function ConfidenceBadge({ score }: { score: number }) {
   );
 }
 
+function EvidenceItemContent({ item, tierChip, metaColor }: { item: Evidence; tierChip?: { color: string; label: string }; metaColor: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <div className="w-1 h-full min-h-[20px] rounded-full flex-shrink-0 mt-0.5"
+        style={{ background: tierChip?.color || "hsl(var(--muted-foreground))" }} />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-foreground leading-snug">{item.label}</p>
+        {item.description && (
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
+        )}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+            style={{ background: `${tierChip?.color || "gray"}12`, color: tierChip?.color }}>
+            {tierChip?.label || item.tier}
+          </span>
+          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+            {item.type}
+          </span>
+          {item.confidenceScore != null && <ConfidenceBadge score={item.confidenceScore} />}
+          {item.impact != null && (
+            <span className="text-[9px] font-bold tabular-nums" style={{ color: metaColor }}>
+              Impact: {item.impact}/10
+            </span>
+          )}
+          {item.relatedSignals && item.relatedSignals.length > 0 && (
+            <span className="text-[9px] font-bold text-muted-foreground">
+              {item.relatedSignals.length} related
+            </span>
+          )}
+          {item.competitorReferences && item.competitorReferences.length > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+              style={{ background: "hsl(262 83% 58% / 0.12)", color: "hsl(262 83% 58%)" }}>
+              <Building2 size={8} />
+              {item.competitorReferences.map(c => c.name).join(", ")}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface EvidenceExplorerProps {
   open: boolean;
   onClose: () => void;
