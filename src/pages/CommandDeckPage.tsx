@@ -799,17 +799,7 @@ export default function CommandDeckPage() {
         {/* ═══ LENS INTELLIGENCE ═══ */}
         <LensIntelligencePanel
           analysisMode={analysis.activeMode || "product"}
-          signalKeywords={useMemo(() => {
-            const keywords: string[] = [];
-            if (autoAnalysis.insights) {
-              autoAnalysis.insights.forEach(i => {
-                if (i.label) keywords.push(i.label);
-                if (i.description) keywords.push(i.description);
-              });
-            }
-            if (narrative?.narrativeSummary) keywords.push(narrative.narrativeSummary);
-            return keywords;
-          }, [autoAnalysis.insights, narrative])}
+          signalKeywords={lensSignalKeywords}
         />
 
         {/* ═══ ZONE 4 — INSIGHT GRAPH PREVIEW ═══ */}
