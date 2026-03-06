@@ -82,6 +82,12 @@ export interface AggregatedOpportunity {
   opportunityScore?: number;
   simulationCount?: number;
   riskLevel?: "low" | "moderate" | "high";
+  // Multi-factor scoring components
+  marketAttractiveness?: number;
+  structuralAdvantage?: number;
+  simulationFeasibility?: number;
+  strategicLeverage?: number;
+  executionDifficulty?: number;
 }
 
 // ═══════════════════════════════════════════════════════════════
