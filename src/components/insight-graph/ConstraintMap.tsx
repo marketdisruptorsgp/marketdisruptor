@@ -24,10 +24,10 @@ import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 /* ── Causal flow columns ── */
 const FLOW_COLUMNS: { types: InsightNodeType[]; label: string; x: number }[] = [
   { types: ["signal"], label: "SIGNALS", x: 0 },
-  { types: ["assumption"], label: "ASSUMPTIONS", x: 300 },
-  { types: ["constraint"], label: "CONSTRAINTS", x: 600 },
-  { types: ["leverage_point", "driver"], label: "LEVERAGE", x: 900 },
-  { types: ["outcome", "flipped_idea", "concept"], label: "OPPORTUNITIES", x: 1200 },
+  { types: ["assumption"], label: "ASSUMPTIONS", x: 320 },
+  { types: ["constraint"], label: "CONSTRAINTS", x: 640 },
+  { types: ["leverage_point", "driver"], label: "LEVERAGE", x: 960 },
+  { types: ["outcome", "flipped_idea", "concept"], label: "OPPORTUNITIES", x: 1280 },
 ];
 
 /* ── Custom node ── */
