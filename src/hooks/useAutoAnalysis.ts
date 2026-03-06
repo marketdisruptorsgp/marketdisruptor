@@ -42,19 +42,20 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   // Track completed steps
   const completedSteps = useMemo(() => {
     const set = new Set<string>();
-    if (products.length > 0) set.add("report");
+    if (products.length > 0 || businessAnalysisData) set.add("report");
     if (disruptData) set.add("disrupt");
     if (redesignData) set.add("redesign");
     if (stressTestData) set.add("stress-test");
     if (pitchDeckData) set.add("pitch");
     return set;
-  }, [products, disruptData, redesignData, stressTestData, pitchDeckData]);
+  }, [products, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData]);
 
   const pipelineCompletion = Math.round((completedSteps.size / 5) * 100);
 
   // Core computation function
   const compute = useCallback(() => {
-    if (!selectedProduct || !analysisId) {
+    const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
+    if (!analysisId || !hasComputableData) {
       setIntelligence(null);
       setGraph(null);
       return;
@@ -92,7 +93,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
 
   // Debounced recompute on data changes
   useEffect(() => {
-    if (!analysisId || !selectedProduct) return;
+    const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
+    if (!analysisId || !hasComputableData) return;
 
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -103,18 +105,19 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [
-    analysisId, selectedProduct,
+    analysisId, selectedProduct, businessAnalysisData,
     governedData, disruptData, redesignData,
-    stressTestData, pitchDeckData, businessAnalysisData,
+    stressTestData, pitchDeckData,
     compute,
   ]);
 
   // Initial compute
   useEffect(() => {
-    if (analysisId && selectedProduct && !intelligence) {
+    const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
+    if (analysisId && hasComputableData && !intelligence) {
       compute();
     }
-  }, [analysisId, selectedProduct, compute, intelligence]);
+  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, compute, intelligence]);
 
   return {
     intelligence,

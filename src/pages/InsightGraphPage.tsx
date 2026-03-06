@@ -33,12 +33,32 @@ export default function InsightGraphPage() {
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
 
-  const { selectedProduct, analysisId, products, disruptData, redesignData, stressTestData } = analysis;
+  const {
+    selectedProduct,
+    analysisId: ctxAnalysisId,
+    products,
+    disruptData,
+    redesignData,
+    stressTestData,
+    businessAnalysisData,
+    businessModelInput,
+  } = analysis;
   const modeAccent = theme.primary;
+
+  const urlAnalysisId = useMemo(() => {
+    const match = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/);
+    return match?.[1] || null;
+  }, []);
+  const analysisId = ctxAnalysisId || urlAnalysisId;
+  const hasBusinessContext = !!businessAnalysisData;
+  const displayProduct = selectedProduct || {
+    name: businessModelInput?.type || "Business Model Analysis",
+    category: "Business Model",
+  };
 
   // Build system intelligence
   const intelligence = useMemo(() => {
-    if (!selectedProduct || !analysisId) return null;
+    if (!analysisId) return null;
     try {
       const input: SystemIntelligenceInput = {
         analysisId,
@@ -53,7 +73,7 @@ export default function InsightGraphPage() {
     } catch {
       return null;
     }
-  }, [selectedProduct, analysisId, disruptData, analysis.governedData, analysis.businessAnalysisData]);
+  }, [analysisId, disruptData, analysis.governedData, analysis.businessAnalysisData]);
 
   // Build insight graph
   const graph = useMemo(() => {
@@ -66,7 +86,7 @@ export default function InsightGraphPage() {
     );
   }, [products, intelligence, disruptData, redesignData, stressTestData]);
 
-  if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
+  if (!analysisId || analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
     return <AnalysisLoadingSpinner message="Loading analysis..." />;
   }
@@ -93,10 +113,10 @@ export default function InsightGraphPage() {
       />
 
       <AnalysisActionToolbar
-        analysisTitle={selectedProduct.name}
+        analysisTitle={displayProduct.name}
         stepTitle="Insight Graph"
         analysis={analysis}
-        selectedProduct={selectedProduct}
+        selectedProduct={displayProduct}
         analysisId={analysisId}
         accentColor={modeAccent}
         hideRun

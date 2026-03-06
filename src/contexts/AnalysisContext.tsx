@@ -104,7 +104,7 @@ interface AnalysisContextType {
   handleLoadSaved: (analysis: any) => void;
   saveAnalysis: (products: Product[], params: { category: string; era: string; batchSize: number }) => Promise<void>;
   createAnalysis: (title: string, analysisType: string, extraFields?: Record<string, unknown>) => Promise<string>;
-  saveStepData: (stepKey: string, data: unknown) => Promise<void>;
+  saveStepData: (stepKey: string, data: unknown, targetAnalysisId?: string) => Promise<void>;
 
   // Analysis ID for routing
   analysisId: string | null;
@@ -889,11 +889,12 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // Persist step-level data (disrupt, stress-test, pitch, userScores) into analysis_data JSON
   // ── HARDENED: Context switch guard + atomic RPC for simple steps ──
-  const saveStepData = useCallback(async (stepKey: string, data: unknown) => {
-    if (!analysisId) return;
+  const saveStepData = useCallback(async (stepKey: string, data: unknown, targetAnalysisId?: string) => {
+    const resolvedAnalysisId = targetAnalysisId || analysisId;
+    if (!resolvedAnalysisId) return;
 
     // ── CONTEXT SWITCH GUARD: Capture current analysisId in closure ──
-    const capturedId = analysisId;
+    const capturedId = resolvedAnalysisId;
 
     // ── Pipeline Validation ──
     const { validateStepData, logStepExecution } = await import("@/utils/pipelineValidation");
@@ -923,7 +924,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     }
 
     // ── CONTEXT SWITCH CHECK: Abort if user switched analyses during validation ──
-    if (analysisId !== capturedId) {
+    if (!targetAnalysisId && analysisId !== capturedId) {
       console.warn(`[saveStepData] Context switched during save (${capturedId} → ${analysisId}). Aborting.`);
       return;
     }
@@ -965,7 +966,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       // ── CONTEXT SWITCH CHECK: Abort if user switched during DB read ──
-      if (analysisId !== capturedId) {
+      if (!targetAnalysisId && analysisId !== capturedId) {
         console.warn(`[saveStepData] Context switched during DB read. Aborting.`);
         return;
       }
@@ -1056,7 +1057,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
 
       // ── FINAL CONTEXT SWITCH CHECK before write ──
-      if (analysisId !== capturedId) {
+      if (!targetAnalysisId && analysisId !== capturedId) {
         console.warn(`[saveStepData] Context switched before final write. Aborting.`);
         return;
       }

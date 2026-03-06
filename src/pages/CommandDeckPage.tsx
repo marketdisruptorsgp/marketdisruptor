@@ -320,7 +320,7 @@ export default function CommandDeckPage() {
   const { theme: workspaceTheme, toggle: toggleTheme } = useWorkspaceTheme();
   const autoAnalysis = useAutoAnalysis();
 
-  const { selectedProduct, analysisId: ctxAnalysisId } = analysis;
+  const { selectedProduct, analysisId: ctxAnalysisId, businessAnalysisData, businessModelInput } = analysis;
 
   // Fallback: extract analysis ID from URL if context is null (e.g. direct navigation)
   const urlAnalysisId = useMemo(() => {
@@ -396,8 +396,10 @@ export default function CommandDeckPage() {
   const pipelinePct = metrics.pipelineCompletion;
   const baseUrl = `/analysis/${analysisId}`;
   const totalSignals = metrics.stepSignals.reduce((s, ss) => s + (ss.hasData ? ss.signals : 0), 0);
+  const hasBusinessContext = !!businessAnalysisData;
+  const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
 
-  if (analysis.step !== "done" || !selectedProduct) {
+  if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
     return (
       <div className="min-h-screen bg-background">
@@ -433,7 +435,7 @@ export default function CommandDeckPage() {
                   </span>
                 )}
               </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate">{selectedProduct.name}</h1>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate">{analysisDisplayName}</h1>
               <p className="text-xs text-muted-foreground mt-1">
                 {completedSteps.size}/{PIPELINE_STEPS.length} steps · {totalSignals} signals detected
                 {metrics.contributingSources.length > 0 && ` · ${metrics.contributingSources.join(", ")}`}

@@ -113,10 +113,11 @@ export default function WorkspacePage() {
       .eq("user_id", user!.id)
       .order("created_at", { ascending: false })
       .limit(100);
-    const all = ((data as unknown as SavedAnalysis[]) || []).filter(
-      (a) => a.analysis_type !== "first_principles" &&
-        Array.isArray(a.products) && a.products.length > 0
-    );
+    const all = ((data as unknown as SavedAnalysis[]) || []).filter((a) => {
+      if (a.analysis_type === "first_principles") return false;
+      if (a.analysis_type === "business_model") return true;
+      return Array.isArray(a.products) && a.products.length > 0;
+    });
     setAnalyses(all);
     setLoading(false);
   };
