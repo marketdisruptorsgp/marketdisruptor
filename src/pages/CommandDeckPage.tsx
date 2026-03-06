@@ -26,7 +26,7 @@ import {
   LayoutDashboard, GitBranch, Target, Shield, Lightbulb,
   Activity, Crosshair, AlertTriangle, CheckCircle2, Circle,
   ChevronRight, Rocket, TrendingUp, ArrowRight, ArrowUpDown,
-  Zap, Gauge, BarChart3, Info, ExternalLink,
+  Zap, BarChart3, Info, ExternalLink,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -366,37 +366,37 @@ export default function CommandDeckPage() {
           ))}
         </div>
 
-        {/* ═══ ZONE 1 — STRATEGIC METRICS ═══ */}
+        {/* ═══ ZONE 1 — SIGNAL COUNT METRICS ═══ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <MetricCard
-            label="Opportunity Score" value={metrics.opportunityScore} icon={Zap}
+            label="Opportunities" value={metrics.opportunitiesIdentified} icon={Lightbulb}
             color="hsl(229 89% 63%)" delay={0.05}
-            description="Weighted opportunity potential across all pipeline steps."
-            trend={getTrend(metrics.opportunityScore)}
+            description="Strategic opportunities discovered across the analysis."
+            trend={metrics.opportunitiesIdentified >= 5 ? "up" : metrics.opportunitiesIdentified >= 2 ? "neutral" : "down"}
           />
           <MetricCard
-            label="Friction Index" value={metrics.frictionIndex} icon={Activity}
+            label="Constraints" value={metrics.constraintsDetected} icon={Shield}
             color="hsl(0 72% 52%)" delay={0.1}
-            description="Systemic resistance from constraints and customer friction."
-            trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
+            description="Structural blockers and constraints detected."
+            trend={metrics.constraintsDetected >= 8 ? "down" : "neutral"}
           />
           <MetricCard
-            label="Constraints" value={metrics.constraintsCount} icon={Shield}
+            label="Assumptions" value={metrics.assumptionsChallenged} icon={Crosshair}
             color="hsl(38 92% 50%)" delay={0.15}
-            description="Structural blockers detected in the analysis."
-            trend={metrics.constraintsCount >= 8 ? "down" : "neutral"}
+            description="Hidden assumptions identified and challenged."
+            trend={metrics.assumptionsChallenged >= 3 ? "up" : "neutral"}
           />
           <MetricCard
-            label="Leverage Index" value={metrics.leverageScore} icon={Gauge}
+            label="Leverage Pts" value={metrics.leveragePoints} icon={Zap}
             color="hsl(152 60% 44%)" delay={0.2}
-            description="Hidden value and underserved market signals."
-            trend={getTrend(metrics.leverageScore)}
+            description="Leverage points and hidden value signals found."
+            trend={metrics.leveragePoints >= 4 ? "up" : "neutral"}
           />
           <MetricCard
-            label="Risk Score" value={metrics.riskScore} icon={AlertTriangle}
+            label="Risk Signals" value={metrics.riskSignals} icon={AlertTriangle}
             color="hsl(0 72% 52%)" delay={0.25}
-            description="Feasibility, execution, and market adoption risks."
-            trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
+            description="Risk signals from stress testing and feasibility checks."
+            trend={metrics.riskSignals >= 6 ? "down" : metrics.riskSignals >= 2 ? "neutral" : "up"}
           />
         </div>
 
@@ -471,6 +471,72 @@ export default function CommandDeckPage() {
             </div>
           </motion.div>
         </div>
+
+        {/* ═══ STRATEGIC TIMELINE — Signals per pipeline step ═══ */}
+        <motion.div {...fadeUp} transition={{ delay: 0.18 }}
+          className="rounded-xl p-5 bg-card border border-border"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Activity size={14} className="text-foreground" />
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">
+              Strategic Timeline — Signals by Step
+            </p>
+          </div>
+          <div className="space-y-2">
+            {metrics.stepSignals.map((ss, si) => {
+              const maxSignals = Math.max(...metrics.stepSignals.map(s => s.signals), 1);
+              const pct = Math.round((ss.signals / maxSignals) * 100);
+              const stepIcon = PIPELINE_STEPS.find(p => p.key === ss.key);
+              const StepIcon = stepIcon?.icon || Target;
+              return (
+                <motion.div
+                  key={ss.key}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: si * 0.06 }}
+                  className="flex items-center gap-3"
+                >
+                  <div className="w-20 flex items-center gap-1.5 flex-shrink-0">
+                    <StepIcon size={12} className="text-muted-foreground" />
+                    <span className="text-[10px] font-bold text-foreground truncate">{ss.step}</span>
+                  </div>
+                  <div className="flex-1 flex items-center gap-2">
+                    <div className="flex-1 h-5 rounded-md overflow-hidden bg-muted relative">
+                      <motion.div
+                        className="h-full rounded-md"
+                        initial={{ width: 0 }}
+                        animate={{ width: ss.hasData ? `${Math.max(pct, 4)}%` : "0%" }}
+                        transition={{ duration: 0.6, delay: 0.1 + si * 0.05 }}
+                        style={{ background: ss.hasData ? modeAccent : "hsl(var(--muted))" }}
+                      />
+                      {/* Breakdown chips inside bar */}
+                      {ss.hasData && ss.breakdown.length > 0 && (
+                        <div className="absolute inset-0 flex items-center px-2 gap-1.5 overflow-hidden">
+                          {ss.breakdown.slice(0, 3).map((b, bi) => (
+                            <span key={bi} className="text-[8px] font-bold whitespace-nowrap opacity-90"
+                              style={{ color: pct > 30 ? "white" : "hsl(var(--foreground))" }}>
+                              {b.count} {b.label}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm font-extrabold tabular-nums w-8 text-right text-foreground">
+                      {ss.hasData ? ss.signals : "—"}
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+          {/* Total */}
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Total Signals</span>
+            <span className="text-lg font-extrabold tabular-nums text-foreground">
+              {metrics.stepSignals.reduce((s, ss) => s + (ss.hasData ? ss.signals : 0), 0)}
+            </span>
+          </div>
+        </motion.div>
 
         {/* ═══ ZONE 3 — STRATEGIC OPPORTUNITIES ═══ */}
         <motion.div {...fadeUp} transition={{ delay: 0.2 }}
