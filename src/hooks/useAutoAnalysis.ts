@@ -6,7 +6,7 @@
  * Invalidates the intelligence cache and recomputes systemIntelligence.
  */
 
-import { useEffect, useRef, useCallback, useMemo } from "react";
+import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   buildSystemIntelligence,
@@ -34,12 +34,10 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     stressTestData, pitchDeckData, businessAnalysisData,
   } = analysis;
 
-  const computeRef = useRef(false);
+  const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
+  const [graph, setGraph] = useState<InsightGraph | null>(null);
+  const [isComputing, setIsComputing] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resultRef = useRef<{ intelligence: SystemIntelligence | null; graph: InsightGraph | null }>({
-    intelligence: null,
-    graph: null,
-  });
 
   // Track completed steps
   const completedSteps = useMemo(() => {
@@ -57,14 +55,14 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   // Core computation function
   const compute = useCallback(() => {
     if (!selectedProduct || !analysisId) {
-      resultRef.current = { intelligence: null, graph: null };
+      setIntelligence(null);
+      setGraph(null);
       return;
     }
 
-    computeRef.current = true;
+    setIsComputing(true);
 
     try {
-      // Invalidate cache so we get fresh results
       invalidateIntelligence(analysisId);
 
       const input: SystemIntelligenceInput = {
@@ -77,17 +75,18 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         activeLenses: [],
       };
 
-      const intelligence = buildSystemIntelligence(input);
-      const graph = buildInsightGraph(
-        products, intelligence,
+      const newIntelligence = buildSystemIntelligence(input);
+      const newGraph = buildInsightGraph(
+        products, newIntelligence,
         disruptData, redesignData, stressTestData,
       );
 
-      resultRef.current = { intelligence, graph };
+      setIntelligence(newIntelligence);
+      setGraph(newGraph);
     } catch (err) {
       console.warn("[AutoAnalysis] Computation error:", err);
     } finally {
-      computeRef.current = false;
+      setIsComputing(false);
     }
   }, [analysisId, selectedProduct, governedData, disruptData, businessAnalysisData, products, redesignData, stressTestData]);
 
@@ -112,15 +111,15 @@ export function useAutoAnalysis(): AutoAnalysisResult {
 
   // Initial compute
   useEffect(() => {
-    if (analysisId && selectedProduct && !resultRef.current.intelligence) {
+    if (analysisId && selectedProduct && !intelligence) {
       compute();
     }
-  }, [analysisId, selectedProduct, compute]);
+  }, [analysisId, selectedProduct, compute, intelligence]);
 
   return {
-    intelligence: resultRef.current.intelligence,
-    graph: resultRef.current.graph,
-    isComputing: computeRef.current,
+    intelligence,
+    graph,
+    isComputing,
     completedSteps,
     pipelineCompletion,
   };
