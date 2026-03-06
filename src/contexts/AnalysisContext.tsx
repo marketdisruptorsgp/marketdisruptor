@@ -889,11 +889,12 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   // Persist step-level data (disrupt, stress-test, pitch, userScores) into analysis_data JSON
   // ── HARDENED: Context switch guard + atomic RPC for simple steps ──
-  const saveStepData = useCallback(async (stepKey: string, data: unknown) => {
-    if (!analysisId) return;
+  const saveStepData = useCallback(async (stepKey: string, data: unknown, targetAnalysisId?: string) => {
+    const resolvedAnalysisId = targetAnalysisId || analysisId;
+    if (!resolvedAnalysisId) return;
 
     // ── CONTEXT SWITCH GUARD: Capture current analysisId in closure ──
-    const capturedId = analysisId;
+    const capturedId = resolvedAnalysisId;
 
     // ── Pipeline Validation ──
     const { validateStepData, logStepExecution } = await import("@/utils/pipelineValidation");
