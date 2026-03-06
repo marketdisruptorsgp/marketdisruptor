@@ -54,7 +54,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
 
   // Core computation function
   const compute = useCallback(() => {
-    if (!selectedProduct || !analysisId) {
+    const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
+    if (!analysisId || !hasComputableData) {
       setIntelligence(null);
       setGraph(null);
       return;
