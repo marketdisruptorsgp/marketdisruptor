@@ -113,10 +113,10 @@ export default function InsightGraphPage() {
       />
 
       <AnalysisActionToolbar
-        analysisTitle={selectedProduct.name}
+        analysisTitle={displayProduct.name}
         stepTitle="Insight Graph"
         analysis={analysis}
-        selectedProduct={selectedProduct}
+        selectedProduct={displayProduct}
         analysisId={analysisId}
         accentColor={modeAccent}
         hideRun
