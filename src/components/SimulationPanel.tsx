@@ -7,9 +7,9 @@
 
 import { memo, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, FlaskConical, History, Activity, ChevronRight, Trash2, BarChart3 } from "lucide-react";
+import { X, FlaskConical, History, Activity, ChevronRight, Trash2, BarChart3, Sparkles } from "lucide-react";
 import { type LensTool, getToolById } from "@/lib/lensToolkitRegistry";
-import { type ToolScenario, getScenarios, deleteScenario } from "@/lib/scenarioEngine";
+import { type ToolScenario, getScenarios, deleteScenario, scenarioToEvidence } from "@/lib/scenarioEngine";
 import { SBALoanCalculator } from "@/components/tools/SBALoanCalculator";
 import { DealStructureSimulator } from "@/components/tools/DealStructureSimulator";
 import { TAMCalculator } from "@/components/tools/TAMCalculator";
