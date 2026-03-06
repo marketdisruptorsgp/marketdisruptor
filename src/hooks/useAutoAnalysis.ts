@@ -132,18 +132,30 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         analysisType: analysisMode,
       });
 
-      // Step 2: Cluster evidence into Insights
+      // Step 2: Merge simulation evidence
       const allEvItems = Object.values(newEvidence).flatMap(m => m.items);
-      const newInsights = clusterEvidenceIntoInsights(allEvItems);
+      const mode = analysisMode === "service" ? "service" as const
+        : analysisMode === "business_model" ? "business_model" as const
+        : "product" as const;
+      const simEvidence = allScenariosToEvidence(analysisId, mode);
+      const mergedEvidence = simEvidence.length > 0 ? [...allEvItems, ...simEvidence] : allEvItems;
 
-      // Step 3: Generate opportunities from insights
-      const newOpps = generateOpportunities(newInsights, allEvItems);
+      // Step 3: Cluster evidence into Insights
+      const newInsights = clusterEvidenceIntoInsights(mergedEvidence);
 
-      // Step 4: Generate strategic narrative
-      const newNarrative = generateStrategicNarrative(newInsights, allEvItems);
+      // Step 4: Generate opportunities from insights
+      const newOpps = generateOpportunities(newInsights, mergedEvidence);
 
-      // Step 5: Build insight graph from evidence (evidence-first path)
+      // Step 5: Generate strategic narrative
+      const newNarrative = generateStrategicNarrative(newInsights, mergedEvidence);
+
+      // Step 6: Build insight graph from evidence
       const newGraph = buildInsightGraph(newEvidence);
+
+      // Step 7: Scenario comparison & sensitivity
+      const scenarios = getScenarios(analysisId);
+      const newComparison = scenarios.length > 0 ? compareScenarios(scenarios) : null;
+      const newSensitivity = computeAllSensitivityReports(scenarios);
 
       setIntelligence(newIntelligence);
       setGraph(newGraph);
@@ -151,6 +163,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       setInsights(newInsights);
       setOpportunities(newOpps);
       setNarrative(newNarrative);
+      setScenarioComparison(newComparison);
+      setSensitivityReports(newSensitivity);
     } catch (err) {
       console.warn("[AutoAnalysis] Computation error:", err);
     } finally {
