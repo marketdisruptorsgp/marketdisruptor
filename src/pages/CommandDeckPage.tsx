@@ -182,21 +182,12 @@ export default function CommandDeckPage() {
   const handleRecomputeAll = useCallback(() => {
     if (completedSteps.size === 0) { navigate(`${baseUrl}/report`); return; }
     setIsRecomputing(true);
-    addEvent("Recomputing strategic intelligence…");
+    addEvent("Running strategic analysis…");
     try {
-      const result = recomputeIntelligence({
-        products: analysis.products, selectedProduct,
-        disruptData: analysis.disruptData, redesignData: analysis.redesignData,
-        stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
-        governedData: analysis.governedData as Record<string, unknown> | null,
-        businessAnalysisData: analysis.businessAnalysisData, intelligence,
-        analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
-        analysisId: analysisId || "", completedSteps,
-      });
-      result.events.forEach(evt => addEvent(evt));
+      runAnalysis();
     } catch { addEvent("Strategic intelligence updated"); }
-    setTimeout(() => { setIsRecomputing(false); toast.success("Strategic intelligence updated"); }, 1000);
-  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, navigate, baseUrl, addEvent]);
+    setTimeout(() => { setIsRecomputing(false); toast.success("Strategic analysis complete"); }, 1000);
+  }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis]);
 
   // ── AUTO-RECOMPUTE ──
   const lastRecomputeHash = useRef<string>("");
