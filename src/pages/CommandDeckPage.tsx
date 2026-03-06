@@ -39,7 +39,8 @@ import { computeTierState, filterEvidenceByTier, TIER_META, type TierNumber, typ
 import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
-import { allScenariosToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
+import { allScenariosToEvidence, scenarioToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
+import { recomputeIntelligence } from "@/lib/recomputeIntelligence";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 
