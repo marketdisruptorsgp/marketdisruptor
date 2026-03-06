@@ -70,28 +70,50 @@ function CircularGauge({ value, max, color, size = 72, strokeWidth = 5, delay = 
 }
 
 /* ════════════════════════════════════════════════════════
- * KPI GAUGE CARD — Circular gauge + evidence count
+ * METRIC CARD — Circular gauge + description + trend
  * ════════════════════════════════════════════════════════ */
-function KPIGaugeCard({ label, score, max, evidence, icon: Icon, color, delay = 0 }: {
-  label: string; score: number; max: number; evidence: string;
-  icon: React.ElementType; color: string; delay?: number;
+function getTrend(score: number): "up" | "neutral" | "down" {
+  if (score >= 6) return "up";
+  if (score >= 3) return "neutral";
+  return "down";
+}
+
+const trendIcons: Record<string, { icon: typeof TrendingUp; color: string; label: string }> = {
+  up: { icon: TrendingUp, color: "hsl(152 60% 44%)", label: "Positive" },
+  neutral: { icon: Activity, color: "hsl(38 92% 50%)", label: "Neutral" },
+  down: { icon: AlertTriangle, color: "hsl(0 72% 52%)", label: "Needs attention" },
+};
+
+function MetricCard({ label, value, description, icon: Icon, color, trend, delay = 0 }: {
+  label: string; value: number; description: string;
+  icon: React.ElementType; color: string; trend: "up" | "neutral" | "down"; delay?: number;
 }) {
+  const max = label === "Constraints" ? Math.max(value, 10) : 10;
+  const trendInfo = trendIcons[trend];
+  const TrendIcon = trendInfo.icon;
+
   return (
     <motion.div
       {...fadeUp}
       transition={{ delay, duration: 0.4 }}
-      className="rounded-xl p-4 bg-card border border-border flex flex-col items-center gap-2 min-h-[160px]"
+      className="rounded-xl p-4 bg-card border border-border flex flex-col items-center gap-2 min-h-[180px]"
     >
       <div className="relative">
-        <CircularGauge value={score} max={max} color={color} size={76} strokeWidth={5} delay={delay + 0.1} />
+        <CircularGauge value={value} max={max} color={color} size={76} strokeWidth={5} delay={delay + 0.1} />
         <div className="absolute inset-0 flex items-center justify-center">
           <Icon size={18} style={{ color }} />
         </div>
       </div>
-      <div className="text-center">
-        <p className="text-2xl font-extrabold tabular-nums text-foreground leading-none">{score}</p>
-        <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1">{label}</p>
-        <p className="text-[10px] font-semibold mt-1" style={{ color }}>{evidence}</p>
+      <div className="text-center flex-1 flex flex-col justify-between">
+        <div>
+          <p className="text-2xl font-extrabold tabular-nums text-foreground leading-none">{value}</p>
+          <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1">{label}</p>
+        </div>
+        <p className="text-[10px] text-muted-foreground mt-1.5 leading-snug line-clamp-2">{description}</p>
+        <div className="flex items-center justify-center gap-1 mt-1.5">
+          <TrendIcon size={10} style={{ color: trendInfo.color }} />
+          <span className="text-[9px] font-bold" style={{ color: trendInfo.color }}>{trendInfo.label}</span>
+        </div>
       </div>
     </motion.div>
   );
@@ -360,37 +382,57 @@ export default function CommandDeckPage() {
           ))}
         </div>
 
-        {/* ═══ ZONE 1 — CIRCULAR GAUGE KPIs ═══ */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <KPIGaugeCard
-            label="Opportunity" score={metrics.opportunityScore} max={10} icon={Lightbulb}
-            color="hsl(229 89% 63%)" delay={0.05}
-            evidence={`${metrics.opportunitiesIdentified} opportunities detected`}
+        {/* ═══ ZONE 1 — METRIC CARDS ═══ */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <MetricCard
+            label="Opportunity Score"
+            value={metrics.opportunityScore}
+            description="Potential value created by redesign opportunities and leverage signals"
+            icon={Lightbulb}
+            color="hsl(152 60% 44%)"
+            trend={getTrend(metrics.opportunityScore)}
+            delay={0.05}
           />
-          <KPIGaugeCard
-            label="Friction" score={metrics.frictionIndex} max={10} icon={Activity}
-            color="hsl(0 72% 52%)" delay={0.1}
-            evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
+          <MetricCard
+            label="Friction Index"
+            value={metrics.frictionIndex}
+            description="Customer complaints, friction points, and constraints"
+            icon={AlertTriangle}
+            color="hsl(0 72% 52%)"
+            trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
+            delay={0.1}
           />
-          <KPIGaugeCard
-            label="Constraints" score={metrics.constraintsDetected} max={Math.max(metrics.constraintsDetected, 10)} icon={Shield}
-            color="hsl(38 92% 50%)" delay={0.15}
-            evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
+          <MetricCard
+            label="Constraints"
+            value={metrics.constraintsCount}
+            description="Structural constraints and assumptions discovered"
+            icon={Crosshair}
+            color="hsl(0 72% 52%)"
+            trend="neutral"
+            delay={0.15}
           />
-          <KPIGaugeCard
-            label="Leverage" score={metrics.leverageScore} max={10} icon={Zap}
-            color="hsl(152 60% 44%)" delay={0.2}
-            evidence={`${metrics.leveragePoints} leverage signals`}
+          <MetricCard
+            label="Leverage Score"
+            value={metrics.leverageScore}
+            description="Hidden value and high-leverage opportunities"
+            icon={Zap}
+            color="hsl(38 92% 50%)"
+            trend={getTrend(metrics.leverageScore)}
+            delay={0.2}
           />
-          <KPIGaugeCard
-            label="Risk" score={metrics.riskScore} max={10} icon={AlertTriangle}
-            color="hsl(0 72% 52%)" delay={0.25}
-            evidence={`${metrics.riskSignals} risk signals`}
+          <MetricCard
+            label="Risk Score"
+            value={metrics.riskScore}
+            description="Execution, feasibility, and market risk"
+            icon={Shield}
+            color="hsl(0 72% 52%)"
+            trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
+            delay={0.25}
           />
         </div>
 
         {/* ═══ ZONE 2 — PIPELINE + SIGNAL ACCUMULATION ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pipeline Progress */}
           <motion.div {...fadeUp} transition={{ delay: 0.1 }}
             className="rounded-xl p-5 space-y-3 bg-card border border-border"
