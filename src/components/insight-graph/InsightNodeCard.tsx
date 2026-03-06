@@ -23,7 +23,7 @@ interface InsightNodeCardProps {
 }
 
 export const InsightNodeCard = memo(function InsightNodeCard({
-  node, graph, onClose, onSelectNode, isMobile = false,
+  node, graph, onClose, onSelectNode, onOpenTool, isMobile = false,
 }: InsightNodeCardProps) {
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
