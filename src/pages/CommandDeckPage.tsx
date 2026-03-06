@@ -1,12 +1,12 @@
 /**
- * Command Deck — Strategic Decision Interface
+ * Command Deck — Strategic Decision Interface (Redesigned)
  *
- * 5 Visual Zones:
- *   Zone 1 — Strategic Snapshot (4 mission-control scorecards)
- *   Zone 2 — Opportunity Map (Impact × Feasibility matrix)
- *   Zone 3 — Constraint Radar (radial severity chart)
- *   Zone 4 — Strategic Leverage Signals (top insight cards)
- *   Zone 5 — Action Path (recommended next steps)
+ * Clear 3-tier visual hierarchy:
+ *   Tier 1 — Hero Score (single dominant metric + top signal)
+ *   Tier 2 — Strategic Narrative (prose-first, collapsible chain)
+ *   Tier 3 — Metrics Strip (4 compact scorecards)
+ *   Tier 4 — Tools Grid (Opportunity Map + Constraint Radar)
+ *   Tier 5 — Leverage Signals + Action Path
  */
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
@@ -18,21 +18,19 @@ import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
 import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
-import { HeroSection } from "@/components/HeroSection";
 import { ModeBadge } from "@/components/ModeBadge";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
-import { StrategicSignalBanner } from "@/components/command-deck/StrategicSignalBanner";
-import { StrategicSnapshot } from "@/components/command-deck/StrategicSnapshot";
+import { HeroScorePanel } from "@/components/command-deck/HeroScorePanel";
+import { NarrativeSummary } from "@/components/command-deck/NarrativeSummary";
+import { MetricsStrip } from "@/components/command-deck/MetricsStrip";
 import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
 import { ConstraintRadar } from "@/components/command-deck/ConstraintRadar";
 import { StrategicLeverageSignals } from "@/components/command-deck/StrategicLeverageSignals";
 import { ActionPath } from "@/components/command-deck/ActionPath";
-import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
-import { motion } from "framer-motion";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
-  AlertTriangle, Rocket, RefreshCw,
+  AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -40,8 +38,7 @@ import {
   type CommandDeckMetrics as DeckMetrics,
 } from "@/lib/commandDeckMetrics";
 import { extractAllEvidence, type EvidenceTier } from "@/lib/evidenceEngine";
-import { computeTierState, filterEvidenceByTier, type TierNumber, type TierState } from "@/lib/tierDiscoveryEngine";
-import { allScenariosToEvidence, scenarioToEvidence, getScenarios, type ToolScenario } from "@/lib/scenarioEngine";
+import { getScenarios, scenarioToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
 import { recomputeIntelligence } from "@/lib/recomputeIntelligence";
 
 const PIPELINE_STEPS = [
@@ -73,15 +70,11 @@ export default function CommandDeckPage() {
 
   // ── Aggregated Metrics ──
   const allEvidence = useMemo(() => extractAllEvidence({
-    products: analysis.products,
-    selectedProduct,
-    disruptData: analysis.disruptData,
-    redesignData: analysis.redesignData,
-    stressTestData: analysis.stressTestData,
-    pitchDeckData: analysis.pitchDeckData,
+    products: analysis.products, selectedProduct,
+    disruptData: analysis.disruptData, redesignData: analysis.redesignData,
+    stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
     governedData: analysis.governedData as Record<string, unknown> | null,
-    businessAnalysisData: analysis.businessAnalysisData,
-    intelligence,
+    businessAnalysisData: analysis.businessAnalysisData, intelligence,
     analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
   }), [
     analysis.products, selectedProduct, analysis.disruptData, analysis.redesignData,
@@ -90,16 +83,11 @@ export default function CommandDeckPage() {
   ]);
 
   const metricsInput = useMemo(() => ({
-    products: analysis.products,
-    selectedProduct,
-    disruptData: analysis.disruptData,
-    redesignData: analysis.redesignData,
-    stressTestData: analysis.stressTestData,
-    pitchDeckData: analysis.pitchDeckData,
+    products: analysis.products, selectedProduct,
+    disruptData: analysis.disruptData, redesignData: analysis.redesignData,
+    stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
     governedData: analysis.governedData as Record<string, unknown> | null,
-    businessAnalysisData: analysis.businessAnalysisData,
-    intelligence,
-    completedSteps,
+    businessAnalysisData: analysis.businessAnalysisData, intelligence, completedSteps,
     evidence: allEvidence,
   }), [
     analysis.products, selectedProduct, analysis.disruptData, analysis.redesignData,
@@ -110,9 +98,7 @@ export default function CommandDeckPage() {
   const metrics: DeckMetrics = useMemo(() => computeCommandDeckMetrics(metricsInput), [metricsInput]);
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
 
-  // ── Tier Discovery State ──
   const [tierFilter, setTierFilter] = useState<EvidenceTier | null>(null);
-  const [manualUnlocks, setManualUnlocks] = useState<Set<TierNumber>>(new Set());
   const filteredOpps = useMemo(() => {
     if (!tierFilter) return topOpps;
     return topOpps.filter((o: any) => !o.tier || o.tier === tierFilter);
@@ -165,7 +151,7 @@ export default function CommandDeckPage() {
     );
     addEvent(`Simulation created ${newEvidence.type} signal: "${newEvidence.label}"`);
     try {
-      const result = recomputeIntelligence({
+      recomputeIntelligence({
         products: analysis.products, selectedProduct,
         disruptData: analysis.disruptData, redesignData: analysis.redesignData,
         stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
@@ -174,7 +160,6 @@ export default function CommandDeckPage() {
         analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
         analysisId: analysisId || "", completedSteps,
       });
-      result.events.forEach(evt => addEvent(evt));
     } catch { addEvent("Intelligence recompute completed"); }
     setTimeout(() => { setIsRecomputing(false); toast.success("Strategic intelligence updated"); }, 800);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent]);
@@ -183,9 +168,7 @@ export default function CommandDeckPage() {
     if (completedSteps.size === 0) { navigate(`${baseUrl}/report`); return; }
     setIsRecomputing(true);
     addEvent("Running strategic analysis…");
-    try {
-      runAnalysis();
-    } catch { addEvent("Strategic intelligence updated"); }
+    try { runAnalysis(); } catch { addEvent("Strategic intelligence updated"); }
     setTimeout(() => { setIsRecomputing(false); toast.success("Strategic analysis complete"); }, 1000);
   }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis]);
 
@@ -228,6 +211,9 @@ export default function CommandDeckPage() {
     return () => clearTimeout(timer);
   }, [completedSteps, totalSignals, metrics.totalEvidenceCount, savedScenarios]);
 
+  // ── Diagnostics toggle ──
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
+
   // ── Guards ──
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
@@ -240,41 +226,34 @@ export default function CommandDeckPage() {
 
   const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
     : analysis.activeMode === "business" ? "business" : "product";
-  const modeLabel = modeKey === "service" ? "Service" : modeKey === "business" ? "Business Model" : "Product";
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
+      <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
         <RecomputeOverlay isActive={isRecomputing || engineComputing} />
 
-        {/* ═══ HEADER — Compact ═══ */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl px-4 py-3 bg-card border border-border">
-          <div className="flex items-center gap-3 min-w-0">
+        {/* ═══ COMPACT HEADER ═══ */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
             <ModeBadge />
-            <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-extrabold text-foreground truncate">{analysisDisplayName}</h1>
-              <p className="text-[10px] text-muted-foreground">
-                {modeLabel} · {completedSteps.size}/{PIPELINE_STEPS.length} steps · {totalSignals} signals
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
             {(isRecomputing || engineComputing) && (
-              <span className="flex items-center gap-1 text-[10px] font-bold text-primary animate-pulse">
+              <span className="flex items-center gap-1 text-xs font-bold text-primary animate-pulse">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Computing…
               </span>
             )}
+          </div>
+          <div className="flex items-center gap-2">
             <button onClick={handleRecomputeAll}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
               style={{ background: `${modeAccent}15`, color: modeAccent, border: `1.5px solid ${modeAccent}30` }}>
-              <RefreshCw size={13} className={isRecomputing ? "animate-spin" : ""} /> Run Strategic Analysis
+              <RefreshCw size={13} className={isRecomputing ? "animate-spin" : ""} /> Recompute
             </button>
             <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
           </div>
         </div>
 
         {/* ═══ NAV STRIP ═══ */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-1">
           {[
             { label: "Command Deck", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
             { label: "Report", icon: Target, path: `${baseUrl}/report` },
@@ -297,9 +276,21 @@ export default function CommandDeckPage() {
           ))}
         </div>
 
-        {/* ═══ STRATEGIC NARRATIVE ═══ */}
+        {/* ═══ TIER 1 — HERO SCORE ═══ */}
+        <HeroScorePanel
+          strategicPotential={strategicPotential}
+          metrics={metrics}
+          opportunities={filteredOpps}
+          insights={autoAnalysis.insights}
+          mode={modeKey}
+          analysisName={analysisDisplayName}
+          completedSteps={completedSteps.size}
+          totalSteps={PIPELINE_STEPS.length}
+        />
+
+        {/* ═══ TIER 2 — NARRATIVE SUMMARY ═══ */}
         {narrative && (
-          <StrategicNarrativePanel
+          <NarrativeSummary
             primaryConstraint={narrative.primaryConstraint}
             keyDriver={narrative.keyDriver}
             leveragePoint={narrative.leveragePoint}
@@ -309,70 +300,22 @@ export default function CommandDeckPage() {
           />
         )}
 
-        {/* ═══ DIAGNOSTIC PANEL ═══ */}
-        {diagnostic && (
-          <div className="rounded-xl bg-card border border-border px-4 py-3">
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">Pipeline Diagnostics</p>
-            <div className="flex flex-wrap gap-3">
-              {[
-                { label: "Evidence", count: diagnostic.evidenceCount, warn: diagnostic.insufficientEvidence },
-                { label: "Signals", count: diagnostic.signalCount },
-                { label: "Constraints", count: diagnostic.constraintCount },
-                { label: "Drivers", count: diagnostic.driverCount },
-                { label: "Leverage", count: diagnostic.leverageCount },
-                { label: "Opportunities", count: diagnostic.opportunityCount },
-                { label: "Pathways", count: diagnostic.pathwayCount },
-              ].map(d => (
-                <div key={d.label} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold ${d.warn ? 'bg-destructive/10 text-destructive' : 'bg-muted text-foreground'}`}>
-                  <span className="text-lg font-black">{d.count}</span>
-                  <span className="text-muted-foreground">{d.label}</span>
-                </div>
-              ))}
-            </div>
-            {/* Threshold indicators */}
-            {diagnostic.thresholds && diagnostic.thresholds.some(t => !t.met) && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {diagnostic.thresholds.filter(t => !t.met).map(t => (
-                  <span key={t.stage} className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold">
-                    {t.stage}: need {t.required} evidence (have {t.current})
-                  </span>
-                ))}
-              </div>
-            )}
-            {diagnostic.message && (
-              <p className="mt-2 text-xs text-destructive font-semibold">⚠ {diagnostic.message}</p>
-            )}
-          </div>
-        )}
-
-        {/* ═══ STRATEGIC SIGNAL BANNER ═══ */}
-        <StrategicSignalBanner
-          opportunities={filteredOpps}
-          insights={autoAnalysis.insights}
-          metrics={metrics}
-          mode={modeKey}
-        />
-
-        {/* ═══════════════════════════════════════════════════
-            5-ZONE STRATEGIC COMMAND CENTER LAYOUT
-            ═══════════════════════════════════════════════════ */}
-
-        {/* ROW 1 — Strategic Snapshot (full width) */}
-        <StrategicSnapshot
+        {/* ═══ TIER 3 — METRICS STRIP ═══ */}
+        <MetricsStrip
           metrics={metrics}
           opportunities={filteredOpps}
           strategicPotential={strategicPotential}
         />
 
-        {/* ROW 2 — Opportunity Map (65%) + Constraint Radar (35%) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          <div className="lg:col-span-8 transition-all duration-200 hover:scale-[1.003]">
+        {/* ═══ TIER 4 — TOOLS GRID ═══ */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="lg:col-span-8">
             <OpportunityMap
               opportunities={filteredOpps}
               onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
             />
           </div>
-          <div className="lg:col-span-4 transition-all duration-200 hover:scale-[1.003]">
+          <div className="lg:col-span-4">
             <ConstraintRadar
               metrics={metrics}
               insights={autoAnalysis.insights}
@@ -380,8 +323,8 @@ export default function CommandDeckPage() {
           </div>
         </div>
 
-        {/* ROW 3 — Strategic Leverage Signals (60%) + Action Path (40%) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* ═══ TIER 5 — LEVERAGE + ACTION ═══ */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <div className="lg:col-span-7">
             <StrategicLeverageSignals
               insights={autoAnalysis.insights}
@@ -397,7 +340,45 @@ export default function CommandDeckPage() {
           </div>
         </div>
 
-        {/* ═══ LENS INTELLIGENCE PANEL (below zones) ═══ */}
+        {/* ═══ DIAGNOSTICS (collapsible) ═══ */}
+        {diagnostic && (
+          <div className="rounded-xl bg-card border border-border overflow-hidden">
+            <button
+              onClick={() => setShowDiagnostics(!showDiagnostics)}
+              className="w-full px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
+            >
+              <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
+                Pipeline Diagnostics
+              </span>
+              {showDiagnostics ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
+            </button>
+            {showDiagnostics && (
+              <div className="px-4 pb-4">
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    { label: "Evidence", count: diagnostic.evidenceCount, warn: diagnostic.insufficientEvidence },
+                    { label: "Signals", count: diagnostic.signalCount },
+                    { label: "Constraints", count: diagnostic.constraintCount },
+                    { label: "Drivers", count: diagnostic.driverCount },
+                    { label: "Leverage", count: diagnostic.leverageCount },
+                    { label: "Opportunities", count: diagnostic.opportunityCount },
+                    { label: "Pathways", count: diagnostic.pathwayCount },
+                  ].map(d => (
+                    <div key={d.label} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold ${d.warn ? 'bg-destructive/10 text-destructive' : 'bg-muted text-foreground'}`}>
+                      <span className="text-lg font-black">{d.count}</span>
+                      <span className="text-muted-foreground">{d.label}</span>
+                    </div>
+                  ))}
+                </div>
+                {diagnostic.message && (
+                  <p className="mt-2 text-xs text-destructive font-semibold">⚠ {diagnostic.message}</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══ LENS INTELLIGENCE PANEL ═══ */}
         <LensIntelligencePanel
           analysisMode={analysis.activeMode || "product"}
           signalKeywords={lensSignalKeywords}
