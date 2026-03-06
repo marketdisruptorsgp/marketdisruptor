@@ -209,7 +209,7 @@ function detectConstraints(flat: Evidence[], analysisId: string): StrategicInsig
       ? `${primary.label} (+${cluster.length - 1} related)`
       : primary.label;
 
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("constraint"),
       analysisId,
       insightType: "constraint_cluster",
@@ -220,7 +220,7 @@ function detectConstraints(flat: Evidence[], analysisId: string): StrategicInsig
       impact: Math.max(...cluster.map(e => e.impact ?? 5)),
       confidence: cluster.reduce((s, e) => s + (e.confidenceScore ?? 0.5), 0) / cluster.length,
       createdAt: now,
-    });
+    }));
   }
 
   // Risk evidence that indicates structural constraints
