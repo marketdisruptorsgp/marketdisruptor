@@ -24,7 +24,7 @@ export function FeasibilityChecklistPanel({ items }: FeasibilityChecklistPanelPr
             detail={
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Est. cost: {item.estimatedCost}</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground">{item.category}</span>
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-muted text-muted-foreground">{item.category}</span>
               </div>
             }
           />
@@ -42,7 +42,7 @@ export function FeasibilityChecklistPanel({ items }: FeasibilityChecklistPanelPr
                 detail={
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold" style={{ color: "hsl(var(--primary))" }}>Est. cost: {item.estimatedCost}</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground">{item.category}</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-muted text-muted-foreground">{item.category}</span>
                   </div>
                 }
               />

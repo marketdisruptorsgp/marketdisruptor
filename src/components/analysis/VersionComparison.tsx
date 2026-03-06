@@ -72,7 +72,7 @@ export function VersionComparison({ analysisData, accentColor = "hsl(var(--prima
       {/* Score deltas */}
       {deltas.length > 0 && (
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Score Changes</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Score Changes</p>
           <div className="grid grid-cols-2 gap-2">
             {deltas.map((d, i) => {
               const diff = d.current - d.previous;
@@ -92,8 +92,8 @@ export function VersionComparison({ analysisData, accentColor = "hsl(var(--prima
                     <Minus size={12} className="text-muted-foreground" />
                   )}
                   <div className="min-w-0">
-                    <p className="text-[10px] font-medium text-foreground truncate">{d.label}</p>
-                    <p className="text-[9px] text-muted-foreground">
+                    <p className="text-xs font-medium text-foreground truncate">{d.label}</p>
+                    <p className="text-xs text-muted-foreground">
                       {d.previous} → {d.current}
                       <span
                         className="ml-1 font-bold"
@@ -113,12 +113,12 @@ export function VersionComparison({ analysisData, accentColor = "hsl(var(--prima
       {/* Step changes */}
       {textChanges.length > 0 && (
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Updated Steps</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Updated Steps</p>
           <div className="flex flex-wrap gap-1.5">
             {textChanges.map((c, i) => (
               <span
                 key={i}
-                className="text-[10px] font-bold px-2.5 py-1 rounded-full"
+                className="text-xs font-bold px-2.5 py-1 rounded-full"
                 style={{ background: `${accentColor}14`, color: accentColor }}
               >
                 {c.step} Updated

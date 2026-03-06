@@ -44,7 +44,7 @@ export function CompetitiveLandscapePanel({ landscape, hasCompetitorIntel }: Com
                 action={
                   <div className="flex items-center gap-2">
                     {comp.url && (
-                      <a href={comp.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
+                      <a href={comp.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-0.5">
                         <ArrowRight size={8} /> Visit
                       </a>
                     )}
@@ -54,12 +54,12 @@ export function CompetitiveLandscapePanel({ landscape, hasCompetitorIntel }: Com
                 detail={
                   <VisualGrid columns={2}>
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Original Product</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Original Product</p>
                       <SignalCard label={comp.originalAdvantage} type="strength" explanation="Advantage" />
                       <SignalCard label={comp.originalVulnerability} type="threat" explanation="Vulnerability" />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Redesigned Concept</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Redesigned Concept</p>
                       <SignalCard label={comp.redesignAdvantage} type="strength" explanation="Advantage" />
                       <SignalCard label={comp.redesignGap} type="weakness" explanation="Remaining Gap" />
                     </div>

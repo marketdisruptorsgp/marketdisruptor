@@ -19,7 +19,7 @@ export function GreenTeamPanel({ verdict, arguments: args, moonshot }: GreenTeam
         </div>
         <div>
           <p className="text-sm font-extrabold text-white tracking-tight">Green Team</p>
-          <p className="text-[11px] text-white/70 font-medium">For This Idea</p>
+          <p className="text-xs text-white/70 font-medium">For This Idea</p>
         </div>
       </div>
 

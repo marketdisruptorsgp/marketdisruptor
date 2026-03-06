@@ -170,7 +170,7 @@ export function EvolutionView({ analysisData, productName, accentColor = "hsl(va
                   <Icon size={14} style={{ color: node.completed ? "white" : "hsl(var(--muted-foreground))" }} />
                 </div>
                 <span
-                  className="text-[9px] font-bold uppercase tracking-wider whitespace-nowrap"
+                  className="text-xs font-bold uppercase tracking-wider whitespace-nowrap"
                   style={{ color: node.completed ? node.color : "hsl(var(--muted-foreground))" }}
                 >
                   {node.label}
@@ -209,7 +209,7 @@ export function EvolutionView({ analysisData, productName, accentColor = "hsl(va
             >
               <X size={12} className="text-muted-foreground" />
             </button>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: node.color }}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: node.color }}>
               {node.label}
             </p>
             <p className="text-xs text-foreground leading-relaxed pr-6">{node.summary}</p>
