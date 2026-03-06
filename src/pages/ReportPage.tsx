@@ -1,5 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { PricingIntelCard } from "@/components/PricingIntelCard";
+import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
+import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
+import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { supabase } from "@/integrations/supabase/client";
 import { isServiceCategory } from "@/utils/normalizeProduct";
 import { toast } from "sonner";
@@ -116,6 +119,7 @@ export default function ReportPage() {
   const { products, selectedProduct, analysisParams, analysisId } = analysis;
   const { shouldRedirectHome } = useHydrationGuard();
   const isRunning = analysis.step === "scraping" || analysis.step === "analyzing";
+  const autoAnalysis = useAutoAnalysis();
 
   const modeAccent = theme.primary;
 
@@ -242,6 +246,15 @@ export default function ReportPage() {
       />
 
       <AnalysisDivider />
+
+      {/* Insight Snapshot Panel — auto-updating intelligence */}
+      <InsightSnapshotPanel
+        intelligence={autoAnalysis.intelligence}
+        graph={autoAnalysis.graph}
+        analysisId={analysisId || ""}
+        accentColor={modeAccent}
+        completedSteps={autoAnalysis.completedSteps}
+      />
 
       {/* ── Strategic Command Deck — dashboard tab ── */}
       {activeSection === "dashboard" && (
@@ -478,6 +491,14 @@ export default function ReportPage() {
       )}
 
       <ProjectNotesSection analysisId={analysisId} saveStepData={analysis.saveStepData} />
+
+      {/* Pipeline Progress Bar */}
+      <PipelineProgressBar
+        completedSteps={autoAnalysis.completedSteps}
+        outdatedSteps={analysis.outdatedSteps}
+        currentStep="report"
+        accentColor={modeAccent}
+      />
 
       <NextStepButton
         stepNumber={3}
