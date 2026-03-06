@@ -45,6 +45,8 @@ export interface IntelligenceOutput {
   opportunities: any[];
   events: string[];
   scenarioCount: number;
+  scenarioComparison: ScenarioComparison | null;
+  sensitivityReports: SensitivityReport[];
 }
 
 // ═══════════════════════════════════════════════════════════════
