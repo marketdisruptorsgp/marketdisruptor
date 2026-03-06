@@ -431,6 +431,7 @@ export default function CommandDeckPage() {
     return keywords;
   }, [autoAnalysis.insights, narrative]);
 
+  const handleRecomputeAll = useCallback(() => {
     toast.info("Recomputing analysis intelligence…");
     // Trigger auto-analysis recomputation by staying on the Command Deck
     // The useAutoAnalysis hook will detect data changes and recompute
