@@ -1,31 +1,66 @@
 /**
- * EVIDENCE ENGINE
+ * EVIDENCE ENGINE — Canonical Intelligence Model
  *
- * Extracts structured evidence from pipeline data.
- * Every metric on the Command Deck traces back to concrete evidence items.
+ * ALL discovery signals across the platform originate as Evidence objects.
+ * Evidence is the single source of truth for:
+ *   • Command Deck metrics
+ *   • Insight Graph nodes
+ *   • Evidence Explorer
+ *   • Tier Discovery
+ *   • Opportunity generation
+ *   • Confidence scoring
  *
- * Extended with:
- *   - confidenceScore (0-1)
- *   - relatedSignals
- *   - category
- *   - tier classification
+ * Extended canonical fields:
+ *   - mode (product | service | business_model)
+ *   - lens (market | product | economics | operations | distribution)
+ *   - archetype (operator | venture | bootstrap | enterprise | eta)
+ *   - sourceEngine (pipeline | innovation | signal_detection | financial_model | competitor_scout | system_intelligence)
+ *   - parentId / relatedEvidence for causal chains
  */
 
 import { classifyTier } from "@/lib/tierDiscoveryEngine";
 
+// ═══════════════════════════════════════════════════════════════
+//  CANONICAL TYPES
+// ═══════════════════════════════════════════════════════════════
+
 export type EvidenceTier = "structural" | "system" | "optimization";
 
-export type EvidenceType = "assumption" | "signal" | "competitor" | "constraint" | "opportunity" | "risk" | "leverage";
+export type EvidenceType =
+  | "signal"
+  | "assumption"
+  | "constraint"
+  | "friction"
+  | "opportunity"
+  | "leverage"
+  | "risk"
+  | "competitor";
+
+export type EvidenceMode = "product" | "service" | "business_model";
+
+export type EvidenceLens = "market" | "product" | "economics" | "operations" | "distribution";
+
+export type EvidenceArchetype = "operator" | "venture" | "bootstrap" | "enterprise" | "eta";
+
+export type EvidencePipelineStep = "report" | "disrupt" | "redesign" | "stress_test" | "pitch";
+
+export type EvidenceSourceEngine =
+  | "pipeline"
+  | "innovation"
+  | "signal_detection"
+  | "financial_model"
+  | "competitor_scout"
+  | "system_intelligence";
 
 export interface Evidence {
   id: string;
   type: EvidenceType;
   label: string;
   description?: string;
-  pipelineStep: "report" | "disrupt" | "redesign" | "stress_test" | "pitch";
+  pipelineStep: EvidencePipelineStep;
   tier: EvidenceTier;
   impact?: number;
-  /** 0-1 confidence based on evidence density and corroboration */
+  /** 0-1 confidence based on evidence density, cross-engine corroboration, pipeline diversity */
   confidenceScore?: number;
   /** IDs of related evidence items */
   relatedSignals?: string[];
@@ -33,6 +68,20 @@ export interface Evidence {
   category?: string;
   /** Competitor analogs that validate this evidence */
   competitorReferences?: { name: string; modelType?: string }[];
+  /** Analysis mode this evidence belongs to */
+  mode?: EvidenceMode;
+  /** Strategic lens this evidence was discovered through */
+  lens?: EvidenceLens;
+  /** Strategic archetype alignment */
+  archetype?: EvidenceArchetype;
+  /** Engine that produced this evidence */
+  sourceEngine?: EvidenceSourceEngine;
+  /** Parent evidence ID for causal chains */
+  parentId?: string;
+  /** Related evidence IDs for cross-referencing */
+  relatedEvidence?: string[];
+  /** How many engines independently produced this signal */
+  sourceCount?: number;
 }
 
 export type MetricDomain = "opportunity" | "friction" | "constraint" | "leverage" | "risk";
@@ -41,9 +90,14 @@ export interface MetricEvidence {
   domain: MetricDomain;
   evidenceCount: number;
   items: Evidence[];
+  tierBreakdown?: Record<EvidenceTier, number>;
+  modeBreakdown?: Record<EvidenceMode, number>;
 }
 
-/* ── Helpers ── */
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
+
 function safeArr(v: unknown): any[] {
   return Array.isArray(v) ? v : [];
 }
@@ -53,19 +107,28 @@ function makeId(prefix: string): string {
   return `${prefix}-${++eid}`;
 }
 
-/* ── Auto-classify tier from label+description ── */
 function autoTier(label: string, description?: string, fallback: EvidenceTier = "optimization"): EvidenceTier {
   const text = `${label} ${description || ""}`;
   const classified = classifyTier(text);
-  // Only override fallback if classification found strong signal
-  const lower = text.toLowerCase();
-  const hasKeywords = lower.length > 5;
-  return hasKeywords ? classified : fallback;
+  return text.length > 5 ? classified : fallback;
 }
 
-/* ── Extract opportunity evidence ── */
+/** Infer mode from analysis context */
+function inferMode(analysisType?: string): EvidenceMode {
+  if (!analysisType) return "product";
+  const lower = analysisType.toLowerCase();
+  if (lower.includes("service")) return "service";
+  if (lower.includes("business")) return "business_model";
+  return "product";
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EXTRACTION FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
 function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
   const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
 
   const redesign = input.redesignData;
   if (redesign) {
@@ -82,6 +145,8 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
         tier: autoTier(label, desc, "structural"),
         impact: c.impact || c.score,
         category: c.category,
+        mode,
+        sourceEngine: "pipeline",
       });
     });
     safeArr(redesign.leveragePoints).forEach((lp: any, i: number) => {
@@ -93,6 +158,8 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
         pipelineStep: "redesign",
         tier: autoTier(label, undefined, "system"),
         impact: lp.impact,
+        mode,
+        sourceEngine: "pipeline",
       });
     });
   }
@@ -102,7 +169,6 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
     safeArr(disrupt.flippedIdeas || disrupt.ideas).forEach((idea: any, i: number) => {
       const label = idea.name || idea.title || idea.label || `Flipped Idea ${i + 1}`;
       const desc = idea.description;
-      // Extract competitor references from flipped idea
       const competitors = safeArr(idea.competitorReferences || idea.competitors || idea.analogs)
         .map((c: any) => ({ name: typeof c === "string" ? c : (c.name || c.company), modelType: c.modelType }))
         .filter((c: any) => c.name);
@@ -116,6 +182,8 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
         impact: idea.impact || idea.score,
         category: idea.category || idea.structuralChangeType,
         competitorReferences: competitors.length > 0 ? competitors : undefined,
+        mode,
+        sourceEngine: "pipeline",
       });
     });
   }
@@ -131,6 +199,8 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
         label,
         pipelineStep: "report",
         tier: autoTier(label, undefined, "optimization"),
+        mode,
+        sourceEngine: "pipeline",
       });
     });
   }
@@ -146,6 +216,8 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
           pipelineStep: "disrupt",
           tier: autoTier(o.label, undefined, "system"),
           impact: o.impact,
+          mode,
+          sourceEngine: "system_intelligence",
         });
       }
     });
@@ -154,20 +226,20 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
   return items;
 }
 
-/* ── Extract friction evidence ── */
 function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
   const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
 
   const product = input.selectedProduct;
   if (product) {
     const ci = product.communityInsights || product.customerSentiment || {};
     safeArr(ci.topComplaints).forEach((c: any, i: number) => {
       const label = typeof c === "string" ? c : (c.text || c.label || `Complaint ${i + 1}`);
-      items.push({ id: makeId("fric-comp"), type: "signal", label, pipelineStep: "report", tier: autoTier(label, undefined, "optimization") });
+      items.push({ id: makeId("fric-comp"), type: "friction", label, pipelineStep: "report", tier: autoTier(label, undefined, "optimization"), mode, sourceEngine: "pipeline" });
     });
     safeArr(ci.frictionPoints).forEach((f: any, i: number) => {
       const label = typeof f === "string" ? f : (f.text || f.label || `Friction ${i + 1}`);
-      items.push({ id: makeId("fric-fp"), type: "signal", label, pipelineStep: "report", tier: autoTier(label, undefined, "system") });
+      items.push({ id: makeId("fric-fp"), type: "friction", label, pipelineStep: "report", tier: autoTier(label, undefined, "system"), mode, sourceEngine: "pipeline" });
     });
   }
 
@@ -178,6 +250,7 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
       items.push({
         id: makeId("fric-con"), type: "constraint", label, pipelineStep: "disrupt",
         tier: autoTier(label, undefined, "structural"), impact: c.impact || c.severity,
+        mode, sourceEngine: "pipeline",
       });
     });
   }
@@ -185,9 +258,9 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
   return items;
 }
 
-/* ── Extract constraint evidence ── */
 function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
   const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
 
   const disrupt = input.disruptData;
   if (disrupt) {
@@ -196,11 +269,12 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
       items.push({
         id: makeId("con-asm"), type: "assumption", label, pipelineStep: "disrupt",
         tier: autoTier(label, undefined, "structural"), category: a.category,
+        mode, sourceEngine: "pipeline",
       });
     });
     safeArr(disrupt.structuralBlockers).forEach((b: any, i: number) => {
       const label = typeof b === "string" ? b : (b.name || b.label || `Blocker ${i + 1}`);
-      items.push({ id: makeId("con-blk"), type: "constraint", label, pipelineStep: "disrupt", tier: "structural" });
+      items.push({ id: makeId("con-blk"), type: "constraint", label, pipelineStep: "disrupt", tier: "structural", mode, sourceEngine: "pipeline" });
     });
   }
 
@@ -211,32 +285,58 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
       safeArr(synopsis.key_assumptions).forEach((a: any, i: number) => {
         const label = typeof a === "string" ? a : (a.text || a.label || `Governed Assumption ${i + 1}`);
         if (!items.some(e => e.label === label)) {
-          items.push({ id: makeId("con-gov"), type: "assumption", label, pipelineStep: "disrupt", tier: autoTier(label, undefined, "system") });
+          items.push({ id: makeId("con-gov"), type: "assumption", label, pipelineStep: "disrupt", tier: autoTier(label, undefined, "system"), mode, sourceEngine: "pipeline" });
         }
       });
     }
   }
 
+  // Business model specific constraints
+  const biz = input.businessAnalysisData;
+  if (biz && mode === "business_model") {
+    safeArr(biz.revenueRisks || biz.revenueModelAssumptions).forEach((r: any, i: number) => {
+      const label = typeof r === "string" ? r : (r.label || r.name || `Revenue Assumption ${i + 1}`);
+      items.push({
+        id: makeId("con-rev"), type: "assumption", label, pipelineStep: "report",
+        tier: "structural", mode, sourceEngine: "pipeline", category: "revenue_model",
+      });
+    });
+    safeArr(biz.distributionConstraints || biz.channelBottlenecks).forEach((d: any, i: number) => {
+      const label = typeof d === "string" ? d : (d.label || d.name || `Distribution Constraint ${i + 1}`);
+      items.push({
+        id: makeId("con-dist"), type: "constraint", label, pipelineStep: "report",
+        tier: "structural", mode, sourceEngine: "pipeline", category: "distribution",
+      });
+    });
+    safeArr(biz.costStructureRisks || biz.costInefficiencies).forEach((c: any, i: number) => {
+      const label = typeof c === "string" ? c : (c.label || c.name || `Cost Structure Issue ${i + 1}`);
+      items.push({
+        id: makeId("con-cost"), type: "constraint", label, pipelineStep: "report",
+        tier: "system", mode, sourceEngine: "pipeline", category: "cost_structure",
+      });
+    });
+  }
+
   return items;
 }
 
-/* ── Extract leverage evidence ── */
 function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
   const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
 
   const redesign = input.redesignData;
   if (redesign) {
     safeArr(redesign.leveragePoints).forEach((lp: any, i: number) => {
       const label = typeof lp === "string" ? lp : (lp.label || lp.name || `Leverage ${i + 1}`);
-      items.push({ id: makeId("lev-pt"), type: "leverage", label, pipelineStep: "redesign", tier: autoTier(label, undefined, "system"), impact: lp.impact });
+      items.push({ id: makeId("lev-pt"), type: "leverage", label, pipelineStep: "redesign", tier: autoTier(label, undefined, "system"), impact: lp.impact, mode, sourceEngine: "pipeline" });
     });
     safeArr(redesign.convergenceZones).forEach((z: any, i: number) => {
       const label = typeof z === "string" ? z : (z.label || z.name || `Convergence Zone ${i + 1}`);
-      items.push({ id: makeId("lev-conv"), type: "leverage", label, pipelineStep: "redesign", tier: "structural" });
+      items.push({ id: makeId("lev-conv"), type: "leverage", label, pipelineStep: "redesign", tier: "structural", mode, sourceEngine: "pipeline" });
     });
     safeArr(redesign.hiddenValues || redesign.underservedSegments).forEach((v: any, i: number) => {
       const label = typeof v === "string" ? v : (v.label || v.name || `Hidden Value ${i + 1}`);
-      items.push({ id: makeId("lev-hv"), type: "signal", label, pipelineStep: "redesign", tier: autoTier(label, undefined, "optimization") });
+      items.push({ id: makeId("lev-hv"), type: "signal", label, pipelineStep: "redesign", tier: autoTier(label, undefined, "optimization"), mode, sourceEngine: "pipeline" });
     });
   }
 
@@ -244,7 +344,7 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
   if (si) {
     safeArr(si.leveragePoints).forEach((lp: any) => {
       if (!items.some(e => e.id === lp.id)) {
-        items.push({ id: lp.id || makeId("lev-si"), type: "leverage", label: lp.label || lp.name, pipelineStep: "redesign", tier: autoTier(lp.label || "", undefined, "system"), impact: lp.impact });
+        items.push({ id: lp.id || makeId("lev-si"), type: "leverage", label: lp.label || lp.name, pipelineStep: "redesign", tier: autoTier(lp.label || "", undefined, "system"), impact: lp.impact, mode, sourceEngine: "system_intelligence" });
       }
     });
   }
@@ -252,19 +352,19 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
   return items;
 }
 
-/* ── Extract risk evidence ── */
 function extractRiskEvidence(input: EvidenceInput): Evidence[] {
   const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
 
   const st = input.stressTestData;
   if (st) {
     safeArr(st.redTeam || st.redTeamArguments).forEach((r: any, i: number) => {
       const label = typeof r === "string" ? r : (r.argument || r.label || r.title || `Red Team ${i + 1}`);
-      items.push({ id: makeId("risk-rt"), type: "risk", label, pipelineStep: "stress_test", tier: "structural" });
+      items.push({ id: makeId("risk-rt"), type: "risk", label, pipelineStep: "stress_test", tier: "structural", mode, sourceEngine: "pipeline" });
     });
     const feasibility = st.feasibility || st.feasibilityChecklist || {};
     safeArr(feasibility.items).filter((f: any) => !f.passed && !f.met).forEach((f: any, i: number) => {
-      items.push({ id: makeId("risk-feas"), type: "risk", label: f.label || f.name || `Feasibility Risk ${i + 1}`, pipelineStep: "stress_test", tier: "system" });
+      items.push({ id: makeId("risk-feas"), type: "risk", label: f.label || f.name || `Feasibility Risk ${i + 1}`, pipelineStep: "stress_test", tier: "system", mode, sourceEngine: "pipeline" });
     });
   }
 
@@ -272,46 +372,50 @@ function extractRiskEvidence(input: EvidenceInput): Evidence[] {
   if (biz) {
     safeArr(biz.risks || biz.vulnerabilities).forEach((r: any, i: number) => {
       const label = typeof r === "string" ? r : (r.label || r.name || `Model Risk ${i + 1}`);
-      items.push({ id: makeId("risk-biz"), type: "risk", label, pipelineStep: "report", tier: "system" });
+      items.push({ id: makeId("risk-biz"), type: "risk", label, pipelineStep: "report", tier: "system", mode, sourceEngine: "pipeline" });
     });
   }
 
   return items;
 }
 
-/* ── Confidence scoring pass ── */
+// ═══════════════════════════════════════════════════════════════
+//  CONFIDENCE COMPUTATION — Evidence-first formula
+// ═══════════════════════════════════════════════════════════════
+
 function computeConfidenceScores(allItems: Evidence[]): void {
-  // Build domain co-occurrence map
-  const tierCounts: Record<EvidenceTier, number> = { structural: 0, system: 0, optimization: 0 };
-  const stepCounts: Record<string, number> = {};
-  allItems.forEach(item => {
-    tierCounts[item.tier]++;
-    stepCounts[item.pipelineStep] = (stepCounts[item.pipelineStep] || 0) + 1;
-  });
+  // Build aggregation maps
+  const stepSet = new Set(allItems.map(i => i.pipelineStep));
+  const engineSet = new Set(allItems.map(i => i.sourceEngine).filter(Boolean));
 
   allItems.forEach(item => {
-    const corroboration = tierCounts[item.tier];
-    const stepDensity = stepCounts[item.pipelineStep] || 0;
+    const sourceCount = item.sourceCount ?? 1;
 
-    let confidence: number;
-    if (item.impact != null && item.impact >= 7 && corroboration >= 5) {
-      confidence = 0.8 + Math.min(corroboration / 50, 0.2); // 0.8-1.0
-    } else if ((item.impact ?? 5) >= 5 || corroboration >= 3) {
-      confidence = 0.5 + Math.min(stepDensity / 20, 0.2); // 0.5-0.7
-    } else {
-      confidence = 0.3 + Math.min(corroboration / 20, 0.2); // 0.3-0.5
+    // Pipeline diversity: how many different steps produced evidence in this tier
+    const sameT = allItems.filter(e => e.tier === item.tier);
+    const stepDiversity = new Set(sameT.map(e => e.pipelineStep)).size / 5;
+
+    // Cross-engine support: how many engines contributed to same-tier evidence
+    const engineDiversity = new Set(sameT.map(e => e.sourceEngine).filter(Boolean)).size / 6;
+
+    // Competitor support
+    const hasCompetitor = (item.competitorReferences?.length ?? 0) > 0 ? 1 : 0;
+
+    // Canonical formula
+    let confidence =
+      (Math.min(sourceCount, 3) / 3) * 0.35 +
+      stepDiversity * 0.25 +
+      engineDiversity * 0.25 +
+      hasCompetitor * 0.15;
+
+    // Impact boost
+    if (item.impact != null && item.impact >= 7) {
+      confidence = Math.min(1, confidence + 0.1);
     }
 
-    item.confidenceScore = Math.round(confidence * 100) / 100;
+    item.confidenceScore = Math.round(Math.max(0, Math.min(1, confidence)) * 100) / 100;
 
-    // Boost confidence when competitor analogs exist
-    if (item.competitorReferences && item.competitorReferences.length > 0) {
-      item.confidenceScore = Math.min(1, item.confidenceScore + 0.1);
-    }
-  });
-
-  // Build related signals (same tier, different step)
-  allItems.forEach(item => {
+    // Build related signals (same tier, different step)
     item.relatedSignals = allItems
       .filter(other => other.id !== item.id && other.tier === item.tier && other.pipelineStep !== item.pipelineStep)
       .slice(0, 5)
@@ -319,7 +423,93 @@ function computeConfidenceScores(allItems: Evidence[]): void {
   });
 }
 
-/* ── Input shape ── */
+// ═══════════════════════════════════════════════════════════════
+//  DEDUPLICATION — Jaccard similarity on labels
+// ═══════════════════════════════════════════════════════════════
+
+function tokenize(text: string): Set<string> {
+  return new Set(text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(t => t.length > 2));
+}
+
+function jaccardSimilarity(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 && b.size === 0) return 1;
+  let intersection = 0;
+  for (const token of a) {
+    if (b.has(token)) intersection++;
+  }
+  const union = a.size + b.size - intersection;
+  return union === 0 ? 0 : intersection / union;
+}
+
+export function deduplicateEvidence(items: Evidence[], threshold = 0.85): Evidence[] {
+  const result: Evidence[] = [];
+  const tokenCache = new Map<string, Set<string>>();
+
+  for (const item of items) {
+    const tokens = tokenize(item.label + " " + (item.description || ""));
+    tokenCache.set(item.id, tokens);
+
+    let isDuplicate = false;
+    for (const existing of result) {
+      const existingTokens = tokenCache.get(existing.id)!;
+      if (jaccardSimilarity(tokens, existingTokens) >= threshold) {
+        // Merge: increase source count, combine engines
+        existing.sourceCount = (existing.sourceCount ?? 1) + 1;
+        if (item.sourceEngine && item.sourceEngine !== existing.sourceEngine) {
+          existing.relatedEvidence = [
+            ...(existing.relatedEvidence || []),
+            item.id,
+          ];
+        }
+        // Keep higher impact
+        if ((item.impact ?? 0) > (existing.impact ?? 0)) {
+          existing.impact = item.impact;
+        }
+        // Merge competitor references
+        if (item.competitorReferences?.length) {
+          existing.competitorReferences = [
+            ...(existing.competitorReferences || []),
+            ...item.competitorReferences,
+          ];
+        }
+        isDuplicate = true;
+        break;
+      }
+    }
+    if (!isDuplicate) {
+      result.push({ ...item, sourceCount: item.sourceCount ?? 1 });
+    }
+  }
+
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  METRIC EVIDENCE BUILDER — with breakdowns
+// ═══════════════════════════════════════════════════════════════
+
+function buildMetricEvidence(domain: MetricDomain, items: Evidence[]): MetricEvidence {
+  const tierBreakdown: Record<EvidenceTier, number> = { structural: 0, system: 0, optimization: 0 };
+  const modeBreakdown: Record<EvidenceMode, number> = { product: 0, service: 0, business_model: 0 };
+
+  items.forEach(item => {
+    tierBreakdown[item.tier]++;
+    if (item.mode) modeBreakdown[item.mode]++;
+  });
+
+  return {
+    domain,
+    evidenceCount: items.length,
+    items,
+    tierBreakdown,
+    modeBreakdown,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INPUT SPEC
+// ═══════════════════════════════════════════════════════════════
+
 export interface EvidenceInput {
   products: any[];
   selectedProduct: any | null;
@@ -330,11 +520,14 @@ export interface EvidenceInput {
   governedData: Record<string, unknown> | null;
   businessAnalysisData: any | null;
   intelligence: any | null;
+  /** Analysis type for mode inference */
+  analysisType?: string;
 }
 
-/* ══════════════════════════════════════════════════════════
- * MAIN — Extract all evidence by domain
- * ══════════════════════════════════════════════════════════ */
+// ═══════════════════════════════════════════════════════════════
+//  MAIN — Unified Evidence Pipeline
+// ═══════════════════════════════════════════════════════════════
+
 export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, MetricEvidence> {
   eid = 0; // reset counter per call
 
@@ -344,15 +537,37 @@ export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, M
   const leverage = extractLeverageEvidence(input);
   const risk = extractRiskEvidence(input);
 
-  // Run confidence scoring across ALL items
-  const allItems = [...opportunity, ...friction, ...constraint, ...leverage, ...risk];
-  computeConfidenceScores(allItems);
+  // Combine ALL items for cross-domain processing
+  const allRaw = [...opportunity, ...friction, ...constraint, ...leverage, ...risk];
+
+  // Deduplication pass
+  const allDeduped = deduplicateEvidence(allRaw);
+
+  // Confidence scoring across ALL items
+  computeConfidenceScores(allDeduped);
+
+  // Re-split by domain
+  const dedupedByDomain = {
+    opportunity: allDeduped.filter(e => e.type === "opportunity" || (e.type === "signal" && e.pipelineStep === "report")),
+    friction: allDeduped.filter(e => e.type === "friction" || (e.type === "constraint" && e.pipelineStep === "disrupt")),
+    constraint: allDeduped.filter(e => e.type === "assumption" || (e.type === "constraint" && e.pipelineStep !== "disrupt")),
+    leverage: allDeduped.filter(e => e.type === "leverage" || (e.type === "signal" && e.pipelineStep === "redesign")),
+    risk: allDeduped.filter(e => e.type === "risk"),
+  };
 
   return {
-    opportunity: { domain: "opportunity", evidenceCount: opportunity.length, items: opportunity },
-    friction: { domain: "friction", evidenceCount: friction.length, items: friction },
-    constraint: { domain: "constraint", evidenceCount: constraint.length, items: constraint },
-    leverage: { domain: "leverage", evidenceCount: leverage.length, items: leverage },
-    risk: { domain: "risk", evidenceCount: risk.length, items: risk },
+    opportunity: buildMetricEvidence("opportunity", dedupedByDomain.opportunity),
+    friction: buildMetricEvidence("friction", dedupedByDomain.friction),
+    constraint: buildMetricEvidence("constraint", dedupedByDomain.constraint),
+    leverage: buildMetricEvidence("leverage", dedupedByDomain.leverage),
+    risk: buildMetricEvidence("risk", dedupedByDomain.risk),
   };
+}
+
+/**
+ * Flatten all evidence from all domains into a single array.
+ * Used by Insight Graph and other consumers.
+ */
+export function flattenEvidence(evidence: Record<MetricDomain, MetricEvidence>): Evidence[] {
+  return Object.values(evidence).flatMap(e => e.items);
 }
