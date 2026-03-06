@@ -347,6 +347,8 @@ function layoutTiered(graphNodes: InsightGraphNode[]): Node[] {
 
 interface InsightGraphViewProps {
   graph: InsightGraph;
+  analysisId?: string;
+  onScenarioSaved?: (s: ToolScenario) => void;
 }
 
 type TierFilter = "all" | "structural" | "system" | "optimization";
