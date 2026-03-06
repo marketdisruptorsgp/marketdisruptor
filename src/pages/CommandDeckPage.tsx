@@ -261,15 +261,15 @@ export default function CommandDeckPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {(isRecomputing || autoAnalysis.isComputing) && (
+            {(isRecomputing || engineComputing) && (
               <span className="flex items-center gap-1 text-[10px] font-bold text-primary animate-pulse">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Computing…
               </span>
             )}
             <button onClick={handleRecomputeAll}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
-              style={{ background: `${modeAccent}10`, color: modeAccent, border: `1px solid ${modeAccent}20` }}>
-              <RefreshCw size={13} className={isRecomputing ? "animate-spin" : ""} /> Recompute
+              style={{ background: `${modeAccent}15`, color: modeAccent, border: `1.5px solid ${modeAccent}30` }}>
+              <RefreshCw size={13} className={isRecomputing ? "animate-spin" : ""} /> Run Strategic Analysis
             </button>
             <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
           </div>
