@@ -1,30 +1,23 @@
 /**
- * AUTO-ANALYSIS ENGINE
+ * AUTO-ANALYSIS ENGINE — Manual Strategic Analysis Trigger
  *
- * Replaces manual "Run Analysis" triggers with automatic debounced computation.
- * Watches for step completion, input changes, and navigation events.
- * Produces canonical Evidence, SystemIntelligence, InsightGraph,
- * ScenarioComparison, and SensitivityReports.
+ * Watches for step completion to track pipeline state.
+ * Intelligence is ONLY computed when the user explicitly clicks
+ * "Run Strategic Analysis" on the Command Deck.
  *
- * Includes full pipeline diagnostics tracing and hash-guarded recompute.
+ * No automatic insight generation. Steps only collect evidence.
  */
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
-  clusterEvidenceIntoInsights,
-  generateOpportunities,
-  generateStrategicNarrative,
-  type Insight,
-  type Opportunity,
+  runStrategicAnalysis,
+  type StrategicInsight,
   type StrategicNarrative,
-} from "@/lib/insightLayer";
-import {
-  buildSystemIntelligence,
-  invalidateIntelligence,
-  type SystemIntelligenceInput,
-  type SystemIntelligence,
-} from "@/lib/systemIntelligence";
+  type StrategicAnalysisInput,
+  type StrategicAnalysisOutput,
+  type StrategicDiagnostic,
+} from "@/lib/strategicEngine";
 import { buildInsightGraph, type InsightGraph } from "@/lib/insightGraph";
 import {
   extractAllEvidence,
@@ -32,25 +25,36 @@ import {
   type MetricDomain,
   type MetricEvidence,
 } from "@/lib/evidenceEngine";
-import { getScenarios, allScenariosToEvidence } from "@/lib/scenarioEngine";
-import { compareScenarios, type ScenarioComparison } from "@/lib/scenarioComparisonEngine";
-import { computeAllSensitivityReports, type SensitivityReport } from "@/lib/sensitivityEngine";
-import { traceStage, buildDiagnostic, type PipelineStageResult } from "@/lib/pipelineDiagnostics";
-
-const DEBOUNCE_MS = 600;
+import {
+  buildSystemIntelligence,
+  invalidateIntelligence,
+  type SystemIntelligenceInput,
+  type SystemIntelligence,
+} from "@/lib/systemIntelligence";
+import { type ScenarioComparison } from "@/lib/scenarioComparisonEngine";
+import { type SensitivityReport } from "@/lib/sensitivityEngine";
+import {
+  computeCommandDeckMetrics,
+  type CommandDeckMetrics,
+} from "@/lib/commandDeckMetrics";
 
 export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
   graph: InsightGraph | null;
   evidence: Record<MetricDomain, MetricEvidence> | null;
-  insights: Insight[];
-  opportunities: Opportunity[];
+  insights: StrategicInsight[];
+  opportunities: any[];
   narrative: StrategicNarrative | null;
+  diagnostic: StrategicDiagnostic | null;
   scenarioComparison: ScenarioComparison | null;
   sensitivityReports: SensitivityReport[];
   isComputing: boolean;
   completedSteps: Set<string>;
   pipelineCompletion: number;
+  /** Manually trigger the full strategic analysis */
+  runAnalysis: () => void;
+  /** Whether analysis has been run at least once */
+  hasRun: boolean;
 }
 
 export function useAutoAnalysis(): AutoAnalysisResult {
@@ -64,13 +68,14 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
   const [graph, setGraph] = useState<InsightGraph | null>(null);
   const [evidence, setEvidence] = useState<Record<MetricDomain, MetricEvidence> | null>(null);
-  const [insights, setInsights] = useState<Insight[]>([]);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [insights, setInsights] = useState<StrategicInsight[]>([]);
+  const [opportunities, setOpportunities] = useState<any[]>([]);
   const [narrative, setNarrative] = useState<StrategicNarrative | null>(null);
+  const [diagnostic, setDiagnostic] = useState<StrategicDiagnostic | null>(null);
   const [scenarioComparison, setScenarioComparison] = useState<ScenarioComparison | null>(null);
   const [sensitivityReports, setSensitivityReports] = useState<SensitivityReport[]>([]);
   const [isComputing, setIsComputing] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hasRun, setHasRun] = useState(false);
 
   // Track completed steps
   const completedSteps = useMemo(() => {
@@ -88,28 +93,22 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   // Infer analysis mode
   const analysisMode = useMemo(() => {
     const mode = (analysis as any).activeMode;
-    if (mode === "service") return "service";
-    if (mode === "business") return "business_model";
-    return "product";
+    if (mode === "service") return "service" as const;
+    if (mode === "business") return "business_model" as const;
+    return "product" as const;
   }, [(analysis as any).activeMode]);
 
-  // Core computation function
-  const compute = useCallback(() => {
+  // Run the full strategic analysis
+  const runAnalysis = useCallback(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
-    if (!analysisId || !hasComputableData) {
-      setIntelligence(null);
-      setGraph(null);
-      setEvidence(null);
-      return;
-    }
+    if (!analysisId || !hasComputableData) return;
 
     setIsComputing(true);
 
     try {
-      const stages: PipelineStageResult[] = [];
+      // Build system intelligence first (for legacy compat)
       invalidateIntelligence(analysisId);
-
-      const input: SystemIntelligenceInput = {
+      const siInput: SystemIntelligenceInput = {
         analysisId,
         governedData,
         disruptData: disruptData as Record<string, unknown> | null,
@@ -118,127 +117,62 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         flipIdeas: null,
         activeLenses: [],
       };
+      const newIntelligence = buildSystemIntelligence(siInput);
 
-      const { result: newIntelligence, stage: s0 } = traceStage("System Intelligence", 1, () =>
-        buildSystemIntelligence(input)
-      );
-      stages.push(s0);
+      // Run the strategic engine
+      const input: StrategicAnalysisInput = {
+        products,
+        selectedProduct,
+        disruptData,
+        redesignData,
+        stressTestData,
+        pitchDeckData,
+        governedData,
+        businessAnalysisData,
+        intelligence: newIntelligence,
+        analysisType: analysisMode,
+        analysisId,
+        completedSteps,
+      };
 
-      // ── Evidence Pipeline ──
-      const { result: newEvidence, stage: s1 } = traceStage("Evidence Extraction", 1, () =>
-        extractAllEvidence({
-          products,
-          selectedProduct,
-          disruptData,
-          redesignData,
-          stressTestData,
-          pitchDeckData,
-          governedData,
-          businessAnalysisData,
-          intelligence: newIntelligence,
-          analysisType: analysisMode,
-        })
-      );
-      stages.push(s1);
-
-      // Step 2: Merge simulation evidence
-      const allEvItems = Object.values(newEvidence).flatMap((m: any) => m.items || []);
-      const mode = analysisMode === "service" ? "service" as const
-        : analysisMode === "business_model" ? "business_model" as const
-        : "product" as const;
-      const simEvidence = allScenariosToEvidence(analysisId, mode);
-      const mergedEvidence = simEvidence.length > 0 ? [...allEvItems, ...simEvidence] : allEvItems;
-
-      // Step 3: Cluster evidence into Insights
-      const { result: newInsights, stage: s2 } = traceStage("Insight Clustering", mergedEvidence.length, () =>
-        clusterEvidenceIntoInsights(mergedEvidence)
-      );
-      stages.push(s2);
-
-      // Log insight type distribution
-      const insightsByType: Record<string, number> = {};
-      for (const ins of newInsights) {
-        insightsByType[ins.insightType] = (insightsByType[ins.insightType] || 0) + 1;
-      }
-      console.log("[AutoAnalysis] Insight distribution:", insightsByType);
-
-      // Step 4: Generate opportunities from insights
-      const { result: newOpps, stage: s3 } = traceStage("Opportunity Generation", newInsights.length, () =>
-        generateOpportunities(newInsights, mergedEvidence)
-      );
-      stages.push(s3);
-
-      // Step 5: Generate strategic narrative
-      const newNarrative = generateStrategicNarrative(newInsights, mergedEvidence);
-
-      // Step 6: Scenario comparison & sensitivity (needed before graph)
-      const scenarios = getScenarios(analysisId);
-      const newComparison = scenarios.length > 0 ? compareScenarios(scenarios) : null;
-      const newSensitivity = computeAllSensitivityReports(scenarios);
-
-      // Step 7: Build insight graph from evidence + insights + scenarios
-      const insightsForGraph = newInsights.map(i => ({
-        id: i.id, label: i.label, description: i.description,
-        insightType: i.insightType, impact: i.impact,
-        confidenceScore: i.confidenceScore, evidenceIds: i.evidenceIds,
-        recommendedTools: i.recommendedTools,
-      }));
-      const scenariosForGraph = newComparison?.scenarios;
-
-      const { result: newGraph, stage: s4 } = traceStage("Graph Construction", mergedEvidence.length + newInsights.length, () =>
-        buildInsightGraph(
-          newEvidence, undefined, undefined, undefined, undefined,
-          insightsForGraph.length > 0 ? insightsForGraph : undefined,
-          scenariosForGraph && scenariosForGraph.length > 0 ? scenariosForGraph : undefined,
-        )
-      );
-      stages.push(s4);
-
-      // Build diagnostic summary
-      buildDiagnostic(stages, newGraph.nodes, mergedEvidence.length, newInsights.length, scenarios.length);
+      const result = runStrategicAnalysis(input);
 
       setIntelligence(newIntelligence);
-      setGraph(newGraph);
-      setEvidence(newEvidence);
-      setInsights(newInsights);
-      setOpportunities(newOpps);
-      setNarrative(newNarrative);
-      setScenarioComparison(newComparison);
-      setSensitivityReports(newSensitivity);
+      setGraph(result.graph);
+      setEvidence(result.evidence);
+      setInsights(result.insights);
+      setOpportunities(result.opportunities);
+      setNarrative(result.narrative);
+      setDiagnostic(result.diagnostic);
+      setScenarioComparison(result.scenarioComparison);
+      setSensitivityReports(result.sensitivityReports);
+      setHasRun(true);
+
+      console.log("[StrategicEngine] Analysis complete:", {
+        evidence: result.flatEvidence.length,
+        constraints: result.diagnostic.constraintCount,
+        drivers: result.diagnostic.driverCount,
+        leverage: result.diagnostic.leverageCount,
+        opportunities: result.diagnostic.opportunityCount,
+        pathways: result.diagnostic.pathwayCount,
+      });
     } catch (err) {
-      console.warn("[AutoAnalysis] Computation error:", err);
+      console.warn("[StrategicEngine] Computation error:", err);
     } finally {
       setIsComputing(false);
     }
-  }, [analysisId, selectedProduct, governedData, disruptData, businessAnalysisData, products, redesignData, stressTestData, pitchDeckData, analysisMode]);
-
-  // Debounced recompute on data changes
-  useEffect(() => {
-    const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
-    if (!analysisId || !hasComputableData) return;
-
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      compute();
-    }, DEBOUNCE_MS);
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
   }, [
-    analysisId, selectedProduct, businessAnalysisData,
-    governedData, disruptData, redesignData,
-    stressTestData, pitchDeckData,
-    compute,
+    analysisId, selectedProduct, governedData, disruptData, businessAnalysisData,
+    products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,
   ]);
 
-  // Initial compute
+  // Auto-run on first load if data exists (to show existing analysis results)
   useEffect(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
-    if (analysisId && hasComputableData && !intelligence) {
-      compute();
+    if (analysisId && hasComputableData && !hasRun && !isComputing) {
+      runAnalysis();
     }
-  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, compute, intelligence]);
+  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, hasRun, isComputing, runAnalysis]);
 
   return {
     intelligence,
@@ -247,10 +181,13 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     insights,
     opportunities,
     narrative,
+    diagnostic,
     scenarioComparison,
     sensitivityReports,
     isComputing,
     completedSteps,
     pipelineCompletion,
+    runAnalysis,
+    hasRun,
   };
 }
