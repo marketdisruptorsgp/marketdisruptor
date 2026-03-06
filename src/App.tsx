@@ -104,6 +104,13 @@ function LazyRoute({ children }: { children: ReactNode }) {
   );
 }
 
+/** Redirect /analysis/:id → /analysis/:id/command-deck */
+function CommandDeckRedirect() {
+  const id = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/)?.[1];
+  if (id) return <Navigate to={`/analysis/${id}/command-deck`} replace />;
+  return <Navigate to="/workspace" replace />;
+}
+
 function AppRoutes() {
   const { user, loading } = useAuth();
 
