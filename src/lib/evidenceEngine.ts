@@ -543,6 +543,44 @@ function extractRiskEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
+  // ── Business Model: governed decision_synthesis blocking uncertainties ──
+  const bizGov = input.businessAnalysisData?.governed;
+  if (bizGov?.decision_synthesis) {
+    const ds = bizGov.decision_synthesis;
+    safeArr(ds.blocking_uncertainties).forEach((u: any, i: number) => {
+      const label = typeof u === "string" ? u : (u.label || `Blocking Uncertainty ${i + 1}`);
+      items.push({
+        id: makeId("risk-bm-bu"), type: "risk", label,
+        pipelineStep: "report", tier: "structural", impact: 8,
+        mode, sourceEngine: "pipeline", category: "demand_signal",
+      });
+    });
+    if (ds.decision_grade === "blocked" || ds.confidence_score < 40) {
+      items.push({
+        id: makeId("risk-bm-dg"), type: "risk",
+        label: `Decision Grade: ${ds.decision_grade || "low confidence"} (${ds.confidence_score || 0}%)`,
+        description: ds.next_required_evidence || "Insufficient evidence for confident decision",
+        pipelineStep: "report", tier: "structural", impact: 9,
+        mode, sourceEngine: "pipeline",
+      });
+    }
+  }
+
+  // Fragility scores from root hypotheses
+  if (bizGov?.root_hypotheses) {
+    safeArr(bizGov.root_hypotheses).forEach((h: any) => {
+      if (h.fragility_score && h.fragility_score <= 3) {
+        items.push({
+          id: makeId("risk-bm-frag"), type: "risk",
+          label: `High Fragility: ${h.hypothesis_statement?.substring(0, 80) || "hypothesis"}`,
+          description: `Fragility score: ${h.fragility_score}/10 — highly vulnerable to disruption`,
+          pipelineStep: "report", tier: "structural", impact: 8,
+          mode, sourceEngine: "pipeline",
+        });
+      }
+    });
+  }
+
   return items;
 }
 
