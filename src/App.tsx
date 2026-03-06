@@ -195,6 +195,7 @@ function AppRoutes() {
         <Route path="/faqs" element={<LazyRoute><FaqsPage /></LazyRoute>} />
         <Route path="/api" element={<LazyRoute><ApiPage /></LazyRoute>} />
         <Route path="/pipeline" element={<LazyRoute><PipelinePage /></LazyRoute>} />
+        <Route path="/dashboard" element={<Navigate to="/workspace" replace />} />
         <Route path="/start/product" element={<Navigate to="/analysis/new" replace />} />
         <Route path="/start/service" element={<Navigate to="/analysis/new" replace />} />
         <Route path="/start/business" element={<Navigate to="/analysis/new" replace />} />

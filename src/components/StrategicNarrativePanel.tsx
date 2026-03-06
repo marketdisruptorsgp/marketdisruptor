@@ -62,14 +62,14 @@ export const StrategicNarrativePanel = memo(function StrategicNarrativePanel(pro
                   <div className="flex items-center gap-1.5 mb-1">
                     <Icon size={12} style={{ color: value ? item.color : "hsl(var(--muted-foreground))" }} />
                     <span
-                      className="text-[10px] font-extrabold uppercase tracking-widest"
+                      className="text-xs font-extrabold uppercase tracking-widest"
                       style={{ color: value ? item.color : "hsl(var(--muted-foreground))" }}
                     >
                       {item.label}
                     </span>
                   </div>
-                  <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2">
-                    {value || "Additional inputs required to generate this insight."}
+                  <p className="text-xs font-semibold text-foreground leading-snug line-clamp-3">
+                    {value || "Pending — run more pipeline steps."}
                   </p>
                 </div>
                 {i < CHAIN.length - 1 && (
@@ -80,10 +80,12 @@ export const StrategicNarrativePanel = memo(function StrategicNarrativePanel(pro
           })}
         </div>
 
-        {/* Narrative summary */}
-        <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-xs text-muted-foreground leading-relaxed">{narrativeSummary}</p>
-        </div>
+        {/* Narrative summary — clean sentences */}
+        {narrativeSummary && (
+          <div className="mt-3 pt-3 border-t border-border">
+            <p className="text-xs text-muted-foreground leading-relaxed">{narrativeSummary}</p>
+          </div>
+        )}
       </div>
     </div>
   );
