@@ -69,7 +69,7 @@ export default function CommandDeckPage() {
   }, []);
   const analysisId = ctxAnalysisId || urlAnalysisId;
   const modeAccent = theme.primary;
-  const { intelligence, graph, completedSteps, narrative } = autoAnalysis;
+  const { intelligence, graph, completedSteps, narrative, diagnostic, runAnalysis, hasRun, isComputing: engineComputing } = autoAnalysis;
 
   // ── Aggregated Metrics ──
   const allEvidence = useMemo(() => extractAllEvidence({
