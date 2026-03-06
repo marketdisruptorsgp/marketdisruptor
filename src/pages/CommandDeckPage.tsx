@@ -328,6 +328,12 @@ export default function CommandDeckPage() {
 
   const metrics: DeckMetrics = useMemo(() => computeCommandDeckMetrics(metricsInput), [metricsInput]);
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
+  const allEvidence = useMemo(() => extractAllEvidence(metricsInput), [metricsInput]);
+
+  // ── Drilldown state ──
+  const [explorerDomain, setExplorerDomain] = useState<MetricDomain | null>(null);
+  const openExplorer = useCallback((d: MetricDomain) => setExplorerDomain(d), []);
+  const closeExplorer = useCallback(() => setExplorerDomain(null), []);
 
   // ── Strategic Potential Score ──
   const strategicPotential = useMemo(() => {
