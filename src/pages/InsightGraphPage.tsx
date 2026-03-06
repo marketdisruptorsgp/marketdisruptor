@@ -103,7 +103,7 @@ export default function InsightGraphPage() {
   const handleRecomputeAll = useCallback(() => {
     if (!analysisId) return;
     if (completedSteps.size === 0) {
-      navigate(`/analysis/${analysisId}/report`);
+      navigate(`/analysis/${analysisId}/command-deck`);
       return;
     }
     // In-place — no navigation jump

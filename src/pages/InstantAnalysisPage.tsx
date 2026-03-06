@@ -639,7 +639,7 @@ export default function InstantAnalysisPage() {
                          analysis.setLoadedFromSaved(true);
                          // Defer navigation to next frame so React commits all state updates first
                          requestAnimationFrame(() => {
-                           navigate(`/analysis/${savedId}/report`);
+                           navigate(`/analysis/${savedId}/command-deck`);
                          });
                        } catch (err) {
                          console.error("Navigation error:", err);
