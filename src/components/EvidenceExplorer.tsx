@@ -238,6 +238,13 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
                                   {item.relatedSignals.length} related
                                 </span>
                               )}
+                              {item.competitorReferences && item.competitorReferences.length > 0 && (
+                                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                                  style={{ background: "hsl(262 83% 58% / 0.12)", color: "hsl(262 83% 58%)" }}>
+                                  <Building2 size={8} />
+                                  {item.competitorReferences.map(c => c.name).join(", ")}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
