@@ -895,6 +895,9 @@ export default function CommandDeckPage() {
             <LensIntelligencePanel
               analysisMode={analysis.activeMode || "product"}
               signalKeywords={lensSignalKeywords}
+              analysisId={analysisId || ""}
+              recommendedToolIds={reasoningToolRecs}
+              onScenarioSaved={handleScenarioSaved}
             />
           </aside>
         </div>
@@ -904,6 +907,9 @@ export default function CommandDeckPage() {
           <LensIntelligencePanel
             analysisMode={analysis.activeMode || "product"}
             signalKeywords={lensSignalKeywords}
+            analysisId={analysisId || ""}
+            recommendedToolIds={reasoningToolRecs}
+            onScenarioSaved={handleScenarioSaved}
           />
         </div>
 
