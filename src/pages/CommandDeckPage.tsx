@@ -27,7 +27,7 @@ import {
   LayoutDashboard, GitBranch, Target, Shield, Lightbulb,
   Activity, Crosshair, AlertTriangle, CheckCircle2, Circle,
   ChevronRight, Rocket, TrendingUp, ArrowRight, ArrowUpDown,
-  Zap, BarChart3, ExternalLink, RefreshCw,
+  Zap, BarChart3, ExternalLink, RefreshCw, Brain,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
