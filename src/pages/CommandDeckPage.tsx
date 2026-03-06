@@ -530,7 +530,11 @@ export default function CommandDeckPage() {
 
   // ── AUTO-RECOMPUTE: trigger intelligence pipeline on data changes ──
   const lastRecomputeHash = useRef<string>("");
-  const savedScenarios = useMemo(() => getScenarios(analysisId || ""), [analysisId, intelligenceEvents.length]);
+  const savedScenarios = useMemo(() => {
+    const s = getScenarios(analysisId || "");
+    scenarioCountRef.current = s.length;
+    return s;
+  }, [analysisId, intelligenceEvents.length]);
 
   useEffect(() => {
     const hash = JSON.stringify({
