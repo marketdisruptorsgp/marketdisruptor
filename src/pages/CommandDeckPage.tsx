@@ -472,6 +472,19 @@ export default function CommandDeckPage() {
         </div>
 
         {/* ═══ ZONE 1 — METRIC CARDS ═══ */}
+        {tierFilter && (
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-[10px] font-bold text-muted-foreground">Filtered to:</span>
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
+              style={{
+                background: `${tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)"}15`,
+                color: tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)",
+              }}>
+              {tierFilter.charAt(0).toUpperCase() + tierFilter.slice(1)} tier
+            </span>
+            <button onClick={() => setTierFilter(null)} className="text-[10px] font-bold text-muted-foreground underline">Clear</button>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <MetricCard
             label="Opportunity Score"
