@@ -742,18 +742,24 @@ export default function CommandDeckPage() {
             />
 
             {/* ━━━ SECTION 2 — OPPORTUNITY RADAR ━━━ */}
-            <OpportunityRadar
-              opportunities={filteredOpps}
-              onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
-            />
+            <div id="opportunities">
+              <OpportunityRadar
+                opportunities={filteredOpps}
+                onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
+              />
+            </div>
 
             {/* ━━━ SECTION 3 — SCENARIO COMMAND CENTER ━━━ */}
-            {autoAnalysis.scenarioComparison && autoAnalysis.scenarioComparison.scenarios.length > 0 && (
-              <ScenarioCommandCenter comparison={autoAnalysis.scenarioComparison} />
-            )}
+            <div id="scenarios">
+              {autoAnalysis.scenarioComparison && autoAnalysis.scenarioComparison.scenarios.length > 0 && (
+                <ScenarioCommandCenter comparison={autoAnalysis.scenarioComparison} />
+              )}
+            </div>
 
             {/* ━━━ SECTION 4 — RISK INTELLIGENCE PANEL ━━━ */}
-            <RiskIntelligencePanel sensitivityReports={autoAnalysis.sensitivityReports} />
+            <div id="risk">
+              <RiskIntelligencePanel sensitivityReports={autoAnalysis.sensitivityReports} />
+            </div>
 
             {/* ━━━ SUPPORTING — Key Insight Signals ━━━ */}
             <KeyInsightSignals
