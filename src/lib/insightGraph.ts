@@ -190,11 +190,15 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
 
   // ── Step 1: Convert Evidence → Graph Nodes ──
   for (const ev of allEvidence) {
+    // Sanitize: skip [object Object] or empty labels
+    const rawLabel = typeof ev.label === "string" ? ev.label : String(ev.label ?? "");
+    if (!rawLabel || rawLabel === "[object Object]" || rawLabel.startsWith("[object")) continue;
+    
     const nodeType = EVIDENCE_TO_NODE[ev.type] || "evidence";
     addNode({
       id: ev.id,
       type: nodeType,
-      label: ev.label.slice(0, 120),
+      label: rawLabel.slice(0, 120),
       detail: ev.description,
       impact: ev.impact ?? 5,
       confidence: confidenceLabel(ev.confidenceScore),
@@ -209,6 +213,25 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
       sourceEngine: ev.sourceEngine,
       confidenceScore: ev.confidenceScore,
     });
+  }
+
+  // ── Deduplicate nodes with similar labels ──
+  const seen = new Map<string, string>(); // normalized label → node id
+  const dupeIds = new Set<string>();
+  for (const n of nodes) {
+    const normalized = n.label.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (seen.has(normalized)) {
+      dupeIds.add(n.id);
+    } else {
+      seen.set(normalized, n.id);
+    }
+  }
+  // Remove duplicates
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    if (dupeIds.has(nodes[i].id)) {
+      nodeIndex.delete(nodes[i].id);
+      nodes.splice(i, 1);
+    }
   }
 
   // ── Step 2: Build causal edges based on reasoning chain ──
