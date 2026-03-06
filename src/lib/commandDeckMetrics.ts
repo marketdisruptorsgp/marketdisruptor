@@ -163,30 +163,46 @@ function computeFromEvidence(
   const pipelineCompletion = Math.round((completedSteps.size / 5) * 100);
   const assumptions = all.filter(e => e.type === "assumption");
 
-  // Legacy compat scores derived from evidence counts
+  // Legacy compat scores derived from multi-factor evidence analysis
   const avgImpact = all.length > 0 ? all.reduce((s, e) => s + (e.impact ?? 5), 0) / all.length : 0;
+  const avgConfidence = all.length > 0 ? all.reduce((s, e) => s + (e.confidenceScore ?? 0.5), 0) / all.length : 0;
+  const evidenceDiversity = new Set(all.map(e => e.type)).size;
+  const tierCoverage = Object.values(tierBreakdown).filter(v => v > 0).length;
 
-  return {
-    opportunitiesIdentified: opportunities.length,
-    constraintsDetected: constraints.length + friction.filter(e => e.type === "constraint").length,
-    assumptionsChallenged: assumptions.length,
-    leveragePoints: leverage.length,
-    riskSignals: risk.length,
-    frictionSignals: friction.length,
-    pipelineCompletion,
-    contributingSources: sources,
-    isPartial: sources.length < 3,
-    stepSignals,
-    tierBreakdown,
-    modeBreakdown,
-    totalEvidenceCount: all.length,
-    // Legacy
-    opportunityScore: clamp(Math.round(opportunities.length * 0.8), 0, 10),
-    frictionIndex: clamp(Math.round(friction.length * 0.7), 0, 10),
-    constraintsCount: constraints.length,
-    leverageScore: clamp(Math.round(leverage.length * 0.6), 0, 10),
-    riskScore: clamp(Math.round(risk.length * 0.5), 0, 10),
-  };
+  // Multi-factor opportunity score
+  const oppImpactFactor = opportunities.length > 0
+    ? opportunities.reduce((s, e) => s + (e.impact ?? 5), 0) / opportunities.length / 10
+    : 0;
+  const oppVolumeFactor = Math.min(opportunities.length / 8, 1);
+  const diversityBonus = Math.min(evidenceDiversity / 6, 1) * 0.15;
+  const opportunityScore = clamp(Math.round(
+    (oppImpactFactor * 0.4 + oppVolumeFactor * 0.3 + avgConfidence * 0.15 + diversityBonus) * 10
+  ), 0, 10);
+
+  // Multi-factor friction index
+  const frictionImpactFactor = friction.length > 0
+    ? friction.reduce((s, e) => s + (e.impact ?? 5), 0) / friction.length / 10
+    : 0;
+  const frictionVolumeFactor = Math.min(friction.length / 6, 1);
+  const frictionIndex = clamp(Math.round(
+    (frictionImpactFactor * 0.5 + frictionVolumeFactor * 0.3 + (constraints.length > 3 ? 0.2 : constraints.length * 0.05)) * 10
+  ), 0, 10);
+
+  // Multi-factor leverage score
+  const levImpactFactor = leverage.length > 0
+    ? leverage.reduce((s, e) => s + (e.impact ?? 5), 0) / leverage.length / 10
+    : 0;
+  const leverageScore = clamp(Math.round(
+    (levImpactFactor * 0.5 + Math.min(leverage.length / 5, 1) * 0.3 + tierCoverage * 0.07) * 10
+  ), 0, 10);
+
+  // Multi-factor risk score
+  const riskImpactFactor = risk.length > 0
+    ? risk.reduce((s, e) => s + (e.impact ?? 5), 0) / risk.length / 10
+    : 0;
+  const riskScore = clamp(Math.round(
+    (riskImpactFactor * 0.5 + Math.min(risk.length / 5, 1) * 0.3 + (1 - avgConfidence) * 0.2) * 10
+  ), 0, 10);
 }
 
 function buildStepSignals(
