@@ -48,8 +48,8 @@ function ConstraintFlowNode({ data }: NodeProps) {
         boxShadow: isHigh
           ? `0 0 24px ${cfg.color}25, 0 4px 16px hsl(0 0% 0% / 0.08)`
           : "0 2px 8px hsl(0 0% 0% / 0.05)",
-        minWidth: 160,
-        maxWidth: 200,
+        minWidth: 180,
+        maxWidth: 260,
       }}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0, width: 1, height: 1 }} />
