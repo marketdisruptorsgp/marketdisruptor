@@ -106,7 +106,7 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
   // 3. Dynamic hash guard — includes evidence count, scenario state, lens state, and tool outputs
   const scenarios = getScenarios(input.analysisId);
   const scenarioSig = scenarios.map(s => `${s.scenarioId}:${s.timestamp}`).join(",");
-  const toolOutputSig = scenarios.map(s => JSON.stringify(s.outputs || {})).join("|").slice(0, 200);
+  const toolOutputSig = scenarios.map(s => JSON.stringify(s.outputResults || {})).join("|").slice(0, 200);
   const signalCount = flat.filter(e => e.type === "signal").length;
   const assumptionCount = flat.filter(e => e.type === "assumption").length;
   const constraintCount = flat.filter(e => e.type === "constraint").length;
