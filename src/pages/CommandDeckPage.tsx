@@ -44,10 +44,14 @@ import { recomputeIntelligence } from "@/lib/recomputeIntelligence";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 import { StrategicSummaryStrip } from "@/components/command-deck/StrategicSummaryStrip";
+import { StrategicSummaryTriad } from "@/components/command-deck/StrategicSummaryTriad";
 import { KeyInsightSignals } from "@/components/command-deck/KeyInsightSignals";
 import { OpportunityBoard } from "@/components/command-deck/OpportunityBoard";
+import { OpportunityRadar } from "@/components/command-deck/OpportunityRadar";
 import { PathwayGenerator } from "@/components/command-deck/PathwayGenerator";
 import { ScenarioSimulationPanel } from "@/components/command-deck/ScenarioSimulationPanel";
+import { ScenarioCommandCenter } from "@/components/command-deck/ScenarioCommandCenter";
+import { RiskIntelligencePanel } from "@/components/command-deck/RiskIntelligencePanel";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -715,78 +719,42 @@ export default function CommandDeckPage() {
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
 
           {/* ── LEFT COLUMN: Intelligence Briefing ── */}
-          <div className="space-y-5 min-w-0">
+          <div className="space-y-6 min-w-0">
 
-            {/* ━━━ MODULE 1 — STRATEGIC SUMMARY ━━━ */}
-            <StrategicSummaryStrip
+            {/* ━━━ SECTION 1 — STRATEGIC SUMMARY TRIAD ━━━ */}
+            <StrategicSummaryTriad
               metrics={metrics}
               opportunities={filteredOpps}
+              scenarioComparison={autoAnalysis.scenarioComparison}
+              sensitivityReports={autoAnalysis.sensitivityReports}
               strategicPotential={strategicPotential}
-              modeAccent={modeAccent}
             />
 
-            {/* Strategic Narrative (if available) */}
-            {narrative && (narrative.primaryConstraint || narrative.keyAssumption || narrative.leveragePoint || narrative.breakthroughOpportunity) && (
-              <motion.div {...fadeUp} transition={{ delay: 0.08 }}>
-                <StrategicNarrativePanel
-                  primaryConstraint={narrative.primaryConstraint}
-                  keyAssumption={narrative.keyAssumption}
-                  leveragePoint={narrative.leveragePoint}
-                  breakthroughOpportunity={narrative.breakthroughOpportunity}
-                  narrativeSummary={narrative.narrativeSummary}
-                />
-              </motion.div>
+            {/* ━━━ SECTION 2 — OPPORTUNITY RADAR ━━━ */}
+            <OpportunityRadar
+              opportunities={filteredOpps}
+              onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
+            />
+
+            {/* ━━━ SECTION 3 — SCENARIO COMMAND CENTER ━━━ */}
+            {autoAnalysis.scenarioComparison && autoAnalysis.scenarioComparison.scenarios.length > 0 && (
+              <ScenarioCommandCenter comparison={autoAnalysis.scenarioComparison} />
             )}
 
-            {/* ━━━ MODULE 2 — KEY INSIGHT SIGNALS ━━━ */}
+            {/* ━━━ SECTION 4 — RISK INTELLIGENCE PANEL ━━━ */}
+            <RiskIntelligencePanel sensitivityReports={autoAnalysis.sensitivityReports} />
+
+            {/* ━━━ SUPPORTING — Key Insight Signals ━━━ */}
             <KeyInsightSignals
               insights={autoAnalysis.insights}
               onViewGraph={() => navigate(`${baseUrl}/insight-graph`)}
             />
 
-            {/* ━━━ MODULE 3 — STRATEGIC OPPORTUNITY BOARD ━━━ */}
-            <OpportunityBoard
-              opportunities={filteredOpps}
-              onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
-            />
-
-            {/* ━━━ MODULE 4 — STRATEGIC PATHWAYS ━━━ */}
+            {/* ━━━ SUPPORTING — Strategic Pathways ━━━ */}
             <PathwayGenerator
               opportunities={filteredOpps}
               insights={autoAnalysis.insights}
             />
-
-            {/* ━━━ MODULE 5 — SCENARIO SIMULATION ━━━ */}
-            <ScenarioSimulationPanel
-              comparison={autoAnalysis.scenarioComparison}
-              sensitivityReports={autoAnalysis.sensitivityReports}
-            />
-
-            {/* ━━━ EXPLORATION LAYER — Discovery Tiers ━━━ */}
-            <div className="space-y-4">
-              {tierFilter && (
-                <div className="flex items-center gap-2 px-1">
-                  <span className="text-[10px] font-bold text-muted-foreground">Filtered to:</span>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
-                    style={{
-                      background: `${tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)"}15`,
-                      color: tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)",
-                    }}>
-                    {tierFilter.charAt(0).toUpperCase() + tierFilter.slice(1)} tier
-                  </span>
-                  <button onClick={() => setTierFilter(null)} className="text-[10px] font-bold text-muted-foreground underline">Clear</button>
-                </div>
-              )}
-
-              {/* Discovery Tiers */}
-              <TierDiscoveryPanel
-                tierState={tierState}
-                activeTierFilter={tierFilter}
-                onSelectTier={handleSelectTier}
-                onMarkComplete={handleMarkComplete}
-                onExploreTier={() => openExplorer("opportunity")}
-              />
-            </div>
             {/* ━━━ LAYER 3 — EXPLORATION LAYER ━━━ */}
             <div className="space-y-5">
               {/* Pipeline + Signal Accumulation */}
