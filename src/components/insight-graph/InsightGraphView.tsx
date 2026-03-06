@@ -326,6 +326,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
   const [activeTab, setActiveTab] = useState<"graph" | "landscape" | "constraints" | "pathways">("graph");
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>("structural");
   const [showOpportunityPaths, setShowOpportunityPaths] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const isMobile = useIsMobile();
 
   // Identify top leverage constraint + breakthrough opportunity
@@ -437,37 +438,119 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
 
   if (graph.nodes.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 rounded-2xl bg-muted border border-border">
-        <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col items-center justify-center h-64 rounded-2xl bg-muted border border-border gap-3">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        </div>
+        <p className="typo-body text-muted-foreground text-center max-w-xs">
           Run the analysis pipeline to populate the Insight Graph.
         </p>
+        <p className="typo-meta text-center">Complete Report → Disrupt to generate graph nodes</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      {/* Tab switcher */}
-      <div className="flex items-center gap-1 flex-wrap">
-        {([
-          { id: "graph", label: "Reasoning Explorer" },
-          { id: "landscape", label: "Opportunity Landscape" },
-          { id: "constraints", label: "Constraint Map" },
-          { id: "pathways", label: "Strategic Pathways" },
-        ] as const).map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setSelectedNodeId(null); }}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
-            style={{
-              background: activeTab === tab.id ? "hsl(var(--primary) / 0.1)" : "transparent",
-              border: `1.5px solid ${activeTab === tab.id ? "hsl(var(--primary) / 0.3)" : "transparent"}`,
-              color: activeTab === tab.id ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+    <div className="space-y-4">
+      {/* ── Unified Toolbar: Tabs + View Mode + Zoom + Toggle + Legend ── */}
+      <div className="rounded-xl border border-border bg-card p-2 space-y-2">
+        {/* Row 1: View tabs */}
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+          {([
+            { id: "graph", label: "Network Graph" },
+            { id: "landscape", label: "Opportunity Landscape" },
+            { id: "constraints", label: "Constraint Map" },
+            { id: "pathways", label: "Strategic Pathways" },
+          ] as const).map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setSelectedNodeId(null); }}
+              className="min-h-[36px] px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0"
+              style={{
+                borderBottom: activeTab === tab.id ? "2px solid hsl(var(--primary))" : "2px solid transparent",
+                color: activeTab === tab.id ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                background: "transparent",
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Row 2: Controls (only on graph tab) */}
+        {activeTab === "graph" && (
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Zoom levels */}
+            <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              {(Object.keys(ZOOM_LEVEL_CONFIG) as ZoomLevel[]).map(level => (
+                <button
+                  key={level}
+                  onClick={() => setZoomLevel(level)}
+                  className="px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all"
+                  style={{
+                    background: zoomLevel === level ? "hsl(var(--card))" : "transparent",
+                    color: zoomLevel === level ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                    boxShadow: zoomLevel === level ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
+                  }}
+                  title={ZOOM_LEVEL_CONFIG[level].description}
+                >
+                  {ZOOM_LEVEL_CONFIG[level].label}
+                </button>
+              ))}
+            </div>
+
+            {/* Opportunity paths toggle */}
+            <button
+              onClick={() => setShowOpportunityPaths(!showOpportunityPaths)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{
+                background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.bgColor : "hsl(var(--muted))",
+                border: `1.5px solid ${showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.borderColor : "hsl(var(--border))"}`,
+                color: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))",
+              }}
+            >
+              <div className="w-2 h-2 rounded-full" style={{ background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))" }} />
+              Opp. Paths
+            </button>
+
+            {selectedNodeId && (
+              <button
+                onClick={() => setSelectedNodeId(null)}
+                className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-muted border border-border text-foreground hover:bg-card transition-colors"
+              >
+                ✕ Clear
+              </button>
+            )}
+
+            {/* Tier legend (inline, desktop) */}
+            {!isMobile && (
+              <div className="flex items-center gap-1 ml-auto overflow-x-auto scrollbar-hide">
+                {TIER_CONFIG.map((tier) => {
+                  const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
+                  if (count === 0) return null;
+                  const cfg = NODE_TYPE_CONFIG[tier.types[0]];
+                  return (
+                    <span
+                      key={tier.label}
+                      className="flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold"
+                      style={{ color: cfg.color }}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
+                      {tier.label} ({count})
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Node count (mobile) */}
+            {isMobile && (
+              <span className="typo-meta ml-auto">
+                {filteredNodes.length} nodes · {filteredEdges.length} edges
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {activeTab === "landscape" ? (
@@ -478,85 +561,6 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
         <StrategicPathways graph={graph} onSelectNode={setSelectedNodeId} />
       ) : (
       <>
-      {/* Zoom Level + Opportunity Path Toggle */}
-      <div className="flex flex-wrap items-center gap-2 overflow-x-auto">
-        {/* Zoom levels */}
-        <div className="flex items-center gap-1 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-          {(Object.keys(ZOOM_LEVEL_CONFIG) as ZoomLevel[]).map(level => (
-            <button
-              key={level}
-              onClick={() => setZoomLevel(level)}
-              className="px-3 py-1.5 rounded-md text-xs font-bold transition-all"
-              style={{
-                background: zoomLevel === level ? "hsl(var(--card))" : "transparent",
-                color: zoomLevel === level ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                boxShadow: zoomLevel === level ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
-              }}
-              title={ZOOM_LEVEL_CONFIG[level].description}
-            >
-              {ZOOM_LEVEL_CONFIG[level].label}
-            </button>
-          ))}
-        </div>
-
-        {/* Opportunity paths toggle */}
-        <button
-          onClick={() => setShowOpportunityPaths(!showOpportunityPaths)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-          style={{
-            background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.bgColor : "hsl(var(--muted))",
-            border: `1.5px solid ${showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.borderColor : "hsl(var(--border))"}`,
-            color: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))",
-          }}
-        >
-          <div className="w-2 h-2 rounded-full" style={{ background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))" }} />
-          {showOpportunityPaths ? "Showing Opportunity Paths" : "Show Opportunity Paths"}
-        </button>
-
-        <div className="h-5 w-px mx-0.5" style={{ background: "hsl(var(--border))" }} />
-
-        {/* Clear selection */}
-        {selectedNodeId && (
-          <button
-            onClick={() => setSelectedNodeId(null)}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-muted border border-border text-foreground hover:bg-card"
-          >
-            ✕ Clear Path
-          </button>
-        )}
-
-        {/* Node count */}
-        <span className="text-xs font-bold text-muted-foreground ml-auto">
-          {filteredNodes.length} nodes · {filteredEdges.length} edges
-        </span>
-      </div>
-
-      {/* Tier legend */}
-      {!isMobile && (
-      <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
-        {TIER_CONFIG.map((tier) => {
-          const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
-          if (count === 0) return null;
-          const cfg = NODE_TYPE_CONFIG[tier.types[0]];
-          return (
-            <div
-              key={tier.label}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
-              style={{
-                background: cfg.bgColor,
-                border: `1px solid ${cfg.borderColor}`,
-                color: cfg.color,
-              }}
-            >
-              <div className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
-              {tier.label}
-              <span className="text-muted-foreground ml-0.5">({count})</span>
-            </div>
-          );
-        })}
-      </div>
-      )}
-
       {/* Active path indicator */}
       <AnimatePresence>
         {selectedNode && highlightedIds && (
@@ -572,23 +576,23 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
           >
             <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: NODE_TYPE_CONFIG[selectedNode.type].color }} />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: NODE_TYPE_CONFIG[selectedNode.type].color }}>
+              <p className="typo-meta font-bold uppercase tracking-widest" style={{ color: NODE_TYPE_CONFIG[selectedNode.type].color }}>
                 Reasoning Chain Active
               </p>
-              <p className="text-sm font-bold text-foreground truncate">
+              <p className="typo-body font-bold text-foreground truncate">
                 Tracing {highlightedIds.size} connected nodes from "{selectedNode.label.slice(0, 50)}"
               </p>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">Leverage</p>
+                <p className="typo-meta">Leverage</p>
                 <p className="text-sm font-extrabold" style={{ color: NODE_TYPE_CONFIG[selectedNode.type].color }}>
                   {selectedNode.leverageScore}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedNodeId(null)}
-                className="px-2 py-1 rounded-md text-xs font-bold bg-muted border border-border text-foreground hover:bg-card transition-colors"
+                className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md text-xs font-bold bg-muted border border-border text-foreground hover:bg-card transition-colors"
               >
                 ✕
               </button>
@@ -597,40 +601,8 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
         )}
       </AnimatePresence>
 
-      {/* Breakthrough Opportunity callout */}
-      {!selectedNodeId && graph.topNodes.breakthroughOpportunity && (
-        <div
-          className="rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer hover-scale"
-          style={{
-            background: NODE_TYPE_CONFIG.outcome.bgColor,
-            border: `1.5px solid ${NODE_TYPE_CONFIG.outcome.borderColor}`,
-          }}
-          onClick={() => setSelectedNodeId(graph.topNodes.breakthroughOpportunity!.id)}
-        >
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: `${NODE_TYPE_CONFIG.outcome.color}20` }}
-          >
-            <span className="text-sm">★</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
-              Breakthrough Opportunity
-            </p>
-            <p className="text-sm font-bold text-foreground truncate">{graph.topNodes.breakthroughOpportunity.label}</p>
-          </div>
-          <div className="text-center flex-shrink-0">
-            <p className="text-xs text-muted-foreground">Leverage</p>
-            <p className="text-sm font-extrabold" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
-              {graph.topNodes.breakthroughOpportunity.leverageScore}
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Graph Canvas */}
       <div
-        
         className="relative rounded-2xl overflow-hidden"
         style={{
           height: isMobile ? "calc(100vh - 320px)" : 580,
@@ -639,6 +611,43 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
           border: "1.5px solid hsl(var(--border))",
         }}
       >
+        {/* Column labels at top */}
+        {!isMobile && (
+          <div className="absolute top-2 left-0 right-0 z-10 flex pointer-events-none" style={{ paddingLeft: 60 }}>
+            {TIER_CONFIG.map((tier) => {
+              const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
+              if (count === 0) return null;
+              return (
+                <div key={tier.label} className="flex-1 text-center">
+                  <span className="typo-meta font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-card/80 backdrop-blur-sm border border-border/50" style={{ color: NODE_TYPE_CONFIG[tier.types[0]].color }}>
+                    {tier.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Onboarding overlay */}
+        {showOnboarding && !selectedNodeId && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-card/95 backdrop-blur-sm border border-border rounded-xl px-6 py-4 shadow-lg text-center max-w-xs pointer-events-auto"
+            >
+              <p className="typo-body font-semibold text-foreground mb-1">Click any node to explore its reasoning chain</p>
+              <p className="typo-meta mb-3">Nodes are connected by causal relationships across the analysis pipeline</p>
+              <button
+                onClick={() => setShowOnboarding(false)}
+                className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+              >
+                Got it
+              </button>
+            </motion.div>
+          </div>
+        )}
+
         <ReactFlow
           nodes={flowNodes}
           edges={flowEdges}
@@ -706,28 +715,23 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
 
       {/* Stats Bar */}
       <div className="flex flex-wrap items-center gap-4 px-2">
-        <span className="text-xs font-bold text-muted-foreground">
-          Zoom: {ZOOM_LEVEL_CONFIG[zoomLevel].label}
+        <span className="typo-meta font-bold">
+          {ZOOM_LEVEL_CONFIG[zoomLevel].label} · {filteredNodes.length} nodes · {filteredEdges.length} edges
           {showOpportunityPaths && " · Opportunity paths only"}
         </span>
         {graph.topNodes.primaryConstraint && (
-          <span className="text-xs font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.constraint.color }}>
+          <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.constraint.color }}>
             ★ Top Constraint: {graph.topNodes.primaryConstraint.label.slice(0, 35)}
-            <span className="text-muted-foreground">(Lev. {graph.topNodes.primaryConstraint.leverageScore})</span>
           </span>
         )}
         {graph.topNodes.breakthroughOpportunity && (
-          <span className="text-xs font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
+          <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
             ★ Breakthrough: {graph.topNodes.breakthroughOpportunity.label.slice(0, 35)}
-            <span className="text-muted-foreground">(Lev. {graph.topNodes.breakthroughOpportunity.leverageScore})</span>
           </span>
         )}
       </div>
       </>
       )}
-
-
-
     </div>
   );
 });

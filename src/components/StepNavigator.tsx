@@ -38,7 +38,7 @@ function LensBadge() {
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide flex-shrink-0"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold tracking-wide flex-shrink-0"
       style={{ background: `${badgeColor}15`, color: badgeColor, border: `1.5px solid ${badgeColor}30` }}
     >
       <LensIcon size={10} />
@@ -54,7 +54,8 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
     <div className="sticky top-0 z-20 -mx-4 px-3 sm:px-4 py-3 sm:py-3.5 bg-background/98 backdrop-blur-md border-b" style={{ borderColor: "hsl(var(--border))" }}>
       <div className="max-w-5xl mx-auto overflow-x-auto scrollbar-hide relative">
         {/* Right fade hint for scrollability */}
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background/95 to-transparent pointer-events-none z-10 sm:hidden" />
+        <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-background/95 to-transparent pointer-events-none z-10 sm:hidden" />
+        <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-background/95 to-transparent pointer-events-none z-10 sm:hidden" />
         {/* Progress bar + Lens badge */}
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2.5">
@@ -104,9 +105,9 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
                   {/* Outdated indicator */}
                   {isOutdated && (
                     <div className="absolute -top-1.5 -right-1.5 z-10">
-                      <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full typo-status-label"
-                        style={{ background: "hsl(38 92% 50%)", color: "white", fontSize: "0.625rem" }}>
-                        <AlertCircle size={9} />
+                    <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full typo-meta"
+                        style={{ background: "hsl(38 92% 50%)", color: "white", fontSize: "0.75rem" }}>
+                        <AlertCircle size={10} />
                         <span className="hidden sm:inline">Outdated</span>
                       </div>
                     </div>

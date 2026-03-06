@@ -36,7 +36,7 @@ export function AnalysisPageShell({ tier, children }: AnalysisPageShellProps) {
   return (
     <div className="min-h-screen bg-background" data-command-deck>
       <HeroSection tier={tier} remainingAnalyses={null} />
-      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+      <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
         {children}
       </main>
     </div>
@@ -182,13 +182,13 @@ export function AnalysisActionToolbar({
   return (
     <>
       {/* Persistent analysis title */}
-      <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground px-1">
+      <h1 className="typo-h1 px-1">
         {analysisTitle}
       </h1>
 
       {/* Compact header: step title + action buttons */}
       <div className="flex items-center justify-between gap-3 px-1">
-        <h2 className="typo-section-title flex-1 min-w-0 truncate">{stepTitle}</h2>
+        <h2 className="typo-h2 flex-1 min-w-0 truncate">{stepTitle}</h2>
         <div className="flex items-center gap-2 flex-shrink-0">
           {strategicProfile && onChangeProfile && (
             <StrategicProfileSelector
@@ -271,32 +271,38 @@ export function AnalysisTabBar<T extends string>({
   tabs, activeTab, onTabChange, accentColor, hiddenTabs, disabledTabs,
 }: AnalysisTabBarProps<T>) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
-      {tabs.map((tab) => {
-        if (hiddenTabs?.includes(tab.id)) return null;
-        const isActive = activeTab === tab.id;
-        const isDisabled = disabledTabs?.includes(tab.id);
-        const TabIcon = tab.icon;
-        const tabColor = tab.color || accentColor;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => !isDisabled && onTabChange(tab.id)}
-            disabled={isDisabled}
-            className="flex items-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap flex-shrink-0"
-            style={{
-              background: isActive ? tabColor : "hsl(var(--muted))",
-              color: isActive ? "white" : "hsl(var(--foreground))",
-              border: isActive ? "none" : "1px solid hsl(var(--border))",
-              opacity: isDisabled ? 0.4 : 1,
-              cursor: isDisabled ? "not-allowed" : "pointer",
-            }}
-          >
-            <TabIcon size={14} />
-            {tab.label}
-          </button>
-        );
-      })}
+    <div className="relative">
+      {/* Left/right fade indicators for mobile scroll */}
+      <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-background to-transparent pointer-events-none z-10 sm:hidden" />
+      <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 sm:hidden" />
+      <div className="flex items-center gap-1 overflow-x-auto pb-1 -mb-1 scrollbar-hide border-b border-border">
+        {tabs.map((tab) => {
+          if (hiddenTabs?.includes(tab.id)) return null;
+          const isActive = activeTab === tab.id;
+          const isDisabled = disabledTabs?.includes(tab.id);
+          const TabIcon = tab.icon;
+          const tabColor = tab.color || accentColor;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => !isDisabled && onTabChange(tab.id)}
+              disabled={isDisabled}
+              className="flex items-center gap-2 min-h-[44px] px-4 py-2.5 text-sm font-semibold transition-all duration-200 whitespace-nowrap flex-shrink-0 relative"
+              style={{
+                background: "transparent",
+                color: isActive ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                opacity: isDisabled ? 0.4 : 1,
+                cursor: isDisabled ? "not-allowed" : "pointer",
+                borderBottom: isActive ? `2px solid ${tabColor}` : "2px solid transparent",
+                marginBottom: "-1px",
+              }}
+            >
+              <TabIcon size={14} style={{ color: isActive ? tabColor : undefined }} />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -331,8 +337,8 @@ export function AnalysisContextBanner({ icon: Icon, title, description, iconColo
         <Icon size={18} style={{ color: iconColor || "hsl(var(--primary))" }} />
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{description}</p>
+        <h3 className="typo-h3">{title}</h3>
+        <p className="typo-body text-muted-foreground mt-1 leading-relaxed">{description}</p>
       </div>
     </div>
   );
@@ -416,7 +422,7 @@ export function AnalysisSectionCard({ icon: Icon, title, children, action }: Ana
 
 export function AnalysisLoadingSpinner({ message }: { message?: string }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background" data-command-deck>
       <div className="flex flex-col items-center gap-4">
         <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin border-primary" />
         {message && <p className="text-sm text-muted-foreground">{message}</p>}

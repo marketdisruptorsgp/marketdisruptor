@@ -57,7 +57,7 @@ interface StepCanvasProps {
 export function StepCanvas({ children, className }: StepCanvasProps) {
   return (
     <motion.div
-      className={cn("space-y-4", className)}
+      className={cn("space-y-6", className)}
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
@@ -105,7 +105,7 @@ export function InsightCard({
       whileHover={hasDetail ? "hover" : "rest"}
       variants={hoverLift}
     >
-      <div className="p-4 sm:p-5">
+      <div className="p-4 sm:p-5 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0 flex-1">
             {Icon && (
@@ -118,10 +118,10 @@ export function InsightCard({
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="text-sm font-bold text-foreground leading-snug">{headline}</h4>
+                <h4 className="typo-body font-bold text-foreground leading-snug">{headline}</h4>
                 {badge && (
                   <span
-                    className="px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0"
+                    className="px-2 py-0.5 rounded-full typo-meta font-bold flex-shrink-0"
                     style={{
                       background: badgeColor ? `${badgeColor}14` : "hsl(var(--primary) / 0.1)",
                       color: badgeColor || "hsl(var(--primary))",
@@ -131,7 +131,7 @@ export function InsightCard({
                   </span>
                 )}
               </div>
-              {subtext && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{subtext}</p>}
+              {subtext && <p className="typo-meta mt-1 leading-relaxed">{subtext}</p>}
             </div>
           </div>
           {action && <div className="flex-shrink-0">{action}</div>}
@@ -142,7 +142,7 @@ export function InsightCard({
         {hasDetail && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="mt-3 flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+            className="mt-3 flex items-center gap-1.5 typo-meta font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
             <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
               <ChevronDown size={12} />
@@ -209,14 +209,14 @@ export function FrameworkPanel({
             </div>
           )}
           <div>
-            <h3 className="text-sm font-bold text-foreground">{title}</h3>
-            {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+            <h3 className="typo-body font-bold text-foreground">{title}</h3>
+            {subtitle && <p className="typo-meta mt-0.5">{subtitle}</p>}
           </div>
         </div>
         {detail && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 typo-meta font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
             {expanded ? "Collapse" : "Deep dive"}
             <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -285,16 +285,16 @@ export function SignalCard({ label, score, type = "neutral", explanation, detail
         <span className={cn("w-2 h-2 rounded-full mt-1.5 flex-shrink-0", style.dot)} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-bold text-foreground leading-snug">{label}</p>
+            <p className="typo-meta font-bold text-foreground leading-snug">{label}</p>
             {score !== undefined && (
-              <span className="text-xs font-bold tabular-nums text-muted-foreground flex-shrink-0">{score.toFixed(1)}</span>
+              <span className="typo-meta font-bold tabular-nums text-muted-foreground flex-shrink-0">{score.toFixed(1)}</span>
             )}
           </div>
-          {explanation && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{explanation}</p>}
+          {explanation && <p className="typo-meta leading-relaxed">{explanation}</p>}
           {detail && (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="mt-1.5 text-xs font-bold text-muted-foreground hover:text-foreground flex items-center gap-1"
+              className="mt-1.5 typo-meta font-bold text-muted-foreground hover:text-foreground flex items-center gap-1"
             >
               <motion.span animate={{ rotate: expanded ? 90 : 0 }} transition={{ duration: 0.15 }}>
                 <ChevronRight size={10} />
@@ -354,18 +354,18 @@ export function OpportunityCard({
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h4 className="text-sm font-bold text-foreground leading-snug">{title}</h4>
+          <h4 className="typo-body font-bold text-foreground leading-snug">{title}</h4>
           {category && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary flex-shrink-0">{category}</span>
+            <span className="px-2 py-0.5 rounded-full typo-meta font-bold bg-primary/10 text-primary flex-shrink-0">{category}</span>
           )}
         </div>
-        <p className="text-xs text-foreground/80 leading-relaxed">{impact}</p>
+        <p className="typo-meta leading-relaxed">{impact}</p>
 
         {(feasibility !== undefined || potential !== undefined) && (
           <div className="mt-3 grid grid-cols-2 gap-3">
             {feasibility !== undefined && (
               <div>
-                <div className="flex justify-between text-xs font-bold text-muted-foreground mb-1">
+                <div className="flex justify-between typo-meta font-bold text-muted-foreground mb-1">
                   <span>Feasibility</span>
                   <span className="tabular-nums">{feasibility}/10</span>
                 </div>
@@ -384,7 +384,7 @@ export function OpportunityCard({
             )}
             {potential !== undefined && (
               <div>
-                <div className="flex justify-between text-xs font-bold text-muted-foreground mb-1">
+                <div className="flex justify-between typo-meta font-bold text-muted-foreground mb-1">
                   <span>Potential</span>
                   <span className="tabular-nums">{potential}/10</span>
                 </div>
@@ -405,7 +405,7 @@ export function OpportunityCard({
         {detail && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="mt-3 flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+            className="mt-3 flex items-center gap-1.5 typo-meta font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
             <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
               <ChevronDown size={12} />
@@ -483,7 +483,7 @@ export function ExpandableDetail({ label, icon: Icon, defaultExpanded = false, c
       >
         <div className="flex items-center gap-2.5">
           {Icon && <Icon size={14} className="text-muted-foreground" />}
-          <span className="text-xs font-bold text-foreground">{label}</span>
+          <span className="typo-meta font-bold text-foreground">{label}</span>
         </div>
         <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <ChevronDown size={14} className="text-muted-foreground" />
@@ -531,7 +531,7 @@ export function MetricCard({ label, value, trend, accentColor, subtext, classNam
       variants={{ rest: { scale: 1 }, hover: { scale: 1.02, transition: { duration: 0.15 } } }}
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
+        <span className="typo-meta font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
         {trend && (
           <TrendIcon
             size={12}
@@ -550,7 +550,7 @@ export function MetricCard({ label, value, trend, accentColor, subtext, classNam
       >
         {value}
       </motion.p>
-      {subtext && <p className="text-xs text-muted-foreground mt-1">{subtext}</p>}
+      {subtext && <p className="typo-meta mt-1">{subtext}</p>}
     </motion.div>
   );
 }
@@ -591,27 +591,27 @@ export function EvidenceCard({ statement, source, sourceUrl, confidence = "unver
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-foreground leading-snug">{statement}</p>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: confStyle.bg, color: confStyle.text }}>
+              <span className="px-2 py-0.5 rounded-full typo-meta font-bold" style={{ background: confStyle.bg, color: confStyle.text }}>
                 {confStyle.label}
               </span>
               {category && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">{category}</span>
+                <span className="px-2 py-0.5 rounded-full typo-meta font-bold bg-primary/10 text-primary">{category}</span>
               )}
               {source && (
                 sourceUrl ? (
                   <a href={sourceUrl} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+                    className="inline-flex items-center gap-1 typo-meta font-bold text-primary hover:underline">
                     <ExternalLink size={9} /> {source}
                   </a>
                 ) : (
-                  <span className="text-xs font-bold text-muted-foreground">{source}</span>
+                  <span className="typo-meta font-bold text-muted-foreground">{source}</span>
                 )
               )}
             </div>
             {detail && (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="mt-1.5 flex items-center gap-1 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                className="mt-1.5 flex items-center gap-1 typo-meta font-bold text-muted-foreground hover:text-foreground transition-colors"
               >
                 <motion.span animate={{ rotate: expanded ? 90 : 0 }} transition={{ duration: 0.15 }}>
                   <ChevronRight size={10} />
@@ -683,15 +683,15 @@ export function HypothesisCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               {isActive && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: (accentColor || "hsl(var(--primary))") + "14", color: accentColor || "hsl(var(--primary))" }}>
+                <span className="px-2 py-0.5 rounded-full typo-meta font-bold" style={{ background: (accentColor || "hsl(var(--primary))") + "14", color: accentColor || "hsl(var(--primary))" }}>
                   Active
                 </span>
               )}
               {constraintType && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-muted text-foreground">{constraintType}</span>
+                <span className="px-2 py-0.5 rounded-full typo-meta font-bold bg-muted text-foreground">{constraintType}</span>
               )}
             </div>
-            <p className="text-sm font-bold text-foreground leading-snug">{hypothesis}</p>
+            <p className="typo-body font-bold text-foreground leading-snug">{hypothesis}</p>
           </div>
 
           {fragilityScore !== undefined && (
@@ -702,7 +702,7 @@ export function HypothesisCard({
               transition={{ duration: 0.4, delay: 0.2 }}
             >
               <span className="text-lg font-black tabular-nums" style={{ color: fragilityColor }}>{fragilityScore.toFixed(1)}</span>
-              <span className="text-xs font-bold text-muted-foreground uppercase">Fragility</span>
+              <span className="typo-meta font-bold text-muted-foreground uppercase">Fragility</span>
             </motion.div>
           )}
         </div>
@@ -710,18 +710,18 @@ export function HypothesisCard({
         {frictionSources && frictionSources.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {frictionSources.slice(0, 3).map((src, i) => (
-              <span key={i} className="px-2 py-0.5 rounded text-xs font-bold bg-muted text-foreground">
+              <span key={i} className="px-2 py-0.5 rounded typo-meta font-bold bg-muted text-foreground">
                 {src.length > 40 ? src.slice(0, 40) + "…" : src}
               </span>
             ))}
             {frictionSources.length > 3 && (
-              <span className="px-2 py-0.5 rounded text-xs font-bold text-muted-foreground">+{frictionSources.length - 3} more</span>
+              <span className="px-2 py-0.5 rounded typo-meta font-bold text-muted-foreground">+{frictionSources.length - 3} more</span>
             )}
           </div>
         )}
 
         {implications && (
-          <p className="text-xs text-foreground/80 mt-2 leading-relaxed">
+          <p className="typo-meta leading-relaxed mt-2">
             {implications.length > 120 ? implications.slice(0, 120) + "…" : implications}
           </p>
         )}
@@ -729,7 +729,7 @@ export function HypothesisCard({
         {detail && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="mt-2 flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+            className="mt-2 flex items-center gap-1.5 typo-meta font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
             <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
               <ChevronDown size={12} />
@@ -794,12 +794,12 @@ export function AnalysisPanel({
           )}
           <div>
             {eyebrow && (
-              <p className="text-xs font-extrabold uppercase tracking-widest mb-0.5" style={{ color: eyebrowColor || "hsl(var(--muted-foreground))" }}>
+              <p className="typo-meta font-extrabold uppercase tracking-widest mb-0.5" style={{ color: eyebrowColor || "hsl(var(--muted-foreground))" }}>
                 {eyebrow}
               </p>
             )}
-            <h3 className="text-sm font-bold text-foreground">{title}</h3>
-            {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+            <h3 className="typo-body font-bold text-foreground">{title}</h3>
+            {subtitle && <p className="typo-meta mt-0.5">{subtitle}</p>}
           </div>
         </div>
         {action && <div className="flex-shrink-0">{action}</div>}
