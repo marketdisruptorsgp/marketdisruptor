@@ -131,7 +131,7 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
 
   // 6. Scenario comparison & sensitivity analysis
   const scenarios = getScenarios(input.analysisId);
-  const scenarioComparison = scenarios.length > 0 ? compareScenarios(scenarios) : null;
+  const scenarioComparison: ScenarioComparison | null = scenarios.length > 0 ? compareScenarios(scenarios) : null;
   const sensitivityReports = computeAllSensitivityReports(scenarios);
 
   if (scenarioComparison && scenarioComparison.scenarios.length > 1) {
