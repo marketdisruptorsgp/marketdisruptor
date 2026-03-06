@@ -39,6 +39,7 @@ import { computeTierState, filterEvidenceByTier, TIER_META, type TierNumber, typ
 import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
+import { allScenariosToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
