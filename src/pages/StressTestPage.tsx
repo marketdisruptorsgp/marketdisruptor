@@ -111,6 +111,14 @@ export default function StressTestPage() {
         analysisId={analysisId || ""}
         accentColor={theme.primary}
         completedSteps={autoAnalysis.completedSteps}
+        products={analysis.products}
+        selectedProduct={selectedProduct}
+        disruptData={analysis.disruptData}
+        redesignData={analysis.redesignData}
+        stressTestData={analysis.stressTestData}
+        pitchDeckData={analysis.pitchDeckData}
+        governedData={governedData}
+        businessAnalysisData={analysis.businessAnalysisData}
       />
 
       <AnalysisActionToolbar

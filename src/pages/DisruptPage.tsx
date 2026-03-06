@@ -130,6 +130,14 @@ export default function DisruptPage() {
         analysisId={analysisId || ""}
         accentColor={theme.primary}
         completedSteps={autoAnalysis.completedSteps}
+        products={products}
+        selectedProduct={selectedProduct}
+        disruptData={analysis.disruptData}
+        redesignData={analysis.redesignData}
+        stressTestData={analysis.stressTestData}
+        pitchDeckData={analysis.pitchDeckData}
+        governedData={governedData as Record<string, unknown> | null}
+        businessAnalysisData={analysis.businessAnalysisData}
       />
 
       {/* ── Loading Tracker ── */}

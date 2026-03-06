@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 import type { SystemIntelligence } from "@/lib/systemIntelligence";
 import type { InsightGraph } from "@/lib/insightGraph";
+import {
+  computeCommandDeckMetrics, type CommandDeckMetricsInput,
+} from "@/lib/commandDeckMetrics";
 
 interface InsightSnapshotPanelProps {
   intelligence: SystemIntelligence | null;
@@ -22,6 +25,15 @@ interface InsightSnapshotPanelProps {
   analysisId: string;
   accentColor: string;
   completedSteps: Set<string>;
+  /** Pipeline step data for aggregated metrics */
+  products?: any[];
+  selectedProduct?: any;
+  disruptData?: any;
+  redesignData?: any;
+  stressTestData?: any;
+  pitchDeckData?: any;
+  governedData?: Record<string, unknown> | null;
+  businessAnalysisData?: any;
 }
 
 const fadeUp = { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } };
@@ -57,6 +69,8 @@ function SignalChip({ label, type, impact }: { label: string; type: "constraint"
 
 export function InsightSnapshotPanel({
   intelligence, graph, analysisId, accentColor, completedSteps,
+  products = [], selectedProduct, disruptData, redesignData,
+  stressTestData, pitchDeckData, governedData, businessAnalysisData,
 }: InsightSnapshotPanelProps) {
   const navigate = useNavigate();
   const baseUrl = `/analysis/${analysisId}`;
@@ -64,6 +78,13 @@ export function InsightSnapshotPanel({
   const constraints = intelligence?.unifiedConstraintGraph || [];
   const opportunities = intelligence?.opportunities || [];
   const leveragePoints = intelligence?.leveragePoints || [];
+
+  // Aggregated metrics from all pipeline steps
+  const metrics = useMemo(() => computeCommandDeckMetrics({
+    products, selectedProduct, disruptData, redesignData,
+    stressTestData, pitchDeckData, governedData: governedData || null,
+    businessAnalysisData, intelligence, completedSteps,
+  }), [products, selectedProduct, disruptData, redesignData, stressTestData, pitchDeckData, governedData, businessAnalysisData, intelligence, completedSteps]);
 
   const topConstraints = useMemo(() =>
     [...constraints].sort((a, b) => b.impact - a.impact).slice(0, 3),
@@ -75,7 +96,8 @@ export function InsightSnapshotPanel({
   );
 
   const insightDensity = constraints.length + opportunities.length + leveragePoints.length;
-  const hasData = insightDensity > 0 || (graph && graph.nodes.length > 0);
+  // Show panel when we have SI data OR aggregated metrics indicate signals
+  const hasData = insightDensity > 0 || (graph && graph.nodes.length > 0) || metrics.constraintsCount > 0 || metrics.opportunityScore > 0;
 
   if (!hasData && completedSteps.size <= 1) return null;
 
@@ -95,10 +117,10 @@ export function InsightSnapshotPanel({
 
           {/* Mini metrics row */}
           <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
-            <MiniMetric label="Insights" value={insightDensity} icon={Activity} color="hsl(229 89% 63%)" />
-            <MiniMetric label="Constraints" value={constraints.length} icon={Shield} color="hsl(0 72% 52%)" />
-            <MiniMetric label="Opportunities" value={opportunities.length} icon={Lightbulb} color="hsl(152 60% 44%)" />
-            <MiniMetric label="Leverage" value={leveragePoints.length} icon={TrendingUp} color="hsl(38 92% 50%)" />
+            <MiniMetric label="Opportunity" value={metrics.opportunityScore} icon={Activity} color="hsl(229 89% 63%)" />
+            <MiniMetric label="Constraints" value={metrics.constraintsCount || constraints.length} icon={Shield} color="hsl(0 72% 52%)" />
+            <MiniMetric label="Leverage" value={metrics.leverageScore} icon={TrendingUp} color="hsl(38 92% 50%)" />
+            <MiniMetric label="Risk" value={metrics.riskScore} icon={AlertTriangle} color="hsl(0 72% 52%)" />
           </div>
 
           {/* Signal chips */}
