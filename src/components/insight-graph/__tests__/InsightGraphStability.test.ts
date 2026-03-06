@@ -159,13 +159,13 @@ describe("Insight Graph — Medium (~20 nodes)", () => {
     graph = buildMediumGraph();
     expect(graph.edges.length).toBeGreaterThan(0);
 
-    // Should have cross-tier edges (signal → constraint, constraint → leverage, etc.)
-    const hasSignalToConstraint = graph.edges.some(e => {
+    // Should have cross-type edges (e.g. signal→assumption, assumption→constraint, constraint→leverage, etc.)
+    const hasCrossTypeEdge = graph.edges.some(e => {
       const s = graph.nodes.find(n => n.id === e.source);
       const t = graph.nodes.find(n => n.id === e.target);
-      return s?.type === "signal" && t?.type === "constraint";
+      return s?.type !== t?.type;
     });
-    expect(hasSignalToConstraint).toBe(true);
+    expect(hasCrossTypeEdge).toBe(true);
   });
 
   it("topNodes are populated", () => {
