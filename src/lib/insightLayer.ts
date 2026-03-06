@@ -413,7 +413,7 @@ function generateStrategicPathways(insights: Insight[], evidence: Evidence[]): I
   const result: Insight[] = [];
 
   // Combine high-impact opportunities with constraint clusters to form pathways
-  const opportunities = insights.filter(i => i.insightType === "emerging_opportunity" && (i.impact ?? 0) >= 5);
+  const opportunities = insights.filter(i => i.insightType === "emerging_opportunity" && (i.impact ?? 0) >= 3);
   const constraints = insights.filter(i => i.insightType === "constraint_cluster");
 
   for (const opp of opportunities.slice(0, 3)) {
