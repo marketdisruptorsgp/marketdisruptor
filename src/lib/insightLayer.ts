@@ -357,7 +357,7 @@ function generateStructuralInsights(insights: Insight[], evidence: Evidence[]): 
   const result: Insight[] = [];
 
   // Find high-impact constraint clusters → structural insights
-  const constraintClusters = insights.filter(i => i.insightType === "constraint_cluster" && (i.impact ?? 0) >= 6);
+  const constraintClusters = insights.filter(i => i.insightType === "constraint_cluster" && (i.impact ?? 0) >= 3);
   for (const cc of constraintClusters.slice(0, 3)) {
     const relatedEvidence = evidence.filter(e => cc.evidenceIds.includes(e.id));
     const toolRecs = deriveToolRecommendations(
