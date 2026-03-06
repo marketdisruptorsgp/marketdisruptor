@@ -419,7 +419,18 @@ export default function CommandDeckPage() {
   const hasBusinessContext = !!businessAnalysisData;
   const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
 
-  const handleRecomputeAll = useCallback(() => {
+  const lensSignalKeywords = useMemo(() => {
+    const keywords: string[] = [];
+    if (autoAnalysis.insights) {
+      autoAnalysis.insights.forEach(i => {
+        if (i.label) keywords.push(i.label);
+        if (i.description) keywords.push(i.description);
+      });
+    }
+    if (narrative?.narrativeSummary) keywords.push(narrative.narrativeSummary);
+    return keywords;
+  }, [autoAnalysis.insights, narrative]);
+
     toast.info("Recomputing analysis intelligence…");
     // Trigger auto-analysis recomputation by staying on the Command Deck
     // The useAutoAnalysis hook will detect data changes and recompute
