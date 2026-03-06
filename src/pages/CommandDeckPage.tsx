@@ -462,7 +462,7 @@ export default function CommandDeckPage() {
     <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
 
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
+      <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
 
         {/* ═══ HEADER ═══ */}
         <motion.div {...fadeUp} className="rounded-2xl p-5 sm:p-6 bg-card border border-border">
@@ -497,7 +497,7 @@ export default function CommandDeckPage() {
                 }}
               >
                 <RefreshCw size={15} />
-                Recompute Analysis
+                Recompute
               </button>
               <StrategicPotentialGauge score={strategicPotential} accent={modeAccent} />
             </div>
@@ -532,349 +532,367 @@ export default function CommandDeckPage() {
           ))}
         </div>
 
-        {/* ═══ STRATEGIC NARRATIVE ═══ */}
-        {narrative && (narrative.primaryConstraint || narrative.keyAssumption || narrative.leveragePoint || narrative.breakthroughOpportunity) && (
-          <motion.div {...fadeUp} transition={{ delay: 0.08 }}>
-            <StrategicNarrativePanel
-              primaryConstraint={narrative.primaryConstraint}
-              keyAssumption={narrative.keyAssumption}
-              leveragePoint={narrative.leveragePoint}
-              breakthroughOpportunity={narrative.breakthroughOpportunity}
-              narrativeSummary={narrative.narrativeSummary}
-            />
-          </motion.div>
-        )}
+        {/* ═══════════════════════════════════════════════════════
+         *  3-LAYER STRATEGIC BRIEFING + LENS INTELLIGENCE PANEL
+         * ═══════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
 
-        {/* ═══ AUTO-SURFACED STRUCTURAL INSIGHT ═══ */}
-        {narrative?.narrativeSummary && (
-          <motion.div {...fadeUp} transition={{ delay: 0.12 }}
-            className="rounded-xl p-5 bg-card border border-border"
-            style={{ borderLeft: `3px solid ${modeAccent}` }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${modeAccent}15` }}>
-                <Brain size={13} style={{ color: modeAccent }} />
-              </div>
-              <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Structural Insight</p>
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Auto-generated</span>
-            </div>
-            <p className="text-sm font-semibold text-foreground leading-relaxed max-w-3xl">
-              {narrative.narrativeSummary}
-            </p>
-            {graph && graph.nodes.length > 3 && (
-              <button
-                onClick={() => navigate(`${baseUrl}/insight-graph`)}
-                className="mt-3 flex items-center gap-1.5 text-[11px] font-bold transition-colors hover:opacity-80"
-                style={{ color: modeAccent }}
-              >
-                <GitBranch size={12} /> Explore full reasoning chain →
-              </button>
-            )}
-          </motion.div>
-        )}
+          {/* ── LEFT COLUMN: Intelligence Briefing ── */}
+          <div className="space-y-5 min-w-0">
 
-        {/* ═══ ZONE 1 — METRIC CARDS ═══ */}
-        {tierFilter && (
-          <div className="flex items-center gap-2 px-1">
-            <span className="text-[10px] font-bold text-muted-foreground">Filtered to:</span>
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
-              style={{
-                background: `${tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)"}15`,
-                color: tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)",
-              }}>
-              {tierFilter.charAt(0).toUpperCase() + tierFilter.slice(1)} tier
-            </span>
-            <button onClick={() => setTierFilter(null)} className="text-[10px] font-bold text-muted-foreground underline">Clear</button>
-          </div>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <MetricCard
-            label="Opportunity Signals"
-            value={metrics.opportunityScore}
-            evidence={`${metrics.opportunitiesIdentified} evidence points detected`}
-            evidenceCount={filteredEvidence.opportunity.evidenceCount}
-            description="Discovery signals from redesign and leverage analysis"
-            icon={Lightbulb}
-            color="hsl(152 60% 44%)"
-            trend={getTrend(metrics.opportunityScore)}
-            delay={0.05}
-            onClick={() => openExplorer("opportunity")}
-          />
-          <MetricCard
-            label="Constraint Signals"
-            value={metrics.frictionIndex}
-            evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
-            evidenceCount={filteredEvidence.friction.evidenceCount}
-            description="Structural friction and industry constraints"
-            icon={AlertTriangle}
-            color="hsl(0 72% 52%)"
-            trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
-            delay={0.1}
-            onClick={() => openExplorer("friction")}
-          />
-          <MetricCard
-            label="Assumptions Mapped"
-            value={metrics.constraintsCount}
-            evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
-            evidenceCount={filteredEvidence.constraint.evidenceCount}
-            description="Industry assumptions and structural constraints identified"
-            icon={Crosshair}
-            color="hsl(0 72% 52%)"
-            trend="neutral"
-            delay={0.15}
-            onClick={() => openExplorer("constraint")}
-          />
-          <MetricCard
-            label="Leverage Points"
-            value={metrics.leverageScore}
-            evidence={`${metrics.leveragePoints} leverage signals`}
-            evidenceCount={filteredEvidence.leverage.evidenceCount}
-            description="Structural leverage and hidden value signals"
-            icon={Zap}
-            color="hsl(38 92% 50%)"
-            trend={getTrend(metrics.leverageScore)}
-            delay={0.2}
-            onClick={() => openExplorer("leverage")}
-          />
-          <MetricCard
-            label="Risk Indicators"
-            value={metrics.riskScore}
-            evidence={`${metrics.riskSignals} risk signals`}
-            evidenceCount={filteredEvidence.risk.evidenceCount}
-            description="Execution, feasibility, and market risk signals"
-            icon={Shield}
-            color="hsl(0 72% 52%)"
-            trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
-            delay={0.25}
-            onClick={() => openExplorer("risk")}
-          />
-        </div>
+            {/* ━━━ LAYER 1 — STRATEGIC HEADLINE ━━━ */}
+            <div className="space-y-4">
+              {/* Strategic Narrative */}
+              {narrative && (narrative.primaryConstraint || narrative.keyAssumption || narrative.leveragePoint || narrative.breakthroughOpportunity) && (
+                <motion.div {...fadeUp} transition={{ delay: 0.08 }}>
+                  <StrategicNarrativePanel
+                    primaryConstraint={narrative.primaryConstraint}
+                    keyAssumption={narrative.keyAssumption}
+                    leveragePoint={narrative.leveragePoint}
+                    breakthroughOpportunity={narrative.breakthroughOpportunity}
+                    narrativeSummary={narrative.narrativeSummary}
+                  />
+                </motion.div>
+              )}
 
-        {/* ═══ DISCOVERY TIERS ═══ */}
-        <TierDiscoveryPanel
-          tierState={tierState}
-          activeTierFilter={tierFilter}
-          onSelectTier={handleSelectTier}
-          onMarkComplete={handleMarkComplete}
-          onExploreTier={(tier) => {
-            // Open Evidence Explorer on "opportunity" domain (most relevant) with tier pre-selected
-            openExplorer("opportunity");
-          }}
-        />
-
-        {/* ═══ ZONE 2 — PIPELINE + SIGNAL ACCUMULATION ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Pipeline Progress */}
-          <motion.div {...fadeUp} transition={{ delay: 0.1 }}
-            className="rounded-xl p-5 space-y-3 bg-card border border-border"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <BarChart3 size={14} className="text-foreground" />
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Pipeline Status</p>
-              </div>
-              <span className="text-sm font-extrabold tabular-nums" style={{ color: modeAccent }}>
-                {pipelinePct}%
-              </span>
-            </div>
-            <div className="h-2 rounded-full overflow-hidden bg-muted">
-              <motion.div
-                className="h-full rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${pipelinePct}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                style={{ background: modeAccent }}
-              />
-            </div>
-            <div className="space-y-0.5">
-              {PIPELINE_STEPS.map(s => {
-                const isDone = completedSteps.has(s.key);
-                const isOutdated = analysis.outdatedSteps.has(s.key);
-                const status: "completed" | "outdated" | "not_run" =
-                  isOutdated ? "outdated" : isDone ? "completed" : "not_run";
-                const ss = metrics.stepSignals.find(x => x.key === s.key);
-                return <PipelineStep key={s.key} step={s} status={status} analysisId={analysisId!} signalCount={ss?.signals || 0} />;
-              })}
-            </div>
-          </motion.div>
-
-          {/* Signal Accumulation */}
-          <motion.div {...fadeUp} transition={{ delay: 0.15 }}
-            className="rounded-xl p-5 bg-card border border-border"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp size={14} className="text-foreground" />
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">
-                  Signal Accumulation
-                </p>
-              </div>
-              <span className="text-sm font-extrabold tabular-nums text-foreground">{totalSignals} total</span>
-            </div>
-            <div className="space-y-3">
-              {metrics.stepSignals.map((ss, si) => {
-                const maxSignals = Math.max(...metrics.stepSignals.map(s => s.signals), 1);
-                const pct = Math.round((ss.signals / maxSignals) * 100);
-                const stepDef = PIPELINE_STEPS.find(p => p.key === ss.key);
-                const StepIcon = stepDef?.icon || Target;
-                return (
-                  <div key={ss.key} className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <div className="w-24 flex items-center gap-1.5 flex-shrink-0">
-                        <StepIcon size={12} className="text-muted-foreground flex-shrink-0" />
-                        <span className="text-[11px] font-bold text-foreground truncate">{ss.step}</span>
-                      </div>
-                      <div className="flex-1 h-6 rounded-md overflow-hidden bg-muted">
-                        <motion.div
-                          className="h-full rounded-md"
-                          initial={{ width: 0 }}
-                          animate={{ width: ss.hasData ? `${Math.max(pct, 6)}%` : "0%" }}
-                          transition={{ duration: 0.6, delay: 0.1 + si * 0.08 }}
-                          style={{ background: ss.hasData ? modeAccent : "transparent" }}
-                        />
-                      </div>
-                      <span className="text-sm font-extrabold tabular-nums w-10 text-right text-foreground">
-                        {ss.hasData ? ss.signals : "—"}
-                      </span>
+              {/* Auto-Surfaced Structural Insight */}
+              {narrative?.narrativeSummary && (
+                <motion.div {...fadeUp} transition={{ delay: 0.12 }}
+                  className="rounded-xl p-5 bg-card border border-border"
+                  style={{ borderLeft: `3px solid ${modeAccent}` }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${modeAccent}15` }}>
+                      <Brain size={13} style={{ color: modeAccent }} />
                     </div>
-                    {/* Signal breakdown */}
-                    {ss.hasData && ss.breakdown.length > 0 && (
-                      <div className="flex gap-2 pl-[108px]">
-                        {ss.breakdown.map((b, bi) => (
-                          <span key={bi} className="inline-flex items-center gap-1 text-[9px] font-bold">
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: b.color }} />
-                            <span className="text-muted-foreground">{b.count} {b.label}</span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Structural Insight</p>
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Auto-generated</span>
                   </div>
-                );
-              })}
+                  <p className="text-sm font-semibold text-foreground leading-relaxed max-w-3xl">
+                    {narrative.narrativeSummary}
+                  </p>
+                  {graph && graph.nodes.length > 3 && (
+                    <button
+                      onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                      className="mt-3 flex items-center gap-1.5 text-[11px] font-bold transition-colors hover:opacity-80"
+                      style={{ color: modeAccent }}
+                    >
+                      <GitBranch size={12} /> Explore full reasoning chain →
+                    </button>
+                  )}
+                </motion.div>
+              )}
             </div>
-          </motion.div>
+
+            {/* ━━━ LAYER 2 — OPPORTUNITY SIGNALS ━━━ */}
+            <div className="space-y-4">
+              {tierFilter && (
+                <div className="flex items-center gap-2 px-1">
+                  <span className="text-[10px] font-bold text-muted-foreground">Filtered to:</span>
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
+                    style={{
+                      background: `${tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)"}15`,
+                      color: tierFilter === "structural" ? "hsl(0 72% 52%)" : tierFilter === "system" ? "hsl(38 92% 50%)" : "hsl(229 89% 63%)",
+                    }}>
+                    {tierFilter.charAt(0).toUpperCase() + tierFilter.slice(1)} tier
+                  </span>
+                  <button onClick={() => setTierFilter(null)} className="text-[10px] font-bold text-muted-foreground underline">Clear</button>
+                </div>
+              )}
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                <MetricCard
+                  label="Opportunity Signals"
+                  value={metrics.opportunityScore}
+                  evidence={`${metrics.opportunitiesIdentified} evidence points`}
+                  evidenceCount={filteredEvidence.opportunity.evidenceCount}
+                  description="Redesign and leverage signals"
+                  icon={Lightbulb}
+                  color="hsl(152 60% 44%)"
+                  trend={getTrend(metrics.opportunityScore)}
+                  delay={0.05}
+                  onClick={() => openExplorer("opportunity")}
+                />
+                <MetricCard
+                  label="Constraint Signals"
+                  value={metrics.frictionIndex}
+                  evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
+                  evidenceCount={filteredEvidence.friction.evidenceCount}
+                  description="Structural friction detected"
+                  icon={AlertTriangle}
+                  color="hsl(0 72% 52%)"
+                  trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
+                  delay={0.1}
+                  onClick={() => openExplorer("friction")}
+                />
+                <MetricCard
+                  label="Assumptions Mapped"
+                  value={metrics.constraintsCount}
+                  evidence={`${metrics.assumptionsChallenged} challenged`}
+                  evidenceCount={filteredEvidence.constraint.evidenceCount}
+                  description="Industry assumptions identified"
+                  icon={Crosshair}
+                  color="hsl(0 72% 52%)"
+                  trend="neutral"
+                  delay={0.15}
+                  onClick={() => openExplorer("constraint")}
+                />
+                <MetricCard
+                  label="Leverage Points"
+                  value={metrics.leverageScore}
+                  evidence={`${metrics.leveragePoints} leverage signals`}
+                  evidenceCount={filteredEvidence.leverage.evidenceCount}
+                  description="Hidden value signals"
+                  icon={Zap}
+                  color="hsl(38 92% 50%)"
+                  trend={getTrend(metrics.leverageScore)}
+                  delay={0.2}
+                  onClick={() => openExplorer("leverage")}
+                />
+                <MetricCard
+                  label="Risk Indicators"
+                  value={metrics.riskScore}
+                  evidence={`${metrics.riskSignals} risk signals`}
+                  evidenceCount={filteredEvidence.risk.evidenceCount}
+                  description="Execution and market risk"
+                  icon={Shield}
+                  color="hsl(0 72% 52%)"
+                  trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
+                  delay={0.25}
+                  onClick={() => openExplorer("risk")}
+                />
+              </div>
+
+              {/* Discovery Tiers */}
+              <TierDiscoveryPanel
+                tierState={tierState}
+                activeTierFilter={tierFilter}
+                onSelectTier={handleSelectTier}
+                onMarkComplete={handleMarkComplete}
+                onExploreTier={() => openExplorer("opportunity")}
+              />
+
+              {/* Strategic Opportunities Table */}
+              <motion.div {...fadeUp} transition={{ delay: 0.2 }}
+                className="rounded-xl p-5 bg-card border border-border"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb size={14} style={{ color: "hsl(152 60% 44%)" }} />
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Top Strategic Opportunities</p>
+                    <span className="text-[10px] font-bold text-muted-foreground">({filteredOpps.length})</span>
+                  </div>
+                  {graph && graph.nodes.length > 0 && (
+                    <button
+                      onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                      className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors hover:opacity-80 min-h-[36px]"
+                      style={{ background: `${modeAccent}10`, color: modeAccent }}
+                    >
+                      <GitBranch size={11} /> View in Graph
+                    </button>
+                  )}
+                </div>
+                {filteredOpps.length > 0 ? (
+                  <OpportunityTable opps={filteredOpps} analysisId={analysisId!} />
+                ) : (
+                  <div className="text-center py-10">
+                    <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-muted mb-3">
+                      <Lightbulb size={20} className="text-muted-foreground" />
+                    </div>
+                    <p className="text-sm font-bold text-foreground">No opportunities discovered yet</p>
+                    <p className="text-xs text-muted-foreground mt-1">Start your strategic discovery to uncover hidden opportunities.</p>
+                    <button
+                      onClick={() => navigate(`${baseUrl}/report`)}
+                      className="mt-4 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors min-h-[44px]"
+                      style={{ background: `${modeAccent}12`, color: modeAccent }}
+                    >
+                      <ArrowRight size={14} /> Start Discovery
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+
+            {/* ━━━ LAYER 3 — EXPLORATION LAYER ━━━ */}
+            <div className="space-y-5">
+              {/* Pipeline + Signal Accumulation */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Pipeline Progress */}
+                <motion.div {...fadeUp} transition={{ delay: 0.1 }}
+                  className="rounded-xl p-5 space-y-3 bg-card border border-border"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 size={14} className="text-foreground" />
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Pipeline Status</p>
+                    </div>
+                    <span className="text-sm font-extrabold tabular-nums" style={{ color: modeAccent }}>
+                      {pipelinePct}%
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full overflow-hidden bg-muted">
+                    <motion.div
+                      className="h-full rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pipelinePct}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                      style={{ background: modeAccent }}
+                    />
+                  </div>
+                  <div className="space-y-0.5">
+                    {PIPELINE_STEPS.map(s => {
+                      const isDone = completedSteps.has(s.key);
+                      const isOutdated = analysis.outdatedSteps.has(s.key);
+                      const status: "completed" | "outdated" | "not_run" =
+                        isOutdated ? "outdated" : isDone ? "completed" : "not_run";
+                      const ss = metrics.stepSignals.find(x => x.key === s.key);
+                      return <PipelineStep key={s.key} step={s} status={status} analysisId={analysisId!} signalCount={ss?.signals || 0} />;
+                    })}
+                  </div>
+                </motion.div>
+
+                {/* Signal Accumulation */}
+                <motion.div {...fadeUp} transition={{ delay: 0.15 }}
+                  className="rounded-xl p-5 bg-card border border-border"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp size={14} className="text-foreground" />
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Signal Accumulation</p>
+                    </div>
+                    <span className="text-sm font-extrabold tabular-nums text-foreground">{totalSignals} total</span>
+                  </div>
+                  <div className="space-y-3">
+                    {metrics.stepSignals.map((ss, si) => {
+                      const maxSignals = Math.max(...metrics.stepSignals.map(s => s.signals), 1);
+                      const pct = Math.round((ss.signals / maxSignals) * 100);
+                      const stepDef = PIPELINE_STEPS.find(p => p.key === ss.key);
+                      const StepIcon = stepDef?.icon || Target;
+                      return (
+                        <div key={ss.key} className="space-y-1">
+                          <div className="flex items-center gap-3">
+                            <div className="w-24 flex items-center gap-1.5 flex-shrink-0">
+                              <StepIcon size={12} className="text-muted-foreground flex-shrink-0" />
+                              <span className="text-[11px] font-bold text-foreground truncate">{ss.step}</span>
+                            </div>
+                            <div className="flex-1 h-6 rounded-md overflow-hidden bg-muted">
+                              <motion.div
+                                className="h-full rounded-md"
+                                initial={{ width: 0 }}
+                                animate={{ width: ss.hasData ? `${Math.max(pct, 6)}%` : "0%" }}
+                                transition={{ duration: 0.6, delay: 0.1 + si * 0.08 }}
+                                style={{ background: ss.hasData ? modeAccent : "transparent" }}
+                              />
+                            </div>
+                            <span className="text-sm font-extrabold tabular-nums w-10 text-right text-foreground">
+                              {ss.hasData ? ss.signals : "—"}
+                            </span>
+                          </div>
+                          {ss.hasData && ss.breakdown.length > 0 && (
+                            <div className="flex gap-2 pl-[108px]">
+                              {ss.breakdown.map((b, bi) => (
+                                <span key={bi} className="inline-flex items-center gap-1 text-[9px] font-bold">
+                                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: b.color }} />
+                                  <span className="text-muted-foreground">{b.count} {b.label}</span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Insight Graph Preview */}
+              <motion.div {...fadeUp} transition={{ delay: 0.25 }}
+                className="rounded-xl overflow-hidden border border-border bg-card"
+              >
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <GitBranch size={14} style={{ color: modeAccent }} />
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">System Intelligence</p>
+                    </div>
+                  </div>
+                  {graph && graph.nodes.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="rounded-xl p-4 text-center bg-muted/50">
+                        <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">{graph.nodes.length}</p>
+                        <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">Insight Nodes</p>
+                      </div>
+                      <div className="rounded-xl p-4 text-center bg-muted/50">
+                        <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">{graph.edges.length}</p>
+                        <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">Connections</p>
+                      </div>
+                      <div className="rounded-xl p-4 text-center bg-muted/50">
+                        <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">
+                          {graph.nodes.length > 0 ? (graph.edges.length / graph.nodes.length).toFixed(1) : "0"}
+                        </p>
+                        <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">Density</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-10 h-10 mx-auto rounded-lg flex items-center justify-center bg-muted mb-2">
+                        <GitBranch size={18} className="text-muted-foreground" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Graph builds as analysis progresses</p>
+                    </div>
+                  )}
+                  {graph && graph.nodes.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {["signal", "constraint", "leverage_point", "concept"].map(type => {
+                        const count = graph.nodes.filter(n => n.type === type).length;
+                        if (count === 0) return null;
+                        const colors: Record<string, string> = {
+                          signal: "hsl(229 89% 63%)", constraint: "hsl(0 72% 52%)",
+                          leverage_point: "hsl(38 92% 50%)", concept: "hsl(152 60% 44%)",
+                        };
+                        return (
+                          <button
+                            key={type}
+                            onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-bold cursor-pointer transition-all hover:scale-105 active:scale-95 min-h-[32px]"
+                            style={{ background: `${colors[type]}12`, color: colors[type], border: `1px solid ${colors[type]}20` }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: colors[type] }} />
+                            {count} {type.replace("_", " ")}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                  className="flex items-center justify-between gap-3 w-full px-5 py-3.5 border-t border-border transition-colors hover:bg-muted/30 min-h-[48px]"
+                >
+                  <div className="flex items-center gap-2">
+                    <ExternalLink size={14} style={{ color: modeAccent }} />
+                    <span className="text-sm font-bold text-foreground">Explore Insight Graph</span>
+                  </div>
+                  <ChevronRight size={14} className="text-muted-foreground" />
+                </button>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* ── RIGHT COLUMN: Lens Intelligence Panel ── */}
+          <aside className="hidden xl:block space-y-5 sticky top-4 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <LensIntelligencePanel
+              analysisMode={analysis.activeMode || "product"}
+              signalKeywords={lensSignalKeywords}
+            />
+          </aside>
         </div>
 
-        {/* ═══ ZONE 3 — STRATEGIC OPPORTUNITIES ═══ */}
-        <motion.div {...fadeUp} transition={{ delay: 0.2 }}
-          className="rounded-xl p-5 bg-card border border-border"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Lightbulb size={14} style={{ color: "hsl(152 60% 44%)" }} />
-              <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Top Strategic Opportunities</p>
-              <span className="text-[10px] font-bold text-muted-foreground">({filteredOpps.length})</span>
-            </div>
-            {graph && graph.nodes.length > 0 && (
-              <button
-                onClick={() => navigate(`${baseUrl}/insight-graph`)}
-                className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors hover:opacity-80 min-h-[36px]"
-                style={{ background: `${modeAccent}10`, color: modeAccent }}
-              >
-                <GitBranch size={11} /> View in Graph
-              </button>
-            )}
-          </div>
-
-          {filteredOpps.length > 0 ? (
-            <OpportunityTable opps={filteredOpps} analysisId={analysisId!} />
-          ) : (
-            <div className="text-center py-10">
-              <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-muted mb-3">
-                <Lightbulb size={20} className="text-muted-foreground" />
-              </div>
-              <p className="text-sm font-bold text-foreground">No opportunities discovered yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Start your strategic discovery to uncover hidden opportunities.</p>
-              <button
-                onClick={() => navigate(`${baseUrl}/report`)}
-                className="mt-4 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors min-h-[44px]"
-                style={{ background: `${modeAccent}12`, color: modeAccent }}
-              >
-                <ArrowRight size={14} /> Start Discovery
-              </button>
-            </div>
-          )}
-        </motion.div>
-
-        {/* ═══ LENS INTELLIGENCE ═══ */}
-        <LensIntelligencePanel
-          analysisMode={analysis.activeMode || "product"}
-          signalKeywords={lensSignalKeywords}
-        />
-
-        {/* ═══ ZONE 4 — INSIGHT GRAPH PREVIEW ═══ */}
-        <motion.div {...fadeUp} transition={{ delay: 0.25 }}
-          className="rounded-xl overflow-hidden border border-border bg-card"
-        >
-          <div className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <GitBranch size={14} style={{ color: modeAccent }} />
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">System Intelligence</p>
-              </div>
-            </div>
-
-            {graph && graph.nodes.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="rounded-xl p-4 text-center bg-muted/50">
-                  <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">{graph.nodes.length}</p>
-                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">Insight Nodes</p>
-                </div>
-                <div className="rounded-xl p-4 text-center bg-muted/50">
-                  <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">{graph.edges.length}</p>
-                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">Connections</p>
-                </div>
-                <div className="rounded-xl p-4 text-center bg-muted/50">
-                  <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">
-                    {graph.nodes.length > 0 ? (graph.edges.length / graph.nodes.length).toFixed(1) : "0"}
-                  </p>
-                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">Density</p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="w-10 h-10 mx-auto rounded-lg flex items-center justify-center bg-muted mb-2">
-                  <GitBranch size={18} className="text-muted-foreground" />
-                </div>
-                <p className="text-xs text-muted-foreground">Graph builds as analysis progresses</p>
-              </div>
-            )}
-
-            {graph && graph.nodes.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-3">
-                {["signal", "constraint", "leverage_point", "concept"].map(type => {
-                  const count = graph.nodes.filter(n => n.type === type).length;
-                  if (count === 0) return null;
-                  const colors: Record<string, string> = {
-                    signal: "hsl(229 89% 63%)", constraint: "hsl(0 72% 52%)",
-                    leverage_point: "hsl(38 92% 50%)", concept: "hsl(152 60% 44%)",
-                  };
-                  return (
-                    <button
-                      key={type}
-                      onClick={() => navigate(`${baseUrl}/insight-graph`)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-bold cursor-pointer transition-all hover:scale-105 active:scale-95 min-h-[32px]"
-                      style={{ background: `${colors[type]}12`, color: colors[type], border: `1px solid ${colors[type]}20` }}>
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: colors[type] }} />
-                      {count} {type.replace("_", " ")}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={() => navigate(`${baseUrl}/insight-graph`)}
-            className="flex items-center justify-between gap-3 w-full px-5 py-3.5 border-t border-border transition-colors hover:bg-muted/30 min-h-[48px]"
-          >
-            <div className="flex items-center gap-2">
-              <ExternalLink size={14} style={{ color: modeAccent }} />
-              <span className="text-sm font-bold text-foreground">Explore Insight Graph</span>
-            </div>
-            <ChevronRight size={14} className="text-muted-foreground" />
-          </button>
-        </motion.div>
+        {/* Mobile Lens Intelligence (below content on smaller screens) */}
+        <div className="xl:hidden">
+          <LensIntelligencePanel
+            analysisMode={analysis.activeMode || "product"}
+            signalKeywords={lensSignalKeywords}
+          />
+        </div>
 
       </main>
 
