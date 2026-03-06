@@ -24,9 +24,9 @@ export const TIER_META = {
   },
   2: {
     tier: "system" as EvidenceTier,
-    label: "System Architecture",
-    narrative: "Reimagine how the business model is structured",
-    description: "Distribution, monetization, supply chain, platform models",
+    label: "System Redesign",
+    narrative: "Redesign how the system actually works",
+    description: "Logistics, fulfillment, supply chains, onboarding, pricing mechanics, workflows",
     color: "hsl(38 92% 50%)",
     bgColor: "hsl(38 92% 50% / 0.08)",
     borderColor: "hsl(38 92% 50% / 0.2)",
