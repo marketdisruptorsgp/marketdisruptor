@@ -50,6 +50,7 @@ export interface InsightGraphNode {
   confidence: "high" | "medium" | "low";
   evidenceCount: number;
   influence: number;       // computed: 0-100
+  leverageScore: number;   // computed: 0-100 — downstream opportunities + constraint connections + chain influence
   pipelineStep: "report" | "disrupt" | "redesign" | "stress_test" | "pitch";
   evidence: string[];
   reasoning?: string;
@@ -98,6 +99,11 @@ export const NODE_TYPE_CONFIG: Record<InsightNodeType, {
   evidence:       { color: "hsl(210 14% 53%)",  bgColor: "hsl(210 14% 53% / 0.08)", borderColor: "hsl(210 14% 53% / 0.25)", icon: "FileText",      label: "Evidence" },
 };
 
+/** Opportunity-type node types */
+export const OPPORTUNITY_NODE_TYPES: InsightNodeType[] = [
+  "outcome", "flipped_idea", "concept",
+];
+
 // ═══════════════════════════════════════════════════════════════
 //  EXTRACTION ENGINE
 // ═══════════════════════════════════════════════════════════════
@@ -120,6 +126,7 @@ function makeNode(
     confidence: opts.confidence ?? "medium",
     evidenceCount: opts.evidenceCount ?? (opts.evidence?.length ?? 0),
     influence: 0, // computed later
+    leverageScore: 0, // computed later
     pipelineStep: opts.pipelineStep ?? "report",
     evidence: opts.evidence ?? [],
     reasoning: opts.reasoning,
@@ -151,7 +158,6 @@ export function buildInsightGraph(
   const addEdge = (source: string, target: string, relation: EdgeRelation, weight = 0.5) => {
     if (!nodeIndex.has(source) || !nodeIndex.has(target)) return;
     edges.push({ id: eid(), source, target, relation, weight });
-    // Track related nodes
     const s = nodeIndex.get(source);
     const t = nodeIndex.get(target);
     if (s && !s.relatedNodeIds.includes(target)) s.relatedNodeIds.push(target);
@@ -161,14 +167,11 @@ export function buildInsightGraph(
   // ── Step 1: Report layer — extract signals from products ──
   const product = products[0];
   if (product) {
-    // Key insight as signal
     if (product.keyInsight) {
       addNode(makeNode("sig-key", "signal", product.keyInsight, {
         pipelineStep: "report", impact: 8, confidence: "high",
       }));
     }
-
-    // Friction points as signals
     const uw = (product as any).userWorkflow || (product as any).userJourney;
     const frictionPts = uw?.frictionPoints || [];
     frictionPts.slice(0, 5).forEach((fp: any, i: number) => {
@@ -179,11 +182,10 @@ export function buildInsightGraph(
     });
   }
 
-  // ── Step 2: SystemIntelligence layer — constraints, leverage, opportunities ──
+  // ── Step 2: SystemIntelligence layer ──
   if (intelligence) {
-    const { commandDeck, unifiedConstraintGraph, leveragePoints, opportunities } = intelligence;
+    const { unifiedConstraintGraph, leveragePoints, opportunities } = intelligence;
 
-    // Constraints
     unifiedConstraintGraph.slice(0, 8).forEach((c) => {
       addNode(makeNode(`con-${c.id}`, "constraint", c.label, {
         pipelineStep: "report", impact: c.impact, confidence: c.confidence,
@@ -191,7 +193,6 @@ export function buildInsightGraph(
       }));
     });
 
-    // Leverage Points
     leveragePoints.slice(0, 8).forEach((l) => {
       addNode(makeNode(`lev-${l.id}`, "leverage_point", l.label, {
         pipelineStep: "report", impact: l.impact, confidence: l.confidence,
@@ -199,7 +200,6 @@ export function buildInsightGraph(
       }));
     });
 
-    // Opportunities
     opportunities.slice(0, 8).forEach((o) => {
       addNode(makeNode(`opp-${o.id}`, "outcome", o.label, {
         pipelineStep: "report", impact: o.impact, confidence: o.confidence,
@@ -207,21 +207,18 @@ export function buildInsightGraph(
       }));
     });
 
-    // Connect: signals → constraints
     frictionSignalIds().forEach((sigId) => {
       unifiedConstraintGraph.slice(0, 3).forEach((c) => {
         addEdge(sigId, `con-${c.id}`, "causes", 0.7);
       });
     });
 
-    // Connect: constraints → leverage points
     unifiedConstraintGraph.slice(0, 5).forEach((c) => {
       leveragePoints.slice(0, 3).forEach((l) => {
         addEdge(`con-${c.id}`, `lev-${l.id}`, "leads_to", 0.6);
       });
     });
 
-    // Connect: leverage → opportunities
     leveragePoints.slice(0, 5).forEach((l) => {
       opportunities.slice(0, 3).forEach((o) => {
         addEdge(`lev-${l.id}`, `opp-${o.id}`, "unlocks", 0.7);
@@ -229,7 +226,7 @@ export function buildInsightGraph(
     });
   }
 
-  // ── Step 3: Disrupt layer — assumptions + flipped ideas ──
+  // ── Step 3: Disrupt layer ──
   const dd = disruptData as any;
   if (dd) {
     const assumptions = dd.hiddenAssumptions || dd.assumptions || [];
@@ -238,7 +235,6 @@ export function buildInsightGraph(
       addNode(makeNode(`asn-${i}`, "assumption", label, {
         pipelineStep: "disrupt", impact: 5, confidence: "medium",
       }));
-      // Assumptions cause constraints
       nodes.filter(n => n.type === "constraint").slice(0, 2).forEach(c => {
         addEdge(`asn-${i}`, c.id, "causes", 0.5);
       });
@@ -250,13 +246,11 @@ export function buildInsightGraph(
       addNode(makeNode(`flip-${i}`, "flipped_idea", label, {
         pipelineStep: "disrupt", impact: 7, confidence: "medium",
       }));
-      // Flipped ideas unlock opportunities
       nodes.filter(n => n.type === "outcome").slice(0, 2).forEach(o => {
         addEdge(`flip-${i}`, o.id, "unlocks", 0.6);
       });
     });
 
-    // Drivers
     const drivers = dd.drivers || dd.keyDrivers || [];
     drivers.slice(0, 5).forEach((d: any, i: number) => {
       const label = typeof d === "string" ? d : d.driver || d.label || String(d);
@@ -266,7 +260,7 @@ export function buildInsightGraph(
     });
   }
 
-  // ── Step 4: Redesign layer — concepts ──
+  // ── Step 4: Redesign layer ──
   const rd = redesignData as any;
   if (rd) {
     const concepts = rd.concepts || rd.redesignedConcepts || rd.ideas || [];
@@ -275,14 +269,13 @@ export function buildInsightGraph(
       addNode(makeNode(`cpt-${i}`, "concept", label, {
         pipelineStep: "redesign", impact: 7, confidence: "medium",
       }));
-      // Concepts depend on leverage points
       nodes.filter(n => n.type === "leverage_point").slice(0, 2).forEach(l => {
         addEdge(l.id, `cpt-${i}`, "leads_to", 0.5);
       });
     });
   }
 
-  // ── Step 5: Stress test layer — risks ──
+  // ── Step 5: Stress test layer ──
   const st = stressTestData as any;
   if (st) {
     const risks = st.redTeamArguments || st.weaknesses || st.risks || [];
@@ -291,7 +284,6 @@ export function buildInsightGraph(
       addNode(makeNode(`rsk-${i}`, "risk", label, {
         pipelineStep: "stress_test", impact: 6, confidence: "medium",
       }));
-      // Risks contradict opportunities
       nodes.filter(n => n.type === "outcome").slice(0, 2).forEach(o => {
         addEdge(`rsk-${i}`, o.id, "contradicts", 0.6);
       });
@@ -303,22 +295,23 @@ export function buildInsightGraph(
       addNode(makeNode(`evi-${i}`, "evidence", label, {
         pipelineStep: "stress_test", impact: 5, confidence: "high",
       }));
-      // Evidence supports concepts
       nodes.filter(n => n.type === "concept").slice(0, 2).forEach(c => {
         addEdge(`evi-${i}`, c.id, "supports", 0.7);
       });
     });
   }
 
-  // ── Compute influence scores ──
+  // ── Compute influence and leverage scores ──
   computeInfluence(nodes, edges);
+  computeLeverageScores(nodes, edges);
 
-  // ── Derive top nodes for Command Deck ──
+  // ── Derive top nodes ──
   const sorted = [...nodes].sort((a, b) => b.influence - a.influence);
+  const sortedByLeverage = [...nodes].sort((a, b) => b.leverageScore - a.leverageScore);
   const topNodes = {
     primaryConstraint: sorted.find(n => n.type === "constraint") ?? null,
     keyDriver: sorted.find(n => n.type === "driver" || n.type === "leverage_point") ?? null,
-    breakthroughOpportunity: sorted.find(n => n.type === "outcome" || n.type === "flipped_idea") ?? null,
+    breakthroughOpportunity: sortedByLeverage.find(n => OPPORTUNITY_NODE_TYPES.includes(n.type)) ?? null,
     highestConfidence: sorted.find(n => n.confidence === "high") ?? null,
   };
 
@@ -344,9 +337,56 @@ function computeInfluence(nodes: InsightGraphNode[], edges: InsightGraphEdge[]) 
   const maxConnections = Math.max(1, ...Array.from(connectionCount.values()));
 
   nodes.forEach(n => {
-    const base = n.impact * confWeight[n.confidence] * 10; // 0-100
-    const connectivity = ((connectionCount.get(n.id) ?? 0) / maxConnections) * 20; // 0-20
+    const base = n.impact * confWeight[n.confidence] * 10;
+    const connectivity = ((connectionCount.get(n.id) ?? 0) / maxConnections) * 20;
     n.influence = Math.min(100, Math.round(base + connectivity));
+  });
+}
+
+/**
+ * Compute leverage score per node:
+ *  - downstream opportunity count (nodes of type outcome/flipped_idea/concept reachable)
+ *  - connected constraint count
+ *  - chain depth bonus
+ */
+function computeLeverageScores(nodes: InsightGraphNode[], edges: InsightGraphEdge[]) {
+  const nodeMap = new Map(nodes.map(n => [n.id, n]));
+
+  nodes.forEach(n => {
+    // Count downstream opportunities (BFS forward)
+    const visited = new Set<string>();
+    const queue = [n.id];
+    let downstreamOpps = 0;
+    let chainDepth = 0;
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+      chainDepth++;
+
+      const outgoing = edges.filter(e => e.source === current);
+      for (const e of outgoing) {
+        const target = nodeMap.get(e.target);
+        if (target && OPPORTUNITY_NODE_TYPES.includes(target.type)) {
+          downstreamOpps++;
+        }
+        if (!visited.has(e.target)) queue.push(e.target);
+      }
+    }
+
+    // Count connected constraints (direct edges)
+    const connectedConstraints = edges.filter(e => {
+      const other = e.source === n.id ? nodeMap.get(e.target) : e.target === n.id ? nodeMap.get(e.source) : null;
+      return other?.type === "constraint";
+    }).length;
+
+    // Score: weighted combination
+    const oppScore = Math.min(downstreamOpps * 15, 50); // up to 50
+    const constraintScore = Math.min(connectedConstraints * 10, 30); // up to 30
+    const depthBonus = Math.min(chainDepth * 3, 20); // up to 20
+
+    n.leverageScore = Math.min(100, oppScore + constraintScore + depthBonus);
   });
 }
 
@@ -361,7 +401,6 @@ export function getInsightChain(
   const visited = new Set<string>();
   const nodeMap = new Map(graph.nodes.map(n => [n.id, n]));
 
-  // Walk backwards to root
   function walkBack(id: string) {
     if (visited.has(id)) return;
     visited.add(id);
@@ -371,7 +410,6 @@ export function getInsightChain(
     if (node) chain.push(node);
   }
 
-  // Walk forwards to outcomes
   function walkForward(id: string) {
     if (visited.has(id)) return;
     visited.add(id);
@@ -382,8 +420,31 @@ export function getInsightChain(
   }
 
   walkBack(nodeId);
-  visited.delete(nodeId); // allow forward walk to include it
+  visited.delete(nodeId);
   walkForward(nodeId);
 
   return chain;
+}
+
+/**
+ * Get all nodes on chains that terminate in opportunity-type nodes.
+ */
+export function getOpportunityPathNodes(graph: InsightGraph): Set<string> {
+  const oppNodes = graph.nodes.filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type));
+  const pathIds = new Set<string>();
+
+  for (const opp of oppNodes) {
+    // Walk backward from each opportunity
+    const visited = new Set<string>();
+    function walkBack(id: string) {
+      if (visited.has(id)) return;
+      visited.add(id);
+      pathIds.add(id);
+      const incoming = graph.edges.filter(e => e.target === id);
+      incoming.forEach(e => walkBack(e.source));
+    }
+    walkBack(opp.id);
+  }
+
+  return pathIds;
 }
