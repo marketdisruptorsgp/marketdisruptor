@@ -7,6 +7,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
+import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { HeroSection } from "@/components/HeroSection";
 import { ModeBadge } from "@/components/ModeBadge";
 import { StepNavigator, type StepConfig } from "@/components/StepNavigator";
@@ -33,8 +35,10 @@ interface AnalysisPageShellProps {
 }
 
 export function AnalysisPageShell({ tier, children }: AnalysisPageShellProps) {
+  const { theme, toggle } = useWorkspaceTheme();
+  const isDark = theme === "dark";
   return (
-    <div className="min-h-screen bg-background" data-command-deck>
+    <div className="min-h-screen bg-background" {...(isDark ? { "data-command-deck": "" } : {})}>
       <HeroSection tier={tier} remainingAnalyses={null} />
       <main className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
         {children}
@@ -68,11 +72,15 @@ export function AnalysisStepHeader({
   analysisId,
 }: AnalysisStepHeaderProps) {
   const navigate = useNavigate();
+  const { theme: workspaceTheme, toggle: toggleTheme } = useWorkspaceTheme();
   const baseUrl = analysisId ? `/analysis/${analysisId}` : "";
 
   return (
     <>
-      <ModeBadge />
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <ModeBadge />
+        <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
+      </div>
       <StepNavigator
         steps={steps}
         activeStep={activeStep}
@@ -88,15 +96,15 @@ export function AnalysisStepHeader({
         {analysisId && (
           <>
             <button
-              onClick={() => navigate(`${baseUrl}/report`)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:opacity-80 min-h-[40px]"
+              onClick={() => navigate(`${baseUrl}/command-deck`)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:opacity-80 min-h-[44px]"
               style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
             >
               <LayoutDashboard size={14} /> Command Deck
             </button>
             <button
               onClick={() => navigate(`${baseUrl}/insight-graph`)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:opacity-80 min-h-[40px]"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:opacity-80 min-h-[44px]"
               style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
             >
               <GitBranch size={14} /> Insight Graph

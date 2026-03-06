@@ -61,8 +61,8 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
 
   return (
     <div
-      className="sticky top-0 z-20 -mx-4 px-3 sm:px-4 py-2.5 bg-background/98 backdrop-blur-md border-b"
-      style={{ borderColor: "hsl(var(--border))" }}
+      className="-mx-4 px-3 sm:px-4 py-2"
+      style={{ borderBottom: "1px solid hsl(var(--border) / 0.5)" }}
     >
       <div className="max-w-5xl mx-auto">
         {/* Compact progress bar layout */}
@@ -90,7 +90,7 @@ export function StepNavigator({ steps, activeStep, visitedSteps, onStepChange, o
                 <React.Fragment key={s.step}>
                   <button
                     onClick={() => { onStepChange(s.step); scrollToTop(); }}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 min-h-[36px] relative"
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium transition-all flex-shrink-0 min-h-[32px] relative"
                     style={{
                       background: isCurrent ? `${accent}15` : "transparent",
                       color: isCurrent ? accent : isPast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
