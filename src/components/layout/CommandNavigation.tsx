@@ -155,9 +155,9 @@ export function CommandNavigation() {
 
         {NAV_SECTIONS.map((section) => {
           const visibleItems = section.items.filter(
-            (item) => !item.requiresAnalysis || analysisId
+            (item) => (!item.requiresAnalysis || analysisId) && (!item.etaOnly || isEtaLens)
           );
-          if (visibleItems.length === 0 && section.label !== "System") return null;
+          if (visibleItems.length === 0) return null;
 
           return (
             <SidebarGroup key={section.label}>
