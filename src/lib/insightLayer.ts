@@ -418,17 +418,12 @@ function generateStrategicPathways(insights: Insight[], evidence: Evidence[]): I
 
   for (const opp of opportunities.slice(0, 3)) {
     // Find related constraints (shared evidence or same tier)
-    const relatedConstraints = constraints.filter(c =>
+    let relatedConstraints = constraints.filter(c =>
       c.tier === opp.tier || c.evidenceIds.some(eid => opp.evidenceIds.includes(eid))
     );
 
     if (relatedConstraints.length === 0 && constraints.length > 0) {
-      // Fallback: use any constraint if no tier/evidence match
-      relatedConstraints.push(constraints[0]);
-    }
-    if (relatedConstraints.length === 0) {
-      // No constraints at all — still generate pathway with just the opportunity
-      relatedConstraints = [];
+      relatedConstraints = [constraints[0]];
     }
 
     const allEvidenceIds = [...new Set([...opp.evidenceIds, ...relatedConstraints.flatMap(c => c.evidenceIds)])];
