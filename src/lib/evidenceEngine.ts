@@ -43,7 +43,7 @@ export type EvidenceLens = "market" | "product" | "economics" | "operations" | "
 
 export type EvidenceArchetype = "operator" | "venture" | "bootstrap" | "enterprise" | "eta";
 
-export type EvidencePipelineStep = "report" | "disrupt" | "redesign" | "stress_test" | "pitch";
+export type EvidencePipelineStep = "report" | "disrupt" | "redesign" | "stress_test" | "pitch" | "simulation";
 
 export type EvidenceSourceEngine =
   | "pipeline"
