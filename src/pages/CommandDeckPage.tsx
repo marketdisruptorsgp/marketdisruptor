@@ -944,6 +944,9 @@ export default function CommandDeckPage() {
         domain={explorerDomain}
         evidence={filteredEvidence}
       />
+
+      {/* Intelligence Event Feed */}
+      <IntelligenceEventFeed events={intelligenceEvents} onDismiss={dismissEvent} />
     </div>
   );
 }
