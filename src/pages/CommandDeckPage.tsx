@@ -10,7 +10,7 @@
  *   Zone 4  — Insight Graph preview
  */
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -525,6 +525,46 @@ export default function CommandDeckPage() {
     }, 1000);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, navigate, baseUrl, addEvent]);
 
+  // ── AUTO-RECOMPUTE: trigger intelligence pipeline on data changes ──
+  const lastRecomputeHash = useRef<string>("");
+
+  useEffect(() => {
+    const hash = JSON.stringify({
+      steps: Array.from(completedSteps),
+      sigCount: totalSignals,
+      evCount: metrics.totalEvidenceCount,
+    });
+    if (hash === lastRecomputeHash.current) return;
+    lastRecomputeHash.current = hash;
+    if (completedSteps.size === 0) return;
+
+    const timer = setTimeout(() => {
+      try {
+        const result = recomputeIntelligence({
+          products: analysis.products,
+          selectedProduct,
+          disruptData: analysis.disruptData,
+          redesignData: analysis.redesignData,
+          stressTestData: analysis.stressTestData,
+          pitchDeckData: analysis.pitchDeckData,
+          governedData: analysis.governedData as Record<string, unknown> | null,
+          businessAnalysisData: analysis.businessAnalysisData,
+          intelligence,
+          analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+          analysisId: analysisId || "",
+          completedSteps,
+        });
+        if (result.flatEvidence.length > 0 && result.insights.length > 0) {
+          addEvent(`Intelligence: ${result.insights.length} insights from ${result.flatEvidence.length} evidence`);
+        }
+      } catch {
+        // Silent fail for auto-recompute
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [completedSteps, totalSignals, metrics.totalEvidenceCount]);
+
+
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
     return (
@@ -549,10 +589,10 @@ export default function CommandDeckPage() {
         <RecomputeOverlay isActive={isRecomputing || autoAnalysis.isComputing} />
 
         {/* ═══ HEADER ═══ */}
-        <motion.div {...fadeUp} className="rounded-2xl p-5 sm:p-6 bg-card border border-border">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <motion.div {...fadeUp} className="rounded-2xl p-4 sm:p-5 bg-card border border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2.5 flex-wrap mb-2">
+              <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
                 <ModeBadge />
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
                   {modeLabel}
@@ -560,31 +600,58 @@ export default function CommandDeckPage() {
                 {metrics.isPartial && (
                   <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
                     style={{ background: "hsl(38 92% 50% / 0.1)", color: "hsl(38 92% 50%)" }}>
-                    Partial Analysis
+                    Partial
+                  </span>
+                )}
+                {/* Auto-recompute indicator */}
+                {(isRecomputing || autoAnalysis.isComputing) && (
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-primary animate-pulse">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    Computing…
                   </span>
                 )}
               </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate">{analysisDisplayName}</h1>
-              <p className="text-xs text-muted-foreground mt-1">
-                {completedSteps.size}/{PIPELINE_STEPS.length} steps · {totalSignals} signals detected
-                {metrics.contributingSources.length > 0 && ` · ${metrics.contributingSources.join(", ")}`}
+              <h1 className="text-lg sm:text-xl font-extrabold text-foreground truncate">{analysisDisplayName}</h1>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {completedSteps.size}/{PIPELINE_STEPS.length} steps · {totalSignals} signals · Auto-recompute active
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleRecomputeAll}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
-                style={{
-                  background: `${modeAccent}15`,
-                  color: modeAccent,
-                  border: `1.5px solid ${modeAccent}30`,
-                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
+                style={{ background: `${modeAccent}10`, color: modeAccent, border: `1px solid ${modeAccent}20` }}
               >
-                <RefreshCw size={15} />
+                <RefreshCw size={13} className={isRecomputing ? "animate-spin" : ""} />
                 Recompute
               </button>
-              <StrategicPotentialGauge score={strategicPotential} accent={modeAccent} />
             </div>
+          </div>
+
+          {/* ── STRATEGIC HEALTH STRIP — 4 compact gauges ── */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: "Opportunity Score", value: metrics.opportunityScore, max: 10, color: "hsl(152 60% 44%)", icon: Lightbulb },
+              { label: "Structural Pressure", value: metrics.frictionIndex, max: 10, color: "hsl(0 72% 52%)", icon: AlertTriangle },
+              { label: "Evidence Strength", value: Math.min(10, Math.round(metrics.totalEvidenceCount / 5)), max: 10, color: "hsl(229 89% 63%)", icon: BarChart3 },
+              { label: "Strategic Momentum", value: strategicPotential, max: 10, color: modeAccent, icon: TrendingUp },
+            ].map((gauge, gi) => {
+              const GaugeIcon = gauge.icon;
+              return (
+                <div key={gauge.label} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/50">
+                  <div className="relative flex-shrink-0">
+                    <CircularGauge value={gauge.value} max={gauge.max} color={gauge.color} size={48} strokeWidth={4} delay={gi * 0.08} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <GaugeIcon size={13} style={{ color: gauge.color }} />
+                    </div>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-lg font-extrabold tabular-nums text-foreground leading-none">{gauge.value.toFixed(1)}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5 truncate">{gauge.label}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </motion.div>
 

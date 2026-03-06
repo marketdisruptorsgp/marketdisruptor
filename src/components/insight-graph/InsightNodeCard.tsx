@@ -8,7 +8,7 @@
 
 import { memo, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRight, FlaskConical, Bookmark, Search } from "lucide-react";
+import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRight, FlaskConical, Bookmark, Search, AlertTriangle, TrendingUp, Info } from "lucide-react";
 import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
 import { getInsightChain, NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 import { getToolById, type LensTool } from "@/lib/lensToolkitRegistry";
@@ -29,7 +29,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
   const [showAllEvidence, setShowAllEvidence] = useState(false);
-  const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence" | "tools">("chain");
+  const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence">("chain");
 
   // Reasoning-driven tool recommendations
   const toolRecommendations = useMemo(() => {
@@ -180,23 +180,100 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         <MetricPill label="Conf." value={node.confidence} color={config.color} />
       </div>
 
-      {/* Reasoning */}
+      {/* ── INSIGHT — Core statement ── */}
       {node.reasoning && (
         <div className="px-4 pb-3">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
-            Reasoning
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
+            Insight
           </p>
-          <p className="text-sm text-foreground leading-relaxed italic">
-            "{node.reasoning}"
+          <p className="text-sm font-semibold text-foreground leading-relaxed">
+            {node.label}
           </p>
         </div>
       )}
 
-      {/* Opportunities influenced */}
+      {/* ── WHY IT MATTERS — Structural explanation ── */}
+      {node.reasoning && (
+        <div className="mx-4 mb-3 rounded-lg p-3" style={{ background: `${config.color}08`, border: `1px solid ${config.color}15` }}>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Info size={11} style={{ color: config.color }} />
+            <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
+              Why It Matters
+            </p>
+          </div>
+          <p className="text-xs text-foreground leading-relaxed">
+            {node.reasoning}
+          </p>
+        </div>
+      )}
+
+      {/* ── STRATEGIC IMPLICATION — Opportunity or risk ── */}
       {influencedOpportunities.length > 0 && (
+        <div className="mx-4 mb-3 rounded-lg p-3" style={{ background: "hsl(152 60% 44% / 0.06)", border: "1px solid hsl(152 60% 44% / 0.15)" }}>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <TrendingUp size={11} style={{ color: "hsl(152 60% 44%)" }} />
+            <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(152 60% 44%)" }}>
+              Strategic Implication
+            </p>
+          </div>
+          <p className="text-xs font-semibold text-foreground leading-relaxed">
+            {influencedOpportunities[0].label}
+          </p>
+          {influencedOpportunities.length > 1 && (
+            <p className="text-[10px] text-muted-foreground mt-1">
+              +{influencedOpportunities.length - 1} more opportunities influenced
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Risk implication for constraint/risk nodes */}
+      {(node.type === "constraint" || node.type === "risk") && !influencedOpportunities.length && (
+        <div className="mx-4 mb-3 rounded-lg p-3" style={{ background: "hsl(0 72% 52% / 0.06)", border: "1px solid hsl(0 72% 52% / 0.15)" }}>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <AlertTriangle size={11} style={{ color: "hsl(0 72% 52%)" }} />
+            <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(0 72% 52%)" }}>
+              Risk Signal
+            </p>
+          </div>
+          <p className="text-xs text-foreground leading-relaxed">
+            This {node.type === "constraint" ? "constraint" : "risk"} may limit strategic options. Impact: {node.impact}/10.
+          </p>
+        </div>
+      )}
+
+      {/* ── TOOLS — Always visible if available ── */}
+      {toolRecommendations.length > 0 && (
         <div className="px-4 pb-3">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-            Opportunities Influenced ({influencedOpportunities.length})
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
+            Explore With Tools
+          </p>
+          <div className="space-y-1.5">
+            {toolRecommendations.slice(0, 3).map(rec => {
+              const ToolIcon = rec.tool.icon;
+              return (
+                <button
+                  key={rec.tool.id}
+                  onClick={() => onOpenTool?.(rec.tool)}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/40 transition-all text-left"
+                >
+                  <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: `${rec.tool.accentColor}12` }}>
+                    <ToolIcon size={12} style={{ color: rec.tool.accentColor }} />
+                  </div>
+                  <span className="text-xs font-bold text-foreground flex-1 truncate">{rec.tool.title}</span>
+                  <span className="text-[9px] font-bold tabular-nums text-muted-foreground">{Math.round(rec.score * 100)}%</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Opportunities influenced — compact list */}
+      {influencedOpportunities.length > 1 && (
+        <div className="px-4 pb-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
+            Opportunities ({influencedOpportunities.length})
           </p>
           <div className="space-y-1">
             {influencedOpportunities.slice(0, 4).map(opp => {
@@ -219,10 +296,10 @@ export const InsightNodeCard = memo(function InsightNodeCard({
 
       {/* Section tabs */}
       <div className="px-4 pb-2 flex items-center gap-1 flex-wrap">
-        {(["chain", "linked", "evidence", ...(relatedTools.length > 0 ? ["tools" as const] : [])] as const).map(s => (
+        {(["chain", "linked", "evidence"] as const).map(s => (
           <button
             key={s}
-            onClick={() => setActiveSection(s as any)}
+            onClick={() => setActiveSection(s)}
             className="px-2.5 py-1 rounded-md text-xs font-bold capitalize transition-all"
             style={{
               background: activeSection === s ? config.bgColor : "transparent",
@@ -230,7 +307,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
               border: activeSection === s ? `1px solid ${config.borderColor}` : "1px solid transparent",
             }}
           >
-            {s === "chain" ? `Chain (${chain.length})` : s === "linked" ? `Linked (${linkedNodes.length})` : s === "tools" ? `Tools (${relatedTools.length})` : `Evidence (${node.evidenceCount})`}
+            {s === "chain" ? `Chain (${chain.length})` : s === "linked" ? `Linked (${linkedNodes.length})` : `Evidence (${node.evidenceCount})`}
           </button>
         ))}
       </div>
@@ -361,36 +438,6 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         </div>
       )}
 
-      {/* Recommended Tools (reasoning-driven) */}
-      {activeSection === "tools" && toolRecommendations.length > 0 && (
-        <div className="px-4 pb-4 space-y-2">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
-            Recommended Tools
-          </p>
-          {toolRecommendations.map(rec => {
-            const ToolIcon = rec.tool.icon;
-            return (
-              <button
-                key={rec.tool.id}
-                onClick={() => onOpenTool?.(rec.tool)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/40 transition-all text-left"
-              >
-                <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: `${rec.tool.accentColor}12` }}>
-                  <ToolIcon size={13} style={{ color: rec.tool.accentColor }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-foreground">{rec.tool.title}</p>
-                  <p className="text-[10px] text-muted-foreground line-clamp-1">{rec.reason}</p>
-                </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <span className="text-[9px] font-bold tabular-nums text-muted-foreground">{Math.round(rec.score * 100)}%</span>
-                  <ChevronRight size={12} className="text-muted-foreground" />
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
 
       {/* Strategic Actions */}
       <div className="px-4 pb-3">
