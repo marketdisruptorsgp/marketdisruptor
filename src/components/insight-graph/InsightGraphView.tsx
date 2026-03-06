@@ -378,9 +378,12 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   }, []);
 
   const handleSimScenarioSaved = useCallback((scenario: ToolScenario) => {
+    // Import and use real evidence bridge
+    const { scenarioToEvidence } = require("@/lib/scenarioEngine");
+    const evidence = scenarioToEvidence(scenario);
     setIntelligenceEvents(prev => [
-      `Scenario saved: ${scenario.scenarioName}`,
-      `New evidence from ${scenario.toolId.replace(/-/g, " ")}`,
+      `Simulation created ${evidence.type} signal: "${evidence.label}"`,
+      `Evidence confidence: ${Math.round((evidence.confidenceScore || 0) * 100)}%`,
       ...prev,
     ].slice(0, 10));
     onScenarioSaved?.(scenario);
