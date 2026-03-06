@@ -677,10 +677,12 @@ function generateOpportunities(
 
     const conText = con ? humanize(con.label).slice(0, 55) : "";
     const levText = humanize(lev.label).slice(0, 55);
+    // Lowercase the first char when embedding in a sentence
+    const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
     const label = con
       ? `Resolve ${conText} to unlock growth`
-      : `Apply ${levText} for strategic advantage`;
+      : `Apply ${lowerFirst(levText)} for strategic advantage`;
 
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
