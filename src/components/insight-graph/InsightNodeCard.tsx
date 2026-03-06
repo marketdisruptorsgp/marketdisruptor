@@ -29,7 +29,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
   const [showAllEvidence, setShowAllEvidence] = useState(false);
-  const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence" | "tools">("chain");
+  const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence">("chain");
 
   // Reasoning-driven tool recommendations
   const toolRecommendations = useMemo(() => {
