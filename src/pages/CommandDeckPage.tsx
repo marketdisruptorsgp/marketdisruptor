@@ -414,6 +414,15 @@ export default function CommandDeckPage() {
   const modeLabel = analysis.activeMode === "custom" ? "Product"
     : analysis.activeMode === "service" ? "Service" : "Business Model";
 
+  const handleRecomputeAll = useCallback(() => {
+    const stepsToRun = ["report", "disrupt", "redesign", "stress-test", "pitch"];
+    const firstIncomplete = stepsToRun.find(s => !completedSteps.has(s));
+    const firstOutdated = stepsToRun.find(s => analysis.outdatedSteps.has(s));
+    const target = firstOutdated || firstIncomplete || "report";
+    toast.info("Navigating to recompute pipeline…");
+    navigate(`${baseUrl}/${target}`);
+  }, [completedSteps, analysis.outdatedSteps, navigate, baseUrl]);
+
   return (
     <div className="min-h-screen bg-background">
       <HeroSection tier={tier} remainingAnalyses={null} />
@@ -442,7 +451,21 @@ export default function CommandDeckPage() {
                 {metrics.contributingSources.length > 0 && ` · ${metrics.contributingSources.join(", ")}`}
               </p>
             </div>
-            <StrategicPotentialGauge score={strategicPotential} accent={modeAccent} />
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleRecomputeAll}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
+                style={{
+                  background: `${modeAccent}15`,
+                  color: modeAccent,
+                  border: `1.5px solid ${modeAccent}30`,
+                }}
+              >
+                <RefreshCw size={15} />
+                Recompute Analysis
+              </button>
+              <StrategicPotentialGauge score={strategicPotential} accent={modeAccent} />
+            </div>
           </div>
         </motion.div>
 
