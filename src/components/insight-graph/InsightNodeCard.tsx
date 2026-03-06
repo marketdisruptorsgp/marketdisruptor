@@ -17,10 +17,11 @@ interface InsightNodeCardProps {
   graph: InsightGraph;
   onClose: () => void;
   onSelectNode: (nodeId: string) => void;
+  isMobile?: boolean;
 }
 
 export const InsightNodeCard = memo(function InsightNodeCard({
-  node, graph, onClose, onSelectNode,
+  node, graph, onClose, onSelectNode, isMobile = false,
 }: InsightNodeCardProps) {
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
@@ -77,19 +78,40 @@ export const InsightNodeCard = memo(function InsightNodeCard({
   const isTopLeverage = graph.topNodes.primaryConstraint?.id === node.id;
   const isBreakthrough = graph.topNodes.breakthroughOpportunity?.id === node.id;
 
+  // Mobile: bottom sheet. Desktop: absolute right panel inside graph canvas.
+  const mobileClasses = "fixed inset-x-0 bottom-0 w-full max-h-[70vh] rounded-t-2xl z-50";
+  const desktopClasses = "absolute right-4 top-4 w-80 max-h-[calc(100%-32px)] rounded-2xl z-30";
+
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      transition={{ duration: 0.25 }}
-      className="absolute right-4 top-4 w-80 max-h-[calc(100%-32px)] overflow-y-auto rounded-2xl shadow-2xl z-30"
-      style={{
-        background: "hsl(var(--card))",
-        border: `2px solid ${config.borderColor}`,
-        backdropFilter: "blur(16px)",
-      }}
-    >
+    <>
+      {/* Backdrop overlay on mobile */}
+      {isMobile && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-40 bg-black/40"
+          onClick={onClose}
+        />
+      )}
+      <motion.div
+        initial={isMobile ? { opacity: 0, y: 100 } : { opacity: 0, x: 20 }}
+        animate={isMobile ? { opacity: 1, y: 0 } : { opacity: 1, x: 0 }}
+        exit={isMobile ? { opacity: 0, y: 100 } : { opacity: 0, x: 20 }}
+        transition={{ duration: 0.25 }}
+        className={`${isMobile ? mobileClasses : desktopClasses} overflow-y-auto shadow-2xl`}
+        style={{
+          background: "hsl(var(--card))",
+          border: `2px solid ${config.borderColor}`,
+          backdropFilter: "blur(16px)",
+        }}
+      >
+        {/* Drag handle on mobile */}
+        {isMobile && (
+          <div className="flex justify-center pt-2 pb-1">
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+          </div>
+        )}
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -336,6 +358,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         </span>
       </div>
     </motion.div>
+    </>
   );
 });
 

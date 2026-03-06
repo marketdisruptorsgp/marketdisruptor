@@ -186,11 +186,11 @@ function InsightNode({ data }: NodeProps) {
 const nodeTypes = { insightNode: InsightNode };
 
 // ═══════════════════════════════════════════════════════════════
-//  HOVER TOOLTIP
+//  HOVER TOOLTIP — anchored relative to graph container, not mouse
 // ═══════════════════════════════════════════════════════════════
 
-function GraphTooltip({ node, graph, position }: {
-  node: InsightGraphNode; graph: InsightGraph; position: { x: number; y: number }
+function GraphTooltip({ node, graph, anchorRef }: {
+  node: InsightGraphNode; graph: InsightGraph; anchorRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const config = NODE_TYPE_CONFIG[node.type];
   const downstream = graph.edges.filter(e => e.source === node.id);
@@ -200,15 +200,22 @@ function GraphTooltip({ node, graph, position }: {
     return t && OPPORTUNITY_NODE_TYPES.includes(t.type);
   }).length;
 
+  // Position tooltip at top-left of graph container instead of tracking mouse
+  const pos = useMemo(() => {
+    if (!anchorRef.current) return { top: 12, left: 12 };
+    return { top: 12, left: 12 };
+  }, [anchorRef]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="fixed z-50 pointer-events-none rounded-xl px-4 py-3 shadow-2xl max-w-xs"
+      className="absolute z-40 pointer-events-none rounded-xl px-4 py-3 shadow-2xl"
       style={{
-        left: Math.min(position.x + 16, typeof window !== "undefined" ? window.innerWidth - 320 : 800),
-        top: position.y - 8,
+        top: pos.top,
+        left: pos.left,
+        maxWidth: 280,
         background: "hsl(var(--card))",
         border: `2px solid ${config.borderColor}`,
       }}
@@ -222,7 +229,7 @@ function GraphTooltip({ node, graph, position }: {
       <p className="text-sm font-bold text-foreground leading-snug mb-2">{node.label}</p>
 
       {node.reasoning && (
-        <p className="text-xs text-muted-foreground mb-2 line-clamp-3 italic">"{node.reasoning}"</p>
+        <p className="text-xs text-muted-foreground mb-2 line-clamp-2 italic">"{node.reasoning}"</p>
       )}
 
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-2">
@@ -322,11 +329,12 @@ interface InsightGraphViewProps {
 export const InsightGraphView = memo(function InsightGraphView({ graph }: InsightGraphViewProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
-  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const [activeTab, setActiveTab] = useState<"graph" | "landscape" | "constraints" | "pathways">("graph");
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>("structural");
   const [showOpportunityPaths, setShowOpportunityPaths] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const graphCanvasRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // Identify top leverage constraint + breakthrough opportunity
   const topLeverageId = useMemo(() => graph.topNodes.primaryConstraint?.id ?? null, [graph.topNodes]);
@@ -434,9 +442,6 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
     setSelectedNodeId(null);
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    setHoverPos({ x: e.clientX, y: e.clientY });
-  }, []);
 
   if (graph.nodes.length === 0) {
     return (
@@ -449,7 +454,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
   }
 
   return (
-    <div className="space-y-3" ref={containerRef} onMouseMove={handleMouseMove}>
+    <div className="space-y-3" ref={containerRef}>
       {/* Tab switcher */}
       <div className="flex items-center gap-1 flex-wrap">
         {([
@@ -631,9 +636,11 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
 
       {/* Graph Canvas */}
       <div
+        ref={graphCanvasRef}
         className="relative rounded-2xl overflow-hidden"
         style={{
-          height: 580,
+          height: isMobile ? "calc(100vh - 320px)" : 580,
+          minHeight: 360,
           background: "hsl(var(--card))",
           border: "1.5px solid hsl(var(--border))",
         }}
@@ -654,17 +661,42 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
         >
           <Background gap={24} size={1} color="hsl(var(--border))" />
           <Controls showInteractive={false} style={{ bottom: 12, left: 12 }} />
-          <MiniMap
-            nodeStrokeWidth={2}
-            style={{
-              background: "hsl(var(--muted))",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: 8,
-            }}
-          />
+          {!isMobile && (
+            <MiniMap
+              nodeStrokeWidth={2}
+              style={{
+                background: "hsl(var(--muted))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+              }}
+            />
+          )}
         </ReactFlow>
 
-        {/* Node detail card overlay */}
+        {/* Hover Tooltip — anchored inside graph canvas */}
+        <AnimatePresence>
+          {hoveredNode && activeTab === "graph" && !selectedNodeId && !isMobile && (
+            <GraphTooltip node={hoveredNode} graph={graph} anchorRef={graphCanvasRef} />
+          )}
+        </AnimatePresence>
+
+        {/* Node detail card overlay — desktop only (right panel) */}
+        {!isMobile && (
+          <AnimatePresence>
+            {selectedNode && (
+              <InsightNodeCard
+                node={selectedNode}
+                graph={graph}
+                onClose={() => setSelectedNodeId(null)}
+                onSelectNode={setSelectedNodeId}
+              />
+            )}
+          </AnimatePresence>
+        )}
+      </div>
+
+      {/* Node detail card — mobile bottom sheet */}
+      {isMobile && (
         <AnimatePresence>
           {selectedNode && (
             <InsightNodeCard
@@ -672,10 +704,11 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
               graph={graph}
               onClose={() => setSelectedNodeId(null)}
               onSelectNode={setSelectedNodeId}
+              isMobile
             />
           )}
         </AnimatePresence>
-      </div>
+      )}
 
       {/* Stats Bar */}
       <div className="flex flex-wrap items-center gap-4 px-2">
@@ -699,12 +732,8 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
       </>
       )}
 
-      {/* Hover Tooltip */}
-      <AnimatePresence>
-        {hoveredNode && activeTab === "graph" && !selectedNodeId && (
-          <GraphTooltip node={hoveredNode} graph={graph} position={hoverPos} />
-        )}
-      </AnimatePresence>
+
+
     </div>
   );
 });
