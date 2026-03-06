@@ -419,13 +419,17 @@ export default function CommandDeckPage() {
   const analysisDisplayName = selectedProduct?.name || businessModelInput?.type || "Business Model Analysis";
 
   const handleRecomputeAll = useCallback(() => {
-    const stepsToRun = ["report", "disrupt", "redesign", "stress-test", "pitch"];
-    const firstIncomplete = stepsToRun.find(s => !completedSteps.has(s));
-    const firstOutdated = stepsToRun.find(s => analysis.outdatedSteps.has(s));
-    const target = firstOutdated || firstIncomplete || "report";
-    toast.info("Navigating to recompute pipeline…");
-    navigate(`${baseUrl}/${target}`);
-  }, [completedSteps, analysis.outdatedSteps, navigate, baseUrl]);
+    toast.info("Recomputing analysis intelligence…");
+    // Trigger auto-analysis recomputation by staying on the Command Deck
+    // The useAutoAnalysis hook will detect data changes and recompute
+    // If no steps are completed, guide user to the first step
+    if (completedSteps.size === 0) {
+      navigate(`${baseUrl}/report`);
+    } else {
+      // Stay on Command Deck — intelligence recomputes automatically
+      toast.success("Intelligence updated on Command Deck.");
+    }
+  }, [completedSteps, navigate, baseUrl]);
 
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
