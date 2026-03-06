@@ -12,7 +12,9 @@ import { extractAllEvidence, flattenEvidence, type Evidence, type MetricDomain, 
 import { clusterEvidenceIntoInsights, type Insight } from "@/lib/insightLayer";
 import { buildInsightGraph, type InsightGraph } from "@/lib/insightGraph";
 import { computeCommandDeckMetrics, aggregateOpportunities, type CommandDeckMetrics } from "@/lib/commandDeckMetrics";
-import { allScenariosToEvidence } from "@/lib/scenarioEngine";
+import { allScenariosToEvidence, getScenarios } from "@/lib/scenarioEngine";
+import { compareScenarios, type ScenarioComparison } from "@/lib/scenarioComparisonEngine";
+import { computeAllSensitivityReports, type SensitivityReport } from "@/lib/sensitivityEngine";
 import type { SystemIntelligence } from "@/lib/systemIntelligence";
 
 // ═══════════════════════════════════════════════════════════════
@@ -43,6 +45,8 @@ export interface IntelligenceOutput {
   opportunities: any[];
   events: string[];
   scenarioCount: number;
+  scenarioComparison: ScenarioComparison | null;
+  sensitivityReports: SensitivityReport[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -112,6 +116,19 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
   const metrics = computeCommandDeckMetrics(metricsInput);
   const opportunities = aggregateOpportunities(metricsInput);
 
+  // 6. Scenario comparison & sensitivity analysis
+  const scenarios = getScenarios(input.analysisId);
+  const scenarioComparison = scenarios.length > 0 ? compareScenarios(scenarios) : null;
+  const sensitivityReports = computeAllSensitivityReports(scenarios);
+
+  if (scenarioComparison && scenarioComparison.scenarios.length > 1) {
+    events.push(`${scenarioComparison.scenarios.length} scenarios compared`);
+  }
+  if (sensitivityReports.length > 0) {
+    const totalVars = sensitivityReports.reduce((s, r) => s + r.variables.length, 0);
+    events.push(`${totalVars} sensitivity variables analyzed`);
+  }
+
   events.push("Strategic intelligence updated");
 
   return {
@@ -123,5 +140,7 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
     opportunities,
     events,
     scenarioCount: simEvidence.length,
+    scenarioComparison,
+    sensitivityReports,
   };
 }
