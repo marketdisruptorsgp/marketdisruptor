@@ -203,6 +203,27 @@ function computeFromEvidence(
   const riskScore = clamp(Math.round(
     (riskImpactFactor * 0.5 + Math.min(risk.length / 5, 1) * 0.3 + (1 - avgConfidence) * 0.2) * 10
   ), 0, 10);
+
+  return {
+    opportunitiesIdentified: opportunities.length,
+    constraintsDetected: constraints.length + friction.filter(e => e.type === "constraint").length,
+    assumptionsChallenged: assumptions.length,
+    leveragePoints: leverage.length,
+    riskSignals: risk.length,
+    frictionSignals: friction.length,
+    pipelineCompletion,
+    contributingSources: sources,
+    isPartial: sources.length < 3,
+    stepSignals,
+    tierBreakdown,
+    modeBreakdown,
+    totalEvidenceCount: all.length,
+    opportunityScore,
+    frictionIndex,
+    constraintsCount: constraints.length,
+    leverageScore,
+    riskScore,
+  };
 }
 
 function buildStepSignals(
