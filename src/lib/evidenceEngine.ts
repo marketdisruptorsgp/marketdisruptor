@@ -494,6 +494,28 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
+  // ── Business Model: counterfactual removal as leverage signal ──
+  const bizGov = input.businessAnalysisData?.governed;
+  if (bizGov?.constraint_map?.counterfactual_removal_result) {
+    items.push({
+      id: makeId("lev-bm-cf"), type: "leverage",
+      label: "Counterfactual: Remove Binding Constraint",
+      description: bizGov.constraint_map.counterfactual_removal_result,
+      pipelineStep: "report", tier: "structural", impact: 9,
+      mode, sourceEngine: "pipeline", category: "operational_dependency",
+    });
+  }
+  // First principles: minimum viable system as leverage insight
+  if (bizGov?.first_principles?.minimum_viable_system) {
+    items.push({
+      id: makeId("lev-bm-mvs"), type: "leverage",
+      label: "Minimum Viable System",
+      description: bizGov.first_principles.minimum_viable_system,
+      pipelineStep: "report", tier: "structural", impact: 7,
+      mode, sourceEngine: "pipeline",
+    });
+  }
+
   return items;
 }
 
