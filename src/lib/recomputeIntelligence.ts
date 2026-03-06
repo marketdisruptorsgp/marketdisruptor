@@ -116,6 +116,19 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
   const metrics = computeCommandDeckMetrics(metricsInput);
   const opportunities = aggregateOpportunities(metricsInput);
 
+  // 6. Scenario comparison & sensitivity analysis
+  const scenarios = getScenarios(input.analysisId);
+  const scenarioComparison = scenarios.length > 0 ? compareScenarios(scenarios) : null;
+  const sensitivityReports = computeAllSensitivityReports(scenarios);
+
+  if (scenarioComparison && scenarioComparison.scenarios.length > 1) {
+    events.push(`${scenarioComparison.scenarios.length} scenarios compared`);
+  }
+  if (sensitivityReports.length > 0) {
+    const totalVars = sensitivityReports.reduce((s, r) => s + r.variables.length, 0);
+    events.push(`${totalVars} sensitivity variables analyzed`);
+  }
+
   events.push("Strategic intelligence updated");
 
   return {
@@ -127,5 +140,7 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
     opportunities,
     events,
     scenarioCount: simEvidence.length,
+    scenarioComparison,
+    sensitivityReports,
   };
 }
