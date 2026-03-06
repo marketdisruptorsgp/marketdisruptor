@@ -122,5 +122,6 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
     metrics,
     opportunities,
     events,
+    scenarioCount: simEvidence.length,
   };
 }

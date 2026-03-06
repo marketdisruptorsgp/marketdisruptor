@@ -322,20 +322,45 @@ export function computeTrendData(input: CommandDeckMetricsInput): TrendDataPoint
 export function aggregateOpportunities(input: CommandDeckMetricsInput): AggregatedOpportunity[] {
   if (input.evidence) {
     const opps = input.evidence.opportunity.items;
+    const allItems = flattenEvidence(input.evidence);
+    const simCount = allItems.filter(e => e.category === "simulation" || e.id.startsWith("sim-")).length;
+    const constraintClusterCount = allItems.filter(e => e.type === "constraint").length;
+
     return opps
-      .map(e => ({
-        id: e.id,
-        label: e.label,
-        impact: e.impact ?? 5,
-        confidence: e.confidenceScore != null
-          ? (e.confidenceScore >= 0.7 ? "high" : e.confidenceScore >= 0.4 ? "medium" : "low")
-          : "medium",
-        step: STEP_MAP[e.pipelineStep] || e.pipelineStep,
-        source: e.sourceEngine || "pipeline",
-        tier: e.tier,
-        mode: e.mode,
-      }))
-      .sort((a, b) => b.impact - a.impact)
+      .map(e => {
+        // Evidence strength: count of items with similar labels
+        const evidenceStrength = (e.confidenceScore ?? 0.5) * (e.sourceCount ?? 1);
+        // Structural pressure from constraints
+        const structuralPressure = Math.min(constraintClusterCount / 10, 1);
+        // Market potential from impact
+        const marketPotential = (e.impact ?? 5) / 10;
+        // Simulation feasibility from scenarios
+        const simFeasibility = Math.min(simCount / 3, 1);
+
+        const opportunityScore = Math.round(
+          (evidenceStrength * 0.30 + structuralPressure * 0.25 + marketPotential * 0.25 + simFeasibility * 0.20) * 10 * 10
+        ) / 10;
+
+        const riskLevel: "low" | "moderate" | "high" =
+          opportunityScore >= 6 ? "low" : opportunityScore >= 3 ? "moderate" : "high";
+
+        return {
+          id: e.id,
+          label: e.label,
+          impact: e.impact ?? 5,
+          confidence: e.confidenceScore != null
+            ? (e.confidenceScore >= 0.7 ? "high" : e.confidenceScore >= 0.4 ? "medium" : "low")
+            : "medium",
+          step: STEP_MAP[e.pipelineStep] || e.pipelineStep,
+          source: e.sourceEngine || "pipeline",
+          tier: e.tier,
+          mode: e.mode,
+          opportunityScore,
+          simulationCount: simCount,
+          riskLevel,
+        };
+      })
+      .sort((a, b) => (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0))
       .slice(0, 10);
   }
 
