@@ -261,6 +261,37 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
+  // ── Business Model: governed friction tiers ──
+  const bizGov = input.businessAnalysisData?.governed;
+  if (bizGov?.friction_tiers) {
+    const ft = bizGov.friction_tiers;
+    safeArr(ft.tier_1).forEach((f: any, i: number) => {
+      const label = f.description || f.label || `Tier 1 Friction ${i + 1}`;
+      const desc = f.system_impact || f.description;
+      items.push({
+        id: makeId("fric-bm-t1"), type: "friction", label, description: desc,
+        pipelineStep: "report", tier: "structural", impact: 9, mode, sourceEngine: "pipeline",
+        category: "operational_dependency",
+      });
+    });
+    safeArr(ft.tier_2).forEach((f: any, i: number) => {
+      const label = f.description || f.label || `Tier 2 Friction ${i + 1}`;
+      const desc = f.optimization_target || f.description;
+      items.push({
+        id: makeId("fric-bm-t2"), type: "friction", label, description: desc,
+        pipelineStep: "report", tier: "system", impact: 6, mode, sourceEngine: "pipeline",
+        category: "operational_dependency",
+      });
+    });
+    safeArr(ft.tier_3).forEach((f: any, i: number) => {
+      const label = f.description || f.label || `Tier 3 Friction ${i + 1}`;
+      items.push({
+        id: makeId("fric-bm-t3"), type: "friction", label,
+        pipelineStep: "report", tier: "optimization", impact: 3, mode, sourceEngine: "pipeline",
+      });
+    });
+  }
+
   return items;
 }
 
