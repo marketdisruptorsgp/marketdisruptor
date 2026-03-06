@@ -20,33 +20,33 @@ const ROTATING_WORDS = [
 
 const PIPELINE_STEPS = [
   {
-    icon: Search, label: "Analyze", step: 1,
-    desc: "Define your target and run a deep competitive teardown",
+    icon: Search, label: "Map", step: 1,
+    desc: "Map the system — define your target and uncover how it operates",
     color: "#2563eb",
   },
   {
     icon: Radar, label: "Deconstruct", step: 2,
-    desc: "Map pricing, supply chains, workflows, and positioning",
+    desc: "Challenge assumptions — question pricing, supply chains, and positioning",
     color: "#7c3aed",
   },
   {
     icon: Sparkles, label: "Flip", step: 3,
-    desc: "Challenge every assumption and generate radical alternatives",
+    desc: "Reveal opportunity signals — generate structural alternatives",
     color: "#db2777",
   },
   {
     icon: Crosshair, label: "Redesign", step: 4,
-    desc: "Interactive redesigned concept with detailed illustrations",
+    desc: "Redesign the model — build a reimagined concept with evidence",
     color: "#059669",
   },
   {
     icon: Swords, label: "Stress Test", step: 5,
-    desc: "Red vs Green team adversarial validation and critical debate",
+    desc: "Validate with adversarial testing — red vs green team debate",
     color: "#dc2626",
   },
   {
     icon: Presentation, label: "Pitch Deck", step: 6,
-    desc: "Investor-ready presentation with data-backed slides",
+    desc: "Synthesize into an investor-ready narrative with evidence-backed slides",
     color: "#d97706",
   },
 ];
