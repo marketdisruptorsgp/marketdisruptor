@@ -137,61 +137,65 @@ function AppRoutes() {
     );
   }
 
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/admin/analytics" element={<LazyRoute><AdminAnalyticsPage /></LazyRoute>} />
+        <Route path="/admin/health" element={<LazyRoute><AdminHealthPage /></LazyRoute>} />
+        <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
+        <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
+        <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
+        <Route path="/analysis/share/:id" element={<LazyRoute><ShareableAnalysisPage /></LazyRoute>} />
+        <Route path="*" element={<AuthPage />} />
+      </Routes>
+    );
+  }
+
   return (
-    <Routes>
-      <Route path="/admin/analytics" element={<LazyRoute><AdminAnalyticsPage /></LazyRoute>} />
-      <Route path="/admin/health" element={<LazyRoute><AdminHealthPage /></LazyRoute>} />
-      <Route path="/admin/governance" element={<LazyRoute><GovernanceAuditPage /></LazyRoute>} />
-      <Route path="/admin/architecture" element={<LazyRoute><AdminArchitecturePage /></LazyRoute>} />
-      <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
-      <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
-      <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
-      <Route path="/analysis/share/:id" element={<LazyRoute><ShareableAnalysisPage /></LazyRoute>} />
-      {user ? (
-        <SidebarProvider>
-          <div className="min-h-screen flex w-full">
-            <CommandNavigation />
-            <div className="flex-1 flex flex-col min-w-0">
-              <Routes>
-                <Route path="/" element={<LazyRoute><StartPage /></LazyRoute>} />
-                <Route path="/workspace" element={<LazyRoute><WorkspacePage /></LazyRoute>} />
-                <Route path="/analysis/new" element={<LazyRoute><NewAnalysisPage /></LazyRoute>} />
-                <Route path="/intelligence" element={<LazyRoute><IntelligencePage /></LazyRoute>} />
-                {/* Legacy redirects */}
-                <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
-                <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
-                <Route path="/start/product" element={<Navigate to="/analysis/new" replace />} />
-                <Route path="/start/service" element={<Navigate to="/analysis/new" replace />} />
-                <Route path="/start/business" element={<Navigate to="/analysis/new" replace />} />
-                <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
-                <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
-                <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
-                <Route path="/analysis/:id/redesign" element={<LazyRoute><RedesignPage /></LazyRoute>} />
-                <Route path="/analysis/:id/stress-test" element={<LazyRoute><StressTestPage /></LazyRoute>} />
-                <Route path="/analysis/:id/pitch" element={<LazyRoute><PitchPage /></LazyRoute>} />
-                <Route path="/analysis/:id/insight-graph" element={<LazyRoute><InsightGraphPage /></LazyRoute>} />
-                <Route path="/business/:id" element={<LazyRoute><BusinessResultsPage /></LazyRoute>} />
-                <Route path="/pricing" element={<LazyRoute><PricingPage /></LazyRoute>} />
-                <Route path="/about" element={<LazyRoute><AboutPage /></LazyRoute>} />
-                <Route path="/resources" element={<LazyRoute><ResourcesPage /></LazyRoute>} />
-                <Route path="/methodology" element={<LazyRoute><MethodologyPage /></LazyRoute>} />
-                <Route path="/faqs" element={<LazyRoute><FaqsPage /></LazyRoute>} />
-                <Route path="/api" element={<LazyRoute><ApiPage /></LazyRoute>} />
-                <Route path="/pipeline" element={<LazyRoute><PipelinePage /></LazyRoute>} />
-                <Route path="/admin/pipeline" element={<LazyRoute><PipelineObservabilityPage /></LazyRoute>} />
-                <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
-              </Routes>
-            </div>
-          </div>
-        </SidebarProvider>
-      ) : (
-        <>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <CommandNavigation />
+        <div className="flex-1 flex flex-col min-w-0">
           <Routes>
-            <Route path="*" element={<AuthPage />} />
+            <Route path="/admin/analytics" element={<LazyRoute><AdminAnalyticsPage /></LazyRoute>} />
+            <Route path="/admin/health" element={<LazyRoute><AdminHealthPage /></LazyRoute>} />
+            <Route path="/admin/governance" element={<LazyRoute><GovernanceAuditPage /></LazyRoute>} />
+            <Route path="/admin/architecture" element={<LazyRoute><AdminArchitecturePage /></LazyRoute>} />
+            <Route path="/demo" element={<LazyRoute><DemoPage /></LazyRoute>} />
+            <Route path="/instant-analysis" element={<LazyRoute><InstantAnalysisPage /></LazyRoute>} />
+            <Route path="/share" element={<LazyRoute><SharePage /></LazyRoute>} />
+            <Route path="/analysis/share/:id" element={<LazyRoute><ShareableAnalysisPage /></LazyRoute>} />
+            <Route path="/" element={<LazyRoute><StartPage /></LazyRoute>} />
+            <Route path="/workspace" element={<LazyRoute><WorkspacePage /></LazyRoute>} />
+            <Route path="/analysis/new" element={<LazyRoute><NewAnalysisPage /></LazyRoute>} />
+            <Route path="/intelligence" element={<LazyRoute><IntelligencePage /></LazyRoute>} />
+            {/* Legacy redirects */}
+            <Route path="/portfolio" element={<Navigate to="/workspace" replace />} />
+            <Route path="/intel" element={<Navigate to="/intelligence" replace />} />
+            <Route path="/start/product" element={<Navigate to="/analysis/new" replace />} />
+            <Route path="/start/service" element={<Navigate to="/analysis/new" replace />} />
+            <Route path="/start/business" element={<Navigate to="/analysis/new" replace />} />
+            <Route path="/analysis/:id/command-deck" element={<LazyRoute><CommandDeckPage /></LazyRoute>} />
+            <Route path="/analysis/:id/report" element={<LazyRoute><ReportPage /></LazyRoute>} />
+            <Route path="/analysis/:id/disrupt" element={<LazyRoute><DisruptPage /></LazyRoute>} />
+            <Route path="/analysis/:id/redesign" element={<LazyRoute><RedesignPage /></LazyRoute>} />
+            <Route path="/analysis/:id/stress-test" element={<LazyRoute><StressTestPage /></LazyRoute>} />
+            <Route path="/analysis/:id/pitch" element={<LazyRoute><PitchPage /></LazyRoute>} />
+            <Route path="/analysis/:id/insight-graph" element={<LazyRoute><InsightGraphPage /></LazyRoute>} />
+            <Route path="/business/:id" element={<LazyRoute><BusinessResultsPage /></LazyRoute>} />
+            <Route path="/pricing" element={<LazyRoute><PricingPage /></LazyRoute>} />
+            <Route path="/about" element={<LazyRoute><AboutPage /></LazyRoute>} />
+            <Route path="/resources" element={<LazyRoute><ResourcesPage /></LazyRoute>} />
+            <Route path="/methodology" element={<LazyRoute><MethodologyPage /></LazyRoute>} />
+            <Route path="/faqs" element={<LazyRoute><FaqsPage /></LazyRoute>} />
+            <Route path="/api" element={<LazyRoute><ApiPage /></LazyRoute>} />
+            <Route path="/pipeline" element={<LazyRoute><PipelinePage /></LazyRoute>} />
+            <Route path="/admin/pipeline" element={<LazyRoute><PipelineObservabilityPage /></LazyRoute>} />
+            <Route path="*" element={<LazyRoute><NotFound /></LazyRoute>} />
           </Routes>
-        </>
-      )}
-    </Routes>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }
 
