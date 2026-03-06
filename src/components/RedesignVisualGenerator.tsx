@@ -293,8 +293,9 @@ export function RedesignVisualGenerator({ productName, concept, accentColor = "h
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <AnimatePresence mode="popLayout">
           {visuals.map((visual, i) => {
-            const isSelected = analysis.pitchDeckImages.some(img => img.url === visual.url);
-            const pitchFull = analysis.pitchDeckImages.length >= 2 && !isSelected;
+            const images = Array.isArray(analysis.pitchDeckImages) ? analysis.pitchDeckImages : [];
+            const isSelected = images.some(img => img.url === visual.url);
+            const pitchFull = images.length >= 2 && !isSelected;
 
             return (
               <motion.div
