@@ -533,6 +533,32 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
               ))}
             </div>
 
+            {/* Tier filter chips */}
+            <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              {TIER_FILTERS.map(tf => {
+                const count = tf.key === "all"
+                  ? graph.nodes.length
+                  : graph.nodes.filter(n => n.tier === tf.key).length;
+                if (count === 0 && tf.key !== "all") return null;
+                return (
+                  <button
+                    key={tf.key}
+                    onClick={() => setTierFilter(tf.key)}
+                    className="px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1"
+                    style={{
+                      background: tierFilter === tf.key ? "hsl(var(--card))" : "transparent",
+                      color: tierFilter === tf.key ? tf.color : "hsl(var(--muted-foreground))",
+                      boxShadow: tierFilter === tf.key ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
+                    }}
+                  >
+                    {tf.key !== "all" && <span className="w-2 h-2 rounded-full" style={{ background: tf.color }} />}
+                    {tf.label}
+                    {tf.key !== "all" && <span className="text-[10px] opacity-70">({count})</span>}
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Opportunity paths toggle */}
             <button
               onClick={() => setShowOpportunityPaths(!showOpportunityPaths)}
