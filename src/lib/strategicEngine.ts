@@ -680,7 +680,7 @@ function generateOpportunities(
 
     const label = con
       ? `Resolve ${conText} to unlock growth`
-      : `Leverage ${levText} for strategic advantage`;
+      : `Apply ${levText} for strategic advantage`;
 
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
