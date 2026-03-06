@@ -42,6 +42,7 @@ const PIPELINE_STEPS = ["report", "disrupt", "redesign", "stress_test", "pitch"]
 const ALL_NODE_TYPES: InsightNodeType[] = [
   "signal", "constraint", "assumption", "driver", "outcome",
   "leverage_point", "flipped_idea", "concept", "risk", "evidence",
+  "simulation",
 ];
 
 /** Tiered layout columns: left-to-right reasoning flow per spec */
@@ -52,6 +53,7 @@ const TIER_CONFIG: { types: InsightNodeType[]; label: string; colIndex: number }
   { types: ["driver", "leverage_point"],           label: "Leverage",      colIndex: 3 },
   { types: ["outcome", "flipped_idea", "concept"], label: "Opportunities", colIndex: 4 },
   { types: ["risk", "evidence"],                   label: "Validation",    colIndex: 5 },
+  { types: ["simulation"],                         label: "Simulations",   colIndex: 6 },
 ];
 
 /** Zoom level definitions */
@@ -60,12 +62,12 @@ const ZOOM_LEVEL_CONFIG: Record<ZoomLevel, { label: string; description: string;
   overview: {
     label: "Overview",
     description: "Signals, Constraints, Opportunities",
-    types: ["signal", "constraint", "outcome", "flipped_idea", "concept"],
+    types: ["signal", "constraint", "outcome", "flipped_idea", "concept", "simulation"],
   },
   structural: {
     label: "Structural",
     description: "All reasoning layers",
-    types: ["signal", "constraint", "assumption", "driver", "leverage_point", "outcome", "flipped_idea", "concept"],
+    types: ["signal", "constraint", "assumption", "driver", "leverage_point", "outcome", "flipped_idea", "concept", "simulation"],
   },
   full: {
     label: "Full Reasoning",

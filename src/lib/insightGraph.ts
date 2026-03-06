@@ -35,7 +35,8 @@ export type InsightNodeType =
   | "risk"
   | "evidence"
   | "friction"
-  | "competitor";
+  | "competitor"
+  | "simulation";
 
 export type EdgeRelation =
   | "causes"
@@ -108,6 +109,7 @@ export const NODE_TYPE_CONFIG: Record<InsightNodeType, {
   evidence:       { color: "hsl(210 14% 53%)",  bgColor: "hsl(210 14% 53% / 0.08)", borderColor: "hsl(210 14% 53% / 0.25)", icon: "FileText",      label: "Evidence" },
   friction:       { color: "hsl(0 72% 52%)",    bgColor: "hsl(0 72% 52% / 0.08)",   borderColor: "hsl(0 72% 52% / 0.25)",   icon: "AlertTriangle", label: "Friction" },
   competitor:     { color: "hsl(262 83% 58%)",  bgColor: "hsl(262 83% 58% / 0.08)", borderColor: "hsl(262 83% 58% / 0.25)", icon: "Building2",     label: "Competitor" },
+  simulation:     { color: "hsl(172 66% 50%)",  bgColor: "hsl(172 66% 50% / 0.08)", borderColor: "hsl(172 66% 50% / 0.25)", icon: "FlaskConical",  label: "Simulation" },
 };
 
 export const OPPORTUNITY_NODE_TYPES: InsightNodeType[] = [
@@ -194,7 +196,10 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
     const rawLabel = typeof ev.label === "string" ? ev.label : String(ev.label ?? "");
     if (!rawLabel || rawLabel === "[object Object]" || rawLabel.startsWith("[object")) continue;
     
-    const nodeType = EVIDENCE_TO_NODE[ev.type] || "evidence";
+    // Simulation-sourced evidence becomes simulation nodes
+    const isSimulation = ev.category === "simulation" || ev.id.startsWith("sim-");
+    const nodeType: InsightNodeType = isSimulation ? "simulation" : (EVIDENCE_TO_NODE[ev.type] || "evidence");
+    
     addNode({
       id: ev.id,
       type: nodeType,
@@ -243,6 +248,18 @@ function buildGraphFromEvidence(allEvidence: Evidence[]): InsightGraph {
   const leverages = nodes.filter(n => n.type === "leverage_point");
   const opportunities = nodes.filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type));
   const risks = nodes.filter(n => n.type === "risk");
+  const simulations = nodes.filter(n => n.type === "simulation");
+
+  // Simulation → Opportunity (simulations support opportunities)
+  for (const sim of simulations.slice(0, 8)) {
+    for (const opp of opportunities.slice(0, 3)) {
+      addEdge(sim.id, opp.id, "supports", 0.7);
+    }
+    // Simulation → Constraint (simulations can address constraints)
+    for (const con of constraints.filter(c => c.tier === sim.tier).slice(0, 2)) {
+      addEdge(sim.id, con.id, "supports", 0.5);
+    }
+  }
 
   // Signal → Assumption (signals reveal assumptions)
   for (const sig of signals.slice(0, 8)) {

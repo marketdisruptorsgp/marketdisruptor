@@ -27,7 +27,7 @@ import {
   LayoutDashboard, GitBranch, Target, Shield, Lightbulb,
   Activity, Crosshair, AlertTriangle, CheckCircle2, Circle,
   ChevronRight, Rocket, TrendingUp, ArrowRight, ArrowUpDown,
-  Zap, BarChart3, ExternalLink, RefreshCw, Brain,
+  Zap, BarChart3, ExternalLink, RefreshCw, Brain, FlaskConical, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -39,7 +39,7 @@ import { computeTierState, filterEvidenceByTier, TIER_META, type TierNumber, typ
 import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
-import { allScenariosToEvidence, scenarioToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
+import { allScenariosToEvidence, scenarioToEvidence, getScenarios, type ToolScenario } from "@/lib/scenarioEngine";
 import { recomputeIntelligence } from "@/lib/recomputeIntelligence";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
@@ -255,21 +255,22 @@ function PipelineStep({ step, status, analysisId, signalCount }: {
  * OPPORTUNITY TABLE
  * ════════════════════════════════════════════════════════ */
 function OpportunityTable({ opps, analysisId }: {
-  opps: { id: string; label: string; impact: number; confidence: string; step: string; source: string; tier?: EvidenceTier }[];
+  opps: { id: string; label: string; impact: number; confidence: string; step: string; source: string; tier?: EvidenceTier; opportunityScore?: number; riskLevel?: string }[];
   analysisId: string;
 }) {
   const navigate = useNavigate();
-  const [sortKey, setSortKey] = useState<"impact" | "confidence">("impact");
+  const [sortKey, setSortKey] = useState<"impact" | "confidence" | "score">("score");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const sorted = useMemo(() => {
     return [...opps].sort((a, b) => {
+      if (sortKey === "score") return sortDir === "desc" ? (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0) : (a.opportunityScore ?? 0) - (b.opportunityScore ?? 0);
       if (sortKey === "impact") return sortDir === "desc" ? b.impact - a.impact : a.impact - b.impact;
       return sortDir === "desc" ? b.confidence.localeCompare(a.confidence) : a.confidence.localeCompare(b.confidence);
     });
   }, [opps, sortKey, sortDir]);
 
-  const toggleSort = (key: "impact" | "confidence") => {
+  const toggleSort = (key: "impact" | "confidence" | "score") => {
     if (sortKey === key) setSortDir(d => d === "desc" ? "asc" : "desc");
     else { setSortKey(key); setSortDir("desc"); }
   };
@@ -280,8 +281,12 @@ function OpportunityTable({ opps, analysisId }: {
 
   return (
     <div className="overflow-x-auto">
-      <div className="grid grid-cols-[1fr_60px_70px_70px_80px] sm:grid-cols-[1fr_60px_120px_70px_70px_80px] gap-2 px-3 py-2 border-b border-border min-w-[450px]">
+      <div className="grid grid-cols-[1fr_50px_60px_60px_70px_70px] sm:grid-cols-[1fr_50px_60px_100px_60px_70px_70px] gap-2 px-3 py-2 border-b border-border min-w-[500px]">
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground">Opportunity</span>
+        <button onClick={() => toggleSort("score")}
+          className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-0.5 justify-center">
+          Score <ArrowUpDown size={7} />
+        </button>
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Tier</span>
         <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground hidden sm:block">Source</span>
         <button onClick={() => toggleSort("impact")}
@@ -292,23 +297,26 @@ function OpportunityTable({ opps, analysisId }: {
           className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center flex items-center gap-0.5 justify-center">
           Conf. <ArrowUpDown size={7} />
         </button>
-        <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Step</span>
+        <span className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground text-center">Risk</span>
       </div>
       {sorted.map(opp => {
         const ic = opp.impact >= 8 ? "hsl(152 60% 44%)" : opp.impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
         const tc = opp.tier ? tierColors[opp.tier] : "hsl(var(--muted-foreground))";
         const tLabel = opp.tier ? opp.tier.charAt(0).toUpperCase() + opp.tier.slice(1, 4) : "—";
+        const sc = (opp.opportunityScore ?? 0) >= 6 ? "hsl(152 60% 44%)" : (opp.opportunityScore ?? 0) >= 3 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
+        const riskColor = opp.riskLevel === "low" ? "hsl(152 60% 44%)" : opp.riskLevel === "moderate" ? "hsl(38 92% 50%)" : "hsl(0 72% 52%)";
         return (
           <button key={opp.id}
             onClick={() => navigate(`/analysis/${analysisId}/insight-graph?node=${opp.id}`)}
-            className="grid grid-cols-[1fr_60px_70px_70px_80px] sm:grid-cols-[1fr_60px_120px_70px_70px_80px] gap-2 items-center px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[44px] min-w-[450px]"
+            className="grid grid-cols-[1fr_50px_60px_60px_70px_70px] sm:grid-cols-[1fr_50px_60px_100px_60px_70px_70px] gap-2 items-center px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors text-left w-full min-h-[44px] min-w-[500px]"
           >
             <span className="text-sm font-semibold text-foreground truncate">{opp.label}</span>
+            <span className="text-sm font-extrabold tabular-nums text-center" style={{ color: sc }}>{(opp.opportunityScore ?? 0).toFixed(1)}</span>
             <span className="text-[9px] font-bold text-center px-1.5 py-0.5 rounded-full" style={{ background: `${tc}12`, color: tc }}>{tLabel}</span>
             <span className="text-[10px] text-muted-foreground truncate hidden sm:block">{opp.source}</span>
             <span className="text-sm font-bold tabular-nums text-center" style={{ color: ic }}>{opp.impact}/10</span>
             <span className="text-[10px] font-bold capitalize text-center text-muted-foreground">{opp.confidence}</span>
-            <span className="text-[9px] font-bold uppercase tracking-widest text-center text-muted-foreground">{opp.step}</span>
+            <span className="text-[9px] font-bold capitalize text-center" style={{ color: riskColor }}>{opp.riskLevel || "—"}</span>
           </button>
         );
       })}
@@ -410,8 +418,11 @@ export default function CommandDeckPage() {
   const closeExplorer = useCallback(() => setExplorerDomain(null), []);
 
   // ── Strategic Potential Score ──
+  // Strategic Potential - computed after savedScenarios (below) via ref
+  const scenarioCountRef = useRef(0);
   const strategicPotential = useMemo(() => {
-    const raw = (metrics.opportunityScore + metrics.leverageScore)
+    const simBoost = Math.min(scenarioCountRef.current * 0.3, 1.5);
+    const raw = (metrics.opportunityScore + metrics.leverageScore + simBoost)
       - (metrics.frictionIndex * 0.5)
       - (metrics.riskScore * 0.3);
     return Math.max(0, Math.min(10, Math.round(raw * 10) / 10));
@@ -527,12 +538,19 @@ export default function CommandDeckPage() {
 
   // ── AUTO-RECOMPUTE: trigger intelligence pipeline on data changes ──
   const lastRecomputeHash = useRef<string>("");
+  const savedScenarios = useMemo(() => {
+    const s = getScenarios(analysisId || "");
+    scenarioCountRef.current = s.length;
+    return s;
+  }, [analysisId, intelligenceEvents.length]);
 
   useEffect(() => {
     const hash = JSON.stringify({
       steps: Array.from(completedSteps),
       sigCount: totalSignals,
       evCount: metrics.totalEvidenceCount,
+      scenarioCount: savedScenarios.length,
+      scenarioHash: savedScenarios.map(s => s.scenarioId + s.timestamp).join(","),
     });
     if (hash === lastRecomputeHash.current) return;
     lastRecomputeHash.current = hash;
@@ -557,12 +575,15 @@ export default function CommandDeckPage() {
         if (result.flatEvidence.length > 0 && result.insights.length > 0) {
           addEvent(`Intelligence: ${result.insights.length} insights from ${result.flatEvidence.length} evidence`);
         }
+        if (result.scenarioCount > 0) {
+          addEvent(`${result.scenarioCount} simulation scenarios integrated`);
+        }
       } catch {
         // Silent fail for auto-recompute
       }
     }, 600);
     return () => clearTimeout(timer);
-  }, [completedSteps, totalSignals, metrics.totalEvidenceCount]);
+  }, [completedSteps, totalSignals, metrics.totalEvidenceCount, savedScenarios]);
 
 
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
@@ -955,6 +976,58 @@ export default function CommandDeckPage() {
                 </motion.div>
               </div>
 
+              {/* ── Saved Scenarios Panel ── */}
+              {savedScenarios.length > 0 && (
+                <motion.div {...fadeUp} transition={{ delay: 0.22 }}
+                  className="rounded-xl p-5 bg-card border border-border"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <FlaskConical size={14} style={{ color: "hsl(172 66% 50%)" }} />
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Saved Scenarios</p>
+                      <span className="text-[10px] font-bold text-muted-foreground">({savedScenarios.length})</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {savedScenarios.slice(0, 6).map(s => {
+                      const impactColor = s.strategicImpact === "high" ? "hsl(152 60% 44%)"
+                        : s.strategicImpact === "medium" ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
+                      const outputs = Object.entries(s.outputResults).slice(0, 3);
+                      return (
+                        <div key={s.scenarioId} className="rounded-xl p-3.5 border border-border bg-muted/30 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-foreground truncate">{s.scenarioName}</p>
+                              <p className="text-[10px] text-muted-foreground">{s.toolId.replace(/-/g, " ")}</p>
+                            </div>
+                            <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full flex-shrink-0"
+                              style={{ background: `${impactColor}15`, color: impactColor }}>
+                              {s.strategicImpact}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {outputs.map(([key, val]) => (
+                              <div key={key} className="text-center px-1 py-1 rounded-lg bg-background">
+                                <p className="text-xs font-extrabold text-foreground tabular-nums">
+                                  {typeof val === "number" ? val.toLocaleString() : val}
+                                </p>
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground truncate">
+                                  {key.replace(/([A-Z])/g, " $1").trim()}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-primary/5">
+                            <Sparkles size={9} className="text-primary flex-shrink-0" />
+                            <p className="text-[9px] font-bold text-primary truncate">Evidence fed to intelligence engine</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+
               {/* Insight Graph Preview */}
               <motion.div {...fadeUp} transition={{ delay: 0.25 }}
                 className="rounded-xl overflow-hidden border border-border bg-card"
@@ -993,12 +1066,13 @@ export default function CommandDeckPage() {
                   )}
                   {graph && graph.nodes.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-3">
-                      {["signal", "constraint", "leverage_point", "concept"].map(type => {
+                      {["signal", "constraint", "leverage_point", "concept", "simulation"].map(type => {
                         const count = graph.nodes.filter(n => n.type === type).length;
                         if (count === 0) return null;
                         const colors: Record<string, string> = {
                           signal: "hsl(229 89% 63%)", constraint: "hsl(0 72% 52%)",
                           leverage_point: "hsl(38 92% 50%)", concept: "hsl(152 60% 44%)",
+                          simulation: "hsl(172 66% 50%)",
                         };
                         return (
                           <button
