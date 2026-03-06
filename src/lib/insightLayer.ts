@@ -422,7 +422,14 @@ function generateStrategicPathways(insights: Insight[], evidence: Evidence[]): I
       c.tier === opp.tier || c.evidenceIds.some(eid => opp.evidenceIds.includes(eid))
     );
 
-    if (relatedConstraints.length === 0) continue;
+    if (relatedConstraints.length === 0 && constraints.length > 0) {
+      // Fallback: use any constraint if no tier/evidence match
+      relatedConstraints.push(constraints[0]);
+    }
+    if (relatedConstraints.length === 0) {
+      // No constraints at all — still generate pathway with just the opportunity
+      relatedConstraints = [];
+    }
 
     const allEvidenceIds = [...new Set([...opp.evidenceIds, ...relatedConstraints.flatMap(c => c.evidenceIds)])];
     const relatedInsightIds = [opp.id, ...relatedConstraints.map(c => c.id)];
