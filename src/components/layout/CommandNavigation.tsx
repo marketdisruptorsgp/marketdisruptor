@@ -79,20 +79,10 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Intelligence",
-    items: [
-      { label: "Market Signals", icon: Radar, path: "/intelligence" },
-      { label: "Competitor Scout", icon: Building2, path: (id) => id ? `/analysis/${id}/report` : "/intelligence" },
-      { label: "Patent Intelligence", icon: Shield, path: "/intelligence" },
-      { label: "Signal Detection", icon: BarChart3, path: "/intelligence" },
-    ],
-  },
-  {
     label: "System",
     items: [
       { label: "My Workspace", icon: FolderOpen, path: "/workspace" },
       { label: "New Analysis", icon: PlusCircle, path: "/analysis/new" },
-      { label: "Model Governance", icon: Brain, path: "/admin/governance" },
     ],
   },
 ];
