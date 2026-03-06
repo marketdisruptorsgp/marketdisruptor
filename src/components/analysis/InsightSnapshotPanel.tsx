@@ -117,10 +117,10 @@ export function InsightSnapshotPanel({
 
           {/* Mini metrics row */}
           <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
-            <MiniMetric label="Opportunity" value={metrics.opportunityScore} icon={Activity} color="hsl(229 89% 63%)" />
-            <MiniMetric label="Constraints" value={metrics.constraintsCount || constraints.length} icon={Shield} color="hsl(0 72% 52%)" />
-            <MiniMetric label="Leverage" value={metrics.leverageScore} icon={TrendingUp} color="hsl(38 92% 50%)" />
-            <MiniMetric label="Risk" value={metrics.riskScore} icon={AlertTriangle} color="hsl(0 72% 52%)" />
+            <MiniMetric label="Opportunities" value={metrics.opportunitiesIdentified} icon={Activity} color="hsl(229 89% 63%)" />
+            <MiniMetric label="Constraints" value={metrics.constraintsDetected || constraints.length} icon={Shield} color="hsl(0 72% 52%)" />
+            <MiniMetric label="Leverage" value={metrics.leveragePoints} icon={TrendingUp} color="hsl(38 92% 50%)" />
+            <MiniMetric label="Risk" value={metrics.riskSignals} icon={AlertTriangle} color="hsl(0 72% 52%)" />
           </div>
 
           {/* Signal chips */}

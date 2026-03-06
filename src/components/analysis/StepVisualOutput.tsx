@@ -1,52 +1,22 @@
 /**
  * STEP VISUAL OUTPUT — Right-side visual interpretation panels
  * 
- * Renders step-specific visualizations:
- * - Report: Signal Quadrant (SWOT-style)
- * - Disrupt: Assumption Map + Constraint Heatmap
- * - Redesign: Value Stack Visualization
- * - Stress Test: Opportunity Matrix (mini)
- * - Pitch: Confidence Radar
+ * Step-specific:
+ *   Report:     Signal Quadrant (SWOT-style)
+ *   Disrupt:    Assumption Map + Constraint Heatmap
+ *   Redesign:   Opportunity Radar + Leverage Indicators
+ *   Stress Test: Risk Signals
+ *   Pitch:      Top Opportunities summary
  */
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Shield, Lightbulb, TrendingUp, AlertTriangle,
-  Zap, Target, Activity, Crosshair, CheckCircle2,
+  Zap, Activity, Crosshair, CheckCircle2,
 } from "lucide-react";
 
 const fadeIn = { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } };
-
-/* ── Mini Gauge (circular) ── */
-function CircularGaugeSmall({ value, max, label, color }: {
-  value: number; max: number; label: string; color: string;
-}) {
-  const pct = Math.min(value / max, 1);
-  const r = 28;
-  const circ = 2 * Math.PI * r;
-  const offset = circ * (1 - pct);
-
-  return (
-    <div className="flex flex-col items-center gap-1.5">
-      <svg width="68" height="68" viewBox="0 0 68 68" className="transform -rotate-90">
-        <circle cx="34" cy="34" r={r} fill="none" stroke="hsl(var(--border))" strokeWidth="5" />
-        <motion.circle
-          cx="34" cy="34" r={r} fill="none"
-          stroke={color} strokeWidth="5" strokeLinecap="round"
-          strokeDasharray={circ} strokeDashoffset={offset}
-          initial={{ strokeDashoffset: circ }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-        />
-      </svg>
-      <div className="absolute text-center" style={{ marginTop: "18px" }}>
-        <p className="text-lg font-extrabold tabular-nums text-foreground">{value}</p>
-      </div>
-      <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground text-center leading-tight">{label}</p>
-    </div>
-  );
-}
 
 /* ── Constraint Heatmap (mini) ── */
 export function ConstraintHeatmapMini({ constraints }: {
@@ -181,7 +151,7 @@ export function OpportunityRadarMini({ opportunities }: {
   );
 }
 
-/* ── Signal Quadrant (SWOT-style) ── */
+/* ── Signal Quadrant (SWOT-style) — Report only ── */
 export function SignalQuadrant({ strengths, weaknesses, opportunities, threats }: {
   strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[];
 }) {
@@ -272,6 +242,44 @@ export function LeverageIndicators({ leveragePoints }: {
   );
 }
 
+/* ── Risk Signals (Stress Test only) ── */
+export function RiskSignalsMini({ risks }: {
+  risks: { label: string; severity: number; type: string }[];
+}) {
+  if (risks.length === 0) return null;
+  const sorted = [...risks].sort((a, b) => b.severity - a.severity).slice(0, 5);
+
+  return (
+    <motion.div {...fadeIn} className="space-y-2">
+      <div className="flex items-center gap-2">
+        <AlertTriangle size={12} style={{ color: "hsl(0 72% 52%)" }} />
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Risk Signals</p>
+      </div>
+      <div className="space-y-1.5">
+        {sorted.map((r, i) => {
+          const color = r.severity >= 7 ? "hsl(0 72% 52%)" : r.severity >= 4 ? "hsl(38 92% 50%)" : "hsl(var(--muted-foreground))";
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -4 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.06 }}
+              className="flex items-center gap-2.5 p-2 rounded-lg bg-card border border-border"
+            >
+              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-foreground truncate">{r.label}</p>
+                <span className="text-[9px] font-bold uppercase" style={{ color }}>{r.type}</span>
+              </div>
+              <span className="text-xs font-bold tabular-nums" style={{ color }}>{r.severity}/10</span>
+            </motion.div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
 /* ── Main Step Visual Output Panel ── */
 interface StepVisualOutputProps {
   step: "report" | "disrupt" | "redesign" | "stress-test" | "pitch";
@@ -283,15 +291,18 @@ interface StepVisualOutputProps {
   governedData?: Record<string, unknown> | null;
   product?: Record<string, unknown> | null;
   accentColor: string;
+  /** Stress test data for risk signals */
+  stressTestData?: any;
 }
 
-export function StepVisualOutput({ step, intelligence, governedData, product, accentColor }: StepVisualOutputProps) {
+export function StepVisualOutput({ step, intelligence, governedData, product, accentColor, stressTestData }: StepVisualOutputProps) {
   const constraints = intelligence?.unifiedConstraintGraph || [];
   const opportunities = intelligence?.opportunities || [];
   const leveragePoints = intelligence?.leveragePoints || [];
 
-  // Extract assumptions from governed data
+  // Extract assumptions from governed data (Disrupt only)
   const assumptions = useMemo(() => {
+    if (step !== "disrupt") return [];
     const synopsis = (governedData as any)?.reasoning_synopsis;
     if (!synopsis?.key_assumptions) return [];
     return (synopsis.key_assumptions as any[]).map(a => ({
@@ -299,10 +310,11 @@ export function StepVisualOutput({ step, intelligence, governedData, product, ac
       risk: a.risk_level || a.risk || "medium",
       validated: a.validated || false,
     }));
-  }, [governedData]);
+  }, [governedData, step]);
 
-  // Extract signal data for quadrant
+  // Extract signal data for quadrant (Report only)
   const signals = useMemo(() => {
+    if (step !== "report") return { strengths: [], weaknesses: [], opportunities: [], threats: [] };
     const ci = (product as any)?.communityInsights || (product as any)?.customerSentiment;
     return {
       strengths: (ci?.whatWorksWell || ci?.topPraises || []).slice(0, 3),
@@ -310,13 +322,47 @@ export function StepVisualOutput({ step, intelligence, governedData, product, ac
       opportunities: (ci?.improvementRequests || []).slice(0, 3),
       threats: (ci?.frictionPoints || []).slice(0, 3),
     };
-  }, [product]);
+  }, [product, step]);
 
-  const hasIntelligence = constraints.length > 0 || opportunities.length > 0 || leveragePoints.length > 0;
-  const hasAssumptions = assumptions.length > 0;
-  const hasSignals = signals.strengths.length + signals.weaknesses.length + signals.opportunities.length + signals.threats.length > 0;
+  // Extract risk signals (Stress Test only)
+  const riskSignals = useMemo(() => {
+    if (step !== "stress-test" || !stressTestData) return [];
+    const risks: { label: string; severity: number; type: string }[] = [];
+    const redTeam = stressTestData.redTeam || stressTestData.redTeamArguments || [];
+    if (Array.isArray(redTeam)) {
+      redTeam.slice(0, 3).forEach((r: any) => {
+        risks.push({ label: r.argument || r.label || r.title || String(r), severity: r.severity || r.impact || 7, type: "Red Team" });
+      });
+    }
+    const feasibility = stressTestData.feasibility || stressTestData.feasibilityChecklist || {};
+    const items = feasibility.items || [];
+    if (Array.isArray(items)) {
+      items.filter((i: any) => !i.passed && !i.met).slice(0, 2).forEach((i: any) => {
+        risks.push({ label: i.label || i.name || "Feasibility gap", severity: 6, type: "Feasibility" });
+      });
+    }
+    return risks;
+  }, [stressTestData, step]);
 
-  if (!hasIntelligence && !hasAssumptions && !hasSignals) {
+  // Determine what to show per step
+  const hasContent = (() => {
+    switch (step) {
+      case "report":
+        return signals.strengths.length + signals.weaknesses.length + signals.opportunities.length + signals.threats.length > 0;
+      case "disrupt":
+        return assumptions.length > 0 || constraints.length > 0;
+      case "redesign":
+        return opportunities.length > 0 || leveragePoints.length > 0;
+      case "stress-test":
+        return riskSignals.length > 0;
+      case "pitch":
+        return opportunities.length > 0;
+      default:
+        return false;
+    }
+  })();
+
+  if (!hasContent) {
     return (
       <div className="rounded-xl border border-border bg-card p-6 text-center">
         <div className="w-10 h-10 mx-auto rounded-lg flex items-center justify-center bg-muted mb-2">
@@ -338,21 +384,25 @@ export function StepVisualOutput({ step, intelligence, governedData, product, ac
       </div>
 
       {/* Step-specific visualizations */}
-      {step === "report" && hasSignals && (
-        <SignalQuadrant {...signals} />
-      )}
+      {step === "report" && <SignalQuadrant {...signals} />}
 
-      {(step === "disrupt" || step === "report") && hasAssumptions && (
-        <AssumptionMapMini assumptions={assumptions} />
-      )}
-
-      {hasIntelligence && (
+      {step === "disrupt" && (
         <>
+          <AssumptionMapMini assumptions={assumptions} />
           <ConstraintHeatmapMini constraints={constraints} />
+        </>
+      )}
+
+      {step === "redesign" && (
+        <>
           <OpportunityRadarMini opportunities={opportunities} />
           <LeverageIndicators leveragePoints={leveragePoints} />
         </>
       )}
+
+      {step === "stress-test" && <RiskSignalsMini risks={riskSignals} />}
+
+      {step === "pitch" && <OpportunityRadarMini opportunities={opportunities} />}
     </div>
   );
 }
