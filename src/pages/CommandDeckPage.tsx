@@ -515,6 +515,19 @@ export default function CommandDeckPage() {
           ))}
         </div>
 
+        {/* ═══ STRATEGIC NARRATIVE ═══ */}
+        {narrative && (narrative.primaryConstraint || narrative.keyAssumption || narrative.leveragePoint || narrative.breakthroughOpportunity) && (
+          <motion.div {...fadeUp} transition={{ delay: 0.08 }}>
+            <StrategicNarrativePanel
+              primaryConstraint={narrative.primaryConstraint}
+              keyAssumption={narrative.keyAssumption}
+              leveragePoint={narrative.leveragePoint}
+              breakthroughOpportunity={narrative.breakthroughOpportunity}
+              narrativeSummary={narrative.narrativeSummary}
+            />
+          </motion.div>
+        )}
+
         {/* ═══ ZONE 1 — METRIC CARDS ═══ */}
         {tierFilter && (
           <div className="flex items-center gap-2 px-1">
