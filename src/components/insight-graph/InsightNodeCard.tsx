@@ -1,12 +1,13 @@
 /**
- * Insight Node Detail Card
+ * Insight Node Detail Card — Reasoning Explorer Panel
  *
- * Shown when a user clicks a node in the Insight Graph.
- * Displays: headline, impact, confidence, evidence, reasoning, and chain navigation.
+ * Expanded view shown when a user clicks a node in the Insight Graph.
+ * Displays: headline, reasoning, leverage score, linked nodes, evidence chain.
  */
 
 import { memo, useMemo, useState } from "react";
-import { X, ArrowDown, ChevronDown } from "lucide-react";
+import { motion } from "framer-motion";
+import { X, ArrowDown, ChevronDown, ExternalLink, Zap } from "lucide-react";
 import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
 import { getInsightChain, NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 
@@ -23,13 +24,45 @@ export const InsightNodeCard = memo(function InsightNodeCard({
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
   const [showAllEvidence, setShowAllEvidence] = useState(false);
+  const [activeSection, setActiveSection] = useState<"chain" | "linked" | "evidence">("chain");
+
+  // Linked nodes (direct connections)
+  const linkedNodes = useMemo(() => {
+    const ids = new Set<string>();
+    graph.edges.forEach(e => {
+      if (e.source === node.id) ids.add(e.target);
+      if (e.target === node.id) ids.add(e.source);
+    });
+    return graph.nodes.filter(n => ids.has(n.id));
+  }, [graph, node.id]);
+
+  // Downstream effects
+  const downstream = useMemo(() => {
+    return graph.edges
+      .filter(e => e.source === node.id)
+      .map(e => ({ edge: e, node: graph.nodes.find(n => n.id === e.target) }))
+      .filter(d => d.node);
+  }, [graph, node.id]);
+
+  // Upstream causes
+  const upstream = useMemo(() => {
+    return graph.edges
+      .filter(e => e.target === node.id)
+      .map(e => ({ edge: e, node: graph.nodes.find(n => n.id === e.source) }))
+      .filter(d => d.node);
+  }, [graph, node.id]);
+
+  const isTopLeverage = graph.topNodes.primaryConstraint?.id === node.id;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
       className="absolute right-4 top-4 w-80 max-h-[calc(100%-32px)] overflow-y-auto rounded-2xl shadow-2xl z-30"
       style={{
         background: "hsl(var(--card))",
-        border: `1.5px solid ${config.borderColor}`,
+        border: `2px solid ${config.borderColor}`,
         backdropFilter: "blur(16px)",
       }}
     >
@@ -37,8 +70,8 @@ export const InsightNodeCard = memo(function InsightNodeCard({
       <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: config.bgColor, border: `1px solid ${config.borderColor}` }}
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: config.bgColor, border: `1.5px solid ${config.borderColor}` }}
           >
             <div className="w-3.5 h-3.5 rounded-full" style={{ background: config.color }} />
           </div>
@@ -54,51 +87,64 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         </button>
       </div>
 
-      {/* Metrics Row */}
-      <div className="px-4 pb-3 grid grid-cols-3 gap-2">
-        <MetricPill label="Impact" value={`${node.impact}/10`} color={config.color} />
-        <MetricPill label="Confidence" value={node.confidence} color={config.color} />
-        <MetricPill label="Influence" value={`${node.influence}`} color={config.color} />
-      </div>
-
-      {/* Evidence — collapsible */}
-      {node.evidence.length > 0 && (
-        <div className="px-4 pb-3">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1.5">
-            Evidence ({node.evidenceCount})
-          </p>
-          <div className="space-y-1.5">
-            {node.evidence.slice(0, showAllEvidence ? undefined : 2).map((e, i) => (
-              <p key={i} className="text-sm text-foreground leading-snug pl-2"
-                style={{ borderLeft: `2px solid ${config.borderColor}` }}>
-                {e}
-              </p>
-            ))}
-          </div>
-          {node.evidence.length > 2 && (
-            <button
-              onClick={() => setShowAllEvidence(!showAllEvidence)}
-              className="flex items-center gap-1 mt-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ChevronDown
-                size={12}
-                className="transition-transform"
-                style={{ transform: showAllEvidence ? "rotate(180deg)" : "none" }}
-              />
-              {showAllEvidence ? "Show less" : `View all ${node.evidence.length}`}
-            </button>
-          )}
+      {/* Top leverage badge */}
+      {isTopLeverage && (
+        <div
+          className="mx-4 mb-3 flex items-center gap-2 px-3 py-2 rounded-lg"
+          style={{
+            background: `${config.color}15`,
+            border: `1px solid ${config.color}30`,
+          }}
+        >
+          <Zap size={14} style={{ color: config.color }} />
+          <span className="text-xs font-bold" style={{ color: config.color }}>
+            System Leverage Point — Highest structural influence
+          </span>
         </div>
       )}
 
-      {/* Insight Chain — threading */}
-      {chain.length > 1 && (
-        <div className="px-4 pb-4">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
-            Insight Chain
+      {/* Metrics Row */}
+      <div className="px-4 pb-3 grid grid-cols-3 gap-2">
+        <MetricPill label="Impact" value={`${node.impact}/10`} color={config.color} />
+        <MetricPill label="Influence" value={`${node.influence}`} color={config.color} />
+        <MetricPill label="Confidence" value={node.confidence} color={config.color} />
+      </div>
+
+      {/* Reasoning */}
+      {node.reasoning && (
+        <div className="px-4 pb-3">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
+            Reasoning
           </p>
+          <p className="text-sm text-foreground leading-relaxed italic">
+            "{node.reasoning}"
+          </p>
+        </div>
+      )}
+
+      {/* Section tabs */}
+      <div className="px-4 pb-2 flex items-center gap-1">
+        {(["chain", "linked", "evidence"] as const).map(s => (
+          <button
+            key={s}
+            onClick={() => setActiveSection(s)}
+            className="px-2.5 py-1 rounded-md text-xs font-bold capitalize transition-all"
+            style={{
+              background: activeSection === s ? config.bgColor : "transparent",
+              color: activeSection === s ? config.color : "hsl(var(--muted-foreground))",
+              border: activeSection === s ? `1px solid ${config.borderColor}` : "1px solid transparent",
+            }}
+          >
+            {s === "chain" ? `Chain (${chain.length})` : s === "linked" ? `Linked (${linkedNodes.length})` : `Evidence (${node.evidenceCount})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Insight Chain */}
+      {activeSection === "chain" && chain.length > 1 && (
+        <div className="px-4 pb-4">
           <div className="space-y-1">
-            {chain.slice(0, 5).map((cn, i) => {
+            {chain.slice(0, 8).map((cn, i) => {
               const cnConfig = NODE_TYPE_CONFIG[cn.type];
               const isActive = cn.id === node.id;
               return (
@@ -117,8 +163,9 @@ export const InsightNodeCard = memo(function InsightNodeCard({
                       <p className="text-xs font-bold uppercase" style={{ color: cnConfig.color }}>{cnConfig.label}</p>
                       <p className="text-sm font-semibold text-foreground truncate">{cn.label}</p>
                     </div>
+                    {!isActive && <ExternalLink size={10} className="text-muted-foreground flex-shrink-0" />}
                   </button>
-                  {i < Math.min(chain.length, 5) - 1 && (
+                  {i < Math.min(chain.length, 8) - 1 && (
                     <div className="flex justify-center py-0.5">
                       <ArrowDown size={12} className="text-muted-foreground" />
                     </div>
@@ -126,12 +173,96 @@ export const InsightNodeCard = memo(function InsightNodeCard({
                 </div>
               );
             })}
-            {chain.length > 5 && (
+            {chain.length > 8 && (
               <p className="text-xs text-muted-foreground text-center pt-1">
-                +{chain.length - 5} more steps
+                +{chain.length - 8} more steps
               </p>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Linked Nodes */}
+      {activeSection === "linked" && (
+        <div className="px-4 pb-4 space-y-1.5">
+          {upstream.length > 0 && (
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1">
+                Upstream ({upstream.length})
+              </p>
+              {upstream.map(({ edge, node: n }) => {
+                if (!n) return null;
+                const nc = NODE_TYPE_CONFIG[n.type];
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => onSelectNode(n.id)}
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors text-left"
+                  >
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: nc.color }} />
+                    <p className="text-xs font-semibold text-foreground truncate flex-1">{n.label}</p>
+                    <span className="text-xs text-muted-foreground">{edge.relation.replace("_", " ")}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {downstream.length > 0 && (
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-1 mt-2">
+                Downstream ({downstream.length})
+              </p>
+              {downstream.map(({ edge, node: n }) => {
+                if (!n) return null;
+                const nc = NODE_TYPE_CONFIG[n.type];
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => onSelectNode(n.id)}
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors text-left"
+                  >
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: nc.color }} />
+                    <p className="text-xs font-semibold text-foreground truncate flex-1">{n.label}</p>
+                    <span className="text-xs text-muted-foreground">{edge.relation.replace("_", " ")}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {linkedNodes.length === 0 && (
+            <p className="text-xs text-muted-foreground text-center py-4">No direct connections</p>
+          )}
+        </div>
+      )}
+
+      {/* Evidence */}
+      {activeSection === "evidence" && (
+        <div className="px-4 pb-4">
+          {node.evidence.length > 0 ? (
+            <div className="space-y-1.5">
+              {node.evidence.slice(0, showAllEvidence ? undefined : 3).map((e, i) => (
+                <p key={i} className="text-sm text-foreground leading-snug pl-2"
+                  style={{ borderLeft: `2px solid ${config.borderColor}` }}>
+                  {e}
+                </p>
+              ))}
+              {node.evidence.length > 3 && (
+                <button
+                  onClick={() => setShowAllEvidence(!showAllEvidence)}
+                  className="flex items-center gap-1 mt-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronDown
+                    size={12}
+                    className="transition-transform"
+                    style={{ transform: showAllEvidence ? "rotate(180deg)" : "none" }}
+                  />
+                  {showAllEvidence ? "Show less" : `View all ${node.evidence.length}`}
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground text-center py-4">No evidence collected</p>
+          )}
         </div>
       )}
 
@@ -144,7 +275,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
           {node.pipelineStep.replace("_", " ")}
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 });
 
@@ -152,7 +283,7 @@ function MetricPill({ label, value, color }: { label: string; value: string; col
   return (
     <div className="text-center px-2 py-1.5 rounded-lg" style={{ background: "hsl(var(--muted))" }}>
       <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="text-sm font-extrabold" style={{ color }}>{value}</p>
+      <p className="text-sm font-extrabold capitalize" style={{ color }}>{value}</p>
     </div>
   );
 }
