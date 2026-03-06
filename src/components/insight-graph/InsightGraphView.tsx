@@ -767,6 +767,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
                 graph={graph}
                 onClose={() => setSelectedNodeId(null)}
                 onSelectNode={setSelectedNodeId}
+                onOpenTool={handleOpenTool}
               />
             )}
           </AnimatePresence>
@@ -782,6 +783,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
               graph={graph}
               onClose={() => setSelectedNodeId(null)}
               onSelectNode={setSelectedNodeId}
+              onOpenTool={handleOpenTool}
               isMobile
             />
           )}
