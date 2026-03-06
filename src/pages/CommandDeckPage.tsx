@@ -1,5 +1,5 @@
 /**
- * Command Deck — Strategic Intelligence Dashboard
+ * Strategic Situation Room — Discovery Intelligence Surface
  * URL: /analysis/:analysisId/command-deck
  *
  * Zones:
@@ -447,7 +447,7 @@ export default function CommandDeckPage() {
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
           <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
           {[
-            { label: "Command Deck", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
+            { label: "Situation Room", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
             { label: "Report", icon: Target, path: `${baseUrl}/report` },
             { label: "Disrupt", icon: Crosshair, path: `${baseUrl}/disrupt` },
             { label: "Redesign", icon: Lightbulb, path: `${baseUrl}/redesign` },
@@ -487,11 +487,11 @@ export default function CommandDeckPage() {
         )}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <MetricCard
-            label="Opportunity Score"
+            label="Opportunity Signals"
             value={metrics.opportunityScore}
-            evidence={`${metrics.opportunitiesIdentified} opportunities detected`}
+            evidence={`${metrics.opportunitiesIdentified} evidence points detected`}
             evidenceCount={filteredEvidence.opportunity.evidenceCount}
-            description="Potential value from redesign and leverage signals"
+            description="Discovery signals from redesign and leverage analysis"
             icon={Lightbulb}
             color="hsl(152 60% 44%)"
             trend={getTrend(metrics.opportunityScore)}
@@ -499,11 +499,11 @@ export default function CommandDeckPage() {
             onClick={() => openExplorer("opportunity")}
           />
           <MetricCard
-            label="Friction Index"
+            label="Constraint Signals"
             value={metrics.frictionIndex}
             evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
             evidenceCount={filteredEvidence.friction.evidenceCount}
-            description="Customer complaints, friction points, and constraints"
+            description="Structural friction and industry constraints"
             icon={AlertTriangle}
             color="hsl(0 72% 52%)"
             trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
@@ -511,11 +511,11 @@ export default function CommandDeckPage() {
             onClick={() => openExplorer("friction")}
           />
           <MetricCard
-            label="Constraints"
+            label="Assumptions Mapped"
             value={metrics.constraintsCount}
             evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
             evidenceCount={filteredEvidence.constraint.evidenceCount}
-            description="Structural constraints and assumptions discovered"
+            description="Industry assumptions and structural constraints identified"
             icon={Crosshair}
             color="hsl(0 72% 52%)"
             trend="neutral"
@@ -523,11 +523,11 @@ export default function CommandDeckPage() {
             onClick={() => openExplorer("constraint")}
           />
           <MetricCard
-            label="Leverage Score"
+            label="Leverage Points"
             value={metrics.leverageScore}
             evidence={`${metrics.leveragePoints} leverage signals`}
             evidenceCount={filteredEvidence.leverage.evidenceCount}
-            description="Hidden value and high-leverage opportunities"
+            description="Structural leverage and hidden value signals"
             icon={Zap}
             color="hsl(38 92% 50%)"
             trend={getTrend(metrics.leverageScore)}
@@ -535,11 +535,11 @@ export default function CommandDeckPage() {
             onClick={() => openExplorer("leverage")}
           />
           <MetricCard
-            label="Risk Score"
+            label="Risk Indicators"
             value={metrics.riskScore}
             evidence={`${metrics.riskSignals} risk signals`}
             evidenceCount={filteredEvidence.risk.evidenceCount}
-            description="Execution, feasibility, and market risk"
+            description="Execution, feasibility, and market risk signals"
             icon={Shield}
             color="hsl(0 72% 52%)"
             trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
@@ -681,14 +681,14 @@ export default function CommandDeckPage() {
               <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-muted mb-3">
                 <Lightbulb size={20} className="text-muted-foreground" />
               </div>
-              <p className="text-sm font-bold text-foreground">No opportunities detected yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Run the analysis pipeline to discover strategic opportunities.</p>
+              <p className="text-sm font-bold text-foreground">No opportunities discovered yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Start your strategic discovery to uncover hidden opportunities.</p>
               <button
                 onClick={() => navigate(`${baseUrl}/report`)}
                 className="mt-4 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors min-h-[44px]"
                 style={{ background: `${modeAccent}12`, color: modeAccent }}
               >
-                <ArrowRight size={14} /> Start Analysis
+                <ArrowRight size={14} /> Start Discovery
               </button>
             </div>
           )}

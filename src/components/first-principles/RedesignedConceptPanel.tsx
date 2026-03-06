@@ -21,7 +21,7 @@ export function RedesignedConceptPanel({ concept }: RedesignedConceptPanelProps)
           <Sparkles size={36} className="mx-auto" style={{ color: "hsl(38 92% 50%)" }} />
           <p className="text-lg font-extrabold text-foreground">No redesign concept generated yet</p>
           <p className="text-sm text-foreground/70 max-w-md mx-auto leading-relaxed">
-            Click <strong>Re-run Analysis</strong> above to generate a full redesigned concept.
+            Click <strong>Re-run Discovery</strong> above to generate a full redesigned concept.
           </p>
         </div>
       </StepCanvas>

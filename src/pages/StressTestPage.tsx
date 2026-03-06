@@ -152,7 +152,7 @@ export default function StressTestPage() {
         <AnalysisContextBanner
           icon={Swords}
           title="Strategy Development"
-          description="Opportunity prioritization, strategic command deck, and adversarial stress testing — your idea is attacked, defended, and scored."
+          description="Opportunity prioritization, strategic situation room, and adversarial stress testing — your idea is attacked, defended, and scored."
           iconColor="hsl(350 80% 55%)"
         />
       )}

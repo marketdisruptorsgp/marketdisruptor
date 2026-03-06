@@ -1255,7 +1255,7 @@ export default function NewAnalysisPage() {
                 ) : (
                   <>
                     <Zap size={16} />
-                    Start Analysis
+                    Start Strategic Discovery
                   </>
                 )}
               </button>

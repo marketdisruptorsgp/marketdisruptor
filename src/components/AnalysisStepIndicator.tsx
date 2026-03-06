@@ -5,7 +5,7 @@ interface AnalysisStepIndicatorProps {
 const STEPS = [
   { num: 1, label: "Select Mode" },
   { num: 2, label: "Configure Target" },
-  { num: 3, label: "Run Analysis" },
+  { num: 3, label: "Start Discovery" },
 ];
 
 export function AnalysisStepIndicator({ currentStep }: AnalysisStepIndicatorProps) {
