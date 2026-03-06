@@ -532,6 +532,34 @@ export default function CommandDeckPage() {
           </motion.div>
         )}
 
+        {/* ═══ AUTO-SURFACED STRUCTURAL INSIGHT ═══ */}
+        {narrative?.narrativeSummary && (
+          <motion.div {...fadeUp} transition={{ delay: 0.12 }}
+            className="rounded-xl p-5 bg-card border border-border"
+            style={{ borderLeft: `3px solid ${modeAccent}` }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${modeAccent}15` }}>
+                <Brain size={13} style={{ color: modeAccent }} />
+              </div>
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Structural Insight</p>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Auto-generated</span>
+            </div>
+            <p className="text-sm font-semibold text-foreground leading-relaxed max-w-3xl">
+              {narrative.narrativeSummary}
+            </p>
+            {graph && graph.nodes.length > 3 && (
+              <button
+                onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                className="mt-3 flex items-center gap-1.5 text-[11px] font-bold transition-colors hover:opacity-80"
+                style={{ color: modeAccent }}
+              >
+                <GitBranch size={12} /> Explore full reasoning chain →
+              </button>
+            )}
+          </motion.div>
+        )}
+
         {/* ═══ ZONE 1 — METRIC CARDS ═══ */}
         {tierFilter && (
           <div className="flex items-center gap-2 px-1">
