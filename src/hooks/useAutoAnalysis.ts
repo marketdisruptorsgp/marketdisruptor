@@ -55,6 +55,9 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
   const [graph, setGraph] = useState<InsightGraph | null>(null);
   const [evidence, setEvidence] = useState<Record<MetricDomain, MetricEvidence> | null>(null);
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [narrative, setNarrative] = useState<StrategicNarrative | null>(null);
   const [isComputing, setIsComputing] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
