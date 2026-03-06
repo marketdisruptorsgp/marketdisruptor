@@ -227,7 +227,7 @@ function detectConstraints(flat: Evidence[], analysisId: string): StrategicInsig
   const riskEvidence = flat.filter(e => e.type === "risk" && (e.impact ?? 0) >= 5);
   for (const risk of riskEvidence.slice(0, 3)) {
     if (insights.some(i => jaccardSimilarity(i.label, risk.label) >= 0.5)) continue;
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("constraint"),
       analysisId,
       insightType: "constraint_cluster",
@@ -238,7 +238,7 @@ function detectConstraints(flat: Evidence[], analysisId: string): StrategicInsig
       impact: risk.impact ?? 6,
       confidence: risk.confidenceScore ?? 0.5,
       createdAt: now,
-    });
+    }));
   }
 
   return insights;
