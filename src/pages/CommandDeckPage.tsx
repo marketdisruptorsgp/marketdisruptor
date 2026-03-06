@@ -621,6 +621,14 @@ export default function CommandDeckPage() {
         {/* In-place Recompute Overlay */}
         <RecomputeOverlay isActive={isRecomputing || autoAnalysis.isComputing} />
 
+        {/* ═══ STRATEGIC SIGNAL BANNER ═══ */}
+        <StrategicSignalBanner
+          opportunities={filteredOpps}
+          insights={autoAnalysis.insights}
+          metrics={metrics}
+          mode={modeKey}
+        />
+
         {/* ═══ HEADER ═══ */}
         <motion.div {...fadeUp} className="rounded-2xl p-4 sm:p-5 bg-card border border-border">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
