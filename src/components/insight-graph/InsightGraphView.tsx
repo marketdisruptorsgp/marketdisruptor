@@ -27,6 +27,11 @@ import { InsightNodeCard } from "./InsightNodeCard";
 import { OpportunityLandscape } from "./OpportunityLandscape";
 import { ConstraintMap } from "./ConstraintMap";
 import { StrategicPathways } from "./StrategicPathways";
+import { SimulationPanel } from "@/components/SimulationPanel";
+import { RecomputeOverlay } from "@/components/RecomputeOverlay";
+import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
+import { type LensTool } from "@/lib/lensToolkitRegistry";
+import { type ToolScenario } from "@/lib/scenarioEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // ═══════════════════════════════════════════════════════════════
@@ -342,6 +347,8 @@ function layoutTiered(graphNodes: InsightGraphNode[]): Node[] {
 
 interface InsightGraphViewProps {
   graph: InsightGraph;
+  analysisId?: string;
+  onScenarioSaved?: (s: ToolScenario) => void;
 }
 
 type TierFilter = "all" | "structural" | "system" | "optimization";
@@ -352,7 +359,7 @@ const TIER_FILTERS: { key: TierFilter; label: string; color: string }[] = [
   { key: "optimization", label: "T3 Optimization", color: "hsl(229 89% 63%)" },
 ];
 
-export const InsightGraphView = memo(function InsightGraphView({ graph }: InsightGraphViewProps) {
+export const InsightGraphView = memo(function InsightGraphView({ graph, analysisId = "", onScenarioSaved }: InsightGraphViewProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"graph" | "landscape" | "constraints" | "pathways">("graph");
@@ -360,7 +367,24 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
   const [showOpportunityPaths, setShowOpportunityPaths] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
+  const [simPanelOpen, setSimPanelOpen] = useState(false);
+  const [simTool, setSimTool] = useState<LensTool | null>(null);
+  const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
   const isMobile = useIsMobile();
+
+  const handleOpenTool = useCallback((tool: LensTool) => {
+    setSimTool(tool);
+    setSimPanelOpen(true);
+  }, []);
+
+  const handleSimScenarioSaved = useCallback((scenario: ToolScenario) => {
+    setIntelligenceEvents(prev => [
+      `Scenario saved: ${scenario.scenarioName}`,
+      `New evidence from ${scenario.toolId.replace(/-/g, " ")}`,
+      ...prev,
+    ].slice(0, 10));
+    onScenarioSaved?.(scenario);
+  }, [onScenarioSaved]);
 
   // Identify top leverage constraint + breakthrough opportunity
   const topLeverageId = useMemo(() => graph.topNodes.primaryConstraint?.id ?? null, [graph.topNodes]);
@@ -743,6 +767,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
                 graph={graph}
                 onClose={() => setSelectedNodeId(null)}
                 onSelectNode={setSelectedNodeId}
+                onOpenTool={handleOpenTool}
               />
             )}
           </AnimatePresence>
@@ -758,6 +783,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
               graph={graph}
               onClose={() => setSelectedNodeId(null)}
               onSelectNode={setSelectedNodeId}
+              onOpenTool={handleOpenTool}
               isMobile
             />
           )}
@@ -832,6 +858,22 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
       )}
       </>
       )}
+
+      {/* Simulation Panel — right-side workspace */}
+      <SimulationPanel
+        isOpen={simPanelOpen}
+        onClose={() => { setSimPanelOpen(false); setSimTool(null); }}
+        activeTool={simTool}
+        analysisId={analysisId}
+        onScenarioSaved={handleSimScenarioSaved}
+        intelligenceEvents={intelligenceEvents}
+      />
+
+      {/* Intelligence Event Feed */}
+      <IntelligenceEventFeed
+        events={intelligenceEvents}
+        onDismiss={(idx) => setIntelligenceEvents(prev => prev.filter((_, i) => i !== idx))}
+      />
     </div>
   );
 });

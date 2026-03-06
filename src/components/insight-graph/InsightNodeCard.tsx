@@ -8,7 +8,7 @@
 
 import { memo, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRight } from "lucide-react";
+import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRight, FlaskConical, Bookmark, Search } from "lucide-react";
 import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
 import { getInsightChain, NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 import { getToolById, type LensTool } from "@/lib/lensToolkitRegistry";
@@ -413,6 +413,30 @@ export const InsightNodeCard = memo(function InsightNodeCard({
           })}
         </div>
       )}
+
+      {/* Strategic Actions */}
+      <div className="px-4 pb-3">
+        <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
+          Strategic Actions
+        </p>
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            onClick={() => onSelectNode(node.id)}
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-bold bg-muted hover:bg-muted/80 transition-colors text-foreground"
+          >
+            <Search size={11} /> Zoom Graph
+          </button>
+          {relatedTools.length > 0 && (
+            <button
+              onClick={() => relatedTools[0] && onOpenTool?.(relatedTools[0])}
+              className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-colors"
+              style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}
+            >
+              <FlaskConical size={11} /> Run Tool
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Pipeline step badge */}
       <div className="px-4 pb-3">

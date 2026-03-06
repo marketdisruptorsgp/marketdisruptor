@@ -40,6 +40,8 @@ import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { allScenariosToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
+import { RecomputeOverlay } from "@/components/RecomputeOverlay";
+import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -437,25 +439,42 @@ export default function CommandDeckPage() {
     return narrative?.recommendedTools ?? [];
   }, [narrative]);
 
-  // Scenario saved handler — triggers recompute
-  const [scenarioTrigger, setScenarioTrigger] = useState(0);
-  const handleScenarioSaved = useCallback((scenario: ToolScenario) => {
-    setScenarioTrigger(t => t + 1);
-    toast.success("Intelligence recomputing with new scenario data…");
+  // Intelligence event feed
+  const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
+  const addEvent = useCallback((msg: string) => {
+    setIntelligenceEvents(prev => [msg, ...prev].slice(0, 10));
+  }, []);
+  const dismissEvent = useCallback((idx: number) => {
+    setIntelligenceEvents(prev => prev.filter((_, i) => i !== idx));
   }, []);
 
+  // Scenario saved handler — triggers recompute in-place
+  const [isRecomputing, setIsRecomputing] = useState(false);
+  const handleScenarioSaved = useCallback((scenario: ToolScenario) => {
+    setIsRecomputing(true);
+    addEvent(`Scenario saved: ${scenario.scenarioName}`);
+    addEvent(`New evidence generated from ${scenario.toolId.replace(/-/g, " ")}`);
+    // Recompute happens automatically via useAutoAnalysis watching data changes
+    setTimeout(() => {
+      setIsRecomputing(false);
+      addEvent("Strategic intelligence updated");
+    }, 1200);
+  }, [addEvent]);
+
   const handleRecomputeAll = useCallback(() => {
-    toast.info("Recomputing analysis intelligence…");
-    // Trigger auto-analysis recomputation by staying on the Command Deck
-    // The useAutoAnalysis hook will detect data changes and recompute
-    // If no steps are completed, guide user to the first step
     if (completedSteps.size === 0) {
       navigate(`${baseUrl}/report`);
-    } else {
-      // Stay on Command Deck — intelligence recomputes automatically
-      toast.success("Intelligence updated on Command Deck.");
+      return;
     }
-  }, [completedSteps, navigate, baseUrl]);
+    // In-place recompute — no navigation
+    setIsRecomputing(true);
+    addEvent("Recomputing strategic intelligence…");
+    setTimeout(() => {
+      setIsRecomputing(false);
+      addEvent("Strategic intelligence updated");
+      toast.success("Strategic intelligence updated");
+    }, 1500);
+  }, [completedSteps, navigate, baseUrl, addEvent]);
 
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
@@ -476,6 +495,9 @@ export default function CommandDeckPage() {
       <HeroSection tier={tier} remainingAnalyses={null} />
 
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5">
+
+        {/* In-place Recompute Overlay */}
+        <RecomputeOverlay isActive={isRecomputing || autoAnalysis.isComputing} />
 
         {/* ═══ HEADER ═══ */}
         <motion.div {...fadeUp} className="rounded-2xl p-5 sm:p-6 bg-card border border-border">
@@ -922,6 +944,9 @@ export default function CommandDeckPage() {
         domain={explorerDomain}
         evidence={filteredEvidence}
       />
+
+      {/* Intelligence Event Feed */}
+      <IntelligenceEventFeed events={intelligenceEvents} onDismiss={dismissEvent} />
     </div>
   );
 }
