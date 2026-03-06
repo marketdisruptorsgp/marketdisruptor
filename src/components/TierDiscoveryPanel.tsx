@@ -6,9 +6,10 @@
  * Limits visible signals to 8-12 per tier with "Explore More Signals" expansion.
  */
 
-import { memo, useState } from "react";
+import { memo } from "react";
 import { motion } from "framer-motion";
-import { Lock, CheckCircle2, ChevronRight, Layers, ArrowRight } from "lucide-react";
+import { Lock, CheckCircle2, ChevronRight, Layers, ArrowRight, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TIER_META, type TierNumber, type TierState, getUnlockCondition } from "@/lib/tierDiscoveryEngine";
 import type { EvidenceTier } from "@/lib/evidenceEngine";
 
