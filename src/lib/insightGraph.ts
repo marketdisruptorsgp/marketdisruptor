@@ -252,13 +252,34 @@ function buildGraphFromEvidence(
   }
 
   // ── Step 1b: Generate Insight nodes from clustered insights ──
+  // Also generate synthetic Constraint and Opportunity nodes from insights
+  // when the evidence pipeline didn't produce them directly.
   if (insights) {
-    for (const ins of insights.slice(0, 12)) {
+    for (const ins of insights.slice(0, 16)) {
       const rawLabel = typeof ins.label === "string" ? ins.label : "";
       if (!rawLabel || rawLabel === "[object Object]") continue;
+
+      // Map insight types to graph node types for richer coverage
+      let nodeType: InsightNodeType = "insight";
+      let layer: InsightGraphNode["intelligenceLayer"] = "insight";
+      if (ins.insightType === "constraint_cluster") {
+        nodeType = "constraint";
+        layer = "insight";
+      } else if (ins.insightType === "emerging_opportunity") {
+        nodeType = "concept";
+        layer = "opportunity";
+      } else if (ins.insightType === "strategic_pathway") {
+        nodeType = "pathway";
+        layer = "strategy";
+      } else if (ins.insightType === "assumption_cluster") {
+        nodeType = "assumption";
+        layer = "evidence";
+      }
+
+      const insNodeId = `insight-${ins.id}`;
       addNode({
-        id: `insight-${ins.id}`,
-        type: "insight",
+        id: insNodeId,
+        type: nodeType,
         label: rawLabel.slice(0, 120),
         detail: ins.description,
         impact: ins.impact ?? 6,
@@ -270,11 +291,11 @@ function buildGraphFromEvidence(
         evidence: ins.evidenceIds,
         relatedNodeIds: [],
         confidenceScore: ins.confidenceScore,
-        intelligenceLayer: "insight",
+        intelligenceLayer: layer,
       });
       // Link insight → its source evidence
       for (const evId of ins.evidenceIds.slice(0, 4)) {
-        addEdge(evId, `insight-${ins.id}`, "creates", 0.6);
+        addEdge(evId, insNodeId, "creates", 0.6);
       }
     }
   }
