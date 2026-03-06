@@ -858,6 +858,22 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
       )}
       </>
       )}
+
+      {/* Simulation Panel — right-side workspace */}
+      <SimulationPanel
+        isOpen={simPanelOpen}
+        onClose={() => { setSimPanelOpen(false); setSimTool(null); }}
+        activeTool={simTool}
+        analysisId={analysisId}
+        onScenarioSaved={handleSimScenarioSaved}
+        intelligenceEvents={intelligenceEvents}
+      />
+
+      {/* Intelligence Event Feed */}
+      <IntelligenceEventFeed
+        events={intelligenceEvents}
+        onDismiss={(idx) => setIntelligenceEvents(prev => prev.filter((_, i) => i !== idx))}
+      />
     </div>
   );
 });
