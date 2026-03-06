@@ -42,18 +42,19 @@ const PIPELINE_STEPS = ["report", "disrupt", "redesign", "stress_test", "pitch"]
 const ALL_NODE_TYPES: InsightNodeType[] = [
   "signal", "constraint", "assumption", "driver", "outcome",
   "leverage_point", "flipped_idea", "concept", "risk", "evidence",
-  "simulation",
+  "simulation", "insight", "pathway", "scenario",
 ];
 
-/** Tiered layout columns: left-to-right reasoning flow per spec */
+/** Layer-based columns: Evidence → Insight → Opportunity → Simulation → Strategy */
 const TIER_CONFIG: { types: InsightNodeType[]; label: string; colIndex: number }[] = [
-  { types: ["signal"],                             label: "Signals",       colIndex: 0 },
-  { types: ["constraint"],                         label: "Constraints",   colIndex: 1 },
-  { types: ["assumption"],                         label: "Assumptions",   colIndex: 2 },
+  { types: ["signal", "evidence"],                 label: "Evidence",      colIndex: 0 },
+  { types: ["assumption", "friction"],             label: "Assumptions",   colIndex: 1 },
+  { types: ["constraint", "insight"],              label: "Insights",      colIndex: 2 },
   { types: ["driver", "leverage_point"],           label: "Leverage",      colIndex: 3 },
   { types: ["outcome", "flipped_idea", "concept"], label: "Opportunities", colIndex: 4 },
-  { types: ["risk", "evidence"],                   label: "Validation",    colIndex: 5 },
-  { types: ["simulation"],                         label: "Simulations",   colIndex: 6 },
+  { types: ["risk", "competitor"],                 label: "Validation",    colIndex: 5 },
+  { types: ["simulation", "scenario"],             label: "Simulations",   colIndex: 6 },
+  { types: ["pathway"],                            label: "Strategy",      colIndex: 7 },
 ];
 
 /** Zoom level definitions */
