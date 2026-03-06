@@ -124,12 +124,25 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         analysisType: analysisMode,
       });
 
-      // Step 2: Build insight graph from evidence (evidence-first path)
+      // Step 2: Cluster evidence into Insights
+      const allEvItems = Object.values(newEvidence).flatMap(m => m.items);
+      const newInsights = clusterEvidenceIntoInsights(allEvItems);
+
+      // Step 3: Generate opportunities from insights
+      const newOpps = generateOpportunities(newInsights, allEvItems);
+
+      // Step 4: Generate strategic narrative
+      const newNarrative = generateStrategicNarrative(newInsights, allEvItems);
+
+      // Step 5: Build insight graph from evidence (evidence-first path)
       const newGraph = buildInsightGraph(newEvidence);
 
       setIntelligence(newIntelligence);
       setGraph(newGraph);
       setEvidence(newEvidence);
+      setInsights(newInsights);
+      setOpportunities(newOpps);
+      setNarrative(newNarrative);
     } catch (err) {
       console.warn("[AutoAnalysis] Computation error:", err);
     } finally {
