@@ -195,7 +195,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
 };
 
 function classifyEvidence(ev: Evidence): string {
-  const text = `${ev.label} ${ev.description || ""} ${(ev.tags || []).join(" ")}`.toLowerCase();
+  const text = `${ev.label} ${ev.description || ""} ${ev.category || ""}`.toLowerCase();
   let best = "demand_signal";
   let bestScore = 0;
   for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
