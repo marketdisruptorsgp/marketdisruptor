@@ -102,6 +102,10 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
     safeArr(disrupt.flippedIdeas || disrupt.ideas).forEach((idea: any, i: number) => {
       const label = idea.name || idea.title || idea.label || `Flipped Idea ${i + 1}`;
       const desc = idea.description;
+      // Extract competitor references from flipped idea
+      const competitors = safeArr(idea.competitorReferences || idea.competitors || idea.analogs)
+        .map((c: any) => ({ name: typeof c === "string" ? c : (c.name || c.company), modelType: c.modelType }))
+        .filter((c: any) => c.name);
       items.push({
         id: idea.id || makeId("opp-flip"),
         type: "opportunity",
@@ -111,6 +115,7 @@ function extractOpportunityEvidence(input: EvidenceInput): Evidence[] {
         tier: autoTier(label, desc, "structural"),
         impact: idea.impact || idea.score,
         category: idea.category || idea.structuralChangeType,
+        competitorReferences: competitors.length > 0 ? competitors : undefined,
       });
     });
   }
