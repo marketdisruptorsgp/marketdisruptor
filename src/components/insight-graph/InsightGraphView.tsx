@@ -344,6 +344,14 @@ interface InsightGraphViewProps {
   graph: InsightGraph;
 }
 
+type TierFilter = "all" | "structural" | "system" | "optimization";
+const TIER_FILTERS: { key: TierFilter; label: string; color: string }[] = [
+  { key: "all", label: "All Tiers", color: "hsl(var(--primary))" },
+  { key: "structural", label: "T1 Structural", color: "hsl(0 72% 52%)" },
+  { key: "system", label: "T2 System", color: "hsl(38 92% 50%)" },
+  { key: "optimization", label: "T3 Optimization", color: "hsl(229 89% 63%)" },
+];
+
 export const InsightGraphView = memo(function InsightGraphView({ graph }: InsightGraphViewProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
@@ -351,6 +359,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>("structural");
   const [showOpportunityPaths, setShowOpportunityPaths] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const isMobile = useIsMobile();
 
   // Identify top leverage constraint + breakthrough opportunity
@@ -376,15 +385,16 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
     return ids;
   }, [highlightedIds, graph.edges]);
 
-  // Apply zoom level + opportunity path filter
+  // Apply zoom level + opportunity path filter + tier filter
   const filteredNodes = useMemo(() => {
     const zoomTypes = new Set(ZOOM_LEVEL_CONFIG[zoomLevel].types);
     return graph.nodes.filter(n => {
       if (!zoomTypes.has(n.type)) return false;
       if (showOpportunityPaths && !opportunityPathIds.has(n.id)) return false;
+      if (tierFilter !== "all" && n.tier !== tierFilter) return false;
       return true;
     });
-  }, [graph.nodes, zoomLevel, showOpportunityPaths, opportunityPathIds]);
+  }, [graph.nodes, zoomLevel, showOpportunityPaths, opportunityPathIds, tierFilter]);
 
   const filteredNodeIds = useMemo(() => new Set(filteredNodes.map(n => n.id)), [filteredNodes]);
 
@@ -521,6 +531,32 @@ export const InsightGraphView = memo(function InsightGraphView({ graph }: Insigh
                   {ZOOM_LEVEL_CONFIG[level].label}
                 </button>
               ))}
+            </div>
+
+            {/* Tier filter chips */}
+            <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
+              {TIER_FILTERS.map(tf => {
+                const count = tf.key === "all"
+                  ? graph.nodes.length
+                  : graph.nodes.filter(n => n.tier === tf.key).length;
+                if (count === 0 && tf.key !== "all") return null;
+                return (
+                  <button
+                    key={tf.key}
+                    onClick={() => setTierFilter(tf.key)}
+                    className="px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1"
+                    style={{
+                      background: tierFilter === tf.key ? "hsl(var(--card))" : "transparent",
+                      color: tierFilter === tf.key ? tf.color : "hsl(var(--muted-foreground))",
+                      boxShadow: tierFilter === tf.key ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
+                    }}
+                  >
+                    {tf.key !== "all" && <span className="w-2 h-2 rounded-full" style={{ background: tf.color }} />}
+                    {tf.label}
+                    {tf.key !== "all" && <span className="text-[10px] opacity-70">({count})</span>}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Opportunity paths toggle */}
