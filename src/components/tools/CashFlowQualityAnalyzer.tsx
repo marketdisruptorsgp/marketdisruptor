@@ -98,7 +98,7 @@ export function CashFlowQualityAnalyzer({ analysisId, onScenarioSaved }: Props) 
       scenarioId: generateScenarioId(), analysisId, toolId: "cash-flow-quality",
       scenarioName, timestamp: Date.now(),
       inputVariables: { reportedRevenue, reportedSDE, ownerSalary, oneTimeExpenses, recurringPct, topCustomerConcentration },
-      outputResults: { overallScore, checks: checks.map(c => ({ label: c.label, status: c.status })) },
+      outputResults: { overallScore, checkCount: checks.filter(c => c.status === "pass").length },
       strategicImpact: overallScore >= 70 ? "high" : overallScore >= 40 ? "medium" : "low",
     };
     saveScenario(scenario);

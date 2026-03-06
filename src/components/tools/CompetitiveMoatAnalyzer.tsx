@@ -52,7 +52,7 @@ export function CompetitiveMoatAnalyzer({ analysisId, onScenarioSaved }: Props) 
       scenarioId: generateScenarioId(), analysisId, toolId: "competitive-moat-analyzer",
       scenarioName, timestamp: Date.now(),
       inputVariables: scores,
-      outputResults: { overallScore, moatStrength, dimensions: MOAT_DIMENSIONS.map(d => ({ ...d, score: scores[d.id] })) },
+      outputResults: { overallScore, moatStrength, dimensionCount: MOAT_DIMENSIONS.length },
       strategicImpact: overallScore >= 70 ? "high" : overallScore >= 40 ? "medium" : "low",
     };
     saveScenario(scenario);

@@ -21,6 +21,18 @@ import type { ToolScenario } from "@/lib/scenarioEngine";
 import { SBALoanCalculator } from "@/components/tools/SBALoanCalculator";
 import { DealStructureSimulator } from "@/components/tools/DealStructureSimulator";
 import { TAMCalculator } from "@/components/tools/TAMCalculator";
+import { RevenueModelSimulator } from "@/components/tools/RevenueModelSimulator";
+import { ValueChainAnalyzer } from "@/components/tools/ValueChainAnalyzer";
+import { AcquisitionROIModel } from "@/components/tools/AcquisitionROIModel";
+import { CashFlowQualityAnalyzer } from "@/components/tools/CashFlowQualityAnalyzer";
+import { UnitEconomicsModel } from "@/components/tools/UnitEconomicsModel";
+import { CompetitiveMoatAnalyzer } from "@/components/tools/CompetitiveMoatAnalyzer";
+import { SellerMotivationScanner } from "@/components/tools/SellerMotivationScanner";
+import { DealRiskScanner } from "@/components/tools/DealRiskScanner";
+import { IndustryFragmentationDetector } from "@/components/tools/IndustryFragmentationDetector";
+import { DSCRCalculator } from "@/components/tools/DSCRCalculator";
+import { InnovationPathwayMapper } from "@/components/tools/InnovationPathwayMapper";
+import { AssumptionStressTester } from "@/components/tools/AssumptionStressTester";
 
 /* ── Tool Card ── */
 function ToolCard({
@@ -65,6 +77,30 @@ function InteractiveToolContent({ tool, analysisId, onScenarioSaved }: {
       return <DealStructureSimulator analysisId={analysisId} onScenarioSaved={onScenarioSaved} />;
     case "tam-calculator":
       return <TAMCalculator analysisId={analysisId} onScenarioSaved={onScenarioSaved} />;
+    case "revenue-model-simulator":
+      return <RevenueModelSimulator analysisId={analysisId} onScenarioSaved={onScenarioSaved} />;
+    case "value-chain-analyzer":
+      return <ValueChainAnalyzer analysisId={analysisId} />;
+    case "acquisition-roi-model":
+      return <AcquisitionROIModel analysisId={analysisId} onScenarioSaved={onScenarioSaved} />;
+    case "cash-flow-quality":
+      return <CashFlowQualityAnalyzer analysisId={analysisId} onScenarioSaved={onScenarioSaved} />;
+    case "unit-economics-model":
+      return <UnitEconomicsModel analysisId={analysisId} onScenarioSaved={onScenarioSaved} />;
+    case "competitive-moat-analyzer":
+      return <CompetitiveMoatAnalyzer analysisId={analysisId} onScenarioSaved={onScenarioSaved} />;
+    case "seller-motivation-signals":
+      return <SellerMotivationScanner analysisId={analysisId} />;
+    case "deal-risk-scanner":
+      return <DealRiskScanner analysisId={analysisId} />;
+    case "industry-fragmentation-detector":
+      return <IndustryFragmentationDetector analysisId={analysisId} />;
+    case "dscr-calculator":
+      return <DSCRCalculator analysisId={analysisId} onScenarioSaved={onScenarioSaved} />;
+    case "innovation-pathway-mapper":
+      return <InnovationPathwayMapper analysisId={analysisId} />;
+    case "assumption-stress-tester":
+      return <AssumptionStressTester analysisId={analysisId} />;
     default:
       return (
         <div className="rounded-xl border-2 border-dashed border-border p-8 text-center">
