@@ -246,7 +246,7 @@ function buildGraphFromEvidence(
     addNode({
       id: ev.id,
       type: nodeType,
-      label: rawLabel.slice(0, 120),
+      label: humanizeGraphLabel(rawLabel).slice(0, 120),
       detail: ev.description,
       impact: ev.impact ?? 5,
       confidence: confidenceLabel(ev.confidenceScore),
