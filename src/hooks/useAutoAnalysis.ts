@@ -9,6 +9,14 @@
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
+  clusterEvidenceIntoInsights,
+  generateOpportunities,
+  generateStrategicNarrative,
+  type Insight,
+  type Opportunity,
+  type StrategicNarrative,
+} from "@/lib/insightLayer";
+import {
   buildSystemIntelligence,
   invalidateIntelligence,
   type SystemIntelligenceInput,
