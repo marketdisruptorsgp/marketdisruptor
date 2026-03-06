@@ -38,6 +38,7 @@ import { extractAllEvidence, type MetricDomain, type EvidenceTier } from "@/lib/
 import { computeTierState, filterEvidenceByTier, TIER_META, type TierNumber, type TierState } from "@/lib/tierDiscoveryEngine";
 import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 import { StrategicNarrativePanel } from "@/components/StrategicNarrativePanel";
+import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
