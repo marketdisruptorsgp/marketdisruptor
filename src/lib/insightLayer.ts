@@ -567,7 +567,7 @@ function inferConstraintsFromBottlenecks(insights: Insight[], evidence: Evidence
 
   // 2. High-friction signals → constraint
   const frictionEvidence = evidence.filter(e => e.type === "friction" && (e.impact ?? 0) >= 4);
-  if (frictionEvidence.length >= 2) {
+  if (frictionEvidence.length >= 1) {
     result.push({
       id: `insight-inferred-con-${++insightCounter}`,
       label: `Operational friction: ${frictionEvidence[0].label}`,
