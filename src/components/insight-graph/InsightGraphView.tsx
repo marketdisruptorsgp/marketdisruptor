@@ -62,12 +62,12 @@ const ZOOM_LEVEL_CONFIG: Record<ZoomLevel, { label: string; description: string;
   overview: {
     label: "Overview",
     description: "Signals, Constraints, Opportunities",
-    types: ["signal", "constraint", "outcome", "flipped_idea", "concept"],
+    types: ["signal", "constraint", "outcome", "flipped_idea", "concept", "simulation"],
   },
   structural: {
     label: "Structural",
     description: "All reasoning layers",
-    types: ["signal", "constraint", "assumption", "driver", "leverage_point", "outcome", "flipped_idea", "concept"],
+    types: ["signal", "constraint", "assumption", "driver", "leverage_point", "outcome", "flipped_idea", "concept", "simulation"],
   },
   full: {
     label: "Full Reasoning",
