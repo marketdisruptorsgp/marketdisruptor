@@ -295,7 +295,7 @@ export default function ReportPage() {
                 )}
                 {ci.topComplaints?.length > 0 && (
                   <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Top Complaints</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Top Complaints</p>
                     <VisualGrid columns={2}>
                       {ci.topComplaints.map((c: string, i: number) => (
                         <SignalCard key={i} label={c} type="weakness" />
@@ -305,7 +305,7 @@ export default function ReportPage() {
                 )}
                 {ci.improvementRequests?.length > 0 && (
                   <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Improvement Requests</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Improvement Requests</p>
                     <VisualGrid columns={2}>
                       {ci.improvementRequests.map((r: string, i: number) => (
                         <SignalCard key={i} label={r} type="opportunity" />

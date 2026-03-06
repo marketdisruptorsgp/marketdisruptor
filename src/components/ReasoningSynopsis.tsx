@@ -125,7 +125,7 @@ function SynopsisCard({ title, icon: Icon, children, delay = 0 }: {
         <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: `${COLORS.mechanism}12` }}>
           <Icon size={12} style={{ color: COLORS.mechanism }} />
         </div>
-        <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: COLORS.muted }}>
+        <span className="text-xs font-bold uppercase tracking-widest" style={{ color: COLORS.muted }}>
           {title}
         </span>
       </div>
@@ -187,7 +187,7 @@ function LensInfluenceRadar({ synopsis }: { synopsis: SynopsisData }) {
       {/* What would change */}
       {synopsis.lens_influence.alternative_lens_impact && (
         <div className="rounded-xl p-4 mt-1" style={{ background: "hsl(var(--foreground))" }}>
-          <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--background) / 0.5)" }}>
+          <p className="text-xs font-extrabold uppercase tracking-widest mb-1.5" style={{ color: "hsl(var(--background) / 0.5)" }}>
             With a Different Lens
           </p>
           <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--background))" }}>
@@ -287,7 +287,7 @@ function DecisionWeightBars({ synopsis }: { synopsis: SynopsisData }) {
               <div className="flex items-center justify-between gap-3 mb-1.5">
                 <p className="text-sm font-bold text-foreground">{d.factor}</p>
                 <span
-                  className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex-shrink-0"
+                  className="px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-widest flex-shrink-0"
                   style={{
                     background: isHigh ? "hsl(var(--primary) / 0.12)" : "hsl(var(--muted-foreground) / 0.1)",
                     color: isHigh ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
@@ -325,7 +325,7 @@ function KeyAssumptionsPanel({ assumptions }: { assumptions: KeyAssumption[] }) 
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-bold text-foreground leading-snug flex-1">{a.assumption}</p>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex-shrink-0"
+                <span className="px-2 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-widest flex-shrink-0"
                   style={{ color: ec, background: `${ec}12`, border: `1px solid ${ec}25` }}>
                   {a.evidence_status}
                 </span>
@@ -368,7 +368,7 @@ function CounterfactualPanel({ scenarios }: { scenarios: CounterfactualScenario[
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="text-xs font-bold text-foreground leading-snug flex-1">{s.scenario}</p>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex-shrink-0"
+                <span className="px-2 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-widest flex-shrink-0"
                   style={{ color: lc, background: `${lc}12`, border: `1px solid ${lc}25` }}>
                   {s.likelihood} likelihood
                 </span>
@@ -419,7 +419,7 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
         <div className="flex flex-wrap items-center gap-1.5 mb-2">
           {synopsis.evaluation_path.dimensions_examined.map((d, i) => (
             <React.Fragment key={i}>
-              <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-muted text-muted-foreground">
+              <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-muted text-muted-foreground">
                 {d}
               </span>
               {i < synopsis.evaluation_path.dimensions_examined.length - 1 && (
@@ -428,13 +428,13 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
             </React.Fragment>
           ))}
         </div>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed">
           {synopsis.evaluation_path.evaluation_logic}
         </p>
         {synopsis.evaluation_path.eliminated_dimensions && (
           <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${COLORS.border}` }}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Excluded Dimensions</p>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">{synopsis.evaluation_path.eliminated_dimensions}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Excluded Dimensions</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{synopsis.evaluation_path.eliminated_dimensions}</p>
           </div>
         )}
       </SynopsisCard>
@@ -452,12 +452,12 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
               </div>
             </div>
             <div className="space-y-1">
-               <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest"
+               <span className="inline-block px-2 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-widest"
                 style={{ color: cc, background: `${cc}12`, border: `1px solid ${cc}25` }}>
                 {synopsis.confidence_sensitivity.overall_confidence}
               </span>
               {eq && eqColor && (
-                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest ml-1"
+                <span className="inline-block px-2 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-widest ml-1"
                   style={{ color: eqColor, background: `${eqColor}12`, border: `1px solid ${eqColor}25` }}>
                   {eq}
                 </span>
@@ -469,14 +469,14 @@ function StructuredTextSynopsis({ synopsis }: { synopsis: SynopsisData }) {
           <div className="flex items-start gap-1.5">
             <AlertTriangle size={10} className="mt-0.5 flex-shrink-0" style={{ color: COLORS.deprioritized }} />
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Most Sensitive Variable</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Most Sensitive Variable</p>
               <p className="text-xs font-semibold text-foreground">
                 {synopsis.confidence_sensitivity.most_sensitive_variable}
               </p>
             </div>
           </div>
           {synopsis.confidence_sensitivity.sensitivity_explanation && (
-            <p className="text-[11px] text-muted-foreground leading-relaxed pl-4">
+            <p className="text-xs text-muted-foreground leading-relaxed pl-4">
               {synopsis.confidence_sensitivity.sensitivity_explanation}
             </p>
           )}
@@ -523,7 +523,7 @@ export function ReasoningSynopsis({ data, analysisData, products, title, categor
            <p className="text-xs font-semibold text-muted-foreground">
             Reasoning Synopsis not available for this analysis.
           </p>
-          <p className="text-[10px] text-muted-foreground/60 mt-1">
+          <p className="text-xs text-muted-foreground/60 mt-1">
             Run a new analysis to generate the reasoning trace.
           </p>
         </div>
