@@ -6,7 +6,7 @@
  *           breakthrough opportunity badges, hover tooltips, expanded detail panel.
  */
 
-import { memo, useMemo, useState, useCallback } from "react";
+import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { TIER_META } from "@/lib/tierDiscoveryEngine";
 import ReactFlow, {
   Background,
