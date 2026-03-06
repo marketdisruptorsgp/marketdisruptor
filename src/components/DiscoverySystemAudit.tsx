@@ -54,11 +54,11 @@ export function DiscoverySystemAudit({ evidence }: AuditProps) {
       },
     ];
 
-    const engineStatus = (name: string): AuditResult => ({
+    const engineStatus = (name: string, key: string): AuditResult => ({
       label: name,
-      status: engines.has(name.toLowerCase().replace(/ /g, "_")) ? "connected" : "disconnected",
-      detail: engines.has(name.toLowerCase().replace(/ /g, "_"))
-        ? `${all.filter(e => e.sourceEngine === name.toLowerCase().replace(/ /g, "_")).length} items`
+      status: engines.has(key as any) ? "connected" : "disconnected",
+      detail: engines.has(key as any)
+        ? `${all.filter(e => e.sourceEngine === key).length} items`
         : "Not bridged",
     });
 

@@ -142,7 +142,7 @@ export function CommandNavigation() {
           if (visibleItems.length === 0 && section.label !== "System") return null;
 
           return (
-            <SidebarGroup key={section.label} defaultOpen={isExpanded}>
+            <SidebarGroup key={section.label}>
               <SidebarGroupLabel className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground px-3">
                 {section.label}
               </SidebarGroupLabel>
