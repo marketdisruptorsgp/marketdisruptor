@@ -1,8 +1,8 @@
 /**
  * COMMAND NAVIGATION — Strategic OS Left Navigation
  *
- * Only renders on workspace/analysis routes.
- * Uses semantic design tokens for full light/dark theme compliance.
+ * Only renders inside workspace/analysis routes (controlled by AppLayout).
+ * Uses semantic sidebar design tokens for automatic light/dark compliance.
  */
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -11,8 +11,9 @@ import {
   LayoutDashboard, GitBranch, Search, Compass,
   Radio, HelpCircle, Lightbulb, Route, Layers,
   Building2, Shield, BarChart3, Radar,
-  User, Brain, FolderOpen,
-  PlusCircle, Zap,
+  Brain, FolderOpen, PlusCircle, Zap,
+  FileText, FlaskConical, Target, Presentation,
+  DollarSign, Cpu,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -28,12 +29,23 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
+/* ── Analysis ID extraction ── */
 function useAnalysisId(): string | null {
   const location = useLocation();
   const match = location.pathname.match(/\/analysis\/([0-9a-f-]{36})/);
   return match?.[1] || null;
 }
 
+/* ── Mode detection from URL ── */
+function useAnalysisMode(): string | null {
+  const { pathname } = useLocation();
+  if (pathname.includes("/product")) return "product";
+  if (pathname.includes("/service")) return "service";
+  if (pathname.includes("/business")) return "business_model";
+  return null;
+}
+
+/* ── Nav config ── */
 interface NavItem {
   label: string;
   icon: React.ElementType;
@@ -59,11 +71,11 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: "Analysis Pipeline",
     items: [
-      { label: "Signals", icon: Radio, path: (id) => id ? `/analysis/${id}/report` : "/analysis/new", requiresAnalysis: true },
-      { label: "Assumptions", icon: HelpCircle, path: (id) => id ? `/analysis/${id}/disrupt` : "/analysis/new", requiresAnalysis: true },
-      { label: "Flipped Ideas", icon: Lightbulb, path: (id) => id ? `/analysis/${id}/redesign` : "/analysis/new", requiresAnalysis: true },
-      { label: "Strategic Pathways", icon: Route, path: (id) => id ? `/analysis/${id}/stress-test` : "/analysis/new", requiresAnalysis: true },
-      { label: "Concept Builder", icon: Layers, path: (id) => id ? `/analysis/${id}/pitch` : "/analysis/new", requiresAnalysis: true },
+      { label: "Report", icon: FileText, path: (id) => id ? `/analysis/${id}/report` : "/analysis/new", requiresAnalysis: true },
+      { label: "Disrupt", icon: FlaskConical, path: (id) => id ? `/analysis/${id}/disrupt` : "/analysis/new", requiresAnalysis: true },
+      { label: "Redesign", icon: Lightbulb, path: (id) => id ? `/analysis/${id}/redesign` : "/analysis/new", requiresAnalysis: true },
+      { label: "Stress Test", icon: Target, path: (id) => id ? `/analysis/${id}/stress-test` : "/analysis/new", requiresAnalysis: true },
+      { label: "Pitch", icon: Presentation, path: (id) => id ? `/analysis/${id}/pitch` : "/analysis/new", requiresAnalysis: true },
     ],
   },
   {
@@ -80,11 +92,16 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "My Workspace", icon: FolderOpen, path: "/workspace" },
       { label: "New Analysis", icon: PlusCircle, path: "/analysis/new" },
-      { label: "Archetype Lens", icon: User, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace" },
       { label: "Model Governance", icon: Brain, path: "/admin/governance" },
     ],
   },
 ];
+
+const MODE_LABELS: Record<string, string> = {
+  product: "Product Analysis",
+  service: "Service Analysis",
+  business_model: "Business Model",
+};
 
 export function CommandNavigation() {
   const { state } = useSidebar();
@@ -92,14 +109,8 @@ export function CommandNavigation() {
   const location = useLocation();
   const navigate = useNavigate();
   const analysisId = useAnalysisId();
+  const mode = useAnalysisMode();
   const currentPath = location.pathname;
-
-  const expandedSection = useMemo(() => {
-    if (currentPath.includes("/command-deck") || currentPath.includes("/insight-graph")) return "Discovery";
-    if (currentPath.includes("/report") || currentPath.includes("/disrupt") || currentPath.includes("/redesign") || currentPath.includes("/stress-test") || currentPath.includes("/pitch")) return "Analysis Pipeline";
-    if (currentPath.includes("/intelligence") || currentPath.includes("/intel")) return "Intelligence";
-    return "System";
-  }, [currentPath]);
 
   const resolvePath = (item: NavItem): string => {
     if (typeof item.path === "string") return item.path;
@@ -112,7 +123,7 @@ export function CommandNavigation() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border bg-sidebar">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
       <SidebarContent className="pt-2 bg-sidebar">
         {/* Logo */}
         <div className="px-3 py-2 mb-1">
@@ -120,7 +131,7 @@ export function CommandNavigation() {
             onClick={() => navigate("/workspace")}
             className="flex items-center gap-2 w-full"
           >
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-primary text-primary-foreground">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-sidebar-primary text-sidebar-primary-foreground">
               <Zap size={15} />
             </div>
             {!collapsed && (
@@ -131,9 +142,18 @@ export function CommandNavigation() {
           </button>
         </div>
 
+        {/* Mode badge */}
+        {!collapsed && mode && (
+          <div className="px-3 pb-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-sidebar-accent text-sidebar-accent-foreground">
+              {MODE_LABELS[mode] ?? mode}
+            </span>
+          </div>
+        )}
+
         {NAV_SECTIONS.map((section) => {
           const visibleItems = section.items.filter(
-            item => !item.requiresAnalysis || analysisId
+            (item) => !item.requiresAnalysis || analysisId
           );
           if (visibleItems.length === 0 && section.label !== "System") return null;
 
@@ -168,10 +188,10 @@ export function CommandNavigation() {
                               if (disabled) e.preventDefault();
                             }}
                           >
-                            <Icon size={16} className={active ? "text-primary" : "text-sidebar-foreground/60"} />
+                            <Icon size={16} className={active ? "text-sidebar-primary" : "text-sidebar-foreground/60"} />
                             {!collapsed && <span>{item.label}</span>}
                             {active && !collapsed && (
-                              <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                              <div className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary flex-shrink-0" />
                             )}
                           </NavLink>
                         </SidebarMenuButton>
