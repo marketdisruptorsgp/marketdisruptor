@@ -86,7 +86,7 @@ export default function InsightGraphPage() {
     );
   }, [products, intelligence, disruptData, redesignData, stressTestData]);
 
-  if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
+  if (!analysisId || analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
     return <AnalysisLoadingSpinner message="Loading analysis..." />;
   }
