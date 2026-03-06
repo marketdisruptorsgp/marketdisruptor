@@ -175,35 +175,7 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
         </div>
       )}
 
-      {/* Breakthrough callout */}
-      {breakthrough && !compact && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2.5 px-4 py-3 rounded-xl"
-          style={{
-            background: "hsl(152 60% 44% / 0.08)",
-            border: "1.5px solid hsl(152 60% 44% / 0.25)",
-            boxShadow: "0 0 20px hsl(152 60% 44% / 0.06)",
-          }}
-        >
-          <div
-            className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "hsl(152 60% 44% / 0.15)" }}
-          >
-            <Star size={12} style={{ color: "hsl(152 60% 44%)" }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-extrabold uppercase tracking-widest" style={{ color: "hsl(152 60% 44%)" }}>
-              Top Breakthrough
-            </p>
-            <p className="text-sm font-bold text-foreground leading-snug truncate">{breakthrough.label}</p>
-          </div>
-          <span className="text-sm font-bold tabular-nums flex-shrink-0" style={{ color: "hsl(152 60% 44%)" }}>
-            Inf. {breakthrough.influence}
-          </span>
-        </motion.div>
-      )}
+      {/* Breakthrough info moved to node detail panel — removed redundant callout */}
 
       {/* Chart */}
       <div

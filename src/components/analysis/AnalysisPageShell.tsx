@@ -139,7 +139,7 @@ export function AnalysisActionToolbar({
       {/* Compact header: step title + action buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
         <h2 className="typo-section-title">{stepTitle}</h2>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
           {strategicProfile && onChangeProfile && (
             <StrategicProfileSelector
               profile={strategicProfile}
@@ -223,7 +223,7 @@ export function AnalysisTabBar<T extends string>({
   tabs, activeTab, onTabChange, accentColor, hiddenTabs, disabledTabs,
 }: AnalysisTabBarProps<T>) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
       {tabs.map((tab) => {
         if (hiddenTabs?.includes(tab.id)) return null;
         const isActive = activeTab === tab.id;
@@ -235,7 +235,7 @@ export function AnalysisTabBar<T extends string>({
             key={tab.id}
             onClick={() => !isDisabled && onTabChange(tab.id)}
             disabled={isDisabled}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap flex-shrink-0"
             style={{
               background: isActive ? tabColor : "hsl(var(--muted))",
               color: isActive ? "white" : "hsl(var(--foreground))",
