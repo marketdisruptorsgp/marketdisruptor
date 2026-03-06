@@ -111,6 +111,9 @@ export function CommandNavigation() {
   const mode = useAnalysisMode();
   const currentPath = location.pathname;
 
+  // Detect ETA lens from URL hash or query
+  const isEtaLens = location.search.includes("lens=eta") || location.hash.includes("eta");
+
   const resolvePath = (item: NavItem): string => {
     if (typeof item.path === "string") return item.path;
     return item.path(analysisId);
