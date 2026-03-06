@@ -15,6 +15,7 @@ import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { scrollToTop } from "@/utils/scrollToTop";
 import { buildInsightGraph } from "@/lib/insightGraph";
+import { extractAllEvidence } from "@/lib/evidenceEngine";
 import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { InsightGraphView } from "@/components/insight-graph/InsightGraphView";
 import { GitBranch, RefreshCw } from "lucide-react";
