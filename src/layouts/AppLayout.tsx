@@ -23,6 +23,7 @@ const EXCLUDED_WORKSPACE = [
 ];
 
 function isWorkspaceRoute(pathname: string): boolean {
+  if (EXCLUDED_WORKSPACE.some((ex) => pathname.startsWith(ex))) return false;
   return WORKSPACE_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
