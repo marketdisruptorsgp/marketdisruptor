@@ -95,8 +95,21 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
     events.push(`${totalTools} tool recommendations from reasoning engine`);
   }
 
-  // 4. Build insight graph
-  const graph = buildInsightGraph(flat);
+  // 4. Build insight graph — pass insights + scenarios for full node generation
+  const insightsForGraph = insights.map(i => ({
+    id: i.id, label: i.label, description: i.description,
+    insightType: i.insightType, impact: i.impact,
+    confidenceScore: i.confidenceScore, evidenceIds: i.evidenceIds,
+    recommendedTools: i.recommendedTools,
+  }));
+  const scenariosForGraph = scenarios.length > 0
+    ? compareScenarios(scenarios).scenarios
+    : scenarioComparison?.scenarios;
+  const graph = buildInsightGraph(
+    flat, undefined, undefined, undefined, undefined,
+    insightsForGraph.length > 0 ? insightsForGraph : undefined,
+    scenariosForGraph && scenariosForGraph.length > 0 ? scenariosForGraph : undefined,
+  );
 
   // 5. Compute command deck metrics
   const metricsInput = {
