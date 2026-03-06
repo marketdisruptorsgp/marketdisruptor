@@ -717,51 +717,52 @@ export default function CommandDeckPage() {
           {/* ── LEFT COLUMN: Intelligence Briefing ── */}
           <div className="space-y-5 min-w-0">
 
-            {/* ━━━ LAYER 1 — STRATEGIC HEADLINE ━━━ */}
-            <div className="space-y-4">
-              {/* Strategic Narrative */}
-              {narrative && (narrative.primaryConstraint || narrative.keyAssumption || narrative.leveragePoint || narrative.breakthroughOpportunity) && (
-                <motion.div {...fadeUp} transition={{ delay: 0.08 }}>
-                  <StrategicNarrativePanel
-                    primaryConstraint={narrative.primaryConstraint}
-                    keyAssumption={narrative.keyAssumption}
-                    leveragePoint={narrative.leveragePoint}
-                    breakthroughOpportunity={narrative.breakthroughOpportunity}
-                    narrativeSummary={narrative.narrativeSummary}
-                  />
-                </motion.div>
-              )}
+            {/* ━━━ MODULE 1 — STRATEGIC SUMMARY ━━━ */}
+            <StrategicSummaryStrip
+              metrics={metrics}
+              opportunities={filteredOpps}
+              strategicPotential={strategicPotential}
+              modeAccent={modeAccent}
+            />
 
-              {/* Auto-Surfaced Structural Insight */}
-              {narrative?.narrativeSummary && (
-                <motion.div {...fadeUp} transition={{ delay: 0.12 }}
-                  className="rounded-xl p-5 bg-card border border-border"
-                  style={{ borderLeft: `3px solid ${modeAccent}` }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${modeAccent}15` }}>
-                      <Brain size={13} style={{ color: modeAccent }} />
-                    </div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Structural Insight</p>
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Auto-generated</span>
-                  </div>
-                  <p className="text-sm font-semibold text-foreground leading-relaxed max-w-3xl">
-                    {narrative.narrativeSummary}
-                  </p>
-                  {graph && graph.nodes.length > 3 && (
-                    <button
-                      onClick={() => navigate(`${baseUrl}/insight-graph`)}
-                      className="mt-3 flex items-center gap-1.5 text-[11px] font-bold transition-colors hover:opacity-80"
-                      style={{ color: modeAccent }}
-                    >
-                      <GitBranch size={12} /> Explore full reasoning chain →
-                    </button>
-                  )}
-                </motion.div>
-              )}
-            </div>
+            {/* Strategic Narrative (if available) */}
+            {narrative && (narrative.primaryConstraint || narrative.keyAssumption || narrative.leveragePoint || narrative.breakthroughOpportunity) && (
+              <motion.div {...fadeUp} transition={{ delay: 0.08 }}>
+                <StrategicNarrativePanel
+                  primaryConstraint={narrative.primaryConstraint}
+                  keyAssumption={narrative.keyAssumption}
+                  leveragePoint={narrative.leveragePoint}
+                  breakthroughOpportunity={narrative.breakthroughOpportunity}
+                  narrativeSummary={narrative.narrativeSummary}
+                />
+              </motion.div>
+            )}
 
-            {/* ━━━ LAYER 2 — OPPORTUNITY SIGNALS ━━━ */}
+            {/* ━━━ MODULE 2 — KEY INSIGHT SIGNALS ━━━ */}
+            <KeyInsightSignals
+              insights={autoAnalysis.insights}
+              onViewGraph={() => navigate(`${baseUrl}/insight-graph`)}
+            />
+
+            {/* ━━━ MODULE 3 — STRATEGIC OPPORTUNITY BOARD ━━━ */}
+            <OpportunityBoard
+              opportunities={filteredOpps}
+              onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
+            />
+
+            {/* ━━━ MODULE 4 — STRATEGIC PATHWAYS ━━━ */}
+            <PathwayGenerator
+              opportunities={filteredOpps}
+              insights={autoAnalysis.insights}
+            />
+
+            {/* ━━━ MODULE 5 — SCENARIO SIMULATION ━━━ */}
+            <ScenarioSimulationPanel
+              comparison={autoAnalysis.scenarioComparison}
+              sensitivityReports={autoAnalysis.sensitivityReports}
+            />
+
+            {/* ━━━ EXPLORATION LAYER — Discovery Tiers ━━━ */}
             <div className="space-y-4">
               {tierFilter && (
                 <div className="flex items-center gap-2 px-1">
@@ -776,68 +777,6 @@ export default function CommandDeckPage() {
                   <button onClick={() => setTierFilter(null)} className="text-[10px] font-bold text-muted-foreground underline">Clear</button>
                 </div>
               )}
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-                <MetricCard
-                  label="Opportunity Signals"
-                  value={metrics.opportunityScore}
-                  evidence={`${metrics.opportunitiesIdentified} evidence points`}
-                  evidenceCount={filteredEvidence.opportunity.evidenceCount}
-                  description="Redesign and leverage signals"
-                  icon={Lightbulb}
-                  color="hsl(152 60% 44%)"
-                  trend={getTrend(metrics.opportunityScore)}
-                  delay={0.05}
-                  onClick={() => openExplorer("opportunity")}
-                />
-                <MetricCard
-                  label="Constraint Signals"
-                  value={metrics.frictionIndex}
-                  evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
-                  evidenceCount={filteredEvidence.friction.evidenceCount}
-                  description="Structural friction detected"
-                  icon={AlertTriangle}
-                  color="hsl(0 72% 52%)"
-                  trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
-                  delay={0.1}
-                  onClick={() => openExplorer("friction")}
-                />
-                <MetricCard
-                  label="Assumptions Mapped"
-                  value={metrics.constraintsCount}
-                  evidence={`${metrics.assumptionsChallenged} challenged`}
-                  evidenceCount={filteredEvidence.constraint.evidenceCount}
-                  description="Industry assumptions identified"
-                  icon={Crosshair}
-                  color="hsl(0 72% 52%)"
-                  trend="neutral"
-                  delay={0.15}
-                  onClick={() => openExplorer("constraint")}
-                />
-                <MetricCard
-                  label="Leverage Points"
-                  value={metrics.leverageScore}
-                  evidence={`${metrics.leveragePoints} leverage signals`}
-                  evidenceCount={filteredEvidence.leverage.evidenceCount}
-                  description="Hidden value signals"
-                  icon={Zap}
-                  color="hsl(38 92% 50%)"
-                  trend={getTrend(metrics.leverageScore)}
-                  delay={0.2}
-                  onClick={() => openExplorer("leverage")}
-                />
-                <MetricCard
-                  label="Risk Indicators"
-                  value={metrics.riskScore}
-                  evidence={`${metrics.riskSignals} risk signals`}
-                  evidenceCount={filteredEvidence.risk.evidenceCount}
-                  description="Execution and market risk"
-                  icon={Shield}
-                  color="hsl(0 72% 52%)"
-                  trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
-                  delay={0.25}
-                  onClick={() => openExplorer("risk")}
-                />
-              </div>
 
               {/* Discovery Tiers */}
               <TierDiscoveryPanel
@@ -847,48 +786,7 @@ export default function CommandDeckPage() {
                 onMarkComplete={handleMarkComplete}
                 onExploreTier={() => openExplorer("opportunity")}
               />
-
-              {/* Strategic Opportunities Table */}
-              <motion.div {...fadeUp} transition={{ delay: 0.2 }}
-                className="rounded-xl p-5 bg-card border border-border"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Lightbulb size={14} style={{ color: "hsl(152 60% 44%)" }} />
-                    <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">Top Strategic Opportunities</p>
-                    <span className="text-[10px] font-bold text-muted-foreground">({filteredOpps.length})</span>
-                  </div>
-                  {graph && graph.nodes.length > 0 && (
-                    <button
-                      onClick={() => navigate(`${baseUrl}/insight-graph`)}
-                      className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors hover:opacity-80 min-h-[36px]"
-                      style={{ background: `${modeAccent}10`, color: modeAccent }}
-                    >
-                      <GitBranch size={11} /> View in Graph
-                    </button>
-                  )}
-                </div>
-                {filteredOpps.length > 0 ? (
-                  <OpportunityTable opps={filteredOpps} analysisId={analysisId!} />
-                ) : (
-                  <div className="text-center py-10">
-                    <div className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center bg-muted mb-3">
-                      <Lightbulb size={20} className="text-muted-foreground" />
-                    </div>
-                    <p className="text-sm font-bold text-foreground">No opportunities discovered yet</p>
-                    <p className="text-xs text-muted-foreground mt-1">Start your strategic discovery to uncover hidden opportunities.</p>
-                    <button
-                      onClick={() => navigate(`${baseUrl}/report`)}
-                      className="mt-4 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors min-h-[44px]"
-                      style={{ background: `${modeAccent}12`, color: modeAccent }}
-                    >
-                      <ArrowRight size={14} /> Start Discovery
-                    </button>
-                  </div>
-                )}
-              </motion.div>
             </div>
-
             {/* ━━━ LAYER 3 — EXPLORATION LAYER ━━━ */}
             <div className="space-y-5">
               {/* Pipeline + Signal Accumulation */}
