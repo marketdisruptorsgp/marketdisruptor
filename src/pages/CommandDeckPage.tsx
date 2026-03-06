@@ -32,6 +32,8 @@ import {
   computeCommandDeckMetrics, aggregateOpportunities,
   type CommandDeckMetrics as DeckMetrics,
 } from "@/lib/commandDeckMetrics";
+import { extractAllEvidence, type MetricDomain } from "@/lib/evidenceEngine";
+import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
