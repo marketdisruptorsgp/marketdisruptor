@@ -774,23 +774,25 @@ function buildStrategicNarrative(
   const topOpp = [...opportunities].sort((a, b) => b.impact - a.impact)[0] ?? null;
   const topPathway = [...pathways].sort((a, b) => b.impact - a.impact)[0] ?? null;
 
+  const h = (s: string | null | undefined) => s ? humanize(s) : null;
+
   const parts: string[] = [];
-  if (topConstraint) parts.push(`The primary constraint is: ${topConstraint.label}.`);
-  if (topDriver) parts.push(`The key driver underlying this is: ${topDriver.label}.`);
-  if (topLeverage) parts.push(`Leverage can be applied at: ${topLeverage.label}.`);
-  if (topOpp) parts.push(`This unlocks the opportunity: ${topOpp.label}.`);
-  if (topPathway) parts.push(`Recommended pathway: ${topPathway.label}.`);
+  if (topConstraint) parts.push(`The primary constraint is: ${h(topConstraint.label)}.`);
+  if (topDriver) parts.push(`The key driver underlying this is: ${h(topDriver.label)}.`);
+  if (topLeverage) parts.push(`Leverage can be applied at: ${h(topLeverage.label)}.`);
+  if (topOpp) parts.push(`This unlocks the opportunity: ${h(topOpp.label)}.`);
+  if (topPathway) parts.push(`Recommended pathway: ${h(topPathway.label)}.`);
 
   if (parts.length === 0) {
     parts.push("Insufficient evidence to generate a complete strategic narrative. Add more inputs to pipeline steps.");
   }
 
   return {
-    primaryConstraint: topConstraint?.label ?? null,
-    keyDriver: topDriver?.label ?? null,
-    leveragePoint: topLeverage?.label ?? null,
-    breakthroughOpportunity: topOpp?.label ?? null,
-    strategicPathway: topPathway?.label ?? null,
+    primaryConstraint: h(topConstraint?.label) ?? null,
+    keyDriver: h(topDriver?.label) ?? null,
+    leveragePoint: h(topLeverage?.label) ?? null,
+    breakthroughOpportunity: h(topOpp?.label) ?? null,
+    strategicPathway: h(topPathway?.label) ?? null,
     narrativeSummary: parts.join(" "),
   };
 }

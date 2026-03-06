@@ -507,10 +507,13 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
   // ── Business Model: counterfactual removal as leverage signal ──
   const bizGov = input.businessAnalysisData?.governed;
   if (bizGov?.constraint_map?.counterfactual_removal_result) {
+    const cfText = String(bizGov.constraint_map.counterfactual_removal_result);
+    // Use the actual counterfactual text as the label (trimmed to readable length)
+    const cfLabel = cfText.length > 80 ? cfText.slice(0, 77) + "..." : cfText;
     items.push({
       id: makeId("lev-bm-cf"), type: "leverage",
-      label: "Counterfactual: Remove Binding Constraint",
-      description: bizGov.constraint_map.counterfactual_removal_result,
+      label: cfLabel || "Remove primary bottleneck to unlock growth",
+      description: cfText,
       pipelineStep: "report", tier: "structural", impact: 9,
       mode, sourceEngine: "pipeline", category: "operational_dependency",
     });

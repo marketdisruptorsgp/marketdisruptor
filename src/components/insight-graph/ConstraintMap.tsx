@@ -67,7 +67,7 @@ function ConstraintFlowNode({ data }: NodeProps) {
           {cfg.label}
         </span>
       </div>
-      <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">{data.label}</p>
+      <p className="text-xs font-bold text-foreground leading-snug line-clamp-3">{data.label}</p>
       <div className="flex items-center gap-2 mt-1.5">
         <span className="text-xs font-bold tabular-nums" style={{ color: cfg.color }}>
           Impact {data.impact}/10
