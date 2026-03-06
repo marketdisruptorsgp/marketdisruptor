@@ -278,7 +278,7 @@ function identifyDrivers(flat: Evidence[], constraints: StrategicInsight[], anal
       .map(c => c.id);
 
     const primary = cluster[0];
-    insights.push({
+    insights.push(makeInsight({
       id: nextInsightId("driver"),
       analysisId,
       insightType: "driver",
@@ -289,7 +289,7 @@ function identifyDrivers(flat: Evidence[], constraints: StrategicInsight[], anal
       impact: Math.max(...cluster.map(e => e.impact ?? 5)),
       confidence: cluster.reduce((s, e) => s + (e.confidenceScore ?? 0.5), 0) / cluster.length,
       createdAt: now,
-    });
+    }));
   }
 
   // Signals as supplementary drivers
