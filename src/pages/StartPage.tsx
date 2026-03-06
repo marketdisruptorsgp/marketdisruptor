@@ -233,10 +233,10 @@ export default function StartPage() {
             transition={{ duration: 0.5 }}
             className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-background leading-tight tracking-tight mb-3"
           >
-            Apply a level of scrutiny that exceeds normal bandwidth.
+            Uncover opportunities your competitors can't see.
           </motion.p>
           <p className="text-sm sm:text-base text-background/60 mb-8 max-w-lg mx-auto">
-            See what a deep deconstruction reveals about your market.
+            Map the hidden structure of any market and discover where leverage exists.
           </p>
           <button
             onClick={() => navigate("/analysis/new")}
