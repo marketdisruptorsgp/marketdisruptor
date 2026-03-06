@@ -51,6 +51,8 @@ interface NavItem {
   icon: React.ElementType;
   path: string | ((id: string | null) => string);
   requiresAnalysis?: boolean;
+  /** Only show when ETA lens is active */
+  etaOnly?: boolean;
 }
 
 interface NavSection {
@@ -64,8 +66,9 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "Command Deck", icon: LayoutDashboard, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace" },
       { label: "Insight Graph", icon: GitBranch, path: (id) => id ? `/analysis/${id}/insight-graph` : "/workspace", requiresAnalysis: true },
-      { label: "Evidence Explorer", icon: Search, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace", requiresAnalysis: true },
-      { label: "Opportunity Landscape", icon: Compass, path: (id) => id ? `/analysis/${id}/insight-graph` : "/workspace", requiresAnalysis: true },
+      { label: "Opportunities", icon: Compass, path: (id) => id ? `/analysis/${id}/command-deck#opportunities` : "/workspace", requiresAnalysis: true },
+      { label: "Simulations", icon: FlaskConical, path: (id) => id ? `/analysis/${id}/command-deck#scenarios` : "/workspace", requiresAnalysis: true },
+      { label: "Risk Intelligence", icon: Shield, path: (id) => id ? `/analysis/${id}/command-deck#risk` : "/workspace", requiresAnalysis: true },
     ],
   },
   {
@@ -76,6 +79,12 @@ const NAV_SECTIONS: NavSection[] = [
       { label: "Redesign", icon: Lightbulb, path: (id) => id ? `/analysis/${id}/redesign` : "/analysis/new", requiresAnalysis: true },
       { label: "Stress Test", icon: Target, path: (id) => id ? `/analysis/${id}/stress-test` : "/analysis/new", requiresAnalysis: true },
       { label: "Pitch", icon: Presentation, path: (id) => id ? `/analysis/${id}/pitch` : "/analysis/new", requiresAnalysis: true },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { label: "ETA Toolkit", icon: DollarSign, path: (id) => id ? `/analysis/${id}/command-deck#eta` : "/workspace", requiresAnalysis: true, etaOnly: true },
     ],
   },
   {
@@ -101,6 +110,9 @@ export function CommandNavigation() {
   const analysisId = useAnalysisId();
   const mode = useAnalysisMode();
   const currentPath = location.pathname;
+
+  // Detect ETA lens from URL hash or query
+  const isEtaLens = location.search.includes("lens=eta") || location.hash.includes("eta");
 
   const resolvePath = (item: NavItem): string => {
     if (typeof item.path === "string") return item.path;
@@ -143,9 +155,9 @@ export function CommandNavigation() {
 
         {NAV_SECTIONS.map((section) => {
           const visibleItems = section.items.filter(
-            (item) => !item.requiresAnalysis || analysisId
+            (item) => (!item.requiresAnalysis || analysisId) && (!item.etaOnly || isEtaLens)
           );
-          if (visibleItems.length === 0 && section.label !== "System") return null;
+          if (visibleItems.length === 0) return null;
 
           return (
             <SidebarGroup key={section.label}>

@@ -45,6 +45,7 @@ import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 import { StrategicSummaryStrip } from "@/components/command-deck/StrategicSummaryStrip";
 import { StrategicSummaryTriad } from "@/components/command-deck/StrategicSummaryTriad";
+import { StrategicSignalBanner } from "@/components/command-deck/StrategicSignalBanner";
 import { KeyInsightSignals } from "@/components/command-deck/KeyInsightSignals";
 import { OpportunityBoard } from "@/components/command-deck/OpportunityBoard";
 import { OpportunityRadar } from "@/components/command-deck/OpportunityRadar";
@@ -608,6 +609,8 @@ export default function CommandDeckPage() {
 
   const modeLabel = analysis.activeMode === "custom" ? "Product"
     : analysis.activeMode === "service" ? "Service" : "Business Model";
+  const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
+    : analysis.activeMode === "business" ? "business" : "product";
 
   return (
     <div className="min-h-screen bg-background">
@@ -617,6 +620,14 @@ export default function CommandDeckPage() {
 
         {/* In-place Recompute Overlay */}
         <RecomputeOverlay isActive={isRecomputing || autoAnalysis.isComputing} />
+
+        {/* ═══ STRATEGIC SIGNAL BANNER ═══ */}
+        <StrategicSignalBanner
+          opportunities={filteredOpps}
+          insights={autoAnalysis.insights}
+          metrics={metrics}
+          mode={modeKey}
+        />
 
         {/* ═══ HEADER ═══ */}
         <motion.div {...fadeUp} className="rounded-2xl p-4 sm:p-5 bg-card border border-border">
@@ -731,18 +742,24 @@ export default function CommandDeckPage() {
             />
 
             {/* ━━━ SECTION 2 — OPPORTUNITY RADAR ━━━ */}
-            <OpportunityRadar
-              opportunities={filteredOpps}
-              onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
-            />
+            <div id="opportunities">
+              <OpportunityRadar
+                opportunities={filteredOpps}
+                onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
+              />
+            </div>
 
             {/* ━━━ SECTION 3 — SCENARIO COMMAND CENTER ━━━ */}
-            {autoAnalysis.scenarioComparison && autoAnalysis.scenarioComparison.scenarios.length > 0 && (
-              <ScenarioCommandCenter comparison={autoAnalysis.scenarioComparison} />
-            )}
+            <div id="scenarios">
+              {autoAnalysis.scenarioComparison && autoAnalysis.scenarioComparison.scenarios.length > 0 && (
+                <ScenarioCommandCenter comparison={autoAnalysis.scenarioComparison} />
+              )}
+            </div>
 
             {/* ━━━ SECTION 4 — RISK INTELLIGENCE PANEL ━━━ */}
-            <RiskIntelligencePanel sensitivityReports={autoAnalysis.sensitivityReports} />
+            <div id="risk">
+              <RiskIntelligencePanel sensitivityReports={autoAnalysis.sensitivityReports} />
+            </div>
 
             {/* ━━━ SUPPORTING — Key Insight Signals ━━━ */}
             <KeyInsightSignals
