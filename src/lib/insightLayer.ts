@@ -652,7 +652,7 @@ function generateConstraintResolutionOpportunities(insights: Insight[], evidence
   return result;
 }
 
-
+function wireRelatedInsights(insights: Insight[]): void {
   // Cross-reference insights that share evidence IDs
   for (const insight of insights) {
     const related = insights
