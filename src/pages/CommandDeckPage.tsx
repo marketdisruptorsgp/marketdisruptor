@@ -29,11 +29,7 @@ import {
   Zap, BarChart3, Info, ExternalLink,
 } from "lucide-react";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  computeCommandDeckMetrics, computeTrendData, aggregateOpportunities,
+  computeCommandDeckMetrics, aggregateOpportunities,
   type CommandDeckMetrics as DeckMetrics,
 } from "@/lib/commandDeckMetrics";
 
@@ -98,8 +94,8 @@ function StrategicPotentialGauge({ score, accent }: { score: number; accent: str
 /* ════════════════════════════════════════════════════════
  * METRIC CARD — With trend indicator + tooltip
  * ════════════════════════════════════════════════════════ */
-function MetricCard({ label, value, description, icon: Icon, color, delay = 0, trend, onClick }: {
-  label: string; value: string | number; description: string;
+function MetricCard({ label, value, evidence, description, icon: Icon, color, delay = 0, trend, onClick }: {
+  label: string; value: string | number; evidence?: string; description: string;
   icon: React.ElementType; color: string; delay?: number;
   trend?: "up" | "down" | "neutral"; onClick?: () => void;
 }) {
@@ -125,7 +121,10 @@ function MetricCard({ label, value, description, icon: Icon, color, delay = 0, t
       <div className="mt-3">
         <p className="text-2xl font-extrabold tabular-nums text-foreground leading-none">{value}</p>
         <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1.5">{label}</p>
-        <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity">
+        {evidence && (
+          <p className="text-[10px] font-semibold mt-1 leading-relaxed" style={{ color }}>{evidence}</p>
+        )}
+        <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity">
           {description}
         </p>
       </div>
@@ -272,7 +271,6 @@ export default function CommandDeckPage() {
   ]);
 
   const metrics: DeckMetrics = useMemo(() => computeCommandDeckMetrics(metricsInput), [metricsInput]);
-  const trendData = useMemo(() => computeTrendData(metricsInput), [metricsInput]);
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
 
   // ── Strategic Potential Score ──
@@ -369,33 +367,38 @@ export default function CommandDeckPage() {
         {/* ═══ ZONE 1 — SIGNAL COUNT METRICS ═══ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <MetricCard
-            label="Opportunities" value={metrics.opportunitiesIdentified} icon={Lightbulb}
+            label="Opportunities" value={metrics.opportunityScore} icon={Lightbulb}
             color="hsl(229 89% 63%)" delay={0.05}
+            evidence={`${metrics.opportunitiesIdentified} opportunities detected`}
             description="Strategic opportunities discovered across the analysis."
             trend={metrics.opportunitiesIdentified >= 5 ? "up" : metrics.opportunitiesIdentified >= 2 ? "neutral" : "down"}
           />
           <MetricCard
-            label="Constraints" value={metrics.constraintsDetected} icon={Shield}
+            label="Friction Index" value={metrics.frictionIndex} icon={Activity}
             color="hsl(0 72% 52%)" delay={0.1}
-            description="Structural blockers and constraints detected."
-            trend={metrics.constraintsDetected >= 8 ? "down" : "neutral"}
+            evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
+            description="Systemic resistance from constraints and customer friction."
+            trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
           />
           <MetricCard
-            label="Assumptions" value={metrics.assumptionsChallenged} icon={Crosshair}
+            label="Constraints" value={metrics.constraintsDetected} icon={Shield}
             color="hsl(38 92% 50%)" delay={0.15}
-            description="Hidden assumptions identified and challenged."
-            trend={metrics.assumptionsChallenged >= 3 ? "up" : "neutral"}
+            evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
+            description="Structural blockers and assumptions detected."
+            trend={metrics.constraintsDetected >= 8 ? "down" : "neutral"}
           />
           <MetricCard
             label="Leverage Pts" value={metrics.leveragePoints} icon={Zap}
             color="hsl(152 60% 44%)" delay={0.2}
-            description="Leverage points and hidden value signals found."
+            evidence={`${metrics.leveragePoints} leverage signals found`}
+            description="Leverage points and hidden value signals."
             trend={metrics.leveragePoints >= 4 ? "up" : "neutral"}
           />
           <MetricCard
-            label="Risk Signals" value={metrics.riskSignals} icon={AlertTriangle}
+            label="Risk Score" value={metrics.riskScore} icon={AlertTriangle}
             color="hsl(0 72% 52%)" delay={0.25}
-            description="Risk signals from stress testing and feasibility checks."
+            evidence={`${metrics.riskSignals} risk signals detected`}
+            description="Feasibility, execution, and market adoption risks."
             trend={metrics.riskSignals >= 6 ? "down" : metrics.riskSignals >= 2 ? "neutral" : "up"}
           />
         </div>
@@ -435,39 +438,59 @@ export default function CommandDeckPage() {
             </div>
           </motion.div>
 
-          {/* Trend Chart */}
+          {/* Signal Accumulation Chart */}
           <motion.div {...fadeUp} transition={{ delay: 0.15 }}
             className="rounded-xl p-5 bg-card border border-border"
           >
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp size={14} className="text-foreground" />
               <p className="text-[10px] font-extrabold uppercase tracking-widest text-foreground">
-                Opportunity Score — Pipeline Progression
+                Signal Accumulation — Pipeline Steps
               </p>
             </div>
-            <div className="h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendData} margin={{ top: 5, right: 15, bottom: 5, left: -10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
-                  <XAxis dataKey="step" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                      fontSize: "11px",
-                      color: "hsl(var(--foreground))",
-                    }}
-                  />
-                  <Line
-                    type="monotone" dataKey="score"
-                    stroke={modeAccent} strokeWidth={2.5}
-                    dot={{ r: 4, fill: modeAccent, strokeWidth: 2, stroke: "hsl(var(--card))" }}
-                    activeDot={{ r: 6, fill: modeAccent }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="space-y-3">
+              {metrics.stepSignals.map((ss, si) => {
+                const maxSignals = Math.max(...metrics.stepSignals.map(s => s.signals), 1);
+                const pct = Math.round((ss.signals / maxSignals) * 100);
+                const stepDef = PIPELINE_STEPS.find(p => p.key === ss.key);
+                const StepIcon = stepDef?.icon || Target;
+                return (
+                  <div key={ss.key} className="flex items-center gap-3">
+                    <div className="w-24 flex items-center gap-1.5 flex-shrink-0">
+                      <StepIcon size={12} className="text-muted-foreground flex-shrink-0" />
+                      <span className="text-[11px] font-bold text-foreground truncate">{ss.step}</span>
+                    </div>
+                    <div className="flex-1 h-6 rounded-md overflow-hidden bg-muted relative">
+                      <motion.div
+                        className="h-full rounded-md"
+                        initial={{ width: 0 }}
+                        animate={{ width: ss.hasData ? `${Math.max(pct, 6)}%` : "0%" }}
+                        transition={{ duration: 0.6, delay: 0.1 + si * 0.08 }}
+                        style={{ background: ss.hasData ? modeAccent : "transparent" }}
+                      />
+                      {ss.hasData && ss.breakdown.length > 0 && (
+                        <div className="absolute inset-0 flex items-center px-2 gap-2 overflow-hidden">
+                          {ss.breakdown.slice(0, 3).map((b, bi) => (
+                            <span key={bi} className="text-[9px] font-bold whitespace-nowrap"
+                              style={{ color: pct > 25 ? "white" : "hsl(var(--foreground))" }}>
+                              {b.count} {b.label}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm font-extrabold tabular-nums w-10 text-right text-foreground">
+                      {ss.hasData ? ss.signals : "—"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">Total Signals</span>
+              <span className="text-lg font-extrabold tabular-nums text-foreground">
+                {metrics.stepSignals.reduce((s, ss) => s + (ss.hasData ? ss.signals : 0), 0)}
+              </span>
             </div>
           </motion.div>
         </div>
