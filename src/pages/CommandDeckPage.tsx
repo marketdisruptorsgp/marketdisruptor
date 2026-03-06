@@ -768,11 +768,14 @@ export default function CommandDeckPage() {
                     leverage_point: "hsl(38 92% 50%)", concept: "hsl(152 60% 44%)",
                   };
                   return (
-                    <span key={type} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold"
-                      style={{ background: `${colors[type]}10`, color: colors[type] }}>
+                    <button
+                      key={type}
+                      onClick={() => navigate(`${baseUrl}/insight-graph`)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-bold cursor-pointer transition-all hover:scale-105 active:scale-95 min-h-[32px]"
+                      style={{ background: `${colors[type]}12`, color: colors[type], border: `1px solid ${colors[type]}20` }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: colors[type] }} />
                       {count} {type.replace("_", " ")}
-                    </span>
+                    </button>
                   );
                 })}
               </div>
