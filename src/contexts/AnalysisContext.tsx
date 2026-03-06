@@ -1262,7 +1262,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     // Skip if we already hydrated THIS specific analysis
     if (autoHydratedIdRef.current === urlAnalysisId) return;
     // Skip if context already has the correct analysis loaded
-    if (analysisId === urlAnalysisId && step === "done" && products.length > 0) {
+    if (analysisId === urlAnalysisId && step === "done" && (products.length > 0 || !!businessAnalysisData)) {
       autoHydratedIdRef.current = urlAnalysisId;
       return;
     }
