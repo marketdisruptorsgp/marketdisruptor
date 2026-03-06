@@ -260,7 +260,7 @@ export default function StartPage() {
               <p className="text-base font-extrabold text-foreground">What to expect</p>
             </div>
             <p className="text-[13px] text-foreground/70 leading-relaxed">
-              The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
+              The platform systematically maps assumptions, constraints, and friction signals — then converts them into credible redesign opportunities backed by evidence and competitor analogs.
             </p>
           </div>
 
