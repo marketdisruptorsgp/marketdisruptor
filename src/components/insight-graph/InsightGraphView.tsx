@@ -26,6 +26,7 @@ import { InsightNodeCard } from "./InsightNodeCard";
 import { OpportunityLandscape } from "./OpportunityLandscape";
 import { ConstraintMap } from "./ConstraintMap";
 import { StrategicPathways } from "./StrategicPathways";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // ═══════════════════════════════════════════════════════════════
 //  CONSTANTS
