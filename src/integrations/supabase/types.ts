@@ -610,6 +610,48 @@ export type Database = {
         }
         Relationships: []
       }
+      tool_scenarios: {
+        Row: {
+          analysis_id: string
+          confidence_score: number
+          created_at: string
+          id: string
+          inputs: Json
+          outputs: Json
+          scenario_name: string
+          strategic_impact: string
+          tool_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          inputs?: Json
+          outputs?: Json
+          scenario_name?: string
+          strategic_impact?: string
+          tool_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          inputs?: Json
+          outputs?: Json
+          scenario_name?: string
+          strategic_impact?: string
+          tool_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       trend_signals: {
         Row: {
           category: string
