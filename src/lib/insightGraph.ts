@@ -15,6 +15,7 @@
 import type { Product } from "@/data/mockProducts";
 import type { SystemIntelligence, ConstraintNode, OpportunityNode, CommandDeck } from "@/lib/systemIntelligence";
 import type { LeverageNode } from "@/lib/multiLensEngine";
+import { classifyTier } from "@/lib/tierDiscoveryEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
