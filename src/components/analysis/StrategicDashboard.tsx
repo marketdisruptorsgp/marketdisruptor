@@ -37,14 +37,17 @@ interface StrategicDashboardProps {
   graph: InsightGraph | null;
   commandDeck: CommandDeck | null;
   completedSteps: Set<string>;
+  outdatedSteps?: Set<string>;
+  onRunStep?: (stepKey: string) => void;
+  runningStep?: string | null;
 }
 
 const PIPELINE_STEPS = [
-  { key: "report", label: "Report", step: 2 },
-  { key: "disrupt", label: "Disrupt", step: 3 },
-  { key: "redesign", label: "Redesign", step: 4 },
-  { key: "stress-test", label: "Stress Test", step: 5 },
-  { key: "pitch", label: "Pitch", step: 6 },
+  { key: "report", label: "Report", action: "Run Intelligence Analysis", icon: Target },
+  { key: "disrupt", label: "Disrupt", action: "Analyze Constraints", icon: Crosshair },
+  { key: "redesign", label: "Redesign", action: "Generate Opportunities", icon: Lightbulb },
+  { key: "stress-test", label: "Stress Test", action: "Run Strategy Stress Test", icon: AlertTriangle },
+  { key: "pitch", label: "Pitch", action: "Generate Pitch", icon: Rocket },
 ] as const;
 
 const fadeUp = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
@@ -435,8 +438,9 @@ function PathwayChip({ node, onClick }: { node: InsightGraphNode; onClick: () =>
 //  6. PIPELINE PROGRESS
 // ═══════════════════════════════════════════════════════
 
-function PipelineProgress({ analysisId, completedSteps, accentColor }: {
-  analysisId: string; completedSteps: Set<string>; accentColor: string;
+function PipelineStatusPanel({ analysisId, completedSteps, outdatedSteps, accentColor, onRunStep, runningStep }: {
+  analysisId: string; completedSteps: Set<string>; outdatedSteps: Set<string>;
+  accentColor: string; onRunStep?: (key: string) => void; runningStep?: string | null;
 }) {
   const navigate = useNavigate();
   const done = completedSteps.size;
@@ -444,40 +448,96 @@ function PipelineProgress({ analysisId, completedSteps, accentColor }: {
 
   return (
     <motion.div {...fadeUp} transition={{ delay: 0.35, duration: 0.5 }}
-      className="rounded-xl p-4"
+      className="rounded-xl p-4 space-y-3"
       style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Pipeline Progress</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">Pipeline Status</p>
         <span className="text-sm font-extrabold tabular-nums" style={{ color: accentColor }}>
           {done}/{total}
         </span>
       </div>
 
-      {/* Step track */}
-      <div className="flex items-center gap-1">
-        {PIPELINE_STEPS.map((s, i) => {
+      {/* Progress bar */}
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--muted))" }}>
+        <div className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${(done / total) * 100}%`, background: accentColor }} />
+      </div>
+
+      {/* Step rows */}
+      <div className="space-y-1">
+        {PIPELINE_STEPS.map((s) => {
           const isDone = completedSteps.has(s.key);
+          const isOutdated = outdatedSteps.has(s.key);
+          const isRunning = runningStep === s.key;
+          const status: "completed" | "outdated" | "not_run" =
+            isOutdated ? "outdated" : isDone ? "completed" : "not_run";
+
+          const StepIcon = s.icon;
+          const statusColor = status === "completed" ? "hsl(152 60% 44%)"
+            : status === "outdated" ? "hsl(38 92% 50%)"
+            : "hsl(var(--muted-foreground))";
+          const statusLabel = status === "completed" ? "Completed"
+            : status === "outdated" ? "Outdated"
+            : "Not Run";
+          const StatusIcon = status === "completed" ? CheckCircle2
+            : status === "outdated" ? AlertTriangle
+            : Circle;
+
           return (
-            <button key={s.key} onClick={() => navigate(`/analysis/${analysisId}/${s.key}`)}
-              className="flex-1 group relative"
+            <div key={s.key}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors hover:bg-muted/50 group"
+              style={status === "outdated" ? {
+                background: "hsl(38 92% 50% / 0.05)",
+                border: "1px solid hsl(38 92% 50% / 0.15)",
+              } : { border: "1px solid transparent" }}
             >
-              <div className="h-2 rounded-full transition-all duration-500"
-                style={{
-                  background: isDone ? accentColor : "hsl(var(--muted))",
-                  opacity: isDone ? 1 : 0.4,
-                }}
-              />
-              <div className="flex items-center justify-center gap-1 mt-1.5">
-                {isDone
-                  ? <CheckCircle2 size={10} style={{ color: accentColor }} />
-                  : <Circle size={10} className="text-muted-foreground" />
-                }
-                <span className="text-[10px] font-bold text-muted-foreground group-hover:text-foreground transition-colors hidden sm:inline">
-                  {s.label}
-                </span>
+              {/* Step icon */}
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: `${statusColor}12` }}>
+                <StepIcon size={14} style={{ color: statusColor }} />
               </div>
-            </button>
+
+              {/* Label + status */}
+              <button onClick={() => navigate(`/analysis/${analysisId}/${s.key}`)}
+                className="flex-1 min-w-0 text-left">
+                <p className="text-sm font-bold text-foreground leading-none">{s.label}</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <StatusIcon size={10} style={{ color: statusColor }} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: statusColor }}>
+                    {statusLabel}
+                  </span>
+                </div>
+              </button>
+
+              {/* Run button — show for outdated or not_run */}
+              {status !== "completed" && onRunStep && (
+                <button
+                  onClick={() => onRunStep(s.key)}
+                  disabled={isRunning}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] disabled:opacity-50 flex-shrink-0"
+                  style={{
+                    background: status === "outdated" ? "hsl(38 92% 50% / 0.12)" : `${accentColor}12`,
+                    color: status === "outdated" ? "hsl(38 92% 50%)" : accentColor,
+                    border: `1px solid ${status === "outdated" ? "hsl(38 92% 50% / 0.25)" : accentColor + "25"}`,
+                  }}
+                >
+                  {isRunning ? (
+                    <>
+                      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+                        <Circle size={10} />
+                      </motion.div>
+                      Running…
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight size={10} />
+                      {s.action}
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           );
         })}
       </div>
@@ -520,6 +580,7 @@ function GraphCTA({ graph, analysisId, accentColor }: {
 
 export const StrategicDashboard = memo(function StrategicDashboard({
   analysisId, analysisTitle, accentColor, graph, commandDeck, completedSteps,
+  outdatedSteps = new Set(), onRunStep, runningStep,
 }: StrategicDashboardProps) {
   const navigate = useNavigate();
 
@@ -578,8 +639,15 @@ export const StrategicDashboard = memo(function StrategicDashboard({
         <GraphCTA graph={graph} analysisId={analysisId} accentColor={accentColor} />
       )}
 
-      {/* Row 6: Pipeline Progress */}
-      <PipelineProgress analysisId={analysisId} completedSteps={completedSteps} accentColor={accentColor} />
+      {/* Row 6: Pipeline Status */}
+      <PipelineStatusPanel
+        analysisId={analysisId}
+        completedSteps={completedSteps}
+        outdatedSteps={outdatedSteps}
+        accentColor={accentColor}
+        onRunStep={onRunStep}
+        runningStep={runningStep}
+      />
     </div>
   );
 });

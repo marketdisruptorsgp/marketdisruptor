@@ -228,6 +228,11 @@ export default function ReportPage() {
           graph={graph}
           commandDeck={intelligence?.commandDeck ?? null}
           completedSteps={completedSteps}
+          outdatedSteps={analysis.outdatedSteps}
+          onRunStep={(stepKey) => {
+            const baseUrl = `/analysis/${analysisId}`;
+            navigate(`${baseUrl}/${stepKey}`);
+          }}
         />
       )}
 
