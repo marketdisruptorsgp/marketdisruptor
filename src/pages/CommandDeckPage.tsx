@@ -10,7 +10,7 @@
  *   Zone 4  — Insight Graph preview
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -32,6 +32,8 @@ import {
   computeCommandDeckMetrics, aggregateOpportunities,
   type CommandDeckMetrics as DeckMetrics,
 } from "@/lib/commandDeckMetrics";
+import { extractAllEvidence, type MetricDomain } from "@/lib/evidenceEngine";
+import { EvidenceExplorer } from "@/components/EvidenceExplorer";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -92,11 +94,12 @@ interface MetricCardProps {
   color: string;
   trend?: "up" | "down" | "neutral";
   evidence?: string;
+  evidenceCount?: number;
   delay?: number;
   onClick?: () => void;
 }
 
-function MetricCard({ label, value, description, icon: Icon, color, trend, evidence, delay = 0, onClick }: MetricCardProps) {
+function MetricCard({ label, value, description, icon: Icon, color, trend, evidence, evidenceCount, delay = 0, onClick }: MetricCardProps) {
   const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
   const max = label === "Constraints" ? Math.max(numValue, 10) : 10;
   const trendInfo = trend ? trendIcons[trend] : null;
@@ -135,6 +138,13 @@ function MetricCard({ label, value, description, icon: Icon, color, trend, evide
 
           {/* DESCRIPTION */}
           <p className="text-[10px] text-muted-foreground mt-1 leading-snug line-clamp-2">{description}</p>
+
+          {/* EVIDENCE COUNT BADGE */}
+          {onClick && evidenceCount != null && evidenceCount > 0 && (
+            <p className="text-[9px] font-bold text-muted-foreground mt-1.5 underline decoration-dotted underline-offset-2">
+              Inspect {evidenceCount} evidence items →
+            </p>
+          )}
 
           {/* TREND */}
           {trendInfo && TrendIcon && (
@@ -325,6 +335,12 @@ export default function CommandDeckPage() {
 
   const metrics: DeckMetrics = useMemo(() => computeCommandDeckMetrics(metricsInput), [metricsInput]);
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
+  const allEvidence = useMemo(() => extractAllEvidence(metricsInput), [metricsInput]);
+
+  // ── Drilldown state ──
+  const [explorerDomain, setExplorerDomain] = useState<MetricDomain | null>(null);
+  const openExplorer = useCallback((d: MetricDomain) => setExplorerDomain(d), []);
+  const closeExplorer = useCallback(() => setExplorerDomain(null), []);
 
   // ── Strategic Potential Score ──
   const strategicPotential = useMemo(() => {
@@ -418,51 +434,61 @@ export default function CommandDeckPage() {
             label="Opportunity Score"
             value={metrics.opportunityScore}
             evidence={`${metrics.opportunitiesIdentified} opportunities detected`}
+            evidenceCount={allEvidence.opportunity.evidenceCount}
             description="Potential value from redesign and leverage signals"
             icon={Lightbulb}
             color="hsl(152 60% 44%)"
             trend={getTrend(metrics.opportunityScore)}
             delay={0.05}
+            onClick={() => openExplorer("opportunity")}
           />
           <MetricCard
             label="Friction Index"
             value={metrics.frictionIndex}
             evidence={`${metrics.constraintsDetected + metrics.riskSignals} friction signals`}
+            evidenceCount={allEvidence.friction.evidenceCount}
             description="Customer complaints, friction points, and constraints"
             icon={AlertTriangle}
             color="hsl(0 72% 52%)"
             trend={metrics.frictionIndex >= 6 ? "down" : metrics.frictionIndex >= 3 ? "neutral" : "up"}
             delay={0.1}
+            onClick={() => openExplorer("friction")}
           />
           <MetricCard
             label="Constraints"
             value={metrics.constraintsCount}
             evidence={`${metrics.assumptionsChallenged} assumptions challenged`}
+            evidenceCount={allEvidence.constraint.evidenceCount}
             description="Structural constraints and assumptions discovered"
             icon={Crosshair}
             color="hsl(0 72% 52%)"
             trend="neutral"
             delay={0.15}
+            onClick={() => openExplorer("constraint")}
           />
           <MetricCard
             label="Leverage Score"
             value={metrics.leverageScore}
             evidence={`${metrics.leveragePoints} leverage signals`}
+            evidenceCount={allEvidence.leverage.evidenceCount}
             description="Hidden value and high-leverage opportunities"
             icon={Zap}
             color="hsl(38 92% 50%)"
             trend={getTrend(metrics.leverageScore)}
             delay={0.2}
+            onClick={() => openExplorer("leverage")}
           />
           <MetricCard
             label="Risk Score"
             value={metrics.riskScore}
             evidence={`${metrics.riskSignals} risk signals`}
+            evidenceCount={allEvidence.risk.evidenceCount}
             description="Execution, feasibility, and market risk"
             icon={Shield}
             color="hsl(0 72% 52%)"
             trend={metrics.riskScore >= 6 ? "down" : metrics.riskScore >= 3 ? "neutral" : "up"}
             delay={0.25}
+            onClick={() => openExplorer("risk")}
           />
         </div>
 
@@ -672,6 +698,14 @@ export default function CommandDeckPage() {
         </motion.div>
 
       </main>
+
+      {/* Evidence Explorer Drilldown */}
+      <EvidenceExplorer
+        open={explorerDomain !== null}
+        onClose={closeExplorer}
+        domain={explorerDomain}
+        evidence={allEvidence}
+      />
     </div>
   );
 }
