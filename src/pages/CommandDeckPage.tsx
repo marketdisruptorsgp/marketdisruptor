@@ -526,7 +526,7 @@ export default function CommandDeckPage() {
             label="Leverage Score"
             value={metrics.leverageScore}
             evidence={`${metrics.leveragePoints} leverage signals`}
-            evidenceCount={allEvidence.leverage.evidenceCount}
+            evidenceCount={filteredEvidence.leverage.evidenceCount}
             description="Hidden value and high-leverage opportunities"
             icon={Zap}
             color="hsl(38 92% 50%)"
