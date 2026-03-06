@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ScrollToTopProvider } from "@/components/ScrollToTopProvider";
-import { lazy, Suspense, useEffect, Component } from "react";
+import { lazy, Suspense, useEffect, useMemo, Component } from "react";
 import type { ReactNode, ErrorInfo } from "react";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AnalysisProvider } from "@/contexts/AnalysisContext";
