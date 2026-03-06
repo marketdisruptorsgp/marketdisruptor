@@ -781,8 +781,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         });
       } catch (_) { /* best effort */ }
 
-      // Navigate to report page
-      navigate(`/analysis/${dbId}/report`);
+      // Navigate to Command Deck
+      navigate(`/analysis/${dbId}/command-deck`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Analysis pipeline error:", msg);
