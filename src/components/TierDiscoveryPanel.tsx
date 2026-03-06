@@ -6,13 +6,20 @@
  * Limits visible signals to 8-12 per tier with "Explore More Signals" expansion.
  */
 
-import { memo, useState } from "react";
+import { memo } from "react";
 import { motion } from "framer-motion";
-import { Lock, CheckCircle2, ChevronRight, Layers, ArrowRight } from "lucide-react";
+import { Lock, CheckCircle2, ChevronRight, Layers, ArrowRight, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TIER_META, type TierNumber, type TierState, getUnlockCondition } from "@/lib/tierDiscoveryEngine";
 import type { EvidenceTier } from "@/lib/evidenceEngine";
 
 const SIGNALS_CAP = 8;
+
+const TIER_TOOLTIPS: Record<number, string> = {
+  1: "Challenge the assumptions that define the current model.",
+  2: "Explore alternative ways the system could operate.",
+  3: "Improve how the model executes and performs.",
+};
 
 interface TierDiscoveryPanelProps {
   tierState: TierState;
@@ -92,6 +99,22 @@ export const TierDiscoveryPanel = memo(function TierDiscoveryPanel({
                     <p className="text-sm font-extrabold text-foreground">
                       Tier {tierNum} — {meta.label}
                     </p>
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-0.5 rounded-full hover:bg-muted/50 transition-colors"
+                          >
+                            <Info size={12} className="text-muted-foreground" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[220px] text-xs">
+                          {TIER_TOOLTIPS[tierNum]}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     {isActive && (
                       <span className="text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full"
                         style={{ background: `${meta.color}20`, color: meta.color }}>

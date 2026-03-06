@@ -20,33 +20,33 @@ const ROTATING_WORDS = [
 
 const PIPELINE_STEPS = [
   {
-    icon: Search, label: "Analyze", step: 1,
-    desc: "Define your target and run a deep competitive teardown",
+    icon: Search, label: "Map", step: 1,
+    desc: "Map the system — define your target and uncover how it operates",
     color: "#2563eb",
   },
   {
     icon: Radar, label: "Deconstruct", step: 2,
-    desc: "Map pricing, supply chains, workflows, and positioning",
+    desc: "Challenge assumptions — question pricing, supply chains, and positioning",
     color: "#7c3aed",
   },
   {
     icon: Sparkles, label: "Flip", step: 3,
-    desc: "Challenge every assumption and generate radical alternatives",
+    desc: "Reveal opportunity signals — generate structural alternatives",
     color: "#db2777",
   },
   {
     icon: Crosshair, label: "Redesign", step: 4,
-    desc: "Interactive redesigned concept with detailed illustrations",
+    desc: "Redesign the model — build a reimagined concept with evidence",
     color: "#059669",
   },
   {
     icon: Swords, label: "Stress Test", step: 5,
-    desc: "Red vs Green team adversarial validation and critical debate",
+    desc: "Validate with adversarial testing — red vs green team debate",
     color: "#dc2626",
   },
   {
     icon: Presentation, label: "Pitch Deck", step: 6,
-    desc: "Investor-ready presentation with data-backed slides",
+    desc: "Synthesize into an investor-ready narrative with evidence-backed slides",
     color: "#d97706",
   },
 ];
@@ -79,8 +79,8 @@ export default function StartPage() {
       {/* Hero */}
       <section className="pt-8 sm:pt-12 pb-4 sm:pb-6 px-4">
         <div className="max-w-5xl mx-auto text-left">
-          <h1 className="text-7xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tight text-foreground leading-[1.0]">
-            Rethink any
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+            Discover the hidden leverage inside your{" "}
           </h1>
           <motion.span
             key={wordIndex}
@@ -88,22 +88,30 @@ export default function StartPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="block text-7xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold tracking-tight leading-[1.0] cursor-pointer select-none min-h-[80px] sm:min-h-[80px]"
+            className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] cursor-pointer select-none min-h-[48px] sm:min-h-[64px]"
             style={{ color: ROTATING_WORDS[wordIndex].color }}
             onClick={() => setPaused((p) => !p)}
           >
-            {ROTATING_WORDS[wordIndex].word}
+            {ROTATING_WORDS[wordIndex].word} model.
             {paused && <span className="inline-block ml-3 text-lg align-middle opacity-50">⏸</span>}
           </motion.span>
-          <p className="text-base sm:text-lg text-foreground/70 mt-3 max-w-xl">
-            Deconstruct markets, stress-test strategies, and build what's next.
+          <p className="text-base sm:text-lg text-foreground/70 mt-3 max-w-2xl">
+            This platform maps assumptions, constraints, and opportunity signals to help you redesign products, services, and business models.
           </p>
-          <button
-            onClick={() => navigate("/methodology")}
-            className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-          >
-            Learn More
-          </button>
+          <div className="flex items-center gap-3 mt-6">
+            <button
+              onClick={() => navigate("/analysis/new")}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
+              Start Strategic Discovery <ArrowRight size={15} />
+            </button>
+            <button
+              onClick={() => navigate("/methodology")}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+            >
+              See How Discovery Works
+            </button>
+          </div>
         </div>
 
       </section>
@@ -118,13 +126,13 @@ export default function StartPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
           <div className="text-center mb-10">
             <p className="text-xs font-bold uppercase tracking-[0.2em] mb-2 text-primary flex items-center justify-center gap-1.5">
-              <Sparkles size={12} /> How It Works
+              <Sparkles size={12} /> How Discovery Works
             </p>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-              Six stages of structured analysis
+              Six stages of strategic discovery
             </h2>
             <p className="text-sm text-foreground/60 mt-1.5">
-              Each step builds on the last — from raw data to investor-ready output
+              Each step builds on the last — from mapping the system to redesigning it
             </p>
           </div>
 
@@ -225,10 +233,10 @@ export default function StartPage() {
             transition={{ duration: 0.5 }}
             className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-background leading-tight tracking-tight mb-3"
           >
-            Apply a level of scrutiny that exceeds normal bandwidth.
+            Uncover opportunities your competitors can't see.
           </motion.p>
           <p className="text-sm sm:text-base text-background/60 mb-8 max-w-lg mx-auto">
-            See what a deep deconstruction reveals about your market.
+            Map the hidden structure of any market and discover where leverage exists.
           </p>
           <button
             onClick={() => navigate("/analysis/new")}
@@ -252,7 +260,7 @@ export default function StartPage() {
               <p className="text-base font-extrabold text-foreground">What to expect</p>
             </div>
             <p className="text-[13px] text-foreground/70 leading-relaxed">
-              The goal is to apply a level of data-driven scrutiny and critical analysis that exceeds normal human bandwidth — revealing hidden leverage points, unlocking overlooked market segments, or optimizing specific components in ways that can materially change outcomes.
+              The platform systematically maps assumptions, constraints, and friction signals — then converts them into credible redesign opportunities backed by evidence and competitor analogs.
             </p>
           </div>
 
@@ -269,7 +277,7 @@ export default function StartPage() {
               <p className="text-base font-extrabold text-foreground">Instant Photo Analysis</p>
             </div>
             <p className="text-[13px] text-foreground/70 leading-relaxed mb-4">
-              Snap a photo of any product and get an AI-powered competitive teardown in seconds.
+              Snap a photo of any product and get an instant structural teardown in seconds.
             </p>
             <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 group-hover:gap-2.5 transition-all">
               Try It <ArrowRight size={13} />

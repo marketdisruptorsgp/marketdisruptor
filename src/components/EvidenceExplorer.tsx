@@ -8,7 +8,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Layers, Search, Lightbulb, AlertTriangle, Crosshair, Zap, Shield, Filter, Building2 } from "lucide-react";
+import { ArrowRight, Layers, Search, Lightbulb, AlertTriangle, Crosshair, Zap, Shield, Filter, Building2, ChevronRight } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { MetricDomain, MetricEvidence, Evidence, EvidenceTier, EvidenceType } from "@/lib/evidenceEngine";
 
@@ -48,6 +48,48 @@ function ConfidenceBadge({ score }: { score: number }) {
       style={{ background: `${color}12`, color }}>
       {label} {(score * 100).toFixed(0)}%
     </span>
+  );
+}
+
+function EvidenceItemContent({ item, tierChip, metaColor }: { item: Evidence; tierChip?: { color: string; label: string }; metaColor: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <div className="w-1 h-full min-h-[20px] rounded-full flex-shrink-0 mt-0.5"
+        style={{ background: tierChip?.color || "hsl(var(--muted-foreground))" }} />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-foreground leading-snug">{item.label}</p>
+        {item.description && (
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
+        )}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+            style={{ background: `${tierChip?.color || "gray"}12`, color: tierChip?.color }}>
+            {tierChip?.label || item.tier}
+          </span>
+          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+            {item.type}
+          </span>
+          {item.confidenceScore != null && <ConfidenceBadge score={item.confidenceScore} />}
+          {item.impact != null && (
+            <span className="text-[9px] font-bold tabular-nums" style={{ color: metaColor }}>
+              Impact: {item.impact}/10
+            </span>
+          )}
+          {item.relatedSignals && item.relatedSignals.length > 0 && (
+            <span className="text-[9px] font-bold text-muted-foreground">
+              {item.relatedSignals.length} related
+            </span>
+          )}
+          {item.competitorReferences && item.competitorReferences.length > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+              style={{ background: "hsl(262 83% 58% / 0.12)", color: "hsl(262 83% 58%)" }}>
+              <Building2 size={8} />
+              {item.competitorReferences.map(c => c.name).join(", ")}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -201,53 +243,32 @@ export function EvidenceExplorer({ open, onClose, domain, evidence }: EvidenceEx
                 <div className="space-y-1.5">
                   {items.map((item, i) => {
                     const tierChip = TIER_CHIPS.find(t => t.key === item.tier);
+                    const isLowConf = (item.confidenceScore ?? 1) < 0.4;
                     return (
                       <motion.div
                         key={item.id}
                         initial={{ opacity: 0, x: 8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.03, duration: 0.2 }}
-                        className="rounded-lg border border-border p-3 bg-background hover:bg-muted/30 transition-colors"
+                        className="rounded-lg border border-border bg-background hover:bg-muted/30 transition-colors"
                       >
-                        <div className="flex items-start gap-2">
-                          <div className="w-1 h-full min-h-[20px] rounded-full flex-shrink-0 mt-0.5"
-                            style={{ background: tierChip?.color || "hsl(var(--muted-foreground))" }} />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground leading-snug">{item.label}</p>
-                            {item.description && (
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
-                            )}
-                            <div className="flex items-center gap-2 mt-2 flex-wrap">
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                                style={{ background: `${tierChip?.color || "gray"}12`, color: tierChip?.color }}>
-                                {tierChip?.label || item.tier}
-                              </span>
-                              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-                                {item.type}
-                              </span>
-                              {item.confidenceScore != null && (
-                                <ConfidenceBadge score={item.confidenceScore} />
-                              )}
-                              {item.impact != null && (
-                                <span className="text-[9px] font-bold tabular-nums" style={{ color: meta.color }}>
-                                  Impact: {item.impact}/10
-                                </span>
-                              )}
-                              {item.relatedSignals && item.relatedSignals.length > 0 && (
-                                <span className="text-[9px] font-bold text-muted-foreground">
-                                  {item.relatedSignals.length} related
-                                </span>
-                              )}
-                              {item.competitorReferences && item.competitorReferences.length > 0 && (
-                                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                                  style={{ background: "hsl(262 83% 58% / 0.12)", color: "hsl(262 83% 58%)" }}>
-                                  <Building2 size={8} />
-                                  {item.competitorReferences.map(c => c.name).join(", ")}
-                                </span>
-                              )}
+                        {isLowConf ? (
+                          <details className="group">
+                            <summary className="p-3 cursor-pointer list-none flex items-center gap-2 text-muted-foreground">
+                              <div className="w-1 h-4 rounded-full flex-shrink-0" style={{ background: tierChip?.color || "hsl(var(--muted-foreground))" }} />
+                              <span className="text-xs font-medium opacity-60 flex-1 truncate">{item.label}</span>
+                              <ConfidenceBadge score={item.confidenceScore ?? 0} />
+                              <ChevronRight size={12} className="group-open:rotate-90 transition-transform" />
+                            </summary>
+                            <div className="px-3 pb-3">
+                              <EvidenceItemContent item={item} tierChip={tierChip} metaColor={meta.color} />
                             </div>
+                          </details>
+                        ) : (
+                          <div className="p-3">
+                            <EvidenceItemContent item={item} tierChip={tierChip} metaColor={meta.color} />
                           </div>
-                        </div>
+                        )}
                       </motion.div>
                     );
                   })}
