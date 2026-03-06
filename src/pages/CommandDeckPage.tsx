@@ -354,6 +354,32 @@ export default function CommandDeckPage() {
   const topOpps = useMemo(() => aggregateOpportunities(metricsInput), [metricsInput]);
   const allEvidence = useMemo(() => extractAllEvidence(metricsInput), [metricsInput]);
 
+  // ── Tier Discovery State ──
+  const [tierFilter, setTierFilter] = useState<EvidenceTier | null>(null);
+  const [manualUnlocks, setManualUnlocks] = useState<Set<TierNumber>>(new Set());
+  const tierState: TierState = useMemo(() => computeTierState(allEvidence, manualUnlocks), [allEvidence, manualUnlocks]);
+  const filteredEvidence = useMemo(() => filterEvidenceByTier(allEvidence, tierFilter), [allEvidence, tierFilter]);
+
+  const handleSelectTier = useCallback((tier: TierNumber) => {
+    const tierKey = TIER_META[tier].tier;
+    setTierFilter(prev => prev === tierKey ? null : tierKey);
+  }, []);
+
+  const handleMarkComplete = useCallback((tier: TierNumber) => {
+    const nextTier = (tier + 1) as TierNumber;
+    setManualUnlocks(prev => new Set(prev).add(nextTier));
+  }, []);
+
+  // Filter opportunities by tier
+  const filteredOpps = useMemo(() => {
+    if (!tierFilter) return topOpps;
+    return topOpps.filter((o: any) => {
+      // Try to match by tier if available, otherwise show all
+      if (o.tier) return o.tier === tierFilter;
+      return true;
+    });
+  }, [topOpps, tierFilter]);
+
   // ── Drilldown state ──
   const [explorerDomain, setExplorerDomain] = useState<MetricDomain | null>(null);
   const openExplorer = useCallback((d: MetricDomain) => setExplorerDomain(d), []);
