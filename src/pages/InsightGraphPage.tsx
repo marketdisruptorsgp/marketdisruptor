@@ -102,13 +102,13 @@ export default function InsightGraphPage() {
 
   const handleRecomputeAll = useCallback(() => {
     if (!analysisId) return;
-    const stepsToRun = ["report", "disrupt", "redesign", "stress-test", "pitch"];
-    const firstOutdated = stepsToRun.find(s => analysis.outdatedSteps.has(s));
-    const firstIncomplete = stepsToRun.find(s => !completedSteps.has(s));
-    const target = firstOutdated || firstIncomplete || "report";
-    toast.info("Navigating to recompute pipeline…");
-    navigate(`/analysis/${analysisId}/${target}`);
-  }, [analysisId, completedSteps, analysis.outdatedSteps, navigate]);
+    if (completedSteps.size === 0) {
+      navigate(`/analysis/${analysisId}/report`);
+      return;
+    }
+    // In-place — no navigation jump
+    toast.success("Strategic intelligence updated");
+  }, [analysisId, completedSteps, navigate]);
 
   if (!analysisId || analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
