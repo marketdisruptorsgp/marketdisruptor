@@ -279,44 +279,74 @@ const PLAYBOOK_TEMPLATES: PlaybookTemplate[] = [
 //  TRIGGER DETECTION
 // ═══════════════════════════════════════════════════════════════
 
+function matchesWordBoundary(corpus: string, keyword: string): boolean {
+  // Use word-boundary regex to avoid substring false positives
+  // e.g. "pipeline" should not match inside "pipeline steps completed"
+  // but "direct sales" should match "their direct sales model"
+  try {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`\\b${escaped}\\b`, "i");
+    return re.test(corpus);
+  } catch {
+    return corpus.includes(keyword);
+  }
+}
+
 function computeTemplateMatch(
   template: PlaybookTemplate,
   evidence: Evidence[],
   insights: StrategicInsight[],
   narrative: StrategicNarrative | null,
 ): { score: number; matchedSignals: string[]; matchedEvidenceIds: string[] } {
-  const corpus = [
-    ...evidence.map(e => `${e.label} ${e.description || ""}`),
-    ...insights.map(i => `${i.label} ${i.description}`),
+  // Build separate corpus sources with different weights:
+  // Evidence/insights (direct data) get full weight
+  // Narrative (derived) gets half weight to avoid circular reinforcement
+  const evidenceTexts = evidence.map(e => `${e.label} ${e.description || ""}`);
+  const insightTexts = insights.map(i => `${i.label} ${i.description}`);
+  const narrativeTexts = [
     narrative?.primaryConstraint || "",
     narrative?.keyDriver || "",
     narrative?.leveragePoint || "",
     narrative?.breakthroughOpportunity || "",
-    narrative?.strategicVerdict || "",
-    narrative?.narrativeSummary || "",
-  ].join(" ").toLowerCase();
+  ].filter(Boolean);
 
-  let matchCount = 0;
+  const directCorpus = [...evidenceTexts, ...insightTexts].join(" ").toLowerCase();
+  const narrativeCorpus = narrativeTexts.join(" ").toLowerCase();
+
+  let weightedScore = 0;
   const matchedSignals: string[] = [];
   const matchedEvidenceIds: string[] = [];
 
   for (const keyword of template.triggerKeywords) {
-    if (corpus.includes(keyword.toLowerCase())) {
-      matchCount++;
+    const kw = keyword.toLowerCase();
+    const directMatch = matchesWordBoundary(directCorpus, kw);
+    const narrativeMatch = matchesWordBoundary(narrativeCorpus, kw);
+
+    if (directMatch) {
+      weightedScore += 1.0; // Full weight for direct evidence match
+      matchedSignals.push(keyword);
+    } else if (narrativeMatch) {
+      weightedScore += 0.4; // Reduced weight for narrative-only match
       matchedSignals.push(keyword);
     }
   }
 
-  // Also match evidence directly
+  // Match evidence IDs using word-boundary matching
   for (const ev of evidence) {
     const evText = `${ev.label} ${ev.description || ""}`.toLowerCase();
-    if (template.triggerKeywords.some(k => evText.includes(k.toLowerCase()))) {
+    if (template.triggerKeywords.some(k => matchesWordBoundary(evText, k.toLowerCase()))) {
       matchedEvidenceIds.push(ev.id);
     }
   }
 
+  // Require minimum 2 matched keywords to avoid spurious single-keyword matches
+  const effectiveMatches = matchedSignals.length;
+  if (effectiveMatches < 2) {
+    return { score: 0, matchedSignals: [], matchedEvidenceIds: [] };
+  }
+
   const score = template.triggerKeywords.length > 0
-    ? matchCount / template.triggerKeywords.length
+    ? weightedScore / template.triggerKeywords.length
     : 0;
 
   return { score, matchedSignals, matchedEvidenceIds: [...new Set(matchedEvidenceIds)] };
