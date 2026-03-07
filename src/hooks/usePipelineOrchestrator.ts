@@ -138,6 +138,7 @@ export function usePipelineOrchestrator(
         await saveStepData("redesign", redesignResult, analysisId);
         clearStepOutdated("redesign");
         updateStatus("redesign", "done");
+        onStepComplete?.("redesign");
       }
     } catch (err) {
       console.warn("[Pipeline] Redesign error:", err);
