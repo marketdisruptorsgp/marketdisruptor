@@ -9,54 +9,53 @@ import { AppFooter } from "@/components/AppFooter";
 import {
   Upload, Briefcase, Building2, ArrowRight,
   ShieldCheck, BookOpen, Camera, Target,
-  Search, Radar, Sparkles, Crosshair, Swords, Presentation,
-  FileText, BarChart3,
-} from "lucide-react";
+  Search, Radar, Sparkles, Crosshair, Swords, Presentation } from
+"lucide-react";
 
 const ROTATING_WORDS = [
-  { word: "product", color: "hsl(var(--mode-product))" },
-  { word: "service", color: "hsl(var(--mode-service))" },
-  { word: "business", color: "hsl(var(--mode-business))" },
-];
+{ word: "product", color: "hsl(var(--mode-product))" },
+{ word: "service", color: "hsl(var(--mode-service))" },
+{ word: "business", color: "hsl(var(--mode-business))" }];
+
 
 const PIPELINE_STEPS = [
-  {
-    icon: Search, label: "Analyze", step: 1,
-    desc: "Define your target and begin mapping the competitive landscape",
-    color: "#2563eb",
-  },
-  {
-    icon: BarChart3, label: "Intel Report", step: 2,
-    desc: "Deep-dive into pricing, supply chains, patents, and community sentiment",
-    color: "#0891b2",
-  },
-  {
-    icon: Radar, label: "Deconstruct", step: 3,
-    desc: "Challenge assumptions and uncover structural constraints hiding in plain sight",
-    color: "#7c3aed",
-  },
-  {
-    icon: Sparkles, label: "Reimagine", step: 4,
-    desc: "Flip constraints into opportunities — generate redesigned concepts with evidence",
-    color: "#db2777",
-  },
-  {
-    icon: Swords, label: "Stress Test", step: 5,
-    desc: "Validate with adversarial testing — red team vs green team debate",
-    color: "#dc2626",
-  },
-  {
-    icon: Presentation, label: "Pitch", step: 6,
-    desc: "Synthesize into an investor-ready narrative with evidence-backed slides",
-    color: "#d97706",
-  },
-];
+{
+  icon: Search, label: "Map", step: 1,
+  desc: "Map the system — define your target and uncover how it operates",
+  color: "#2563eb"
+},
+{
+  icon: Radar, label: "Deconstruct", step: 2,
+  desc: "Challenge assumptions — question pricing, supply chains, and positioning",
+  color: "#7c3aed"
+},
+{
+  icon: Sparkles, label: "Flip", step: 3,
+  desc: "Reveal opportunity signals — generate structural alternatives",
+  color: "#db2777"
+},
+{
+  icon: Crosshair, label: "Redesign", step: 4,
+  desc: "Redesign the model — build a reimagined concept with evidence",
+  color: "#059669"
+},
+{
+  icon: Swords, label: "Stress Test", step: 5,
+  desc: "Validate with adversarial testing — red vs green team debate",
+  color: "#dc2626"
+},
+{
+  icon: Presentation, label: "Pitch Deck", step: 6,
+  desc: "Synthesize into an investor-ready narrative with evidence-backed slides",
+  color: "#d97706"
+}];
+
 
 const MODES = [
-  { id: "product", label: "Product", icon: Upload, cssVar: "--mode-product", path: "/analysis/new" },
-  { id: "service", label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/analysis/new" },
-  { id: "business", label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/analysis/new" },
-];
+{ id: "product", label: "Product", icon: Upload, cssVar: "--mode-product", path: "/analysis/new" },
+{ id: "service", label: "Service", icon: Briefcase, cssVar: "--mode-service", path: "/analysis/new" },
+{ id: "business", label: "Business Model", icon: Building2, cssVar: "--mode-business", path: "/analysis/new" }];
+
 
 export default function StartPage() {
   const navigate = useNavigate();
@@ -78,45 +77,47 @@ export default function StartPage() {
       <PlatformNav tier={tier} />
 
       {/* Hero */}
-      <section className="pt-10 sm:pt-16 pb-8 sm:pb-12 px-6 sm:px-10">
-        <div className="max-w-6xl mx-auto text-left">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-extrabold tracking-tight text-foreground leading-[1.08]">
-            Rethink any{" "}
-            <motion.span
-              key={wordIndex}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="inline-block cursor-pointer select-none"
-              style={{ color: ROTATING_WORDS[wordIndex].color }}
-              onClick={() => setPaused((p) => !p)}
-            >
-              {ROTATING_WORDS[wordIndex].word}.
-              {paused && <span className="inline-block ml-3 text-lg align-middle opacity-50">⏸</span>}
-            </motion.span>
+      <section className="pt-8 sm:pt-12 pb-4 sm:pb-6 px-4">
+        <div className="max-w-5xl mx-auto text-left">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+            Discover the hidden leverage inside your{" "}
           </h1>
-          <p className="text-lg sm:text-xl text-muted-foreground mt-5 max-w-2xl leading-relaxed">
-            Deconstruct markets, stress-test strategies, and build what's next.
+          <motion.span
+            key={wordIndex}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="block text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.1] cursor-pointer select-none min-h-[48px] sm:min-h-[64px] lg:text-8xl"
+            style={{ color: ROTATING_WORDS[wordIndex].color }}
+            onClick={() => setPaused((p) => !p)}>
+            
+            {ROTATING_WORDS[wordIndex].word} model.
+            {paused && <span className="inline-block ml-3 text-lg align-middle opacity-50">⏸</span>}
+          </motion.span>
+          <p className="text-base sm:text-lg text-foreground/70 mt-3 max-w-2xl">
+            This platform maps assumptions, constraints, and opportunity signals to help you redesign products, services, and business models.
           </p>
-          <div className="flex items-center gap-3 mt-8">
+          <div className="flex items-center gap-3 mt-6">
             <button
               onClick={() => navigate("/analysis/new")}
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-            >
-              Start Analysis <ArrowRight size={15} />
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+              
+              Start Strategic Discovery <ArrowRight size={15} />
             </button>
             <button
               onClick={() => navigate("/methodology")}
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-full border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
-            >
-              How It Works
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors">
+              
+              See How Discovery Works
             </button>
           </div>
         </div>
+
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 sm:px-10">
+      {/* Showcase Gallery */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6">
         <ShowcaseGallery />
       </section>
 
@@ -146,20 +147,20 @@ export default function StartPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-40px" }}
                   transition={{ duration: 0.4, delay: i * 0.07 }}
-                  className="rounded-xl border border-border bg-background p-5 hover:shadow-lg transition-shadow duration-300"
-                >
+                  className="rounded-xl border border-border bg-background p-5 hover:shadow-lg transition-shadow duration-300">
+                  
                   <div className="flex items-center gap-3 mb-3">
                     <div
                       className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: `${item.color}14` }}
-                    >
+                      style={{ background: `${item.color}14` }}>
+                      
                       <Icon size={20} style={{ color: item.color }} />
                     </div>
                     <div>
                       <span
                         className="text-[10px] font-bold uppercase tracking-widest block"
-                        style={{ color: item.color }}
-                      >
+                        style={{ color: item.color }}>
+                        
                         Step {item.step}
                       </span>
                       <span className="text-base font-extrabold text-foreground">{item.label}</span>
@@ -168,8 +169,8 @@ export default function StartPage() {
                   <p className="text-sm text-foreground/65 leading-relaxed">
                     {item.desc}
                   </p>
-                </motion.div>
-              );
+                </motion.div>);
+
             })}
           </div>
 
@@ -186,25 +187,25 @@ export default function StartPage() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.35, delay: i * 0.06 }}
-                    className="relative"
-                  >
+                    className="relative">
+                    
                     <div
                       className="absolute -left-8 top-4 w-[10px] h-[10px] rounded-full border-2 border-card z-10"
-                      style={{ background: item.color }}
-                    />
+                      style={{ background: item.color }} />
+                    
                     <div className="rounded-xl border border-border bg-background p-4">
                       <div className="flex items-center gap-3 mb-1.5">
                         <div
                           className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                          style={{ background: `${item.color}14` }}
-                        >
+                          style={{ background: `${item.color}14` }}>
+                          
                           <Icon size={17} style={{ color: item.color }} />
                         </div>
                         <div>
                           <span
                             className="text-[9px] font-bold uppercase tracking-widest block"
-                            style={{ color: item.color }}
-                          >
+                            style={{ color: item.color }}>
+                            
                             Step {item.step}
                           </span>
                           <span className="text-[15px] font-extrabold text-foreground">{item.label}</span>
@@ -214,8 +215,8 @@ export default function StartPage() {
                         {item.desc}
                       </p>
                     </div>
-                  </motion.div>
-                );
+                  </motion.div>);
+
               })}
             </div>
           </div>
@@ -230,8 +231,8 @@ export default function StartPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-background leading-tight tracking-tight mb-3"
-          >
+            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-background leading-tight tracking-tight mb-3">
+            
             Uncover opportunities your competitors can't see.
           </motion.p>
           <p className="text-sm sm:text-base text-background/60 mb-8 max-w-lg mx-auto">
@@ -239,8 +240,8 @@ export default function StartPage() {
           </p>
           <button
             onClick={() => navigate("/analysis/new")}
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-background text-foreground text-sm font-bold hover:bg-background/90 transition-colors shadow-lg"
-          >
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-background text-foreground text-sm font-bold hover:bg-background/90 transition-colors shadow-lg">
+            
             Start Discovery <ArrowRight size={15} />
           </button>
         </div>
@@ -266,8 +267,8 @@ export default function StartPage() {
           {/* Photo Analysis */}
           <div
             onClick={() => navigate("/instant-analysis")}
-            className="rounded-2xl border border-border bg-card p-6 sm:p-7 relative overflow-hidden cursor-pointer group hover:shadow-lg transition-all duration-300"
-          >
+            className="rounded-2xl border border-border bg-card p-6 sm:p-7 relative overflow-hidden cursor-pointer group hover:shadow-lg transition-all duration-300">
+            
             <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 rounded-l-2xl" />
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
@@ -287,6 +288,6 @@ export default function StartPage() {
 
 
       <AppFooter />
-    </div>
-  );
+    </div>);
+
 }
