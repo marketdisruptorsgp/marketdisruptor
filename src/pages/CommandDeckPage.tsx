@@ -687,10 +687,35 @@ export default function CommandDeckPage() {
           }}
         />
 
+        {/* ── User Journey Map ── */}
+        {(() => {
+          const p = selectedProduct as any;
+          const uj = p?.userJourney || p?.userWorkflow;
+          const steps = uj?.steps || uj?.stepByStep || [];
+          const fps = uj?.frictionPoints || [];
+          if (steps.length > 0) {
+            return (
+              <BriefingSection
+                title="Customer Journey"
+                icon={Map}
+                preview={`${steps.length} steps · ${fps.length} friction points`}
+                defaultOpen
+              >
+                <AdaptiveJourneyMap
+                  steps={steps}
+                  frictionPoints={fps}
+                  cognitiveLoad={uj?.cognitiveLoad}
+                  contextOfUse={uj?.contextOfUse}
+                  category={p?.category}
+                  productName={p?.name}
+                />
+              </BriefingSection>
+            );
+          }
+          return null;
+        })()}
 
-        {/* ══════════════════════════════════════════════════════════
-            RECOMMENDED STRATEGIC MOVE — Top playbook above fold
-           ══════════════════════════════════════════════════════════ */}
+        {/* ── Recommended Move ── */}
         <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
 
 
