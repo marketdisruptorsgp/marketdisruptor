@@ -33,8 +33,6 @@ const FLOW_COLUMNS: { types: InsightNodeType[]; label: string; x: number }[] = [
 /* ── Custom node ── */
 function ConstraintFlowNode({ data }: NodeProps) {
   const cfg = NODE_TYPE_CONFIG[data.nodeType as InsightNodeType];
-  const influence = data.influence as number;
-  const isHigh = influence >= 60;
 
   return (
     <motion.div
@@ -45,42 +43,20 @@ function ConstraintFlowNode({ data }: NodeProps) {
       style={{
         background: cfg.bgColor,
         border: `2px solid ${cfg.borderColor}`,
-        boxShadow: isHigh
-          ? `0 0 24px ${cfg.color}25, 0 4px 16px hsl(0 0% 0% / 0.08)`
-          : "0 2px 8px hsl(0 0% 0% / 0.05)",
-        minWidth: 180,
-        maxWidth: 260,
+        boxShadow: "0 2px 8px hsl(0 0% 0% / 0.05)",
+        width: 200,
       }}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0, width: 1, height: 1 }} />
       <Handle type="source" position={Position.Right} style={{ opacity: 0, width: 1, height: 1 }} />
 
       <div className="flex items-center gap-1.5 mb-1">
-        <div
-          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-          style={{
-            background: cfg.color,
-            boxShadow: isHigh ? `0 0 8px ${cfg.color}60` : "none",
-          }}
-        />
-        <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
+        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: cfg.color }} />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
           {cfg.label}
         </span>
       </div>
       <p className="text-xs font-bold text-foreground leading-snug line-clamp-3">{data.label}</p>
-      <div className="flex items-center gap-2 mt-1.5">
-        <span className="text-xs font-bold tabular-nums" style={{ color: cfg.color }}>
-          Impact {data.impact}/10
-        </span>
-        {isHigh && (
-          <span
-            className="text-xs font-bold px-1.5 py-0.5 rounded-full"
-            style={{ background: `${cfg.color}15`, color: cfg.color }}
-          >
-            ★ {influence}
-          </span>
-        )}
-      </div>
     </motion.div>
   );
 }
