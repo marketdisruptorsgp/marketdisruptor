@@ -10,6 +10,7 @@
  */
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -28,6 +29,9 @@ import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
 import { TransformationPaths } from "@/components/command-deck/TransformationPaths";
 import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
+import { StrategicDiagnosisBanner } from "@/components/command-deck/StrategicDiagnosisBanner";
+import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
+import { BriefingSection } from "@/components/command-deck/BriefingSection";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
 import { KillQuestionCard } from "@/components/command-deck/KillQuestionCard";
 import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
@@ -50,6 +54,7 @@ import { generatePlaybooks } from "@/lib/playbookEngine";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
   AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
+  BookOpen, Beaker, BarChart3, Map, Wrench, Brain, Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -418,8 +423,8 @@ export default function CommandDeckPage() {
 
   // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
   const evidenceAttribution = useMemo(() => {
-    const categories = new Map<string, number>();
-    const categoryExamples = new Map<string, string>();
+    const categories: globalThis.Map<string, number> = new globalThis.Map();
+    const categoryExamples: globalThis.Map<string, string> = new globalThis.Map();
     for (const e of autoAnalysis.flatEvidence) {
       const cat = (e.category || "general").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
       categories.set(cat, (categories.get(cat) || 0) + 1);
@@ -494,6 +499,22 @@ export default function CommandDeckPage() {
 
   // (diagnostics removed from default view)
 
+  const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
+    : analysis.activeMode === "business" ? "business" : "product";
+
+  // Derive industry / date for header context (must be before guard — hooks)
+  const industryLabel = useMemo(() => {
+    if (businessModelInput?.type) return businessModelInput.type;
+    if (selectedProduct?.category) return selectedProduct.category;
+    return modeKey === "service" ? "Service Industry" : modeKey === "business" ? "Business Model" : "Product Market";
+  }, [businessModelInput, selectedProduct, modeKey]);
+
+  const analysisDate = useMemo(() => {
+    return format(new Date(), "MMM d, yyyy");
+  }, []);
+
+  const modeLabel = modeKey === "service" ? "Service Analysis" : modeKey === "business" ? "Business Model Analysis" : "Product Analysis";
+
   // ── Guards ──
   const isHydrating = analysis.isHydrating;
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
@@ -522,39 +543,66 @@ export default function CommandDeckPage() {
     );
   }
 
-  const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
-    : analysis.activeMode === "business" ? "business" : "product";
-
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
-        {/* ═══ COMPACT HEADER ═══ */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <ModeBadge />
-            <h1 className="text-base sm:text-lg font-black text-foreground truncate max-w-[300px] sm:max-w-[500px]">
-              {analysisDisplayName}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            {!pipelineProgress.isRunning && completedSteps.size < PIPELINE_STEPS.length && (
-              <button
-                onClick={() => {
-                  // Trigger the pipeline orchestrator for remaining steps
-                  handleRecomputeAll();
-                }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
-                style={{ background: modeAccent, color: "white" }}
-              >
-                <Play size={12} /> Run Full Analysis
+      <main className="max-w-[1100px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+
+        {/* ══════════════════════════════════════════════════════════
+            HEADER — Name, Mode, Industry, Date, Progress
+           ══════════════════════════════════════════════════════════ */}
+        <div className="rounded-xl px-5 py-4" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-black text-foreground truncate">
+                {analysisDisplayName}
+              </h1>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                <ModeBadge />
+                <span className="text-[11px] text-muted-foreground font-medium">{industryLabel}</span>
+                <span className="text-muted-foreground text-[10px]">·</span>
+                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <Calendar size={10} />
+                  {analysisDate}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {!pipelineProgress.isRunning && completedSteps.size < PIPELINE_STEPS.length && (
+                <button
+                  onClick={handleRecomputeAll}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
+                  style={{ background: modeAccent, color: "white" }}
+                >
+                  <Play size={12} /> Run Full Analysis
+                </button>
+              )}
+              <button onClick={handleRecomputeAll}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
+                style={{ background: `${modeAccent}15`, color: modeAccent, border: `1.5px solid ${modeAccent}30` }}>
+                <RefreshCw size={13} className={(isRecomputing || engineComputing) ? "animate-spin" : ""} /> Refresh
               </button>
-            )}
-            <button onClick={handleRecomputeAll}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
-              style={{ background: `${modeAccent}15`, color: modeAccent, border: `1.5px solid ${modeAccent}30` }}>
-              <RefreshCw size={13} className={(isRecomputing || engineComputing) ? "animate-spin" : ""} /> Refresh
-            </button>
-            <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
+              <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
+            </div>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-[10px] font-bold text-muted-foreground">
+              {completedSteps.size}/{PIPELINE_STEPS.length} Analysis Steps Complete
+            </span>
+            <div className="flex-1 flex gap-1">
+              {PIPELINE_STEPS.map(step => (
+                <div
+                  key={step.key}
+                  className="h-1.5 flex-1 rounded-full transition-colors"
+                  style={{
+                    background: completedSteps.has(step.key)
+                      ? "hsl(var(--success))"
+                      : "hsl(var(--muted))",
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -630,23 +678,41 @@ export default function CommandDeckPage() {
           </div>
         )}
 
-        {/* ═══ SCENARIO BANNER — contextual, only when active ═══ */}
-        <ScenarioBanner
-          challenges={activeChallenges}
-          onReset={handleResetScenario}
-          onSave={handleSaveScenario}
-        />
+        {/* ═══ SCENARIO BANNER ═══ */}
+        <ScenarioBanner challenges={activeChallenges} onReset={handleResetScenario} onSave={handleSaveScenario} />
         <DeltaChanges deltas={deltaChanges} />
-
-        {/* ═══ REASONING STAGES — brief animation during recompute ═══ */}
         <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
 
-        {/* ════════════════════════════════════════════════════════════
-            TIER 1 — STRATEGIC BRIEFING
-            User understands the entire story in under 10 seconds.
-           ════════════════════════════════════════════════════════════ */}
+        {/* ══════════════════════════════════════════════════════════
+            ABOVE THE FOLD — THE STRATEGIC BRIEFING
+            User understands diagnosis → move → impact in 5 seconds
+           ══════════════════════════════════════════════════════════ */}
 
-        {/* Confidence Meter with evidence attribution */}
+        {/* 1. STRATEGIC DIAGNOSIS — The one bold sentence */}
+        <StrategicDiagnosisBanner
+          constraintLabel={narrative?.primaryConstraint ?? null}
+          rationale={narrative?.verdictRationale ?? null}
+          verdict={narrative?.strategicVerdict ?? null}
+          opportunityLabel={narrative?.breakthroughOpportunity ?? null}
+          confidence={narrative?.verdictConfidence ?? 0}
+          completedSteps={completedSteps.size}
+        />
+
+        {/* 2. RECOMMENDED STRATEGIC MOVE — Decision Brief */}
+        <TransformationPaths
+          evidence={autoAnalysis.flatEvidence}
+          insights={autoAnalysis.insights}
+          narrative={narrative}
+          mode={modeKey}
+        />
+
+        {/* 3. ECONOMIC IMPACT SNAPSHOT — 3 visual gauges */}
+        <EconomicImpactSnapshot
+          playbook={topPlaybook}
+          completedSteps={completedSteps.size}
+        />
+
+        {/* 4. EVIDENCE CONFIDENCE — By business domain */}
         <ConfidenceMeter
           completedSteps={completedSteps.size}
           totalSteps={PIPELINE_STEPS.length}
@@ -657,118 +723,130 @@ export default function CommandDeckPage() {
           weakCategories={evidenceAttribution.weak}
         />
 
-        {/* Confidence Explanation — Why trust this? */}
-        <ConfidenceExplanationPanel explanation={confidenceExplanation} />
+        {/* ══════════════════════════════════════════════════════════
+            PROGRESSIVE EXPLORATION — Collapsible deeper layers
+           ══════════════════════════════════════════════════════════ */}
 
-
-        <StrategicVerdictBanner
-          verdict={narrative?.strategicVerdict ?? null}
-          rationale={narrative?.verdictRationale ?? null}
-          confidence={narrative?.verdictConfidence ?? 0}
-          constraintLabel={narrative?.primaryConstraint ?? null}
-          opportunityLabel={narrative?.breakthroughOpportunity ?? null}
-          completedSteps={completedSteps.size}
-          totalSteps={PIPELINE_STEPS.length}
-          whyThisMatters={narrative?.whyThisMatters ?? null}
-          verdictBenchmark={narrative?.verdictBenchmark ?? null}
-          evidenceSources={evidenceAttribution.sources}
-          diagnosisEvidence={evidenceAttribution.diagnosisEvidence}
-        />
-
-        {/* Trapped Value + Kill Question */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <TrappedValueCard
-            trappedDescription={narrative?.trappedValue ?? null}
-            unlockDescription={narrative?.unlockPotential ?? null}
-            confidence={narrative?.verdictConfidence ?? 0}
-            evidenceCount={narrative?.trappedValueEvidenceCount ?? 0}
-            estimate={narrative?.trappedValueEstimate ?? null}
-            benchmark={narrative?.trappedValueBenchmark ?? null}
-            drivers={evidenceAttribution.trappedValueDrivers}
+        {/* Strategic Playbooks & Outcomes */}
+        <BriefingSection
+          title="Strategic Playbooks"
+          icon={Rocket}
+          preview={topPlaybook ? `Top: ${topPlaybook.title}` : null}
+          badge={allPlaybooks.length}
+        >
+          <StrategicOutcomeSimulator
+            playbook={topPlaybook}
+            evidence={autoAnalysis.flatEvidence}
+            narrative={narrative}
           />
-          <KillQuestionCard
-            killQuestion={narrative?.killQuestion ?? null}
-            validationExperiment={narrative?.validationExperiment ?? null}
-            timeframe={narrative?.validationTimeframe ?? "30 days"}
+          <StrategicNarrativeStory story={strategicStory} />
+        </BriefingSection>
+
+        {/* Structural Insights */}
+        <BriefingSection
+          title="Structural Insights"
+          icon={Brain}
+          preview={narrative?.primaryConstraint ? `Constraint: ${humanizeLabel(narrative.primaryConstraint)}` : null}
+        >
+          <StrategicVerdictBanner
+            verdict={narrative?.strategicVerdict ?? null}
+            rationale={narrative?.verdictRationale ?? null}
             confidence={narrative?.verdictConfidence ?? 0}
-            validationSteps={narrative?.validationSteps ?? []}
+            constraintLabel={narrative?.primaryConstraint ?? null}
+            opportunityLabel={narrative?.breakthroughOpportunity ?? null}
+            completedSteps={completedSteps.size}
+            totalSteps={PIPELINE_STEPS.length}
+            whyThisMatters={narrative?.whyThisMatters ?? null}
+            verdictBenchmark={narrative?.verdictBenchmark ?? null}
+            evidenceSources={evidenceAttribution.sources}
+            diagnosisEvidence={evidenceAttribution.diagnosisEvidence}
           />
-        </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <TrappedValueCard
+              trappedDescription={narrative?.trappedValue ?? null}
+              unlockDescription={narrative?.unlockPotential ?? null}
+              confidence={narrative?.verdictConfidence ?? 0}
+              evidenceCount={narrative?.trappedValueEvidenceCount ?? 0}
+              estimate={narrative?.trappedValueEstimate ?? null}
+              benchmark={narrative?.trappedValueBenchmark ?? null}
+              drivers={evidenceAttribution.trappedValueDrivers}
+            />
+            <KillQuestionCard
+              killQuestion={narrative?.killQuestion ?? null}
+              validationExperiment={narrative?.validationExperiment ?? null}
+              timeframe={narrative?.validationTimeframe ?? "30 days"}
+              confidence={narrative?.verdictConfidence ?? 0}
+              validationSteps={narrative?.validationSteps ?? []}
+            />
+          </div>
+          <ConfidenceExplanationPanel explanation={confidenceExplanation} />
+        </BriefingSection>
 
-        {/* Top Transformation Playbook (just #1, expandable to all) */}
-        <TransformationPaths
-          evidence={autoAnalysis.flatEvidence}
-          insights={autoAnalysis.insights}
-          narrative={narrative}
-          mode={modeKey}
-        />
+        {/* Market & Industry Signals */}
+        <BriefingSection
+          title="Market Signals"
+          icon={BarChart3}
+          preview={benchmark?.archetype ? `Archetype: ${benchmark.archetype}` : null}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <IndustryBenchmarkPanel benchmark={benchmark} />
+            <OpportunityMapPanel items={opportunityRadar} />
+          </div>
+          <StrategicPatternCard patterns={detectedPatterns} />
+        </BriefingSection>
 
-        {/* ═══ PROJECTED STRATEGIC OUTCOME — the 10× feature ═══ */}
-        <StrategicOutcomeSimulator
-          playbook={topPlaybook}
-          evidence={autoAnalysis.flatEvidence}
-          narrative={narrative}
-        />
+        {/* Assumptions & Constraints — Reasoning */}
+        <BriefingSection
+          title="Reasoning & Evidence"
+          icon={Map}
+          preview="Full causal chain analysis"
+        >
+          <StrategicXRay
+            narrative={narrative}
+            insights={autoAnalysis.insights}
+            flatEvidence={autoAnalysis.flatEvidence}
+            onRecompute={handleRecomputeAll}
+            onChallenge={handleChallenge}
+          />
+        </BriefingSection>
 
-        {/* ═══ STRATEGIC NARRATIVE — coherent strategy story ═══ */}
-        <StrategicNarrativeStory story={strategicStory} />
+        {/* Strategy Lab — Advanced */}
+        <BriefingSection
+          title="Strategy Lab"
+          icon={Beaker}
+          preview="Scenario simulations & what-if analysis"
+        >
+          <StrategicScenarioSimulator
+            evidence={autoAnalysis.flatEvidence}
+            narrative={narrative}
+          />
+          <ScenarioLab
+            scenarios={savedLabScenarios}
+            activeScenarioId={activeLabScenarioId}
+            onLoadScenario={handleLoadLabScenario}
+            onDeleteScenario={handleDeleteLabScenario}
+          />
+          <OpportunityMap
+            opportunities={filteredOpps}
+            onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
+          />
+        </BriefingSection>
 
-        {/* ════════════════════════════════════════════════════════════
-            TIER 2 — STRATEGIC ANALYSIS
-            Evidence behind the strategy. Progressive disclosure.
-           ════════════════════════════════════════════════════════════ */}
+        {/* Analysis Tools */}
+        <BriefingSection
+          title="Analysis Tools"
+          icon={Wrench}
+          preview="Specialized strategic calculators"
+        >
+          <LensIntelligencePanel
+            analysisMode={analysis.activeMode || "product"}
+            signalKeywords={lensSignalKeywords}
+            analysisId={analysisId || ""}
+            recommendedToolIds={reasoningToolRecs}
+            onScenarioSaved={handleScenarioSaved}
+          />
+        </BriefingSection>
 
-        {/* Industry Benchmarks + Opportunity Radar */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <IndustryBenchmarkPanel benchmark={benchmark} />
-          <OpportunityMapPanel items={opportunityRadar} />
-        </div>
-
-        {/* Strategic Pattern Detection */}
-        <StrategicPatternCard patterns={detectedPatterns} />
-
-        {/* Strategic X-Ray — starts collapsed with summary */}
-        <StrategicXRay
-          narrative={narrative}
-          insights={autoAnalysis.insights}
-          flatEvidence={autoAnalysis.flatEvidence}
-          onRecompute={handleRecomputeAll}
-          onChallenge={handleChallenge}
-        />
-
-        {/* ════════════════════════════════════════════════════════════
-            TIER 3 — STRATEGIC LAB
-            Advanced experimentation for power users.
-           ════════════════════════════════════════════════════════════ */}
-
-        {/* Strategy Simulator — "What if we..." */}
-        <StrategicScenarioSimulator
-          evidence={autoAnalysis.flatEvidence}
-          narrative={narrative}
-        />
-
-        {/* Scenario Lab — saved snapshots */}
-        <ScenarioLab
-          scenarios={savedLabScenarios}
-          activeScenarioId={activeLabScenarioId}
-          onLoadScenario={handleLoadLabScenario}
-          onDeleteScenario={handleDeleteLabScenario}
-        />
-
-        {/* Opportunity Map */}
-        <OpportunityMap
-          opportunities={filteredOpps}
-          onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
-        />
-
-        {/* Lens Intelligence Panel */}
-        <LensIntelligencePanel
-          analysisMode={analysis.activeMode || "product"}
-          signalKeywords={lensSignalKeywords}
-          analysisId={analysisId || ""}
-          recommendedToolIds={reasoningToolRecs}
-          onScenarioSaved={handleScenarioSaved}
-        />
       </main>
     </div>
   );
