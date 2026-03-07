@@ -168,6 +168,9 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
       {/* ── Disruption Analysis ── */}
       {disruptData && <DisruptSection data={disruptData} />}
 
+      {/* ── Redesign / Reimagine ── */}
+      {redesignData && <RedesignSection data={redesignData} />}
+
       {/* ── Governed Intelligence (Reasoning, Confidence, Decision) ── */}
       {governedData && <GovernedSection data={governedData} />}
 
@@ -177,8 +180,22 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
       {/* ── Pitch Deck ── */}
       {pitchDeckData && <PitchDeckSection data={pitchDeckData} />}
 
-      {/* ── Redesign ── */}
-      {redesignData && <RedesignSection data={redesignData} />}
+      {/* ── Flipped Ideas from product ── */}
+      {(product as any)?.flippedIdeas?.length > 0 && !disruptData && (
+        <PrintSection title="Disruption Ideas" icon={<Sparkles size={14} />}>
+          {(product as any).flippedIdeas.map((idea: any, i: number) => (
+            <PrintCard key={i} accent="hsl(271 81% 55%)">
+              <p className="print-card-title">
+                <span className="print-card-number">{i + 1}</span>
+                {idea.title || idea.idea || idea.name || `Idea ${i + 1}`}
+              </p>
+              {idea.description && <p className="print-body-sm">{idea.description}</p>}
+              {idea.mechanism && <p className="print-body-sm">Mechanism: {idea.mechanism}</p>}
+              {idea.marketPotential && <p className="print-body-sm">Market: {idea.marketPotential}</p>}
+            </PrintCard>
+          ))}
+        </PrintSection>
+      )}
 
       {/* ── Patent Data ── */}
       {!isService && product?.patentData && (
