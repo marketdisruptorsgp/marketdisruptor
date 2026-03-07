@@ -115,7 +115,7 @@ export default function InsightGraphPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Minimal toolbar */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-background flex-shrink-0">
         <h2 className="text-sm font-bold text-foreground">Insight Graph</h2>
