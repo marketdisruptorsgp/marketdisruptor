@@ -841,6 +841,62 @@ function buildStrategicNarrative(
     parts.push("Note: This narrative is based on incomplete evidence. Run additional pipeline steps to strengthen conclusions.");
   }
 
+  // ── Strategic Verdict: derive the dominant move ──
+  let strategicVerdict: string | null = null;
+  let verdictRationale: string | null = null;
+  let verdictConfidence = 0;
+
+  if (topOpp && topConstraint) {
+    strategicVerdict = humanize(topOpp.label);
+    const avgConf = (topConstraint.confidence + topOpp.confidence + (topLeverage?.confidence ?? 0)) / (topLeverage ? 3 : 2);
+    verdictConfidence = Math.round(avgConf * 100) / 100;
+    verdictRationale = `The business is structurally constrained by ${trimAt(topConstraint.label, 80).toLowerCase()}. ${topLeverage ? `Intervening at ${trimAt(topLeverage.label, 60).toLowerCase()} ` : ""}This creates the opportunity to ${trimAt(topOpp.label, 80).toLowerCase()}.`;
+  } else if (topConstraint) {
+    strategicVerdict = `Resolve: ${humanize(topConstraint.label)}`;
+    verdictConfidence = topConstraint.confidence;
+    verdictRationale = `The dominant bottleneck is ${trimAt(topConstraint.label, 100).toLowerCase()}. More evidence needed to identify the specific strategic move.`;
+  }
+
+  // ── Trapped Value: what's locked in the current structure ──
+  let trappedValue: string | null = null;
+  let unlockPotential: string | null = null;
+  let trappedValueEvidenceCount = 0;
+
+  if (topConstraint) {
+    const costEvidence = flat.filter(e =>
+      e.type === "cost_structure" || e.type === "operational_dependency" || e.type === "pricing_model"
+    );
+    trappedValueEvidenceCount = costEvidence.length + topConstraint.evidenceIds.length;
+
+    trappedValue = `Value is locked in the current structure due to ${trimAt(topConstraint.label, 100).toLowerCase()}`;
+    if (topDriver) {
+      trappedValue += `, driven by ${trimAt(topDriver.label, 80).toLowerCase()}`;
+    }
+
+    if (topLeverage && topOpp) {
+      unlockPotential = `Addressing this through ${trimAt(topLeverage.label, 80).toLowerCase()} could unlock ${trimAt(topOpp.label, 80).toLowerCase()}`;
+    } else if (topOpp) {
+      unlockPotential = `Resolving this bottleneck could enable ${trimAt(topOpp.label, 100).toLowerCase()}`;
+    }
+  }
+
+  // ── Kill Question: the single falsifiable test ──
+  let killQuestion: string | null = null;
+  let validationExperiment: string | null = null;
+  let validationTimeframe = "30 days";
+
+  if (topOpp && topConstraint) {
+    // Derive the question from the opportunity — what assumption must be true?
+    killQuestion = `Will the target market actually adopt ${trimAt(topOpp.label, 80).toLowerCase()} as an alternative to the current approach?`;
+
+    validationExperiment = `Identify 5-10 potential customers in the target segment. Present the concept of ${trimAt(topOpp.label, 60).toLowerCase()} and measure willingness to pay or commit. If fewer than 30% show strong interest, the strategy needs rethinking.`;
+
+    // Adjust timeframe based on confidence
+    if (verdictConfidence >= 0.5) validationTimeframe = "2 weeks";
+    else if (verdictConfidence >= 0.3) validationTimeframe = "30 days";
+    else validationTimeframe = "60 days";
+  }
+
   return {
     primaryConstraint: h(topConstraint?.label) ?? null,
     keyDriver: h(topDriver?.label) ?? null,
@@ -848,6 +904,15 @@ function buildStrategicNarrative(
     breakthroughOpportunity: h(topOpp?.label) ?? null,
     strategicPathway: h(topPathway?.label) ?? null,
     narrativeSummary: parts.join(" "),
+    strategicVerdict,
+    verdictRationale,
+    verdictConfidence,
+    trappedValue,
+    unlockPotential,
+    trappedValueEvidenceCount,
+    killQuestion,
+    validationExperiment,
+    validationTimeframe,
   };
 }
 
