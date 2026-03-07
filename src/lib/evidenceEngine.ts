@@ -326,6 +326,26 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
         }
       });
     }
+
+    // ── Challenge Mode overrides ──
+    const challenges = governed.challenges as any[];
+    if (Array.isArray(challenges)) {
+      challenges.forEach((ch: any, i: number) => {
+        const label = ch.value || `Challenge override ${i + 1}`;
+        const stage = ch.stage || "constraint";
+        items.push({
+          id: makeId("challenge"),
+          type: stage === "opportunity" ? "opportunity" : stage === "driver" ? "friction" : "constraint",
+          label: `Override: ${label}`,
+          description: `User-challenged ${stage} assumption: ${label}`,
+          pipelineStep: "disrupt",
+          tier: "structural" as const,
+          impact: 9,
+          mode,
+          sourceEngine: "pipeline",
+        });
+      });
+    }
   }
 
   // ── Business Model: governed constraint_map ──
