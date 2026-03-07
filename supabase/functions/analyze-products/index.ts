@@ -347,11 +347,11 @@ For each product, return an object with this EXACT structure:
   },
   
   "supplyChain": {
-    "suppliers": [{"name": "Supplier Name", "region": "Country/Region", "url": "https://url.com", "role": "What they supply"}],
-    "manufacturers": [{"name": "Manufacturer", "region": "Country", "url": "https://url.com", "moq": "Min order qty"}],
-    "vendors": [{"name": "Vendor Name", "type": "Specialty/Mass/Import", "url": "https://url.com", "notes": "Context"}],
-    "retailers": [{"name": "Retailer", "type": "E-commerce/Mass/Specialty", "url": "https://url.com", "marketShare": "X%"}],
-    "distributors": [{"name": "Distributor", "region": "Region", "url": "https://url.com", "notes": "Context"}]
+    "suppliers": [{"name": "e.g. Dongguan Huiyang Plastics Co.", "region": "Guangdong, China", "url": "https://alibaba.com/...", "role": "Injection-molded ABS shells"}],
+    "manufacturers": [{"name": "e.g. Hasbro Manufacturing (East Longmeadow)", "region": "USA / Shenzhen", "url": "https://...", "moq": "5,000 units"}],
+    "vendors": [{"name": "e.g. Uline", "type": "Packaging/Specialty", "url": "https://uline.com", "notes": "Clamshell packaging supplier"}],
+    "retailers": [{"name": "e.g. Target, Walmart, Amazon", "type": "Mass/E-commerce", "url": "https://...", "marketShare": "35%"}],
+    "distributors": [{"name": "e.g. Alliance Entertainment", "region": "North America", "url": "https://...", "notes": "Toy/hobby distribution"}]
   },
   "trendAnalysis": "Detailed 4-5 sentence trend analysis with SPECIFIC data: search volumes, YoY growth rates, community post velocity, key events driving interest, search index trends, social engagement metrics, demographic shift data",
   "actionPlan": {
@@ -458,7 +458,7 @@ CRITICAL RULES:
 - competitorAnalysis.gaps must be specific market gaps visible in the data
 - Include REAL, working URLs for all sources, retailers, vendors where possible
 - pricingIntel must have SPECIFIC dollar figures from real market data
-- supplyChain must name REAL companies (real Alibaba suppliers, real Amazon, real distributors)
+- supplyChain must name REAL, SPECIFIC companies — not "Supplier Name" or "Various suppliers". Name the actual Alibaba vendors, Amazon sellers, Walmart/Target buyers, regional distributors. Include real URLs. If you don't know exact names, use the closest real companies in that supply chain (e.g. for auto parts: "Dorman Products", "AutoZone", "O'Reilly Auto Parts", "LKQ Corporation")
 - actionPlan quickWins must be actions someone could take THIS WEEK with less than $500
 - trendAnalysis must include specific numbers (% growth, view counts, search volumes)
 - flippedIdeas should have 2-3 per product and directly address community complaints/requests
