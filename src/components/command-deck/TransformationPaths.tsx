@@ -54,22 +54,7 @@ export const TransformationPaths = memo(function TransformationPaths({
     [evidence, insights, narrative, evidenceMode],
   );
 
-  if (playbooks.length === 0) {
-    return (
-      <div
-        className="rounded-xl px-5 py-6 text-center"
-        style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}
-      >
-        <Route size={20} className="mx-auto text-muted-foreground mb-2" />
-        <p className="text-sm font-bold text-muted-foreground">
-          Strategic moves will emerge once more structural patterns are detected.
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Complete additional analysis to generate actionable transformation paths.
-        </p>
-      </div>
-    );
-  }
+  if (playbooks.length === 0) return null;
 
   const topPlaybook = playbooks[0];
   const alternates = playbooks.slice(1);

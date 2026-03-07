@@ -211,11 +211,10 @@ export const LensIntelligencePanel = memo(function LensIntelligencePanel({
           </div>
         )}
 
-        <div className="p-4 space-y-2.5">
+        <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {sortedTools.map(tool => (
             <ToolCard key={tool.id} tool={tool}
               recommended={reasoningRecommended.has(tool.id)}
-              reason={reasoningRecommended.has(tool.id) ? "Recommended by reasoning engine" : undefined}
               onOpen={setOpenTool} />
           ))}
         </div>
