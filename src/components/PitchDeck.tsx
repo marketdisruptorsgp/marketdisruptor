@@ -913,7 +913,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           exit={{ opacity: 0, x: -40 }}
           transition={{ duration: 0.25, ease: "easeInOut" }}
         >
-          <ScaledSlide>{rawSlide(activeSlide, slideContent[activeSlide])}</ScaledSlide>
+          <ScaledSlide>{activeSlide === "cover" ? rawCover : rawSlide(activeSlide, slideContent[activeSlide as SlideTab])}</ScaledSlide>
         </motion.div>
       </AnimatePresence>
 
