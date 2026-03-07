@@ -459,6 +459,16 @@ export default function CommandDeckPage() {
           </div>
         )}
 
+        {/* ═══ SCENARIO BANNER — Active when user has challenged assumptions ═══ */}
+        <ScenarioBanner
+          challenges={activeChallenges}
+          onReset={handleResetScenario}
+          onSave={handleSaveScenario}
+        />
+
+        {/* ═══ DELTA CHANGES — What changed from baseline ═══ */}
+        <DeltaChanges deltas={deltaChanges} />
+
         {/* ═══ REASONING STAGES — visible during strategic engine computation ═══ */}
         <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
 
