@@ -380,7 +380,32 @@ export default function CommandDeckPage() {
     [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative],
   );
 
-  // ── AUTO-RECOMPUTE ──
+  // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
+  const evidenceAttribution = useMemo(() => {
+    const categories = new Map<string, number>();
+    for (const e of autoAnalysis.flatEvidence) {
+      const cat = (e.category || "general").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      categories.set(cat, (categories.get(cat) || 0) + 1);
+    }
+    const sorted = [...categories.entries()].sort((a, b) => b[1] - a[1]);
+    const strong = sorted.filter(([, c]) => c >= 3).map(([k]) => k);
+    const weak = sorted.length > 0
+      ? ["Demand Signal", "Cost Structure", "Competitive Pressure", "Customer Behavior", "Distribution Channel"]
+          .map(k => k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))
+          .filter(k => !categories.has(k) || (categories.get(k) || 0) < 2)
+          .slice(0, 2)
+      : [];
+    const sources = sorted.slice(0, 5).map(([k]) => k);
+
+    // Trapped value drivers from narrative + evidence
+    const trappedValueDrivers: string[] = [];
+    if (narrative?.primaryConstraint) trappedValueDrivers.push(`${narrative.primaryConstraint} constraining current structure`);
+    if (strong.length > 0) trappedValueDrivers.push(`${strong[0]} patterns detected across ${categories.get(strong[0]) || 0} signals`);
+    if (narrative?.breakthroughOpportunity) trappedValueDrivers.push(`Opportunity: ${narrative.breakthroughOpportunity}`);
+
+    return { strong, weak, sources, trappedValueDrivers };
+  }, [autoAnalysis.flatEvidence, narrative]);
+
   const lastRecomputeHash = useRef<string>("");
   const savedScenarios = useMemo(() => {
     const s = getScenarios(analysisId || "");
