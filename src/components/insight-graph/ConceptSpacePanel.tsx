@@ -29,6 +29,7 @@ function tierColor(tier: QualitativeTier): string {
 export const ConceptSpacePanel = memo(function ConceptSpacePanel({
   conceptSpace,
   onToggleVariant,
+  onDismissVariant,
   onStressTestSelected,
 }: ConceptSpacePanelProps) {
   const [activeView, setActiveView] = useState<"variants" | "dimensions">("variants");
