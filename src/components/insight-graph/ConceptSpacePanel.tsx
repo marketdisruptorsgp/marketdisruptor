@@ -7,7 +7,7 @@
 
 import { memo, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Boxes, CheckCircle2, Circle, ArrowRight, ChevronDown } from "lucide-react";
+import { Boxes, CheckCircle2, Circle, ArrowRight, ChevronDown, X } from "lucide-react";
 import type { ConceptSpace, ConceptVariant, DesignDimension, QualitativeTier } from "@/lib/conceptExpansion";
 import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 
