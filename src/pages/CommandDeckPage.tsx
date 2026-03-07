@@ -29,6 +29,7 @@ import { TransformationPaths } from "@/components/command-deck/TransformationPat
 import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
 import { ExecutiveBrief } from "@/components/command-deck/ExecutiveBrief";
+import { ExecutiveSnapshot } from "@/components/command-deck/ExecutiveSnapshot";
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
 import { BriefingSection } from "@/components/command-deck/BriefingSection";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
@@ -666,10 +667,10 @@ export default function CommandDeckPage() {
         <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
 
         {/* ══════════════════════════════════════════════════════════
-            30-SECOND EXECUTIVE BRIEF — Diagnosis → Direction → Impact
-            User understands the entire strategic picture in one glance
+            EXECUTIVE SNAPSHOT — Dense above-fold intelligence grid
+            All key insights visible in one viewport, no scrolling needed
            ══════════════════════════════════════════════════════════ */}
-        <ExecutiveBrief
+        <ExecutiveSnapshot
           narrative={narrative}
           evidence={autoAnalysis.flatEvidence}
           insights={autoAnalysis.insights}
@@ -677,12 +678,17 @@ export default function CommandDeckPage() {
           completedSteps={completedSteps.size}
           totalSteps={PIPELINE_STEPS.length}
           modeAccent={modeAccent}
+          strongCategories={evidenceAttribution.strong}
+          weakCategories={evidenceAttribution.weak}
+          trappedValue={narrative?.trappedValue ?? null}
+          trappedValueEstimate={narrative?.trappedValueEstimate ?? null}
+          trappedValueDrivers={evidenceAttribution.trappedValueDrivers}
+          patterns={detectedPatterns}
+          diagnosisEvidence={evidenceAttribution.diagnosisEvidence}
         />
 
         {/* ══════════════════════════════════════════════════════════
-            THE ANALYSIS JOURNEY — The core analytical methodology
-            "Here's what exists → Question it → Reimagine it → 
-             Pressure test it → Pitch it"
+            THE ANALYSIS JOURNEY — Pipeline step cards
            ══════════════════════════════════════════════════════════ */}
         <PipelineJourneyCards
           baseUrl={baseUrl}
