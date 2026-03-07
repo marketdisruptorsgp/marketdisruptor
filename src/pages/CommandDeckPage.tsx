@@ -675,7 +675,13 @@ export default function CommandDeckPage() {
             Advanced experimentation for power users.
            ════════════════════════════════════════════════════════════ */}
 
-        {/* Scenario Lab */}
+        {/* Strategy Simulator — "What if we..." */}
+        <StrategicScenarioSimulator
+          evidence={autoAnalysis.flatEvidence}
+          narrative={narrative}
+        />
+
+        {/* Scenario Lab — saved snapshots */}
         <ScenarioLab
           scenarios={savedLabScenarios}
           activeScenarioId={activeLabScenarioId}
