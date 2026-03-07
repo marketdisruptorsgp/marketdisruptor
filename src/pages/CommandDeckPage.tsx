@@ -831,9 +831,9 @@ export default function CommandDeckPage() {
 
         {/* Strategy Lab — Advanced */}
         <BriefingSection
-          title="Strategy Lab"
+          title="Lab"
           icon={Beaker}
-          preview="Scenario simulations & what-if analysis"
+          preview="Scenario simulations & what-if"
         >
           <StrategicScenarioSimulator
             evidence={autoAnalysis.flatEvidence}
