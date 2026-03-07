@@ -5,6 +5,7 @@ import { PricingIntelCard } from "@/components/PricingIntelCard";
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
 import { gatherAllAnalysisData, gatherBusinessAnalysisData } from "@/lib/gatherAnalysisData";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 
 import { AnalysisForm, type AnalysisMode } from "@/components/AnalysisForm";
 import { ProductCard } from "@/components/ProductCard";
