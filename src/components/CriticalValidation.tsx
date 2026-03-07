@@ -28,7 +28,7 @@ interface CriticalValidationProps {
   conceptVariants?: { name: string; description: string; formula: string; dimensionValues: Record<string, string> }[];
 }
 
-export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel }: CriticalValidationProps) => {
+export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel, conceptVariants }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
   const [userSuggestions, setUserSuggestions] = useState("");
