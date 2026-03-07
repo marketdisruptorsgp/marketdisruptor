@@ -162,6 +162,9 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
         </PrintSection>
       )}
 
+      {/* ── Strategic Snapshot (Command Deck + Insight Graph) ── */}
+      {strategicSnapshot && <StrategicSnapshotSection data={strategicSnapshot} />}
+
       {/* ── Disruption Analysis ── */}
       {disruptData && <DisruptSection data={disruptData} />}
 
