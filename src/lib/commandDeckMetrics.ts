@@ -164,9 +164,12 @@ function computeFromEvidence(
   const assumptions = all.filter(e => e.type === "assumption");
 
   // Legacy compat scores derived from multi-factor evidence analysis
-  const avgImpact = all.length > 0 ? all.reduce((s, e) => s + (e.impact ?? 5), 0) / all.length : 0;
-  const avgConfidence = all.length > 0 ? all.reduce((s, e) => s + (e.confidenceScore ?? 0.5), 0) / all.length : 0;
+  // Apply skeptical baseline — no defaults, only real evidence
+  const avgImpact = all.length > 0 ? all.reduce((s, e) => s + (e.impact ?? 4), 0) / all.length : 0;
+  const avgConfidence = all.length > 0 ? all.reduce((s, e) => s + (e.confidenceScore ?? 0.3), 0) / all.length : 0;
   const evidenceDiversity = new Set(all.map(e => e.type)).size;
+  // Penalize single-source pipelines
+  const sourcePenalty = sources.length === 1 ? 0.6 : sources.length === 2 ? 0.8 : 1.0;
   const tierCoverage = Object.values(tierBreakdown).filter(v => v > 0).length;
 
   // Multi-factor opportunity score
