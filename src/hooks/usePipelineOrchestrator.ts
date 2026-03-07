@@ -32,6 +32,7 @@ const STEP_DEFS = [
 
 export function usePipelineOrchestrator(
   onRecompute?: () => void,
+  onStepComplete?: (stepKey: string) => void,
 ): PipelineProgress {
   const analysis = useAnalysis();
   const {
