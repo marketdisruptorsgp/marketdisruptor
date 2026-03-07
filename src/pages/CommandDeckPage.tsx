@@ -28,7 +28,7 @@ import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
 import { TransformationPaths } from "@/components/command-deck/TransformationPaths";
 import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
-import { StrategicDiagnosisBanner } from "@/components/command-deck/StrategicDiagnosisBanner";
+import { ExecutiveBrief } from "@/components/command-deck/ExecutiveBrief";
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
 import { BriefingSection } from "@/components/command-deck/BriefingSection";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
