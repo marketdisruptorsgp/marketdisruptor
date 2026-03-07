@@ -816,9 +816,9 @@ export default function CommandDeckPage() {
 
         {/* Assumptions & Constraints — Reasoning */}
         <BriefingSection
-          title="Reasoning & Evidence"
+          title="Reasoning"
           icon={Map}
-          preview="Full causal chain analysis"
+          preview="Causal chain analysis"
         >
           <StrategicXRay
             narrative={narrative}
