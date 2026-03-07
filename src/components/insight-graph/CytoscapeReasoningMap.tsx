@@ -771,38 +771,56 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
 
       {/* Cytoscape canvas with column header overlay */}
       <div className="flex-1 min-h-0 relative">
-        {/* Column headers — positioned absolutely over the canvas */}
+        {/* Column headers + divider lines — positioned absolutely over the canvas */}
         {columnPositions.length > 0 && (
-          <div className="absolute top-0 left-0 right-0 z-10 flex pointer-events-none" style={{ height: 32 }}>
-            {columnPositions.map(col => (
-              <div
-                key={col.tierId}
-                className="absolute top-0 flex items-center justify-center"
-                style={{
-                  left: col.left,
-                  width: col.width,
-                  height: 32,
-                }}
-              >
-                {/* Column background stripe (full height of canvas) */}
+          <>
+            {/* Vertical divider lines between columns (full canvas height) */}
+            <div className="absolute inset-0 z-[5] pointer-events-none">
+              {columnPositions.slice(1).map(col => (
                 <div
-                  className="absolute inset-0 rounded-t-lg"
+                  key={`divider-${col.tierId}`}
+                  className="absolute top-0 bottom-0"
                   style={{
-                    background: col.accentBg,
-                    borderBottom: `2px solid ${col.accent}`,
-                    opacity: 0.7,
+                    left: col.left,
+                    width: 1,
+                    background: `linear-gradient(to bottom, ${col.accent}40, hsl(var(--border) / 0.3), ${col.accent}20)`,
                   }}
                 />
-                {/* Label */}
-                <span
-                  className="relative z-10 text-[11px] font-bold tracking-wide uppercase"
-                  style={{ color: col.accent }}
+              ))}
+            </div>
+
+            {/* Column headers */}
+            <div className="absolute top-0 left-0 right-0 z-10 flex pointer-events-none" style={{ height: 32 }}>
+              {columnPositions.map(col => (
+                <div
+                  key={col.tierId}
+                  className="absolute top-0 flex items-center justify-center"
+                  style={{
+                    left: col.left,
+                    width: col.width,
+                    height: 32,
+                  }}
                 >
-                  {col.label}
-                </span>
-              </div>
-            ))}
-          </div>
+                  {/* Column background stripe */}
+                  <div
+                    className="absolute inset-0 rounded-t-lg"
+                    style={{
+                      background: col.accentBg,
+                      borderBottom: `2px solid ${col.accent}`,
+                      opacity: 0.7,
+                    }}
+                  />
+                  {/* Label */}
+                  <span
+                    className="relative z-10 text-[11px] font-bold tracking-wide uppercase"
+                    style={{ color: col.accent }}
+                  >
+                    {col.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Canvas */}
