@@ -374,6 +374,15 @@ export default function CommandDeckPage() {
     [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative],
   );
 
+  // ── Top playbook for Outcome Simulator ──
+  const topPlaybook = useMemo(() => {
+    const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
+      analysis.activeMode === "service" ? "service"
+      : analysis.activeMode === "business" ? "business_model" : "product";
+    const pbs = generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence);
+    return pbs.length > 0 ? pbs[0] : null;
+  }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
+
   // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
   const evidenceAttribution = useMemo(() => {
     const categories = new Map<string, number>();
