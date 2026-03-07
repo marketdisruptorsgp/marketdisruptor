@@ -666,26 +666,17 @@ export default function CommandDeckPage() {
         <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
 
         {/* ══════════════════════════════════════════════════════════
-            ABOVE THE FOLD — THE STRATEGIC BRIEFING
-            User understands diagnosis → move → impact in 5 seconds
+            30-SECOND EXECUTIVE BRIEF — Diagnosis → Direction → Impact
+            User understands the entire strategic picture in one glance
            ══════════════════════════════════════════════════════════ */}
-
-        {/* 1. STRATEGIC DIAGNOSIS — The one bold sentence */}
-        <StrategicDiagnosisBanner
-          constraintLabel={narrative?.primaryConstraint ?? null}
-          rationale={narrative?.verdictRationale ?? null}
-          verdict={narrative?.strategicVerdict ?? null}
-          opportunityLabel={narrative?.breakthroughOpportunity ?? null}
-          confidence={narrative?.verdictConfidence ?? 0}
-          completedSteps={completedSteps.size}
-        />
-
-        {/* 2. RECOMMENDED STRATEGIC MOVE — Decision Brief (compact) */}
-        <TransformationPaths
+        <ExecutiveBrief
+          narrative={narrative}
           evidence={autoAnalysis.flatEvidence}
           insights={autoAnalysis.insights}
-          narrative={narrative}
           mode={modeKey}
+          completedSteps={completedSteps.size}
+          totalSteps={PIPELINE_STEPS.length}
+          modeAccent={modeAccent}
         />
 
         {/* ══════════════════════════════════════════════════════════
