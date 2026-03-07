@@ -645,12 +645,6 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
               </p>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
-              <div className="text-center">
-                <p className="typo-meta">Leverage</p>
-                <p className="text-sm font-extrabold" style={{ color: NODE_TYPE_CONFIG[selectedNode.type].color }}>
-                  {selectedNode.leverageScore}
-                </p>
-              </div>
               <button
                 onClick={() => setSelectedNodeId(null)}
                 className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md text-xs font-bold bg-muted border border-border text-foreground hover:bg-card transition-colors"
