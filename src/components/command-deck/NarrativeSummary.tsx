@@ -56,11 +56,11 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
   const hasChain = CHAIN.some(c => props[c.key]);
   const filledChainCount = CHAIN.filter(c => props[c.key]).length;
 
-  // Derive top recommendations from high-impact insights
+  // Derive top recommendations — require strong evidence backing
   const recommendations = useMemo(() => {
     if (!insights.length) return [];
     return insights
-      .filter(i => i.impact >= 6 && i.confidence >= 0.5)
+      .filter(i => i.impact >= 6 && i.confidence >= 0.4 && i.evidenceIds.length >= 2)
       .sort((a, b) => b.impact * b.confidence - a.impact * a.confidence)
       .slice(0, 3)
       .map(i => ({
@@ -69,6 +69,7 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
         type: i.insightType,
         impact: i.impact,
         confidence: i.confidence,
+        evidenceCount: i.evidenceIds.length,
       }));
   }, [insights]);
 
