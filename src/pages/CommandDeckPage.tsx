@@ -34,6 +34,7 @@ import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCa
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
 import { BriefingSection } from "@/components/command-deck/BriefingSection";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
+import { AdaptiveJourneyMap } from "@/components/AdaptiveJourneyMap";
 import { KillQuestionCard } from "@/components/command-deck/KillQuestionCard";
 import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
 import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
