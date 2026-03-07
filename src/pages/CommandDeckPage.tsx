@@ -444,10 +444,17 @@ export default function CommandDeckPage() {
     if (narrative?.breakthroughOpportunity) trappedValueDrivers.push(`Opportunity: ${narrative.breakthroughOpportunity}`);
 
     // Diagnosis evidence bullets — top evidence categories with example signals
-    const diagnosisEvidence = sorted.slice(0, 4).map(([cat]) => ({
-      category: cat,
-      detail: categoryExamples.get(cat) || `${categories.get(cat)} indicators detected`,
-    }));
+    const diagnosisEvidence = sorted.slice(0, 4).map(([cat]) => {
+      const rawDetail = categoryExamples.get(cat) || `${categories.get(cat)} indicators detected`;
+      // Humanize: strip internal IDs like "Governed Assumption 1", "C1:", etc.
+      const detail = rawDetail
+        .replace(/^(C\d+|F_?\d+|L\d+|O\d+|Governed Assumption \d+)[:\s-]*/gi, "")
+        .replace(/^Binding Constraint:\s*/i, "")
+        .replace(/^Counterfactual:\s*/i, "")
+        .replace(/\s*\(\+\d+ related\)\s*/g, "")
+        .trim() || `${categories.get(cat)} indicators detected`;
+      return { category: cat, detail };
+    });
 
     return { strong, weak, sources, trappedValueDrivers, diagnosisEvidence };
   }, [autoAnalysis.flatEvidence, narrative]);
@@ -528,8 +535,11 @@ export default function CommandDeckPage() {
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
         {/* ═══ COMPACT HEADER ═══ */}
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <ModeBadge />
+            <h1 className="text-base sm:text-lg font-black text-foreground truncate max-w-[300px] sm:max-w-[500px]">
+              {analysisDisplayName}
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             {!pipelineProgress.isRunning && completedSteps.size < PIPELINE_STEPS.length && (

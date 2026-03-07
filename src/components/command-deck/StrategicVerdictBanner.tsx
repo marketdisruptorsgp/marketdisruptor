@@ -13,6 +13,19 @@ import { memo, useMemo } from "react";
 import { Zap, AlertTriangle, TrendingUp, Crosshair, Database, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
+/** Strip internal IDs, prefixes, and code artifacts from user-facing labels */
+function humanize(s: string | null): string | null {
+  if (!s) return null;
+  return s
+    .replace(/^(C\d+|F_?\d+|L\d+|O\d+|Governed Assumption \d+)[:\s-]*/gi, "")
+    .replace(/^Binding Constraint:\s*/i, "")
+    .replace(/^Counterfactual:\s*/i, "")
+    .replace(/\s*\(\+\d+ related\)\s*/g, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase())
+    .trim() || null;
+}
+
 interface StrategicVerdictBannerProps {
   verdict: string | null;
   rationale: string | null;
@@ -74,10 +87,14 @@ function buildExecutiveSummary(
 
 export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props: StrategicVerdictBannerProps) {
   const {
-    verdict, rationale, confidence, constraintLabel, opportunityLabel,
+    verdict, rationale, confidence,
     completedSteps, totalSteps, whyThisMatters, verdictBenchmark,
     evidenceSources = [], diagnosisEvidence = [],
   } = props;
+
+  // Humanize all user-facing labels
+  const constraintLabel = humanize(props.constraintLabel);
+  const opportunityLabel = humanize(props.opportunityLabel);
 
   const badge = confidenceBadge(confidence);
   const hasVerdict = !!verdict || !!constraintLabel;

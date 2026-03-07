@@ -29,7 +29,10 @@ export const ConfidenceExplanationPanel = memo(function ConfidenceExplanationPan
 
   const strong = explanation.drivers.filter(d => d.strength === "strong");
   const moderate = explanation.drivers.filter(d => d.strength === "moderate");
-  const limited = explanation.drivers.filter(d => d.strength === "limited");
+  const limited = explanation.drivers.filter(d => d.strength === "limited").slice(0, 3);
+
+  // Don't render if there's no strong or moderate evidence — pure negative framing
+  if (strong.length === 0 && moderate.length === 0) return null;
 
   const groups = [
     { key: "strong" as const, items: strong },
@@ -78,13 +81,13 @@ export const ConfidenceExplanationPanel = memo(function ConfidenceExplanationPan
           );
         })}
 
-        {/* Improvement suggestions */}
+        {/* Improvement suggestions — max 2 */}
         {explanation.improvementSuggestions.length > 0 && (
           <div className="rounded-lg p-3 mt-1" style={{ background: "hsl(var(--muted) / 0.3)", border: "1px solid hsl(var(--border))" }}>
             <p className="text-[10px] font-extrabold uppercase tracking-wider text-primary mb-1">
               To Improve Confidence
             </p>
-            {explanation.improvementSuggestions.map((s, i) => (
+            {explanation.improvementSuggestions.slice(0, 2).map((s, i) => (
               <p key={i} className="text-[11px] text-muted-foreground leading-snug">
                 {s}
               </p>

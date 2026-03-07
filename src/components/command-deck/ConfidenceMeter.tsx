@@ -39,6 +39,7 @@ export const ConfidenceMeter = memo(function ConfidenceMeter({
 }: ConfidenceMeterProps) {
   const pct = Math.round(confidence * 100);
   const level = useMemo(() => getConfidenceLevel(confidence), [confidence]);
+  const isEarly = confidence < 0.1;
 
   // Build improvement hint in business terms (not pipeline steps)
   const improvementHint = useMemo(() => {
@@ -63,18 +64,26 @@ export const ConfidenceMeter = memo(function ConfidenceMeter({
         <div className="flex items-center gap-2 flex-shrink-0">
           <Shield size={14} style={{ color: level.color }} />
           <div className="flex items-baseline gap-1">
-            <motion.span
-              key={pct}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-xl font-black tabular-nums"
-              style={{ color: level.color }}
-            >
-              {pct}%
-            </motion.span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              confidence
-            </span>
+            {isEarly ? (
+              <span className="text-sm font-extrabold uppercase tracking-wider" style={{ color: level.color }}>
+                Early Analysis
+              </span>
+            ) : (
+              <>
+                <motion.span
+                  key={pct}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xl font-black tabular-nums"
+                  style={{ color: level.color }}
+                >
+                  {pct}%
+                </motion.span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  confidence
+                </span>
+              </>
+            )}
           </div>
         </div>
 
