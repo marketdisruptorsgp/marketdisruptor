@@ -201,6 +201,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     intelligence,
     graph,
     evidence,
+    flatEvidence: flatEvidenceState,
     insights,
     opportunities,
     narrative,
