@@ -165,12 +165,14 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   // Business model routing
   if (analysisRow.analysis_type === "business_model") {
     // Extract businessAnalysis from nested key; fall back to full blob for legacy records
+    const internalKeys = new Set(["governed","activeLensId","outdatedSteps","governedHashes","previousSnapshot","adaptiveContext","disrupt","stressTest","pitchDeck","redesign","businessStressTest","businessPitchDeck","geoOpportunity","regulatoryContext","userScores","insightPreferences","steeringText","pitchDeckImages","pitchDeckExclusions","scoutedCompetitors","activeBranchId","strategicProfile"]);
     const bizData = ad?.businessAnalysis
       ? (ad.businessAnalysis as BusinessModelAnalysisData)
-      : (ad && Object.keys(ad).some(k => !["governed","activeLensId","outdatedSteps","governedHashes","previousSnapshot","adaptiveContext"].includes(k))
+      : (ad && Object.keys(ad).some(k => !internalKeys.has(k)))
         ? (analysisRow.analysis_data as BusinessModelAnalysisData)
-        : null);
-    setters.setBusinessAnalysisData(bizData);
+        : null;
+    // Always set something for business model analyses to prevent infinite spinner
+    setters.setBusinessAnalysisData(bizData || ({ type: analysisRow.title || "Business Model", description: "Loaded from saved analysis" } as unknown as BusinessModelAnalysisData));
     if (ad?.businessPitchDeck) setters.setPitchDeckData(ad.businessPitchDeck);
     const titleParts = (analysisRow.title || "").split(" — ");
     if (titleParts.length > 0) {
