@@ -763,7 +763,7 @@ export default function CommandDeckPage() {
 
         {/* Structural Insights */}
         <BriefingSection
-          title="Structural Insights"
+          title="Diagnosis"
           icon={Brain}
           preview={narrative?.primaryConstraint ? `Constraint: ${humanizeLabel(narrative.primaryConstraint)}` : null}
         >
