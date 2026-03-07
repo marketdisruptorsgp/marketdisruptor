@@ -24,7 +24,6 @@ import {
   AnalysisActionToolbar,
   AnalysisTabBar,
   AnalysisDivider,
-  AnalysisContextBanner,
   AnalysisContentCard,
   AnalysisLoadingCard,
   AnalysisLoadingSpinner,
