@@ -94,12 +94,15 @@ export interface InsightGraphNode {
   };
 }
 
+export type EdgeCategory = "discovered" | "inherited" | "design";
+
 export interface InsightGraphEdge {
   id: string;
   source: string;
   target: string;
   relation: EdgeRelation;
   weight: number;
+  category?: EdgeCategory;
 }
 
 export interface InsightGraph {
