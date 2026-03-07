@@ -216,15 +216,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
     return items.length > 0 ? items.slice(0, 4) : null;
   }, [governed, narrative]);
 
-  // Trapped Value
-  const trappedValue = narrative?.trappedValue || null;
-  const trappedEstimate = narrative?.trappedValueEstimate || null;
-
-  // Trend / Market signal
-  const trend = p.trendAnalysis || (biz as any)?.trend || null;
-  const marketSize = p.marketSizeEstimate || null;
-
-  const hasAnyData = !!(problemStatement || pricing || community || supplyChain || constraints);
+  const hasAnyData = !!(pricing || community || supplyChain || constraints);
 
   return (
     <motion.div
@@ -233,33 +225,20 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
       transition={{ duration: 0.4 }}
       className="space-y-2"
     >
-      {/* ── Row 1: Problem Statement headline ── */}
-      <div
-        className="rounded-lg px-4 py-3"
-        style={{ background: "hsl(var(--card))", border: `2px solid ${modeAccent}30` }}
-      >
-        <div className="flex items-center gap-2 mb-1">
-          <Crosshair size={13} style={{ color: modeAccent }} />
-          <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Problem Statement
-          </span>
-          <span className="text-[9px] font-bold text-muted-foreground ml-auto">
-            {evidenceCount} signals · {completedSteps}/{totalSteps} steps
-          </span>
-        </div>
-        <p className={`text-sm sm:text-base font-black leading-snug ${problemStatement ? "text-foreground" : "text-muted-foreground italic"}`}>
-          {problemStatement || "Run the analysis to identify the core problem."}
-        </p>
-        {marketSize && (
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <TrendingUp size={11} style={{ color: modeAccent }} />
-            <span className="text-[11px] font-bold text-foreground">TAM: {marketSize}</span>
-          </div>
-        )}
-        {trend && !problemStatement?.includes(trend.slice(0, 30)) && (
-          <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{trend}</p>
-        )}
-      </div>
+      {/* ── Row 1: Problem Statement (editable + cyclable) ── */}
+      <ProblemStatementCard
+        product={product as Record<string, any> | null}
+        businessData={businessData}
+        narrative={narrative}
+        governed={governed}
+        modeAccent={modeAccent}
+        evidenceCount={evidenceCount}
+        completedSteps={completedSteps}
+        totalSteps={totalSteps}
+        marketSize={marketSize}
+        trend={trend}
+        onProblemLocked={onProblemLocked}
+      />
 
       {/* ── Row 2: 3x2 intelligence grid from actual data ── */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
