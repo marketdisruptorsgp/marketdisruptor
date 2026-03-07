@@ -254,6 +254,105 @@ function PrintTag({ label, color }: { label: string; color: string }) {
   );
 }
 
+function StrategicSnapshotSection({ data }: { data: Record<string, unknown> }) {
+  const metrics = (data.metrics as Record<string, any> | undefined) || {};
+  const graph = (data.graph as Record<string, any> | undefined) || {};
+  const topOpportunities = (data.topOpportunities as Record<string, any>[] | undefined) || [];
+  const nodeTypeCounts = (graph.nodeTypeCounts as Record<string, number> | undefined) || {};
+  const topNodes = (graph.topNodes as Record<string, string | null> | undefined) || {};
+
+  return (
+    <>
+      <PrintSection title="Command Deck Snapshot" icon={<TrendingUp size={14} />}>
+        <div className="print-grid-3">
+          <PrintMetricBox label="Opportunities" value={metrics.opportunitiesIdentified} />
+          <PrintMetricBox label="Constraints" value={metrics.constraintsDetected} />
+          <PrintMetricBox label="Leverage" value={metrics.leveragePoints} />
+          <PrintMetricBox label="Risk Signals" value={metrics.riskSignals} />
+          <PrintMetricBox label="Pipeline" value={metrics.pipelineCompletion != null ? `${metrics.pipelineCompletion}%` : undefined} />
+          <PrintMetricBox label="Evidence" value={metrics.totalEvidenceCount} />
+        </div>
+
+        {topOpportunities.length > 0 && (
+          <div className="print-subsection">
+            <h3 className="print-subsection-title"><Lightbulb size={12} /> Top Opportunities</h3>
+            {topOpportunities.map((opp, index) => (
+              <PrintCard key={opp.label || index} accent="hsl(217 91% 55%)">
+                <p className="print-card-title">
+                  <span className="print-card-number">{opp.rank || index + 1}</span>
+                  {opp.label || `Opportunity ${index + 1}`}
+                </p>
+                <div className="print-tag-row">
+                  {opp.impact != null && <PrintTag label={`Impact ${opp.impact}/10`} color="hsl(217 91% 55%)" />}
+                  {opp.confidence && <PrintTag label={`Confidence ${opp.confidence}`} color="hsl(142 70% 40%)" />}
+                  {opp.source && <PrintTag label={String(opp.source)} color="hsl(220 10% 45%)" />}
+                </div>
+              </PrintCard>
+            ))}
+          </div>
+        )}
+      </PrintSection>
+
+      <PrintSection title="Insight Graph Snapshot" icon={<Brain size={14} />}>
+        <div className="print-grid-3">
+          <PrintMetricBox label="Nodes" value={graph.nodes} />
+          <PrintMetricBox label="Edges" value={graph.edges} />
+          <PrintMetricBox label="Node Types" value={Object.keys(nodeTypeCounts).length} />
+        </div>
+
+        {Object.keys(nodeTypeCounts).length > 0 && (
+          <div className="print-subsection">
+            <h3 className="print-subsection-title"><BarChart3 size={12} /> Node Type Breakdown</h3>
+            <div className="print-tag-row">
+              {Object.entries(nodeTypeCounts)
+                .sort(([, a], [, b]) => b - a)
+                .map(([type, count]) => (
+                  <PrintTag
+                    key={type}
+                    label={`${type.replace(/_/g, " ")}: ${count}`}
+                    color="hsl(229 89% 63%)"
+                  />
+                ))}
+            </div>
+          </div>
+        )}
+
+        {(topNodes.primaryConstraint || topNodes.keyDriver || topNodes.breakthroughOpportunity || topNodes.highestConfidence) && (
+          <div className="print-subsection">
+            <h3 className="print-subsection-title"><Target size={12} /> Key Graph Anchors</h3>
+            <div className="print-grid-2">
+              {topNodes.primaryConstraint && (
+                <div className="print-info-box">
+                  <p className="print-label">Primary Constraint</p>
+                  <p className="print-body-sm">{topNodes.primaryConstraint}</p>
+                </div>
+              )}
+              {topNodes.keyDriver && (
+                <div className="print-info-box">
+                  <p className="print-label">Key Driver</p>
+                  <p className="print-body-sm">{topNodes.keyDriver}</p>
+                </div>
+              )}
+              {topNodes.breakthroughOpportunity && (
+                <div className="print-info-box">
+                  <p className="print-label">Breakthrough Opportunity</p>
+                  <p className="print-body-sm">{topNodes.breakthroughOpportunity}</p>
+                </div>
+              )}
+              {topNodes.highestConfidence && (
+                <div className="print-info-box">
+                  <p className="print-label">Highest Confidence Node</p>
+                  <p className="print-body-sm">{topNodes.highestConfidence}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </PrintSection>
+    </>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════
    DISRUPTION ANALYSIS (Assumptions, Flipped Logic, Redesigned Concept)
    ═══════════════════════════════════════════════════════════════ */
