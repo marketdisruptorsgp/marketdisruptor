@@ -141,6 +141,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       setIntelligence(newIntelligence);
       setGraph(result.graph);
       setEvidence(result.evidence);
+      setFlatEvidenceState(result.flatEvidence);
       setInsights(result.insights);
       setOpportunities(result.opportunities);
       setNarrative(result.narrative);
