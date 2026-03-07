@@ -147,15 +147,25 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
   // Community / Customer
   const community = useMemo(() => {
     const ci = p.communityInsights || p.customerSentiment || (biz as any)?.communityInsights || (biz as any)?.customerSentiment;
-    if (!ci) return null;
     const bullets: string[] = [];
-    const complaints = ci.topComplaints || [];
-    const requests = ci.improvementRequests || ci.marketGaps || [];
-    complaints.slice(0, 2).forEach((c: any) => bullets.push(typeof c === "string" ? c : c.text || c.label || ""));
-    requests.slice(0, 2).forEach((r: any) => bullets.push(typeof r === "string" ? r : r.text || r.label || ""));
-    if (ci.communitySentiment || ci.redditSentiment) {
-      const s = ci.communitySentiment || ci.redditSentiment;
-      if (!/no direct.*found|not found/i.test(s)) bullets.unshift(s.length > 80 ? s.slice(0, 77) + "…" : s);
+    if (ci) {
+      const complaints = ci.topComplaints || [];
+      const requests = ci.improvementRequests || ci.marketGaps || [];
+      complaints.slice(0, 2).forEach((c: any) => bullets.push(typeof c === "string" ? c : c.text || c.label || ""));
+      requests.slice(0, 2).forEach((r: any) => bullets.push(typeof r === "string" ? r : r.text || r.label || ""));
+      if (ci.communitySentiment || ci.redditSentiment) {
+        const s = ci.communitySentiment || ci.redditSentiment;
+        if (!/no direct.*found|not found/i.test(s)) bullets.unshift(s.length > 80 ? s.slice(0, 77) + "…" : s);
+      }
+    }
+    // Fallback: extract friction points from userJourney
+    if (bullets.length === 0) {
+      const uj = p.userJourney || (biz as any)?.userJourney;
+      const fps = uj?.frictionPoints || [];
+      fps.slice(0, 3).forEach((fp: any) => {
+        const text = typeof fp === "string" ? fp : fp.friction || fp.text || fp.label;
+        if (text) bullets.push(text.length > 80 ? text.slice(0, 77) + "…" : text);
+      });
     }
     return bullets.filter(Boolean).length > 0 ? bullets.filter(Boolean) : null;
   }, [p, biz]);
