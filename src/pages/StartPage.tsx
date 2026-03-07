@@ -10,6 +10,7 @@ import {
   Upload, Briefcase, Building2, ArrowRight,
   ShieldCheck, BookOpen, Camera, Target,
   Search, Radar, Sparkles, Crosshair, Swords, Presentation,
+  FileText, BarChart3,
 } from "lucide-react";
 
 const ROTATING_WORDS = [
@@ -20,27 +21,32 @@ const ROTATING_WORDS = [
 
 const PIPELINE_STEPS = [
   {
-    icon: Search, label: "Understand", step: 1,
-    desc: "Define your target and map the system — pricing, supply chains, market position",
+    icon: Search, label: "Analyze", step: 1,
+    desc: "Define your target and begin mapping the competitive landscape",
     color: "#2563eb",
   },
   {
-    icon: Radar, label: "Disrupt", step: 2,
+    icon: BarChart3, label: "Intel Report", step: 2,
+    desc: "Deep-dive into pricing, supply chains, patents, and community sentiment",
+    color: "#0891b2",
+  },
+  {
+    icon: Radar, label: "Deconstruct", step: 3,
     desc: "Challenge assumptions and uncover structural constraints hiding in plain sight",
     color: "#7c3aed",
   },
   {
-    icon: Sparkles, label: "Reimagine", step: 3,
+    icon: Sparkles, label: "Reimagine", step: 4,
     desc: "Flip constraints into opportunities — generate redesigned concepts with evidence",
     color: "#db2777",
   },
   {
-    icon: Swords, label: "Stress Test", step: 4,
+    icon: Swords, label: "Stress Test", step: 5,
     desc: "Validate with adversarial testing — red team vs green team debate",
     color: "#dc2626",
   },
   {
-    icon: Presentation, label: "Pitch", step: 5,
+    icon: Presentation, label: "Pitch", step: 6,
     desc: "Synthesize into an investor-ready narrative with evidence-backed slides",
     color: "#d97706",
   },
@@ -72,9 +78,9 @@ export default function StartPage() {
       <PlatformNav tier={tier} />
 
       {/* Hero */}
-      <section className="pt-16 sm:pt-24 pb-8 sm:pb-12 px-6 sm:px-8">
-        <div className="max-w-5xl mx-auto text-left">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-foreground leading-[1.08]">
+      <section className="pt-10 sm:pt-16 pb-8 sm:pb-12 px-6 sm:px-10">
+        <div className="max-w-6xl mx-auto text-left">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-extrabold tracking-tight text-foreground leading-[1.08]">
             Rethink any{" "}
             <motion.span
               key={wordIndex}
@@ -91,7 +97,7 @@ export default function StartPage() {
             </motion.span>
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground mt-5 max-w-2xl leading-relaxed">
-            Discover what's really driving — or blocking — your product, service, or business model. Then redesign it from first principles.
+            Deconstruct markets, stress-test strategies, and build what's next.
           </p>
           <div className="flex items-center gap-3 mt-8">
             <button
@@ -110,7 +116,7 @@ export default function StartPage() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 sm:px-8">
+      <section className="max-w-6xl mx-auto px-6 sm:px-10">
         <ShowcaseGallery />
       </section>
 
@@ -122,7 +128,7 @@ export default function StartPage() {
               <Sparkles size={12} /> How Discovery Works
             </p>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-              Five steps to strategic clarity
+              Six stages of strategic discovery
             </h2>
             <p className="text-sm text-foreground/60 mt-1.5">
               Each step builds on the last — from mapping the system to redesigning it
