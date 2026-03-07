@@ -77,47 +77,45 @@ export default function StartPage() {
       <PlatformNav tier={tier} />
 
       {/* Hero */}
-      <section className="pt-8 sm:pt-12 pb-4 sm:pb-6 px-4">
+      <section className="pt-16 sm:pt-24 pb-8 sm:pb-12 px-6 sm:px-8">
         <div className="max-w-5xl mx-auto text-left">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-foreground leading-[1.08]">
             Rethink any{" "}
+            <motion.span
+              key={wordIndex}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="inline-block cursor-pointer select-none"
+              style={{ color: ROTATING_WORDS[wordIndex].color }}
+              onClick={() => setPaused((p) => !p)}
+            >
+              {ROTATING_WORDS[wordIndex].word}.
+              {paused && <span className="inline-block ml-3 text-lg align-middle opacity-50">⏸</span>}
+            </motion.span>
           </h1>
-          <motion.span
-            key={wordIndex}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] cursor-pointer select-none min-h-[48px] sm:min-h-[64px]"
-            style={{ color: ROTATING_WORDS[wordIndex].color }}
-            onClick={() => setPaused((p) => !p)}
-          >
-            {ROTATING_WORDS[wordIndex].word}.
-            {paused && <span className="inline-block ml-3 text-lg align-middle opacity-50">⏸</span>}
-          </motion.span>
-          <p className="text-base sm:text-lg text-foreground/70 mt-3 max-w-2xl">
-            Map assumptions, challenge constraints, and discover opportunity signals to redesign any product, service, or business model from first principles.
+          <p className="text-lg sm:text-xl text-muted-foreground mt-5 max-w-2xl leading-relaxed">
+            Discover what's really driving — or blocking — your product, service, or business model. Then redesign it from first principles.
           </p>
-          <div className="flex items-center gap-3 mt-6">
+          <div className="flex items-center gap-3 mt-8">
             <button
               onClick={() => navigate("/analysis/new")}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
             >
-              Start Strategic Discovery <ArrowRight size={15} />
+              Start Analysis <ArrowRight size={15} />
             </button>
             <button
               onClick={() => navigate("/methodology")}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+              className="inline-flex items-center gap-2 px-7 py-3 rounded-full border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
             >
-              See How Discovery Works
+              How It Works
             </button>
           </div>
         </div>
-
       </section>
 
-      {/* Showcase Gallery */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6">
+      <section className="max-w-5xl mx-auto px-6 sm:px-8">
         <ShowcaseGallery />
       </section>
 
