@@ -809,13 +809,19 @@ function buildStrategicNarrative(
 
   const h = (s: string | null | undefined) => s ? humanize(s) : null;
 
-  /** Truncate at word boundary */
+  /** Truncate at word boundary — never mid-word */
   function trimAt(s: string | null | undefined, max: number): string {
     if (!s) return "";
     const clean = humanize(s);
     if (clean.length <= max) return clean;
+    // Find the last space before max
     const cut = clean.lastIndexOf(" ", max);
-    return clean.slice(0, cut > max * 0.5 ? cut : max) + "…";
+    // If no reasonable word boundary found, use the full string up to max and find next word end
+    if (cut < max * 0.4) {
+      const nextSpace = clean.indexOf(" ", max);
+      return nextSpace > 0 ? clean.slice(0, nextSpace) + "…" : clean;
+    }
+    return clean.slice(0, cut) + "…";
   }
 
   // Build a readable narrative — skeptical, qualified language
