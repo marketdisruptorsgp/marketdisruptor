@@ -1,11 +1,15 @@
 /**
- * Strategic Verdict Banner — The dominant strategic directive
+ * Strategic Verdict Banner — Diagnosis → Direction → Impact
  *
- * Structure: Strategic Direction → Why This Matters → Expected Impact → Evidence Sources
+ * Mirrors consulting firm format:
+ *   1. Strategic Diagnosis — what's the structural problem
+ *   2. Strategic Direction — what should change
+ *   3. Expected Impact — what it unlocks
+ *   4. Evidence Sources — what data supports this
  */
 
-import { memo } from "react";
-import { Zap, AlertTriangle, TrendingUp, Info, Database } from "lucide-react";
+import { memo, useMemo } from "react";
+import { Zap, AlertTriangle, TrendingUp, Crosshair, Database } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface StrategicVerdictBannerProps {
@@ -25,8 +29,24 @@ interface StrategicVerdictBannerProps {
 function confidenceBadge(c: number) {
   if (c >= 0.7) return { label: "High confidence", bg: "hsl(var(--success) / 0.12)", text: "hsl(var(--success))" };
   if (c >= 0.4) return { label: "Moderate confidence", bg: "hsl(var(--warning) / 0.12)", text: "hsl(var(--warning))" };
-  if (c >= 0.15) return { label: "Hypothesis — needs validation", bg: "hsl(var(--destructive) / 0.1)", text: "hsl(var(--destructive))" };
-  return { label: "Insufficient evidence", bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))" };
+  if (c >= 0.15) return { label: "Preliminary — needs validation", bg: "hsl(var(--destructive) / 0.1)", text: "hsl(var(--destructive))" };
+  return { label: "Early hypothesis", bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))" };
+}
+
+/** Build a diagnosis sentence from constraint + rationale */
+function buildDiagnosis(constraintLabel: string | null, rationale: string | null, completedSteps: number): string | null {
+  if (constraintLabel && rationale) {
+    // If rationale already contains diagnosis-like language, use it
+    if (rationale.length > 20 && rationale.length < 200) return rationale;
+    return `Growth constrained by ${constraintLabel.toLowerCase()}.`;
+  }
+  if (constraintLabel) {
+    return `Key structural constraint: ${constraintLabel.toLowerCase()}.`;
+  }
+  if (completedSteps > 0) {
+    return "Analyzing structural constraints — a preliminary diagnosis is forming.";
+  }
+  return null;
 }
 
 export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props: StrategicVerdictBannerProps) {
@@ -35,16 +55,16 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
   const badge = confidenceBadge(confidence);
   const hasVerdict = !!verdict || !!constraintLabel;
 
-  const displayVerdict = verdict
-    || (constraintLabel ? `Address: ${constraintLabel}` : null)
-    || "Analyzing — building initial strategic hypothesis…";
+  const diagnosis = useMemo(
+    () => buildDiagnosis(constraintLabel, rationale, completedSteps),
+    [constraintLabel, rationale, completedSteps],
+  );
 
-  const displayRationale = rationale
-    || (completedSteps > 0 && !hasVerdict
-      ? `Initial analysis underway with ${completedSteps}/${totalSteps} evidence sources. The strategic engine is forming a hypothesis as more signals are collected.`
-      : !hasVerdict
-        ? "The intelligence pipeline is collecting foundational evidence. A strategic hypothesis will form as signals are detected."
-        : null);
+  const displayVerdict = verdict
+    || (constraintLabel ? `Shift away from ${constraintLabel.toLowerCase()} dependency` : null)
+    || (completedSteps > 0
+      ? "Forming initial strategic hypothesis from available evidence…"
+      : "Begin analysis to generate strategic direction.");
 
   return (
     <motion.div
@@ -59,7 +79,7 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
         <div className="flex items-center gap-2">
           <Zap size={14} style={{ color: "hsl(var(--primary))" }} />
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Strategic Direction
+            Strategic Briefing
           </span>
         </div>
         <span
@@ -70,58 +90,50 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
         </span>
       </div>
 
-      {/* Verdict */}
+      {/* ── 1. DIAGNOSIS ── */}
+      {diagnosis && (
+        <div className="px-5 pb-2">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Crosshair size={11} style={{ color: "hsl(var(--destructive))" }} />
+            <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--destructive))" }}>
+              Diagnosis
+            </span>
+          </div>
+          <p className="text-sm font-semibold text-muted-foreground leading-snug">
+            {diagnosis}
+          </p>
+        </div>
+      )}
+
+      {/* ── 2. DIRECTION ── */}
       <div className="px-5 pb-2">
+        <div className="flex items-center gap-1.5 mb-1">
+          <Zap size={11} style={{ color: "hsl(var(--primary))" }} />
+          <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
+            Direction
+          </span>
+        </div>
         <p className={`text-lg sm:text-xl font-black leading-tight ${hasVerdict ? 'text-foreground' : 'text-muted-foreground'}`}>
           {displayVerdict}
         </p>
       </div>
 
-      {/* Rationale */}
-      {displayRationale && (
+      {/* ── 3. IMPACT ── */}
+      {(whyThisMatters || verdictBenchmark) && (
         <div className="px-5 pb-3">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {displayRationale}
+          <div className="flex items-center gap-1.5 mb-1">
+            <TrendingUp size={11} style={{ color: "hsl(var(--success))" }} />
+            <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--success))" }}>
+              Impact
+            </span>
+          </div>
+          <p className="text-sm font-medium text-foreground leading-relaxed">
+            {verdictBenchmark || whyThisMatters}
           </p>
         </div>
       )}
 
-      {/* Why This Matters */}
-      {whyThisMatters && (
-        <div className="px-5 pb-3">
-          <div className="rounded-lg p-3"
-            style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.1)" }}>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Info size={11} style={{ color: "hsl(var(--primary))" }} />
-              <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
-                Why This Matters
-              </span>
-            </div>
-            <p className="text-xs font-medium text-foreground leading-relaxed">
-              {whyThisMatters}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Expected Strategic Impact */}
-      {verdictBenchmark && (
-        <div className="px-5 pb-3">
-          <div className="rounded-lg p-3" style={{ background: "hsl(var(--success) / 0.04)", border: "1px solid hsl(var(--success) / 0.1)" }}>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <TrendingUp size={11} style={{ color: "hsl(var(--success))" }} />
-              <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--success))" }}>
-                Expected Strategic Impact
-              </span>
-            </div>
-            <p className="text-xs font-medium text-foreground leading-snug">
-              {verdictBenchmark}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Constraint → Opportunity flow */}
+      {/* Constraint → Opportunity flow (compact) */}
       {constraintLabel && opportunityLabel && (
         <div className="px-5 pb-3">
           <div className="flex items-center gap-2 flex-wrap">
