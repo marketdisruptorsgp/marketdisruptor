@@ -176,9 +176,9 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
           {/* Graph Canvas + Side Panel */}
           <div className="flex gap-3 flex-1 min-h-0 h-full">
             {/* Cytoscape Reasoning Map */}
-            <div className="flex-1 min-h-0">
+             <div className="flex-1 min-h-0">
               <CytoscapeReasoningMap
-                graph={graph}
+                graph={enrichedGraph}
                 onSelectNode={setSelectedNodeId}
                 selectedNodeId={selectedNodeId}
               />
@@ -194,10 +194,14 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
               >
                 <InsightNodeCard
                   node={selectedNode}
-                  graph={graph}
+                  graph={enrichedGraph}
                   onClose={() => setSelectedNodeId(null)}
                   onSelectNode={setSelectedNodeId}
                   onOpenTool={handleOpenTool}
+                  conceptSpace={getConceptSpace(selectedNode.id)}
+                  onExpandDesignSpace={(n) => generateConceptSpace(n)}
+                  onToggleConceptVariant={toggleVariantSelection}
+                  conceptExpansionLoading={conceptLoading === selectedNode.id}
                 />
               </motion.div>
             )}
@@ -209,11 +213,15 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
               {selectedNode && (
                 <InsightNodeCard
                   node={selectedNode}
-                  graph={graph}
+                  graph={enrichedGraph}
                   onClose={() => setSelectedNodeId(null)}
                   onSelectNode={setSelectedNodeId}
                   onOpenTool={handleOpenTool}
                   isMobile
+                  conceptSpace={getConceptSpace(selectedNode.id)}
+                  onExpandDesignSpace={(n) => generateConceptSpace(n)}
+                  onToggleConceptVariant={toggleVariantSelection}
+                  conceptExpansionLoading={conceptLoading === selectedNode.id}
                 />
               )}
             </AnimatePresence>
