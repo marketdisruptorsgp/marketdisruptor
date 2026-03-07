@@ -15,6 +15,19 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { getResumeRoute } from "@/utils/analysisSteps";
 
+/** Lightweight summary of a concept variant for cross-page transfer */
+export interface ConceptVariantSummary {
+  id: string;
+  name: string;
+  description: string;
+  formula: string;
+  feasibility: "strong" | "moderate" | "early";
+  novelty: "strong" | "moderate" | "early";
+  marketReadiness: "strong" | "moderate" | "early";
+  dimensionValues: Record<string, string>;
+  opportunityLabel: string;
+}
+
 export type AnalysisStep = "idle" | "scraping" | "analyzing" | "done" | "error";
 
 export interface BusinessModelInput {
@@ -171,6 +184,10 @@ interface AnalysisContextType {
   // Scouted competitors (from Disrupt step — passed to Stress Test)
   scoutedCompetitors: unknown[];
   setScoutedCompetitors: (d: unknown[]) => void;
+
+  // Concept variants selected for stress testing (from Insight Graph → Stress Test)
+  conceptVariantsForStressTest: ConceptVariantSummary[];
+  setConceptVariantsForStressTest: (d: ConceptVariantSummary[]) => void;
 
   // Mode routing
   modeRouting: RoutingResult | null;
@@ -392,6 +409,8 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [regulatoryData, setRegulatoryData] = useState<unknown>(null);
   // ── Scouted Competitors (from Disrupt → Stress Test) ──
   const [scoutedCompetitors, setScoutedCompetitors] = useState<unknown[]>([]);
+  // ── Concept Variants for Stress Test (from Insight Graph) ──
+  const [conceptVariantsForStressTest, setConceptVariantsForStressTest] = useState<ConceptVariantSummary[]>([]);
 
   const fetchGeoData = useCallback(async (category: string, productName?: string) => {
     try {
@@ -626,7 +645,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     pushLog("Mining complaint signals & improvement requests...");
     await new Promise(r => setTimeout(r, 600));
     pushLog("Collecting competitive intelligence from multiple data sources...");
-
 
     try {
       setStepMessage(hasCustom
@@ -1360,6 +1378,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
       scoutedCompetitors, setScoutedCompetitors,
+      conceptVariantsForStressTest, setConceptVariantsForStressTest,
       modeRouting, setModeRouting,
       adaptiveContext, setAdaptiveContext,
       governedData, setGovernedData,

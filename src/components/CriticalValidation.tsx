@@ -25,9 +25,10 @@ interface CriticalValidationProps {
   runTrigger?: number;
   onLoadingChange?: (loading: boolean) => void;
   competitorIntel?: unknown[];
+  conceptVariants?: { name: string; description: string; formula: string; dimensionValues: Record<string, string> }[];
 }
 
-export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel }: CriticalValidationProps) => {
+export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel, conceptVariants }: CriticalValidationProps) => {
   const [data, setData] = useState<ValidationData | null>((externalData as ValidationData) || null);
   const [loading, setLoading] = useState(false);
   const [userSuggestions, setUserSuggestions] = useState("");
@@ -67,7 +68,7 @@ export const CriticalValidation = ({ product, analysisData, activeTab, externalD
         activeBranch = getBranchPayload(governedData, activeBranchId, strategicProfileRef);
       }
       const { data: result, error } = await invokeWithTimeout("critical-validation", {
-        body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined, activeBranch, adaptiveContext: adaptiveContextRef || undefined, competitorIntel: competitorIntel?.length ? competitorIntel : undefined },
+        body: { product, analysisData, userSuggestions: userSuggestions || undefined, geoData: geoData || undefined, regulatoryData: regulatoryData || undefined, activeBranch, adaptiveContext: adaptiveContextRef || undefined, competitorIntel: competitorIntel?.length ? competitorIntel : undefined, conceptVariants: conceptVariants?.length ? conceptVariants : undefined },
       }, 180_000);
       if (error || !result?.success) {
         toast.error(result?.error || error?.message || "Validation failed");

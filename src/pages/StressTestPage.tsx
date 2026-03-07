@@ -14,7 +14,7 @@ import { CriticalValidation } from "@/components/CriticalValidation";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
-import { Swords, XCircle, BarChart3, Crosshair, LayoutDashboard } from "lucide-react";
+import { Swords, XCircle, BarChart3, Crosshair, LayoutDashboard, Boxes, X } from "lucide-react";
 import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { type LensType } from "@/lib/multiLensEngine";
 import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
@@ -138,6 +138,49 @@ export default function StressTestPage() {
 
       {!analysisLoading && <AnalysisDivider />}
 
+      {/* Concept Variants Context Banner */}
+      {analysis.conceptVariantsForStressTest.length > 0 && !analysisLoading && (
+        <div
+          className="rounded-xl p-4 mx-1"
+          style={{
+            background: "hsl(185 70% 42% / 0.08)",
+            border: "1.5px solid hsl(185 70% 42% / 0.2)",
+          }}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Boxes size={14} style={{ color: "hsl(185 70% 42%)" }} />
+              <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(185 70% 42%)" }}>
+                Concept Variants Under Review
+              </p>
+            </div>
+            <button
+              onClick={() => analysis.setConceptVariantsForStressTest([])}
+              className="p-1 rounded-md hover:bg-muted transition-colors"
+            >
+              <X size={12} className="text-muted-foreground" />
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {analysis.conceptVariantsForStressTest.map(cv => (
+              <div
+                key={cv.id}
+                className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold"
+                style={{
+                  background: "hsl(185 70% 42% / 0.12)",
+                  border: "1px solid hsl(185 70% 42% / 0.25)",
+                  color: "hsl(185 70% 42%)",
+                }}
+              >
+                {cv.name}
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            From opportunity: {analysis.conceptVariantsForStressTest[0]?.opportunityLabel}
+          </p>
+        </div>
+      )}
 
       {/* Loading Tracker */}
       {analysisLoading && (
@@ -230,6 +273,7 @@ export default function StressTestPage() {
                 runTrigger={runTrigger}
                 onLoadingChange={setAnalysisLoading}
                 competitorIntel={analysis.scoutedCompetitors}
+                conceptVariants={analysis.conceptVariantsForStressTest.length > 0 ? analysis.conceptVariantsForStressTest : undefined}
                 onDataLoaded={(d) => {
                   analysis.setStressTestData(d);
                   analysis.saveStepData("stressTest", d);
@@ -254,6 +298,7 @@ export default function StressTestPage() {
               runTrigger={runTrigger}
               onLoadingChange={setAnalysisLoading}
               competitorIntel={analysis.scoutedCompetitors}
+              conceptVariants={analysis.conceptVariantsForStressTest.length > 0 ? analysis.conceptVariantsForStressTest : undefined}
               onDataLoaded={(d) => {
                 analysis.setStressTestData(d);
                 analysis.saveStepData("stressTest", d);

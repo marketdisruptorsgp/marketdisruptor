@@ -7,6 +7,7 @@
  */
 
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
 import { NODE_TYPE_CONFIG, getInsightChain } from "@/lib/insightGraph";
@@ -23,6 +24,8 @@ import { type LensTool } from "@/lib/lensToolkitRegistry";
 import { type ToolScenario, scenarioToEvidence } from "@/lib/scenarioEngine";
 import { useConceptExpansion } from "@/hooks/useConceptExpansion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAnalysis, type ConceptVariantSummary } from "@/contexts/AnalysisContext";
+import { toast } from "sonner";
 
 // ═══════════════════════════════════════════════════════════════
 //  MAIN COMPONENT
@@ -41,9 +44,35 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   const [simTool, setSimTool] = useState<LensTool | null>(null);
   const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const analysis = useAnalysis();
 
   // Concept expansion
   const { generateConceptSpace, getConceptSpace, toggleVariantSelection, loading: conceptLoading } = useConceptExpansion(graph);
+  // Handle sending selected concept variants to stress test
+  const handleStressTestSelected = useCallback((opportunityNodeId: string) => {
+    const space = getConceptSpace(opportunityNodeId);
+    if (!space) return;
+
+    const selected = space.variants.filter(v => v.selectedForStressTest);
+    if (selected.length === 0) return;
+
+    const summaries: ConceptVariantSummary[] = selected.map(v => ({
+      id: v.id,
+      name: v.name,
+      description: v.description,
+      formula: v.formula,
+      feasibility: v.feasibility,
+      novelty: v.novelty,
+      marketReadiness: v.marketReadiness,
+      dimensionValues: v.dimensionValues,
+      opportunityLabel: space.opportunityLabel,
+    }));
+
+    analysis.setConceptVariantsForStressTest(summaries);
+    toast.success(`${selected.length} concept${selected.length > 1 ? "s" : ""} queued for stress testing`);
+    navigate(`/analysis/${analysisId}/stress-test`);
+  }, [getConceptSpace, analysis, navigate, analysisId]);
 
   // Graph with concept variants injected
   const enrichedGraph = useMemo(() => {
@@ -201,6 +230,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
                   conceptSpace={getConceptSpace(selectedNode.id)}
                   onExpandDesignSpace={(n) => generateConceptSpace(n)}
                   onToggleConceptVariant={toggleVariantSelection}
+                  onStressTestSelected={handleStressTestSelected}
                   conceptExpansionLoading={conceptLoading === selectedNode.id}
                 />
               </motion.div>
@@ -221,6 +251,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
                   conceptSpace={getConceptSpace(selectedNode.id)}
                   onExpandDesignSpace={(n) => generateConceptSpace(n)}
                   onToggleConceptVariant={toggleVariantSelection}
+                  onStressTestSelected={handleStressTestSelected}
                   conceptExpansionLoading={conceptLoading === selectedNode.id}
                 />
               )}
