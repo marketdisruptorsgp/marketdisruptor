@@ -6,6 +6,7 @@ import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { downloadPitchDeckPDF } from "@/lib/pdfExport";
+import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { downloadSlidesPDF } from "@/lib/slidesPdfExport";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -891,7 +892,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
               >
                 <FileDown size={14} /> {downloadingSlides ? "Exporting…" : "Download Slides PDF"}
               </button>
-              <ExportPanel product={product} pitchDeckData={data} analysisData={{ disrupt: analysisCtx.disruptData, stressTest: analysisCtx.stressTestData, pitchDeck: data, redesign: analysisCtx.redesignData, geoOpportunity: analysisCtx.geoData, regulatoryContext: analysisCtx.regulatoryData, ...(product.patentData ? { patentData: product.patentData } : {}), ...(analysisCtx.businessAnalysisData ? (analysisCtx.businessAnalysisData as unknown as Record<string, unknown>) : {}), ...(analysisCtx.businessStressTestData ? { stressTest: analysisCtx.businessStressTestData } : {}) } as Record<string, unknown>} analysisId={analysisId} userId={user?.id} accentColor="white" />
+              <ExportPanel product={product} pitchDeckData={data} analysisData={{ ...gatherAllAnalysisData(analysisCtx), pitchDeck: data, ...(product.patentData ? { patentData: product.patentData } : {}) } as Record<string, unknown>} analysisId={analysisId} userId={user?.id} accentColor="white" />
               <button onClick={runAnalysis} disabled={loading}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                 style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "1px solid rgba(255,255,255,0.3)" }}>

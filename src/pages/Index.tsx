@@ -4,6 +4,8 @@ import { PricingIntelCard } from "@/components/PricingIntelCard";
 
 import { sampleProducts, type Product, type FlippedIdea } from "@/data/mockProducts";
 import { downloadFullAnalysisPDF } from "@/lib/pdfExport";
+import { gatherAllAnalysisData, gatherBusinessAnalysisData } from "@/lib/gatherAnalysisData";
+import { useAnalysis } from "@/contexts/AnalysisContext";
 
 import { AnalysisForm, type AnalysisMode } from "@/components/AnalysisForm";
 import { ProductCard } from "@/components/ProductCard";
@@ -153,6 +155,7 @@ function ValuePropCallout() {
 
 export default function Index() {
   const { user, profile } = useAuth();
+  const analysis = useAnalysis();
   const { canAnalyze, remainingAnalyses, tier, usage, checkSubscription } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
   const [step, setStep] = useState<AnalysisStep>("idle");
@@ -810,7 +813,7 @@ export default function Index() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
-                    onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct, { ...(disruptData ? { disrupt: disruptData } : {}), ...(stressTestData ? { stressTest: stressTestData } : {}), ...(selectedProduct.patentData ? { patentData: selectedProduct.patentData } : {}) })}
+                    onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct, { ...gatherAllAnalysisData(analysis), ...(disruptData ? { disrupt: disruptData } : {}), ...(stressTestData ? { stressTest: stressTestData } : {}), ...(selectedProduct.patentData ? { patentData: selectedProduct.patentData } : {}) })}
                     disabled={!selectedProduct}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
                     style={{ background: "hsl(var(--background))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", opacity: selectedProduct ? 1 : 0.5 }}
@@ -1773,7 +1776,7 @@ export default function Index() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
-                        onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct, { ...(businessAnalysisData as any), ...(businessStressTestData ? { stressTest: businessStressTestData } : {}) })}
+                        onClick={() => downloadFullAnalysisPDF(bizSyntheticProduct, gatherBusinessAnalysisData(analysis))}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
                         style={{ background: "hsl(var(--secondary))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
                       >
