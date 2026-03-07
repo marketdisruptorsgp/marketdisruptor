@@ -273,13 +273,13 @@ function normalizeEvidence(flat: Evidence[]): Evidence[] {
     // Classify into strategic category
     const category = classifyEvidence(ev);
 
-    // Ensure scores exist
-    const normalized: Evidence = {
-      ...ev,
-      category,
-      impact: ev.impact ?? 5,
-      confidenceScore: ev.confidenceScore ?? 0.5,
-    };
+      // Ensure scores exist — default LOW to avoid inflated confidence
+      const normalized: Evidence = {
+        ...ev,
+        category,
+        impact: ev.impact ?? 4,
+        confidenceScore: ev.confidenceScore ?? 0.3,
+      };
 
     deduped.push(normalized);
     usedIds.add(ev.id);
