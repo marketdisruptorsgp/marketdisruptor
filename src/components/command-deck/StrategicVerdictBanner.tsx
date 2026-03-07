@@ -47,9 +47,9 @@ function buildDiagnosis(constraintLabel: string | null, rationale: string | null
     return `Key structural constraint: ${constraintLabel.toLowerCase()}.`;
   }
   if (completedSteps > 0) {
-    return "Analyzing structural constraints — a preliminary diagnosis is forming.";
+    return "Initial evidence suggests structural constraints on the current business model. Run the full analysis to identify specific bottlenecks.";
   }
-  return null;
+  return "No analysis data available yet. Run the analysis pipeline to generate strategic insights.";
 }
 
 /** Build a single-line executive summary from diagnosis + direction */
@@ -69,9 +69,9 @@ function buildExecutiveSummary(
     return verdict;
   }
   if (completedSteps > 0) {
-    return "Building a strategic hypothesis from available evidence…";
+    return "Preliminary signals detected — run the full analysis to generate a strategic recommendation.";
   }
-  return null;
+  return "Run the analysis pipeline to generate a strategic briefing.";
 }
 
 export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props: StrategicVerdictBannerProps) {
@@ -101,7 +101,7 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
   const displayVerdict = verdict
     || (constraintLabel ? `Shift away from ${constraintLabel.toLowerCase()} dependency` : null)
     || (completedSteps > 0
-      ? "Forming initial strategic hypothesis from available evidence…"
+      ? "Preliminary analysis underway — strategic direction will sharpen as more evidence is collected."
       : "Begin analysis to generate strategic direction.");
 
   return (

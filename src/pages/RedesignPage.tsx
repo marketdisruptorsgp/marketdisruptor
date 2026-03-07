@@ -52,8 +52,14 @@ export default function RedesignPage() {
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
 
-  const { selectedProduct, analysisId, products } = analysis;
+  const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
   const autoAnalysis = useAutoAnalysis();
+
+  // Synthetic product for business model analyses
+  const selectedProduct = rawSelectedProduct || (analysis.businessAnalysisData ? {
+    id: analysisId || "business-model", name: (analysis.businessModelInput as any)?.type || "Business Model",
+    category: "Business", image: "", revivalScore: 0, flippedIdeas: [],
+  } as any : null);
 
   if (analysis.step !== "done" || (!selectedProduct && !analysis.businessAnalysisData)) {
     if (shouldRedirectHome) return null;
@@ -86,7 +92,7 @@ export default function RedesignPage() {
       />
 
       <AnalysisActionToolbar
-        analysisTitle={selectedProduct.name}
+        analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
         stepTitle="Redesign"
         analysis={analysis}
         selectedProduct={selectedProduct}
@@ -140,7 +146,7 @@ export default function RedesignPage() {
         return (
           <div style={{ display: activeTab === "concept" ? undefined : "none" }}>
             <RedesignVisualGenerator
-              productName={selectedProduct.name}
+              productName={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
               concept={concept}
               accentColor="hsl(38 92% 50%)"
             />

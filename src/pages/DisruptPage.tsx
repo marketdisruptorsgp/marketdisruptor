@@ -51,9 +51,19 @@ export default function DisruptPage() {
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
 
-  const { selectedProduct, analysisId, products } = analysis;
+  const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
 
   const autoAnalysis = useAutoAnalysis();
+
+  // For business model analyses, create a synthetic product so child components don't crash
+  const selectedProduct = rawSelectedProduct || (analysis.businessAnalysisData ? {
+    id: analysisId || "business-model",
+    name: (analysis.businessModelInput as any)?.type || "Business Model",
+    category: "Business",
+    image: "",
+    revivalScore: 0,
+    flippedIdeas: [],
+  } as any : null);
 
   if (analysis.step !== "done" || (!selectedProduct && !analysis.businessAnalysisData)) {
     if (shouldRedirectHome) return null;
@@ -101,7 +111,7 @@ export default function DisruptPage() {
       />
 
       <AnalysisActionToolbar
-        analysisTitle={selectedProduct.name}
+        analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
         stepTitle="Strategic Intelligence"
         analysis={analysis}
         selectedProduct={selectedProduct}
