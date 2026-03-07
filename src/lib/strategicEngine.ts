@@ -97,10 +97,16 @@ export interface StrategicNarrative {
   verdictRationale: string | null;
   /** Confidence in the verdict (0-1) */
   verdictConfidence: number;
+  /** Why This Matters — contextual paragraph explaining structural significance */
+  whyThisMatters: string | null;
   /** What value is trapped in the current structure */
   trappedValue: string | null;
   /** What resolving the constraint would unlock */
   unlockPotential: string | null;
+  /** AI-estimated dollar/time magnitude of trapped value */
+  trappedValueEstimate: string | null;
+  /** Contextual benchmark for comparison */
+  trappedValueBenchmark: string | null;
   /** Evidence count backing the trapped value estimate */
   trappedValueEvidenceCount: number;
   /** The single falsifiable question that validates or kills the strategy */
@@ -109,6 +115,10 @@ export interface StrategicNarrative {
   validationExperiment: string | null;
   /** Suggested timeframe for the experiment */
   validationTimeframe: string;
+  /** Concrete next validation steps (3-5 ordered actions) */
+  validationSteps: ValidationStep[];
+  /** Industry benchmark context for the verdict */
+  verdictBenchmark: string | null;
 }
 
 export interface StrategicDiagnostic {
