@@ -121,8 +121,8 @@ export const OpportunityMap = memo(function OpportunityMap({
                 }}
                 title={opp.label}
               >
-                <span className="text-[8px] font-extrabold tabular-nums" style={{ color: riskColor }}>
-                  {(opp.opportunityScore ?? 0).toFixed(1)}
+                <span className="text-[7px] font-extrabold" style={{ color: riskColor }}>
+                  {(opp.opportunityScore ?? 0) >= 7 ? "●" : (opp.opportunityScore ?? 0) >= 4 ? "◐" : "○"}
                 </span>
                 {/* Hover tooltip */}
                 <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
