@@ -1,11 +1,11 @@
 /**
- * Strategic Verdict Banner — The dominant strategic move
- * 
- * Shows: The Move → Why → Why This Matters → Benchmark
+ * Strategic Verdict Banner — The dominant strategic directive
+ *
+ * Structure: Strategic Direction → Why This Matters → Expected Impact → Evidence Sources
  */
 
 import { memo } from "react";
-import { Zap, AlertTriangle, TrendingUp, Info } from "lucide-react";
+import { Zap, AlertTriangle, TrendingUp, Info, Database } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface StrategicVerdictBannerProps {
@@ -18,9 +18,11 @@ interface StrategicVerdictBannerProps {
   totalSteps: number;
   whyThisMatters: string | null;
   verdictBenchmark: string | null;
+  /** Evidence source categories backing this verdict */
+  evidenceSources?: string[];
 }
 
-function confidenceBadge(c: number): { label: string; bg: string; text: string } {
+function confidenceBadge(c: number) {
   if (c >= 0.7) return { label: "High confidence", bg: "hsl(var(--success) / 0.12)", text: "hsl(var(--success))" };
   if (c >= 0.4) return { label: "Moderate confidence", bg: "hsl(var(--warning) / 0.12)", text: "hsl(var(--warning))" };
   if (c >= 0.15) return { label: "Hypothesis — needs validation", bg: "hsl(var(--destructive) / 0.1)", text: "hsl(var(--destructive))" };
@@ -28,7 +30,7 @@ function confidenceBadge(c: number): { label: string; bg: string; text: string }
 }
 
 export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props: StrategicVerdictBannerProps) {
-  const { verdict, rationale, confidence, constraintLabel, opportunityLabel, completedSteps, totalSteps, whyThisMatters, verdictBenchmark } = props;
+  const { verdict, rationale, confidence, constraintLabel, opportunityLabel, completedSteps, totalSteps, whyThisMatters, verdictBenchmark, evidenceSources = [] } = props;
 
   const badge = confidenceBadge(confidence);
   const hasVerdict = !!verdict || !!constraintLabel;
@@ -53,11 +55,11 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
       style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}
     >
       {/* Header */}
-      <div className="px-5 pt-4 pb-2 flex items-center justify-between gap-3">
+      <div className="px-5 pt-4 pb-1 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Zap size={14} style={{ color: "hsl(var(--primary))" }} />
-          <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
-            The Move
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            Strategic Direction
           </span>
         </div>
         <span
@@ -87,10 +89,8 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
       {/* Why This Matters */}
       {whyThisMatters && (
         <div className="px-5 pb-3">
-          <div
-            className="rounded-lg p-3"
-            style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.1)" }}
-          >
+          <div className="rounded-lg p-3"
+            style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.1)" }}>
             <div className="flex items-center gap-1.5 mb-1.5">
               <Info size={11} style={{ color: "hsl(var(--primary))" }} />
               <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
@@ -104,12 +104,17 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
         </div>
       )}
 
-      {/* Contextual Benchmark */}
+      {/* Expected Strategic Impact */}
       {verdictBenchmark && (
         <div className="px-5 pb-3">
-          <div className="flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(var(--muted) / 0.4)" }}>
-            <TrendingUp size={12} className="text-muted-foreground mt-0.5 flex-shrink-0" />
-            <p className="text-[11px] font-semibold text-muted-foreground leading-snug italic">
+          <div className="rounded-lg p-3" style={{ background: "hsl(var(--success) / 0.04)", border: "1px solid hsl(var(--success) / 0.1)" }}>
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <TrendingUp size={11} style={{ color: "hsl(var(--success))" }} />
+              <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--success))" }}>
+                Expected Strategic Impact
+              </span>
+            </div>
+            <p className="text-xs font-medium text-foreground leading-snug">
               {verdictBenchmark}
             </p>
           </div>
@@ -118,7 +123,7 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
 
       {/* Constraint → Opportunity flow */}
       {constraintLabel && opportunityLabel && (
-        <div className="px-5 pb-4">
+        <div className="px-5 pb-3">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg"
               style={{ background: "hsl(var(--destructive) / 0.08)", border: "1px solid hsl(var(--destructive) / 0.15)" }}>
@@ -131,6 +136,22 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
               <TrendingUp size={11} style={{ color: "hsl(var(--success))" }} />
               <span className="text-[11px] font-bold text-foreground">{opportunityLabel}</span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Evidence Source Attribution */}
+      {evidenceSources.length > 0 && (
+        <div className="px-5 pb-4">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Database size={10} className="text-muted-foreground" />
+            <span className="text-[10px] font-bold text-muted-foreground">Evidence:</span>
+            {evidenceSources.map((src, idx) => (
+              <span key={idx} className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                style={{ background: "hsl(var(--muted) / 0.5)", color: "hsl(var(--foreground))" }}>
+                {src}
+              </span>
+            ))}
           </div>
         </div>
       )}
