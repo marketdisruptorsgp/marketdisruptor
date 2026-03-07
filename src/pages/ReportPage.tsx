@@ -219,10 +219,11 @@ export default function ReportPage() {
 
   const isService = selectedProduct?.category === "Service" || isServiceCategory(selectedProduct?.category || "");
   const baseUrl = `/analysis/${analysisId}`;
-  const ci = selectedProduct ? ((selectedProduct as any).communityInsights || (selectedProduct as any).customerSentiment) : null;
-  const uw = selectedProduct ? ((selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney) : null;
-  const uwSteps = uw?.stepByStep || uw?.steps;
-  const sectionTabs = selectedProduct ? getAvailableSections(selectedProduct, isService) : [
+  const biz = analysis.businessAnalysisData as Record<string, unknown> | null;
+  const ci = selectedProduct ? ((selectedProduct as any).communityInsights || (selectedProduct as any).customerSentiment || (biz as any)?.communityInsights || (biz as any)?.customerSentiment) : null;
+  const uw = selectedProduct ? ((selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney || (biz as any)?.userWorkflow || (biz as any)?.userJourney || (biz as any)?.customerJourney) : null;
+  const uwSteps = uw?.stepByStep || uw?.steps || (Array.isArray(uw) ? uw : null);
+  const sectionTabs = selectedProduct ? getAvailableSections(selectedProduct, isService, biz) : [
     { id: "dashboard", label: "Command Deck", icon: LayoutDashboard },
   ];
 
