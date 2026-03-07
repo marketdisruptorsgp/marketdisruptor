@@ -114,15 +114,25 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
 
   // ── Extract real data ──
 
-  // Key Insight / Diagnosis
-  const keyInsight = useMemo(() => {
+  // Problem Statement — surfaces the core structural problem
+  const problemStatement = useMemo(() => {
+    // 1. Strategic diagnosis from narrative (highest quality)
+    if (narrative?.diagnosis && narrative.diagnosis.length > 20) return narrative.diagnosis;
+    // 2. Strategic verdict as problem framing
+    if (narrative?.strategicVerdict && narrative.strategicVerdict.length > 20) return narrative.strategicVerdict;
+    // 3. "Why this matters" reframed as the problem
     if (narrative?.whyThisMatters && narrative.whyThisMatters.length > 20) return narrative.whyThisMatters;
-    if (narrative?.strategicVerdict) return narrative.strategicVerdict;
+    // 4. Binding constraint from governed data as the core problem
+    const cm = governed?.constraint_map || (governed as any)?.governed?.constraint_map;
+    if (cm?.dominance_proof) return cm.dominance_proof;
+    // 5. Key insight from product analysis
     if (p.keyInsight) return p.keyInsight;
+    // 6. Business summary
     if ((biz as any)?.summary || (biz as any)?.overview) return (biz as any).summary || (biz as any).overview;
-    if (p.description) return p.description.length > 150 ? p.description.slice(0, 147) + "…" : p.description;
+    // 7. Description fallback
+    if (p.description) return p.description.length > 200 ? p.description.slice(0, 197) + "…" : p.description;
     return null;
-  }, [narrative, p, biz]);
+  }, [narrative, p, biz, governed]);
 
   // Pricing
   const pricing = useMemo(() => {
