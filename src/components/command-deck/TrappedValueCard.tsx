@@ -24,6 +24,7 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
 
   if (!trappedDescription) return null;
 
+  const isQuantified = !/not yet quantified/i.test(trappedDescription);
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
