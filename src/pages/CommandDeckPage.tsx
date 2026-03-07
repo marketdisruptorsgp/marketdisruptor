@@ -39,6 +39,14 @@ import { StrategicLeverageSignals } from "@/components/command-deck/StrategicLev
 import { ActionPath } from "@/components/command-deck/ActionPath";
 import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
 import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
+import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
+import { StrategicPatternCard } from "@/components/command-deck/StrategicPatternCard";
+import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
+import {
+  saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
+  type ScenarioSnapshot,
+} from "@/lib/scenarioLabEngine";
+import { generatePlaybooks } from "@/lib/playbookEngine";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
   AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
