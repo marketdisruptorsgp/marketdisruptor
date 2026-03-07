@@ -750,7 +750,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
       </AnimatePresence>
 
       {/* Graph Canvas + Side Panel Layout */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-1 min-h-0">
         {/* Graph Canvas */}
         <div
           className="relative rounded-2xl overflow-hidden flex-1"
