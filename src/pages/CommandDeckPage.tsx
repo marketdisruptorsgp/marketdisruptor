@@ -61,6 +61,7 @@ export default function CommandDeckPage() {
   const { shouldRedirectHome } = useHydrationGuard();
   const { theme: workspaceTheme, toggle: toggleTheme } = useWorkspaceTheme();
   const autoAnalysis = useAutoAnalysis();
+  const pipelineProgress = usePipelineOrchestrator(autoAnalysis.runAnalysis);
 
   const { selectedProduct, analysisId: ctxAnalysisId, businessAnalysisData, businessModelInput } = analysis;
 
