@@ -706,20 +706,27 @@ export default function CommandDeckPage() {
           isBusinessMode={modeKey === "business"}
         />
 
-        {/* 3. EVIDENCE CONFIDENCE — By business domain */}
-        <ConfidenceMeter
-          completedSteps={completedSteps.size}
-          totalSteps={PIPELINE_STEPS.length}
-          evidenceCount={totalSignals}
-          confidence={narrative?.verdictConfidence ?? (completedSteps.size / PIPELINE_STEPS.length) * 0.3}
-          isComputing={engineComputing}
-          strongCategories={evidenceAttribution.strong}
-          weakCategories={evidenceAttribution.weak}
-        />
 
         {/* ══════════════════════════════════════════════════════════
             PROGRESSIVE EXPLORATION — Collapsible deeper layers
            ══════════════════════════════════════════════════════════ */}
+
+        {/* Evidence Confidence */}
+        <BriefingSection
+          title="Evidence Confidence"
+          icon={BookOpen}
+          preview={`${totalSignals} signals across ${evidenceAttribution.strong.length} strong categories`}
+        >
+          <ConfidenceMeter
+            completedSteps={completedSteps.size}
+            totalSteps={PIPELINE_STEPS.length}
+            evidenceCount={totalSignals}
+            confidence={narrative?.verdictConfidence ?? (completedSteps.size / PIPELINE_STEPS.length) * 0.3}
+            isComputing={engineComputing}
+            strongCategories={evidenceAttribution.strong}
+            weakCategories={evidenceAttribution.weak}
+          />
+        </BriefingSection>
 
         {/* Strategic Playbooks & Outcomes */}
         <BriefingSection
