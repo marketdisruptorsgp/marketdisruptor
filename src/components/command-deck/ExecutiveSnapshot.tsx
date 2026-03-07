@@ -270,7 +270,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
             <span className="text-[11px] font-bold text-foreground">TAM: {marketSize}</span>
           </div>
         )}
-        {trend && !keyInsight?.includes(trend.slice(0, 30)) && (
+        {trend && !problemStatement?.includes(trend.slice(0, 30)) && (
           <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{trend}</p>
         )}
       </div>
