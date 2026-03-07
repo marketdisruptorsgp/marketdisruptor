@@ -217,15 +217,23 @@ interface StepNode {
   sceneLabel: string;
 }
 
+function stripStepPrefix(text: string): string {
+  return text.replace(/^step\s*\d+\s*[:\-–—]\s*/i, "").trim();
+}
+
 function buildNodes(steps: string[], frictionPoints: FrictionPoint[]): StepNode[] {
-  return steps.slice(0, 10).map((step, i) => ({
-    text: step,
-    index: i,
-    friction: getFriction(i, step, frictionPoints),
-    icon: getStepIcon(step),
-    phase: detectPhase(step),
-    sceneLabel: getSceneLabel(step),
-  }));
+  const total = Math.min(steps.length, 10);
+  return steps.slice(0, 10).map((step, i) => {
+    const cleanText = stripStepPrefix(step);
+    return {
+      text: cleanText,
+      index: i,
+      friction: getFriction(i, step, frictionPoints),
+      icon: getStepIcon(cleanText),
+      phase: detectPhase(cleanText, i, total),
+      sceneLabel: getSceneLabel(cleanText),
+    };
+  });
 }
 
 /* ── Phase ribbon ── */
