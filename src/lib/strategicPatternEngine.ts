@@ -15,6 +15,10 @@ export interface StructuralPattern {
   characteristics: string[];
   commonTransformations: string[];
   riskFactors: string[];
+  /** How many evidence signals matched this pattern */
+  matchedSignalCount?: number;
+  /** Evidence categories where matches were found */
+  matchedCategories?: string[];
 }
 
 interface PatternTemplate {
