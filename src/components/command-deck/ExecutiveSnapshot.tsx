@@ -165,6 +165,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
     const sc = p.supplyChain || (biz as any)?.supplyChain || (biz as any)?.valueChain;
     if (!sc) return null;
     const bullets: string[] = [];
+    // Structured arrays
     const mfrs = sc.manufacturers || [];
     const dists = sc.distributors || [];
     mfrs.slice(0, 2).forEach((m: any) => {
@@ -175,6 +176,13 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
       const name = typeof d === "string" ? d : d.name;
       if (name) bullets.push(`Dist: ${name}`);
     });
+    // Flat string fields (from analyze-products output)
+    if (bullets.length === 0) {
+      if (sc.manufacturing) bullets.push(typeof sc.manufacturing === "string" ? sc.manufacturing.slice(0, 80) : String(sc.manufacturing));
+      if (sc.materials) bullets.push(typeof sc.materials === "string" ? sc.materials.slice(0, 80) : String(sc.materials));
+      if (sc.estimatedCOGS) bullets.push(`COGS: ${typeof sc.estimatedCOGS === "string" ? sc.estimatedCOGS.slice(0, 80) : sc.estimatedCOGS}`);
+      if (sc.source) bullets.push(typeof sc.source === "string" ? sc.source.slice(0, 60) : String(sc.source));
+    }
     return bullets.length > 0 ? bullets : null;
   }, [p, biz]);
 
