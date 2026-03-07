@@ -765,6 +765,23 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         pendingAdaptiveCtxSaveRef.current = adaptiveContext;
       }
 
+      // ── Background: Auto-run patent analysis for richer Command Deck data ──
+      const primaryProduct = liveProducts[0];
+      if (primaryProduct && !isServiceMode) {
+        invokeWithTimeout("patent-analysis", {
+          body: { productName: primaryProduct.name, category: params.category, era: params.era },
+        }, 90_000).then(({ data: patentResult, error: patentErr }) => {
+          if (!patentErr && patentResult?.success && patentResult.patentData) {
+            const enriched = { ...primaryProduct, patentData: patentResult.patentData } as Product;
+            setProducts(prev => prev.map(p => p.name === primaryProduct.name ? enriched : p));
+            setSelectedProduct(prev => prev?.name === primaryProduct.name ? enriched : prev);
+            // Persist patent data to the analysis
+            saveStepData("products", liveProducts.map(p => p.name === primaryProduct.name ? enriched : p)).catch(() => {});
+            console.log("[Pipeline] Patent intelligence auto-loaded for", primaryProduct.name);
+          }
+        }).catch(() => { /* best effort */ });
+      }
+
       // Fire webhooks (best effort)
       try {
         await supabase.functions.invoke("fire-webhook", {
