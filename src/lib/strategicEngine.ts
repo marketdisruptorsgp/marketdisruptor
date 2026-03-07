@@ -799,15 +799,28 @@ function buildStrategicNarrative(
     return clean.slice(0, cut > max * 0.5 ? cut : max) + "…";
   }
 
-  // Build a readable narrative — no raw labels, no truncation artifacts
+  // Build a readable narrative — skeptical, qualified language
   const parts: string[] = [];
-  if (topConstraint) parts.push(`The primary constraint is ${trimAt(topConstraint.label, 120)}.`);
-  if (topDriver) parts.push(`This is driven by: ${trimAt(topDriver.label, 100)}.`);
-  if (topLeverage) parts.push(`A key intervention point exists: ${trimAt(topLeverage.label, 100)}.`);
-  if (topOpp) parts.push(`This opens the opportunity to ${trimAt(topOpp.label, 100).toLowerCase()}.`);
+  const evCount = [topConstraint, topDriver, topLeverage, topOpp].filter(Boolean).length;
+  const confQualifier = (node: StrategicInsight | null) => {
+    if (!node) return "";
+    if (node.confidence >= 0.7) return "";
+    if (node.confidence >= 0.4) return " (moderate confidence)";
+    return " (low confidence — needs validation)";
+  };
+
+  if (topConstraint) {
+    const relCount = constraints.length - 1;
+    parts.push(`The primary constraint is ${trimAt(topConstraint.label, 120)}${confQualifier(topConstraint)}${relCount > 0 ? `. and ${relCount} related constraints` : ""}.`);
+  }
+  if (topDriver) parts.push(`This is driven by: ${trimAt(topDriver.label, 100)}${confQualifier(topDriver)}.`);
+  if (topLeverage) parts.push(`A key intervention point exists: ${trimAt(topLeverage.label, 100)}${confQualifier(topLeverage)}.`);
+  if (topOpp) parts.push(`This opens the opportunity to apply ${trimAt(topOpp.label, 100).toLowerCase()}${confQualifier(topOpp)}.`);
 
   if (parts.length === 0) {
     parts.push("Insufficient evidence to generate a complete strategic narrative. Add more inputs to pipeline steps.");
+  } else if (evCount < 4) {
+    parts.push("Note: This narrative is based on incomplete evidence. Run additional pipeline steps to strengthen conclusions.");
   }
 
   return {
