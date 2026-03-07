@@ -55,6 +55,7 @@ const PHASE_COLORS: Record<Phase, string> = {
 
 /* ── Scene context — maps keywords to descriptive micro-labels ── */
 const SCENE_LABELS: [string[], string][] = [
+  [["realize", "notice", "need", "remember", "dashboard light"], "Moment of Need"],
   [["discover", "aware", "hear about", "learn about", "first encounter"], "First Awareness"],
   [["search", "browse", "look for", "find", "explore", "research"], "Searching"],
   [["recommend", "referral", "word of mouth"], "Peer Referral"],
@@ -65,18 +66,21 @@ const SCENE_LABELS: [string[], string][] = [
   [["pay", "payment", "price", "cost", "charge", "bill"], "Payment"],
   [["download", "install"], "Installing"],
   [["setup", "configure", "customize", "personalize"], "Configuration"],
-  [["drive", "car", "vehicle", "arrive", "pull"], "Arriving by Car"],
-  [["wait", "pending", "queue", "line"], "Waiting"],
-  [["inspect", "check", "diagnose", "assess", "look at"], "Inspection"],
-  [["recommend", "suggest", "upsell", "offer", "present"], "Service Pitch"],
-  [["approve", "accept", "agree", "consent", "authorize"], "Customer Approval"],
-  [["service", "repair", "fix", "maintain", "work on"], "Service Work"],
+  [["drives to", "drive to", "go to", "heads to", "travels to"], "Traveling There"],
+  [["pull into", "pulls into", "arrive", "park"], "Arriving"],
+  [["greet", "check in", "welcome", "asks about"], "Check-In"],
+  [["wait", "pending", "queue", "line", "lounge"], "Waiting"],
+  [["inspect", "check", "diagnose", "assess", "look at", "initial inspection"], "Inspection"],
+  [["recommend additional", "suggest", "upsell", "offer", "present", "quotes a price"], "Service Pitch"],
+  [["approve", "accept", "agree", "consent", "authorize", "decides on"], "Customer Decision"],
+  [["service", "repair", "fix", "maintain", "work on", "perform", "oil change", "tire"], "Service Work"],
+  [["sticker", "receipt", "complete", "finish", "done"], "Completion"],
+  [["drives away", "leave", "depart", "exit"], "Departing"],
   [["deliver", "ship", "receive", "pickup", "collect"], "Receiving"],
   [["return", "come back", "repeat", "renew"], "Coming Back"],
   [["share", "post", "social", "refer", "tell"], "Sharing Experience"],
   [["call", "phone", "contact", "reach out"], "Making Contact"],
   [["book", "reserve", "schedule", "appointment"], "Booking"],
-  [["navigate", "direction", "route", "visit", "go to"], "Heading There"],
 ];
 
 function getSceneLabel(stepText: string): string {
