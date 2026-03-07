@@ -4,6 +4,7 @@ import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { PlatformNav } from "@/components/PlatformNav";
 import { HeroSection } from "@/components/HeroSection";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
