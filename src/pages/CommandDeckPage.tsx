@@ -61,7 +61,7 @@ import { generatePlaybooks } from "@/lib/playbookEngine";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
   AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
-  BookOpen, Beaker, BarChart3, Map, Wrench, Brain,
+  BookOpen, Beaker, BarChart3, Map, Wrench, Brain, FileDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -72,6 +72,8 @@ import { extractAllEvidence, type EvidenceTier } from "@/lib/evidenceEngine";
 import { getScenarios, scenarioToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
 import { recomputeIntelligence } from "@/lib/recomputeIntelligence";
 import { humanizeLabel } from "@/lib/humanize";
+import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
+import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -643,6 +645,23 @@ export default function CommandDeckPage() {
                 <Play size={12} /> Run Analysis
               </button>
             )}
+            <button
+              onClick={() => {
+                if (!selectedProduct) return;
+                const data = gatherAllAnalysisData(analysis);
+                toast.loading("Generating PDF…", { id: "pdf-progress" });
+                downloadReportAsPDF(selectedProduct, data, {
+                  title: selectedProduct.name || analysisDisplayName,
+                  mode: analysis.activeMode,
+                  onProgress: (msg: string) => toast.loading(msg, { id: "pdf-progress" }),
+                }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
+                  .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+            >
+              <FileDown size={13} /> PDF
+            </button>
             <button onClick={handleRecomputeAll}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
               style={{ background: `${modeAccent}15`, color: modeAccent, border: `1px solid ${modeAccent}30` }}>

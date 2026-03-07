@@ -24,9 +24,19 @@ export function gatherAllAnalysisData(analysis: any): Record<string, unknown> {
     data.governed = analysis.governedData;
   }
 
+  // Business analysis data (also relevant for service/product modes that have it)
+  if (analysis.businessAnalysisData) {
+    data.businessAnalysisData = analysis.businessAnalysisData;
+  }
+
   // Patent data from selected product
   if (analysis.selectedProduct?.patentData) {
     data.patentData = analysis.selectedProduct.patentData;
+  }
+
+  // Flipped ideas from selected product (may not be in disruptData)
+  if (analysis.selectedProduct?.flippedIdeas?.length > 0 && !data.disrupt) {
+    data.disrupt = { flippedIdeas: analysis.selectedProduct.flippedIdeas };
   }
 
   // Adaptive context (problem analysis, entity, challenges)
