@@ -48,6 +48,9 @@ import { OpportunityMapPanel } from "@/components/command-deck/OpportunityRadarP
 import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
 import { ConfidenceExplanationPanel } from "@/components/command-deck/ConfidenceExplanationPanel";
 import { PipelineJourneyCards } from "@/components/command-deck/PipelineJourneyCards";
+import { CurrentStateIntelligence } from "@/components/command-deck/CurrentStateIntelligence";
+import { ValuePillarTabs } from "@/components/command-deck/ValuePillarTabs";
+import { ProblemStatementCard } from "@/components/command-deck/ProblemStatementCard";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine";
 import {
@@ -703,25 +706,47 @@ export default function CommandDeckPage() {
         <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
 
         {/* ══════════════════════════════════════════════════════════
-            EXECUTIVE SNAPSHOT — Dense above-fold intelligence grid
-            Shows actual product/business data, not abstract reasoning
+            PROBLEM STATEMENT — Editable, stays at top
            ══════════════════════════════════════════════════════════ */}
-        <ExecutiveSnapshot
+        {(() => {
+          const p = selectedProduct as any || {};
+          const biz = analysis.businessAnalysisData as Record<string, any> || {};
+          const governed = (biz as any)?.governed || {};
+          const trend = p.trendAnalysis || (biz as any)?.trend || null;
+          const marketSize = p.marketSizeEstimate || null;
+          return (
+            <ProblemStatementCard
+              product={selectedProduct as Record<string, any> | null}
+              businessData={analysis.businessAnalysisData as Record<string, any> | null}
+              narrative={narrative}
+              governed={governed}
+              modeAccent={modeAccent}
+              evidenceCount={totalSignals}
+              completedSteps={completedSteps.size}
+              totalSteps={PIPELINE_STEPS.length}
+              marketSize={marketSize}
+              trend={trend}
+              mode={modeKey}
+              onProblemLocked={(statement) => {
+                toast.success("Problem statement locked — downstream analysis will adapt");
+              }}
+            />
+          );
+        })()}
+
+        {/* ══════════════════════════════════════════════════════════
+            CURRENT STATE INTELLIGENCE — 10-15 distilled SWOT bullets
+           ══════════════════════════════════════════════════════════ */}
+        <CurrentStateIntelligence
           product={selectedProduct as any}
           businessData={analysis.businessAnalysisData as Record<string, any> | null}
           narrative={narrative}
-          mode={modeKey}
-          completedSteps={completedSteps.size}
-          totalSteps={PIPELINE_STEPS.length}
-          modeAccent={modeAccent}
-          evidenceCount={totalSignals}
-          onProblemLocked={(statement) => {
-            toast.success("Problem statement locked — downstream analysis will adapt");
-            // Future: trigger recompute with the locked problem framing
-          }}
+          governedData={analysis.governedData as Record<string, any> | null}
+          flatEvidence={autoAnalysis.flatEvidence}
+          detectedPatterns={detectedPatterns}
         />
 
-        {/* ── User Journey Map ── */}
+        {/* ── User Journey Map (inline if data exists) ── */}
         {(() => {
           const p = selectedProduct as any;
           const uj = p?.userJourney || p?.userWorkflow;
@@ -752,155 +777,41 @@ export default function CommandDeckPage() {
         {/* ── Recommended Move ── */}
         <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
 
-
-
-
         {/* ══════════════════════════════════════════════════════════
-            PROGRESSIVE EXPLORATION — Collapsible deeper layers
+            THREE VALUE PILLARS — New Ideas | Execution Path | Iterate
            ══════════════════════════════════════════════════════════ */}
-
-        {/* Evidence Confidence */}
-        <BriefingSection
-          title="Confidence"
-          icon={BookOpen}
-          preview={`${totalSignals} signals · ${evidenceAttribution.strong.length} strong`}
-        >
-          <ConfidenceMeter
-            completedSteps={completedSteps.size}
-            totalSteps={PIPELINE_STEPS.length}
-            evidenceCount={totalSignals}
-            confidence={narrative?.verdictConfidence ?? (completedSteps.size / PIPELINE_STEPS.length) * 0.3}
-            isComputing={engineComputing}
-            strongCategories={evidenceAttribution.strong}
-            weakCategories={evidenceAttribution.weak}
-          />
-        </BriefingSection>
-
-        {/* Strategic Playbooks & Outcomes */}
-        <BriefingSection
-          title="Playbooks"
-          icon={Rocket}
-          preview={topPlaybook ? `Top: ${topPlaybook.title}` : null}
-          badge={allPlaybooks.length}
-        >
-          <TransformationPaths
-            evidence={autoAnalysis.flatEvidence}
-            insights={autoAnalysis.insights}
-            narrative={narrative}
-            mode={modeKey}
-          />
-          <StrategicOutcomeSimulator
-            playbook={topPlaybook}
-            evidence={autoAnalysis.flatEvidence}
-            narrative={narrative}
-          />
-          <StrategicNarrativeStory story={strategicStory} />
-        </BriefingSection>
-
-        {/* Structural Insights */}
-        <BriefingSection
-          title="Diagnosis"
-          icon={Brain}
-          preview={narrative?.primaryConstraint ? `Constraint: ${humanizeLabel(narrative.primaryConstraint)}` : null}
-        >
-          <StrategicVerdictBanner
-            verdict={narrative?.strategicVerdict ?? null}
-            rationale={narrative?.verdictRationale ?? null}
-            confidence={narrative?.verdictConfidence ?? 0}
-            constraintLabel={narrative?.primaryConstraint ?? null}
-            opportunityLabel={narrative?.breakthroughOpportunity ?? null}
-            completedSteps={completedSteps.size}
-            totalSteps={PIPELINE_STEPS.length}
-            whyThisMatters={narrative?.whyThisMatters ?? null}
-            verdictBenchmark={narrative?.verdictBenchmark ?? null}
-            evidenceSources={evidenceAttribution.sources}
-            diagnosisEvidence={evidenceAttribution.diagnosisEvidence}
-          />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <TrappedValueCard
-              trappedDescription={narrative?.trappedValue ?? null}
-              unlockDescription={narrative?.unlockPotential ?? null}
-              confidence={narrative?.verdictConfidence ?? 0}
-              evidenceCount={narrative?.trappedValueEvidenceCount ?? 0}
-              estimate={narrative?.trappedValueEstimate ?? null}
-              benchmark={narrative?.trappedValueBenchmark ?? null}
-              drivers={evidenceAttribution.trappedValueDrivers}
-            />
-            <KillQuestionCard
-              killQuestion={narrative?.killQuestion ?? null}
-              validationExperiment={narrative?.validationExperiment ?? null}
-              timeframe={narrative?.validationTimeframe ?? "30 days"}
-              confidence={narrative?.verdictConfidence ?? 0}
-              validationSteps={narrative?.validationSteps ?? []}
-            />
-          </div>
-          <ConfidenceExplanationPanel explanation={confidenceExplanation} />
-        </BriefingSection>
-
-        {/* Market & Industry Signals */}
-        <BriefingSection
-          title="Market"
-          icon={BarChart3}
-          preview={benchmark?.archetype ? `Archetype: ${benchmark.archetype}` : null}
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <IndustryBenchmarkPanel benchmark={benchmark} />
-            <OpportunityMapPanel items={opportunityRadar} />
-          </div>
-          <StrategicPatternCard patterns={detectedPatterns} />
-        </BriefingSection>
-
-        {/* Assumptions & Constraints — Reasoning */}
-        <BriefingSection
-          title="Reasoning"
-          icon={Map}
-          preview="Causal chain analysis"
-        >
-          <StrategicXRay
-            narrative={narrative}
-            insights={autoAnalysis.insights}
-            flatEvidence={autoAnalysis.flatEvidence}
-            onRecompute={handleRecomputeAll}
-            onChallenge={handleChallenge}
-          />
-        </BriefingSection>
-
-        {/* Strategy Lab — Advanced */}
-        <BriefingSection
-          title="Lab"
-          icon={Beaker}
-          preview="Scenario simulations & what-if"
-        >
-          <StrategicScenarioSimulator
-            evidence={autoAnalysis.flatEvidence}
-            narrative={narrative}
-          />
-          <ScenarioLab
-            scenarios={savedLabScenarios}
-            activeScenarioId={activeLabScenarioId}
-            onLoadScenario={handleLoadLabScenario}
-            onDeleteScenario={handleDeleteLabScenario}
-          />
-          <OpportunityMap
-            opportunities={filteredOpps}
-            onViewInGraph={(id) => navigate(`${baseUrl}/insight-graph?node=${id}`)}
-          />
-        </BriefingSection>
-
-        {/* Analysis Tools */}
-        <BriefingSection
-          title="Tools"
-          icon={Wrench}
-          preview="Specialized calculators"
-        >
-          <LensIntelligencePanel
-            analysisMode={analysis.activeMode || "product"}
-            signalKeywords={lensSignalKeywords}
-            analysisId={analysisId || ""}
-            recommendedToolIds={reasoningToolRecs}
-            onScenarioSaved={handleScenarioSaved}
-          />
-        </BriefingSection>
+        <ValuePillarTabs
+          narrative={narrative}
+          flatEvidence={autoAnalysis.flatEvidence}
+          insights={autoAnalysis.insights}
+          mode={modeKey}
+          modeAccent={modeAccent}
+          completedSteps={completedSteps.size}
+          totalSteps={PIPELINE_STEPS.length}
+          totalSignals={totalSignals}
+          topPlaybook={topPlaybook}
+          strategicStory={strategicStory}
+          evidenceAttribution={evidenceAttribution}
+          confidenceExplanation={confidenceExplanation}
+          benchmark={benchmark}
+          opportunityRadar={opportunityRadar}
+          detectedPatterns={detectedPatterns}
+          engineComputing={engineComputing}
+          savedLabScenarios={savedLabScenarios}
+          activeLabScenarioId={activeLabScenarioId}
+          filteredOpps={filteredOpps}
+          analysisMode={analysis.activeMode || "product"}
+          signalKeywords={lensSignalKeywords}
+          analysisId={analysisId || ""}
+          reasoningToolRecs={reasoningToolRecs}
+          baseUrl={baseUrl}
+          onRecomputeAll={handleRecomputeAll}
+          onChallenge={handleChallenge}
+          onLoadScenario={handleLoadLabScenario}
+          onDeleteScenario={handleDeleteLabScenario}
+          onScenarioSaved={handleScenarioSaved}
+          onNavigate={(path) => navigate(path)}
+        />
 
       </main>
     </div>

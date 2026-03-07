@@ -98,7 +98,7 @@ function Bullet({ text, color }: { text: string; color?: string }) {
   return (
     <div className="flex items-start gap-1.5 py-0.5">
       <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: color || "hsl(var(--muted-foreground))" }} />
-      <span className="text-[11px] text-foreground/80 leading-snug line-clamp-2">{text}</span>
+      <span className="text-[11px] text-foreground/80 leading-snug">{text}</span>
     </div>
   );
 }
@@ -291,7 +291,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
         <Panel icon={Lock} title="Trapped Value" accent={modeAccent}>
           {narrative?.trappedValue ? (
             <>
-              <p className="text-[11px] text-foreground/80 leading-snug line-clamp-3">{narrative.trappedValue}</p>
+              <p className="text-[11px] text-foreground/80 leading-snug">{narrative.trappedValue}</p>
               {narrative.trappedValueEstimate && (
                 <span className="text-[10px] font-bold mt-1 inline-block" style={{ color: modeAccent }}>{narrative.trappedValueEstimate}</span>
               )}
