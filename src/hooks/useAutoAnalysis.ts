@@ -41,6 +41,7 @@ export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
   graph: InsightGraph | null;
   evidence: Record<MetricDomain, MetricEvidence> | null;
+  flatEvidence: Evidence[];
   insights: StrategicInsight[];
   opportunities: any[];
   narrative: StrategicNarrative | null;
