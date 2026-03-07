@@ -865,7 +865,7 @@ function buildStrategicNarrative(
 
   if (topConstraint) {
     const costEvidence = flatEvidence.filter(e =>
-      e.type === "cost_structure" || e.type === "operational_dependency" || e.type === "pricing_model"
+      e.type === "constraint" || e.type === "friction" || e.type === "risk"
     );
     trappedValueEvidenceCount = costEvidence.length + topConstraint.evidenceIds.length;
 
