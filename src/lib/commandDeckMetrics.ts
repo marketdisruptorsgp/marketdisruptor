@@ -196,7 +196,7 @@ function computeFromEvidence(
     ? leverage.reduce((s, e) => s + (e.impact ?? 5), 0) / leverage.length / 10
     : 0;
   const leverageScore = clamp(Math.round(
-    (levImpactFactor * 0.5 + Math.min(leverage.length / 5, 1) * 0.3 + tierCoverage * 0.07) * 10
+    (levImpactFactor * 0.5 + Math.min(leverage.length / 5, 1) * 0.3 + tierCoverage * 0.07) * 10 * sourcePenalty
   ), 0, 10);
 
   // Multi-factor risk score

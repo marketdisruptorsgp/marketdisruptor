@@ -41,9 +41,9 @@ const CHAIN = [
 ] as const;
 
 function confidenceLabel(score: number): { text: string; color: string } {
-  if (score >= 0.7) return { text: "High confidence", color: "hsl(var(--success))" };
-  if (score >= 0.4) return { text: "Medium confidence", color: "hsl(var(--warning))" };
-  return { text: "Low confidence", color: "hsl(var(--destructive))" };
+  if (score >= 0.7) return { text: "Supported by evidence", color: "hsl(var(--success))" };
+  if (score >= 0.4) return { text: "Partially supported", color: "hsl(var(--warning))" };
+  return { text: "Needs validation", color: "hsl(var(--destructive))" };
 }
 
 export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeSummaryProps) {
