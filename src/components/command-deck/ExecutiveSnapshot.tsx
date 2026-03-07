@@ -238,7 +238,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
   const trend = p.trendAnalysis || (biz as any)?.trend || null;
   const marketSize = p.marketSizeEstimate || null;
 
-  const hasAnyData = !!(keyInsight || pricing || community || supplyChain || constraints);
+  const hasAnyData = !!(problemStatement || pricing || community || supplyChain || constraints);
 
   return (
     <motion.div
