@@ -9,9 +9,9 @@
 import { memo, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  DollarSign, MessageSquare, Package, Lightbulb,
-  AlertTriangle, ChevronDown, ChevronUp, ArrowRight, TrendingUp,
-  Users, Zap, Lock,
+  DollarSign, Package, Lightbulb,
+  AlertTriangle, ChevronDown, ChevronUp,
+  Users, Lock,
 } from "lucide-react";
 import { ProblemStatementCard } from "./ProblemStatementCard";
 import { humanizeLabel } from "@/lib/humanize";
