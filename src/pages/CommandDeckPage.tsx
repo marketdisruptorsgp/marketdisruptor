@@ -853,9 +853,9 @@ export default function CommandDeckPage() {
 
         {/* Analysis Tools */}
         <BriefingSection
-          title="Analysis Tools"
+          title="Tools"
           icon={Wrench}
-          preview="Specialized strategic calculators"
+          preview="Specialized calculators"
         >
           <LensIntelligencePanel
             analysisMode={analysis.activeMode || "product"}
