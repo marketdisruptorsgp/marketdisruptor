@@ -388,6 +388,28 @@ export default function CommandDeckPage() {
     return pbs.length > 0 ? pbs[0] : null;
   }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
+  // ── All playbooks for radar ──
+  const allPlaybooks = useMemo(() => {
+    const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
+      analysis.activeMode === "service" ? "service"
+      : analysis.activeMode === "business" ? "business_model" : "product";
+    return generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence);
+  }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
+
+  // ── Benchmark, Opportunity Radar, Strategic Story ──
+  const benchmark = useMemo(() =>
+    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook),
+    [autoAnalysis.flatEvidence, narrative, topPlaybook],
+  );
+  const opportunityRadar = useMemo(() =>
+    computeOpportunityRadar(allPlaybooks, autoAnalysis.flatEvidence, narrative),
+    [allPlaybooks, autoAnalysis.flatEvidence, narrative],
+  );
+  const strategicStory = useMemo(() =>
+    generateStrategicStory(narrative, topPlaybook, autoAnalysis.flatEvidence),
+    [narrative, topPlaybook, autoAnalysis.flatEvidence],
+  );
+
   // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
   const evidenceAttribution = useMemo(() => {
     const categories = new Map<string, number>();
