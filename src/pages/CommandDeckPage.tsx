@@ -26,6 +26,7 @@ import { ReasoningStagesOverlay } from "@/components/command-deck/ReasoningStage
 import { ConfidenceMeter } from "@/components/command-deck/ConfidenceMeter";
 import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
 import { StrategicPressureMap } from "@/components/command-deck/StrategicPressureMap";
+import { TransformationPaths } from "@/components/command-deck/TransformationPaths";
 import { HeroScorePanel } from "@/components/command-deck/HeroScorePanel";
 import { NarrativeSummary } from "@/components/command-deck/NarrativeSummary";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
@@ -419,6 +420,14 @@ export default function CommandDeckPage() {
           completedSteps={completedSteps.size}
           totalSteps={PIPELINE_STEPS.length}
           onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
+        />
+
+        {/* ═══ TRANSFORMATION PATHS (Strategic Playbooks) ═══ */}
+        <TransformationPaths
+          evidence={autoAnalysis.flatEvidence}
+          insights={autoAnalysis.insights}
+          narrative={narrative}
+          mode={modeKey}
         />
 
         {/* ═══ TIER 3 — METRICS STRIP ═══ */}
