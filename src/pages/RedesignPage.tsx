@@ -52,8 +52,14 @@ export default function RedesignPage() {
   const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
 
-  const { selectedProduct, analysisId, products } = analysis;
+  const { selectedProduct: rawSelectedProduct, analysisId, products } = analysis;
   const autoAnalysis = useAutoAnalysis();
+
+  // Synthetic product for business model analyses
+  const selectedProduct = rawSelectedProduct || (analysis.businessAnalysisData ? {
+    id: analysisId || "business-model", name: (analysis.businessModelInput as any)?.type || "Business Model",
+    category: "Business", image: "", revivalScore: 0, flippedIdeas: [],
+  } as any : null);
 
   if (analysis.step !== "done" || (!selectedProduct && !analysis.businessAnalysisData)) {
     if (shouldRedirectHome) return null;
