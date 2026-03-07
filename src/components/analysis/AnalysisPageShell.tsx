@@ -34,13 +34,11 @@ interface AnalysisPageShellProps {
   children: React.ReactNode;
 }
 
-export function AnalysisPageShell({ tier, children }: AnalysisPageShellProps) {
-  // useWorkspaceTheme now applies data-command-deck on <html> automatically
+export function AnalysisPageShell({ children }: AnalysisPageShellProps) {
   useWorkspaceTheme();
   return (
     <div className="min-h-screen bg-background">
-      <HeroSection tier={tier} remainingAnalyses={null} />
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-4 space-y-4">
         {children}
       </main>
     </div>
