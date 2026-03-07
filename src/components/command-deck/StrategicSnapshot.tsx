@@ -1,7 +1,8 @@
 /**
  * Zone 1 — Strategic Snapshot
- * 4 mission-control scorecards: Disruption Potential, Execution Feasibility,
+ * 4 mission-control cards: Disruption Potential, Execution Feasibility,
  * Economic Upside, Structural Innovation.
+ * No numeric scores — uses qualitative labels.
  */
 
 import { memo, useMemo } from "react";
@@ -19,28 +20,10 @@ interface StrategicSnapshotProps {
 interface Scorecard {
   label: string;
   score: number;
+  qualitative: string;
   interpretation: string;
   icon: React.ElementType;
-  trend: "up" | "flat" | "down";
-}
-
-function ScoreRing({ score, color, size = 64 }: { score: number; color: string; size?: number }) {
-  const r = (size - 8) / 2;
-  const circ = 2 * Math.PI * r;
-  const pct = Math.min(score / 10, 1);
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth={4} />
-      <motion.circle
-        cx={size / 2} cy={size / 2} r={r} fill="none"
-        stroke={color} strokeWidth={4} strokeLinecap="round"
-        strokeDasharray={circ}
-        initial={{ strokeDashoffset: circ }}
-        animate={{ strokeDashoffset: circ * (1 - pct) }}
-        transition={{ duration: 1, ease: "easeOut" }}
-      />
-    </svg>
-  );
+  color: string;
 }
 
 function signalColor(score: number): string {
@@ -49,12 +32,11 @@ function signalColor(score: number): string {
   return "hsl(var(--destructive))";
 }
 
-const TREND_ARROWS: Record<string, string> = { up: "↑", flat: "→", down: "↓" };
-const TREND_COLORS: Record<string, string> = {
-  up: "hsl(var(--success))",
-  flat: "hsl(var(--warning))",
-  down: "hsl(var(--destructive))",
-};
+function qualLabel(score: number): string {
+  if (score >= 7) return "Strong";
+  if (score >= 4) return "Moderate";
+  return "Limited";
+}
 
 export const StrategicSnapshot = memo(function StrategicSnapshot({
   metrics,
@@ -73,40 +55,44 @@ export const StrategicSnapshot = memo(function StrategicSnapshot({
 
     return [
       {
-        label: "Market Disruption Potential",
+        label: "Disruption Potential",
         score: disruptionPotential,
+        qualitative: qualLabel(disruptionPotential),
         interpretation: disruptionPotential >= 7 ? "Strong disruption vectors identified"
           : disruptionPotential >= 4 ? "Moderate disruption opportunity exists"
           : "Limited disruption leverage detected",
         icon: Zap,
-        trend: disruptionPotential >= 6 ? "up" : disruptionPotential >= 3 ? "flat" : "down",
+        color: signalColor(disruptionPotential),
       },
       {
         label: "Execution Feasibility",
         score: executionFeasibility,
+        qualitative: qualLabel(executionFeasibility),
         interpretation: executionFeasibility >= 7 ? "Clear path to execution"
           : executionFeasibility >= 4 ? "Execution complexity is manageable"
           : "High friction limits execution speed",
         icon: Settings,
-        trend: executionFeasibility >= 6 ? "up" : executionFeasibility >= 3 ? "flat" : "down",
+        color: signalColor(executionFeasibility),
       },
       {
         label: "Economic Upside",
         score: economicUpside,
+        qualitative: qualLabel(economicUpside),
         interpretation: economicUpside >= 7 ? "Significant value capture potential"
           : economicUpside >= 4 ? "Moderate economic opportunity"
           : "Economic model needs strengthening",
         icon: DollarSign,
-        trend: economicUpside >= 6 ? "up" : economicUpside >= 3 ? "flat" : "down",
+        color: signalColor(economicUpside),
       },
       {
-        label: "Structural Innovation",
+        label: "Innovation",
         score: structuralInnovation,
+        qualitative: qualLabel(structuralInnovation),
         interpretation: structuralInnovation >= 7 ? "Novel structural advantage detected"
           : structuralInnovation >= 4 ? "Incremental innovation opportunities"
           : "Structural innovation constrained",
         icon: Layers,
-        trend: structuralInnovation >= 6 ? "up" : structuralInnovation >= 3 ? "flat" : "down",
+        color: signalColor(structuralInnovation),
       },
     ];
   }, [metrics, opportunities, strategicPotential]);
@@ -114,8 +100,10 @@ export const StrategicSnapshot = memo(function StrategicSnapshot({
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {cards.map((card, i) => {
-        const color = signalColor(card.score);
         const Icon = card.icon;
+        const pct = Math.min(card.score / 10, 1);
+        const r = 28;
+        const circ = 2 * Math.PI * r;
         return (
           <motion.div
             key={card.label}
@@ -125,43 +113,43 @@ export const StrategicSnapshot = memo(function StrategicSnapshot({
             className="rounded-2xl p-4 relative overflow-hidden flex flex-col items-center text-center gap-3"
             style={{
               background: "hsl(var(--card))",
-              border: `1.5px solid hsl(var(--border))`,
-              boxShadow: `0 2px 20px ${color}08`,
+              border: "1.5px solid hsl(var(--border))",
             }}
           >
-            {/* Ring + Score */}
+            {/* Ring */}
             <div className="relative">
-              <ScoreRing score={card.score} color={color} size={72} />
+              <svg width={64} height={64} viewBox="0 0 64 64" className="transform -rotate-90">
+                <circle cx={32} cy={32} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth={4} />
+                <motion.circle
+                  cx={32} cy={32} r={r} fill="none"
+                  stroke={card.color} strokeWidth={4} strokeLinecap="round"
+                  strokeDasharray={circ}
+                  initial={{ strokeDashoffset: circ }}
+                  animate={{ strokeDashoffset: circ * (1 - pct) }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                />
+              </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-extrabold tabular-nums text-foreground leading-none">
-                  {card.score.toFixed(1)}
-                </span>
+                <Icon size={16} style={{ color: card.color }} />
               </div>
             </div>
 
-            {/* Label */}
-            <div className="flex items-center gap-1.5">
-              <Icon size={13} style={{ color }} />
-              <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground leading-tight">
-                {card.label}
+            {/* Qualitative Label */}
+            <div>
+              <p className="text-lg font-extrabold text-foreground leading-none">
+                {card.qualitative}
               </p>
             </div>
+
+            {/* Label */}
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground leading-tight">
+              {card.label}
+            </p>
 
             {/* Interpretation */}
             <p className="text-xs text-muted-foreground leading-snug line-clamp-2 min-h-[32px]">
               {card.interpretation}
             </p>
-
-            {/* Trend arrow */}
-            <span className="text-xs font-extrabold" style={{ color: TREND_COLORS[card.trend] }}>
-              {TREND_ARROWS[card.trend]}
-            </span>
-
-            {/* Glow */}
-            <div
-              className="absolute -top-8 -right-8 w-24 h-24 rounded-full blur-3xl pointer-events-none"
-              style={{ background: `${color}08` }}
-            />
           </motion.div>
         );
       })}

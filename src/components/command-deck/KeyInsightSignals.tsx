@@ -141,7 +141,7 @@ export const KeyInsightSignals = memo(function KeyInsightSignals({
                     className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                     style={{ background: `${confColor}12`, color: confColor }}
                   >
-                    {confLabel} Confidence
+                    {confLabel} Evidence
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground">

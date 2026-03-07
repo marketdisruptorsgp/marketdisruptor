@@ -115,8 +115,10 @@ export const StrategicLeverageSignals = memo(function StrategicLeverageSignals({
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <div className="text-center">
-                    <p className="text-sm font-extrabold tabular-nums" style={{ color: scoreColor }}>{insight.impact ?? 0}</p>
-                    <p className="text-[7px] font-bold uppercase text-muted-foreground">Impact</p>
+                    <p className="text-[11px] font-extrabold" style={{ color: scoreColor }}>
+                      {(insight.impact ?? 0) >= 8 ? "Strong" : (insight.impact ?? 0) >= 5 ? "Moderate" : "Limited"}
+                    </p>
+                    <p className="text-[7px] font-bold uppercase text-muted-foreground">Signal</p>
                   </div>
                   {isExpanded ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
                 </div>

@@ -1,9 +1,8 @@
 /**
  * Hero Score Panel — Command Deck Top Zone
  *
- * Single dominant metric (Strategic Potential) with the top signal banner
- * fused into one high-impact header. Reduces cognitive load by giving
- * users ONE number to orient around.
+ * Qualitative strategic potential with top signal banner.
+ * No numeric scores — uses evidence strength labels.
  */
 
 import { memo, useMemo } from "react";
@@ -23,19 +22,11 @@ interface HeroScorePanelProps {
   totalSteps: number;
 }
 
-function scoreColor(score: number): string {
-  if (score >= 7) return "hsl(var(--success))";
-  if (score >= 4) return "hsl(var(--warning))";
-  return "hsl(var(--destructive))";
-}
-
-function scoreLabel(score: number): string {
-  if (score >= 8.5) return "Very strong potential";
-  if (score >= 7) return "Promising — needs validation";
-  if (score >= 5) return "Moderate potential";
-  if (score >= 3) return "Weak signals — more data needed";
-  if (score >= 1) return "Insufficient evidence";
-  return "No data";
+function potentialLabel(score: number): { label: string; color: string } {
+  if (score >= 7) return { label: "Strong Potential", color: "hsl(var(--success))" };
+  if (score >= 4) return { label: "Moderate Potential", color: "hsl(var(--warning))" };
+  if (score >= 1) return { label: "Early Signal", color: "hsl(var(--muted-foreground))" };
+  return { label: "Collecting Evidence", color: "hsl(var(--muted-foreground))" };
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -54,12 +45,18 @@ function deriveTopSignal(
     return { message: `Top opportunity: "${topOpp.label}"`, type: "opportunity" };
   }
   if (metrics.frictionIndex >= 6) {
-    return { message: `High friction detected — ${metrics.frictionSignals} signals`, type: "risk" };
+    return { message: `High friction detected — structural constraints identified`, type: "risk" };
   }
   if (topOpp) {
     return { message: `Leading signal: "${topOpp.label}"`, type: "info" };
   }
   return null;
+}
+
+function evidenceLabel(score: number): string {
+  if (score >= 7) return "Strong";
+  if (score >= 4) return "Moderate";
+  return "Limited";
 }
 
 export const HeroScorePanel = memo(function HeroScorePanel({
@@ -72,8 +69,7 @@ export const HeroScorePanel = memo(function HeroScorePanel({
   completedSteps,
   totalSteps,
 }: HeroScorePanelProps) {
-  const color = scoreColor(strategicPotential);
-  const label = scoreLabel(strategicPotential);
+  const potential = potentialLabel(strategicPotential);
   const signal = useMemo(() => deriveTopSignal(opportunities, insights, metrics), [opportunities, insights, metrics]);
 
   const ringSize = 120;
@@ -103,7 +99,7 @@ export const HeroScorePanel = memo(function HeroScorePanel({
             <circle cx={ringSize / 2} cy={ringSize / 2} r={r} fill="none" stroke="hsl(var(--border))" strokeWidth={5} />
             <motion.circle
               cx={ringSize / 2} cy={ringSize / 2} r={r} fill="none"
-              stroke={color} strokeWidth={5} strokeLinecap="round"
+              stroke={potential.color} strokeWidth={5} strokeLinecap="round"
               strokeDasharray={circ}
               initial={{ strokeDashoffset: circ }}
               animate={{ strokeDashoffset: circ * (1 - pct) }}
@@ -111,18 +107,14 @@ export const HeroScorePanel = memo(function HeroScorePanel({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-black tabular-nums text-foreground leading-none">
-              {strategicPotential.toFixed(1)}
-            </span>
-            <span className="text-[10px] font-bold text-muted-foreground mt-0.5">/10</span>
+            <Compass size={20} style={{ color: potential.color }} />
           </div>
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0 text-center sm:text-left">
           <div className="flex items-center gap-2 justify-center sm:justify-start mb-1">
-            <Compass size={14} style={{ color }} />
-            <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color }}>
+            <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: potential.color }}>
               Strategic Potential
             </span>
           </div>
@@ -130,7 +122,7 @@ export const HeroScorePanel = memo(function HeroScorePanel({
             {analysisName}
           </h2>
           <p className="text-sm text-muted-foreground mb-3">
-            {MODE_LABELS[mode]} analysis · {completedSteps}/{totalSteps} steps · {label}
+            {MODE_LABELS[mode]} analysis · {completedSteps}/{totalSteps} steps · {potential.label}
           </p>
 
           {/* Top Signal — inline */}
@@ -152,7 +144,7 @@ export const HeroScorePanel = memo(function HeroScorePanel({
           )}
         </div>
 
-        {/* Mini metrics — right side */}
+        {/* Mini metrics — right side (qualitative) */}
         <div className="flex sm:flex-col gap-3 flex-shrink-0">
           {[
             { label: "Opportunity", value: metrics.opportunityScore, color: "hsl(var(--success))" },
@@ -160,7 +152,7 @@ export const HeroScorePanel = memo(function HeroScorePanel({
             { label: "Risk", value: metrics.riskScore, color: "hsl(var(--destructive))" },
           ].map(m => (
             <div key={m.label} className="text-center sm:text-right">
-              <span className="text-lg font-black tabular-nums text-foreground">{Math.min(10, Math.round(m.value * 10) / 10).toFixed(1)}</span>
+              <span className="text-sm font-black text-foreground">{evidenceLabel(m.value)}</span>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{m.label}</p>
             </div>
           ))}
