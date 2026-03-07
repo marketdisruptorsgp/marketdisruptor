@@ -545,7 +545,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   }
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col flex-1 min-h-0 gap-2">
       {/* ── Toolbar: Tabs + Controls (desktop only — mobile gets bottom bar) ── */}
       <div className="rounded-xl border border-border bg-card p-2 space-y-2">
         {/* Row 1: View tabs */}
@@ -750,13 +750,13 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
       </AnimatePresence>
 
       {/* Graph Canvas + Side Panel Layout */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-1 min-h-0">
         {/* Graph Canvas */}
         <div
           className="relative rounded-2xl overflow-hidden flex-1"
           style={{
-            height: isMobile ? "75vh" : 580,
-            minHeight: isMobile ? 400 : 360,
+            height: "100%",
+            minHeight: isMobile ? 400 : 500,
             background: "hsl(var(--card))",
             border: "1.5px solid hsl(var(--border))",
           }}

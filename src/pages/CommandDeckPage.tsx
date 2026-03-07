@@ -10,7 +10,6 @@
  */
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
-import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -55,7 +54,7 @@ import { generatePlaybooks } from "@/lib/playbookEngine";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
   AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
-  BookOpen, Beaker, BarChart3, Map, Wrench, Brain, Calendar,
+  BookOpen, Beaker, BarChart3, Map, Wrench, Brain,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -545,10 +544,6 @@ export default function CommandDeckPage() {
     return modeKey === "service" ? "Service Industry" : modeKey === "business" ? "Business Model" : "Product Market";
   }, [businessModelInput, selectedProduct, modeKey]);
 
-  const analysisDate = useMemo(() => {
-    return format(new Date(), "MMM d, yyyy");
-  }, []);
-
   const modeLabel = modeKey === "service" ? "Service Analysis" : modeKey === "business" ? "Business Model Analysis" : "Product Analysis";
 
   // ── Guards ──
@@ -581,84 +576,40 @@ export default function CommandDeckPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-[1100px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+      <main className="max-w-[1100px] mx-auto px-3 sm:px-6 py-3 sm:py-4 space-y-3">
 
         {/* ══════════════════════════════════════════════════════════
-            HEADER — Name, Mode, Industry, Date, Progress
+            COMPACT HEADER — Name, Mode, Progress
            ══════════════════════════════════════════════════════════ */}
-        <div className="rounded-xl px-5 py-4" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-black text-foreground truncate">
-                {analysisDisplayName}
-              </h1>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <ModeBadge />
-                <span className="text-[11px] text-muted-foreground font-medium">{industryLabel}</span>
-                <span className="text-muted-foreground text-[10px]">·</span>
-                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Calendar size={10} />
-                  {analysisDate}
-                </span>
-              </div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-black text-foreground truncate">
+              {analysisDisplayName}
+            </h1>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <ModeBadge />
+              <span className="text-[11px] text-muted-foreground">{industryLabel}</span>
+              <span className="text-muted-foreground text-[10px]">·</span>
+              <span className="text-[11px] text-muted-foreground">{completedSteps.size}/{PIPELINE_STEPS.length} steps</span>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {!pipelineProgress.isRunning && completedSteps.size < PIPELINE_STEPS.length && (
-                <button
-                  onClick={handleRecomputeAll}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
-                  style={{ background: modeAccent, color: "white" }}
-                >
-                  <Play size={12} /> Run Full Analysis
-                </button>
-              )}
-              <button onClick={handleRecomputeAll}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
-                style={{ background: `${modeAccent}15`, color: modeAccent, border: `1.5px solid ${modeAccent}30` }}>
-                <RefreshCw size={13} className={(isRecomputing || engineComputing) ? "animate-spin" : ""} /> Refresh
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {!pipelineProgress.isRunning && completedSteps.size < PIPELINE_STEPS.length && (
+              <button
+                onClick={handleRecomputeAll}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
+                style={{ background: modeAccent, color: "white" }}
+              >
+                <Play size={12} /> Run Analysis
               </button>
-              <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
-            </div>
-          </div>
-
-          {/* Progress indicator */}
-          <div className="mt-3 flex items-center gap-2">
-            <span className="text-[10px] font-bold text-muted-foreground">
-              {completedSteps.size}/{PIPELINE_STEPS.length} Analysis Steps Complete
-            </span>
-            <div className="flex-1 flex gap-1">
-              {PIPELINE_STEPS.map(step => (
-                <div
-                  key={step.key}
-                  className="h-1.5 flex-1 rounded-full transition-colors"
-                  style={{
-                    background: completedSteps.has(step.key)
-                      ? "hsl(var(--success))"
-                      : "hsl(var(--muted))",
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ═══ QUICK NAV ═══ */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-1">
-          {[
-            { label: "Summary", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
-            { label: "Insight Graph", icon: GitBranch, path: `${baseUrl}/insight-graph` },
-          ].map(nav => (
-            <button key={nav.label} onClick={() => navigate(nav.path)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors whitespace-nowrap flex-shrink-0 min-h-[36px]"
-              style={{
-                background: nav.active ? `${modeAccent}15` : "hsl(var(--muted))",
-                color: nav.active ? modeAccent : "hsl(var(--foreground))",
-                border: nav.active ? `1.5px solid ${modeAccent}40` : "1px solid hsl(var(--border))",
-              }}>
-              <nav.icon size={14} />
-              {nav.label}
+            )}
+            <button onClick={handleRecomputeAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
+              style={{ background: `${modeAccent}15`, color: modeAccent, border: `1px solid ${modeAccent}30` }}>
+              <RefreshCw size={13} className={(isRecomputing || engineComputing) ? "animate-spin" : ""} /> Refresh
             </button>
-          ))}
+            <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
+          </div>
         </div>
 
         {/* ═══ PIPELINE PROGRESS (auto-run) ═══ */}
@@ -750,20 +701,27 @@ export default function CommandDeckPage() {
           isBusinessMode={modeKey === "business"}
         />
 
-        {/* 3. EVIDENCE CONFIDENCE — By business domain */}
-        <ConfidenceMeter
-          completedSteps={completedSteps.size}
-          totalSteps={PIPELINE_STEPS.length}
-          evidenceCount={totalSignals}
-          confidence={narrative?.verdictConfidence ?? (completedSteps.size / PIPELINE_STEPS.length) * 0.3}
-          isComputing={engineComputing}
-          strongCategories={evidenceAttribution.strong}
-          weakCategories={evidenceAttribution.weak}
-        />
 
         {/* ══════════════════════════════════════════════════════════
             PROGRESSIVE EXPLORATION — Collapsible deeper layers
            ══════════════════════════════════════════════════════════ */}
+
+        {/* Evidence Confidence */}
+        <BriefingSection
+          title="Evidence Confidence"
+          icon={BookOpen}
+          preview={`${totalSignals} signals across ${evidenceAttribution.strong.length} strong categories`}
+        >
+          <ConfidenceMeter
+            completedSteps={completedSteps.size}
+            totalSteps={PIPELINE_STEPS.length}
+            evidenceCount={totalSignals}
+            confidence={narrative?.verdictConfidence ?? (completedSteps.size / PIPELINE_STEPS.length) * 0.3}
+            isComputing={engineComputing}
+            strongCategories={evidenceAttribution.strong}
+            weakCategories={evidenceAttribution.weak}
+          />
+        </BriefingSection>
 
         {/* Strategic Playbooks & Outcomes */}
         <BriefingSection

@@ -256,22 +256,6 @@ export default function ReportPage() {
 
       <AnalysisDivider />
 
-      {/* Insight Snapshot Panel — auto-updating intelligence */}
-      <InsightSnapshotPanel
-        intelligence={autoAnalysis.intelligence}
-        graph={autoAnalysis.graph}
-        analysisId={analysisId || ""}
-        accentColor={modeAccent}
-        completedSteps={autoAnalysis.completedSteps}
-        products={products}
-        selectedProduct={selectedProduct}
-        disruptData={analysis.disruptData}
-        redesignData={analysis.redesignData}
-        stressTestData={analysis.stressTestData}
-        pitchDeckData={analysis.pitchDeckData}
-        governedData={analysis.governedData as Record<string, unknown> | null}
-        businessAnalysisData={analysis.businessAnalysisData}
-      />
 
       {/* ── Strategic Command Deck — dashboard tab ── */}
       {activeSection === "dashboard" && (

@@ -1,5 +1,4 @@
 import React from "react";
-import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { SplitStepLayout } from "@/components/analysis/SplitStepLayout";
@@ -25,7 +24,6 @@ import {
   AnalysisActionToolbar,
   AnalysisTabBar,
   AnalysisDivider,
-  AnalysisContextBanner,
   AnalysisContentCard,
   AnalysisLoadingCard,
   AnalysisLoadingSpinner,
@@ -105,22 +103,6 @@ export default function RedesignPage() {
         onChangeProfile={analysis.setStrategicProfile}
       />
 
-      {/* Insight Snapshot Panel */}
-      <InsightSnapshotPanel
-        intelligence={autoAnalysis.intelligence}
-        graph={autoAnalysis.graph}
-        analysisId={analysisId || ""}
-        accentColor={theme.primary}
-        completedSteps={autoAnalysis.completedSteps}
-        products={analysis.products}
-        selectedProduct={selectedProduct}
-        disruptData={analysis.disruptData}
-        redesignData={analysis.redesignData}
-        stressTestData={analysis.stressTestData}
-        pitchDeckData={analysis.pitchDeckData}
-        governedData={analysis.governedData as Record<string, unknown> | null}
-        businessAnalysisData={analysis.businessAnalysisData}
-      />
 
       <AnalysisTabBar
         tabs={REDESIGN_TABS}
@@ -131,12 +113,6 @@ export default function RedesignPage() {
 
       <AnalysisDivider />
 
-      <AnalysisContextBanner
-        icon={Sparkles}
-        title="Redesign Concept"
-        description="Every assumption from Disrupt is inverted, recombined, and synthesized into bold product concepts — grounded in flipped logic and upstream intelligence. Each idea traces back to a specific structural constraint."
-        iconColor="hsl(38 92% 50%)"
-      />
 
       {/* ── Concept Visuals (mounted early to pre-generate AI images) ── */}
       {hasData && (() => {
@@ -180,7 +156,7 @@ export default function RedesignPage() {
         }
       >
         {/* Content */}
-        <AnalysisContentCard hidden={analysisLoading}>
+        <div style={{ display: analysisLoading ? "none" : undefined }}>
           <FirstPrinciplesAnalysis
             product={selectedProduct}
             onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
@@ -208,7 +184,7 @@ export default function RedesignPage() {
               if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
             }}
           />
-        </AnalysisContentCard>
+        </div>
       </SplitStepLayout>
 
       <PipelineProgressBar

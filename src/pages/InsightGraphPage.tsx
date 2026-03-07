@@ -1,41 +1,28 @@
 /**
- * Insight Graph Page
- *
- * Interactive force-directed graph of the entire analysis pipeline.
- * Accessible as a tab within any analysis.
+ * Insight Graph Page — Minimal chrome, graph fills viewport
  */
 
 import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useModeTheme } from "@/hooks/useModeTheme";
-import { useSubscription } from "@/hooks/useSubscription";
 import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
-import { getStepConfigs } from "@/lib/stepConfigs";
-import { scrollToTop } from "@/utils/scrollToTop";
 import { buildInsightGraph } from "@/lib/insightGraph";
 import { extractAllEvidence } from "@/lib/evidenceEngine";
 import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { InsightGraphView } from "@/components/insight-graph/InsightGraphView";
-import { GitBranch, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-
-import {
-  AnalysisPageShell,
-  AnalysisStepHeader,
-  AnalysisActionToolbar,
-  AnalysisLoadingSpinner,
-  AnalysisContextBanner,
-} from "@/components/analysis/AnalysisPageShell";
+import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
 
 export default function InsightGraphPage() {
   const analysis = useAnalysis();
   const navigate = useNavigate();
   const theme = useModeTheme();
-  const { tier } = useSubscription();
   const { shouldRedirectHome } = useHydrationGuard();
   const autoAnalysis = useAutoAnalysis();
+  useWorkspaceTheme();
 
   const {
     selectedProduct,
@@ -55,12 +42,7 @@ export default function InsightGraphPage() {
   }, []);
   const analysisId = ctxAnalysisId || urlAnalysisId;
   const hasBusinessContext = !!businessAnalysisData;
-  const displayProduct = selectedProduct || {
-    name: businessModelInput?.type || "Business Model Analysis",
-    category: "Business Model",
-  };
 
-  // Build system intelligence
   const intelligence = useMemo(() => {
     if (!analysisId) return null;
     try {
@@ -79,7 +61,6 @@ export default function InsightGraphPage() {
     }
   }, [analysisId, disruptData, analysis.governedData, analysis.businessAnalysisData]);
 
-  // Build insight graph from evidence + insights + scenarios
   const graph = useMemo(() => {
     const evidenceData = extractAllEvidence({
       products,
@@ -93,7 +74,6 @@ export default function InsightGraphPage() {
       intelligence,
       analysisType: (analysis as any).activeMode === "service" ? "service" : (analysis as any).activeMode === "business" ? "business_model" : "product",
     });
-    // Pass insights and scenarios for higher-level node generation
     const insightsData = autoAnalysis.insights?.map(i => ({
       id: i.id, label: i.label, description: i.description,
       insightType: i.insightType, impact: i.impact,
@@ -112,7 +92,6 @@ export default function InsightGraphPage() {
       navigate(`/analysis/${analysisId}/command-deck`);
       return;
     }
-    // In-place — no navigation jump
     toast.success("Strategic intelligence updated");
   }, [analysisId, completedSteps, navigate]);
 
@@ -128,64 +107,32 @@ export default function InsightGraphPage() {
         </div>
       );
     }
-    return <AnalysisLoadingSpinner message="Loading analysis..." />;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
+      </div>
+    );
   }
 
-  const baseUrl = `/analysis/${analysisId}`;
-
   return (
-    <AnalysisPageShell tier={tier}>
-      <AnalysisStepHeader
-        steps={getStepConfigs(modeAccent)}
-        activeStep={-1}
-        visitedSteps={new Set([2])}
-        onStepChange={(s) => {
-          if (s === 2) navigate(`${baseUrl}/report`);
-          else if (s === 3) navigate(`${baseUrl}/disrupt`);
-          else if (s === 4) navigate(`${baseUrl}/redesign`);
-          else if (s === 5) navigate(`${baseUrl}/stress-test`);
-          else if (s === 6) navigate(`${baseUrl}/pitch`);
-        }}
-        accentColor={modeAccent}
-        backLabel="Report"
-        backPath={`${baseUrl}/report`}
-        analysisId={analysisId}
-      />
-
-      <AnalysisActionToolbar
-        analysisTitle={displayProduct.name}
-        stepTitle="Insight Graph"
-        analysis={analysis}
-        selectedProduct={displayProduct}
-        analysisId={analysisId}
-        accentColor={modeAccent}
-        hideRun
-        hideShare
-      />
-
-      {/* Recompute + Context Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-0">
-        <AnalysisContextBanner
-          icon={GitBranch}
-          title="Insight Graph"
-          description="Interactive network of signals, constraints, assumptions, and opportunities — connected by reasoning relationships. Click any node to explore its chain."
-          iconColor={modeAccent}
-        />
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Minimal toolbar */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-background flex-shrink-0">
+        <h2 className="text-sm font-bold text-foreground">Insight Graph</h2>
         <button
           onClick={handleRecomputeAll}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[44px] flex-shrink-0"
-          style={{
-            background: `${modeAccent}15`,
-            color: modeAccent,
-            border: `1.5px solid ${modeAccent}30`,
-          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+          style={{ background: `${modeAccent}15`, color: modeAccent, border: `1px solid ${modeAccent}30` }}
         >
-          <RefreshCw size={15} />
-          Recompute
+          <RefreshCw size={13} />
+          Refresh
         </button>
       </div>
 
-      <InsightGraphView graph={graph} analysisId={analysisId || ""} />
-    </AnalysisPageShell>
+      {/* Graph fills remaining viewport */}
+      <div className="flex-1 min-h-0">
+        <InsightGraphView graph={graph} analysisId={analysisId || ""} />
+      </div>
+    </div>
   );
 }

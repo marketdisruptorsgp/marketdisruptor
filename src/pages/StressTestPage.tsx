@@ -111,22 +111,6 @@ export default function StressTestPage() {
         analysisId={analysisId}
       />
 
-      {/* Insight Snapshot Panel */}
-      <InsightSnapshotPanel
-        intelligence={autoAnalysis.intelligence}
-        graph={autoAnalysis.graph}
-        analysisId={analysisId || ""}
-        accentColor={theme.primary}
-        completedSteps={autoAnalysis.completedSteps}
-        products={analysis.products}
-        selectedProduct={selectedProduct}
-        disruptData={analysis.disruptData}
-        redesignData={analysis.redesignData}
-        stressTestData={analysis.stressTestData}
-        pitchDeckData={analysis.pitchDeckData}
-        governedData={governedData}
-        businessAnalysisData={analysis.businessAnalysisData}
-      />
 
       <AnalysisActionToolbar
         analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
@@ -154,15 +138,6 @@ export default function StressTestPage() {
 
       {!analysisLoading && <AnalysisDivider />}
 
-      {/* Context Banner — after divider for consistent ordering */}
-      {!analysisLoading && (
-        <AnalysisContextBanner
-          icon={Swords}
-          title="Strategy Development"
-          description="Opportunity prioritization, strategic command deck, and adversarial stress testing — your idea is attacked, defended, and scored."
-          iconColor="hsl(350 80% 55%)"
-        />
-      )}
 
       {/* Loading Tracker */}
       {analysisLoading && (

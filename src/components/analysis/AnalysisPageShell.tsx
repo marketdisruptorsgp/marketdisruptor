@@ -34,13 +34,11 @@ interface AnalysisPageShellProps {
   children: React.ReactNode;
 }
 
-export function AnalysisPageShell({ tier, children }: AnalysisPageShellProps) {
-  // useWorkspaceTheme now applies data-command-deck on <html> automatically
+export function AnalysisPageShell({ children }: AnalysisPageShellProps) {
   useWorkspaceTheme();
   return (
     <div className="min-h-screen bg-background">
-      <HeroSection tier={tier} remainingAnalyses={null} />
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-4 space-y-4">
         {children}
       </main>
     </div>
@@ -71,55 +69,15 @@ export function AnalysisStepHeader({
   outdatedSteps, accentColor, backLabel, backPath, outdatedStepName,
   analysisId: propAnalysisId,
 }: AnalysisStepHeaderProps) {
-  const navigate = useNavigate();
   const { theme: workspaceTheme, toggle: toggleTheme } = useWorkspaceTheme();
-
-  // Fallback: extract analysis ID from URL if prop is null
-  const urlFallbackId = React.useMemo(() => {
-    const match = window.location.pathname.match(/\/analysis\/([0-9a-f-]{36})/);
-    return match?.[1] || null;
-  }, []);
-  const analysisId = propAnalysisId || urlFallbackId;
-  const baseUrl = analysisId ? `/analysis/${analysisId}` : "";
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 flex-wrap">
+      {/* Minimal top bar: mode badge + theme toggle */}
+      <div className="flex items-center justify-between gap-2">
         <ModeBadge />
         <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
       </div>
-      <StepNavigator
-        steps={steps}
-        activeStep={activeStep}
-        visitedSteps={visitedSteps}
-        onStepChange={(s) => { scrollToTop(); onStepChange(s); }}
-        outdatedSteps={outdatedSteps}
-        accentColor={accentColor}
-      />
-
-      {/* Workspace Navigation: Home + Command Deck + Graph */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <StepNavBar backLabel={backLabel} backPath={backPath} accentColor={accentColor} />
-        {analysisId && (
-          <>
-            <button
-              onClick={() => navigate(`${baseUrl}/command-deck`)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:opacity-80 min-h-[44px]"
-              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-            >
-              <LayoutDashboard size={14} /> Command Deck
-            </button>
-            <button
-              onClick={() => navigate(`${baseUrl}/insight-graph`)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors hover:opacity-80 min-h-[44px]"
-              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
-            >
-              <GitBranch size={14} /> Insight Graph
-            </button>
-          </>
-        )}
-      </div>
-
       {outdatedStepName && <OutdatedBanner stepName={outdatedStepName} accentColor={accentColor} />}
     </>
   );
