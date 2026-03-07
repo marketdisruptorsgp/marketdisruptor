@@ -201,7 +201,7 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
 
 function PrintSection({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="print-section">
+    <section className="print-section" data-pdf-section={title}>
       <h2 className="print-section-title">
         {icon && <span className="print-section-icon">{icon}</span>}
         {title}
