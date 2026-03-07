@@ -1,12 +1,12 @@
 /**
- * Confidence Meter — Strategic confidence tied to evidence depth.
+ * Confidence Meter — Strategic confidence explained in business terms.
  *
- * Now explains WHAT drives confidence and what's missing.
+ * Shows evidence strength by business domain, not signal counts or pipeline steps.
  */
 
 import { memo, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Shield, ArrowUpRight } from "lucide-react";
+import { Shield, ArrowUpRight, CheckCircle2, AlertTriangle, CircleDashed } from "lucide-react";
 
 interface ConfidenceMeterProps {
   completedSteps: number;
@@ -24,8 +24,8 @@ function getConfidenceLevel(c: number) {
   if (c >= 0.7) return { label: "High", color: "hsl(var(--success))", bgColor: "hsl(var(--success) / 0.08)" };
   if (c >= 0.5) return { label: "Growing", color: "hsl(var(--primary))", bgColor: "hsl(var(--primary) / 0.06)" };
   if (c >= 0.3) return { label: "Emerging", color: "hsl(var(--warning))", bgColor: "hsl(var(--warning) / 0.08)" };
-  if (c >= 0.1) return { label: "Initial", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)" };
-  return { label: "Minimal", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)" };
+  if (c >= 0.1) return { label: "Early", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)" };
+  return { label: "Preliminary", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)" };
 }
 
 export const ConfidenceMeter = memo(function ConfidenceMeter({
@@ -40,36 +40,18 @@ export const ConfidenceMeter = memo(function ConfidenceMeter({
   const pct = Math.round(confidence * 100);
   const level = useMemo(() => getConfidenceLevel(confidence), [confidence]);
 
-  // Build explanation string
-  const explanation = useMemo(() => {
-    const parts: string[] = [];
-    if (strongCategories.length > 0) {
-      parts.push(`Strong evidence in ${strongCategories.slice(0, 2).join(" and ")}`);
-    }
-    if (weakCategories.length > 0) {
-      parts.push(`weak evidence in ${weakCategories.slice(0, 2).join(" and ")}`);
-    }
-    if (parts.length === 0) {
-      if (completedSteps === 0) return "No pipeline steps completed yet";
-      if (evidenceCount < 5) return "Collecting initial signals";
-      return `Based on ${evidenceCount} signals across ${completedSteps} analysis steps`;
-    }
-    return parts.join(" · ");
-  }, [strongCategories, weakCategories, completedSteps, evidenceCount]);
-
-  // What would improve confidence
+  // Build improvement hint in business terms (not pipeline steps)
   const improvementHint = useMemo(() => {
-    if (completedSteps >= totalSteps && confidence >= 0.7) return null;
-    const hints: string[] = [];
-    if (completedSteps < totalSteps) {
-      const remaining = totalSteps - completedSteps;
-      hints.push(`Complete ${remaining} more step${remaining > 1 ? "s" : ""}`);
-    }
+    if (confidence >= 0.7 && weakCategories.length === 0) return null;
     if (weakCategories.length > 0) {
-      hints.push(`Add ${weakCategories[0]} data`);
+      const missing = weakCategories.slice(0, 2).join(" or ").toLowerCase();
+      return `To strengthen this analysis, add more information about ${missing}.`;
     }
-    return hints.length > 0 ? hints.join(" · ") : null;
-  }, [completedSteps, totalSteps, confidence, weakCategories]);
+    if (completedSteps < totalSteps) {
+      return "Running more analysis steps will surface additional evidence across business domains.";
+    }
+    return null;
+  }, [confidence, weakCategories, completedSteps, totalSteps]);
 
   return (
     <div
@@ -99,7 +81,7 @@ export const ConfidenceMeter = memo(function ConfidenceMeter({
         {/* Detail */}
         <div className="flex-1 min-w-0">
           {/* Bar */}
-          <div className="h-2 rounded-full overflow-hidden mb-1.5" style={{ background: "hsl(var(--muted))" }}>
+          <div className="h-2 rounded-full overflow-hidden mb-2" style={{ background: "hsl(var(--muted))" }}>
             <motion.div
               className="h-full rounded-full"
               style={{ background: level.color }}
@@ -109,31 +91,43 @@ export const ConfidenceMeter = memo(function ConfidenceMeter({
             />
           </div>
 
-          {/* Explanation */}
-          <p className="text-[11px] font-medium text-foreground leading-snug">
-            {explanation}
-          </p>
+          {/* Evidence by business domain */}
+          <div className="space-y-1">
+            {strongCategories.length > 0 && (
+              <div className="flex items-start gap-1.5">
+                <CheckCircle2 size={11} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--success))" }} />
+                <span className="text-[11px] font-semibold text-foreground leading-snug">
+                  Strong evidence in: {strongCategories.slice(0, 3).join(", ")}
+                </span>
+              </div>
+            )}
+            {weakCategories.length > 0 && (
+              <div className="flex items-start gap-1.5">
+                <CircleDashed size={11} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--warning))" }} />
+                <span className="text-[11px] font-semibold text-muted-foreground leading-snug">
+                  Weak evidence in: {weakCategories.slice(0, 3).join(", ")}
+                </span>
+              </div>
+            )}
+            {strongCategories.length === 0 && weakCategories.length === 0 && (
+              <div className="flex items-start gap-1.5">
+                <AlertTriangle size={11} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }} />
+                <span className="text-[11px] font-semibold text-muted-foreground leading-snug">
+                  Collecting initial business evidence
+                </span>
+              </div>
+            )}
+          </div>
 
-          {/* Improvement hint */}
+          {/* Improvement hint in business terms */}
           {improvementHint && (
-            <div className="flex items-center gap-1 mt-1">
-              <ArrowUpRight size={10} style={{ color: level.color }} />
-              <span className="text-[10px] font-bold" style={{ color: level.color }}>
-                Improve confidence → {improvementHint}
+            <div className="flex items-start gap-1.5 mt-1.5">
+              <ArrowUpRight size={10} style={{ color: level.color }} className="flex-shrink-0 mt-0.5" />
+              <span className="text-[10px] font-medium" style={{ color: level.color }}>
+                {improvementHint}
               </span>
             </div>
           )}
-        </div>
-
-        {/* Steps badge */}
-        <div className="flex-shrink-0 text-right">
-          <span className="text-[10px] font-bold text-muted-foreground">
-            {evidenceCount} signals
-          </span>
-          <br />
-          <span className="text-[10px] font-bold text-muted-foreground">
-            {completedSteps}/{totalSteps} steps
-          </span>
         </div>
       </div>
     </div>
