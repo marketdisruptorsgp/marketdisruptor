@@ -228,11 +228,45 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
   const currentIdx = SLIDE_TABS.findIndex(t => t.id === activeSlide);
   const nextSlide = currentIdx < TOTAL - 1 ? SLIDE_TABS[currentIdx + 1] : null;
+  const prevSlide = currentIdx > 0 ? SLIDE_TABS[currentIdx - 1] : null;
 
   const goNext = () => {
     if (!nextSlide) { setShowCompletion(true); return; }
     setActiveSlide(nextSlide.id);
     setVisitedSlides(prev => new Set([...prev, nextSlide.id]));
+  };
+
+  const goPrev = () => {
+    if (prevSlide) {
+      setActiveSlide(prevSlide.id);
+      setVisitedSlides(prev => new Set([...prev, prevSlide.id]));
+    }
+  };
+
+  // Keyboard arrow navigation
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); goNext(); }
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); goPrev(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
+
+  // Touch swipe navigation
+  const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) goNext();
+      else goPrev();
+    }
+    touchStartRef.current = null;
   };
 
   const runAnalysis = async () => {
