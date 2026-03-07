@@ -783,15 +783,21 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-card/95 backdrop-blur-sm border border-border rounded-xl px-6 py-4 shadow-lg text-center max-w-xs pointer-events-auto"
+                className="bg-card/95 backdrop-blur-sm border border-border rounded-xl px-6 py-5 shadow-lg text-center max-w-sm pointer-events-auto"
               >
-                <p className="typo-body font-semibold text-foreground mb-1">Click any node to explore its reasoning chain</p>
-                <p className="typo-meta mb-3">Nodes are connected by causal relationships across the analysis pipeline</p>
+                <p className="text-sm font-bold text-foreground mb-2">Your analysis as a connected system</p>
+                <p className="text-xs text-muted-foreground mb-1">Each node is a finding. Lines show cause-and-effect.</p>
+                <p className="text-xs text-muted-foreground mb-3">Click any node to trace its reasoning chain and find the highest-leverage moves.</p>
+                <div className="flex items-center justify-center gap-3 text-[10px] text-muted-foreground mb-3">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(0 72% 52%)" }} /> Constraints</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(152 60% 44%)" }} /> Opportunities</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(262 83% 58%)" }} /> Pathways</span>
+                </div>
                 <button
                   onClick={() => setShowOnboarding(false)}
                   className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
                 >
-                  Got it
+                  Explore
                 </button>
               </motion.div>
             </div>
