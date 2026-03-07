@@ -44,6 +44,8 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   const [simTool, setSimTool] = useState<LensTool | null>(null);
   const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const analysis = useAnalysis();
 
   // Concept expansion
   const { generateConceptSpace, getConceptSpace, toggleVariantSelection, loading: conceptLoading } = useConceptExpansion(graph);
