@@ -652,6 +652,7 @@ export default function CommandDeckPage() {
           narrative={narrative}
         />
 
+        {/* ════════════════════════════════════════════════════════════
             TIER 2 — STRATEGIC ANALYSIS
             Evidence behind the strategy. Progressive disclosure.
            ════════════════════════════════════════════════════════════ */}
