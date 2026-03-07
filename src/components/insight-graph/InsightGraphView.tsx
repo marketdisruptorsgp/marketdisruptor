@@ -10,6 +10,7 @@ import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
 import { NODE_TYPE_CONFIG, getInsightChain } from "@/lib/insightGraph";
+import { injectConceptVariants } from "@/lib/conceptExpansion";
 import { CytoscapeReasoningMap } from "./CytoscapeReasoningMap";
 import { InsightNodeCard } from "./InsightNodeCard";
 import { OpportunityLandscape } from "./OpportunityLandscape";
@@ -20,6 +21,7 @@ import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 import { type LensTool } from "@/lib/lensToolkitRegistry";
 import { type ToolScenario, scenarioToEvidence } from "@/lib/scenarioEngine";
+import { useConceptExpansion } from "@/hooks/useConceptExpansion";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // ═══════════════════════════════════════════════════════════════
