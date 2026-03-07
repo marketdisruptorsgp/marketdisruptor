@@ -87,10 +87,14 @@ function buildExecutiveSummary(
 
 export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props: StrategicVerdictBannerProps) {
   const {
-    verdict, rationale, confidence, constraintLabel, opportunityLabel,
+    verdict, rationale, confidence,
     completedSteps, totalSteps, whyThisMatters, verdictBenchmark,
     evidenceSources = [], diagnosisEvidence = [],
   } = props;
+
+  // Humanize all user-facing labels
+  const constraintLabel = humanize(props.constraintLabel);
+  const opportunityLabel = humanize(props.opportunityLabel);
 
   const badge = confidenceBadge(confidence);
   const hasVerdict = !!verdict || !!constraintLabel;
