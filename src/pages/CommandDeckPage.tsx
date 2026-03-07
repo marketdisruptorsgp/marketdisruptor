@@ -721,6 +721,12 @@ export default function CommandDeckPage() {
           preview={topPlaybook ? `Top: ${topPlaybook.title}` : null}
           badge={allPlaybooks.length}
         >
+          <TransformationPaths
+            evidence={autoAnalysis.flatEvidence}
+            insights={autoAnalysis.insights}
+            narrative={narrative}
+            mode={modeKey}
+          />
           <StrategicOutcomeSimulator
             playbook={topPlaybook}
             evidence={autoAnalysis.flatEvidence}
