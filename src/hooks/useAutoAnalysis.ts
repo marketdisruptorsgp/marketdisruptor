@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
+import type { Evidence } from "@/lib/evidenceEngine";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   runStrategicAnalysis,
