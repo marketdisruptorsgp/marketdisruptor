@@ -9,10 +9,11 @@
 import { memo, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Crosshair, DollarSign, MessageSquare, Package, Lightbulb,
-  AlertTriangle, ChevronDown, ChevronUp, ArrowRight, TrendingUp,
-  Users, Zap, Lock,
+  DollarSign, Package, Lightbulb,
+  AlertTriangle, ChevronDown, ChevronUp,
+  Users, Lock,
 } from "lucide-react";
+import { ProblemStatementCard } from "./ProblemStatementCard";
 import { humanizeLabel } from "@/lib/humanize";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
 
@@ -41,6 +42,7 @@ interface ExecutiveSnapshotProps {
   totalSteps: number;
   modeAccent: string;
   evidenceCount: number;
+  onProblemLocked?: (statement: string) => void;
 }
 
 /* ── Panel wrapper ── */
@@ -106,32 +108,16 @@ function EmptyState({ text }: { text: string }) {
 }
 
 export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
-  product, businessData, narrative, mode, completedSteps, totalSteps, modeAccent, evidenceCount,
+  product, businessData, narrative, mode, completedSteps, totalSteps, modeAccent, evidenceCount, onProblemLocked,
 }: ExecutiveSnapshotProps) {
   const p = product || {};
   const biz = businessData || {};
   const governed = (biz as any)?.governed || {};
 
-  // ── Extract real data ──
+  // Trend / Market signal (used by ProblemStatementCard)
+  const trend = p.trendAnalysis || (biz as any)?.trend || null;
+  const marketSize = p.marketSizeEstimate || null;
 
-  // Problem Statement — surfaces the core structural problem
-  const problemStatement = useMemo(() => {
-    // 1. Strategic verdict as core problem framing
-    // 2. Strategic verdict as problem framing
-    if (narrative?.strategicVerdict && narrative.strategicVerdict.length > 20) return narrative.strategicVerdict;
-    // 3. "Why this matters" reframed as the problem
-    if (narrative?.whyThisMatters && narrative.whyThisMatters.length > 20) return narrative.whyThisMatters;
-    // 4. Binding constraint from governed data as the core problem
-    const cm = governed?.constraint_map || (governed as any)?.governed?.constraint_map;
-    if (cm?.dominance_proof) return cm.dominance_proof;
-    // 5. Key insight from product analysis
-    if (p.keyInsight) return p.keyInsight;
-    // 6. Business summary
-    if ((biz as any)?.summary || (biz as any)?.overview) return (biz as any).summary || (biz as any).overview;
-    // 7. Description fallback
-    if (p.description) return p.description.length > 200 ? p.description.slice(0, 197) + "…" : p.description;
-    return null;
-  }, [narrative, p, biz, governed]);
 
   // Pricing
   const pricing = useMemo(() => {
@@ -230,15 +216,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
     return items.length > 0 ? items.slice(0, 4) : null;
   }, [governed, narrative]);
 
-  // Trapped Value
-  const trappedValue = narrative?.trappedValue || null;
-  const trappedEstimate = narrative?.trappedValueEstimate || null;
-
-  // Trend / Market signal
-  const trend = p.trendAnalysis || (biz as any)?.trend || null;
-  const marketSize = p.marketSizeEstimate || null;
-
-  const hasAnyData = !!(problemStatement || pricing || community || supplyChain || constraints);
+  const hasAnyData = !!(pricing || community || supplyChain || constraints);
 
   return (
     <motion.div
@@ -247,33 +225,20 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
       transition={{ duration: 0.4 }}
       className="space-y-2"
     >
-      {/* ── Row 1: Problem Statement headline ── */}
-      <div
-        className="rounded-lg px-4 py-3"
-        style={{ background: "hsl(var(--card))", border: `2px solid ${modeAccent}30` }}
-      >
-        <div className="flex items-center gap-2 mb-1">
-          <Crosshair size={13} style={{ color: modeAccent }} />
-          <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Problem Statement
-          </span>
-          <span className="text-[9px] font-bold text-muted-foreground ml-auto">
-            {evidenceCount} signals · {completedSteps}/{totalSteps} steps
-          </span>
-        </div>
-        <p className={`text-sm sm:text-base font-black leading-snug ${problemStatement ? "text-foreground" : "text-muted-foreground italic"}`}>
-          {problemStatement || "Run the analysis to identify the core problem."}
-        </p>
-        {marketSize && (
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <TrendingUp size={11} style={{ color: modeAccent }} />
-            <span className="text-[11px] font-bold text-foreground">TAM: {marketSize}</span>
-          </div>
-        )}
-        {trend && !problemStatement?.includes(trend.slice(0, 30)) && (
-          <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{trend}</p>
-        )}
-      </div>
+      {/* ── Row 1: Problem Statement (editable + cyclable) ── */}
+      <ProblemStatementCard
+        product={product as Record<string, any> | null}
+        businessData={businessData}
+        narrative={narrative}
+        governed={governed}
+        modeAccent={modeAccent}
+        evidenceCount={evidenceCount}
+        completedSteps={completedSteps}
+        totalSteps={totalSteps}
+        marketSize={marketSize}
+        trend={trend}
+        onProblemLocked={onProblemLocked}
+      />
 
       {/* ── Row 2: 3x2 intelligence grid from actual data ── */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
@@ -323,11 +288,11 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
 
         {/* 5. Trapped Value (from reasoning — shows when available) */}
         <Panel icon={Lock} title="Trapped Value" accent={modeAccent}>
-          {trappedValue ? (
+          {narrative?.trappedValue ? (
             <>
-              <p className="text-[11px] text-foreground/80 leading-snug line-clamp-3">{trappedValue}</p>
-              {trappedEstimate && (
-                <span className="text-[10px] font-bold mt-1 inline-block" style={{ color: modeAccent }}>{trappedEstimate}</span>
+              <p className="text-[11px] text-foreground/80 leading-snug line-clamp-3">{narrative.trappedValue}</p>
+              {narrative.trappedValueEstimate && (
+                <span className="text-[10px] font-bold mt-1 inline-block" style={{ color: modeAccent }}>{narrative.trappedValueEstimate}</span>
               )}
             </>
           ) : (

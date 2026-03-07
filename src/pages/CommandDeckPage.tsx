@@ -680,6 +680,10 @@ export default function CommandDeckPage() {
           totalSteps={PIPELINE_STEPS.length}
           modeAccent={modeAccent}
           evidenceCount={totalSignals}
+          onProblemLocked={(statement) => {
+            toast.success("Problem statement locked — downstream analysis will adapt");
+            // Future: trigger recompute with the locked problem framing
+          }}
         />
 
 
