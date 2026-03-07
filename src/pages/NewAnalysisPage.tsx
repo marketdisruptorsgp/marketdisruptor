@@ -505,7 +505,7 @@ export default function NewAnalysisPage() {
         }
 
         toast.success("Business model analysis complete!");
-        navigate(`/business/${analysisId}`);
+        navigate(`/analysis/${analysisId}/command-deck`);
       } else {
         const isService = primaryCard === "service";
         analysis.setMainTab(isService ? "service" : "custom");
