@@ -6,6 +6,7 @@ import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { toast } from "sonner";
 import type { Product } from "@/data/mockProducts";
 import { downloadPitchDeckPDF } from "@/lib/pdfExport";
+import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 import { downloadSlidesPDF } from "@/lib/slidesPdfExport";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnalysis } from "@/contexts/AnalysisContext";
