@@ -467,6 +467,7 @@ export const InsightNodeCard = memo(function InsightNodeCard({
             <ConceptSpacePanel
               conceptSpace={conceptSpace}
               onToggleVariant={(variantId) => onToggleConceptVariant?.(node.id, variantId)}
+              onStressTestSelected={() => onStressTestSelected?.(node.id)}
             />
           ) : (
             <button
