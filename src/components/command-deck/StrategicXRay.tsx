@@ -276,7 +276,7 @@ export const StrategicXRay = memo(function StrategicXRay({
                                       <Search size={10} className="text-muted-foreground flex-shrink-0" />
                                       <span className="text-[11px] text-foreground truncate">{ev.label}</span>
                                       <span className="text-[9px] text-muted-foreground flex-shrink-0 ml-auto">
-                                        {ev.sourceStep}
+                                        {ev.pipelineStep}
                                       </span>
                                     </div>
                                   ))}
