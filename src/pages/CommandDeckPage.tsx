@@ -803,7 +803,7 @@ export default function CommandDeckPage() {
 
         {/* Market & Industry Signals */}
         <BriefingSection
-          title="Market Signals"
+          title="Market"
           icon={BarChart3}
           preview={benchmark?.archetype ? `Archetype: ${benchmark.archetype}` : null}
         >
