@@ -484,22 +484,28 @@ export default function ReportPage() {
         </FrameworkPanel>
       )}
 
-      {activeSection === "pricing" && selectedProduct.pricingIntel && (
-        <AnalysisSectionCard icon={DollarSign} title="Pricing Intel">
-          <PricingIntelCard pricingIntel={selectedProduct.pricingIntel as any} />
-        </AnalysisSectionCard>
-      )}
+      {activeSection === "pricing" && (() => {
+        const pricingData = selectedProduct.pricingIntel || (biz as any)?.pricingIntel || (biz as any)?.pricing || (biz as any)?.revenueModel;
+        return pricingData ? (
+          <AnalysisSectionCard icon={DollarSign} title="Pricing Intel">
+            <PricingIntelCard pricingIntel={pricingData} />
+          </AnalysisSectionCard>
+        ) : null;
+      })()}
 
-      {activeSection === "supply" && !isService && selectedProduct.supplyChain && (
-        <AnalysisSectionCard icon={Package} title="Supply Chain">
-          <SupplySection title="Manufacturers" icon={<Factory size={11} />}
-            items={(selectedProduct.supplyChain.manufacturers || []).map((m: any) => ({ name: m.name, badge: m.region || "—", detail: m.specialty || m.notes || "", url: m.url }))} />
-          <SupplySection title="Distributors" icon={<Truck size={11} />}
-            items={(selectedProduct.supplyChain.distributors || []).map((d: any) => ({ name: d.name, badge: d.region || "—", detail: d.specialty || d.notes || "", url: d.url }))} />
-          <SupplySection title="Retailers" icon={<Store size={11} />}
-            items={(selectedProduct.supplyChain.retailers || []).map((r: any) => ({ name: r.name, badge: r.type || "—", detail: r.notes || "", url: r.url }))} />
-        </AnalysisSectionCard>
-      )}
+      {activeSection === "supply" && !isService && (() => {
+        const supplyData = selectedProduct.supplyChain || (biz as any)?.supplyChain || (biz as any)?.valueChain;
+        return supplyData ? (
+          <AnalysisSectionCard icon={Package} title="Supply Chain">
+            <SupplySection title="Manufacturers" icon={<Factory size={11} />}
+              items={(supplyData.manufacturers || []).map((m: any) => ({ name: m.name || m, badge: m.region || "—", detail: m.specialty || m.notes || "", url: m.url }))} />
+            <SupplySection title="Distributors" icon={<Truck size={11} />}
+              items={(supplyData.distributors || []).map((d: any) => ({ name: d.name || d, badge: d.region || "—", detail: d.specialty || d.notes || "", url: d.url }))} />
+            <SupplySection title="Retailers" icon={<Store size={11} />}
+              items={(supplyData.retailers || []).map((r: any) => ({ name: r.name || r, badge: r.type || "—", detail: r.notes || "", url: r.url }))} />
+          </AnalysisSectionCard>
+        ) : null;
+      })()}
 
       {activeSection === "patents" && !isService && (
         <AnalysisSectionCard icon={ScrollText} title="Patent Intelligence">
