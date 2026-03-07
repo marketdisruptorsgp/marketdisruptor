@@ -695,7 +695,7 @@ export default function CommandDeckPage() {
         {/* Industry Benchmarks + Opportunity Radar */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <IndustryBenchmarkPanel benchmark={benchmark} />
-          <OpportunityRadarPanel items={opportunityRadar} />
+          <OpportunityMapPanel items={opportunityRadar} />
         </div>
 
         {/* Strategic Pattern Detection */}
