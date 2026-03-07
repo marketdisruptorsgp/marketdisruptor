@@ -31,7 +31,6 @@ import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
 import { KillQuestionCard } from "@/components/command-deck/KillQuestionCard";
 import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
 import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
-import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
 import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
 import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
 import { StrategicPatternCard } from "@/components/command-deck/StrategicPatternCard";
