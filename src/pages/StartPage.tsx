@@ -10,6 +10,7 @@ import {
   Upload, Briefcase, Building2, ArrowRight,
   ShieldCheck, BookOpen, Camera, Target,
   Search, Radar, Sparkles, Crosshair, Swords, Presentation,
+  FileText, BarChart3,
 } from "lucide-react";
 
 const ROTATING_WORDS = [
