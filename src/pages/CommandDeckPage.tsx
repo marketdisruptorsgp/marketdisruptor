@@ -423,8 +423,8 @@ export default function CommandDeckPage() {
 
   // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
   const evidenceAttribution = useMemo(() => {
-    const categories = new Map<string, number>();
-    const categoryExamples = new Map<string, string>();
+    const categories: globalThis.Map<string, number> = new globalThis.Map();
+    const categoryExamples: globalThis.Map<string, string> = new globalThis.Map();
     for (const e of autoAnalysis.flatEvidence) {
       const cat = (e.category || "general").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
       categories.set(cat, (categories.get(cat) || 0) + 1);
