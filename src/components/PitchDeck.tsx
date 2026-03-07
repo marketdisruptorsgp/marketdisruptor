@@ -228,11 +228,45 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
   const currentIdx = SLIDE_TABS.findIndex(t => t.id === activeSlide);
   const nextSlide = currentIdx < TOTAL - 1 ? SLIDE_TABS[currentIdx + 1] : null;
+  const prevSlide = currentIdx > 0 ? SLIDE_TABS[currentIdx - 1] : null;
 
   const goNext = () => {
     if (!nextSlide) { setShowCompletion(true); return; }
     setActiveSlide(nextSlide.id);
     setVisitedSlides(prev => new Set([...prev, nextSlide.id]));
+  };
+
+  const goPrev = () => {
+    if (prevSlide) {
+      setActiveSlide(prevSlide.id);
+      setVisitedSlides(prev => new Set([...prev, prevSlide.id]));
+    }
+  };
+
+  // Keyboard arrow navigation
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); goNext(); }
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); goPrev(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
+
+  // Touch swipe navigation
+  const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) goNext();
+      else goPrev();
+    }
+    touchStartRef.current = null;
   };
 
   const runAnalysis = async () => {
@@ -865,37 +899,51 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         </div>
       </div>
 
-      <div className="space-y-4">
-
-
+      <div className="space-y-4" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
 
        {/* Active slide with ScaledSlide wrapper + transition */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeSlide}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -40 }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
         >
           <ScaledSlide>{rawSlide(activeSlide, slideContent[activeSlide])}</ScaledSlide>
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation */}
-      {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-      {!nextSlide && activeSlide === "invest" && (
-        <>
-          <AllExploredBadge />
+      {/* Slide counter + prev/next */}
+      <div className="flex items-center justify-between gap-3 px-1">
+        <button
+          onClick={goPrev}
+          disabled={!prevSlide}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted border border-border text-foreground"
+        >
+          <ArrowRight size={14} className="rotate-180" /> Prev
+        </button>
+        <span className="text-xs font-bold text-muted-foreground tabular-nums">
+          {currentIdx + 1} / {TOTAL}
+        </span>
+        {nextSlide ? (
           <button
             onClick={goNext}
-            className="w-full flex items-center justify-center gap-2 text-sm font-bold py-4 rounded-md text-white transition-all hover:opacity-90 animate-pulse"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 text-white"
             style={{ background: accentColor }}
           >
-            <Sparkles size={16} /> Complete Analysis
+            Next <ArrowRight size={14} />
           </button>
-        </>
-      )}
+        ) : (
+          <button
+            onClick={goNext}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 text-white animate-pulse"
+            style={{ background: accentColor }}
+          >
+            <Sparkles size={14} /> Complete
+          </button>
+        )}
+      </div>
       </div>
 
       <div className="mt-6"><ReferralCTA compact /></div>
