@@ -634,7 +634,10 @@ export default function CommandDeckPage() {
           weakCategories={evidenceAttribution.weak}
         />
 
-        {/* Strategic Verdict — THE most important component */}
+        {/* Confidence Explanation — Why trust this? */}
+        <ConfidenceExplanationPanel explanation={confidenceExplanation} />
+
+
         <StrategicVerdictBanner
           verdict={narrative?.strategicVerdict ?? null}
           rationale={narrative?.verdictRationale ?? null}
