@@ -489,14 +489,14 @@ export function generatePlaybooks(
         matchedEvidenceIds: evidence.slice(0, 3).map(e => e.id),
       }));
       return fallback.map((s, idx) =>
-        adaptTemplate(s.template, s.matchedSignals, s.matchedEvidenceIds, narrative, mode, s.score * 0.5, idx === 0)
+        adaptTemplate(s.template, s.matchedSignals, s.matchedEvidenceIds, narrative, mode, s.score * 0.5, idx === 0, evidence)
       );
     }
     return [];
   }
 
   return scored.map((s, idx) =>
-    adaptTemplate(s.template, s.matchedSignals, s.matchedEvidenceIds, narrative, mode, Math.min(s.score, 0.95), idx === 0)
+    adaptTemplate(s.template, s.matchedSignals, s.matchedEvidenceIds, narrative, mode, Math.min(s.score, 0.95), idx === 0, evidence)
   );
 }
 
