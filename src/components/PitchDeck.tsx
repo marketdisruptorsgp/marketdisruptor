@@ -199,8 +199,8 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       runAnalysis();
     }
   }, [runTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [activeSlide, setActiveSlide] = useState<SlideTab>("problem");
-  const [visitedSlides, setVisitedSlides] = useState<Set<string>>(new Set(["problem"]));
+  const [activeSlide, setActiveSlide] = useState<SlideTab | "cover">("cover");
+  const [visitedSlides, setVisitedSlides] = useState<Set<string>>(new Set(["cover"]));
   const [userScore, setUserScore] = useState<number>(product.revivalScore || 7);
   const [showCompletion, setShowCompletion] = useState(false);
   const [presenting, setPresenting] = useState(false);
