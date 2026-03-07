@@ -545,10 +545,6 @@ export default function CommandDeckPage() {
     return modeKey === "service" ? "Service Industry" : modeKey === "business" ? "Business Model" : "Product Market";
   }, [businessModelInput, selectedProduct, modeKey]);
 
-  const analysisDate = useMemo(() => {
-    return format(new Date(), "MMM d, yyyy");
-  }, []);
-
   const modeLabel = modeKey === "service" ? "Service Analysis" : modeKey === "business" ? "Business Model Analysis" : "Product Analysis";
 
   // ── Guards ──
