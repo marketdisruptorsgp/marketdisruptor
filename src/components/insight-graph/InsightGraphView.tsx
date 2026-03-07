@@ -7,6 +7,7 @@
  */
 
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
 import { NODE_TYPE_CONFIG, getInsightChain } from "@/lib/insightGraph";
