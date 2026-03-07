@@ -291,7 +291,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
         <Panel icon={Lock} title="Trapped Value" accent={modeAccent}>
           {narrative?.trappedValue ? (
             <>
-              <p className="text-[11px] text-foreground/80 leading-snug line-clamp-3">{narrative.trappedValue}</p>
+              <p className="text-[11px] text-foreground/80 leading-snug">{narrative.trappedValue}</p>
               {narrative.trappedValueEstimate && (
                 <span className="text-[10px] font-bold mt-1 inline-block" style={{ color: modeAccent }}>{narrative.trappedValueEstimate}</span>
               )}
