@@ -93,7 +93,7 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
       {/* ── Header + Evidence Quality ── */}
       <div className="px-5 pt-4 pb-1 flex items-center justify-between gap-3">
         <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
-          Strategic Narrative
+          Narrative
         </p>
         {evidenceQuality && (
           <div className="flex items-center gap-2">

@@ -38,7 +38,7 @@ export const StrategicNarrativePanel = memo(function StrategicNarrativePanel(pro
     >
       <div className="px-4 py-3 border-b border-border">
         <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
-          Strategic Narrative
+          Narrative
         </p>
       </div>
 

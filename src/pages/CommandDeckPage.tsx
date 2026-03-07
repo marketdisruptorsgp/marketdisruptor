@@ -34,6 +34,7 @@ import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCa
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
 import { BriefingSection } from "@/components/command-deck/BriefingSection";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
+import { AdaptiveJourneyMap } from "@/components/AdaptiveJourneyMap";
 import { KillQuestionCard } from "@/components/command-deck/KillQuestionCard";
 import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
 import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
@@ -686,10 +687,35 @@ export default function CommandDeckPage() {
           }}
         />
 
+        {/* ── User Journey Map ── */}
+        {(() => {
+          const p = selectedProduct as any;
+          const uj = p?.userJourney || p?.userWorkflow;
+          const steps = uj?.steps || uj?.stepByStep || [];
+          const fps = uj?.frictionPoints || [];
+          if (steps.length > 0) {
+            return (
+              <BriefingSection
+                title="Customer Journey"
+                icon={Map}
+                preview={`${steps.length} steps · ${fps.length} friction points`}
+                defaultOpen
+              >
+                <AdaptiveJourneyMap
+                  steps={steps}
+                  frictionPoints={fps}
+                  cognitiveLoad={uj?.cognitiveLoad}
+                  contextOfUse={uj?.contextOfUse}
+                  category={p?.category}
+                  productName={p?.name}
+                />
+              </BriefingSection>
+            );
+          }
+          return null;
+        })()}
 
-        {/* ══════════════════════════════════════════════════════════
-            RECOMMENDED STRATEGIC MOVE — Top playbook above fold
-           ══════════════════════════════════════════════════════════ */}
+        {/* ── Recommended Move ── */}
         <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
 
 
@@ -699,9 +725,9 @@ export default function CommandDeckPage() {
 
         {/* Evidence Confidence */}
         <BriefingSection
-          title="Evidence Confidence"
+          title="Confidence"
           icon={BookOpen}
-          preview={`${totalSignals} signals across ${evidenceAttribution.strong.length} strong categories`}
+          preview={`${totalSignals} signals · ${evidenceAttribution.strong.length} strong`}
         >
           <ConfidenceMeter
             completedSteps={completedSteps.size}
@@ -716,7 +742,7 @@ export default function CommandDeckPage() {
 
         {/* Strategic Playbooks & Outcomes */}
         <BriefingSection
-          title="Strategic Playbooks"
+          title="Playbooks"
           icon={Rocket}
           preview={topPlaybook ? `Top: ${topPlaybook.title}` : null}
           badge={allPlaybooks.length}
@@ -737,7 +763,7 @@ export default function CommandDeckPage() {
 
         {/* Structural Insights */}
         <BriefingSection
-          title="Structural Insights"
+          title="Diagnosis"
           icon={Brain}
           preview={narrative?.primaryConstraint ? `Constraint: ${humanizeLabel(narrative.primaryConstraint)}` : null}
         >
@@ -777,7 +803,7 @@ export default function CommandDeckPage() {
 
         {/* Market & Industry Signals */}
         <BriefingSection
-          title="Market Signals"
+          title="Market"
           icon={BarChart3}
           preview={benchmark?.archetype ? `Archetype: ${benchmark.archetype}` : null}
         >
@@ -790,9 +816,9 @@ export default function CommandDeckPage() {
 
         {/* Assumptions & Constraints — Reasoning */}
         <BriefingSection
-          title="Reasoning & Evidence"
+          title="Reasoning"
           icon={Map}
-          preview="Full causal chain analysis"
+          preview="Causal chain analysis"
         >
           <StrategicXRay
             narrative={narrative}
@@ -805,9 +831,9 @@ export default function CommandDeckPage() {
 
         {/* Strategy Lab — Advanced */}
         <BriefingSection
-          title="Strategy Lab"
+          title="Lab"
           icon={Beaker}
-          preview="Scenario simulations & what-if analysis"
+          preview="Scenario simulations & what-if"
         >
           <StrategicScenarioSimulator
             evidence={autoAnalysis.flatEvidence}
@@ -827,9 +853,9 @@ export default function CommandDeckPage() {
 
         {/* Analysis Tools */}
         <BriefingSection
-          title="Analysis Tools"
+          title="Tools"
           icon={Wrench}
-          preview="Specialized strategic calculators"
+          preview="Specialized calculators"
         >
           <LensIntelligencePanel
             analysisMode={analysis.activeMode || "product"}
