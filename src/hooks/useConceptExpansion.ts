@@ -143,6 +143,19 @@ export function useConceptExpansion(graph: InsightGraph) {
     });
   }, []);
 
+  const dismissVariant = useCallback((opportunityNodeId: string, variantId: string) => {
+    setConceptSpaces(prev => {
+      const next = new Map(prev);
+      const space = next.get(opportunityNodeId);
+      if (!space) return prev;
+      next.set(opportunityNodeId, {
+        ...space,
+        variants: space.variants.filter(v => v.id !== variantId),
+      });
+      return next;
+    });
+  }, []);
+
   const getConceptSpace = useCallback((opportunityNodeId: string) => {
     return conceptSpaces.get(opportunityNodeId) ?? null;
   }, [conceptSpaces]);
@@ -151,6 +164,7 @@ export function useConceptExpansion(graph: InsightGraph) {
     generateConceptSpace,
     getConceptSpace,
     toggleVariantSelection,
+    dismissVariant,
     loading,
     conceptSpaces,
   };
