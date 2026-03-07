@@ -126,7 +126,7 @@ export function CommandNavigation() {
         {/* Logo */}
         <div className="px-3 py-2 mb-1">
           <button
-            onClick={() => navigate("/workspace")}
+            onClick={() => navigate("/")}
             className="flex items-center gap-2 w-full"
           >
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-sidebar-primary text-sidebar-primary-foreground">
