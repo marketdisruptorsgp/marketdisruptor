@@ -62,23 +62,20 @@ interface NavSection {
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    label: "Discovery",
+    label: "Overview",
     items: [
       { label: "Command Deck", icon: LayoutDashboard, path: (id) => id ? `/analysis/${id}/command-deck` : "/workspace" },
       { label: "Insight Graph", icon: GitBranch, path: (id) => id ? `/analysis/${id}/insight-graph` : "/workspace", requiresAnalysis: true },
-      { label: "Opportunities", icon: Compass, path: (id) => id ? `/analysis/${id}/command-deck#opportunities` : "/workspace", requiresAnalysis: true },
-      { label: "Simulations", icon: FlaskConical, path: (id) => id ? `/analysis/${id}/command-deck#scenarios` : "/workspace", requiresAnalysis: true },
-      { label: "Risk Intelligence", icon: Shield, path: (id) => id ? `/analysis/${id}/command-deck#risk` : "/workspace", requiresAnalysis: true },
     ],
   },
   {
-    label: "Analysis Pipeline",
+    label: "Analysis Journey",
     items: [
-      { label: "Report", icon: FileText, path: (id) => id ? `/analysis/${id}/report` : "/analysis/new", requiresAnalysis: true },
-      { label: "Disrupt", icon: FlaskConical, path: (id) => id ? `/analysis/${id}/disrupt` : "/analysis/new", requiresAnalysis: true },
-      { label: "Redesign", icon: Lightbulb, path: (id) => id ? `/analysis/${id}/redesign` : "/analysis/new", requiresAnalysis: true },
-      { label: "Stress Test", icon: Target, path: (id) => id ? `/analysis/${id}/stress-test` : "/analysis/new", requiresAnalysis: true },
-      { label: "Pitch", icon: Presentation, path: (id) => id ? `/analysis/${id}/pitch` : "/analysis/new", requiresAnalysis: true },
+      { label: "1 · Understand", icon: Search, path: (id) => id ? `/analysis/${id}/report` : "/analysis/new", requiresAnalysis: true },
+      { label: "2 · Deconstruct", icon: Brain, path: (id) => id ? `/analysis/${id}/disrupt` : "/analysis/new", requiresAnalysis: true },
+      { label: "3 · Reimagine", icon: Lightbulb, path: (id) => id ? `/analysis/${id}/redesign` : "/analysis/new", requiresAnalysis: true },
+      { label: "4 · Stress Test", icon: Shield, path: (id) => id ? `/analysis/${id}/stress-test` : "/analysis/new", requiresAnalysis: true },
+      { label: "5 · Pitch", icon: Layers, path: (id) => id ? `/analysis/${id}/pitch` : "/analysis/new", requiresAnalysis: true },
     ],
   },
   {
