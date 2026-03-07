@@ -353,6 +353,12 @@ export default function CommandDeckPage() {
           isComputing={engineComputing}
         />
 
+        {/* ═══ STRUCTURAL PRESSURE MAP ═══ */}
+        <StrategicPressureMap
+          insights={autoAnalysis.insights}
+          flatEvidence={autoAnalysis.flatEvidence}
+        />
+
         {/* ═══ TIER 1 — HERO SCORE ═══ */}
         <HeroScorePanel
           strategicPotential={strategicPotential}
