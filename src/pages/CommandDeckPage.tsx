@@ -618,7 +618,17 @@ export default function CommandDeckPage() {
           />
         </div>
 
-        {/* ═══ TIER 2 — NARRATIVE SUMMARY ═══ */}
+        {/* ═══ STRATEGIC PATTERN DETECTION ═══ */}
+        <StrategicPatternCard patterns={detectedPatterns} />
+
+        {/* ═══ SCENARIO LAB — Multi-scenario comparison ═══ */}
+        <ScenarioLab
+          scenarios={savedLabScenarios}
+          activeScenarioId={activeLabScenarioId}
+          onLoadScenario={handleLoadLabScenario}
+          onDeleteScenario={handleDeleteLabScenario}
+        />
+
         <NarrativeSummary
           primaryConstraint={narrative?.primaryConstraint ?? null}
           keyDriver={narrative?.keyDriver ?? null}
