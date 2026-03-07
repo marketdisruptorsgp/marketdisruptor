@@ -382,18 +382,21 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
     if (!container) return;
     const containerRect = container.getBoundingClientRect();
 
+    const zoom = cy.zoom();
+    const pan = cy.pan();
+
     const cols: ColumnPosition[] = [];
     for (const tier of activeTierOrder) {
       const bounds = tierBounds[tier.id];
       if (!bounds) continue;
 
-      // Convert model coords to rendered pixel coords
-      const p1 = cy.renderer().projectIntoViewport(bounds.minX, 0);
-      const p2 = cy.renderer().projectIntoViewport(bounds.maxX, 0);
+      // Convert model coordinates → rendered pixel coordinates
+      const screenX1 = bounds.minX * zoom + pan.x;
+      const screenX2 = bounds.maxX * zoom + pan.x;
 
       const padding = 20;
-      const left = Math.max(0, p1[0] - padding);
-      const right = Math.min(containerRect.width, p2[0] + padding);
+      const left = Math.max(0, screenX1 - padding);
+      const right = Math.min(containerRect.width, screenX2 + padding);
 
       cols.push({
         tierId: tier.id,
