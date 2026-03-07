@@ -23,6 +23,11 @@ interface InsightNodeCardProps {
   onSelectNode: (nodeId: string) => void;
   onOpenTool?: (tool: LensTool) => void;
   isMobile?: boolean;
+  /** Concept expansion props */
+  conceptSpace?: ConceptSpace | null;
+  onExpandDesignSpace?: (node: InsightGraphNode) => void;
+  onToggleConceptVariant?: (opportunityNodeId: string, variantId: string) => void;
+  conceptExpansionLoading?: boolean;
 }
 
 export const InsightNodeCard = memo(function InsightNodeCard({
