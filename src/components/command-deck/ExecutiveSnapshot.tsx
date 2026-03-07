@@ -130,10 +130,16 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
     if (!pi) return null;
     const bullets: string[] = [];
     if (pi.priceRange) bullets.push(`Price range: ${pi.priceRange}`);
+    else if (pi.estimatedPrice) bullets.push(`Price: ${typeof pi.estimatedPrice === "string" ? pi.estimatedPrice.slice(0, 80) : pi.estimatedPrice}`);
     else if (pi.averagePrice) bullets.push(`Avg price: ${pi.averagePrice}`);
+    if (pi.priceDirection) {
+      const dir = typeof pi.priceDirection === "string" ? pi.priceDirection.slice(0, 80) : pi.priceDirection;
+      bullets.push(`Trend: ${dir}`);
+    }
     if (pi.strategy) bullets.push(pi.strategy);
-    if (pi.competitorPricing) bullets.push(`Competitor: ${typeof pi.competitorPricing === "string" ? pi.competitorPricing : "mapped"}`);
     if (pi.marginEstimate) bullets.push(`Margin: ${pi.marginEstimate}`);
+    else if (pi.margins) bullets.push(`Margins: ${typeof pi.margins === "string" ? pi.margins.slice(0, 80) : pi.margins}`);
+    if (pi.competitorPricing) bullets.push(`Competitor: ${typeof pi.competitorPricing === "string" ? pi.competitorPricing : "mapped"}`);
     if (pi.pricingModel) bullets.push(pi.pricingModel);
     return bullets.length > 0 ? bullets : null;
   }, [p, biz]);
@@ -141,15 +147,25 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
   // Community / Customer
   const community = useMemo(() => {
     const ci = p.communityInsights || p.customerSentiment || (biz as any)?.communityInsights || (biz as any)?.customerSentiment;
-    if (!ci) return null;
     const bullets: string[] = [];
-    const complaints = ci.topComplaints || [];
-    const requests = ci.improvementRequests || ci.marketGaps || [];
-    complaints.slice(0, 2).forEach((c: any) => bullets.push(typeof c === "string" ? c : c.text || c.label || ""));
-    requests.slice(0, 2).forEach((r: any) => bullets.push(typeof r === "string" ? r : r.text || r.label || ""));
-    if (ci.communitySentiment || ci.redditSentiment) {
-      const s = ci.communitySentiment || ci.redditSentiment;
-      if (!/no direct.*found|not found/i.test(s)) bullets.unshift(s.length > 80 ? s.slice(0, 77) + "…" : s);
+    if (ci) {
+      const complaints = ci.topComplaints || [];
+      const requests = ci.improvementRequests || ci.marketGaps || [];
+      complaints.slice(0, 2).forEach((c: any) => bullets.push(typeof c === "string" ? c : c.text || c.label || ""));
+      requests.slice(0, 2).forEach((r: any) => bullets.push(typeof r === "string" ? r : r.text || r.label || ""));
+      if (ci.communitySentiment || ci.redditSentiment) {
+        const s = ci.communitySentiment || ci.redditSentiment;
+        if (!/no direct.*found|not found/i.test(s)) bullets.unshift(s.length > 80 ? s.slice(0, 77) + "…" : s);
+      }
+    }
+    // Fallback: extract friction points from userJourney
+    if (bullets.length === 0) {
+      const uj = p.userJourney || (biz as any)?.userJourney;
+      const fps = uj?.frictionPoints || [];
+      fps.slice(0, 3).forEach((fp: any) => {
+        const text = typeof fp === "string" ? fp : fp.friction || fp.text || fp.label;
+        if (text) bullets.push(text.length > 80 ? text.slice(0, 77) + "…" : text);
+      });
     }
     return bullets.filter(Boolean).length > 0 ? bullets.filter(Boolean) : null;
   }, [p, biz]);
@@ -159,6 +175,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
     const sc = p.supplyChain || (biz as any)?.supplyChain || (biz as any)?.valueChain;
     if (!sc) return null;
     const bullets: string[] = [];
+    // Structured arrays
     const mfrs = sc.manufacturers || [];
     const dists = sc.distributors || [];
     mfrs.slice(0, 2).forEach((m: any) => {
@@ -169,6 +186,13 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
       const name = typeof d === "string" ? d : d.name;
       if (name) bullets.push(`Dist: ${name}`);
     });
+    // Flat string fields (from analyze-products output)
+    if (bullets.length === 0) {
+      if (sc.manufacturing) bullets.push(typeof sc.manufacturing === "string" ? sc.manufacturing.slice(0, 80) : String(sc.manufacturing));
+      if (sc.materials) bullets.push(typeof sc.materials === "string" ? sc.materials.slice(0, 80) : String(sc.materials));
+      if (sc.estimatedCOGS) bullets.push(`COGS: ${typeof sc.estimatedCOGS === "string" ? sc.estimatedCOGS.slice(0, 80) : sc.estimatedCOGS}`);
+      if (sc.source) bullets.push(typeof sc.source === "string" ? sc.source.slice(0, 60) : String(sc.source));
+    }
     return bullets.length > 0 ? bullets : null;
   }, [p, biz]);
 
