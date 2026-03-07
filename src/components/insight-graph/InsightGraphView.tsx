@@ -755,8 +755,8 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
         <div
           className="relative rounded-2xl overflow-hidden flex-1"
           style={{
-            height: isMobile ? "75vh" : 580,
-            minHeight: isMobile ? 400 : 360,
+            height: "100%",
+            minHeight: isMobile ? 400 : 500,
             background: "hsl(var(--card))",
             border: "1.5px solid hsl(var(--border))",
           }}
