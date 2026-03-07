@@ -158,6 +158,7 @@ export const StrategicXRay = memo(function StrategicXRay({
       onChallenge?.(challengeNode, challengeValue.trim());
       setChallengeNode(null);
       setChallengeValue("");
+      setSelectedNode(null);
     }
   }, [challengeNode, challengeValue, onChallenge]);
 
