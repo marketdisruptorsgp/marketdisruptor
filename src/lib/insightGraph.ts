@@ -39,7 +39,8 @@ export type InsightNodeType =
   | "simulation"
   | "insight"
   | "pathway"
-  | "scenario";
+  | "scenario"
+  | "concept_variant";
 
 export type EdgeRelation =
   | "causes"
