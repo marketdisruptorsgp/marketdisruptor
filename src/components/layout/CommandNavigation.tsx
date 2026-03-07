@@ -8,12 +8,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import {
-  LayoutDashboard, GitBranch, Search, Compass,
-  Radio, HelpCircle, Lightbulb, Route, Layers,
-  Building2, Shield, BarChart3, Radar,
-  Brain, FolderOpen, PlusCircle, Zap,
-  FileText, FlaskConical, Target, Presentation,
-  DollarSign, Cpu,
+  LayoutDashboard, GitBranch, Search,
+  Lightbulb, Layers,
+  Shield, Brain,
+  FolderOpen, PlusCircle, Zap,
+  DollarSign,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
