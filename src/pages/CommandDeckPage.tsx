@@ -437,8 +437,7 @@ export default function CommandDeckPage() {
     return () => clearTimeout(timer);
   }, [completedSteps, totalSignals, metrics.totalEvidenceCount, savedScenarios]);
 
-  // ── Diagnostics toggle ──
-  const [showDiagnostics, setShowDiagnostics] = useState(false);
+  // (diagnostics removed from default view)
 
   // ── Guards ──
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
