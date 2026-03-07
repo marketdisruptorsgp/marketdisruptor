@@ -32,6 +32,8 @@ export interface DimensionValue {
   novelty: "high" | "medium" | "low";
 }
 
+export type QualitativeTier = "strong" | "moderate" | "early";
+
 /** A concept variant — a specific combination of dimension values */
 export interface ConceptVariant {
   id: string;
@@ -41,10 +43,10 @@ export interface ConceptVariant {
   dimensionValues: Record<string, string>;
   /** Human-readable summary of the combination */
   formula: string;
-  /** AI-assessed scores */
-  feasibilityScore: number; // 0-10
-  noveltyScore: number;     // 0-10
-  marketFit: number;        // 0-10
+  /** Qualitative assessments */
+  feasibility: QualitativeTier;
+  novelty: QualitativeTier;
+  marketReadiness: QualitativeTier;
   /** Whether user has selected this for stress testing */
   selectedForStressTest: boolean;
 }
