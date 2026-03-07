@@ -156,7 +156,7 @@ export default function RedesignPage() {
         }
       >
         {/* Content */}
-        <AnalysisContentCard hidden={analysisLoading}>
+        <div style={{ display: analysisLoading ? "none" : undefined }}>
           <FirstPrinciplesAnalysis
             product={selectedProduct}
             onSaved={() => analysis.setSavedRefreshTrigger((n) => n + 1)}
@@ -184,7 +184,7 @@ export default function RedesignPage() {
               if (analysis.analysisParams) analysis.saveAnalysis(updated, analysis.analysisParams);
             }}
           />
-        </AnalysisContentCard>
+        </div>
       </SplitStepLayout>
 
       <PipelineProgressBar
