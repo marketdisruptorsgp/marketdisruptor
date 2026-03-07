@@ -101,7 +101,7 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
   const displayVerdict = verdict
     || (constraintLabel ? `Shift away from ${constraintLabel.toLowerCase()} dependency` : null)
     || (completedSteps > 0
-      ? "Forming initial strategic hypothesis from available evidence…"
+      ? "Preliminary analysis underway — strategic direction will sharpen as more evidence is collected."
       : "Begin analysis to generate strategic direction.");
 
   return (
