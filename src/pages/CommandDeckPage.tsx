@@ -59,6 +59,7 @@ import {
 import { extractAllEvidence, type EvidenceTier } from "@/lib/evidenceEngine";
 import { getScenarios, scenarioToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
 import { recomputeIntelligence } from "@/lib/recomputeIntelligence";
+import { humanizeLabel } from "@/lib/humanize";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
