@@ -78,6 +78,12 @@ ${(constraints || []).map((c: string, i: number) => `${i + 1}. ${c}`).join("\n")
 UPSTREAM LEVERAGE POINTS:
 ${(leveragePoints || []).map((l: string, i: number) => `${i + 1}. ${l}`).join("\n") || "None provided"}
 
+EXISTING COMPETITOR APPROACHES (avoid duplicating these):
+${(competitors || []).map((c: string, i: number) => `${i + 1}. ${c}`).join("\n") || "None provided"}
+
+FLIPPED IDEAS (use as creative provocations):
+${(flippedIdeas || []).map((f: string, i: number) => `${i + 1}. ${f}`).join("\n") || "None provided"}
+
 Generate the design space expansion now.`;
 
     const tierEnum = ["strong", "moderate", "early"];
