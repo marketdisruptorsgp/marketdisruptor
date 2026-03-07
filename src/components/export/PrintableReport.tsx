@@ -24,11 +24,12 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
   const uw = (product as any)?.userWorkflow;
   const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
-  const disruptData = analysisData?.disrupt as Record<string, unknown> | null;
-  const stressTestData = analysisData?.stressTest as Record<string, unknown> | null;
-  const pitchDeckData = analysisData?.pitchDeck as Record<string, unknown> | null;
-  const redesignData = analysisData?.redesign as Record<string, unknown> | null;
-  const governedData = analysisData?.governed as Record<string, unknown> | null;
+  const disruptData = (analysisData?.disrupt ?? analysisData?.disruptData) as Record<string, unknown> | null;
+  const stressTestData = (analysisData?.stressTest ?? analysisData?.stressTestData) as Record<string, unknown> | null;
+  const pitchDeckData = (analysisData?.pitchDeck ?? analysisData?.pitchDeckData) as Record<string, unknown> | null;
+  const redesignData = (analysisData?.redesign ?? analysisData?.reimagine ?? analysisData?.redesignData) as Record<string, unknown> | null;
+  const governedData = (analysisData?.governed ?? analysisData?.governedData) as Record<string, unknown> | null;
+  const strategicSnapshot = analysisData?.strategicSnapshot as Record<string, unknown> | null;
 
   return (
     <div className="print-report">
