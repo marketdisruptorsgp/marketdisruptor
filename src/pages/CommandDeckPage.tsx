@@ -34,6 +34,7 @@ import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
 import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
 import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
 import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
+import { StrategicScenarioSimulator } from "@/components/command-deck/StrategicScenarioSimulator";
 import { StrategicPatternCard } from "@/components/command-deck/StrategicPatternCard";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import {
