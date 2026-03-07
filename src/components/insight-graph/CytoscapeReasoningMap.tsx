@@ -1,10 +1,13 @@
 /**
  * Cytoscape Reasoning Map — Interactive Strategic Discovery Engine
  *
- * Progressive reveal by reasoning tiers (Discovery → Opportunity → Concept → Validation).
- * Concept variants grouped inside compound cluster nodes.
+ * Tier Column Lanes: nodes are forced into strict vertical columns
+ * by reasoning tier (Discovery → Opportunity → Concept → Validation)
+ * with HTML column headers rendered as an overlay.
+ *
+ * Compound cluster nodes group concept variants under parent opportunities.
  * Edge styles differentiate discovered / inherited / design relationships.
- * Auto-highlights strongest reasoning path via dagre LR layout.
+ * Auto-highlights strongest reasoning path.
  */
 
 import { memo, useRef, useEffect, useMemo, useState, useCallback } from "react";
@@ -18,13 +21,16 @@ import { NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 cytoscape.use(dagre);
 
 // ═══════════════════════════════════════════════════════════════
-//  REASONING TIERS — Semantic progressive reveal
+//  REASONING TIERS
 // ═══════════════════════════════════════════════════════════════
 
 interface ReasoningTier {
   id: string;
   label: string;
   types: InsightNodeType[];
+  /** Accent color for column header */
+  accent: string;
+  accentBg: string;
 }
 
 const REASONING_TIERS: ReasoningTier[] = [
@@ -32,6 +38,8 @@ const REASONING_TIERS: ReasoningTier[] = [
     id: "discovery",
     label: "Discovery",
     types: ["signal", "evidence", "assumption"],
+    accent: "hsl(199, 89%, 48%)",
+    accentBg: "hsl(199, 89%, 48%, 0.06)",
   },
   {
     id: "opportunity",
@@ -40,18 +48,30 @@ const REASONING_TIERS: ReasoningTier[] = [
       "constraint", "friction", "leverage_point", "driver", "insight",
       "outcome", "flipped_idea", "concept", "pathway", "scenario", "competitor",
     ],
+    accent: "hsl(152, 60%, 44%)",
+    accentBg: "hsl(152, 60%, 44%, 0.06)",
   },
   {
     id: "concept",
     label: "Concept",
     types: ["concept_variant"],
+    accent: "hsl(180, 65%, 45%)",
+    accentBg: "hsl(180, 65%, 45%, 0.06)",
   },
   {
     id: "validation",
     label: "Validation",
     types: ["simulation", "risk"],
+    accent: "hsl(14, 90%, 55%)",
+    accentBg: "hsl(14, 90%, 55%, 0.06)",
   },
 ];
+
+/** Map node type → tier rank index (0-based) */
+const NODE_TYPE_TO_TIER_RANK: Map<InsightNodeType, number> = new Map();
+REASONING_TIERS.forEach((tier, idx) => {
+  for (const t of tier.types) NODE_TYPE_TO_TIER_RANK.set(t, idx);
+});
 
 // ═══════════════════════════════════════════════════════════════
 //  EDGE STYLES
@@ -121,10 +141,9 @@ function findStrongestPath(graph: InsightGraph): string[] {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  HELPERS — Concept cluster detection
+//  HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-/** Find opportunity IDs that have concept_variant children */
 function findConceptClusters(
   nodes: InsightGraphNode[],
   edges: InsightGraphEdge[],
@@ -141,13 +160,25 @@ function findConceptClusters(
   return clusters;
 }
 
-/** Determine edge category for styling */
 function resolveEdgeCategory(edge: InsightGraphEdge): "discovered" | "inherited" | "design" {
   if (edge.category) return edge.category;
   if (edge.relation === "variant_of") return "design";
-  // Detect inherited: edges connecting promoted concepts (cv- prefix on non-variant nodes)
   if (edge.source.startsWith("cv-") || edge.target.startsWith("cv-")) return "inherited";
   return "discovered";
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  COLUMN HEADER OVERLAY
+// ═══════════════════════════════════════════════════════════════
+
+interface ColumnPosition {
+  tierId: string;
+  label: string;
+  accent: string;
+  accentBg: string;
+  left: number;
+  width: number;
+  nodeCount: number;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -169,10 +200,10 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
 }: CytoscapeReasoningMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
-  // Track which tiers are active — default: Opportunity only
   const [activeTiers, setActiveTiers] = useState<Set<string>>(new Set(["opportunity"]));
   const [showAllSignals, setShowAllSignals] = useState(false);
   const [highlightedPath, setHighlightedPath] = useState<Set<string>>(new Set());
+  const [columnPositions, setColumnPositions] = useState<ColumnPosition[]>([]);
 
   // Compute visible node types from active tiers
   const visibleTypes = useMemo(() => {
@@ -185,7 +216,12 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
     return types;
   }, [activeTiers]);
 
-  // Filter nodes based on tier visibility
+  // Active tier order (for rank assignment)
+  const activeTierOrder = useMemo(() => {
+    return REASONING_TIERS.filter(t => activeTiers.has(t.id));
+  }, [activeTiers]);
+
+  // Filter nodes
   const visibleNodes = useMemo(() => {
     return graph.nodes.filter(n => {
       if (!visibleTypes.has(n.type)) return false;
@@ -203,13 +239,11 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
     return graph.edges.filter(e => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target));
   }, [graph.edges, visibleNodeIds]);
 
-  // Concept clusters (compound parent nodes)
   const conceptClusters = useMemo(
     () => findConceptClusters(visibleNodes, visibleEdges),
     [visibleNodes, visibleEdges],
   );
 
-  // Strongest path
   const strongestPath = useMemo(() => findStrongestPath(graph), [graph]);
 
   useEffect(() => {
@@ -218,23 +252,32 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
     }
   }, [strongestPath, selectedNodeId]);
 
-  // Build Cytoscape elements
+  // Map active tier id → compressed rank index (only active tiers get ranks)
+  const tierToRank = useMemo(() => {
+    const map = new Map<string, number>();
+    activeTierOrder.forEach((tier, idx) => map.set(tier.id, idx));
+    return map;
+  }, [activeTierOrder]);
+
+  // Build Cytoscape elements with tier rank constraints
   const elements = useMemo(() => {
     const els: any[] = [];
 
-    // Create compound parent nodes for concept clusters
+    // Compound cluster parents
     const variantToCluster = new Map<string, string>();
     for (const [oppId, variantIds] of conceptClusters) {
       const clusterId = `cluster-${oppId}`;
       for (const vid of variantIds) variantToCluster.set(vid, clusterId);
 
       const cvCfg = NODE_TYPE_CONFIG["concept_variant"];
+      const clusterRank = tierToRank.get("concept") ?? 2;
       els.push({
         group: "nodes" as const,
         data: {
           id: clusterId,
           label: "Design Space",
           isCluster: true,
+          tierRank: clusterRank,
           color: cvCfg.color,
           bgColor: cvCfg.bgColor,
           borderColor: cvCfg.borderColor,
@@ -252,16 +295,22 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
       const isDimmed = highlightedPath.size > 0 && !isOnPath && !isSelected;
       const isVariant = n.type === "concept_variant";
 
+      // Determine tier rank for column alignment
+      const globalTierIdx = NODE_TYPE_TO_TIER_RANK.get(n.type) ?? 1;
+      const tierId = REASONING_TIERS[globalTierIdx]?.id ?? "opportunity";
+      const rank = tierToRank.get(tierId) ?? 0;
+
       els.push({
         group: "nodes" as const,
         data: {
           id: n.id,
-          // If this variant belongs to a cluster, set parent
           ...(variantToCluster.has(n.id) ? { parent: variantToCluster.get(n.id) } : {}),
           label: n.label.length > 60 ? n.label.slice(0, 57) + "…" : n.label,
           fullLabel: n.label,
           nodeType: n.type,
           typeName: cfg.label,
+          tierRank: rank,
+          tierId,
           color: cfg.color,
           bgColor: cfg.bgColor,
           borderColor: isSelected || isBreakthrough || isTopLeverage ? cfg.color : cfg.borderColor,
@@ -298,7 +347,70 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
     }
 
     return els;
-  }, [visibleNodes, visibleEdges, highlightedPath, selectedNodeId, graph.topNodes, conceptClusters]);
+  }, [visibleNodes, visibleEdges, highlightedPath, selectedNodeId, graph.topNodes, conceptClusters, tierToRank]);
+
+  // Compute column positions from rendered node positions
+  const updateColumnPositions = useCallback((cy: Core) => {
+    const tierBounds: Record<string, { minX: number; maxX: number; count: number }> = {};
+
+    cy.nodes("[!isCluster]").forEach(node => {
+      const tierId = node.data("tierId") as string;
+      if (!tierId) return;
+      const bb = node.boundingBox({});
+      if (!tierBounds[tierId]) {
+        tierBounds[tierId] = { minX: bb.x1, maxX: bb.x2, count: 0 };
+      }
+      tierBounds[tierId].minX = Math.min(tierBounds[tierId].minX, bb.x1);
+      tierBounds[tierId].maxX = Math.max(tierBounds[tierId].maxX, bb.x2);
+      tierBounds[tierId].count++;
+    });
+
+    // Also include compound nodes
+    cy.nodes(":parent").forEach(node => {
+      const bb = node.boundingBox({});
+      const tierId = "concept";
+      if (!tierBounds[tierId]) {
+        tierBounds[tierId] = { minX: bb.x1, maxX: bb.x2, count: 0 };
+      }
+      tierBounds[tierId].minX = Math.min(tierBounds[tierId].minX, bb.x1);
+      tierBounds[tierId].maxX = Math.max(tierBounds[tierId].maxX, bb.x2);
+    });
+
+    if (Object.keys(tierBounds).length === 0) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+
+    const zoom = cy.zoom();
+    const pan = cy.pan();
+
+    const cols: ColumnPosition[] = [];
+    for (const tier of activeTierOrder) {
+      const bounds = tierBounds[tier.id];
+      if (!bounds) continue;
+
+      // Convert model coordinates → rendered pixel coordinates
+      const screenX1 = bounds.minX * zoom + pan.x;
+      const screenX2 = bounds.maxX * zoom + pan.x;
+
+      const padding = 20;
+      const left = Math.max(0, screenX1 - padding);
+      const right = Math.min(containerRect.width, screenX2 + padding);
+
+      cols.push({
+        tierId: tier.id,
+        label: tier.label,
+        accent: tier.accent,
+        accentBg: tier.accentBg,
+        left,
+        width: Math.max(right - left, 80),
+        nodeCount: bounds.count,
+      });
+    }
+
+    setColumnPositions(cols);
+  }, [activeTierOrder]);
 
   // Initialize/update Cytoscape
   useEffect(() => {
@@ -313,11 +425,15 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
         name: "dagre",
         rankDir: "LR",
         nodeSep: 60,
-        rankSep: 180,
+        rankSep: 220,
         edgeSep: 30,
-        padding: 40,
+        padding: 50,
         animate: true,
         animationDuration: 600,
+        // Force tier column alignment via rank assignment
+        rank: (node: any) => {
+          return node.data("tierRank") ?? 0;
+        },
       } as any,
       style: [
         // ── Regular nodes ──
@@ -428,31 +544,20 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
             "arrow-scale": 0.8,
           },
         },
-        // ── Edge category: discovered (solid, default) ──
+        // ── Edge category: discovered ──
         {
           selector: 'edge[edgeCategory="discovered"]',
-          style: {
-            "line-style": "solid",
-            width: 1.5,
-          },
+          style: { "line-style": "solid", width: 1.5 },
         },
-        // ── Edge category: inherited (dashed) ──
+        // ── Edge category: inherited ──
         {
           selector: 'edge[edgeCategory="inherited"]',
-          style: {
-            "line-style": "dashed" as any,
-            width: 1.5,
-          },
+          style: { "line-style": "dashed" as any, width: 1.5 },
         },
-        // ── Edge category: design (dotted, thin, subtle) ──
+        // ── Edge category: design ──
         {
           selector: 'edge[edgeCategory="design"]',
-          style: {
-            "line-style": "dotted" as any,
-            width: 1,
-            opacity: 0.25,
-            "arrow-scale": 0.6,
-          },
+          style: { "line-style": "dotted" as any, width: 1, opacity: 0.25, "arrow-scale": 0.6 },
         },
         // ── Edge state: on path ──
         {
@@ -471,7 +576,12 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
       wheelSensitivity: 0.3,
     });
 
-    // Event handlers
+    // Update column headers after layout completes
+    cy.on("layoutstop", () => updateColumnPositions(cy));
+    // Also update on viewport changes (pan/zoom)
+    cy.on("viewport", () => updateColumnPositions(cy));
+
+    // Node click → highlight reasoning chain
     cy.on("tap", "node[!isCluster]", (evt: EventObject) => {
       const node = evt.target as NodeSingular;
       const nodeId = node.data("id");
@@ -497,6 +607,7 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
       setHighlightedPath(chainIds);
     });
 
+    // Background click → reset
     cy.on("tap", (evt: EventObject) => {
       if (evt.target === cy) {
         onSelectNode?.(null);
@@ -514,14 +625,13 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
       cy.destroy();
       cyRef.current = null;
     };
-  }, [elements, graph.edges, strongestPath]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [elements, graph.edges, strongestPath, updateColumnPositions]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Toggle a tier on/off
+  // Toggle tier
   const toggleTier = useCallback((tierId: string) => {
     setActiveTiers(prev => {
       const next = new Set(prev);
       if (next.has(tierId)) {
-        // Don't allow removing all tiers
         if (next.size > 1) next.delete(tierId);
       } else {
         next.add(tierId);
@@ -536,7 +646,7 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
     onSelectNode?.(null);
   }, [strongestPath, onSelectNode]);
 
-  // Count nodes per visible type for legend
+  // Type counts for legend
   const typeCounts = useMemo(() => {
     const counts: { type: InsightNodeType; count: number }[] = [];
     const countMap = new Map<InsightNodeType, number>();
@@ -547,7 +657,6 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
 
   const hiddenCount = graph.nodes.length - visibleNodes.length;
 
-  // Tier counts for indicators
   const tierNodeCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const tier of REASONING_TIERS) {
@@ -585,20 +694,14 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
                 }}
               >
                 {tier.label}
-                {/* Subtle count indicator for inactive tiers with available nodes */}
                 {!isActive && count > 0 && (
-                  <span
-                    className="ml-1 text-[9px] font-bold opacity-50"
-                  >
-                    ·{count}
-                  </span>
+                  <span className="ml-1 text-[9px] font-bold opacity-50">·{count}</span>
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* Weak signals toggle */}
         {activeTiers.has("discovery") && (
           <button
             onClick={() => setShowAllSignals(!showAllSignals)}
@@ -613,7 +716,6 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
           </button>
         )}
 
-        {/* Reset */}
         {(activeTiers.size > 1 || !activeTiers.has("opportunity") || selectedNodeId) && (
           <button
             onClick={handleResetView}
@@ -623,7 +725,6 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
           </button>
         )}
 
-        {/* Stats */}
         <span className="text-xs text-muted-foreground ml-auto">
           {visibleNodes.length} nodes · {visibleEdges.length} edges
           {hiddenCount > 0 && ` · ${hiddenCount} hidden`}
@@ -668,16 +769,54 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
         </div>
       </div>
 
-      {/* Cytoscape canvas */}
-      <div
-        ref={containerRef}
-        className="flex-1 min-h-0 rounded-xl overflow-hidden"
-        style={{
-          background: "hsl(var(--card))",
-          border: "1.5px solid hsl(var(--border))",
-          minHeight: 400,
-        }}
-      />
+      {/* Cytoscape canvas with column header overlay */}
+      <div className="flex-1 min-h-0 relative">
+        {/* Column headers — positioned absolutely over the canvas */}
+        {columnPositions.length > 0 && (
+          <div className="absolute top-0 left-0 right-0 z-10 flex pointer-events-none" style={{ height: 32 }}>
+            {columnPositions.map(col => (
+              <div
+                key={col.tierId}
+                className="absolute top-0 flex items-center justify-center"
+                style={{
+                  left: col.left,
+                  width: col.width,
+                  height: 32,
+                }}
+              >
+                {/* Column background stripe (full height of canvas) */}
+                <div
+                  className="absolute inset-0 rounded-t-lg"
+                  style={{
+                    background: col.accentBg,
+                    borderBottom: `2px solid ${col.accent}`,
+                    opacity: 0.7,
+                  }}
+                />
+                {/* Label */}
+                <span
+                  className="relative z-10 text-[11px] font-bold tracking-wide uppercase"
+                  style={{ color: col.accent }}
+                >
+                  {col.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Canvas */}
+        <div
+          ref={containerRef}
+          className="w-full h-full rounded-xl overflow-hidden"
+          style={{
+            background: "hsl(var(--card))",
+            border: "1.5px solid hsl(var(--border))",
+            minHeight: 400,
+            paddingTop: columnPositions.length > 0 ? 32 : 0,
+          }}
+        />
+      </div>
 
       {/* Expand prompt */}
       <AnimatePresence>
