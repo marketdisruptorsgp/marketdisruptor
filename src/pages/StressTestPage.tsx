@@ -273,6 +273,7 @@ export default function StressTestPage() {
                 runTrigger={runTrigger}
                 onLoadingChange={setAnalysisLoading}
                 competitorIntel={analysis.scoutedCompetitors}
+                conceptVariants={analysis.conceptVariantsForStressTest.length > 0 ? analysis.conceptVariantsForStressTest : undefined}
                 onDataLoaded={(d) => {
                   analysis.setStressTestData(d);
                   analysis.saveStepData("stressTest", d);
