@@ -1,11 +1,9 @@
 /**
- * AUTO-ANALYSIS ENGINE — Manual Strategic Analysis Trigger
+ * AUTO-ANALYSIS ENGINE — Progressive Strategic Intelligence
  *
- * Watches for step completion to track pipeline state.
- * Intelligence is ONLY computed when the user explicitly clicks
- * "Run Strategic Analysis" on the Command Deck.
- *
- * No automatic insight generation. Steps only collect evidence.
+ * Automatically recomputes strategic intelligence whenever the
+ * evidence dataset changes (new pipeline steps complete).
+ * Also exposes a manual runAnalysis() for explicit recompute.
  */
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
