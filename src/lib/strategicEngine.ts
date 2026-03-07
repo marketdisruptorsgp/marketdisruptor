@@ -188,25 +188,9 @@ function nextId(prefix: string): string {
 
 /**
  * Humanize internal labels — strip ID prefixes, code artifacts, and jargon.
- * Applied to all user-facing insight labels system-wide.
+ * Uses the shared system-wide humanizer.
  */
-function humanize(text: string): string {
-  if (!text) return text;
-  return text
-    // Strip constraint ID prefixes like "C1: ", "F_1: ", "C2: "
-    .replace(/^[A-Z]_?\d+\s*[:\.]\s*/i, "")
-    // Strip "Binding Constraint: " prefix
-    .replace(/^Binding Constraint\s*[:\.]\s*/i, "")
-    // Strip "Counterfactual: " prefix
-    .replace(/^Counterfactual\s*[:\.]\s*/i, "")
-    // Strip "(+N related)" suffixes
-    .replace(/\s*\(\+\d+ related\)$/i, "")
-    // Convert snake_case to Title Case
-    .replace(/_/g, " ")
-    // Clean up double spaces
-    .replace(/\s{2,}/g, " ")
-    .trim();
-}
+import { humanizeLabel as humanize } from "@/lib/humanize";
 
 const COMPAT_DEFAULTS = {
   tier: "structural" as const,
