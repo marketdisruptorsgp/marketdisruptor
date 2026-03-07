@@ -29,11 +29,11 @@ export const OpportunityRadarPanel = memo(function OpportunityRadarPanel({ items
     low: items.filter(i => i.leverage === "low"),
   };
 
-  const tiers: { key: "high" | "moderate" | "low"; items: OpportunityRadarItem[] }[] = [
-    { key: "high", items: grouped.high },
-    { key: "moderate", items: grouped.moderate },
-    { key: "low", items: grouped.low },
-  ].filter(t => t.items.length > 0);
+  const tiers = ([
+    { key: "high" as const, items: grouped.high },
+    { key: "moderate" as const, items: grouped.moderate },
+    { key: "low" as const, items: grouped.low },
+  ]).filter(t => t.items.length > 0);
 
   return (
     <div className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
