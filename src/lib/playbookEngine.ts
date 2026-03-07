@@ -279,44 +279,74 @@ const PLAYBOOK_TEMPLATES: PlaybookTemplate[] = [
 //  TRIGGER DETECTION
 // ═══════════════════════════════════════════════════════════════
 
+function matchesWordBoundary(corpus: string, keyword: string): boolean {
+  // Use word-boundary regex to avoid substring false positives
+  // e.g. "pipeline" should not match inside "pipeline steps completed"
+  // but "direct sales" should match "their direct sales model"
+  try {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`\\b${escaped}\\b`, "i");
+    return re.test(corpus);
+  } catch {
+    return corpus.includes(keyword);
+  }
+}
+
 function computeTemplateMatch(
   template: PlaybookTemplate,
   evidence: Evidence[],
   insights: StrategicInsight[],
   narrative: StrategicNarrative | null,
 ): { score: number; matchedSignals: string[]; matchedEvidenceIds: string[] } {
-  const corpus = [
-    ...evidence.map(e => `${e.label} ${e.description || ""}`),
-    ...insights.map(i => `${i.label} ${i.description}`),
+  // Build separate corpus sources with different weights:
+  // Evidence/insights (direct data) get full weight
+  // Narrative (derived) gets half weight to avoid circular reinforcement
+  const evidenceTexts = evidence.map(e => `${e.label} ${e.description || ""}`);
+  const insightTexts = insights.map(i => `${i.label} ${i.description}`);
+  const narrativeTexts = [
     narrative?.primaryConstraint || "",
     narrative?.keyDriver || "",
     narrative?.leveragePoint || "",
     narrative?.breakthroughOpportunity || "",
-    narrative?.strategicVerdict || "",
-    narrative?.narrativeSummary || "",
-  ].join(" ").toLowerCase();
+  ].filter(Boolean);
 
-  let matchCount = 0;
+  const directCorpus = [...evidenceTexts, ...insightTexts].join(" ").toLowerCase();
+  const narrativeCorpus = narrativeTexts.join(" ").toLowerCase();
+
+  let weightedScore = 0;
   const matchedSignals: string[] = [];
   const matchedEvidenceIds: string[] = [];
 
   for (const keyword of template.triggerKeywords) {
-    if (corpus.includes(keyword.toLowerCase())) {
-      matchCount++;
+    const kw = keyword.toLowerCase();
+    const directMatch = matchesWordBoundary(directCorpus, kw);
+    const narrativeMatch = matchesWordBoundary(narrativeCorpus, kw);
+
+    if (directMatch) {
+      weightedScore += 1.0; // Full weight for direct evidence match
+      matchedSignals.push(keyword);
+    } else if (narrativeMatch) {
+      weightedScore += 0.4; // Reduced weight for narrative-only match
       matchedSignals.push(keyword);
     }
   }
 
-  // Also match evidence directly
+  // Match evidence IDs using word-boundary matching
   for (const ev of evidence) {
     const evText = `${ev.label} ${ev.description || ""}`.toLowerCase();
-    if (template.triggerKeywords.some(k => evText.includes(k.toLowerCase()))) {
+    if (template.triggerKeywords.some(k => matchesWordBoundary(evText, k.toLowerCase()))) {
       matchedEvidenceIds.push(ev.id);
     }
   }
 
+  // Require minimum 2 matched keywords to avoid spurious single-keyword matches
+  const effectiveMatches = matchedSignals.length;
+  if (effectiveMatches < 2) {
+    return { score: 0, matchedSignals: [], matchedEvidenceIds: [] };
+  }
+
   const score = template.triggerKeywords.length > 0
-    ? matchCount / template.triggerKeywords.length
+    ? weightedScore / template.triggerKeywords.length
     : 0;
 
   return { score, matchedSignals, matchedEvidenceIds: [...new Set(matchedEvidenceIds)] };
@@ -475,17 +505,29 @@ export function generatePlaybooks(
     const match = computeTemplateMatch(template, evidence, insights, narrative);
     return { template, ...match };
   })
-    .filter(s => s.score > 0.05) // Must match at least something
+    .filter(s => s.score > 0.08) // Must match at least 2+ keywords meaningfully
     .sort((a, b) => b.score - a.score)
     .slice(0, 3); // Top 3
 
   if (scored.length === 0) {
-    // Fallback: generate from top 2 templates if we have enough evidence
+    // Context-aware fallback: pick the template whose category best fits the mode
+    // instead of always defaulting to the first 2 templates
     if (evidence.length >= 5) {
-      const fallback = PLAYBOOK_TEMPLATES.slice(0, 2).map((t, idx) => ({
+      const modePriority: Record<string, string[]> = {
+        product: ["modularization", "experience_redesign", "cost_collapse"],
+        service: ["experience_redesign", "cost_collapse", "modularization"],
+        business_model: ["unbundling", "cost_collapse", "modularization"],
+      };
+      const priorities = modePriority[mode] || modePriority.product;
+      const sortedByMode = [...PLAYBOOK_TEMPLATES].sort((a, b) => {
+        const aIdx = priorities.indexOf(a.archetype || "");
+        const bIdx = priorities.indexOf(b.archetype || "");
+        return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
+      });
+      const fallback = sortedByMode.slice(0, 2).map((t, idx) => ({
         template: t,
-        score: 0.15 - idx * 0.05,
-        matchedSignals: [],
+        score: 0.12 - idx * 0.04,
+        matchedSignals: [] as string[],
         matchedEvidenceIds: evidence.slice(0, 3).map(e => e.id),
       }));
       return fallback.map((s, idx) =>

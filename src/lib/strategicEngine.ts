@@ -803,19 +803,40 @@ function buildStrategicNarrative(
 
   const h = (s: string | null | undefined) => s ? humanize(s) : null;
 
-  /** Truncate at word boundary — never mid-word */
+  /** Sanitize insight labels for use in narrative text.
+   *  Strips internal prefixes, enumerations (e.g. "and 11 related constraints"),
+   *  truncates at word boundary — never mid-word, never mid-sentence fragment. */
   function trimAt(s: string | null | undefined, max: number): string {
     if (!s) return "";
-    const clean = humanize(s);
+    let clean = humanize(s);
+
+    // Strip trailing enumerations like "and 11 related constraints" or "and 5 additional..."
+    clean = clean.replace(/[.,]?\s+and\s+\d+\s+(related|additional|further|other)\s+\w+\.?$/i, "");
+
+    // Strip internal step prefixes like "Step 1: Step 1:" or "C1:", "F1:"
+    clean = clean.replace(/^(?:Step\s*\d+\s*:\s*)+/i, "");
+    clean = clean.replace(/^[A-Z]\d+\s*:\s*/i, "");
+
+    // If label contains "→" (chained labels), take only the final segment
+    if (clean.includes("→")) {
+      const segments = clean.split("→").map(seg => seg.trim()).filter(Boolean);
+      clean = segments[segments.length - 1] || clean;
+    }
+
+    // Clean up any "... to apply if..." fragments that read as incomplete
+    // These happen when constraint/opportunity labels are raw concatenations
+    clean = clean.replace(/\.\.\./g, "").trim();
+
     if (clean.length <= max) return clean;
+
     // Find the last space before max
     const cut = clean.lastIndexOf(" ", max);
-    // If no reasonable word boundary found, use the full string up to max and find next word end
+    // If no reasonable word boundary found, extend to next word end
     if (cut < max * 0.4) {
       const nextSpace = clean.indexOf(" ", max);
-      return nextSpace > 0 ? clean.slice(0, nextSpace) + "…" : clean;
+      return nextSpace > 0 ? clean.slice(0, nextSpace) : clean;
     }
-    return clean.slice(0, cut) + "…";
+    return clean.slice(0, cut);
   }
 
   // Build a readable narrative — skeptical, qualified language

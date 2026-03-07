@@ -268,7 +268,7 @@ function StepCard({ node }: { node: StepNode }) {
 
   return (
     <div
-      className="flex flex-col rounded-lg min-w-[140px] max-w-[200px] flex-1 cursor-default"
+      className="flex flex-col rounded-lg min-w-[140px] max-w-[240px] flex-1 cursor-default"
       style={{
         background: "hsl(var(--card))",
         border: isHigh
@@ -290,7 +290,7 @@ function StepCard({ node }: { node: StepNode }) {
           </div>
           <span className="text-[10px] font-bold text-muted-foreground">{node.index + 1}</span>
         </div>
-        <p className="text-[12px] font-semibold text-foreground leading-snug line-clamp-3">
+        <p className="text-[12px] font-semibold text-foreground leading-snug">
           {node.text}
         </p>
       </div>
