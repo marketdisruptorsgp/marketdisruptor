@@ -25,6 +25,7 @@ interface CriticalValidationProps {
   runTrigger?: number;
   onLoadingChange?: (loading: boolean) => void;
   competitorIntel?: unknown[];
+  conceptVariants?: { name: string; description: string; formula: string; dimensionValues: Record<string, string> }[];
 }
 
 export const CriticalValidation = ({ product, analysisData, activeTab, externalData, onDataLoaded, runTrigger, onLoadingChange, competitorIntel }: CriticalValidationProps) => {
