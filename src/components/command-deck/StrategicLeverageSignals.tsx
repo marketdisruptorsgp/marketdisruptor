@@ -40,15 +40,20 @@ const DIRECTION_MAP: Record<string, string> = {
 export const StrategicLeverageSignals = memo(function StrategicLeverageSignals({
   insights,
   onViewGraph,
+  excludeLabels = [],
 }: StrategicLeverageSignalsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const excludeSet = useMemo(() => new Set(excludeLabels.map(l => l.toLowerCase().slice(0, 50))), [excludeLabels]);
 
   const topInsights = useMemo(() =>
     [...insights]
       .filter(i => (i.impact ?? 0) >= 4)
+      // Exclude insights whose labels are already shown in Verdict/Trapped/Kill cards
+      .filter(i => !excludeSet.has(i.label.toLowerCase().slice(0, 50)))
       .sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0))
       .slice(0, 5),
-    [insights]
+    [insights, excludeSet]
   );
 
   if (topInsights.length === 0) return null;
