@@ -645,6 +645,23 @@ export default function CommandDeckPage() {
                 <Play size={12} /> Run Analysis
               </button>
             )}
+            <button
+              onClick={() => {
+                if (!selectedProduct) return;
+                const data = gatherAllAnalysisData(analysis);
+                toast.loading("Generating PDF…", { id: "pdf-progress" });
+                downloadReportAsPDF(selectedProduct, data, {
+                  title: selectedProduct.name || analysisDisplayName,
+                  mode: analysis.activeMode,
+                  onProgress: (msg: string) => toast.loading(msg, { id: "pdf-progress" }),
+                }).then(() => { toast.dismiss("pdf-progress"); toast.success("PDF downloaded!"); })
+                  .catch(() => { toast.dismiss("pdf-progress"); toast.error("Failed to download PDF"); });
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
+              style={{ background: "hsl(var(--muted))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))" }}
+            >
+              <FileDown size={13} /> PDF
+            </button>
             <button onClick={handleRecomputeAll}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
               style={{ background: `${modeAccent}15`, color: modeAccent, border: `1px solid ${modeAccent}30` }}>
