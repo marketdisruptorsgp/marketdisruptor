@@ -95,7 +95,7 @@ export const ExecutiveBrief = memo(function ExecutiveBrief({
         <div className="flex items-center gap-2 mb-2">
           <Crosshair size={13} style={{ color: modeAccent }} />
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Strategic Diagnosis
+            Diagnosis
           </span>
           <span
             className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ml-auto"
