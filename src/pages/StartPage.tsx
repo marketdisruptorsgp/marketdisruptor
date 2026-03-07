@@ -20,32 +20,27 @@ const ROTATING_WORDS = [
 
 const PIPELINE_STEPS = [
   {
-    icon: Search, label: "Map", step: 1,
-    desc: "Map the system — define your target and uncover how it operates",
+    icon: Search, label: "Understand", step: 1,
+    desc: "Define your target and map the system — pricing, supply chains, market position",
     color: "#2563eb",
   },
   {
-    icon: Radar, label: "Deconstruct", step: 2,
-    desc: "Challenge assumptions — question pricing, supply chains, and positioning",
+    icon: Radar, label: "Disrupt", step: 2,
+    desc: "Challenge assumptions and uncover structural constraints hiding in plain sight",
     color: "#7c3aed",
   },
   {
-    icon: Sparkles, label: "Flip", step: 3,
-    desc: "Reveal opportunity signals — generate structural alternatives",
+    icon: Sparkles, label: "Reimagine", step: 3,
+    desc: "Flip constraints into opportunities — generate redesigned concepts with evidence",
     color: "#db2777",
   },
   {
-    icon: Crosshair, label: "Redesign", step: 4,
-    desc: "Redesign the model — build a reimagined concept with evidence",
-    color: "#059669",
-  },
-  {
-    icon: Swords, label: "Stress Test", step: 5,
-    desc: "Validate with adversarial testing — red vs green team debate",
+    icon: Swords, label: "Stress Test", step: 4,
+    desc: "Validate with adversarial testing — red team vs green team debate",
     color: "#dc2626",
   },
   {
-    icon: Presentation, label: "Pitch Deck", step: 6,
+    icon: Presentation, label: "Pitch", step: 5,
     desc: "Synthesize into an investor-ready narrative with evidence-backed slides",
     color: "#d97706",
   },
@@ -127,7 +122,7 @@ export default function StartPage() {
               <Sparkles size={12} /> How Discovery Works
             </p>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-              Six stages of strategic discovery
+              Five steps to strategic clarity
             </h2>
             <p className="text-sm text-foreground/60 mt-1.5">
               Each step builds on the last — from mapping the system to redesigning it

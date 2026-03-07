@@ -71,7 +71,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: "Analysis Journey",
     items: [
       { label: "1 · Understand", icon: Search, path: (id) => id ? `/analysis/${id}/report` : "/analysis/new", requiresAnalysis: true },
-      { label: "2 · Deconstruct", icon: Brain, path: (id) => id ? `/analysis/${id}/disrupt` : "/analysis/new", requiresAnalysis: true },
+      { label: "2 · Disrupt", icon: Brain, path: (id) => id ? `/analysis/${id}/disrupt` : "/analysis/new", requiresAnalysis: true },
       { label: "3 · Reimagine", icon: Lightbulb, path: (id) => id ? `/analysis/${id}/redesign` : "/analysis/new", requiresAnalysis: true },
       { label: "4 · Stress Test", icon: Shield, path: (id) => id ? `/analysis/${id}/stress-test` : "/analysis/new", requiresAnalysis: true },
       { label: "5 · Pitch", icon: Layers, path: (id) => id ? `/analysis/${id}/pitch` : "/analysis/new", requiresAnalysis: true },
