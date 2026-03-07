@@ -382,6 +382,14 @@ export default function CommandDeckPage() {
           totalSteps={PIPELINE_STEPS.length}
         />
 
+        {/* ═══ STRATEGIC X-RAY — Interactive Reasoning Chain ═══ */}
+        <StrategicXRay
+          narrative={narrative}
+          insights={autoAnalysis.insights}
+          flatEvidence={autoAnalysis.flatEvidence}
+          onRecompute={handleRecomputeAll}
+        />
+
         {/* ═══ TIER 1.6 — TRAPPED VALUE + KILL QUESTION ═══ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <TrappedValueCard
