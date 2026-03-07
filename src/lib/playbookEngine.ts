@@ -53,6 +53,12 @@ export interface StrategicMove {
   evidenceIds: string[];
 }
 
+export interface ComparableTransformation {
+  from: string;
+  to: string;
+  example?: string;
+}
+
 export interface TransformationPlaybook {
   id: string;
   title: string;
@@ -70,8 +76,12 @@ export interface TransformationPlaybook {
   archetype: DisruptionArchetype | null;
   triggerConstraints: string[];
   triggerSignals: string[];
-  confidence: number; // 0-1
+  confidence: number;
   isRecommended: boolean;
+  /** Whether this playbook was triggered by a user challenge/hypothesis */
+  triggeredByHypothesis: boolean;
+  /** Comparable transformations for pattern recognition */
+  comparables: ComparableTransformation[];
 }
 
 // ═══════════════════════════════════════════════════════════════
