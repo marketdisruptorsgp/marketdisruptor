@@ -742,7 +742,7 @@ export default function CommandDeckPage() {
 
         {/* Strategic Playbooks & Outcomes */}
         <BriefingSection
-          title="Strategic Playbooks"
+          title="Playbooks"
           icon={Rocket}
           preview={topPlaybook ? `Top: ${topPlaybook.title}` : null}
           badge={allPlaybooks.length}
