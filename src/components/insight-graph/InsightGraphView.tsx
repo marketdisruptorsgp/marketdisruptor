@@ -48,7 +48,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   const analysis = useAnalysis();
 
   // Concept expansion
-  const { generateConceptSpace, getConceptSpace, toggleVariantSelection, loading: conceptLoading } = useConceptExpansion(graph);
+  const { generateConceptSpace, getConceptSpace, toggleVariantSelection, dismissVariant, loading: conceptLoading } = useConceptExpansion(graph);
   // Handle sending selected concept variants to stress test
   const handleStressTestSelected = useCallback((opportunityNodeId: string) => {
     const space = getConceptSpace(opportunityNodeId);
@@ -230,6 +230,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
                   conceptSpace={getConceptSpace(selectedNode.id)}
                   onExpandDesignSpace={(n) => generateConceptSpace(n)}
                   onToggleConceptVariant={toggleVariantSelection}
+                  onDismissConceptVariant={dismissVariant}
                   onStressTestSelected={handleStressTestSelected}
                   conceptExpansionLoading={conceptLoading === selectedNode.id}
                 />
@@ -251,6 +252,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
                   conceptSpace={getConceptSpace(selectedNode.id)}
                   onExpandDesignSpace={(n) => generateConceptSpace(n)}
                   onToggleConceptVariant={toggleVariantSelection}
+                  onDismissConceptVariant={dismissVariant}
                   onStressTestSelected={handleStressTestSelected}
                   conceptExpansionLoading={conceptLoading === selectedNode.id}
                 />
