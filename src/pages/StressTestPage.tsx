@@ -138,14 +138,6 @@ export default function StressTestPage() {
 
       {!analysisLoading && <AnalysisDivider />}
 
-      {/* Context Banner — after divider for consistent ordering */}
-      {!analysisLoading && (
-        <AnalysisContextBanner
-          icon={Swords}
-          title="Strategy Development"
-          description="Opportunity prioritization, strategic command deck, and adversarial stress testing — your idea is attacked, defended, and scored."
-          iconColor="hsl(350 80% 55%)"
-        />
       )}
 
       {/* Loading Tracker */}
