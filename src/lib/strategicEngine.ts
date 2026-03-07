@@ -91,6 +91,24 @@ export interface StrategicNarrative {
   breakthroughOpportunity: string | null;
   strategicPathway: string | null;
   narrativeSummary: string;
+  /** The dominant strategic move — headline verdict */
+  strategicVerdict: string | null;
+  /** One-line rationale for the verdict */
+  verdictRationale: string | null;
+  /** Confidence in the verdict (0-1) */
+  verdictConfidence: number;
+  /** What value is trapped in the current structure */
+  trappedValue: string | null;
+  /** What resolving the constraint would unlock */
+  unlockPotential: string | null;
+  /** Evidence count backing the trapped value estimate */
+  trappedValueEvidenceCount: number;
+  /** The single falsifiable question that validates or kills the strategy */
+  killQuestion: string | null;
+  /** A concrete experiment to test the kill question */
+  validationExperiment: string | null;
+  /** Suggested timeframe for the experiment */
+  validationTimeframe: string;
 }
 
 export interface StrategicDiagnostic {
