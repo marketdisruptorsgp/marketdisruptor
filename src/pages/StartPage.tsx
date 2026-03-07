@@ -78,9 +78,9 @@ export default function StartPage() {
       <PlatformNav tier={tier} />
 
       {/* Hero */}
-      <section className="pt-16 sm:pt-24 pb-8 sm:pb-12 px-6 sm:px-8">
-        <div className="max-w-5xl mx-auto text-left">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-foreground leading-[1.08]">
+      <section className="pt-10 sm:pt-16 pb-8 sm:pb-12 px-6 sm:px-10">
+        <div className="max-w-6xl mx-auto text-left">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-extrabold tracking-tight text-foreground leading-[1.08]">
             Rethink any{" "}
             <motion.span
               key={wordIndex}
@@ -97,7 +97,7 @@ export default function StartPage() {
             </motion.span>
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground mt-5 max-w-2xl leading-relaxed">
-            Discover what's really driving — or blocking — your product, service, or business model. Then redesign it from first principles.
+            Deconstruct markets, stress-test strategies, and build what's next.
           </p>
           <div className="flex items-center gap-3 mt-8">
             <button
