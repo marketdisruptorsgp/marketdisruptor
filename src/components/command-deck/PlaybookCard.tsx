@@ -169,13 +169,47 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
         </div>
       </div>
 
-      {/* ── Impact Scores ── */}
+      {/* ── Impact Radar + Execution Map ── */}
       <div className="px-5 pb-3">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-          <ImpactBar label="Revenue" value={playbook.impact.revenueExpansion} color="hsl(var(--success))" />
-          <ImpactBar label="Margin" value={playbook.impact.marginImprovement} color="hsl(var(--primary))" />
-          <ImpactBar label="Capital Efficiency" value={playbook.impact.capitalEfficiency} color="hsl(var(--warning))" />
-          <ImpactBar label="Execution Difficulty" value={playbook.impact.executionDifficulty} color="hsl(var(--destructive))" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Radar Chart */}
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground block mb-2">
+              Impact Profile
+            </span>
+            <div className="flex justify-center">
+              <ImpactRadar
+                revenue={playbook.impact.revenueExpansion}
+                margin={playbook.impact.marginImprovement}
+                capital={playbook.impact.capitalEfficiency}
+                difficulty={playbook.impact.executionDifficulty}
+              />
+            </div>
+          </div>
+
+          {/* Execution Map */}
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground block mb-2">
+              Execution Map
+            </span>
+            <div className="space-y-2">
+              <ExecutionDimension
+                label="Operational Complexity"
+                value={playbook.impact.executionDifficulty}
+                level={playbook.impact.executionDifficulty >= 7 ? "High" : playbook.impact.executionDifficulty >= 4 ? "Medium" : "Low"}
+              />
+              <ExecutionDimension
+                label="Capital Required"
+                value={10 - playbook.impact.capitalEfficiency}
+                level={playbook.impact.capitalEfficiency <= 3 ? "High" : playbook.impact.capitalEfficiency <= 6 ? "Medium" : "Low"}
+              />
+              <ExecutionDimension
+                label="Time to Realization"
+                value={playbook.impact.executionDifficulty >= 7 ? 8 : playbook.impact.executionDifficulty >= 4 ? 5 : 3}
+                level={playbook.impact.executionDifficulty >= 7 ? "18-36 months" : playbook.impact.executionDifficulty >= 4 ? "6-18 months" : "3-6 months"}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
