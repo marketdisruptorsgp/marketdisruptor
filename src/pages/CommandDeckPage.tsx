@@ -376,9 +376,14 @@ export default function CommandDeckPage() {
   // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
   const evidenceAttribution = useMemo(() => {
     const categories = new Map<string, number>();
+    const categoryExamples = new Map<string, string>();
     for (const e of autoAnalysis.flatEvidence) {
       const cat = (e.category || "general").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
       categories.set(cat, (categories.get(cat) || 0) + 1);
+      // Keep the highest-impact example per category for diagnosis evidence
+      if (!categoryExamples.has(cat) || (e.impact ?? 0) > 5) {
+        categoryExamples.set(cat, e.label || e.description || "");
+      }
     }
     const sorted = [...categories.entries()].sort((a, b) => b[1] - a[1]);
     const strong = sorted.filter(([, c]) => c >= 3).map(([k]) => k);
@@ -396,7 +401,13 @@ export default function CommandDeckPage() {
     if (strong.length > 0) trappedValueDrivers.push(`${strong[0]} patterns detected across ${categories.get(strong[0]) || 0} signals`);
     if (narrative?.breakthroughOpportunity) trappedValueDrivers.push(`Opportunity: ${narrative.breakthroughOpportunity}`);
 
-    return { strong, weak, sources, trappedValueDrivers };
+    // Diagnosis evidence bullets — top evidence categories with example signals
+    const diagnosisEvidence = sorted.slice(0, 4).map(([cat]) => ({
+      category: cat,
+      detail: categoryExamples.get(cat) || `${categories.get(cat)} indicators detected`,
+    }));
+
+    return { strong, weak, sources, trappedValueDrivers, diagnosisEvidence };
   }, [autoAnalysis.flatEvidence, narrative]);
 
   const lastRecomputeHash = useRef<string>("");
@@ -593,6 +604,7 @@ export default function CommandDeckPage() {
           whyThisMatters={narrative?.whyThisMatters ?? null}
           verdictBenchmark={narrative?.verdictBenchmark ?? null}
           evidenceSources={evidenceAttribution.sources}
+          diagnosisEvidence={evidenceAttribution.diagnosisEvidence}
         />
 
         {/* Trapped Value + Kill Question */}
