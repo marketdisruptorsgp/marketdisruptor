@@ -68,6 +68,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
   const [graph, setGraph] = useState<InsightGraph | null>(null);
   const [evidence, setEvidence] = useState<Record<MetricDomain, MetricEvidence> | null>(null);
+  const [flatEvidenceState, setFlatEvidenceState] = useState<Evidence[]>([]);
   const [insights, setInsights] = useState<StrategicInsight[]>([]);
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [narrative, setNarrative] = useState<StrategicNarrative | null>(null);
