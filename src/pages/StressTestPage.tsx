@@ -138,7 +138,6 @@ export default function StressTestPage() {
 
       {!analysisLoading && <AnalysisDivider />}
 
-      )}
 
       {/* Loading Tracker */}
       {analysisLoading && (
