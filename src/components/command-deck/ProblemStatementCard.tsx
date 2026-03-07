@@ -338,7 +338,9 @@ export const ProblemStatementCard = memo(function ProblemStatementCard({
       {marketSize && !isEditing && (
         <div className="flex items-center gap-1.5 mt-1.5">
           <TrendingUp size={11} style={{ color: modeAccent }} />
-          <span className="text-[11px] font-bold text-foreground">TAM: {marketSize}</span>
+          <span className="text-[11px] font-bold text-foreground">
+            TAM: {marketSize.replace(/\s*\(source:.*?\)/gi, "").replace(/\s*-\s*(modeled|verified|speculative)\s*$/i, "").trim()}
+          </span>
         </div>
       )}
       {trend && !isEditing && !currentStatement?.includes(trend.slice(0, 30)) && (
