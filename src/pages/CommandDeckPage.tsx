@@ -729,7 +729,7 @@ export default function CommandDeckPage() {
           completedSteps={completedSteps.size}
         />
 
-        {/* 2. RECOMMENDED STRATEGIC MOVE — Decision Brief */}
+        {/* 2. RECOMMENDED STRATEGIC MOVE — Decision Brief (compact) */}
         <TransformationPaths
           evidence={autoAnalysis.flatEvidence}
           insights={autoAnalysis.insights}
@@ -737,13 +737,20 @@ export default function CommandDeckPage() {
           mode={modeKey}
         />
 
-        {/* 3. ECONOMIC IMPACT SNAPSHOT — 3 visual gauges */}
-        <EconomicImpactSnapshot
-          playbook={topPlaybook}
-          completedSteps={completedSteps.size}
+        {/* ══════════════════════════════════════════════════════════
+            THE ANALYSIS JOURNEY — The core analytical methodology
+            "Here's what exists → Question it → Reimagine it → 
+             Pressure test it → Pitch it"
+           ══════════════════════════════════════════════════════════ */}
+        <PipelineJourneyCards
+          baseUrl={baseUrl}
+          completedSteps={completedSteps}
+          modeAccent={modeAccent}
+          findings={stepFindings}
+          isBusinessMode={modeKey === "business"}
         />
 
-        {/* 4. EVIDENCE CONFIDENCE — By business domain */}
+        {/* 3. EVIDENCE CONFIDENCE — By business domain */}
         <ConfidenceMeter
           completedSteps={completedSteps.size}
           totalSteps={PIPELINE_STEPS.length}
