@@ -444,10 +444,17 @@ export default function CommandDeckPage() {
     if (narrative?.breakthroughOpportunity) trappedValueDrivers.push(`Opportunity: ${narrative.breakthroughOpportunity}`);
 
     // Diagnosis evidence bullets — top evidence categories with example signals
-    const diagnosisEvidence = sorted.slice(0, 4).map(([cat]) => ({
-      category: cat,
-      detail: categoryExamples.get(cat) || `${categories.get(cat)} indicators detected`,
-    }));
+    const diagnosisEvidence = sorted.slice(0, 4).map(([cat]) => {
+      const rawDetail = categoryExamples.get(cat) || `${categories.get(cat)} indicators detected`;
+      // Humanize: strip internal IDs like "Governed Assumption 1", "C1:", etc.
+      const detail = rawDetail
+        .replace(/^(C\d+|F_?\d+|L\d+|O\d+|Governed Assumption \d+)[:\s-]*/gi, "")
+        .replace(/^Binding Constraint:\s*/i, "")
+        .replace(/^Counterfactual:\s*/i, "")
+        .replace(/\s*\(\+\d+ related\)\s*/g, "")
+        .trim() || `${categories.get(cat)} indicators detected`;
+      return { category: cat, detail };
+    });
 
     return { strong, weak, sources, trappedValueDrivers, diagnosisEvidence };
   }, [autoAnalysis.flatEvidence, narrative]);
