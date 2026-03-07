@@ -24,6 +24,8 @@ import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { ReasoningStagesOverlay } from "@/components/command-deck/ReasoningStagesOverlay";
 import { ConfidenceMeter } from "@/components/command-deck/ConfidenceMeter";
+import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
+import { StrategicPressureMap } from "@/components/command-deck/StrategicPressureMap";
 import { HeroScorePanel } from "@/components/command-deck/HeroScorePanel";
 import { NarrativeSummary } from "@/components/command-deck/NarrativeSummary";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
