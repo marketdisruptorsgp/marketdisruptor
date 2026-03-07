@@ -26,6 +26,7 @@ import { ReasoningStagesOverlay } from "@/components/command-deck/ReasoningStage
 import { ConfidenceMeter } from "@/components/command-deck/ConfidenceMeter";
 import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
 import { TransformationPaths } from "@/components/command-deck/TransformationPaths";
+import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
 import { KillQuestionCard } from "@/components/command-deck/KillQuestionCard";
@@ -373,6 +374,15 @@ export default function CommandDeckPage() {
     [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative],
   );
 
+  // ── Top playbook for Outcome Simulator ──
+  const topPlaybook = useMemo(() => {
+    const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
+      analysis.activeMode === "service" ? "service"
+      : analysis.activeMode === "business" ? "business_model" : "product";
+    const pbs = generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence);
+    return pbs.length > 0 ? pbs[0] : null;
+  }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
+
   // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
   const evidenceAttribution = useMemo(() => {
     const categories = new Map<string, number>();
@@ -633,6 +643,13 @@ export default function CommandDeckPage() {
           insights={autoAnalysis.insights}
           narrative={narrative}
           mode={modeKey}
+        />
+
+        {/* ═══ PROJECTED STRATEGIC OUTCOME — the 10× feature ═══ */}
+        <StrategicOutcomeSimulator
+          playbook={topPlaybook}
+          evidence={autoAnalysis.flatEvidence}
+          narrative={narrative}
         />
 
         {/* ════════════════════════════════════════════════════════════
