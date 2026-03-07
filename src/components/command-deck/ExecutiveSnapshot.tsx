@@ -114,26 +114,10 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
   const biz = businessData || {};
   const governed = (biz as any)?.governed || {};
 
-  // ── Extract real data ──
+  // Trend / Market signal (used by ProblemStatementCard)
+  const trend = p.trendAnalysis || (biz as any)?.trend || null;
+  const marketSize = p.marketSizeEstimate || null;
 
-  // Problem Statement — surfaces the core structural problem
-  const problemStatement = useMemo(() => {
-    // 1. Strategic verdict as core problem framing
-    // 2. Strategic verdict as problem framing
-    if (narrative?.strategicVerdict && narrative.strategicVerdict.length > 20) return narrative.strategicVerdict;
-    // 3. "Why this matters" reframed as the problem
-    if (narrative?.whyThisMatters && narrative.whyThisMatters.length > 20) return narrative.whyThisMatters;
-    // 4. Binding constraint from governed data as the core problem
-    const cm = governed?.constraint_map || (governed as any)?.governed?.constraint_map;
-    if (cm?.dominance_proof) return cm.dominance_proof;
-    // 5. Key insight from product analysis
-    if (p.keyInsight) return p.keyInsight;
-    // 6. Business summary
-    if ((biz as any)?.summary || (biz as any)?.overview) return (biz as any).summary || (biz as any).overview;
-    // 7. Description fallback
-    if (p.description) return p.description.length > 200 ? p.description.slice(0, 197) + "…" : p.description;
-    return null;
-  }, [narrative, p, biz, governed]);
 
   // Pricing
   const pricing = useMemo(() => {
