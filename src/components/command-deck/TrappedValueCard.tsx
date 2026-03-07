@@ -1,30 +1,29 @@
 /**
  * Trapped Value Card — Shows magnitude of value locked in current structure
- * 
- * Makes the economic impact visceral: "X is being left on the table because Y"
+ * Now includes AI-estimated dollar/time magnitude and contextual benchmarks.
  */
 
 import { memo } from "react";
-import { Lock, ArrowRight } from "lucide-react";
+import { Lock, ArrowRight, TrendingUp, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface TrappedValueCardProps {
-  /** What's being lost/locked — e.g. "Working capital trapped in 210-day cash cycle" */
   trappedDescription: string | null;
-  /** What resolving it could unlock — e.g. "Reducing to 60 days could free $X capacity" */
   unlockDescription: string | null;
-  /** 0-1 confidence in the economic estimate */
   confidence: number;
-  /** Source evidence count */
   evidenceCount: number;
+  /** AI-estimated magnitude (e.g. "Est. 15-30% of revenue at risk") */
+  estimate: string | null;
+  /** Contextual benchmark (e.g. "Industry median lead time: 3-5x faster") */
+  benchmark: string | null;
 }
 
 export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedValueCardProps) {
-  const { trappedDescription, unlockDescription, confidence, evidenceCount } = props;
+  const { trappedDescription, unlockDescription, confidence, evidenceCount, estimate, benchmark } = props;
 
   if (!trappedDescription) return null;
 
-  const isQuantified = !/not yet quantified/i.test(trappedDescription);
+  const isQuantified = !/not yet quantified/i.test(trappedDescription) && !/requires deeper/i.test(trappedDescription);
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -45,7 +44,28 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
         </span>
       </div>
 
-      <div className="px-5 pb-4">
+      {/* AI Estimate Badge */}
+      {estimate && (
+        <div className="px-5 pb-2">
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+            style={{
+              background: isQuantified ? "hsl(var(--destructive) / 0.08)" : "hsl(var(--warning) / 0.1)",
+              border: isQuantified ? "1px solid hsl(var(--destructive) / 0.15)" : "1px solid hsl(var(--warning) / 0.15)",
+            }}
+          >
+            <BarChart3 size={11} style={{ color: isQuantified ? "hsl(var(--destructive))" : "hsl(var(--warning))" }} />
+            <span
+              className="text-xs font-black"
+              style={{ color: isQuantified ? "hsl(var(--destructive))" : "hsl(var(--warning))" }}
+            >
+              {estimate}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="px-5 pb-3">
         <div className="flex flex-col sm:flex-row gap-3">
           {/* What's trapped */}
           <div
@@ -62,7 +82,7 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
             <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{
               color: isQuantified ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground))"
             }}>
-              {isQuantified ? "Currently locked" : "Impact not yet quantified"}
+              {isQuantified ? "Currently locked" : "Impact assessment"}
             </p>
             <p className="text-sm font-bold text-foreground leading-snug">
               {trappedDescription}
@@ -90,6 +110,18 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
           )}
         </div>
       </div>
+
+      {/* Contextual Benchmark */}
+      {benchmark && (
+        <div className="px-5 pb-4">
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(var(--muted) / 0.3)" }}>
+            <TrendingUp size={11} className="text-muted-foreground mt-0.5 flex-shrink-0" />
+            <p className="text-[11px] font-semibold text-muted-foreground leading-snug italic">
+              {benchmark}
+            </p>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 });

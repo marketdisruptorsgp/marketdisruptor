@@ -381,6 +381,8 @@ export default function CommandDeckPage() {
           opportunityLabel={narrative?.breakthroughOpportunity ?? null}
           completedSteps={completedSteps.size}
           totalSteps={PIPELINE_STEPS.length}
+          whyThisMatters={narrative?.whyThisMatters ?? null}
+          verdictBenchmark={narrative?.verdictBenchmark ?? null}
         />
 
         {/* ═══ STRATEGIC X-RAY — Interactive Reasoning Chain ═══ */}
@@ -398,12 +400,15 @@ export default function CommandDeckPage() {
             unlockDescription={narrative?.unlockPotential ?? null}
             confidence={narrative?.verdictConfidence ?? 0}
             evidenceCount={narrative?.trappedValueEvidenceCount ?? 0}
+            estimate={narrative?.trappedValueEstimate ?? null}
+            benchmark={narrative?.trappedValueBenchmark ?? null}
           />
           <KillQuestionCard
             killQuestion={narrative?.killQuestion ?? null}
             validationExperiment={narrative?.validationExperiment ?? null}
             timeframe={narrative?.validationTimeframe ?? "30 days"}
             confidence={narrative?.verdictConfidence ?? 0}
+            validationSteps={narrative?.validationSteps ?? []}
           />
         </div>
 
