@@ -809,13 +809,19 @@ function buildStrategicNarrative(
 
   const h = (s: string | null | undefined) => s ? humanize(s) : null;
 
-  /** Truncate at word boundary */
+  /** Truncate at word boundary — never mid-word */
   function trimAt(s: string | null | undefined, max: number): string {
     if (!s) return "";
     const clean = humanize(s);
     if (clean.length <= max) return clean;
+    // Find the last space before max
     const cut = clean.lastIndexOf(" ", max);
-    return clean.slice(0, cut > max * 0.5 ? cut : max) + "…";
+    // If no reasonable word boundary found, use the full string up to max and find next word end
+    if (cut < max * 0.4) {
+      const nextSpace = clean.indexOf(" ", max);
+      return nextSpace > 0 ? clean.slice(0, nextSpace) + "…" : clean;
+    }
+    return clean.slice(0, cut) + "…";
   }
 
   // Build a readable narrative — skeptical, qualified language
@@ -848,14 +854,25 @@ function buildStrategicNarrative(
   let verdictConfidence = 0;
 
   if (topOpp && topConstraint) {
-    strategicVerdict = humanize(topOpp.label);
+    // Synthesize a clean verdict sentence — not a raw label
+    const constraintPhrase = trimAt(topConstraint.label, 80).toLowerCase();
+    const oppPhrase = trimAt(topOpp.label, 80).toLowerCase();
+    const leveragePhrase = topLeverage ? trimAt(topLeverage.label, 60).toLowerCase() : null;
+
+    // The verdict IS the move — a directive sentence, not a label
+    strategicVerdict = `Shift from ${constraintPhrase} to ${oppPhrase}`;
+
     const avgConf = (topConstraint.confidence + topOpp.confidence + (topLeverage?.confidence ?? 0)) / (topLeverage ? 3 : 2);
     verdictConfidence = Math.round(avgConf * 100) / 100;
-    verdictRationale = `The business is structurally constrained by ${trimAt(topConstraint.label, 80).toLowerCase()}. ${topLeverage ? `Intervening at ${trimAt(topLeverage.label, 60).toLowerCase()} ` : ""}This creates the opportunity to ${trimAt(topOpp.label, 80).toLowerCase()}.`;
+
+    verdictRationale = leveragePhrase
+      ? `The current structure is bottlenecked by ${constraintPhrase}. By intervening at ${leveragePhrase}, the business can unlock ${oppPhrase}.`
+      : `The dominant structural barrier is ${constraintPhrase}. Resolving it opens the path to ${oppPhrase}.`;
   } else if (topConstraint) {
-    strategicVerdict = `Resolve: ${humanize(topConstraint.label)}`;
+    const constraintPhrase = trimAt(topConstraint.label, 100).toLowerCase();
+    strategicVerdict = `Resolve the core bottleneck: ${constraintPhrase}`;
     verdictConfidence = topConstraint.confidence;
-    verdictRationale = `The dominant bottleneck is ${trimAt(topConstraint.label, 100).toLowerCase()}. More evidence needed to identify the specific strategic move.`;
+    verdictRationale = `The dominant bottleneck is ${constraintPhrase}. More evidence is needed to identify the specific strategic move.`;
   }
 
   // ── Trapped Value: what's locked in the current structure ──
@@ -869,15 +886,31 @@ function buildStrategicNarrative(
     );
     trappedValueEvidenceCount = costEvidence.length + topConstraint.evidenceIds.length;
 
-    trappedValue = `Value is locked in the current structure due to ${trimAt(topConstraint.label, 100).toLowerCase()}`;
-    if (topDriver) {
-      trappedValue += `, driven by ${trimAt(topDriver.label, 80).toLowerCase()}`;
+    // Look for quantitative evidence (numbers, $, %, days) in related evidence
+    const quantEvidence = flatEvidence.filter(e => {
+      const text = `${e.label} ${e.description}`;
+      return /(\$[\d,.]+|[\d,.]+%|\d+\s*(days?|months?|weeks?|hours?|units?|customers?))/i.test(text);
+    });
+
+    if (quantEvidence.length > 0) {
+      // Use the most impactful quantitative evidence
+      const bestQuant = quantEvidence.sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0))[0];
+      trappedValue = trimAt(bestQuant.description || bestQuant.label, 200);
+      if (topDriver) {
+        trappedValue += `. Root cause: ${trimAt(topDriver.label, 80).toLowerCase()}`;
+      }
+    } else {
+      // No quantitative data — say so explicitly
+      trappedValue = `Economic impact not yet quantified. The structural constraint (${trimAt(topConstraint.label, 100).toLowerCase()}) is limiting value creation`;
+      if (topDriver) {
+        trappedValue += `, driven by ${trimAt(topDriver.label, 80).toLowerCase()}`;
+      }
     }
 
     if (topLeverage && topOpp) {
-      unlockPotential = `Addressing this through ${trimAt(topLeverage.label, 80).toLowerCase()} could unlock ${trimAt(topOpp.label, 80).toLowerCase()}`;
+      unlockPotential = `Addressing ${trimAt(topLeverage.label, 80).toLowerCase()} could unlock: ${trimAt(topOpp.label, 100)}`;
     } else if (topOpp) {
-      unlockPotential = `Resolving this bottleneck could enable ${trimAt(topOpp.label, 100).toLowerCase()}`;
+      unlockPotential = `Resolving this bottleneck could enable: ${trimAt(topOpp.label, 100)}`;
     }
   }
 
@@ -887,10 +920,19 @@ function buildStrategicNarrative(
   let validationTimeframe = "30 days";
 
   if (topOpp && topConstraint) {
-    // Derive the question from the opportunity — what assumption must be true?
-    killQuestion = `Will the target market actually adopt ${trimAt(topOpp.label, 80).toLowerCase()} as an alternative to the current approach?`;
+    const constraintPhrase = trimAt(topConstraint.label, 80).toLowerCase();
+    const oppPhrase = trimAt(topOpp.label, 80);
+    const driverPhrase = topDriver ? trimAt(topDriver.label, 60).toLowerCase() : null;
 
-    validationExperiment = `Identify 5-10 potential customers in the target segment. Present the concept of ${trimAt(topOpp.label, 60).toLowerCase()} and measure willingness to pay or commit. If fewer than 30% show strong interest, the strategy needs rethinking.`;
+    // Business-specific kill question derived from the constraint → opportunity pair
+    killQuestion = `Can ${oppPhrase.toLowerCase()} actually overcome ${constraintPhrase}, or is this constraint structural and immovable?`;
+
+    // Business-specific validation experiment
+    const targetSegment = driverPhrase
+      ? `Focus on the segment most affected by ${driverPhrase}.`
+      : `Identify the 5-10 customers or stakeholders most constrained by ${constraintPhrase}.`;
+
+    validationExperiment = `${targetSegment} Present the concept of ${oppPhrase.toLowerCase()} as a concrete alternative. Measure: (1) willingness to pay or switch, (2) specific objections, (3) whether they've tried alternatives. If fewer than 30% show strong interest, the opportunity thesis needs rethinking.`;
 
     // Adjust timeframe based on confidence
     if (verdictConfidence >= 0.5) validationTimeframe = "2 weeks";

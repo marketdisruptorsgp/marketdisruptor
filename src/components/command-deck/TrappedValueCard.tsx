@@ -24,6 +24,7 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
 
   if (!trappedDescription) return null;
 
+  const isQuantified = !/not yet quantified/i.test(trappedDescription);
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -49,10 +50,19 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
           {/* What's trapped */}
           <div
             className="flex-1 rounded-lg p-3"
-            style={{ background: "hsl(var(--destructive) / 0.06)", border: "1px solid hsl(var(--destructive) / 0.12)" }}
+            style={{
+              background: isQuantified
+                ? "hsl(var(--destructive) / 0.06)"
+                : "hsl(var(--muted) / 0.4)",
+              border: isQuantified
+                ? "1px solid hsl(var(--destructive) / 0.12)"
+                : "1px solid hsl(var(--border))",
+            }}
           >
-            <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: "hsl(var(--destructive))" }}>
-              Currently locked
+            <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{
+              color: isQuantified ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground))"
+            }}>
+              {isQuantified ? "Currently locked" : "Impact not yet quantified"}
             </p>
             <p className="text-sm font-bold text-foreground leading-snug">
               {trappedDescription}
