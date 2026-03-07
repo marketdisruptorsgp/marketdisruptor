@@ -799,6 +799,7 @@ function buildStrategicNarrative(
   leveragePoints: StrategicInsight[],
   opportunities: StrategicInsight[],
   pathways: StrategicInsight[],
+  flatEvidence: Evidence[],
 ): StrategicNarrative {
   const topConstraint = [...constraints].sort((a, b) => b.impact - a.impact)[0] ?? null;
   const topDriver = [...drivers].sort((a, b) => b.impact - a.impact)[0] ?? null;
