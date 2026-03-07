@@ -693,6 +693,9 @@ export default function CommandDeckPage() {
           <OpportunityRadarPanel items={opportunityRadar} />
         </div>
 
+        {/* Strategic Pattern Detection */}
+        <StrategicPatternCard patterns={detectedPatterns} />
+
         {/* Strategic X-Ray — starts collapsed with summary */}
         <StrategicXRay
           narrative={narrative}
