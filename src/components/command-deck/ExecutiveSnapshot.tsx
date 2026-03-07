@@ -98,7 +98,7 @@ function Bullet({ text, color }: { text: string; color?: string }) {
   return (
     <div className="flex items-start gap-1.5 py-0.5">
       <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: color || "hsl(var(--muted-foreground))" }} />
-      <span className="text-[11px] text-foreground/80 leading-snug line-clamp-2">{text}</span>
+      <span className="text-[11px] text-foreground/80 leading-snug">{text}</span>
     </div>
   );
 }
