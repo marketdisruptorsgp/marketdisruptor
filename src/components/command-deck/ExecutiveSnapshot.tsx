@@ -130,10 +130,16 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
     if (!pi) return null;
     const bullets: string[] = [];
     if (pi.priceRange) bullets.push(`Price range: ${pi.priceRange}`);
+    else if (pi.estimatedPrice) bullets.push(`Price: ${typeof pi.estimatedPrice === "string" ? pi.estimatedPrice.slice(0, 80) : pi.estimatedPrice}`);
     else if (pi.averagePrice) bullets.push(`Avg price: ${pi.averagePrice}`);
+    if (pi.priceDirection) {
+      const dir = typeof pi.priceDirection === "string" ? pi.priceDirection.slice(0, 80) : pi.priceDirection;
+      bullets.push(`Trend: ${dir}`);
+    }
     if (pi.strategy) bullets.push(pi.strategy);
-    if (pi.competitorPricing) bullets.push(`Competitor: ${typeof pi.competitorPricing === "string" ? pi.competitorPricing : "mapped"}`);
     if (pi.marginEstimate) bullets.push(`Margin: ${pi.marginEstimate}`);
+    else if (pi.margins) bullets.push(`Margins: ${typeof pi.margins === "string" ? pi.margins.slice(0, 80) : pi.margins}`);
+    if (pi.competitorPricing) bullets.push(`Competitor: ${typeof pi.competitorPricing === "string" ? pi.competitorPricing : "mapped"}`);
     if (pi.pricingModel) bullets.push(pi.pricingModel);
     return bullets.length > 0 ? bullets : null;
   }, [p, biz]);
