@@ -42,6 +42,7 @@ interface ExecutiveSnapshotProps {
   totalSteps: number;
   modeAccent: string;
   evidenceCount: number;
+  onProblemLocked?: (statement: string) => void;
 }
 
 /* ── Panel wrapper ── */
