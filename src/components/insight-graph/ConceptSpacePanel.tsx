@@ -14,6 +14,7 @@ import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 interface ConceptSpacePanelProps {
   conceptSpace: ConceptSpace;
   onToggleVariant: (variantId: string) => void;
+  onDismissVariant?: (variantId: string) => void;
   onStressTestSelected?: () => void;
 }
 
