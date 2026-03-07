@@ -44,6 +44,7 @@ import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchm
 import { OpportunityMapPanel } from "@/components/command-deck/OpportunityRadarPanel";
 import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
 import { ConfidenceExplanationPanel } from "@/components/command-deck/ConfidenceExplanationPanel";
+import { PipelineJourneyCards } from "@/components/command-deck/PipelineJourneyCards";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine";
 import {
