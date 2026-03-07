@@ -29,7 +29,7 @@ export function ScaledSlide({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div ref={ref} style={{ width: "100%", position: "relative", aspectRatio: "16/9", overflow: "hidden", borderRadius: 12, border: "1.5px solid hsl(var(--border))", boxShadow: "0 2px 16px hsl(var(--foreground) / 0.06)" }}>
+    <div ref={ref} style={{ width: "100%", position: "relative", aspectRatio: "16/9", overflow: "hidden", borderRadius: 12, border: "2.5px solid hsl(var(--foreground) / 0.25)", boxShadow: "0 4px 24px hsl(var(--foreground) / 0.12)" }}>
       <div style={{
         position: "absolute", width: 1920, height: 1080,
         left: "50%", top: "50%", marginLeft: -960, marginTop: -540,
