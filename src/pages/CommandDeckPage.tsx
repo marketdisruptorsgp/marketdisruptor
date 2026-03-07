@@ -36,7 +36,11 @@ import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaCha
 import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
 import { StrategicScenarioSimulator } from "@/components/command-deck/StrategicScenarioSimulator";
 import { StrategicPatternCard } from "@/components/command-deck/StrategicPatternCard";
+import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchmarkPanel";
+import { OpportunityRadarPanel } from "@/components/command-deck/OpportunityRadarPanel";
+import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
+import { computeBenchmarks, computeOpportunityRadar, generateStrategicStory } from "@/lib/benchmarkEngine";
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
   type ScenarioSnapshot,
@@ -384,6 +388,28 @@ export default function CommandDeckPage() {
     return pbs.length > 0 ? pbs[0] : null;
   }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
+  // ── All playbooks for radar ──
+  const allPlaybooks = useMemo(() => {
+    const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
+      analysis.activeMode === "service" ? "service"
+      : analysis.activeMode === "business" ? "business_model" : "product";
+    return generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence);
+  }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
+
+  // ── Benchmark, Opportunity Radar, Strategic Story ──
+  const benchmark = useMemo(() =>
+    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook),
+    [autoAnalysis.flatEvidence, narrative, topPlaybook],
+  );
+  const opportunityRadar = useMemo(() =>
+    computeOpportunityRadar(allPlaybooks, autoAnalysis.flatEvidence, narrative),
+    [allPlaybooks, autoAnalysis.flatEvidence, narrative],
+  );
+  const strategicStory = useMemo(() =>
+    generateStrategicStory(narrative, topPlaybook, autoAnalysis.flatEvidence),
+    [narrative, topPlaybook, autoAnalysis.flatEvidence],
+  );
+
   // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
   const evidenceAttribution = useMemo(() => {
     const categories = new Map<string, number>();
@@ -653,10 +679,19 @@ export default function CommandDeckPage() {
           narrative={narrative}
         />
 
+        {/* ═══ STRATEGIC NARRATIVE — coherent strategy story ═══ */}
+        <StrategicNarrativeStory story={strategicStory} />
+
         {/* ════════════════════════════════════════════════════════════
             TIER 2 — STRATEGIC ANALYSIS
             Evidence behind the strategy. Progressive disclosure.
            ════════════════════════════════════════════════════════════ */}
+
+        {/* Industry Benchmarks + Opportunity Radar */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <IndustryBenchmarkPanel benchmark={benchmark} />
+          <OpportunityRadarPanel items={opportunityRadar} />
+        </div>
 
         {/* Strategic Pattern Detection */}
         <StrategicPatternCard patterns={detectedPatterns} />
