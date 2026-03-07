@@ -577,8 +577,8 @@ function extractRiskEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // ── Business Model: governed decision_synthesis blocking uncertainties ──
-  const bizGov = input.businessAnalysisData?.governed;
+  // ── Governed decision_synthesis blocking uncertainties (business model OR product disrupt) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
   if (bizGov?.decision_synthesis) {
     const ds = bizGov.decision_synthesis;
     safeArr(ds.blocking_uncertainties).forEach((u: any, i: number) => {
