@@ -8,7 +8,7 @@ export const RevivalScoreBadge = ({ score, size = "md" }: RevivalScoreBadgeProps
     score >= 8 ? "score-badge-high" : score >= 6 ? "score-badge-mid" : "score-badge-low";
 
   const label =
-    score >= 8 ? "High Revival" : score >= 6 ? "Mid Revival" : "Low Revival";
+    score >= 8 ? "High Potential" : score >= 6 ? "Moderate Potential" : "Limited Potential";
 
   const sizeClasses =
     size === "sm"
@@ -20,7 +20,7 @@ export const RevivalScoreBadge = ({ score, size = "md" }: RevivalScoreBadgeProps
   return (
     <span className={`inline-flex items-center gap-1.5 ${badgeClass} ${sizeClasses}`}>
       <span className="inline-block w-1.5 h-1.5 rounded-full bg-current" />
-      {score}/10 · {label}
+      {label}
     </span>
   );
 };

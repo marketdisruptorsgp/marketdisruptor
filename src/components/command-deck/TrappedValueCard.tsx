@@ -1,5 +1,6 @@
 /**
  * Trapped Value Card — Quantifies locked value with source attribution
+ * No numeric confidence %. Uses qualitative evidence labels.
  */
 
 import { memo } from "react";
@@ -13,8 +14,14 @@ interface TrappedValueCardProps {
   evidenceCount: number;
   estimate: string | null;
   benchmark: string | null;
-  /** Evidence categories driving this estimate */
   drivers?: string[];
+}
+
+function evidenceStrength(c: number, count: number): string {
+  if (c >= 0.7 && count >= 3) return "Strong evidence";
+  if (c >= 0.4 || count >= 2) return "Moderate evidence";
+  if (c >= 0.15 || count >= 1) return "Early signal";
+  return "Limited evidence";
 }
 
 export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedValueCardProps) {
@@ -23,6 +30,7 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
   if (!trappedDescription) return null;
 
   const isQuantified = !/not yet quantified/i.test(trappedDescription) && !/requires deeper/i.test(trappedDescription);
+  const strength = evidenceStrength(confidence, evidenceCount);
 
   return (
     <motion.div
@@ -40,11 +48,10 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
           </span>
         </div>
         <span className="text-[10px] font-bold text-muted-foreground">
-          {evidenceCount} evidence · {Math.round(confidence * 100)}% confidence
+          {strength}
         </span>
       </div>
 
-      {/* Estimate */}
       {estimate && (
         <div className="px-5 pb-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full"
@@ -61,7 +68,6 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
         </div>
       )}
 
-      {/* Trapped → Unlocked */}
       <div className="px-5 pb-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 rounded-lg p-3"
@@ -90,7 +96,6 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
         </div>
       </div>
 
-      {/* Evidence Drivers — Source Attribution */}
       {drivers.length > 0 && (
         <div className="px-5 pb-3">
           <div className="flex items-center gap-1.5 mb-1.5">
@@ -111,7 +116,6 @@ export const TrappedValueCard = memo(function TrappedValueCard(props: TrappedVal
         </div>
       )}
 
-      {/* Benchmark */}
       {benchmark && (
         <div className="px-5 pb-4">
           <div className="flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: "hsl(var(--muted) / 0.3)" }}>

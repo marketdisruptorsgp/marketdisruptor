@@ -1,6 +1,6 @@
 /**
- * KPI GAUGE — Circular gauge for Command Deck metrics.
- * Animated SVG ring with center value, label, and subtitle.
+ * KPI GAUGE — Qualitative indicator for Command Deck metrics.
+ * No numeric scores. Uses evidence strength labels.
  */
 
 import { motion } from "framer-motion";
@@ -15,12 +15,22 @@ interface KPIGaugeProps {
   delay?: number;
 }
 
+function qualLabel(value: number | string, max: number): string {
+  const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
+  const pct = numValue / max;
+  if (pct >= 0.7) return "Strong";
+  if (pct >= 0.4) return "Moderate";
+  if (pct >= 0.1) return "Limited";
+  return "TBD";
+}
+
 export function KPIGauge({ label, value, max = 100, subtitle, icon: Icon, color, delay = 0 }: KPIGaugeProps) {
   const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
   const pct = Math.min(numValue / max, 1);
   const r = 32;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - pct);
+  const qual = qualLabel(value, max);
 
   return (
     <motion.div
@@ -46,7 +56,7 @@ export function KPIGauge({ label, value, max = 100, subtitle, icon: Icon, color,
         </div>
       </div>
       <div className="text-center">
-        <p className="text-2xl font-extrabold tabular-nums text-foreground leading-none">{value}</p>
+        <p className="text-lg font-extrabold text-foreground leading-none">{qual}</p>
         <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1">{label}</p>
         {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5">{subtitle}</p>}
       </div>

@@ -1,8 +1,5 @@
 /**
- * Metrics Strip — Compact 4-metric row
- *
- * Replaces the heavy StrategicSnapshot scorecards with a lightweight
- * horizontal strip that takes less vertical space.
+ * Metrics Strip — Compact 4-metric row (qualitative, no numeric scores)
  */
 
 import { memo, useMemo } from "react";
@@ -16,10 +13,10 @@ interface MetricsStripProps {
   strategicPotential: number;
 }
 
-function signalColor(score: number): string {
-  if (score >= 7) return "hsl(var(--success))";
-  if (score >= 4) return "hsl(var(--warning))";
-  return "hsl(var(--destructive))";
+function signalLabel(score: number): { label: string; color: string } {
+  if (score >= 7) return { label: "Strong", color: "hsl(var(--success))" };
+  if (score >= 4) return { label: "Moderate", color: "hsl(var(--warning))" };
+  return { label: "Limited", color: "hsl(var(--destructive))" };
 }
 
 export const MetricsStrip = memo(function MetricsStrip({
@@ -47,7 +44,7 @@ export const MetricsStrip = memo(function MetricsStrip({
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {cards.map((card, i) => {
-        const color = signalColor(card.score);
+        const signal = signalLabel(card.score);
         const Icon = card.icon;
         return (
           <motion.div
@@ -63,13 +60,13 @@ export const MetricsStrip = memo(function MetricsStrip({
           >
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: `${color}12` }}
+              style={{ background: `${signal.color}12` }}
             >
-              <Icon size={14} style={{ color }} />
+              <Icon size={14} style={{ color: signal.color }} />
             </div>
             <div className="min-w-0">
-              <span className="text-xl font-black tabular-nums text-foreground leading-none">
-                {card.score.toFixed(1)}
+              <span className="text-sm font-black text-foreground leading-none">
+                {signal.label}
               </span>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {card.label}

@@ -1,7 +1,7 @@
 /**
- * Economic Impact Snapshot — 3 visual gauges
+ * Economic Impact Snapshot — 3 qualitative gauges
  * Revenue Expansion · Cost Structure · Strategic Moat
- * Designed for instant economic comprehension (5-second scan).
+ * No numeric scores. Uses Strong/Moderate/Limited labels.
  */
 
 import { memo, useMemo } from "react";
@@ -14,11 +14,11 @@ interface EconomicImpactSnapshotProps {
   completedSteps: number;
 }
 
-function levelFromScore(score: number): { label: string; color: string; bgColor: string; pct: number } {
-  if (score >= 7) return { label: "High", color: "hsl(var(--success))", bgColor: "hsl(var(--success) / 0.1)", pct: Math.min(score * 10, 95) };
-  if (score >= 4) return { label: "Medium", color: "hsl(var(--warning))", bgColor: "hsl(var(--warning) / 0.1)", pct: score * 10 };
-  if (score >= 1) return { label: "Low", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)", pct: Math.max(score * 10, 15) };
-  return { label: "TBD", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.3)", pct: 10 };
+function levelFromScore(score: number): { label: string; color: string; bgColor: string } {
+  if (score >= 7) return { label: "Strong", color: "hsl(var(--success))", bgColor: "hsl(var(--success) / 0.1)" };
+  if (score >= 4) return { label: "Moderate", color: "hsl(var(--warning))", bgColor: "hsl(var(--warning) / 0.1)" };
+  if (score >= 1) return { label: "Limited", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)" };
+  return { label: "TBD", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.3)" };
 }
 
 const GAUGES = [
@@ -56,22 +56,11 @@ export const EconomicImpactSnapshot = memo(function EconomicImpactSnapshot({
             className="rounded-xl p-4"
             style={{ background: level.bgColor, border: `1px solid ${level.color}20` }}
           >
-            <div className="flex items-center gap-1.5 mb-2">
+            <div className="flex items-center gap-1.5 mb-3">
               <gauge.Icon size={13} style={{ color: level.color }} />
               <span className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: level.color }}>
                 {gauge.label}
               </span>
-            </div>
-
-            {/* Visual bar */}
-            <div className="h-2 rounded-full overflow-hidden mb-2" style={{ background: "hsl(var(--muted) / 0.3)" }}>
-              <motion.div
-                className="h-full rounded-full"
-                style={{ background: level.color }}
-                initial={{ width: 0 }}
-                animate={{ width: `${level.pct}%` }}
-                transition={{ duration: 0.8, delay: 0.2 + idx * 0.1, ease: "easeOut" }}
-              />
             </div>
 
             <p className="text-lg font-black text-foreground">{level.label}</p>

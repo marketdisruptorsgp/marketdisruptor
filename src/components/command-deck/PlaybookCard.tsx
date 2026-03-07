@@ -1,8 +1,6 @@
 /**
  * PlaybookCard — Individual Transformation Path card
- *
- * Shows: Thesis → Constraint Logic → Moves → Day 1 Action → Impact Score
- * Now includes: Hypothesis trigger tag, Comparable Transformations
+ * No numeric scores. Uses qualitative Strategy Profile attributes.
  */
 
 import { memo, useState } from "react";
@@ -10,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown, ChevronUp, Star, Zap, Target, TrendingUp,
   ArrowRight, Shield, AlertTriangle, Calendar, CheckCircle2,
-  FlaskConical, GitBranch,
+  FlaskConical, GitBranch, DollarSign, Gauge,
 } from "lucide-react";
 import type { TransformationPlaybook } from "@/lib/playbookEngine";
 import type { EvidenceMode } from "@/lib/evidenceEngine";
@@ -27,76 +25,32 @@ const MODE_COLORS: Record<EvidenceMode, { bg: string; text: string; label: strin
   business_model: { bg: "hsl(var(--success) / 0.1)", text: "hsl(var(--success))", label: "Business Model" },
 };
 
-/** Mini SVG radar chart for impact dimensions */
-function ImpactRadar({ revenue, margin, capital, difficulty }: {
-  revenue: number; margin: number; capital: number; difficulty: number;
-}) {
-  const size = 140;
-  const cx = size / 2;
-  const cy = size / 2;
-  const r = 50;
-  const dims = [
-    { label: "Rev", value: revenue, angle: -90 },
-    { label: "Margin", value: margin, angle: 0 },
-    { label: "Capital", value: capital, angle: 90 },
-    { label: "Ease", value: 10 - difficulty, angle: 180 },
-  ];
-
-  const toXY = (angle: number, val: number) => {
-    const rad = (angle * Math.PI) / 180;
-    const s = (val / 10) * r;
-    return { x: cx + s * Math.cos(rad), y: cy + s * Math.sin(rad) };
-  };
-
-  const points = dims.map(d => toXY(d.angle, d.value));
-  const poly = points.map(p => `${p.x},${p.y}`).join(" ");
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="opacity-90">
-      {/* Grid rings */}
-      {[0.33, 0.66, 1].map(s => (
-        <polygon
-          key={s}
-          points={dims.map(d => { const p = toXY(d.angle, s * 10); return `${p.x},${p.y}`; }).join(" ")}
-          fill="none" stroke="hsl(var(--border))" strokeWidth={0.5}
-        />
-      ))}
-      {/* Axes */}
-      {dims.map((d, i) => {
-        const end = toXY(d.angle, 10);
-        return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke="hsl(var(--border))" strokeWidth={0.5} />;
-      })}
-      {/* Data polygon */}
-      <polygon points={poly} fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth={1.5} />
-      {/* Data dots */}
-      {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="hsl(var(--primary))" />
-      ))}
-      {/* Labels */}
-      {dims.map((d, i) => {
-        const lp = toXY(d.angle, 12.5);
-        return (
-          <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle"
-            className="fill-muted-foreground text-[9px] font-bold">
-            {d.label}
-          </text>
-        );
-      })}
-    </svg>
-  );
+function qualLabel(score: number): { label: string; color: string } {
+  if (score >= 7) return { label: "Strong", color: "hsl(var(--success))" };
+  if (score >= 4) return { label: "Moderate", color: "hsl(var(--warning))" };
+  return { label: "Limited", color: "hsl(var(--muted-foreground))" };
 }
 
-function ExecutionDimension({ label, value, level }: { label: string; value: number; level: string }) {
-  const color = value >= 7 ? "hsl(var(--destructive))" : value >= 4 ? "hsl(var(--warning))" : "hsl(var(--success))";
+function diffLabel(score: number): { label: string; color: string } {
+  if (score >= 7) return { label: "High", color: "hsl(var(--destructive))" };
+  if (score >= 4) return { label: "Moderate", color: "hsl(var(--warning))" };
+  return { label: "Low", color: "hsl(var(--success))" };
+}
+
+function speedFromDifficulty(d: number): { label: string; color: string } {
+  if (d <= 3) return { label: "Fast", color: "hsl(var(--success))" };
+  if (d <= 6) return { label: "Medium", color: "hsl(var(--warning))" };
+  return { label: "Slow", color: "hsl(var(--muted-foreground))" };
+}
+
+function StrategyProfileRow({ label, val, Icon }: { label: string; val: { label: string; color: string }; Icon: React.ElementType }) {
   return (
-    <div className="space-y-0.5">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold text-muted-foreground">{label}</span>
-        <span className="text-[10px] font-extrabold" style={{ color }}>{level}</span>
+    <div className="flex items-center justify-between py-1.5">
+      <div className="flex items-center gap-2">
+        <Icon size={11} style={{ color: val.color }} />
+        <span className="text-[11px] font-bold text-muted-foreground">{label}</span>
       </div>
-      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${value * 10}%`, background: color }} />
-      </div>
+      <span className="text-[11px] font-extrabold" style={{ color: val.color }}>{val.label}</span>
     </div>
   );
 }
@@ -105,6 +59,12 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
   const [isExpanded, setIsExpanded] = useState(false);
   const archLabel = getArchetypeLabel(playbook.archetype);
   const catLabel = getCategoryLabel(playbook.category);
+
+  const revenue = qualLabel(playbook.impact.revenueExpansion);
+  const margin = qualLabel(playbook.impact.marginImprovement);
+  const moat = qualLabel(playbook.impact.capitalEfficiency);
+  const difficulty = diffLabel(playbook.impact.executionDifficulty);
+  const speed = speedFromDifficulty(playbook.impact.executionDifficulty);
 
   return (
     <motion.div
@@ -148,10 +108,6 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
               {playbook.title}
             </h3>
           </div>
-          <div className="flex-shrink-0 flex flex-col items-center">
-            <span className="text-2xl font-black text-primary">{playbook.impact.leverageScore}</span>
-            <span className="text-[9px] font-bold text-muted-foreground uppercase">Leverage</span>
-          </div>
         </div>
       </div>
 
@@ -160,6 +116,20 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
         <p className="text-sm text-foreground leading-relaxed font-medium">
           {playbook.strategicThesis}
         </p>
+      </div>
+
+      {/* ── Strategy Profile — qualitative attributes ── */}
+      <div className="px-5 pb-3">
+        <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground block mb-1">
+          Strategy Profile
+        </span>
+        <div className="rounded-lg p-3 divide-y divide-border" style={{ background: "hsl(var(--muted) / 0.25)" }}>
+          <StrategyProfileRow label="Revenue Expansion" val={revenue} Icon={TrendingUp} />
+          <StrategyProfileRow label="Cost Advantage" val={margin} Icon={DollarSign} />
+          <StrategyProfileRow label="Market Control" val={moat} Icon={Shield} />
+          <StrategyProfileRow label="Execution Complexity" val={difficulty} Icon={Gauge} />
+          <StrategyProfileRow label="Speed to Impact" val={speed} Icon={Zap} />
+        </div>
       </div>
 
       {/* ── Trigger Constraints ── */}
@@ -223,50 +193,6 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
             </span>
           </div>
           <p className="text-[12px] font-bold text-foreground leading-snug">{playbook.dayOneAction}</p>
-        </div>
-      </div>
-
-      {/* ── Impact Radar + Execution Map ── */}
-      <div className="px-5 pb-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Radar Chart */}
-          <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground block mb-2">
-              Impact Profile
-            </span>
-            <div className="flex justify-center">
-              <ImpactRadar
-                revenue={playbook.impact.revenueExpansion}
-                margin={playbook.impact.marginImprovement}
-                capital={playbook.impact.capitalEfficiency}
-                difficulty={playbook.impact.executionDifficulty}
-              />
-            </div>
-          </div>
-
-          {/* Execution Map */}
-          <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground block mb-2">
-              Execution Map
-            </span>
-            <div className="space-y-2">
-              <ExecutionDimension
-                label="Operational Complexity"
-                value={playbook.impact.executionDifficulty}
-                level={playbook.impact.executionDifficulty >= 7 ? "High" : playbook.impact.executionDifficulty >= 4 ? "Medium" : "Low"}
-              />
-              <ExecutionDimension
-                label="Capital Required"
-                value={10 - playbook.impact.capitalEfficiency}
-                level={playbook.impact.capitalEfficiency <= 3 ? "High" : playbook.impact.capitalEfficiency <= 6 ? "Medium" : "Low"}
-              />
-              <ExecutionDimension
-                label="Time to Realization"
-                value={playbook.impact.executionDifficulty >= 7 ? 8 : playbook.impact.executionDifficulty >= 4 ? 5 : 3}
-                level={playbook.impact.executionDifficulty >= 7 ? "18-36 months" : playbook.impact.executionDifficulty >= 4 ? "6-18 months" : "3-6 months"}
-              />
-            </div>
-          </div>
         </div>
       </div>
 
@@ -338,19 +264,14 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
             className="overflow-hidden"
           >
             <div className="px-5 pb-5 space-y-4 border-t border-border pt-4">
-              {/* Industry Logic */}
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Current Industry Logic</span>
                 <p className="text-sm text-muted-foreground leading-relaxed mt-1">{playbook.currentIndustryLogic}</p>
               </div>
-
-              {/* Strategic Shift */}
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary">The Strategic Shift</span>
                 <p className="text-sm text-foreground leading-relaxed mt-1 font-medium">{playbook.strategicShift}</p>
               </div>
-
-              {/* Why This Works */}
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Why This Works</span>
                 <div className="mt-1.5 space-y-1">
@@ -362,8 +283,6 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
                   ))}
                 </div>
               </div>
-
-              {/* Execution Phases */}
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Execution Roadmap</span>
                 <div className="mt-2 space-y-0">

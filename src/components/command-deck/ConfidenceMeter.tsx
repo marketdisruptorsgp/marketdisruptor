@@ -1,7 +1,6 @@
 /**
- * Confidence Meter — Strategic confidence explained in business terms.
- *
- * Shows evidence strength by business domain, not signal counts or pipeline steps.
+ * Evidence Quality Panel — Replaces numeric confidence meter.
+ * Shows evidence strength by business domain using qualitative labels.
  */
 
 import { memo, useMemo } from "react";
@@ -14,18 +13,16 @@ interface ConfidenceMeterProps {
   evidenceCount: number;
   confidence: number;
   isComputing?: boolean;
-  /** Categories with strong evidence */
   strongCategories?: string[];
-  /** Categories needing more data */
   weakCategories?: string[];
 }
 
-function getConfidenceLevel(c: number) {
-  if (c >= 0.7) return { label: "High", color: "hsl(var(--success))", bgColor: "hsl(var(--success) / 0.08)" };
-  if (c >= 0.5) return { label: "Growing", color: "hsl(var(--primary))", bgColor: "hsl(var(--primary) / 0.06)" };
-  if (c >= 0.3) return { label: "Emerging", color: "hsl(var(--warning))", bgColor: "hsl(var(--warning) / 0.08)" };
-  if (c >= 0.1) return { label: "Early", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)" };
-  return { label: "Preliminary", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)" };
+function getEvidenceLevel(c: number) {
+  if (c >= 0.7) return { label: "Strong Evidence", color: "hsl(var(--success))", bgColor: "hsl(var(--success) / 0.08)" };
+  if (c >= 0.5) return { label: "Moderate Evidence", color: "hsl(var(--primary))", bgColor: "hsl(var(--primary) / 0.06)" };
+  if (c >= 0.3) return { label: "Early Signal", color: "hsl(var(--warning))", bgColor: "hsl(var(--warning) / 0.08)" };
+  if (c >= 0.1) return { label: "Limited Evidence", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)" };
+  return { label: "Collecting Evidence", color: "hsl(var(--muted-foreground))", bgColor: "hsl(var(--muted) / 0.5)" };
 }
 
 export const ConfidenceMeter = memo(function ConfidenceMeter({
@@ -37,19 +34,16 @@ export const ConfidenceMeter = memo(function ConfidenceMeter({
   strongCategories = [],
   weakCategories = [],
 }: ConfidenceMeterProps) {
-  const pct = Math.round(confidence * 100);
-  const level = useMemo(() => getConfidenceLevel(confidence), [confidence]);
-  const isEarly = confidence < 0.1;
+  const level = useMemo(() => getEvidenceLevel(confidence), [confidence]);
 
-  // Build improvement hint in business terms (not pipeline steps)
   const improvementHint = useMemo(() => {
     if (confidence >= 0.7 && weakCategories.length === 0) return null;
     if (weakCategories.length > 0) {
       const missing = weakCategories.slice(0, 2).join(" or ").toLowerCase();
-      return `To strengthen this analysis, add more information about ${missing}.`;
+      return `Evidence will strengthen with more data on ${missing}.`;
     }
     if (completedSteps < totalSteps) {
-      return "Running more analysis steps will surface additional evidence across business domains.";
+      return "Running additional analysis steps will deepen evidence across business domains.";
     }
     return null;
   }, [confidence, weakCategories, completedSteps, totalSteps]);
@@ -60,53 +54,28 @@ export const ConfidenceMeter = memo(function ConfidenceMeter({
       style={{ background: level.bgColor, border: `1px solid ${level.color}15` }}
     >
       <div className="flex items-start gap-4">
-        {/* Score */}
+        {/* Evidence Quality Label */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <Shield size={14} style={{ color: level.color }} />
-          <div className="flex items-baseline gap-1">
-            {isEarly ? (
-              <span className="text-sm font-extrabold uppercase tracking-wider" style={{ color: level.color }}>
-                Early Analysis
-              </span>
-            ) : (
-              <>
-                <motion.span
-                  key={pct}
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-xl font-black tabular-nums"
-                  style={{ color: level.color }}
-                >
-                  {pct}%
-                </motion.span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  confidence
-                </span>
-              </>
-            )}
+          <div className="flex flex-col">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+              Evidence Quality
+            </span>
+            <span className="text-sm font-black" style={{ color: level.color }}>
+              {level.label}
+            </span>
           </div>
         </div>
 
         {/* Detail */}
         <div className="flex-1 min-w-0">
-          {/* Bar */}
-          <div className="h-2 rounded-full overflow-hidden mb-2" style={{ background: "hsl(var(--muted))" }}>
-            <motion.div
-              className="h-full rounded-full"
-              style={{ background: level.color }}
-              initial={{ width: 0 }}
-              animate={{ width: `${pct}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            />
-          </div>
-
           {/* Evidence by business domain */}
           <div className="space-y-1">
             {strongCategories.length > 0 && (
               <div className="flex items-start gap-1.5">
                 <CheckCircle2 size={11} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--success))" }} />
                 <span className="text-[11px] font-semibold text-foreground leading-snug">
-                  Strong evidence in: {strongCategories.slice(0, 3).join(", ")}
+                  Strong signals in: {strongCategories.slice(0, 3).join(", ")}
                 </span>
               </div>
             )}
@@ -114,7 +83,7 @@ export const ConfidenceMeter = memo(function ConfidenceMeter({
               <div className="flex items-start gap-1.5">
                 <CircleDashed size={11} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--warning))" }} />
                 <span className="text-[11px] font-semibold text-muted-foreground leading-snug">
-                  Weak evidence in: {weakCategories.slice(0, 3).join(", ")}
+                  Limited data in: {weakCategories.slice(0, 3).join(", ")}
                 </span>
               </div>
             )}
@@ -128,7 +97,7 @@ export const ConfidenceMeter = memo(function ConfidenceMeter({
             )}
           </div>
 
-          {/* Improvement hint in business terms */}
+          {/* Improvement hint */}
           {improvementHint && (
             <div className="flex items-start gap-1.5 mt-1.5">
               <ArrowUpRight size={10} style={{ color: level.color }} className="flex-shrink-0 mt-0.5" />
