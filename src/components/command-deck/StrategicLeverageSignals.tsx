@@ -11,6 +11,8 @@ import type { Insight } from "@/lib/insightLayer";
 interface StrategicLeverageSignalsProps {
   insights: Insight[];
   onViewGraph?: () => void;
+  /** Labels already surfaced in Verdict/Trapped/Kill cards — exclude from this list */
+  excludeLabels?: string[];
 }
 
 const TYPE_ICONS: Record<string, string> = {
