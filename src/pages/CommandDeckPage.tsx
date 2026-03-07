@@ -10,7 +10,7 @@
  */
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
-import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSubscription } from "@/hooks/useSubscription";
