@@ -1,12 +1,14 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Lock, ShoppingCart, CreditCard, Download, Settings, Globe,
   ArrowRight, Clock, Phone, MessageSquare, Mail, Upload, Eye, Wrench,
   Lightbulb, Truck, Home, Share2, Bookmark, Star, Users, Car, MapPin,
   Plane, Bike, Package, Camera, Mic, Shield, Move, Send,
   AlertTriangle, Brain, MapPinned, ShoppingBag, Monitor, ChevronDown,
+  ChevronUp, Play, Pause, SkipForward, Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -50,6 +52,40 @@ const PHASE_COLORS: Record<Phase, string> = {
   "FULFILLMENT": "200 80% 45%",
   "RETENTION": "152 60% 44%",
 };
+
+/* ── Scene context — maps keywords to descriptive micro-labels ── */
+const SCENE_LABELS: [string[], string][] = [
+  [["discover", "aware", "hear about", "learn about", "first encounter"], "First Awareness"],
+  [["search", "browse", "look for", "find", "explore", "research"], "Searching"],
+  [["recommend", "referral", "word of mouth"], "Peer Referral"],
+  [["evaluate", "assess", "consider", "weigh", "decide"], "Weighing Options"],
+  [["review", "rate", "feedback", "testimonial"], "Reading Reviews"],
+  [["sign up", "register", "create account", "onboard", "enroll"], "Account Setup"],
+  [["buy", "purchase", "order", "checkout", "add to cart"], "Making Purchase"],
+  [["pay", "payment", "price", "cost", "charge", "bill"], "Payment"],
+  [["download", "install"], "Installing"],
+  [["setup", "configure", "customize", "personalize"], "Configuration"],
+  [["drive", "car", "vehicle", "arrive", "pull"], "Arriving by Car"],
+  [["wait", "pending", "queue", "line"], "Waiting"],
+  [["inspect", "check", "diagnose", "assess", "look at"], "Inspection"],
+  [["recommend", "suggest", "upsell", "offer", "present"], "Service Pitch"],
+  [["approve", "accept", "agree", "consent", "authorize"], "Customer Approval"],
+  [["service", "repair", "fix", "maintain", "work on"], "Service Work"],
+  [["deliver", "ship", "receive", "pickup", "collect"], "Receiving"],
+  [["return", "come back", "repeat", "renew"], "Coming Back"],
+  [["share", "post", "social", "refer", "tell"], "Sharing Experience"],
+  [["call", "phone", "contact", "reach out"], "Making Contact"],
+  [["book", "reserve", "schedule", "appointment"], "Booking"],
+  [["navigate", "direction", "route", "visit", "go to"], "Heading There"],
+];
+
+function getSceneLabel(stepText: string): string {
+  const lower = stepText.toLowerCase();
+  for (const [keywords, label] of SCENE_LABELS) {
+    if (keywords.some(kw => lower.includes(kw))) return label;
+  }
+  return "In Progress";
+}
 
 /* ── Journey type detection ── */
 type JourneyType = "digital" | "physical" | "ecommerce" | "default";
@@ -166,6 +202,7 @@ interface StepNode {
   friction?: FrictionPoint;
   icon: LucideIcon;
   phase: Phase;
+  sceneLabel: string;
 }
 
 function buildNodes(steps: string[], frictionPoints: FrictionPoint[]): StepNode[] {
@@ -175,6 +212,7 @@ function buildNodes(steps: string[], frictionPoints: FrictionPoint[]): StepNode[
     friction: getFriction(i, step, frictionPoints),
     icon: getStepIcon(step),
     phase: detectPhase(step),
+    sceneLabel: getSceneLabel(step),
   }));
 }
 
@@ -208,6 +246,52 @@ function PhaseRibbon({ nodes }: { nodes: StepNode[] }) {
   );
 }
 
+/* ── Simulation controls ── */
+function SimulationControls({ 
+  isPlaying, activeStep, totalSteps, onToggle, onSkip, onReset 
+}: { 
+  isPlaying: boolean; activeStep: number; totalSteps: number;
+  onToggle: () => void; onSkip: () => void; onReset: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
+      style={{ background: "hsl(var(--foreground) / 0.04)", border: "1px solid hsl(var(--border))" }}>
+      <button onClick={onToggle}
+        className="w-7 h-7 rounded-md flex items-center justify-center transition-colors"
+        style={{
+          background: isPlaying ? "hsl(0 72% 52% / 0.1)" : "hsl(var(--primary) / 0.1)",
+          color: isPlaying ? "hsl(0 72% 42%)" : "hsl(var(--primary))",
+        }}>
+        {isPlaying ? <Pause size={13} /> : <Play size={13} />}
+      </button>
+      <button onClick={onSkip} disabled={activeStep >= totalSteps - 1}
+        className="w-7 h-7 rounded-md flex items-center justify-center transition-colors disabled:opacity-30"
+        style={{ background: "hsl(var(--foreground) / 0.05)", color: "hsl(var(--foreground) / 0.6)" }}>
+        <SkipForward size={13} />
+      </button>
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden mx-1"
+        style={{ background: "hsl(var(--foreground) / 0.08)" }}>
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: "hsl(var(--primary))" }}
+          animate={{ width: `${((activeStep + 1) / totalSteps) * 100}%` }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        />
+      </div>
+      <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">
+        {activeStep + 1}/{totalSteps}
+      </span>
+      {activeStep >= totalSteps - 1 && (
+        <button onClick={onReset}
+          className="text-[10px] font-bold px-2 py-1 rounded-md"
+          style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
+          Replay
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* ── Main component ── */
 export function AdaptiveJourneyMap({
   steps, frictionPoints, cognitiveLoad, contextOfUse, category,
@@ -217,6 +301,32 @@ export function AdaptiveJourneyMap({
   const nodes = useMemo(() => buildNodes(steps, frictionPoints), [steps, frictionPoints]);
   const highFrictionCount = frictionPoints.filter(fp => (fp.severity || 0) >= 4).length;
   const JourneyIcon = JOURNEY_TYPE_ICONS[journeyType];
+
+  // Simulation state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [activeStep, setActiveStep] = useState(-1);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+  }, []);
+
+  useEffect(() => {
+    if (!isPlaying) { clearTimer(); return; }
+    if (activeStep >= nodes.length - 1) { setIsPlaying(false); return; }
+    timerRef.current = setTimeout(() => {
+      setActiveStep(prev => prev + 1);
+    }, 1800);
+    return clearTimer;
+  }, [isPlaying, activeStep, nodes.length, clearTimer]);
+
+  const handleToggle = () => {
+    if (activeStep >= nodes.length - 1) { setActiveStep(0); setIsPlaying(true); return; }
+    if (activeStep < 0) setActiveStep(0);
+    setIsPlaying(!isPlaying);
+  };
+  const handleSkip = () => { if (activeStep < nodes.length - 1) setActiveStep(prev => prev + 1); };
+  const handleReset = () => { setActiveStep(0); setIsPlaying(true); };
 
   return (
     <div className="space-y-3">
@@ -252,9 +362,22 @@ export function AdaptiveJourneyMap({
         </p>
       )}
 
+      {/* Simulation controls */}
+      <SimulationControls
+        isPlaying={isPlaying}
+        activeStep={Math.max(activeStep, 0)}
+        totalSteps={nodes.length}
+        onToggle={handleToggle}
+        onSkip={handleSkip}
+        onReset={handleReset}
+      />
+
       <PhaseRibbon nodes={nodes} />
 
-      {isMobile ? <MobileTimeline nodes={nodes} /> : <DesktopSerpentine nodes={nodes} />}
+      {isMobile
+        ? <MobileTimeline nodes={nodes} activeStep={activeStep} />
+        : <DesktopSerpentine nodes={nodes} activeStep={activeStep} />
+      }
     </div>
   );
 }
@@ -264,29 +387,27 @@ export function AdaptiveJourneyMap({
    ═══════════════════════════════════════════════════════════════ */
 const COLS = 3;
 
-/* Horizontal connector arrow between cards */
-function HorizontalConnector({ reversed }: { reversed?: boolean }) {
+function HorizontalConnector({ reversed, active }: { reversed?: boolean; active?: boolean }) {
   return (
     <div className="flex items-center justify-center" style={{ width: 32, flexShrink: 0 }}>
       <svg width="32" height="20" viewBox="0 0 32 20" fill="none">
         <line
           x1={reversed ? 28 : 4} y1="10"
           x2={reversed ? 4 : 28} y2="10"
-          stroke="hsl(var(--foreground) / 0.12)"
+          stroke={active ? "hsl(var(--primary) / 0.5)" : "hsl(var(--foreground) / 0.12)"}
           strokeWidth="2"
           strokeDasharray="4 3"
           strokeLinecap="round"
         />
         <polygon
           points={reversed ? "7,6 2,10 7,14" : "25,6 30,10 25,14"}
-          fill="hsl(var(--foreground) / 0.18)"
+          fill={active ? "hsl(var(--primary) / 0.6)" : "hsl(var(--foreground) / 0.18)"}
         />
       </svg>
     </div>
   );
 }
 
-/* U-turn connector between rows */
 function UTurnConnector({ side }: { side: "right" | "left" }) {
   const isRight = side === "right";
   return (
@@ -314,7 +435,7 @@ function UTurnConnector({ side }: { side: "right" | "left" }) {
   );
 }
 
-function DesktopSerpentine({ nodes }: { nodes: StepNode[] }) {
+function DesktopSerpentine({ nodes, activeStep }: { nodes: StepNode[]; activeStep: number }) {
   const rows: StepNode[][] = [];
   for (let i = 0; i < nodes.length; i += COLS) {
     const row = nodes.slice(i, i + COLS);
@@ -334,11 +455,11 @@ function DesktopSerpentine({ nodes }: { nodes: StepNode[] }) {
                 {row.map((node, ci) => (
                   <React.Fragment key={node.index}>
                     <div className="flex-1 min-w-0">
-                      <StepCard node={node} stepNumber={node.index + 1} />
+                      <StepCard node={node} stepNumber={node.index + 1} isActive={node.index === activeStep} isPast={node.index < activeStep} />
                     </div>
                     {ci < row.length - 1 && (
                       <div className="flex items-center">
-                        <HorizontalConnector reversed={isReversed} />
+                        <HorizontalConnector reversed={isReversed} active={node.index < activeStep} />
                       </div>
                     )}
                   </React.Fragment>
@@ -363,97 +484,190 @@ function DesktopSerpentine({ nodes }: { nodes: StepNode[] }) {
   );
 }
 
-/* ── Refined step card ── */
-function StepCard({ node, stepNumber }: { node: StepNode; stepNumber: number }) {
+/* ── Illustrated scene icon ── */
+function SceneIcon({ node, size = 44 }: { node: StepNode; size?: number }) {
   const StepIcon = node.icon;
   const phaseColor = PHASE_COLORS[node.phase];
   const hasFriction = !!node.friction;
   const severity = node.friction?.severity || 0;
   const sevColor = getSeverityColor(severity);
+
+  return (
+    <div className="relative flex flex-col items-center gap-1" style={{ width: size + 8 }}>
+      <div
+        className="rounded-xl flex items-center justify-center flex-shrink-0 relative"
+        style={{
+          width: size, height: size,
+          background: `linear-gradient(135deg, hsl(${phaseColor} / 0.1), hsl(${phaseColor} / 0.04))`,
+          color: `hsl(${phaseColor})`,
+          border: `1.5px solid hsl(${phaseColor} / 0.2)`,
+        }}
+      >
+        <StepIcon size={size * 0.4} strokeWidth={1.8} />
+        {hasFriction && (
+          <div
+            className="absolute -top-1.5 -right-1.5 rounded-full flex items-center justify-center"
+            style={{
+              width: 18, height: 18,
+              background: `hsl(${sevColor})`,
+              color: "white",
+              boxShadow: `0 0 8px -1px hsl(${sevColor} / 0.5)`,
+            }}
+          >
+            <AlertTriangle size={9} />
+          </div>
+        )}
+      </div>
+      <span className="text-[9px] font-bold uppercase tracking-[0.06em] text-center leading-tight"
+        style={{ color: `hsl(${phaseColor} / 0.7)` }}>
+        {node.sceneLabel}
+      </span>
+    </div>
+  );
+}
+
+/* ── Expandable friction hotspot ── */
+function FrictionHotspot({ friction }: { friction: FrictionPoint }) {
+  const [expanded, setExpanded] = useState(false);
+  const severity = friction.severity || 0;
+  const sevColor = getSeverityColor(severity);
   const sevLabel = getSeverityLabel(severity);
-  const isHigh = severity >= 4;
 
   return (
     <div
-      className="relative rounded-xl p-4 h-full flex flex-col transition-shadow"
+      className="rounded-lg cursor-pointer transition-all"
+      onClick={() => setExpanded(!expanded)}
       style={{
-        background: "hsl(var(--card))",
-        border: isHigh
-          ? `1.5px solid hsl(${sevColor} / 0.35)`
-          : "1px solid hsl(var(--border))",
-        boxShadow: isHigh
+        background: `hsl(${sevColor} / 0.05)`,
+        border: `1px solid hsl(${sevColor} / 0.12)`,
+      }}
+    >
+      <div className="flex items-center gap-1.5 px-3 py-2">
+        <AlertTriangle size={11} style={{ color: `hsl(${sevColor})` }} />
+        <span className="text-[11px] font-bold flex-1" style={{ color: `hsl(${sevColor})` }}>
+          Friction ({sevLabel}/{severity}/5)
+        </span>
+        <Zap size={10} className="animate-pulse" style={{ color: `hsl(${sevColor})` }} />
+        {expanded ? <ChevronUp size={11} style={{ color: `hsl(${sevColor} / 0.6)` }} /> : <ChevronDown size={11} style={{ color: `hsl(${sevColor} / 0.6)` }} />}
+      </div>
+
+      <div className="px-3 pb-2">
+        <p className="text-[12px] text-foreground/75 leading-relaxed">{friction.friction}</p>
+      </div>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-3 space-y-2">
+              {friction.rootCause && (
+                <div className="rounded-md px-2.5 py-2"
+                  style={{ background: `hsl(${sevColor} / 0.04)`, border: `1px dashed hsl(${sevColor} / 0.15)` }}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
+                    style={{ color: `hsl(${sevColor} / 0.7)` }}>Root Cause</p>
+                  <p className="text-[12px] text-foreground/70 leading-relaxed">{friction.rootCause}</p>
+                </div>
+              )}
+              <div className="rounded-md px-2.5 py-2"
+                style={{ background: "hsl(var(--primary) / 0.04)", border: "1px dashed hsl(var(--primary) / 0.15)" }}>
+                <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
+                  style={{ color: "hsl(var(--primary) / 0.7)" }}>What This Means</p>
+                <p className="text-[12px] text-foreground/70 leading-relaxed">
+                  {severity >= 4
+                    ? "This is a critical drop-off point. Customers actively consider abandoning the experience here."
+                    : severity >= 3
+                    ? "This creates noticeable hesitation. Some customers will tolerate it; others won't return."
+                    : "Minor annoyance — not a dealbreaker, but fixing it improves the overall flow."
+                  }
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ── Refined step card with scene icon & interactive friction ── */
+function StepCard({ node, stepNumber, isActive, isPast }: { node: StepNode; stepNumber: number; isActive: boolean; isPast: boolean }) {
+  const hasFriction = !!node.friction;
+  const severity = node.friction?.severity || 0;
+  const sevColor = getSeverityColor(severity);
+  const isHigh = severity >= 4;
+  const phaseColor = PHASE_COLORS[node.phase];
+
+  return (
+    <motion.div
+      className="relative rounded-xl p-4 h-full flex flex-col transition-shadow"
+      animate={{
+        scale: isActive ? 1.02 : 1,
+        boxShadow: isActive
+          ? `0 4px 24px -4px hsl(var(--primary) / 0.2)`
+          : isHigh
           ? `0 2px 16px -4px hsl(${sevColor} / 0.15)`
           : "0 1px 4px -1px hsl(var(--foreground) / 0.04)",
       }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      style={{
+        background: "hsl(var(--card))",
+        border: isActive
+          ? "2px solid hsl(var(--primary) / 0.4)"
+          : isHigh
+          ? `1.5px solid hsl(${sevColor} / 0.35)`
+          : "1px solid hsl(var(--border))",
+        opacity: isPast ? 0.55 : 1,
+      }}
     >
-      {/* Header row: icon + step number */}
+      {/* Active pulse indicator */}
+      {isActive && (
+        <motion.div
+          className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
+          style={{ background: "hsl(var(--primary))" }}
+          animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        />
+      )}
+
+      {/* Header row: illustrated scene icon + step text */}
       <div className="flex items-start gap-3 mb-2.5">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 relative"
-          style={{
-            background: `hsl(${phaseColor} / 0.08)`,
-            color: `hsl(${phaseColor})`,
-            border: `1.5px solid hsl(${phaseColor} / 0.2)`,
-          }}
-        >
-          <StepIcon size={18} strokeWidth={1.8} />
-          {hasFriction && (
-            <div
-              className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full flex items-center justify-center"
-              style={{
-                background: `hsl(${sevColor})`,
-                color: "white",
-                width: 18, height: 18,
-                boxShadow: `0 0 8px -1px hsl(${sevColor} / 0.5)`,
-              }}
-            >
-              <AlertTriangle size={9} />
-            </div>
-          )}
-        </div>
+        <SceneIcon node={node} size={44} />
         <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] px-1.5 py-0.5 rounded"
+              style={{ background: `hsl(${phaseColor} / 0.08)`, color: `hsl(${phaseColor})` }}>
+              {node.phase}
+            </span>
+          </div>
           <p className="text-sm font-bold text-foreground leading-snug">
             Step {stepNumber}: {node.text}
           </p>
         </div>
       </div>
 
-      {/* Friction detail */}
+      {/* Interactive friction hotspot */}
       {hasFriction && (
-        <div
-          className="rounded-lg px-3 py-2.5 mt-auto"
-          style={{
-            background: `hsl(${sevColor} / 0.05)`,
-            border: `1px solid hsl(${sevColor} / 0.12)`,
-          }}
-        >
-          <div className="flex items-center gap-1.5 mb-1">
-            <AlertTriangle size={11} style={{ color: `hsl(${sevColor})` }} />
-            <span className="text-[11px] font-bold" style={{ color: `hsl(${sevColor})` }}>
-              Friction ({sevLabel}/{severity}/5)
-            </span>
-          </div>
-          <p className="text-[12px] text-foreground/75 leading-relaxed">{node.friction!.friction}</p>
-          {node.friction!.rootCause && (
-            <p className="text-[11px] text-muted-foreground italic mt-1">
-              Root: {node.friction!.rootCause}
-            </p>
-          )}
+        <div className="mt-auto">
+          <FrictionHotspot friction={node.friction!} />
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════
    MOBILE: Vertical timeline with connecting line + step cards
    ═══════════════════════════════════════════════════════════════ */
-function MobileTimeline({ nodes }: { nodes: StepNode[] }) {
+function MobileTimeline({ nodes, activeStep }: { nodes: StepNode[]; activeStep: number }) {
   let currentPhase: Phase | null = null;
 
   return (
     <div className="relative pl-10">
-      {/* Continuous vertical line */}
       <div
         className="absolute left-[19px] top-4 bottom-4 w-[2px]"
         style={{
@@ -467,44 +681,47 @@ function MobileTimeline({ nodes }: { nodes: StepNode[] }) {
         const hasFriction = !!node.friction;
         const severity = node.friction?.severity || 0;
         const sevColor = getSeverityColor(severity);
-        const sevLabel = getSeverityLabel(severity);
         const isHigh = severity >= 4;
         const showPhase = node.phase !== currentPhase;
         if (showPhase) currentPhase = node.phase;
-        const isLast = i === nodes.length - 1;
+        const isActive = node.index === activeStep;
+        const isPast = node.index < activeStep;
 
         return (
           <React.Fragment key={i}>
-            {/* Phase marker */}
             {showPhase && (
               <div className="relative flex items-center gap-2 mb-2 mt-3 first:mt-0 -ml-10 pl-12">
                 <div
                   className="absolute left-[16px] w-[8px] h-[8px] rounded-full z-10"
                   style={{ background: `hsl(${phaseColor})`, boxShadow: `0 0 6px hsl(${phaseColor} / 0.3)` }}
                 />
-                <span
-                  className="text-[10px] font-extrabold uppercase tracking-[0.1em]"
-                  style={{ color: `hsl(${phaseColor})` }}
-                >
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.1em]"
+                  style={{ color: `hsl(${phaseColor})` }}>
                   {node.phase}
                 </span>
               </div>
             )}
 
-            {/* Step node */}
-            <div className="relative flex items-start gap-3 mb-4">
-              {/* Timeline dot */}
+            <motion.div
+              className="relative flex items-start gap-3 mb-4"
+              animate={{ opacity: isPast ? 0.55 : 1 }}
+              transition={{ duration: 0.3 }}
+            >
               <div
                 className="absolute -left-10 w-[40px] h-[40px] rounded-xl flex items-center justify-center z-10"
                 style={{
                   background: "hsl(var(--card))",
                   color: `hsl(${phaseColor})`,
-                  border: isHigh
+                  border: isActive
+                    ? "2px solid hsl(var(--primary) / 0.5)"
+                    : isHigh
                     ? `2px solid hsl(${sevColor})`
                     : `1.5px solid hsl(${phaseColor} / 0.25)`,
-                  boxShadow: isHigh
+                  boxShadow: isActive
+                    ? "0 0 16px -2px hsl(var(--primary) / 0.3)"
+                    : isHigh
                     ? `0 0 12px -2px hsl(${sevColor} / 0.3)`
-                    : `0 1px 6px -1px hsl(var(--foreground) / 0.06)`,
+                    : "0 1px 6px -1px hsl(var(--foreground) / 0.06)",
                 }}
               >
                 <StepIcon size={16} strokeWidth={1.8} />
@@ -523,47 +740,36 @@ function MobileTimeline({ nodes }: { nodes: StepNode[] }) {
                 )}
               </div>
 
-              {/* Card */}
               <div
                 className="flex-1 min-w-0 ml-3 rounded-xl p-3.5"
                 style={{
                   background: "hsl(var(--card))",
-                  border: isHigh
+                  border: isActive
+                    ? "2px solid hsl(var(--primary) / 0.3)"
+                    : isHigh
                     ? `1.5px solid hsl(${sevColor} / 0.3)`
                     : "1px solid hsl(var(--border))",
-                  boxShadow: isHigh
+                  boxShadow: isActive
+                    ? "0 2px 16px -3px hsl(var(--primary) / 0.15)"
+                    : isHigh
                     ? `0 2px 12px -3px hsl(${sevColor} / 0.12)`
                     : "0 1px 3px -1px hsl(var(--foreground) / 0.04)",
                 }}
               >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="text-[9px] font-bold uppercase tracking-wider"
+                    style={{ color: `hsl(${phaseColor} / 0.6)` }}>
+                    {node.sceneLabel}
+                  </span>
+                </div>
                 <p className="text-sm font-bold text-foreground leading-snug mb-1">
                   Step {node.index + 1}: {node.text}
                 </p>
                 {hasFriction && (
-                  <div
-                    className="rounded-lg px-2.5 py-2 mt-1.5"
-                    style={{
-                      background: `hsl(${sevColor} / 0.05)`,
-                      border: `1px solid hsl(${sevColor} / 0.1)`,
-                    }}
-                  >
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <AlertTriangle size={10} style={{ color: `hsl(${sevColor})` }} />
-                      <span className="text-[10px] font-bold" style={{ color: `hsl(${sevColor})` }}>
-                        Friction ({sevLabel}/{severity}/5)
-                      </span>
-                    </div>
-                    <p className="text-[12px] text-foreground/75 leading-relaxed">{node.friction!.friction}</p>
-                    {node.friction!.rootCause && (
-                      <p className="text-[11px] text-muted-foreground italic mt-0.5">Root: {node.friction!.rootCause}</p>
-                    )}
-                  </div>
+                  <FrictionHotspot friction={node.friction!} />
                 )}
               </div>
-            </div>
-
-            {/* Arrow between steps */}
-            {!isLast && !nodes[i + 1] ? null : null}
+            </motion.div>
           </React.Fragment>
         );
       })}
