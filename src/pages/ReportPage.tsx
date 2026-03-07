@@ -64,18 +64,27 @@ import {
 } from "@/components/analysis/AnalysisComponents";
 
 /* ── Section tab config ── */
-function getAvailableSections(selectedProduct: any, isService: boolean): TabDef[] {
+function getAvailableSections(selectedProduct: any, isService: boolean, businessAnalysisData?: any): TabDef[] {
   const tabs: TabDef[] = [
     { id: "dashboard", label: "Command Deck", icon: LayoutDashboard },
     { id: "overview", label: "Overview", icon: Target },
   ];
   const uw = (selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney;
   const uwSteps = uw?.stepByStep || uw?.steps;
-  if (uwSteps?.length > 0) tabs.push({ id: "journey", label: "User Journey", icon: Clock });
-  const ci = (selectedProduct as any).communityInsights;
+  // Also check businessAnalysisData for user journey / workflow
+  const buw = businessAnalysisData?.userWorkflow || businessAnalysisData?.userJourney || businessAnalysisData?.customerJourney;
+  const buwSteps = buw?.stepByStep || buw?.steps || (Array.isArray(buw) ? buw : null);
+  if ((uwSteps?.length > 0) || (buwSteps?.length > 0)) tabs.push({ id: "journey", label: "User Journey", icon: Clock });
+
+  const ci = (selectedProduct as any).communityInsights || businessAnalysisData?.communityInsights || businessAnalysisData?.customerSentiment;
   if (ci) tabs.push({ id: "community", label: "Community Intel", icon: MessageSquare });
-  if (selectedProduct.pricingIntel) tabs.push({ id: "pricing", label: "Pricing Intel", icon: DollarSign });
-  if (!isService && selectedProduct.supplyChain) tabs.push({ id: "supply", label: "Supply Chain", icon: Package });
+
+  const pricing = selectedProduct.pricingIntel || businessAnalysisData?.pricingIntel || businessAnalysisData?.pricing || businessAnalysisData?.revenueModel;
+  if (pricing) tabs.push({ id: "pricing", label: "Pricing Intel", icon: DollarSign });
+
+  const supply = selectedProduct.supplyChain || businessAnalysisData?.supplyChain || businessAnalysisData?.valueChain;
+  if (!isService && supply) tabs.push({ id: "supply", label: "Supply Chain", icon: Package });
+
   if (!isService) tabs.push({ id: "patents", label: "Patent Intel", icon: ScrollText });
   return tabs;
 }
@@ -210,10 +219,11 @@ export default function ReportPage() {
 
   const isService = selectedProduct?.category === "Service" || isServiceCategory(selectedProduct?.category || "");
   const baseUrl = `/analysis/${analysisId}`;
-  const ci = selectedProduct ? ((selectedProduct as any).communityInsights || (selectedProduct as any).customerSentiment) : null;
-  const uw = selectedProduct ? ((selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney) : null;
-  const uwSteps = uw?.stepByStep || uw?.steps;
-  const sectionTabs = selectedProduct ? getAvailableSections(selectedProduct, isService) : [
+  const biz = analysis.businessAnalysisData as Record<string, unknown> | null;
+  const ci = selectedProduct ? ((selectedProduct as any).communityInsights || (selectedProduct as any).customerSentiment || (biz as any)?.communityInsights || (biz as any)?.customerSentiment) : null;
+  const uw = selectedProduct ? ((selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney || (biz as any)?.userWorkflow || (biz as any)?.userJourney || (biz as any)?.customerJourney) : null;
+  const uwSteps = uw?.stepByStep || uw?.steps || (Array.isArray(uw) ? uw : null);
+  const sectionTabs = selectedProduct ? getAvailableSections(selectedProduct, isService, biz) : [
     { id: "dashboard", label: "Command Deck", icon: LayoutDashboard },
   ];
 
@@ -242,7 +252,13 @@ export default function ReportPage() {
         selectedProduct={selectedProduct}
         analysisId={analysisId}
         accentColor={modeAccent}
-        hideRun
+        onRun={() => {
+          if (analysis.activeMode === "business") {
+            navigate(`/analysis/new`);
+          } else {
+            navigate(`/analysis/new`);
+          }
+        }}
         strategicProfile={analysis.strategicProfile}
         onChangeProfile={analysis.setStrategicProfile}
       />
@@ -468,22 +484,28 @@ export default function ReportPage() {
         </FrameworkPanel>
       )}
 
-      {activeSection === "pricing" && selectedProduct.pricingIntel && (
-        <AnalysisSectionCard icon={DollarSign} title="Pricing Intel">
-          <PricingIntelCard pricingIntel={selectedProduct.pricingIntel as any} />
-        </AnalysisSectionCard>
-      )}
+      {activeSection === "pricing" && (() => {
+        const pricingData = selectedProduct.pricingIntel || (biz as any)?.pricingIntel || (biz as any)?.pricing || (biz as any)?.revenueModel;
+        return pricingData ? (
+          <AnalysisSectionCard icon={DollarSign} title="Pricing Intel">
+            <PricingIntelCard pricingIntel={pricingData} />
+          </AnalysisSectionCard>
+        ) : null;
+      })()}
 
-      {activeSection === "supply" && !isService && selectedProduct.supplyChain && (
-        <AnalysisSectionCard icon={Package} title="Supply Chain">
-          <SupplySection title="Manufacturers" icon={<Factory size={11} />}
-            items={(selectedProduct.supplyChain.manufacturers || []).map((m: any) => ({ name: m.name, badge: m.region || "—", detail: m.specialty || m.notes || "", url: m.url }))} />
-          <SupplySection title="Distributors" icon={<Truck size={11} />}
-            items={(selectedProduct.supplyChain.distributors || []).map((d: any) => ({ name: d.name, badge: d.region || "—", detail: d.specialty || d.notes || "", url: d.url }))} />
-          <SupplySection title="Retailers" icon={<Store size={11} />}
-            items={(selectedProduct.supplyChain.retailers || []).map((r: any) => ({ name: r.name, badge: r.type || "—", detail: r.notes || "", url: r.url }))} />
-        </AnalysisSectionCard>
-      )}
+      {activeSection === "supply" && !isService && (() => {
+        const supplyData = selectedProduct.supplyChain || (biz as any)?.supplyChain || (biz as any)?.valueChain;
+        return supplyData ? (
+          <AnalysisSectionCard icon={Package} title="Supply Chain">
+            <SupplySection title="Manufacturers" icon={<Factory size={11} />}
+              items={(supplyData.manufacturers || []).map((m: any) => ({ name: m.name || m, badge: m.region || "—", detail: m.specialty || m.notes || "", url: m.url }))} />
+            <SupplySection title="Distributors" icon={<Truck size={11} />}
+              items={(supplyData.distributors || []).map((d: any) => ({ name: d.name || d, badge: d.region || "—", detail: d.specialty || d.notes || "", url: d.url }))} />
+            <SupplySection title="Retailers" icon={<Store size={11} />}
+              items={(supplyData.retailers || []).map((r: any) => ({ name: r.name || r, badge: r.type || "—", detail: r.notes || "", url: r.url }))} />
+          </AnalysisSectionCard>
+        ) : null;
+      })()}
 
       {activeSection === "patents" && !isService && (
         <AnalysisSectionCard icon={ScrollText} title="Patent Intelligence">
