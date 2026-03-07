@@ -40,6 +40,7 @@ const TYPE_LABELS: Record<string, string> = {
 function ImpactBar({ value, max = 10 }: { value: number; max?: number }) {
   const pct = Math.min((value / max) * 100, 100);
   const color = value >= 8 ? "hsl(var(--success))" : value >= 5 ? "hsl(var(--warning))" : "hsl(var(--muted-foreground))";
+  const label = value >= 8 ? "Strong" : value >= 5 ? "Moderate" : "Limited";
   return (
     <div className="flex items-center gap-2 w-full">
       <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-muted">
@@ -51,8 +52,8 @@ function ImpactBar({ value, max = 10 }: { value: number; max?: number }) {
           style={{ background: color }}
         />
       </div>
-      <span className="text-xs font-extrabold tabular-nums" style={{ color }}>
-        {value}
+      <span className="text-[11px] font-extrabold" style={{ color }}>
+        {label}
       </span>
     </div>
   );
