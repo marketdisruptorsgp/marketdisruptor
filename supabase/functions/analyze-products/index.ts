@@ -458,7 +458,7 @@ CRITICAL RULES:
 - competitorAnalysis.gaps must be specific market gaps visible in the data
 - Include REAL, working URLs for all sources, retailers, vendors where possible
 - pricingIntel must have SPECIFIC dollar figures from real market data
-- supplyChain must name REAL companies (real Alibaba suppliers, real Amazon, real distributors)
+- supplyChain must name REAL, SPECIFIC companies — not "Supplier Name" or "Various suppliers". Name the actual Alibaba vendors, Amazon sellers, Walmart/Target buyers, regional distributors. Include real URLs. If you don't know exact names, use the closest real companies in that supply chain (e.g. for auto parts: "Dorman Products", "AutoZone", "O'Reilly Auto Parts", "LKQ Corporation")
 - actionPlan quickWins must be actions someone could take THIS WEEK with less than $500
 - trendAnalysis must include specific numbers (% growth, view counts, search volumes)
 - flippedIdeas should have 2-3 per product and directly address community complaints/requests
