@@ -276,7 +276,7 @@ export const StrategicXRay = memo(function StrategicXRay({
                                   {relatedEvidence.slice(0, 4).map(ev => (
                                     <div key={ev.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-muted/50">
                                       <Search size={10} className="text-muted-foreground flex-shrink-0" />
-                                      <span className="text-[11px] text-foreground truncate">{ev.label}</span>
+                                      <span className="text-[11px] text-foreground truncate">{humanizeLabel(ev.label)}</span>
                                       <span className="text-[9px] text-muted-foreground flex-shrink-0 ml-auto">
                                         {ev.pipelineStep}
                                       </span>
