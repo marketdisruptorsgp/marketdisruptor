@@ -113,7 +113,7 @@ export const KeyInsightSignals = memo(function KeyInsightSignals({
             : (insight.confidenceScore ?? 0) >= 0.4
               ? "hsl(var(--warning))"
               : "hsl(var(--destructive))";
-          const confLabel = (insight.confidenceScore ?? 0) >= 0.7 ? "High" : (insight.confidenceScore ?? 0) >= 0.4 ? "Med" : "Low";
+          const confLabel = (insight.confidenceScore ?? 0) >= 0.7 ? "Strong" : (insight.confidenceScore ?? 0) >= 0.4 ? "Moderate" : "Early";
 
           return (
             <motion.div
