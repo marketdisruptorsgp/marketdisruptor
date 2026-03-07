@@ -645,7 +645,13 @@ export default function CommandDeckPage() {
           mode={modeKey}
         />
 
-        {/* ════════════════════════════════════════════════════════════
+        {/* ═══ PROJECTED STRATEGIC OUTCOME — the 10× feature ═══ */}
+        <StrategicOutcomeSimulator
+          playbook={topPlaybook}
+          evidence={autoAnalysis.flatEvidence}
+          narrative={narrative}
+        />
+
             TIER 2 — STRATEGIC ANALYSIS
             Evidence behind the strategy. Progressive disclosure.
            ════════════════════════════════════════════════════════════ */}
