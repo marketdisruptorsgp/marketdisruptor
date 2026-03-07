@@ -679,13 +679,19 @@ export default function CommandDeckPage() {
           narrative={narrative}
         />
 
+        {/* ═══ STRATEGIC NARRATIVE — coherent strategy story ═══ */}
+        <StrategicNarrativeStory story={strategicStory} />
+
         {/* ════════════════════════════════════════════════════════════
             TIER 2 — STRATEGIC ANALYSIS
             Evidence behind the strategy. Progressive disclosure.
            ════════════════════════════════════════════════════════════ */}
 
-        {/* Strategic Pattern Detection */}
-        <StrategicPatternCard patterns={detectedPatterns} />
+        {/* Industry Benchmarks + Opportunity Radar */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <IndustryBenchmarkPanel benchmark={benchmark} />
+          <OpportunityRadarPanel items={opportunityRadar} />
+        </div>
 
         {/* Strategic X-Ray — starts collapsed with summary */}
         <StrategicXRay
