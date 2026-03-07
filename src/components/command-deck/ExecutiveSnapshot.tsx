@@ -9,10 +9,11 @@
 import { memo, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Crosshair, DollarSign, MessageSquare, Package, Lightbulb,
+  DollarSign, MessageSquare, Package, Lightbulb,
   AlertTriangle, ChevronDown, ChevronUp, ArrowRight, TrendingUp,
   Users, Zap, Lock,
 } from "lucide-react";
+import { ProblemStatementCard } from "./ProblemStatementCard";
 import { humanizeLabel } from "@/lib/humanize";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
 
