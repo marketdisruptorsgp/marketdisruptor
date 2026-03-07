@@ -819,16 +819,6 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
           >
             <Background gap={24} size={1} color="hsl(var(--border))" />
             <Controls showInteractive={false} style={{ bottom: 12, left: 12 }} />
-            {!isMobile && (
-              <MiniMap
-                nodeStrokeWidth={2}
-                style={{
-                  background: "hsl(var(--muted))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: 8,
-                }}
-              />
-            )}
           </ReactFlow>
 
           {/* Hover Tooltip — anchored inside graph canvas */}
