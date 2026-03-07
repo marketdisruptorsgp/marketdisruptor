@@ -263,28 +263,19 @@ function layoutTiered(graphNodes: InsightGraphNode[]): Node[] {
   });
 
   columns.forEach((group, col) => {
-    // Sort by leverage score desc, then influence
     group.sort((a, b) => (b.leverageScore - a.leverageScore) || (b.influence - a.influence));
-    const colHeight = group.length * rowHeight;
-    const offsetY = -colHeight / 2; // center vertically
 
     group.forEach((gn, row) => {
-      const jitterX = Math.sin(row * 2.3 + col * 1.7) * 18;
-      const jitterY = Math.cos(row * 1.8 + col * 2.1) * 12;
       flowNodes.push({
         id: gn.id,
         type: "insightNode",
         position: {
-          x: col * colWidth + jitterX + 60,
-          y: offsetY + row * rowHeight + jitterY + 80,
+          x: col * colWidth + 60,
+          y: row * rowHeight + 80,
         },
         data: {
           label: gn.label,
           nodeType: gn.type,
-          impact: gn.impact,
-          confidence: gn.confidence,
-          influence: gn.influence,
-          leverageScore: gn.leverageScore,
           tier: gn.tier,
           isTopLeverage: false,
           isBreakthrough: false,
