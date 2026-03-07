@@ -93,6 +93,7 @@ export function usePipelineOrchestrator(
         setDisruptData(disruptResult);
         await saveStepData("disrupt", disruptResult, analysisId);
         updateStatus("disrupt", "done");
+        onStepComplete?.("disrupt");
       }
     } catch (err) {
       console.warn("[Pipeline] Disrupt error:", err);
