@@ -40,6 +40,8 @@ IMPORTANT:
   - "strong" = well-understood, clear evidence or precedent
   - "moderate" = plausible with some unknowns
   - "early" = speculative, requires significant validation
+- If COMPETITOR APPROACHES are provided, generated concepts MUST differentiate from them. Do not replicate existing market positions. Use competitors as negative space — identify what they are NOT doing and explore those gaps.
+- If FLIPPED IDEAS are provided, treat them as creative provocations. Use inversions to inspire unconventional dimension values and variant combinations that challenge industry assumptions.
 
 Return ONLY valid JSON using this exact schema:
 {
