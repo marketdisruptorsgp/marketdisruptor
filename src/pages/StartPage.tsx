@@ -21,27 +21,32 @@ const ROTATING_WORDS = [
 
 const PIPELINE_STEPS = [
   {
-    icon: Search, label: "Understand", step: 1,
-    desc: "Define your target and map the system — pricing, supply chains, market position",
+    icon: Search, label: "Analyze", step: 1,
+    desc: "Define your target and begin mapping the competitive landscape",
     color: "#2563eb",
   },
   {
-    icon: Radar, label: "Disrupt", step: 2,
+    icon: BarChart3, label: "Intel Report", step: 2,
+    desc: "Deep-dive into pricing, supply chains, patents, and community sentiment",
+    color: "#0891b2",
+  },
+  {
+    icon: Radar, label: "Deconstruct", step: 3,
     desc: "Challenge assumptions and uncover structural constraints hiding in plain sight",
     color: "#7c3aed",
   },
   {
-    icon: Sparkles, label: "Reimagine", step: 3,
+    icon: Sparkles, label: "Reimagine", step: 4,
     desc: "Flip constraints into opportunities — generate redesigned concepts with evidence",
     color: "#db2777",
   },
   {
-    icon: Swords, label: "Stress Test", step: 4,
+    icon: Swords, label: "Stress Test", step: 5,
     desc: "Validate with adversarial testing — red team vs green team debate",
     color: "#dc2626",
   },
   {
-    icon: Presentation, label: "Pitch", step: 5,
+    icon: Presentation, label: "Pitch", step: 6,
     desc: "Synthesize into an investor-ready narrative with evidence-backed slides",
     color: "#d97706",
   },
