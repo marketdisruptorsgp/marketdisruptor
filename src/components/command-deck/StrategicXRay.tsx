@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { StrategicInsight, StrategicNarrative } from "@/lib/strategicEngine";
 import type { Evidence } from "@/lib/evidenceEngine";
+import { humanizeLabel } from "@/lib/humanize";
 
 interface XRayNode {
   stage: string;
