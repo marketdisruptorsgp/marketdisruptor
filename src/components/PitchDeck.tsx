@@ -929,7 +929,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         <span className="text-xs font-bold text-muted-foreground tabular-nums">
           {allCurrentIdx + 1} / {allTotal}
         </span>
-        {nextSlide ? (
+        {allCurrentIdx < allTotal - 1 ? (
           <button
             onClick={goNext}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 text-white"
