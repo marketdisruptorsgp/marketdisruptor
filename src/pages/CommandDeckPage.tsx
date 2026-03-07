@@ -403,8 +403,12 @@ export default function CommandDeckPage() {
     [autoAnalysis.flatEvidence, narrative, topPlaybook],
   );
   const opportunityRadar = useMemo(() =>
-    computeOpportunityRadar(allPlaybooks, autoAnalysis.flatEvidence, narrative),
+    computeOpportunityMap(allPlaybooks, autoAnalysis.flatEvidence, narrative),
     [allPlaybooks, autoAnalysis.flatEvidence, narrative],
+  );
+  const confidenceExplanation = useMemo(() =>
+    computeConfidenceExplanation(autoAnalysis.flatEvidence),
+    [autoAnalysis.flatEvidence],
   );
   const strategicStory = useMemo(() =>
     generateStrategicStory(narrative, topPlaybook, autoAnalysis.flatEvidence),
