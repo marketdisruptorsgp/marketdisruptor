@@ -1031,7 +1031,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   }
 
   // ── Stage 9: Strategic Narrative ──
-  const narrative = buildStrategicNarrative(constraints, drivers, leveragePoints, opportunities, pathways);
+  const narrative = buildStrategicNarrative(constraints, drivers, leveragePoints, opportunities, pathways, flat);
 
   // ── Combine all insights ──
   const allInsights: StrategicInsight[] = [
