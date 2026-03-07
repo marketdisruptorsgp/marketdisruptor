@@ -29,6 +29,7 @@ import { TransformationPaths } from "@/components/command-deck/TransformationPat
 import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
 import { ExecutiveBrief } from "@/components/command-deck/ExecutiveBrief";
+import { ExecutiveSnapshot } from "@/components/command-deck/ExecutiveSnapshot";
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
 import { BriefingSection } from "@/components/command-deck/BriefingSection";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
