@@ -247,6 +247,16 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
       const label = typeof f === "string" ? f : (f.text || f.label || `Friction ${i + 1}`);
       items.push({ id: makeId("fric-fp"), type: "friction", label, pipelineStep: "report", tier: autoTier(label, undefined, "system"), mode, sourceEngine: "pipeline" });
     });
+    // Also extract from userJourney.frictionPoints (product analyses)
+    const uj = product.userJourney;
+    if (uj?.frictionPoints) {
+      safeArr(uj.frictionPoints).forEach((fp: any, i: number) => {
+        const label = typeof fp === "string" ? fp : (fp.friction || fp.text || fp.label || `Journey Friction ${i + 1}`);
+        if (!items.some(e => e.label === label)) {
+          items.push({ id: makeId("fric-uj"), type: "friction", label, pipelineStep: "report", tier: autoTier(label, undefined, "system"), mode, sourceEngine: "pipeline" });
+        }
+      });
+    }
   }
 
   const disrupt = input.disruptData;
