@@ -33,7 +33,7 @@ interface InsightNodeCardProps {
 
 export const InsightNodeCard = memo(function InsightNodeCard({
   node, graph, onClose, onSelectNode, onOpenTool, isMobile = false,
-  conceptSpace, onExpandDesignSpace, onToggleConceptVariant, conceptExpansionLoading,
+  conceptSpace, onExpandDesignSpace, onToggleConceptVariant, onStressTestSelected, conceptExpansionLoading,
 }: InsightNodeCardProps) {
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
