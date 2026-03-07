@@ -79,7 +79,7 @@ export function ShowcaseGallery() {
       <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-2">
         Play-Doh — Rethought, Reinvented, Disrupted
       </h2>
-      <p className="text-sm sm:text-base text-muted-foreground mb-8 max-w-3xl leading-relaxed">
+      <p className="text-sm sm:text-base text-muted-foreground mb-8 leading-relaxed">
         This entire analysis was built in under 10 minutes. The platform deconstructed Play-Doh's business model, mapped its supply chain and patent landscape, generated redesigned product concepts with AI visuals, stress-tested every assumption, and produced an investor-ready pitch deck — all automatically.
       </p>
 
