@@ -294,6 +294,33 @@ export default function CommandDeckPage() {
           totalSteps={PIPELINE_STEPS.length}
         />
 
+        {/* ═══ TIER 1.5 — STRATEGIC VERDICT ═══ */}
+        <StrategicVerdictBanner
+          verdict={narrative?.strategicVerdict ?? null}
+          rationale={narrative?.verdictRationale ?? null}
+          confidence={narrative?.verdictConfidence ?? 0}
+          constraintLabel={narrative?.primaryConstraint ?? null}
+          opportunityLabel={narrative?.breakthroughOpportunity ?? null}
+          completedSteps={completedSteps.size}
+          totalSteps={PIPELINE_STEPS.length}
+        />
+
+        {/* ═══ TIER 1.6 — TRAPPED VALUE + KILL QUESTION ═══ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <TrappedValueCard
+            trappedDescription={narrative?.trappedValue ?? null}
+            unlockDescription={narrative?.unlockPotential ?? null}
+            confidence={narrative?.verdictConfidence ?? 0}
+            evidenceCount={narrative?.trappedValueEvidenceCount ?? 0}
+          />
+          <KillQuestionCard
+            killQuestion={narrative?.killQuestion ?? null}
+            validationExperiment={narrative?.validationExperiment ?? null}
+            timeframe={narrative?.validationTimeframe ?? "30 days"}
+            confidence={narrative?.verdictConfidence ?? 0}
+          />
+        </div>
+
         {/* ═══ TIER 2 — NARRATIVE SUMMARY ═══ */}
         <NarrativeSummary
           primaryConstraint={narrative?.primaryConstraint ?? null}
