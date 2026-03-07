@@ -10,6 +10,7 @@
  */
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { StepLoadingTracker, type StepTask } from "@/components/StepLoadingTracker";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { useSubscription } from "@/hooks/useSubscription";
