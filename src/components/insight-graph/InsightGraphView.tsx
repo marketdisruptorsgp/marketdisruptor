@@ -11,7 +11,6 @@ import { TIER_META } from "@/lib/tierDiscoveryEngine";
 import ReactFlow, {
   Background,
   Controls,
-  MiniMap,
   type Node,
   type Edge,
   MarkerType,
