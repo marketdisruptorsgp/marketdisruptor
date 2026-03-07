@@ -32,6 +32,8 @@ export interface DimensionValue {
   novelty: "high" | "medium" | "low";
 }
 
+export type QualitativeTier = "strong" | "moderate" | "early";
+
 /** A concept variant — a specific combination of dimension values */
 export interface ConceptVariant {
   id: string;
@@ -41,10 +43,10 @@ export interface ConceptVariant {
   dimensionValues: Record<string, string>;
   /** Human-readable summary of the combination */
   formula: string;
-  /** AI-assessed scores */
-  feasibilityScore: number; // 0-10
-  noveltyScore: number;     // 0-10
-  marketFit: number;        // 0-10
+  /** Qualitative assessments */
+  feasibility: QualitativeTier;
+  novelty: QualitativeTier;
+  marketReadiness: QualitativeTier;
   /** Whether user has selected this for stress testing */
   selectedForStressTest: boolean;
 }
@@ -86,8 +88,8 @@ export function injectConceptVariants(
       type: "concept_variant",
       label: variant.name,
       detail: variant.description,
-      impact: Math.round((variant.feasibilityScore + variant.noveltyScore + variant.marketFit) / 3),
-      confidence: variant.feasibilityScore >= 7 ? "high" : variant.feasibilityScore >= 4 ? "medium" : "low",
+      impact: 0,
+      confidence: variant.feasibility === "strong" ? "high" : variant.feasibility === "moderate" ? "medium" : "low",
       evidenceCount: conceptSpace.dimensions.length,
       influence: 0,
       leverageScore: 0,
@@ -95,13 +97,12 @@ export function injectConceptVariants(
       evidence: [variant.formula],
       relatedNodeIds: [conceptSpace.opportunityNodeId],
       intelligenceLayer: "opportunity",
-      // Concept-specific fields stored in detail
       conceptVariantData: {
         dimensionValues: variant.dimensionValues,
         formula: variant.formula,
-        feasibilityScore: variant.feasibilityScore,
-        noveltyScore: variant.noveltyScore,
-        marketFit: variant.marketFit,
+        feasibility: variant.feasibility,
+        novelty: variant.novelty,
+        marketReadiness: variant.marketReadiness,
         selectedForStressTest: variant.selectedForStressTest,
         conceptSpaceId: conceptSpace.id,
       },

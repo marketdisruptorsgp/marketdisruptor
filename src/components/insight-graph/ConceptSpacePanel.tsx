@@ -7,8 +7,8 @@
 
 import { memo, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Boxes, CheckCircle2, Circle, Sparkles, ArrowRight, ChevronDown, Loader2 } from "lucide-react";
-import type { ConceptSpace, ConceptVariant, DesignDimension } from "@/lib/conceptExpansion";
+import { Boxes, CheckCircle2, Circle, ArrowRight, ChevronDown } from "lucide-react";
+import type { ConceptSpace, ConceptVariant, DesignDimension, QualitativeTier } from "@/lib/conceptExpansion";
 import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
 
 interface ConceptSpacePanelProps {
@@ -17,21 +17,27 @@ interface ConceptSpacePanelProps {
   onStressTestSelected?: () => void;
 }
 
+const TIER_ORDER: Record<QualitativeTier, number> = { strong: 3, moderate: 2, early: 1 };
+
+function tierColor(tier: QualitativeTier): string {
+  if (tier === "strong") return "hsl(142 70% 45%)";
+  if (tier === "moderate") return "hsl(38 92% 50%)";
+  return "hsl(var(--muted-foreground))";
+}
+
 export const ConceptSpacePanel = memo(function ConceptSpacePanel({
   conceptSpace,
   onToggleVariant,
   onStressTestSelected,
 }: ConceptSpacePanelProps) {
   const [activeView, setActiveView] = useState<"variants" | "dimensions">("variants");
-  const [sortBy, setSortBy] = useState<"feasibility" | "novelty" | "marketFit">("marketFit");
+  const [sortBy, setSortBy] = useState<"feasibility" | "novelty" | "marketReadiness">("marketReadiness");
 
   const selectedCount = conceptSpace.variants.filter(v => v.selectedForStressTest).length;
 
   const sortedVariants = useMemo(() => {
     return [...conceptSpace.variants].sort((a, b) => {
-      if (sortBy === "feasibility") return b.feasibilityScore - a.feasibilityScore;
-      if (sortBy === "novelty") return b.noveltyScore - a.noveltyScore;
-      return b.marketFit - a.marketFit;
+      return TIER_ORDER[b[sortBy]] - TIER_ORDER[a[sortBy]];
     });
   }, [conceptSpace.variants, sortBy]);
 
@@ -51,7 +57,7 @@ export const ConceptSpacePanel = memo(function ConceptSpacePanel({
           <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: cfg.color }}>
             Design Space · {conceptSpace.dimensions.length} Dimensions
           </p>
-          <p className="text-xs font-bold text-foreground truncate">
+          <p className="text-xs font-bold text-foreground">
             {conceptSpace.variants.length} concept directions generated
           </p>
         </div>
@@ -81,7 +87,7 @@ export const ConceptSpacePanel = memo(function ConceptSpacePanel({
           {/* Sort controls */}
           <div className="flex items-center gap-1">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sort:</span>
-            {(["marketFit", "feasibility", "novelty"] as const).map(s => (
+            {(["marketReadiness", "feasibility", "novelty"] as const).map(s => (
               <button
                 key={s}
                 onClick={() => setSortBy(s)}
@@ -92,7 +98,7 @@ export const ConceptSpacePanel = memo(function ConceptSpacePanel({
                   border: sortBy === s ? `1px solid ${cfg.borderColor}` : "1px solid transparent",
                 }}
               >
-                {s === "marketFit" ? "Market Fit" : s === "feasibility" ? "Feasibility" : "Novelty"}
+                {s === "marketReadiness" ? "Market Ready" : s === "feasibility" ? "Feasibility" : "Novelty"}
               </button>
             ))}
           </div>
@@ -144,9 +150,22 @@ export const ConceptSpacePanel = memo(function ConceptSpacePanel({
 //  SUB-COMPONENTS
 // ═══════════════════════════════════════════════════════════════
 
+function TierBadge({ label, tier }: { label: string; tier: QualitativeTier }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span
+        className="text-[9px] font-bold capitalize"
+        style={{ color: tierColor(tier) }}
+      >
+        {tier}
+      </span>
+    </div>
+  );
+}
+
 function VariantCard({ variant, rank, onToggle }: { variant: ConceptVariant; rank: number; onToggle: () => void }) {
   const cfg = NODE_TYPE_CONFIG["concept_variant"];
-  const avgScore = ((variant.feasibilityScore + variant.noveltyScore + variant.marketFit) / 3).toFixed(1);
 
   return (
     <button
@@ -166,43 +185,21 @@ function VariantCard({ variant, rank, onToggle }: { variant: ConceptVariant; ran
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-[10px] font-bold text-muted-foreground">#{rank}</span>
-            <p className="text-xs font-bold text-foreground truncate">{variant.name}</p>
-            <span className="text-[10px] font-bold tabular-nums ml-auto" style={{ color: cfg.color }}>
-              {avgScore}
-            </span>
+            <p className="text-xs font-bold text-foreground">{variant.name}</p>
           </div>
           <p className="text-[11px] text-muted-foreground leading-relaxed">{variant.description}</p>
           <p className="text-[10px] font-semibold mt-1 opacity-70" style={{ color: cfg.color }}>
             {variant.formula}
           </p>
-          {/* Score bars */}
-          <div className="flex gap-3 mt-2">
-            <ScoreBar label="Feasible" value={variant.feasibilityScore} />
-            <ScoreBar label="Novel" value={variant.noveltyScore} />
-            <ScoreBar label="Market" value={variant.marketFit} />
+          {/* Qualitative assessments */}
+          <div className="flex gap-4 mt-2">
+            <TierBadge label="Feasible" tier={variant.feasibility} />
+            <TierBadge label="Novel" tier={variant.novelty} />
+            <TierBadge label="Market" tier={variant.marketReadiness} />
           </div>
         </div>
       </div>
     </button>
-  );
-}
-
-function ScoreBar({ label, value }: { label: string; value: number }) {
-  const pct = (value / 10) * 100;
-  const cfg = NODE_TYPE_CONFIG["concept_variant"];
-  return (
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center justify-between mb-0.5">
-        <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
-        <span className="text-[9px] font-bold tabular-nums" style={{ color: cfg.color }}>{value}</span>
-      </div>
-      <div className="h-1 rounded-full bg-border overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all"
-          style={{ width: `${pct}%`, background: cfg.color }}
-        />
-      </div>
-    </div>
   );
 }
 
@@ -225,7 +222,7 @@ function DimensionCard({ dimension }: { dimension: DesignDimension }) {
         />
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-foreground">{dimension.name}</p>
-          <p className="text-[10px] text-muted-foreground truncate">
+          <p className="text-[10px] text-muted-foreground">
             Derived from: {dimension.derivedFrom}
           </p>
         </div>

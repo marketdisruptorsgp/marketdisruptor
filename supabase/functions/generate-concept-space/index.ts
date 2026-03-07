@@ -36,6 +36,10 @@ IMPORTANT:
 - Values should range from conventional to radical.
 - Concept variants should include both safe combinations and surprising/disruptive ones.
 - Every variant needs a clear, descriptive name and a one-sentence description.
+- Use QUALITATIVE tiers ("strong", "moderate", "early") instead of numeric scores for all assessments. These reflect confidence in the assessment, not rankings.
+  - "strong" = well-understood, clear evidence or precedent
+  - "moderate" = plausible with some unknowns
+  - "early" = speculative, requires significant validation
 
 Return ONLY valid JSON using this exact schema:
 {
@@ -56,9 +60,9 @@ Return ONLY valid JSON using this exact schema:
       "description": "One sentence description",
       "dimensionValues": { "dim-1": "val-1-1", "dim-2": "val-2-3" },
       "formula": "Value A + Value B → Concept Name",
-      "feasibilityScore": 7,
-      "noveltyScore": 8,
-      "marketFit": 6
+      "feasibility": "strong|moderate|early",
+      "novelty": "strong|moderate|early",
+      "marketReadiness": "strong|moderate|early"
     }
   ]
 }`;
@@ -73,6 +77,8 @@ UPSTREAM LEVERAGE POINTS:
 ${(leveragePoints || []).map((l: string, i: number) => `${i + 1}. ${l}`).join("\n") || "None provided"}
 
 Generate the design space expansion now.`;
+
+    const tierEnum = ["strong", "moderate", "early"];
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 150000);
@@ -136,11 +142,11 @@ Generate the design space expansion now.`;
                         description: { type: "string" },
                         dimensionValues: { type: "object" },
                         formula: { type: "string" },
-                        feasibilityScore: { type: "number" },
-                        noveltyScore: { type: "number" },
-                        marketFit: { type: "number" },
+                        feasibility: { type: "string", enum: tierEnum },
+                        novelty: { type: "string", enum: tierEnum },
+                        marketReadiness: { type: "string", enum: tierEnum },
                       },
-                      required: ["id", "name", "description", "dimensionValues", "formula", "feasibilityScore", "noveltyScore", "marketFit"],
+                      required: ["id", "name", "description", "dimensionValues", "formula", "feasibility", "novelty", "marketReadiness"],
                       additionalProperties: false,
                     },
                   },
@@ -183,7 +189,6 @@ Generate the design space expansion now.`;
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
 
     if (!toolCall?.function?.arguments) {
-      // Fallback: try parsing content as JSON
       const content = result.choices?.[0]?.message?.content || "";
       try {
         const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -194,7 +199,7 @@ Generate the design space expansion now.`;
           });
         }
       } catch { /* ignore */ }
-      
+
       return new Response(JSON.stringify({ error: "Failed to parse AI response" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

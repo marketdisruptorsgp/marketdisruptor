@@ -86,9 +86,9 @@ export interface InsightGraphNode {
   conceptVariantData?: {
     dimensionValues: Record<string, string>;
     formula: string;
-    feasibilityScore: number;
-    noveltyScore: number;
-    marketFit: number;
+    feasibility: "strong" | "moderate" | "early";
+    novelty: "strong" | "moderate" | "early";
+    marketReadiness: "strong" | "moderate" | "early";
     selectedForStressTest: boolean;
     conceptSpaceId: string;
   };
