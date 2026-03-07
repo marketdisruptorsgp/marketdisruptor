@@ -82,8 +82,8 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
   } = props;
 
   // Humanize all user-facing labels
-  const constraintLabel = humanize(props.constraintLabel);
-  const opportunityLabel = humanize(props.opportunityLabel);
+  const constraintLabel = humanizeLabel(props.constraintLabel) || null;
+  const opportunityLabel = humanizeLabel(props.opportunityLabel) || null;
 
   const badge = confidenceBadge(confidence);
   const hasVerdict = !!verdict || !!constraintLabel;
