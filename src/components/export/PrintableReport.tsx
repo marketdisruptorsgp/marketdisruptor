@@ -527,17 +527,72 @@ function DisruptSection({ data }: { data: Record<string, unknown> }) {
 
 function RedesignSection({ data }: { data: Record<string, unknown> }) {
   const concept = data.redesignedConcept as Record<string, any> | undefined;
-  if (!concept?.conceptName) {
-    // Fallback for unknown structure
+  const flippedIdeas = (data.flippedIdeas || data.ideas) as any[] | undefined;
+  const transformations = (data.transformations || data.proposals || data.concepts) as any[] | undefined;
+
+  // Has a main concept
+  if (concept?.conceptName) {
     return (
-      <PrintSection title="Redesign Proposals" icon={<Sparkles size={14} />}>
-        <PrintJSON data={data} />
+      <PrintSection title="Reimagine / Redesign" icon={<Sparkles size={14} />}>
+        <ConceptCard concept={concept} />
+        {/* Also render flipped ideas if present alongside concept */}
+        {flippedIdeas && Array.isArray(flippedIdeas) && flippedIdeas.length > 0 && (
+          <div className="print-subsection">
+            <h3 className="print-subsection-title"><Sparkles size={12} /> Additional Ideas</h3>
+            {flippedIdeas.map((idea: any, i: number) => (
+              <PrintCard key={i} accent="hsl(38 92% 50%)">
+                <p className="print-card-title">
+                  <span className="print-card-number">{i + 1}</span>
+                  {idea.title || idea.idea || idea.boldAlternative || idea.name || `Idea ${i + 1}`}
+                </p>
+                {(idea.description || idea.rationale) && <p className="print-body-sm">{idea.description || idea.rationale}</p>}
+                {idea.mechanism && <p className="print-body-sm">Mechanism: {idea.mechanism}</p>}
+              </PrintCard>
+            ))}
+          </div>
+        )}
       </PrintSection>
     );
   }
+
+  // Has flipped ideas but no concept
+  if (flippedIdeas && Array.isArray(flippedIdeas) && flippedIdeas.length > 0) {
+    return (
+      <PrintSection title="Reimagine / Redesign" icon={<Sparkles size={14} />}>
+        {flippedIdeas.map((idea: any, i: number) => (
+          <PrintCard key={i} accent="hsl(38 92% 50%)">
+            <p className="print-card-title">
+              <span className="print-card-number">{i + 1}</span>
+              {idea.title || idea.idea || idea.boldAlternative || idea.name || `Idea ${i + 1}`}
+            </p>
+            {(idea.description || idea.rationale) && <p className="print-body-sm">{idea.description || idea.rationale}</p>}
+            {idea.mechanism && <p className="print-body-sm">Mechanism: {idea.mechanism}</p>}
+            {idea.marketPotential && <p className="print-body-sm">Market: {idea.marketPotential}</p>}
+          </PrintCard>
+        ))}
+      </PrintSection>
+    );
+  }
+
+  // Has transformations array
+  if (transformations && Array.isArray(transformations) && transformations.length > 0) {
+    return (
+      <PrintSection title="Reimagine / Redesign" icon={<Sparkles size={14} />}>
+        {transformations.map((t: any, i: number) => (
+          <PrintCard key={i} accent="hsl(38 92% 50%)">
+            <p className="print-card-title">{t.title || t.name || t.conceptName || `Proposal ${i + 1}`}</p>
+            {t.description && <p className="print-body-sm">{t.description}</p>}
+            {t.tagline && <p className="print-body-sm font-semibold" style={{ fontStyle: "italic" }}>{t.tagline}</p>}
+          </PrintCard>
+        ))}
+      </PrintSection>
+    );
+  }
+
+  // Fallback for unknown structure
   return (
-    <PrintSection title="Redesign Proposals" icon={<Sparkles size={14} />}>
-      <ConceptCard concept={concept} />
+    <PrintSection title="Reimagine / Redesign" icon={<Sparkles size={14} />}>
+      <PrintJSON data={data} />
     </PrintSection>
   );
 }
