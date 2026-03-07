@@ -310,7 +310,7 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
       });
     });
     safeArr(disrupt.structuralBlockers).forEach((b: any, i: number) => {
-      const label = typeof b === "string" ? b : (b.name || b.label || `Blocker ${i + 1}`);
+      const label = typeof b === "string" ? b : (b.name || b.label || "Structural scaling limitation");
       items.push({ id: makeId("con-blk"), type: "constraint", label, pipelineStep: "disrupt", tier: "structural", mode, sourceEngine: "pipeline" });
     });
   }
