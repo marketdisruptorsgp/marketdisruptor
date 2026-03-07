@@ -82,6 +82,16 @@ export interface InsightGraphNode {
   relatedScenarioId?: string;
   /** Intelligence layer for clustering */
   intelligenceLayer?: "evidence" | "insight" | "opportunity" | "simulation" | "strategy";
+  /** Concept variant data (only for concept_variant nodes) */
+  conceptVariantData?: {
+    dimensionValues: Record<string, string>;
+    formula: string;
+    feasibilityScore: number;
+    noveltyScore: number;
+    marketFit: number;
+    selectedForStressTest: boolean;
+    conceptSpaceId: string;
+  };
 }
 
 export interface InsightGraphEdge {
