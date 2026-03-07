@@ -291,8 +291,8 @@ export function generateStrategicStory(
 ): StrategicNarrativeStory {
   if (!narrative) {
     return {
-      paragraphs: ["Collecting evidence to form a strategic narrative. Complete more analysis steps to generate a comprehensive strategy story."],
-      impactLine: "Impact projection will appear once sufficient evidence is gathered.",
+      paragraphs: [],
+      impactLine: "",
     };
   }
 

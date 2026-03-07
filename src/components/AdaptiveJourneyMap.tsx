@@ -34,13 +34,13 @@ interface AdaptiveJourneyMapProps {
 type Phase = "DISCOVERY" | "EVALUATION" | "ACQUISITION" | "SETUP" | "CORE USAGE" | "FULFILLMENT" | "RETENTION";
 
 const PHASE_KEYWORDS: Record<Phase, string[]> = {
-  "DISCOVERY": ["discover", "aware", "hear", "learn about", "first encounter", "search", "browse", "find", "explore", "research", "recommend", "referral"],
-  "EVALUATION": ["evaluate", "assess", "consider", "weigh", "decide", "choose", "select", "review", "compare", "alternative", "option"],
-  "ACQUISITION": ["sign up", "register", "create account", "join", "apply", "buy", "purchase", "order", "checkout", "add to cart", "subscribe", "pay", "payment", "download", "install"],
-  "SETUP": ["setup", "configure", "customize", "personalize", "adjust", "setting", "connect", "integrate", "link", "onboard", "pair", "sync"],
-  "CORE USAGE": ["use", "engage", "interact", "experience", "start using", "begin", "launch", "open", "book", "reserve", "schedule", "call", "contact", "message", "chat", "upload", "submit", "build", "create", "watch", "learn"],
-  "FULFILLMENT": ["deliver", "ship", "receive", "arrive", "pickup", "collect", "wait", "pending", "processing", "drive", "navigate", "visit", "fly", "travel"],
-  "RETENTION": ["return", "come back", "repeat", "renew", "reorder", "continue", "share", "post", "refer", "save", "favorite", "track", "follow"],
+  "DISCOVERY": ["discover", "aware", "hear", "learn about", "first encounter", "search", "browse", "find", "explore", "research", "recommend", "referral", "realize", "notice", "see a", "need", "remember"],
+  "EVALUATION": ["evaluate", "assess", "consider", "weigh", "decide", "choose", "select", "review", "compare", "alternative", "option", "recommend additional", "quotes a price", "upsell", "suggests"],
+  "ACQUISITION": ["sign up", "register", "create account", "join", "apply", "buy", "purchase", "order", "checkout", "add to cart", "subscribe", "pay", "payment", "download", "install", "approve", "accept", "agree", "consent", "authorize"],
+  "SETUP": ["setup", "configure", "customize", "personalize", "adjust", "setting", "connect", "integrate", "link", "onboard", "pair", "sync", "check in", "greet"],
+  "CORE USAGE": ["service", "repair", "fix", "maintain", "work on", "perform", "inspect", "diagnose", "use", "engage", "interact", "experience", "start using", "begin", "launch", "open", "book", "reserve", "schedule", "call", "contact", "message", "chat", "upload", "submit", "build", "create", "watch", "learn"],
+  "FULFILLMENT": ["deliver", "ship", "receive", "arrive", "pickup", "collect", "wait", "pending", "processing", "navigate", "visit", "fly", "travel", "drive to", "drives to", "pull into", "pulls into", "go to", "sticker", "drives away", "leave"],
+  "RETENTION": ["return", "come back", "repeat", "renew", "reorder", "continue", "share", "post", "refer", "save", "favorite", "track", "follow", "next service", "loyalty"],
 };
 
 const PHASE_COLORS: Record<Phase, string> = {
@@ -55,6 +55,7 @@ const PHASE_COLORS: Record<Phase, string> = {
 
 /* ── Scene context — maps keywords to descriptive micro-labels ── */
 const SCENE_LABELS: [string[], string][] = [
+  [["realize", "notice", "need", "remember", "dashboard light"], "Moment of Need"],
   [["discover", "aware", "hear about", "learn about", "first encounter"], "First Awareness"],
   [["search", "browse", "look for", "find", "explore", "research"], "Searching"],
   [["recommend", "referral", "word of mouth"], "Peer Referral"],
@@ -65,18 +66,21 @@ const SCENE_LABELS: [string[], string][] = [
   [["pay", "payment", "price", "cost", "charge", "bill"], "Payment"],
   [["download", "install"], "Installing"],
   [["setup", "configure", "customize", "personalize"], "Configuration"],
-  [["drive", "car", "vehicle", "arrive", "pull"], "Arriving by Car"],
-  [["wait", "pending", "queue", "line"], "Waiting"],
-  [["inspect", "check", "diagnose", "assess", "look at"], "Inspection"],
-  [["recommend", "suggest", "upsell", "offer", "present"], "Service Pitch"],
-  [["approve", "accept", "agree", "consent", "authorize"], "Customer Approval"],
-  [["service", "repair", "fix", "maintain", "work on"], "Service Work"],
+  [["drives to", "drive to", "go to", "heads to", "travels to"], "Traveling There"],
+  [["pull into", "pulls into", "arrive", "park"], "Arriving"],
+  [["greet", "check in", "welcome", "asks about"], "Check-In"],
+  [["wait", "pending", "queue", "line", "lounge"], "Waiting"],
+  [["inspect", "check", "diagnose", "assess", "look at", "initial inspection"], "Inspection"],
+  [["recommend additional", "suggest", "upsell", "offer", "present", "quotes a price"], "Service Pitch"],
+  [["approve", "accept", "agree", "consent", "authorize", "decides on"], "Customer Decision"],
+  [["service", "repair", "fix", "maintain", "work on", "perform", "oil change", "tire"], "Service Work"],
+  [["sticker", "receipt", "complete", "finish", "done"], "Completion"],
+  [["drives away", "leave", "depart", "exit"], "Departing"],
   [["deliver", "ship", "receive", "pickup", "collect"], "Receiving"],
   [["return", "come back", "repeat", "renew"], "Coming Back"],
   [["share", "post", "social", "refer", "tell"], "Sharing Experience"],
   [["call", "phone", "contact", "reach out"], "Making Contact"],
   [["book", "reserve", "schedule", "appointment"], "Booking"],
-  [["navigate", "direction", "route", "visit", "go to"], "Heading There"],
 ];
 
 function getSceneLabel(stepText: string): string {
@@ -165,12 +169,24 @@ function detectJourneyType(steps: string[], contextOfUse?: string, category?: st
   return best[1] >= 2 ? best[0] : "default";
 }
 
-function detectPhase(stepText: string): Phase {
+function detectPhase(stepText: string, stepIndex: number, totalSteps: number): Phase {
   const lower = stepText.toLowerCase();
+  // Score each phase by keyword matches
+  const scores: Partial<Record<Phase, number>> = {};
   for (const [phase, keywords] of Object.entries(PHASE_KEYWORDS) as [Phase, string[]][]) {
-    if (keywords.some(kw => lower.includes(kw))) return phase;
+    const matches = keywords.filter(kw => lower.includes(kw)).length;
+    if (matches > 0) scores[phase] = matches;
   }
-  return "CORE USAGE";
+  // Pick best match
+  const sorted = Object.entries(scores).sort((a, b) => (b[1] as number) - (a[1] as number));
+  if (sorted.length > 0 && (sorted[0][1] as number) > 0) return sorted[0][0] as Phase;
+  // Position-aware fallback
+  const ratio = stepIndex / Math.max(totalSteps - 1, 1);
+  if (ratio <= 0.15) return "DISCOVERY";
+  if (ratio <= 0.3) return "EVALUATION";
+  if (ratio <= 0.5) return "CORE USAGE";
+  if (ratio <= 0.8) return "FULFILLMENT";
+  return "RETENTION";
 }
 
 function getFriction(stepIndex: number, stepName: string, frictionPoints: FrictionPoint[]): FrictionPoint | undefined {
@@ -205,15 +221,23 @@ interface StepNode {
   sceneLabel: string;
 }
 
+function stripStepPrefix(text: string): string {
+  return text.replace(/^step\s*\d+\s*[:\-–—]\s*/i, "").trim();
+}
+
 function buildNodes(steps: string[], frictionPoints: FrictionPoint[]): StepNode[] {
-  return steps.slice(0, 10).map((step, i) => ({
-    text: step,
-    index: i,
-    friction: getFriction(i, step, frictionPoints),
-    icon: getStepIcon(step),
-    phase: detectPhase(step),
-    sceneLabel: getSceneLabel(step),
-  }));
+  const total = Math.min(steps.length, 10);
+  return steps.slice(0, 10).map((step, i) => {
+    const cleanText = stripStepPrefix(step);
+    return {
+      text: cleanText,
+      index: i,
+      friction: getFriction(i, step, frictionPoints),
+      icon: getStepIcon(cleanText),
+      phase: detectPhase(cleanText, i, total),
+      sceneLabel: getSceneLabel(cleanText),
+    };
+  });
 }
 
 /* ── Phase ribbon ── */
