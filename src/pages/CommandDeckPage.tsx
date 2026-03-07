@@ -422,6 +422,14 @@ export default function CommandDeckPage() {
           onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
         />
 
+        {/* ═══ TRANSFORMATION PATHS (Strategic Playbooks) ═══ */}
+        <TransformationPaths
+          evidence={autoAnalysis.flatEvidence}
+          insights={autoAnalysis.insights}
+          narrative={narrative}
+          mode={modeKey}
+        />
+
         {/* ═══ TIER 3 — METRICS STRIP ═══ */}
         <MetricsStrip
           metrics={metrics}
