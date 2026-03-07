@@ -13,6 +13,8 @@ import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
 import { getInsightChain, NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 import { getToolById, type LensTool } from "@/lib/lensToolkitRegistry";
 import { recommendToolsForInsight, type ToolRecommendation } from "@/lib/toolReasoningEngine";
+import type { ConceptSpace } from "@/lib/conceptExpansion";
+import { ConceptSpacePanel } from "./ConceptSpacePanel";
 
 interface InsightNodeCardProps {
   node: InsightGraphNode;
