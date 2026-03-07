@@ -365,6 +365,12 @@ export default function CommandDeckPage() {
             <StrategicLeverageSignals
               insights={autoAnalysis.insights}
               onViewGraph={() => navigate(`${baseUrl}/insight-graph`)}
+              excludeLabels={[
+                narrative?.primaryConstraint,
+                narrative?.breakthroughOpportunity,
+                narrative?.leveragePoint,
+                narrative?.keyDriver,
+              ].filter(Boolean) as string[]}
             />
           </div>
           <div className="lg:col-span-5">
