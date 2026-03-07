@@ -84,7 +84,7 @@ export const StrategicXRay = memo(function StrategicXRay({
       {
         stage: "evidence",
         label: `${evidenceForConstraint.length} supporting signals`,
-        description: evidenceForConstraint.map(e => e.label).join("; ") || "No evidence collected yet",
+        description: evidenceForConstraint.map(e => humanizeLabel(e.label)).join("; ") || "No evidence collected yet",
         icon: Search,
         color: "hsl(var(--muted-foreground))",
         bgColor: "hsl(var(--muted))",
