@@ -11,7 +11,8 @@ import {
   ChevronDown, ChevronUp, Star, Zap, Target, TrendingUp,
   ArrowRight, Shield, AlertTriangle, Calendar, CheckCircle2,
 } from "lucide-react";
-import type { TransformationPlaybook, EvidenceMode } from "@/lib/playbookEngine";
+import type { TransformationPlaybook } from "@/lib/playbookEngine";
+import type { EvidenceMode } from "@/lib/evidenceEngine";
 import { getCategoryLabel, getArchetypeLabel } from "@/lib/playbookEngine";
 
 interface PlaybookCardProps {
