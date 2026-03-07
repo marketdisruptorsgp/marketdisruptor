@@ -200,6 +200,7 @@ export function usePipelineOrchestrator(
         await saveStepData("pitchDeck", pitchResult, analysisId);
         clearStepOutdated("pitch");
         updateStatus("pitch", "done");
+        onStepComplete?.("pitch");
       }
     } catch (err) {
       console.warn("[Pipeline] Pitch error:", err);
