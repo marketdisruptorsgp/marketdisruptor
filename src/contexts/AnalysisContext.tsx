@@ -1378,6 +1378,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       geoData, setGeoData, fetchGeoData,
       regulatoryData, setRegulatoryData,
       scoutedCompetitors, setScoutedCompetitors,
+      conceptVariantsForStressTest, setConceptVariantsForStressTest,
       modeRouting, setModeRouting,
       adaptiveContext, setAdaptiveContext,
       governedData, setGovernedData,
