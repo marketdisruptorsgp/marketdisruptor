@@ -116,8 +116,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
 
   // Problem Statement — surfaces the core structural problem
   const problemStatement = useMemo(() => {
-    // 1. Strategic diagnosis from narrative (highest quality)
-    if (narrative?.diagnosis && narrative.diagnosis.length > 20) return narrative.diagnosis;
+    // 1. Strategic verdict as core problem framing
     // 2. Strategic verdict as problem framing
     if (narrative?.strategicVerdict && narrative.strategicVerdict.length > 20) return narrative.strategicVerdict;
     // 3. "Why this matters" reframed as the problem
