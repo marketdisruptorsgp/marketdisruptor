@@ -834,18 +834,28 @@ function buildStrategicNarrative(
     return " (low confidence — needs validation)";
   };
 
+  // Narrative prose should COMPLEMENT the Verdict, not repeat it.
+  // Focus on: evidence coverage, secondary factors, what's missing.
+  const secondaryConstraints = constraints.filter(c => c !== topConstraint).slice(0, 2);
+  const secondaryOpps = opportunities.filter(o => o !== topOpp).slice(0, 2);
+
   if (topConstraint) {
     const relCount = constraints.length - 1;
-    parts.push(`The primary constraint is ${trimAt(topConstraint.label, 120)}${confQualifier(topConstraint)}${relCount > 0 ? `. and ${relCount} related constraints` : ""}.`);
+    if (relCount > 0) {
+      parts.push(`Beyond the primary bottleneck, ${relCount} related constraint${relCount > 1 ? "s" : ""} compound the problem${secondaryConstraints.length > 0 ? `: ${secondaryConstraints.map(c => trimAt(c.label, 60).toLowerCase()).join("; ")}` : ""}.`);
+    }
   }
-  if (topDriver) parts.push(`This is driven by: ${trimAt(topDriver.label, 100)}${confQualifier(topDriver)}.`);
-  if (topLeverage) parts.push(`A key intervention point exists: ${trimAt(topLeverage.label, 100)}${confQualifier(topLeverage)}.`);
-  if (topOpp) parts.push(`This opens the opportunity to apply ${trimAt(topOpp.label, 100).toLowerCase()}${confQualifier(topOpp)}.`);
+  if (topDriver && topDriver.label !== topConstraint?.label) {
+    parts.push(`The underlying driver is ${trimAt(topDriver.label, 100).toLowerCase()}${confQualifier(topDriver)}.`);
+  }
+  if (secondaryOpps.length > 0) {
+    parts.push(`Additional opportunities include: ${secondaryOpps.map(o => trimAt(o.label, 60).toLowerCase()).join("; ")}${confQualifier(secondaryOpps[0])}.`);
+  }
 
   if (parts.length === 0) {
     parts.push("Insufficient evidence to generate a complete strategic narrative. Add more inputs to pipeline steps.");
   } else if (evCount < 4) {
-    parts.push("Note: This narrative is based on incomplete evidence. Run additional pipeline steps to strengthen conclusions.");
+    parts.push("This narrative is based on incomplete evidence. Run additional pipeline steps to strengthen conclusions.");
   }
 
   // ── Strategic Verdict: derive the dominant move ──
