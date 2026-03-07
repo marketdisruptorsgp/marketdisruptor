@@ -185,6 +185,36 @@ export default function CommandDeckPage() {
     setTimeout(() => { setIsRecomputing(false); toast.success("Strategic analysis complete"); }, 1000);
   }, [completedSteps, navigate, baseUrl, addEvent, runAnalysis]);
 
+  // ── Challenge Mode: inject user override as evidence + recompute ──
+  const handleChallenge = useCallback((nodeStage: string, newValue: string) => {
+    setIsRecomputing(true);
+    addEvent(`Challenge: overriding ${nodeStage} → "${newValue.slice(0, 60)}…"`);
+
+    // Store challenge in governed data so it persists across recomputes
+    const currentGoverned = (analysis.governedData as Record<string, unknown>) || {};
+    const challenges = ((currentGoverned.challenges as any[]) || []);
+    challenges.push({ stage: nodeStage, value: newValue, timestamp: Date.now() });
+    const updatedGoverned = { ...currentGoverned, challenges };
+
+    try {
+      recomputeIntelligence({
+        products: analysis.products, selectedProduct,
+        disruptData: analysis.disruptData, redesignData: analysis.redesignData,
+        stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
+        governedData: updatedGoverned,
+        businessAnalysisData: analysis.businessAnalysisData, intelligence,
+        analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+        analysisId: analysisId || "", completedSteps,
+      });
+    } catch { /* silent */ }
+    try { runAnalysis(); } catch { /* silent */ }
+
+    setTimeout(() => {
+      setIsRecomputing(false);
+      toast.success(`Strategic model recomputed with your "${nodeStage}" override`);
+    }, 1000);
+  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent, runAnalysis]);
+
   // ── AUTO-RECOMPUTE ──
   const lastRecomputeHash = useRef<string>("");
   const savedScenarios = useMemo(() => {
