@@ -8,7 +8,7 @@
 
 import { memo, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRight, FlaskConical, Bookmark, Search, AlertTriangle, TrendingUp, Info } from "lucide-react";
+import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRight, FlaskConical, Bookmark, Search, AlertTriangle, TrendingUp, Info, Boxes, Loader2, Sparkles } from "lucide-react";
 import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
 import { getInsightChain, NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 import { getToolById, type LensTool } from "@/lib/lensToolkitRegistry";
