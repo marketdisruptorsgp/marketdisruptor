@@ -122,7 +122,7 @@ export default function StartPage() {
               <Sparkles size={12} /> How Discovery Works
             </p>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-              Six stages of strategic discovery
+              Five steps to strategic clarity
             </h2>
             <p className="text-sm text-foreground/60 mt-1.5">
               Each step builds on the last — from mapping the system to redesigning it
