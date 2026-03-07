@@ -36,6 +36,9 @@ import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaCha
 import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
 import { StrategicScenarioSimulator } from "@/components/command-deck/StrategicScenarioSimulator";
 import { StrategicPatternCard } from "@/components/command-deck/StrategicPatternCard";
+import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchmarkPanel";
+import { OpportunityRadarPanel } from "@/components/command-deck/OpportunityRadarPanel";
+import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
