@@ -847,7 +847,7 @@ function buildStrategicNarrative(
   }
 
   if (parts.length === 0) {
-    parts.push("Insufficient evidence to generate a complete strategic narrative. Add more inputs to pipeline steps.");
+    parts.push("Strategic narrative will evolve as more pipeline steps are completed. The reasoning engine is building its evidence base.");
   } else if (evCount < 4) {
     parts.push("This narrative is based on incomplete evidence. Run additional pipeline steps to strengthen conclusions.");
   }

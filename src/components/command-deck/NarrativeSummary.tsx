@@ -137,7 +137,7 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
             <div>
               <p className="text-sm font-semibold text-foreground">
                 {completedSteps > 0
-                  ? "Insufficient evidence to generate a complete strategic narrative."
+                  ? "Strategic narrative building — complete more pipeline steps to unlock deeper reasoning."
                   : "No analysis data yet."}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
