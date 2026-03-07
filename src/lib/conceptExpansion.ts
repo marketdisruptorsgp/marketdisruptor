@@ -115,6 +115,7 @@ export function injectConceptVariants(
       target: nodeId,
       relation: "variant_of",
       weight: 0.8,
+      category: "design",
     });
   }
 
