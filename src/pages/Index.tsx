@@ -155,6 +155,7 @@ function ValuePropCallout() {
 
 export default function Index() {
   const { user, profile } = useAuth();
+  const analysis = useAnalysis();
   const { canAnalyze, remainingAnalyses, tier, usage, checkSubscription } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
   const [step, setStep] = useState<AnalysisStep>("idle");
