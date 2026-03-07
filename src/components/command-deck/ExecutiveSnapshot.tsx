@@ -237,6 +237,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
         totalSteps={totalSteps}
         marketSize={marketSize}
         trend={trend}
+        mode={mode}
         onProblemLocked={onProblemLocked}
       />
 

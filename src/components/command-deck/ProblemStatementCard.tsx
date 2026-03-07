@@ -1,17 +1,18 @@
 /**
  * ProblemStatementCard — Editable + cyclable problem statement.
  * 
- * Generates multiple candidate problem framings from available data,
- * lets user flip through them or write their own, then "lock in"
- * to adapt downstream analysis.
+ * Generates multiple candidate problem framings from available data.
+ * When local data is insufficient, calls AI to generate relevant
+ * problem statements based on the entity being analyzed.
  */
 
 import { memo, useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Crosshair, ChevronLeft, ChevronRight, Pencil, Check, X, RotateCcw,
-  TrendingUp,
+  TrendingUp, Loader2,
 } from "lucide-react";
+import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import type { StrategicNarrative } from "@/lib/strategicEngine";
 
 interface ProblemStatementCardProps {
@@ -25,6 +26,7 @@ interface ProblemStatementCardProps {
   totalSteps: number;
   marketSize: string | null;
   trend: string | null;
+  mode?: "product" | "service" | "business";
   onProblemLocked?: (statement: string) => void;
 }
 
@@ -90,15 +92,74 @@ function extractCandidates(
 export const ProblemStatementCard = memo(function ProblemStatementCard({
   product, businessData, narrative, governed, modeAccent,
   evidenceCount, completedSteps, totalSteps, marketSize, trend,
+  mode,
   onProblemLocked,
 }: ProblemStatementCardProps) {
   const p = product || {};
   const biz = businessData || {};
 
-  const candidates = useMemo(
+  const localCandidates = useMemo(
     () => extractCandidates(narrative, p, biz, governed),
     [narrative, p, biz, governed],
   );
+
+  // AI-generated fallback candidates
+  const [aiCandidates, setAiCandidates] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiFetched, setAiFetched] = useState(false);
+  const aiRequestRef = useRef<string | null>(null);
+
+  // Determine entity name for AI generation
+  const entityName = p.name || p.title || biz?.name || biz?.title || "";
+  const entityType = p.category || p.type || biz?.category || biz?.type || "";
+  const entityDesc = p.description || biz?.description || biz?.overview || "";
+
+  // When local candidates are empty and we have an entity name, call AI
+  useEffect(() => {
+    if (localCandidates.length > 0) return; // local data is sufficient
+    if (!entityName || entityName.length < 2) return; // no entity to analyze
+    if (aiFetched) return; // already tried
+    if (aiLoading) return;
+
+    // Prevent duplicate requests for same entity
+    const requestKey = `${entityName}-${mode}`;
+    if (aiRequestRef.current === requestKey) return;
+    aiRequestRef.current = requestKey;
+
+    setAiLoading(true);
+    invokeWithTimeout("generate-problem-statements", {
+      body: {
+        entityName,
+        entityType,
+        description: entityDesc,
+        mode: mode || "product",
+      },
+    }, 30_000).then(({ data, error }) => {
+      if (error) {
+        console.warn("AI problem statement generation failed:", error);
+      } else if (data?.statements) {
+        const stmts = (data.statements as any[])
+          .map((s: any) => s.text || s)
+          .filter((s: string) => s && s.length > 10);
+        if (stmts.length > 0) setAiCandidates(stmts);
+      }
+      setAiFetched(true);
+      setAiLoading(false);
+    });
+  }, [localCandidates.length, entityName, entityType, entityDesc, mode, aiFetched, aiLoading]);
+
+  // Reset AI state if entity changes
+  useEffect(() => {
+    const key = `${entityName}-${mode}`;
+    if (aiRequestRef.current && aiRequestRef.current !== key) {
+      setAiFetched(false);
+      setAiCandidates([]);
+      aiRequestRef.current = null;
+    }
+  }, [entityName, mode]);
+
+  // Merge: prefer local, fall back to AI
+  const candidates = localCandidates.length > 0 ? localCandidates : aiCandidates;
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
@@ -118,6 +179,7 @@ export const ProblemStatementCard = memo(function ProblemStatementCard({
 
   const hasCandidates = candidates.length > 0;
   const hasMultiple = candidates.length > 1;
+  const isAiSourced = localCandidates.length === 0 && aiCandidates.length > 0;
 
   const handlePrev = useCallback(() => {
     if (!hasMultiple) return;
@@ -174,6 +236,13 @@ export const ProblemStatementCard = memo(function ProblemStatementCard({
         <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
           Problem Statement
         </span>
+
+        {/* Source badge */}
+        {isAiSourced && !lockedStatement && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+            AI-Generated
+          </span>
+        )}
 
         {/* Candidate counter */}
         {hasMultiple && !lockedStatement && !isEditing && (
@@ -237,6 +306,19 @@ export const ProblemStatementCard = memo(function ProblemStatementCard({
               <span className="text-[9px] text-muted-foreground ml-auto">⌘+Enter to confirm</span>
             </div>
           </motion.div>
+        ) : aiLoading ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex items-center gap-2 py-2"
+          >
+            <Loader2 size={14} className="animate-spin text-muted-foreground" />
+            <span className="text-sm text-muted-foreground italic">
+              Generating problem framings for {entityName}…
+            </span>
+          </motion.div>
         ) : (
           <motion.div
             key={`statement-${activeIdx}-${lockedStatement ? "locked" : ""}`}
@@ -264,7 +346,7 @@ export const ProblemStatementCard = memo(function ProblemStatementCard({
       )}
 
       {/* Action bar */}
-      {hasCandidates && !isEditing && (
+      {(hasCandidates || aiLoading) && !isEditing && !aiLoading && (
         <div className="flex items-center gap-1 mt-2 pt-2 border-t border-border">
           {/* Cycle arrows */}
           {hasMultiple && !lockedStatement && (
