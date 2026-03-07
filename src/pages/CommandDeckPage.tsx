@@ -284,6 +284,54 @@ export default function CommandDeckPage() {
           ))}
         </div>
 
+        {/* ═══ PIPELINE PROGRESS (auto-run) ═══ */}
+        {pipelineProgress.isRunning && (
+          <div
+            className="rounded-xl px-5 py-4 space-y-3"
+            style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--primary) / 0.3)" }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-xs font-extrabold uppercase tracking-widest text-foreground">
+                  Building Full Intelligence
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-muted-foreground">
+                {pipelineProgress.completedCount}/{pipelineProgress.totalCount} complete
+              </span>
+            </div>
+            <div className="flex gap-2">
+              {pipelineProgress.steps.map(s => (
+                <div key={s.key} className="flex-1 space-y-1">
+                  <div
+                    className="h-1.5 rounded-full transition-all duration-500"
+                    style={{
+                      background: s.status === "done"
+                        ? "hsl(var(--success))"
+                        : s.status === "running"
+                          ? "hsl(var(--primary))"
+                          : s.status === "error"
+                            ? "hsl(var(--destructive))"
+                            : "hsl(var(--muted))",
+                    }}
+                  />
+                  <p className={`text-[9px] font-bold text-center ${
+                    s.status === "running" ? "text-primary" : "text-muted-foreground"
+                  }`}>
+                    {s.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            {pipelineProgress.currentStep && (
+              <p className="text-xs text-muted-foreground animate-pulse">
+                Running {pipelineProgress.steps.find(s => s.key === pipelineProgress.currentStep)?.label}…
+              </p>
+            )}
+          </div>
+        )}
+
         {/* ═══ TIER 1 — HERO SCORE ═══ */}
         <HeroScorePanel
           strategicPotential={strategicPotential}
