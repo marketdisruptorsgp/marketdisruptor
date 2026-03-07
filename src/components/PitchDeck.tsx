@@ -899,37 +899,51 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
         </div>
       </div>
 
-      <div className="space-y-4">
-
-
+      <div className="space-y-4" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
 
        {/* Active slide with ScaledSlide wrapper + transition */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeSlide}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -40 }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
         >
           <ScaledSlide>{rawSlide(activeSlide, slideContent[activeSlide])}</ScaledSlide>
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation */}
-      {nextSlide && <NextSectionButton label={nextSlide.label} onClick={goNext} />}
-      {!nextSlide && activeSlide === "invest" && (
-        <>
-          <AllExploredBadge />
+      {/* Slide counter + prev/next */}
+      <div className="flex items-center justify-between gap-3 px-1">
+        <button
+          onClick={goPrev}
+          disabled={!prevSlide}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted border border-border text-foreground"
+        >
+          <ArrowRight size={14} className="rotate-180" /> Prev
+        </button>
+        <span className="text-xs font-bold text-muted-foreground tabular-nums">
+          {currentIdx + 1} / {TOTAL}
+        </span>
+        {nextSlide ? (
           <button
             onClick={goNext}
-            className="w-full flex items-center justify-center gap-2 text-sm font-bold py-4 rounded-md text-white transition-all hover:opacity-90 animate-pulse"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 text-white"
             style={{ background: accentColor }}
           >
-            <Sparkles size={16} /> Complete Analysis
+            Next <ArrowRight size={14} />
           </button>
-        </>
-      )}
+        ) : (
+          <button
+            onClick={goNext}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 text-white animate-pulse"
+            style={{ background: accentColor }}
+          >
+            <Sparkles size={14} /> Complete
+          </button>
+        )}
+      </div>
       </div>
 
       <div className="mt-6"><ReferralCTA compact /></div>
