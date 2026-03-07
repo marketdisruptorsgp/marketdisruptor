@@ -10,6 +10,7 @@ import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
 import { NODE_TYPE_CONFIG, getInsightChain } from "@/lib/insightGraph";
+import { injectConceptVariants } from "@/lib/conceptExpansion";
 import { CytoscapeReasoningMap } from "./CytoscapeReasoningMap";
 import { InsightNodeCard } from "./InsightNodeCard";
 import { OpportunityLandscape } from "./OpportunityLandscape";
@@ -20,6 +21,7 @@ import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { IntelligenceEventFeed } from "@/components/IntelligenceEventFeed";
 import { type LensTool } from "@/lib/lensToolkitRegistry";
 import { type ToolScenario, scenarioToEvidence } from "@/lib/scenarioEngine";
+import { useConceptExpansion } from "@/hooks/useConceptExpansion";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // ═══════════════════════════════════════════════════════════════
@@ -39,6 +41,22 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   const [simTool, setSimTool] = useState<LensTool | null>(null);
   const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
   const isMobile = useIsMobile();
+
+  // Concept expansion
+  const { generateConceptSpace, getConceptSpace, toggleVariantSelection, loading: conceptLoading } = useConceptExpansion(graph);
+
+  // Graph with concept variants injected
+  const enrichedGraph = useMemo(() => {
+    let g = graph;
+    // Inject any generated concept variants
+    for (const node of graph.nodes) {
+      const space = getConceptSpace(node.id);
+      if (space) {
+        g = injectConceptVariants(g, space);
+      }
+    }
+    return g;
+  }, [graph, getConceptSpace]);
 
   const handleOpenTool = useCallback((tool: LensTool) => {
     setSimTool(tool);
@@ -65,14 +83,14 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   }, [graph.nodes]);
 
   const selectedNode = useMemo(() => {
-    return selectedNodeId ? graph.nodes.find(n => n.id === selectedNodeId) ?? null : null;
-  }, [selectedNodeId, graph.nodes]);
+    return selectedNodeId ? enrichedGraph.nodes.find(n => n.id === selectedNodeId) ?? null : null;
+  }, [selectedNodeId, enrichedGraph.nodes]);
 
   const highlightedIds = useMemo(() => {
     if (!selectedNodeId) return null;
-    const chain = getInsightChain(graph, selectedNodeId);
+    const chain = getInsightChain(enrichedGraph, selectedNodeId);
     return new Set(chain.map(n => n.id));
-  }, [selectedNodeId, graph]);
+  }, [selectedNodeId, enrichedGraph]);
 
   if (graph.nodes.length === 0) {
     return (
@@ -158,9 +176,9 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
           {/* Graph Canvas + Side Panel */}
           <div className="flex gap-3 flex-1 min-h-0 h-full">
             {/* Cytoscape Reasoning Map */}
-            <div className="flex-1 min-h-0">
+             <div className="flex-1 min-h-0">
               <CytoscapeReasoningMap
-                graph={graph}
+                graph={enrichedGraph}
                 onSelectNode={setSelectedNodeId}
                 selectedNodeId={selectedNodeId}
               />
@@ -176,10 +194,14 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
               >
                 <InsightNodeCard
                   node={selectedNode}
-                  graph={graph}
+                  graph={enrichedGraph}
                   onClose={() => setSelectedNodeId(null)}
                   onSelectNode={setSelectedNodeId}
                   onOpenTool={handleOpenTool}
+                  conceptSpace={getConceptSpace(selectedNode.id)}
+                  onExpandDesignSpace={(n) => generateConceptSpace(n)}
+                  onToggleConceptVariant={toggleVariantSelection}
+                  conceptExpansionLoading={conceptLoading === selectedNode.id}
                 />
               </motion.div>
             )}
@@ -191,11 +213,15 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
               {selectedNode && (
                 <InsightNodeCard
                   node={selectedNode}
-                  graph={graph}
+                  graph={enrichedGraph}
                   onClose={() => setSelectedNodeId(null)}
                   onSelectNode={setSelectedNodeId}
                   onOpenTool={handleOpenTool}
                   isMobile
+                  conceptSpace={getConceptSpace(selectedNode.id)}
+                  onExpandDesignSpace={(n) => generateConceptSpace(n)}
+                  onToggleConceptVariant={toggleVariantSelection}
+                  conceptExpansionLoading={conceptLoading === selectedNode.id}
                 />
               )}
             </AnimatePresence>

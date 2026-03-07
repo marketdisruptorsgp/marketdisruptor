@@ -39,7 +39,8 @@ export type InsightNodeType =
   | "simulation"
   | "insight"
   | "pathway"
-  | "scenario";
+  | "scenario"
+  | "concept_variant";
 
 export type EdgeRelation =
   | "causes"
@@ -52,7 +53,8 @@ export type EdgeRelation =
   | "creates"
   | "enables"
   | "blocks"
-  | "tests";
+  | "tests"
+  | "variant_of";
 
 export interface InsightGraphNode {
   id: string;
@@ -80,6 +82,16 @@ export interface InsightGraphNode {
   relatedScenarioId?: string;
   /** Intelligence layer for clustering */
   intelligenceLayer?: "evidence" | "insight" | "opportunity" | "simulation" | "strategy";
+  /** Concept variant data (only for concept_variant nodes) */
+  conceptVariantData?: {
+    dimensionValues: Record<string, string>;
+    formula: string;
+    feasibilityScore: number;
+    noveltyScore: number;
+    marketFit: number;
+    selectedForStressTest: boolean;
+    conceptSpaceId: string;
+  };
 }
 
 export interface InsightGraphEdge {
@@ -128,6 +140,7 @@ export const NODE_TYPE_CONFIG: Record<InsightNodeType, {
   insight:        { color: "hsl(229 89% 63%)",  bgColor: "hsl(229 89% 63% / 0.08)", borderColor: "hsl(229 89% 63% / 0.25)", icon: "Brain",         label: "Insight" },
   pathway:        { color: "hsl(45 93% 47%)",   bgColor: "hsl(45 93% 47% / 0.10)",  borderColor: "hsl(45 93% 47% / 0.30)",  icon: "Route",         label: "Strategic Pathway" },
   scenario:       { color: "hsl(271 81% 55%)",  bgColor: "hsl(271 81% 55% / 0.08)", borderColor: "hsl(271 81% 55% / 0.25)", icon: "FlaskConical",  label: "Scenario" },
+  concept_variant: { color: "hsl(180 65% 45%)", bgColor: "hsl(180 65% 45% / 0.10)", borderColor: "hsl(180 65% 45% / 0.30)", icon: "Boxes",         label: "Concept Variant" },
 };
 
 export const OPPORTUNITY_NODE_TYPES: InsightNodeType[] = [

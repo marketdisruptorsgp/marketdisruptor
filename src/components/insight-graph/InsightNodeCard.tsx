@@ -8,11 +8,13 @@
 
 import { memo, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRight, FlaskConical, Bookmark, Search, AlertTriangle, TrendingUp, Info } from "lucide-react";
+import { X, ArrowDown, ChevronDown, ExternalLink, Zap, Target, Wrench, ChevronRight, FlaskConical, Bookmark, Search, AlertTriangle, TrendingUp, Info, Boxes, Loader2, Sparkles } from "lucide-react";
 import type { InsightGraphNode, InsightGraph } from "@/lib/insightGraph";
 import { getInsightChain, NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
 import { getToolById, type LensTool } from "@/lib/lensToolkitRegistry";
 import { recommendToolsForInsight, type ToolRecommendation } from "@/lib/toolReasoningEngine";
+import type { ConceptSpace } from "@/lib/conceptExpansion";
+import { ConceptSpacePanel } from "./ConceptSpacePanel";
 
 interface InsightNodeCardProps {
   node: InsightGraphNode;
@@ -21,10 +23,16 @@ interface InsightNodeCardProps {
   onSelectNode: (nodeId: string) => void;
   onOpenTool?: (tool: LensTool) => void;
   isMobile?: boolean;
+  /** Concept expansion props */
+  conceptSpace?: ConceptSpace | null;
+  onExpandDesignSpace?: (node: InsightGraphNode) => void;
+  onToggleConceptVariant?: (opportunityNodeId: string, variantId: string) => void;
+  conceptExpansionLoading?: boolean;
 }
 
 export const InsightNodeCard = memo(function InsightNodeCard({
   node, graph, onClose, onSelectNode, onOpenTool, isMobile = false,
+  conceptSpace, onExpandDesignSpace, onToggleConceptVariant, conceptExpansionLoading,
 }: InsightNodeCardProps) {
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
@@ -450,6 +458,41 @@ export const InsightNodeCard = memo(function InsightNodeCard({
         </div>
       )}
 
+
+      {/* ── CONCEPT EXPANSION — Design Space for Opportunity Nodes ── */}
+      {OPPORTUNITY_NODE_TYPES.includes(node.type) && (
+        <div className="px-4 pb-3">
+          {conceptSpace ? (
+            <ConceptSpacePanel
+              conceptSpace={conceptSpace}
+              onToggleVariant={(variantId) => onToggleConceptVariant?.(node.id, variantId)}
+            />
+          ) : (
+            <button
+              onClick={() => onExpandDesignSpace?.(node)}
+              disabled={!!conceptExpansionLoading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: NODE_TYPE_CONFIG["concept_variant"].bgColor,
+                border: `1.5px solid ${NODE_TYPE_CONFIG["concept_variant"].borderColor}`,
+                color: NODE_TYPE_CONFIG["concept_variant"].color,
+              }}
+            >
+              {conceptExpansionLoading ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Generating Design Space…
+                </>
+              ) : (
+                <>
+                  <Sparkles size={14} />
+                  Expand Design Space
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Strategic Actions */}
       <div className="px-4 pb-3">
