@@ -349,8 +349,8 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     }
   }
 
-  // ── Business Model: governed constraint_map ──
-  const bizGov = input.businessAnalysisData?.governed;
+  // ── Governed constraint_map + first_principles (from business model OR product disrupt) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
   if (bizGov) {
     // Causal chains from constraint_map
     const cm = bizGov.constraint_map;
