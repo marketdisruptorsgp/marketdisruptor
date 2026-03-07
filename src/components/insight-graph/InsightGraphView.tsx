@@ -251,6 +251,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
                   conceptSpace={getConceptSpace(selectedNode.id)}
                   onExpandDesignSpace={(n) => generateConceptSpace(n)}
                   onToggleConceptVariant={toggleVariantSelection}
+                  onStressTestSelected={handleStressTestSelected}
                   conceptExpansionLoading={conceptLoading === selectedNode.id}
                 />
               )}
