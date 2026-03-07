@@ -604,6 +604,7 @@ export default function CommandDeckPage() {
           whyThisMatters={narrative?.whyThisMatters ?? null}
           verdictBenchmark={narrative?.verdictBenchmark ?? null}
           evidenceSources={evidenceAttribution.sources}
+          diagnosisEvidence={evidenceAttribution.diagnosisEvidence}
         />
 
         {/* Trapped Value + Kill Question */}
