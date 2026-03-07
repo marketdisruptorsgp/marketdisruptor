@@ -197,12 +197,16 @@ export default function CommandDeckPage() {
       });
     }
     if (baselineNarrative.verdictConfidence !== narrative.verdictConfidence) {
-      deltas.push({
-        label: "Confidence",
-        before: `${Math.round((baselineNarrative.verdictConfidence ?? 0) * 100)}%`,
-        after: `${Math.round((narrative.verdictConfidence ?? 0) * 100)}%`,
-        direction: (narrative.verdictConfidence ?? 0) > (baselineNarrative.verdictConfidence ?? 0) ? "up" : "down",
-      });
+      const prevLevel = (baselineNarrative.verdictConfidence ?? 0) >= 0.7 ? "Strong" : (baselineNarrative.verdictConfidence ?? 0) >= 0.4 ? "Moderate" : "Early";
+      const newLevel = (narrative.verdictConfidence ?? 0) >= 0.7 ? "Strong" : (narrative.verdictConfidence ?? 0) >= 0.4 ? "Moderate" : "Early";
+      if (prevLevel !== newLevel) {
+        deltas.push({
+          label: "Evidence Quality",
+          before: `${prevLevel} evidence`,
+          after: `${newLevel} evidence`,
+          direction: (narrative.verdictConfidence ?? 0) > (baselineNarrative.verdictConfidence ?? 0) ? "up" : "down",
+        });
+      }
     }
     if (baselineNarrative.breakthroughOpportunity !== narrative.breakthroughOpportunity && narrative.breakthroughOpportunity) {
       deltas.push({
