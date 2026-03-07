@@ -167,42 +167,53 @@ function TierBadge({ label, tier }: { label: string; tier: QualitativeTier }) {
   );
 }
 
-function VariantCard({ variant, rank, onToggle }: { variant: ConceptVariant; rank: number; onToggle: () => void }) {
+function VariantCard({ variant, rank, onToggle, onDismiss }: { variant: ConceptVariant; rank: number; onToggle: () => void; onDismiss?: () => void }) {
   const cfg = NODE_TYPE_CONFIG["concept_variant"];
 
   return (
-    <button
-      onClick={onToggle}
-      className="w-full text-left rounded-xl p-3 transition-all hover:scale-[1.005]"
+    <div
+      className="w-full text-left rounded-xl p-3 transition-all group relative"
       style={{
         background: variant.selectedForStressTest ? cfg.bgColor : "hsl(var(--muted))",
         border: variant.selectedForStressTest ? `1.5px solid ${cfg.borderColor}` : "1.5px solid hsl(var(--border))",
       }}
     >
-      <div className="flex items-start gap-2">
-        {variant.selectedForStressTest ? (
-          <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" style={{ color: cfg.color }} />
-        ) : (
-          <Circle size={16} className="flex-shrink-0 mt-0.5 text-muted-foreground" />
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-bold text-muted-foreground">#{rank}</span>
-            <p className="text-xs font-bold text-foreground">{variant.name}</p>
-          </div>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">{variant.description}</p>
-          <p className="text-[10px] font-semibold mt-1 opacity-70" style={{ color: cfg.color }}>
-            {variant.formula}
-          </p>
-          {/* Qualitative assessments */}
-          <div className="flex gap-4 mt-2">
-            <TierBadge label="Feasible" tier={variant.feasibility} />
-            <TierBadge label="Novel" tier={variant.novelty} />
-            <TierBadge label="Market" tier={variant.marketReadiness} />
+      {/* Dismiss button */}
+      {onDismiss && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDismiss(); }}
+          className="absolute top-2 right-2 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10"
+          title="Dismiss concept"
+        >
+          <X size={12} className="text-muted-foreground hover:text-destructive" />
+        </button>
+      )}
+      <button onClick={onToggle} className="w-full text-left">
+        <div className="flex items-start gap-2">
+          {variant.selectedForStressTest ? (
+            <CheckCircle2 size={16} className="flex-shrink-0 mt-0.5" style={{ color: cfg.color }} />
+          ) : (
+            <Circle size={16} className="flex-shrink-0 mt-0.5 text-muted-foreground" />
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[10px] font-bold text-muted-foreground">#{rank}</span>
+              <p className="text-xs font-bold text-foreground">{variant.name}</p>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{variant.description}</p>
+            <p className="text-[10px] font-semibold mt-1 opacity-70" style={{ color: cfg.color }}>
+              {variant.formula}
+            </p>
+            {/* Qualitative assessments */}
+            <div className="flex gap-4 mt-2">
+              <TierBadge label="Feasible" tier={variant.feasibility} />
+              <TierBadge label="Novel" tier={variant.novelty} />
+              <TierBadge label="Market" tier={variant.marketReadiness} />
+            </div>
           </div>
         </div>
-      </div>
-    </button>
+      </button>
+    </div>
   );
 }
 
