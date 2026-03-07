@@ -115,12 +115,6 @@ export default function RedesignPage() {
 
       <AnalysisDivider />
 
-      <AnalysisContextBanner
-        icon={Sparkles}
-        title="Redesign Concept"
-        description="Every assumption from Disrupt is inverted, recombined, and synthesized into bold product concepts — grounded in flipped logic and upstream intelligence. Each idea traces back to a specific structural constraint."
-        iconColor="hsl(38 92% 50%)"
-      />
 
       {/* ── Concept Visuals (mounted early to pre-generate AI images) ── */}
       {hasData && (() => {

@@ -111,22 +111,6 @@ export default function StressTestPage() {
         analysisId={analysisId}
       />
 
-      {/* Insight Snapshot Panel */}
-      <InsightSnapshotPanel
-        intelligence={autoAnalysis.intelligence}
-        graph={autoAnalysis.graph}
-        analysisId={analysisId || ""}
-        accentColor={theme.primary}
-        completedSteps={autoAnalysis.completedSteps}
-        products={analysis.products}
-        selectedProduct={selectedProduct}
-        disruptData={analysis.disruptData}
-        redesignData={analysis.redesignData}
-        stressTestData={analysis.stressTestData}
-        pitchDeckData={analysis.pitchDeckData}
-        governedData={governedData}
-        businessAnalysisData={analysis.businessAnalysisData}
-      />
 
       <AnalysisActionToolbar
         analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}

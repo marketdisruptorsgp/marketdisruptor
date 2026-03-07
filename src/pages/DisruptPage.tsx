@@ -134,22 +134,6 @@ export default function DisruptPage() {
         disabledTabs={disabledTabs}
       />
 
-      {/* Insight Snapshot Panel */}
-      <InsightSnapshotPanel
-        intelligence={autoAnalysis.intelligence}
-        graph={autoAnalysis.graph}
-        analysisId={analysisId || ""}
-        accentColor={theme.primary}
-        completedSteps={autoAnalysis.completedSteps}
-        products={products}
-        selectedProduct={selectedProduct}
-        disruptData={analysis.disruptData}
-        redesignData={analysis.redesignData}
-        stressTestData={analysis.stressTestData}
-        pitchDeckData={analysis.pitchDeckData}
-        governedData={governedData as Record<string, unknown> | null}
-        businessAnalysisData={analysis.businessAnalysisData}
-      />
 
       {/* ── Loading Tracker ── */}
       {analysisLoading && (

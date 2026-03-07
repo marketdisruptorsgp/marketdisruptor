@@ -81,22 +81,6 @@ export default function PitchPage() {
         onChangeProfile={analysis.setStrategicProfile}
       />
 
-      {/* Insight Snapshot Panel */}
-      <InsightSnapshotPanel
-        intelligence={autoAnalysis.intelligence}
-        graph={autoAnalysis.graph}
-        analysisId={analysisId || ""}
-        accentColor={theme.primary}
-        completedSteps={autoAnalysis.completedSteps}
-        products={analysis.products}
-        selectedProduct={selectedProduct}
-        disruptData={analysis.disruptData}
-        redesignData={analysis.redesignData}
-        stressTestData={analysis.stressTestData}
-        pitchDeckData={analysis.pitchDeckData}
-        governedData={analysis.governedData as Record<string, unknown> | null}
-        businessAnalysisData={analysis.businessAnalysisData}
-      />
 
       {/* Content — always mounted so loading lifecycle completes */}
       <PitchDeck
