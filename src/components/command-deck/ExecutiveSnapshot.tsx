@@ -114,15 +114,24 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
 
   // ── Extract real data ──
 
-  // Key Insight / Diagnosis
-  const keyInsight = useMemo(() => {
+  // Problem Statement — surfaces the core structural problem
+  const problemStatement = useMemo(() => {
+    // 1. Strategic verdict as core problem framing
+    // 2. Strategic verdict as problem framing
+    if (narrative?.strategicVerdict && narrative.strategicVerdict.length > 20) return narrative.strategicVerdict;
+    // 3. "Why this matters" reframed as the problem
     if (narrative?.whyThisMatters && narrative.whyThisMatters.length > 20) return narrative.whyThisMatters;
-    if (narrative?.strategicVerdict) return narrative.strategicVerdict;
+    // 4. Binding constraint from governed data as the core problem
+    const cm = governed?.constraint_map || (governed as any)?.governed?.constraint_map;
+    if (cm?.dominance_proof) return cm.dominance_proof;
+    // 5. Key insight from product analysis
     if (p.keyInsight) return p.keyInsight;
+    // 6. Business summary
     if ((biz as any)?.summary || (biz as any)?.overview) return (biz as any).summary || (biz as any).overview;
-    if (p.description) return p.description.length > 150 ? p.description.slice(0, 147) + "…" : p.description;
+    // 7. Description fallback
+    if (p.description) return p.description.length > 200 ? p.description.slice(0, 197) + "…" : p.description;
     return null;
-  }, [narrative, p, biz]);
+  }, [narrative, p, biz, governed]);
 
   // Pricing
   const pricing = useMemo(() => {
@@ -229,7 +238,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
   const trend = p.trendAnalysis || (biz as any)?.trend || null;
   const marketSize = p.marketSizeEstimate || null;
 
-  const hasAnyData = !!(keyInsight || pricing || community || supplyChain || constraints);
+  const hasAnyData = !!(problemStatement || pricing || community || supplyChain || constraints);
 
   return (
     <motion.div
@@ -238,7 +247,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
       transition={{ duration: 0.4 }}
       className="space-y-2"
     >
-      {/* ── Row 1: Key Insight headline ── */}
+      {/* ── Row 1: Problem Statement headline ── */}
       <div
         className="rounded-lg px-4 py-3"
         style={{ background: "hsl(var(--card))", border: `2px solid ${modeAccent}30` }}
@@ -246,14 +255,14 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
         <div className="flex items-center gap-2 mb-1">
           <Crosshair size={13} style={{ color: modeAccent }} />
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Key Insight
+            Problem Statement
           </span>
           <span className="text-[9px] font-bold text-muted-foreground ml-auto">
             {evidenceCount} signals · {completedSteps}/{totalSteps} steps
           </span>
         </div>
-        <p className={`text-sm sm:text-base font-black leading-snug ${keyInsight ? "text-foreground" : "text-muted-foreground italic"}`}>
-          {keyInsight || "Run the analysis to surface key insights."}
+        <p className={`text-sm sm:text-base font-black leading-snug ${problemStatement ? "text-foreground" : "text-muted-foreground italic"}`}>
+          {problemStatement || "Run the analysis to identify the core problem."}
         </p>
         {marketSize && (
           <div className="flex items-center gap-1.5 mt-1.5">
@@ -261,7 +270,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
             <span className="text-[11px] font-bold text-foreground">TAM: {marketSize}</span>
           </div>
         )}
-        {trend && !keyInsight?.includes(trend.slice(0, 30)) && (
+        {trend && !problemStatement?.includes(trend.slice(0, 30)) && (
           <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{trend}</p>
         )}
       </div>
