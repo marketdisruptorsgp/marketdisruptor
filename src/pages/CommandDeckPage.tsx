@@ -642,26 +642,21 @@ export default function CommandDeckPage() {
           </div>
         </div>
 
-        {/* ═══ NAV STRIP ═══ */}
+        {/* ═══ QUICK NAV ═══ */}
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-1">
           {[
-            { label: "Command Deck", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
-            { label: "Report", icon: Target, path: `${baseUrl}/report` },
-            { label: "Disrupt", icon: Crosshair, path: `${baseUrl}/disrupt` },
-            { label: "Redesign", icon: Lightbulb, path: `${baseUrl}/redesign` },
-            { label: "Stress Test", icon: AlertTriangle, path: `${baseUrl}/stress-test` },
-            { label: "Pitch", icon: Rocket, path: `${baseUrl}/pitch` },
+            { label: "Summary", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
             { label: "Insight Graph", icon: GitBranch, path: `${baseUrl}/insight-graph` },
           ].map(nav => (
             <button key={nav.label} onClick={() => navigate(nav.path)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors whitespace-nowrap flex-shrink-0 min-h-[40px]"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors whitespace-nowrap flex-shrink-0 min-h-[36px]"
               style={{
                 background: nav.active ? `${modeAccent}15` : "hsl(var(--muted))",
                 color: nav.active ? modeAccent : "hsl(var(--foreground))",
                 border: nav.active ? `1.5px solid ${modeAccent}40` : "1px solid hsl(var(--border))",
               }}>
               <nav.icon size={14} />
-              <span className="hidden sm:inline">{nav.label}</span>
+              {nav.label}
             </button>
           ))}
         </div>
