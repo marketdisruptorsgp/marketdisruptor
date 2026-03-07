@@ -61,7 +61,7 @@ import { generatePlaybooks } from "@/lib/playbookEngine";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
   AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
-  BookOpen, Beaker, BarChart3, Map, Wrench, Brain,
+  BookOpen, Beaker, BarChart3, Map, Wrench, Brain, FileDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
