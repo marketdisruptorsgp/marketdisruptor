@@ -320,7 +320,8 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     const synopsis = governed.reasoning_synopsis as any;
     if (synopsis?.key_assumptions) {
       safeArr(synopsis.key_assumptions).forEach((a: any, i: number) => {
-        const label = typeof a === "string" ? a : (a.text || a.label || `Governed Assumption ${i + 1}`);
+        const raw = typeof a === "string" ? a : (a.text || a.label || "");
+        const label = raw || `Key assumption from structural analysis`;
         if (!items.some(e => e.label === label)) {
           items.push({ id: makeId("con-gov"), type: "assumption", label, pipelineStep: "disrupt", tier: autoTier(label, undefined, "system"), mode, sourceEngine: "pipeline" });
         }
