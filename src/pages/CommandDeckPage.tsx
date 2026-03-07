@@ -240,23 +240,28 @@ export default function CommandDeckPage() {
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
-        <RecomputeOverlay isActive={isRecomputing || engineComputing} />
-
         {/* ═══ COMPACT HEADER ═══ */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <ModeBadge />
-            {(isRecomputing || engineComputing) && (
-              <span className="flex items-center gap-1 text-xs font-bold text-primary animate-pulse">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Computing…
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-2">
+            {!pipelineProgress.isRunning && completedSteps.size < PIPELINE_STEPS.length && (
+              <button
+                onClick={() => {
+                  // Trigger the pipeline orchestrator for remaining steps
+                  handleRecomputeAll();
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
+                style={{ background: modeAccent, color: "white" }}
+              >
+                <Play size={12} /> Run Full Analysis
+              </button>
+            )}
             <button onClick={handleRecomputeAll}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] min-h-[36px]"
               style={{ background: `${modeAccent}15`, color: modeAccent, border: `1.5px solid ${modeAccent}30` }}>
-              <RefreshCw size={13} className={isRecomputing ? "animate-spin" : ""} /> Recompute
+              <RefreshCw size={13} className={(isRecomputing || engineComputing) ? "animate-spin" : ""} /> Refresh
             </button>
             <WorkspaceThemeToggle theme={workspaceTheme} onToggle={toggleTheme} />
           </div>
@@ -333,6 +338,18 @@ export default function CommandDeckPage() {
             )}
           </div>
         )}
+
+        {/* ═══ REASONING STAGES — visible during strategic engine computation ═══ */}
+        <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
+
+        {/* ═══ CONFIDENCE METER ═══ */}
+        <ConfidenceMeter
+          completedSteps={completedSteps.size}
+          totalSteps={PIPELINE_STEPS.length}
+          evidenceCount={totalSignals}
+          confidence={narrative?.verdictConfidence ?? (completedSteps.size / PIPELINE_STEPS.length) * 0.3}
+          isComputing={engineComputing}
+        />
 
         {/* ═══ TIER 1 — HERO SCORE ═══ */}
         <HeroScorePanel
