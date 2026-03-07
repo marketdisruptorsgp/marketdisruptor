@@ -813,7 +813,7 @@ export default function Index() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
-                    onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct, { ...(disruptData ? { disrupt: disruptData } : {}), ...(stressTestData ? { stressTest: stressTestData } : {}), ...(selectedProduct.patentData ? { patentData: selectedProduct.patentData } : {}) })}
+                    onClick={() => selectedProduct && downloadFullAnalysisPDF(selectedProduct, { ...gatherAllAnalysisData(analysis), ...(disruptData ? { disrupt: disruptData } : {}), ...(stressTestData ? { stressTest: stressTestData } : {}), ...(selectedProduct.patentData ? { patentData: selectedProduct.patentData } : {}) })}
                     disabled={!selectedProduct}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
                     style={{ background: "hsl(var(--background))", color: "hsl(var(--foreground))", border: "1px solid hsl(var(--border))", opacity: selectedProduct ? 1 : 0.5 }}
