@@ -37,10 +37,11 @@ import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
 import { StrategicScenarioSimulator } from "@/components/command-deck/StrategicScenarioSimulator";
 import { StrategicPatternCard } from "@/components/command-deck/StrategicPatternCard";
 import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchmarkPanel";
-import { OpportunityRadarPanel } from "@/components/command-deck/OpportunityRadarPanel";
+import { OpportunityMapPanel } from "@/components/command-deck/OpportunityRadarPanel";
 import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
+import { ConfidenceExplanationPanel } from "@/components/command-deck/ConfidenceExplanationPanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
-import { computeBenchmarks, computeOpportunityRadar, generateStrategicStory } from "@/lib/benchmarkEngine";
+import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine";
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
   type ScenarioSnapshot,
