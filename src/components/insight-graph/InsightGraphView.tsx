@@ -180,10 +180,6 @@ function GraphTooltip({ node, graph }: {
   const config = NODE_TYPE_CONFIG[node.type];
   const downstream = graph.edges.filter(e => e.source === node.id);
   const upstream = graph.edges.filter(e => e.target === node.id);
-  const downstreamOpps = downstream.filter(e => {
-    const t = graph.nodes.find(n => n.id === e.target);
-    return t && OPPORTUNITY_NODE_TYPES.includes(t.type);
-  }).length;
 
   return (
     <motion.div
@@ -211,29 +207,9 @@ function GraphTooltip({ node, graph }: {
         <p className="text-xs text-muted-foreground mb-2 line-clamp-2 italic">"{node.reasoning}"</p>
       )}
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-2">
-        <div>
-          <p className="text-xs font-bold text-muted-foreground">Impact</p>
-          <p className="text-sm font-extrabold" style={{ color: config.color }}>{node.impact}/10</p>
-        </div>
-        <div>
-          <p className="text-xs font-bold text-muted-foreground">Leverage</p>
-          <p className="text-sm font-extrabold" style={{ color: config.color }}>{node.leverageScore}</p>
-        </div>
-        <div>
-          <p className="text-xs font-bold text-muted-foreground">Influence</p>
-          <p className="text-sm font-extrabold" style={{ color: config.color }}>{node.influence}</p>
-        </div>
-        <div>
-          <p className="text-xs font-bold text-muted-foreground">Confidence</p>
-          <p className="text-sm font-extrabold capitalize" style={{ color: config.color }}>{node.confidence}</p>
-        </div>
-      </div>
-
       <div className="flex items-center gap-3 text-xs text-muted-foreground border-t border-border pt-2">
         {upstream.length > 0 && <span>↑ {upstream.length} upstream</span>}
         {downstream.length > 0 && <span>↓ {downstream.length} downstream</span>}
-        {downstreamOpps > 0 && <span className="font-bold" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>→ {downstreamOpps} opportunities</span>}
       </div>
 
       <p className="text-xs text-muted-foreground mt-1.5 font-semibold">Click to explore reasoning chain</p>
