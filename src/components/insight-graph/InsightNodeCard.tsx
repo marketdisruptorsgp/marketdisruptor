@@ -27,13 +27,14 @@ interface InsightNodeCardProps {
   conceptSpace?: ConceptSpace | null;
   onExpandDesignSpace?: (node: InsightGraphNode) => void;
   onToggleConceptVariant?: (opportunityNodeId: string, variantId: string) => void;
+  onDismissConceptVariant?: (opportunityNodeId: string, variantId: string) => void;
   onStressTestSelected?: (opportunityNodeId: string) => void;
   conceptExpansionLoading?: boolean;
 }
 
 export const InsightNodeCard = memo(function InsightNodeCard({
   node, graph, onClose, onSelectNode, onOpenTool, isMobile = false,
-  conceptSpace, onExpandDesignSpace, onToggleConceptVariant, onStressTestSelected, conceptExpansionLoading,
+  conceptSpace, onExpandDesignSpace, onToggleConceptVariant, onDismissConceptVariant, onStressTestSelected, conceptExpansionLoading,
 }: InsightNodeCardProps) {
   const config = NODE_TYPE_CONFIG[node.type];
   const chain = useMemo(() => getInsightChain(graph, node.id), [graph, node.id]);
