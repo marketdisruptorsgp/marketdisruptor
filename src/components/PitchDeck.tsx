@@ -226,20 +226,23 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
     }
   };
 
-  const currentIdx = SLIDE_TABS.findIndex(t => t.id === activeSlide);
-  const nextSlide = currentIdx < TOTAL - 1 ? SLIDE_TABS[currentIdx + 1] : null;
-  const prevSlide = currentIdx > 0 ? SLIDE_TABS[currentIdx - 1] : null;
+  // All slides: cover + SLIDE_TABS
+  const ALL_SLIDES = ["cover" as const, ...SLIDE_TABS.map(t => t.id)];
+  const allCurrentIdx = ALL_SLIDES.indexOf(activeSlide as string);
+  const allTotal = ALL_SLIDES.length;
 
   const goNext = () => {
-    if (!nextSlide) { setShowCompletion(true); return; }
-    setActiveSlide(nextSlide.id);
-    setVisitedSlides(prev => new Set([...prev, nextSlide.id]));
+    if (allCurrentIdx >= allTotal - 1) { setShowCompletion(true); return; }
+    const nextId = ALL_SLIDES[allCurrentIdx + 1];
+    setActiveSlide(nextId as any);
+    setVisitedSlides(prev => new Set([...prev, nextId]));
   };
 
   const goPrev = () => {
-    if (prevSlide) {
-      setActiveSlide(prevSlide.id);
-      setVisitedSlides(prev => new Set([...prev, prevSlide.id]));
+    if (allCurrentIdx > 0) {
+      const prevId = ALL_SLIDES[allCurrentIdx - 1];
+      setActiveSlide(prevId as any);
+      setVisitedSlides(prev => new Set([...prev, prevId]));
     }
   };
 
