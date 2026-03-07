@@ -44,6 +44,7 @@ import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchm
 import { OpportunityMapPanel } from "@/components/command-deck/OpportunityRadarPanel";
 import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
 import { ConfidenceExplanationPanel } from "@/components/command-deck/ConfidenceExplanationPanel";
+import { PipelineJourneyCards } from "@/components/command-deck/PipelineJourneyCards";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine";
 import {
@@ -506,6 +507,37 @@ export default function CommandDeckPage() {
   const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
     : analysis.activeMode === "business" ? "business" : "product";
 
+  // ── Step findings for journey cards ──
+  const stepFindings = useMemo(() => {
+    const f: Record<string, { headline: string } | null> = {};
+    // Report
+    if (selectedProduct?.pricingIntel || selectedProduct?.supplyChain) {
+      const parts: string[] = [];
+      if (selectedProduct?.pricingIntel?.priceRange) parts.push(`Price range: ${selectedProduct.pricingIntel.priceRange}`);
+      if (selectedProduct?.supplyChain?.manufacturers?.[0]) parts.push(`Key manufacturer: ${selectedProduct.supplyChain.manufacturers[0]}`);
+      f.report = parts.length ? { headline: parts.join(" · ") } : null;
+    }
+    // Disrupt
+    if (narrative?.primaryConstraint) {
+      f.disrupt = { headline: `Core constraint: ${humanizeLabel(narrative.primaryConstraint)}` };
+    }
+    // Redesign
+    if (analysis.redesignData) {
+      const ideas = (analysis.redesignData as any)?.flippedIdeas;
+      f.redesign = ideas?.length ? { headline: `${ideas.length} reimagined concepts generated` } : null;
+    }
+    // Stress Test
+    if (analysis.stressTestData) {
+      const verdict = (analysis.stressTestData as any)?.verdict;
+      f.stressTest = verdict ? { headline: verdict } : null;
+    }
+    // Pitch
+    if (analysis.pitchDeckData) {
+      f.pitch = { headline: "Pitch deck ready for review" };
+    }
+    return f;
+  }, [selectedProduct, narrative, analysis.redesignData, analysis.stressTestData, analysis.pitchDeckData]);
+
   // Derive industry / date for header context (must be before guard — hooks)
   const industryLabel = useMemo(() => {
     if (businessModelInput?.type) return businessModelInput.type;
@@ -610,26 +642,21 @@ export default function CommandDeckPage() {
           </div>
         </div>
 
-        {/* ═══ NAV STRIP ═══ */}
+        {/* ═══ QUICK NAV ═══ */}
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-1">
           {[
-            { label: "Command Deck", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
-            { label: "Report", icon: Target, path: `${baseUrl}/report` },
-            { label: "Disrupt", icon: Crosshair, path: `${baseUrl}/disrupt` },
-            { label: "Redesign", icon: Lightbulb, path: `${baseUrl}/redesign` },
-            { label: "Stress Test", icon: AlertTriangle, path: `${baseUrl}/stress-test` },
-            { label: "Pitch", icon: Rocket, path: `${baseUrl}/pitch` },
+            { label: "Summary", icon: LayoutDashboard, path: `${baseUrl}/command-deck`, active: true },
             { label: "Insight Graph", icon: GitBranch, path: `${baseUrl}/insight-graph` },
           ].map(nav => (
             <button key={nav.label} onClick={() => navigate(nav.path)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors whitespace-nowrap flex-shrink-0 min-h-[40px]"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors whitespace-nowrap flex-shrink-0 min-h-[36px]"
               style={{
                 background: nav.active ? `${modeAccent}15` : "hsl(var(--muted))",
                 color: nav.active ? modeAccent : "hsl(var(--foreground))",
                 border: nav.active ? `1.5px solid ${modeAccent}40` : "1px solid hsl(var(--border))",
               }}>
               <nav.icon size={14} />
-              <span className="hidden sm:inline">{nav.label}</span>
+              {nav.label}
             </button>
           ))}
         </div>
@@ -702,7 +729,7 @@ export default function CommandDeckPage() {
           completedSteps={completedSteps.size}
         />
 
-        {/* 2. RECOMMENDED STRATEGIC MOVE — Decision Brief */}
+        {/* 2. RECOMMENDED STRATEGIC MOVE — Decision Brief (compact) */}
         <TransformationPaths
           evidence={autoAnalysis.flatEvidence}
           insights={autoAnalysis.insights}
@@ -710,13 +737,20 @@ export default function CommandDeckPage() {
           mode={modeKey}
         />
 
-        {/* 3. ECONOMIC IMPACT SNAPSHOT — 3 visual gauges */}
-        <EconomicImpactSnapshot
-          playbook={topPlaybook}
-          completedSteps={completedSteps.size}
+        {/* ══════════════════════════════════════════════════════════
+            THE ANALYSIS JOURNEY — The core analytical methodology
+            "Here's what exists → Question it → Reimagine it → 
+             Pressure test it → Pitch it"
+           ══════════════════════════════════════════════════════════ */}
+        <PipelineJourneyCards
+          baseUrl={baseUrl}
+          completedSteps={completedSteps}
+          modeAccent={modeAccent}
+          findings={stepFindings}
+          isBusinessMode={modeKey === "business"}
         />
 
-        {/* 4. EVIDENCE CONFIDENCE — By business domain */}
+        {/* 3. EVIDENCE CONFIDENCE — By business domain */}
         <ConfidenceMeter
           completedSteps={completedSteps.size}
           totalSteps={PIPELINE_STEPS.length}
