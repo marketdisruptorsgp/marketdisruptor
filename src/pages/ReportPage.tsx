@@ -252,7 +252,13 @@ export default function ReportPage() {
         selectedProduct={selectedProduct}
         analysisId={analysisId}
         accentColor={modeAccent}
-        hideRun
+        onRun={() => {
+          if (analysis.activeMode === "business") {
+            navigate(`/analysis/new`);
+          } else {
+            navigate(`/analysis/new`);
+          }
+        }}
         strategicProfile={analysis.strategicProfile}
         onChangeProfile={analysis.setStrategicProfile}
       />
