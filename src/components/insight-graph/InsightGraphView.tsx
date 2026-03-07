@@ -83,14 +83,14 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   }, [graph.nodes]);
 
   const selectedNode = useMemo(() => {
-    return selectedNodeId ? graph.nodes.find(n => n.id === selectedNodeId) ?? null : null;
-  }, [selectedNodeId, graph.nodes]);
+    return selectedNodeId ? enrichedGraph.nodes.find(n => n.id === selectedNodeId) ?? null : null;
+  }, [selectedNodeId, enrichedGraph.nodes]);
 
   const highlightedIds = useMemo(() => {
     if (!selectedNodeId) return null;
-    const chain = getInsightChain(graph, selectedNodeId);
+    const chain = getInsightChain(enrichedGraph, selectedNodeId);
     return new Set(chain.map(n => n.id));
-  }, [selectedNodeId, graph]);
+  }, [selectedNodeId, enrichedGraph]);
 
   if (graph.nodes.length === 0) {
     return (
