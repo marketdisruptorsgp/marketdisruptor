@@ -499,6 +499,22 @@ export default function CommandDeckPage() {
 
   // (diagnostics removed from default view)
 
+  const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
+    : analysis.activeMode === "business" ? "business" : "product";
+
+  // Derive industry / date for header context (must be before guard — hooks)
+  const industryLabel = useMemo(() => {
+    if (businessModelInput?.type) return businessModelInput.type;
+    if (selectedProduct?.category) return selectedProduct.category;
+    return modeKey === "service" ? "Service Industry" : modeKey === "business" ? "Business Model" : "Product Market";
+  }, [businessModelInput, selectedProduct, modeKey]);
+
+  const analysisDate = useMemo(() => {
+    return format(new Date(), "MMM d, yyyy");
+  }, []);
+
+  const modeLabel = modeKey === "service" ? "Service Analysis" : modeKey === "business" ? "Business Model Analysis" : "Product Analysis";
+
   // ── Guards ──
   const isHydrating = analysis.isHydrating;
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
@@ -526,26 +542,6 @@ export default function CommandDeckPage() {
       </div>
     );
   }
-
-  const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
-    : analysis.activeMode === "business" ? "business" : "product";
-
-  // Derive industry / date for header context
-  const industryLabel = useMemo(() => {
-    if (businessModelInput?.type) return businessModelInput.type;
-    if (selectedProduct?.category) return selectedProduct.category;
-    return modeKey === "service" ? "Service Industry" : modeKey === "business" ? "Business Model" : "Product Market";
-  }, [businessModelInput, selectedProduct, modeKey]);
-
-  const analysisDate = useMemo(() => {
-    try {
-      const saved = analysis.products?.[0]?.createdAt || analysis.products?.[0]?.created_at;
-      if (saved) return format(new Date(saved as string), "MMM d, yyyy");
-    } catch { /* ignore */ }
-    return format(new Date(), "MMM d, yyyy");
-  }, [analysis.products]);
-
-  const modeLabel = modeKey === "service" ? "Service Analysis" : modeKey === "business" ? "Business Model Analysis" : "Product Analysis";
 
   return (
     <div className="min-h-screen bg-background">
