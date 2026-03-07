@@ -70,16 +70,16 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
 
       {/* Verdict */}
       <div className="px-5 pb-2">
-        <p className="text-lg sm:text-xl font-black text-foreground leading-tight">
-          {verdict || `Address: ${constraintLabel}`}
+        <p className={`text-lg sm:text-xl font-black leading-tight ${hasVerdict ? 'text-foreground' : 'text-muted-foreground'}`}>
+          {displayVerdict}
         </p>
       </div>
 
       {/* Rationale */}
-      {rationale && (
+      {displayRationale && (
         <div className="px-5 pb-3">
           <p className="text-sm text-muted-foreground leading-relaxed">
-            {rationale}
+            {displayRationale}
           </p>
         </div>
       )}
