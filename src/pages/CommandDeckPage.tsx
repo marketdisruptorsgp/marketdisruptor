@@ -725,9 +725,9 @@ export default function CommandDeckPage() {
 
         {/* Evidence Confidence */}
         <BriefingSection
-          title="Evidence Confidence"
+          title="Confidence"
           icon={BookOpen}
-          preview={`${totalSignals} signals across ${evidenceAttribution.strong.length} strong categories`}
+          preview={`${totalSignals} signals · ${evidenceAttribution.strong.length} strong`}
         >
           <ConfidenceMeter
             completedSteps={completedSteps.size}
