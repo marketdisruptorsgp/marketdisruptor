@@ -1,26 +1,23 @@
 /**
- * Kill Question Card — The single falsifiable question + validation experiment
- * 
- * Turns analysis into a strategic advisor guiding a decision.
+ * Kill Question Card — The single falsifiable question + validation steps
  */
 
-import { memo } from "react";
-import { HelpCircle, FlaskConical, Clock } from "lucide-react";
-import { motion } from "framer-motion";
+import { memo, useState } from "react";
+import { HelpCircle, FlaskConical, Clock, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import type { ValidationStep } from "@/lib/strategicEngine";
 
 interface KillQuestionCardProps {
-  /** The one question that validates or kills the strategy */
   killQuestion: string | null;
-  /** A concrete experiment to test it */
   validationExperiment: string | null;
-  /** Suggested timeframe */
   timeframe: string;
-  /** Confidence that this is the right question */
   confidence: number;
+  validationSteps?: ValidationStep[];
 }
 
 export const KillQuestionCard = memo(function KillQuestionCard(props: KillQuestionCardProps) {
-  const { killQuestion, validationExperiment, timeframe, confidence } = props;
+  const { killQuestion, validationExperiment, timeframe, confidence, validationSteps = [] } = props;
+  const [showSteps, setShowSteps] = useState(false);
 
   if (!killQuestion) return null;
 
@@ -57,7 +54,7 @@ export const KillQuestionCard = memo(function KillQuestionCard(props: KillQuesti
 
       {/* Validation experiment */}
       {validationExperiment && (
-        <div className="px-5 pb-4">
+        <div className="px-5 pb-3">
           <div
             className="rounded-lg p-3"
             style={{ background: "hsl(var(--muted) / 0.4)" }}
@@ -72,6 +69,70 @@ export const KillQuestionCard = memo(function KillQuestionCard(props: KillQuesti
               {validationExperiment}
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Validation Steps Toggle */}
+      {validationSteps.length > 0 && (
+        <div className="px-5 pb-4">
+          <button
+            onClick={() => setShowSteps(!showSteps)}
+            className="flex items-center gap-1.5 text-xs font-bold transition-colors cursor-pointer mb-2"
+            style={{ color: "hsl(var(--primary))" }}
+          >
+            {showSteps ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {showSteps ? "Hide validation roadmap" : `View ${validationSteps.length}-step validation roadmap`}
+          </button>
+
+          <AnimatePresence>
+            {showSteps && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="space-y-2">
+                  {validationSteps.map((vs) => (
+                    <div
+                      key={vs.step}
+                      className="flex items-start gap-3 rounded-lg p-3"
+                      style={{ background: "hsl(var(--muted) / 0.25)", border: "1px solid hsl(var(--border))" }}
+                    >
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ background: "hsl(var(--primary) / 0.12)" }}
+                      >
+                        <span className="text-[10px] font-black" style={{ color: "hsl(var(--primary))" }}>
+                          {vs.step}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-foreground leading-snug">
+                          {vs.action}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <div className="flex items-center gap-1">
+                            <CheckCircle2 size={10} style={{ color: "hsl(var(--success))" }} />
+                            <span className="text-[10px] font-bold text-muted-foreground">
+                              {vs.metric}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock size={10} className="text-muted-foreground" />
+                            <span className="text-[10px] font-bold text-muted-foreground">
+                              {vs.timeframe}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
     </motion.div>
