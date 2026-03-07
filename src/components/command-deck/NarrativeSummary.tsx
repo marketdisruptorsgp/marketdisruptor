@@ -188,12 +188,17 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
                         {rec.description}
                       </p>
                     </div>
-                    <span
-                      className="text-[9px] font-bold uppercase tracking-wider whitespace-nowrap mt-0.5 flex-shrink-0"
-                      style={{ color: conf.color }}
-                    >
-                      {conf.text}
-                    </span>
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-shrink-0">
+                      <span
+                        className="text-[9px] font-bold uppercase tracking-wider whitespace-nowrap"
+                        style={{ color: conf.color }}
+                      >
+                        {conf.text}
+                      </span>
+                      <span className="text-[9px] font-medium text-muted-foreground whitespace-nowrap">
+                        ({rec.evidenceCount} evidence)
+                      </span>
+                    </div>
                   </motion.div>
                 );
               })}

@@ -30,11 +30,12 @@ function scoreColor(score: number): string {
 }
 
 function scoreLabel(score: number): string {
-  if (score >= 8) return "Exceptional potential";
-  if (score >= 6) return "Strong potential";
-  if (score >= 4) return "Moderate potential";
-  if (score >= 2) return "Limited potential";
-  return "Needs more data";
+  if (score >= 8.5) return "Very strong potential";
+  if (score >= 7) return "Promising — needs validation";
+  if (score >= 5) return "Moderate potential";
+  if (score >= 3) return "Weak signals — more data needed";
+  if (score >= 1) return "Insufficient evidence";
+  return "No data";
 }
 
 const MODE_LABELS: Record<string, string> = {

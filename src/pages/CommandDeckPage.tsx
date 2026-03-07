@@ -107,12 +107,15 @@ export default function CommandDeckPage() {
   // ── Strategic Potential Score ──
   const scenarioCountRef = useRef(0);
   const strategicPotential = useMemo(() => {
-    const simBoost = Math.min(scenarioCountRef.current * 0.3, 1.5);
-    const raw = (metrics.opportunityScore + metrics.leverageScore + simBoost)
+    // Simulation boost capped lower to prevent inflation from just running tools
+    const simBoost = Math.min(scenarioCountRef.current * 0.15, 0.8);
+    // Pipeline coverage penalty — incomplete pipelines get reduced scores
+    const coverageFactor = Math.max(0.5, completedSteps.size / 5);
+    const raw = ((metrics.opportunityScore + metrics.leverageScore + simBoost)
       - (metrics.frictionIndex * 0.5)
-      - (metrics.riskScore * 0.3);
+      - (metrics.riskScore * 0.3)) * coverageFactor;
     return Math.max(0, Math.min(10, Math.round(raw * 10) / 10));
-  }, [metrics]);
+  }, [metrics, completedSteps]);
 
   const baseUrl = `/analysis/${analysisId}`;
   const totalSignals = metrics.stepSignals.reduce((s, ss) => s + (ss.hasData ? ss.signals : 0), 0);

@@ -692,8 +692,8 @@ function generateOpportunities(
       insightType: "emerging_opportunity",
       label,
       description: con
-        ? `Addressing "${humanize(con.label)}" through "${humanize(lev.label)}" opens a clear path to strategic value.`
-        : `"${humanize(lev.label)}" represents an emerging strategic opportunity worth pursuing.`,
+      ? `Addressing "${humanize(con.label)}" through "${humanize(lev.label)}" may create strategic value — requires further validation.`
+        : `"${humanize(lev.label)}" appears to be an emerging opportunity, though confidence depends on additional evidence.`,
       evidenceIds: [...new Set([...lev.evidenceIds, ...(con?.evidenceIds ?? [])])],
       relatedInsightIds: [lev.id, ...(con ? [con.id] : [])],
       impact: Math.max(lev.impact, con?.impact ?? 0),
