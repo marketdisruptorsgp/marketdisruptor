@@ -927,7 +927,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
           <ArrowRight size={14} className="rotate-180" /> Prev
         </button>
         <span className="text-xs font-bold text-muted-foreground tabular-nums">
-          {currentIdx + 1} / {TOTAL}
+          {allCurrentIdx + 1} / {allTotal}
         </span>
         {nextSlide ? (
           <button
