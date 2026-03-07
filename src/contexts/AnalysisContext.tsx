@@ -631,6 +631,18 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     await new Promise(r => setTimeout(r, 600));
     pushLog("Collecting competitive intelligence from multiple data sources...");
 
+/** Lightweight summary of a concept variant for cross-page transfer */
+export interface ConceptVariantSummary {
+  id: string;
+  name: string;
+  description: string;
+  formula: string;
+  feasibility: "strong" | "moderate" | "early";
+  novelty: "strong" | "moderate" | "early";
+  marketReadiness: "strong" | "moderate" | "early";
+  dimensionValues: Record<string, string>;
+  opportunityLabel: string;
+}
 
     try {
       setStepMessage(hasCustom
