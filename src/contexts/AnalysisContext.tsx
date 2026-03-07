@@ -15,6 +15,19 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { getResumeRoute } from "@/utils/analysisSteps";
 
+/** Lightweight summary of a concept variant for cross-page transfer */
+export interface ConceptVariantSummary {
+  id: string;
+  name: string;
+  description: string;
+  formula: string;
+  feasibility: "strong" | "moderate" | "early";
+  novelty: "strong" | "moderate" | "early";
+  marketReadiness: "strong" | "moderate" | "early";
+  dimensionValues: Record<string, string>;
+  opportunityLabel: string;
+}
+
 export type AnalysisStep = "idle" | "scraping" | "analyzing" | "done" | "error";
 
 export interface BusinessModelInput {
