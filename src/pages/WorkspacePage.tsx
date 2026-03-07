@@ -4,6 +4,7 @@ import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { PlatformNav } from "@/components/PlatformNav";
 import { HeroSection } from "@/components/HeroSection";
 import { useNavigate } from "react-router-dom";
 import { useAnalysis } from "@/contexts/AnalysisContext";
@@ -199,6 +200,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PlatformNav tier={tier} />
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* ── Page Header ── */}
         <div className="flex items-center justify-between mb-5">
