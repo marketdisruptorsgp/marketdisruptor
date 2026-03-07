@@ -24,6 +24,8 @@ import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { ReasoningStagesOverlay } from "@/components/command-deck/ReasoningStagesOverlay";
 import { ConfidenceMeter } from "@/components/command-deck/ConfidenceMeter";
+import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
+import { StrategicPressureMap } from "@/components/command-deck/StrategicPressureMap";
 import { HeroScorePanel } from "@/components/command-deck/HeroScorePanel";
 import { NarrativeSummary } from "@/components/command-deck/NarrativeSummary";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
@@ -351,6 +353,12 @@ export default function CommandDeckPage() {
           isComputing={engineComputing}
         />
 
+        {/* ═══ STRUCTURAL PRESSURE MAP ═══ */}
+        <StrategicPressureMap
+          insights={autoAnalysis.insights}
+          flatEvidence={autoAnalysis.flatEvidence}
+        />
+
         {/* ═══ TIER 1 — HERO SCORE ═══ */}
         <HeroScorePanel
           strategicPotential={strategicPotential}
@@ -372,6 +380,14 @@ export default function CommandDeckPage() {
           opportunityLabel={narrative?.breakthroughOpportunity ?? null}
           completedSteps={completedSteps.size}
           totalSteps={PIPELINE_STEPS.length}
+        />
+
+        {/* ═══ STRATEGIC X-RAY — Interactive Reasoning Chain ═══ */}
+        <StrategicXRay
+          narrative={narrative}
+          insights={autoAnalysis.insights}
+          flatEvidence={autoAnalysis.flatEvidence}
+          onRecompute={handleRecomputeAll}
         />
 
         {/* ═══ TIER 1.6 — TRAPPED VALUE + KILL QUESTION ═══ */}

@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
+import type { Evidence } from "@/lib/evidenceEngine";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import {
   runStrategicAnalysis,
@@ -40,6 +41,7 @@ export interface AutoAnalysisResult {
   intelligence: SystemIntelligence | null;
   graph: InsightGraph | null;
   evidence: Record<MetricDomain, MetricEvidence> | null;
+  flatEvidence: Evidence[];
   insights: StrategicInsight[];
   opportunities: any[];
   narrative: StrategicNarrative | null;
@@ -66,6 +68,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
   const [graph, setGraph] = useState<InsightGraph | null>(null);
   const [evidence, setEvidence] = useState<Record<MetricDomain, MetricEvidence> | null>(null);
+  const [flatEvidenceState, setFlatEvidenceState] = useState<Evidence[]>([]);
   const [insights, setInsights] = useState<StrategicInsight[]>([]);
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [narrative, setNarrative] = useState<StrategicNarrative | null>(null);
@@ -138,6 +141,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
       setIntelligence(newIntelligence);
       setGraph(result.graph);
       setEvidence(result.evidence);
+      setFlatEvidenceState(result.flatEvidence);
       setInsights(result.insights);
       setOpportunities(result.opportunities);
       setNarrative(result.narrative);
@@ -197,6 +201,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     intelligence,
     graph,
     evidence,
+    flatEvidence: flatEvidenceState,
     insights,
     opportunities,
     narrative,
