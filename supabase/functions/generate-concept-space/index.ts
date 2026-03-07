@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { opportunityLabel, opportunityDetail, constraints, leveragePoints } = await req.json();
+    const { opportunityLabel, opportunityDetail, constraints, leveragePoints, competitors, flippedIdeas } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -40,6 +40,8 @@ IMPORTANT:
   - "strong" = well-understood, clear evidence or precedent
   - "moderate" = plausible with some unknowns
   - "early" = speculative, requires significant validation
+- If COMPETITOR APPROACHES are provided, generated concepts MUST differentiate from them. Do not replicate existing market positions. Use competitors as negative space — identify what they are NOT doing and explore those gaps.
+- If FLIPPED IDEAS are provided, treat them as creative provocations. Use inversions to inspire unconventional dimension values and variant combinations that challenge industry assumptions.
 
 Return ONLY valid JSON using this exact schema:
 {
@@ -75,6 +77,12 @@ ${(constraints || []).map((c: string, i: number) => `${i + 1}. ${c}`).join("\n")
 
 UPSTREAM LEVERAGE POINTS:
 ${(leveragePoints || []).map((l: string, i: number) => `${i + 1}. ${l}`).join("\n") || "None provided"}
+
+EXISTING COMPETITOR APPROACHES (avoid duplicating these):
+${(competitors || []).map((c: string, i: number) => `${i + 1}. ${c}`).join("\n") || "None provided"}
+
+FLIPPED IDEAS (use as creative provocations):
+${(flippedIdeas || []).map((f: string, i: number) => `${i + 1}. ${f}`).join("\n") || "None provided"}
 
 Generate the design space expansion now.`;
 

@@ -15,6 +15,8 @@ export function useConceptExpansion(graph: InsightGraph) {
   const getUpstreamContext = useCallback((nodeId: string) => {
     const constraints: string[] = [];
     const leveragePoints: string[] = [];
+    const competitors: string[] = [];
+    const flippedIdeas: string[] = [];
     const visited = new Set<string>();
 
     function walkUp(id: string) {
@@ -24,14 +26,34 @@ export function useConceptExpansion(graph: InsightGraph) {
       if (node) {
         if (node.type === "constraint" || node.type === "friction") constraints.push(node.label);
         if (node.type === "leverage_point") leveragePoints.push(node.label);
+        if (node.type === "competitor") competitors.push(node.detail ? `${node.label}: ${node.detail}` : node.label);
+        if (node.type === "flipped_idea") flippedIdeas.push(node.detail ? `${node.label}: ${node.detail}` : node.label);
       }
       graph.edges
         .filter(e => e.target === id)
         .forEach(e => walkUp(e.source));
     }
 
+    // Walk upstream
     walkUp(nodeId);
-    return { constraints: constraints.slice(0, 8), leveragePoints: leveragePoints.slice(0, 6) };
+
+    // Also collect siblings/peers: competitors and flipped ideas connected to the same parent nodes
+    const parentIds = graph.edges.filter(e => e.target === nodeId).map(e => e.source);
+    for (const pid of parentIds) {
+      const siblingIds = graph.edges.filter(e => e.source === pid && e.target !== nodeId).map(e => e.target);
+      for (const sid of siblingIds) {
+        const sib = graph.nodes.find(n => n.id === sid);
+        if (sib?.type === "competitor") competitors.push(sib.detail ? `${sib.label}: ${sib.detail}` : sib.label);
+        if (sib?.type === "flipped_idea") flippedIdeas.push(sib.detail ? `${sib.label}: ${sib.detail}` : sib.label);
+      }
+    }
+
+    return {
+      constraints: constraints.slice(0, 8),
+      leveragePoints: leveragePoints.slice(0, 6),
+      competitors: [...new Set(competitors)].slice(0, 6),
+      flippedIdeas: [...new Set(flippedIdeas)].slice(0, 6),
+    };
   }, [graph]);
 
   const generateConceptSpace = useCallback(async (node: InsightGraphNode) => {
@@ -39,7 +61,7 @@ export function useConceptExpansion(graph: InsightGraph) {
     setLoading(node.id);
 
     try {
-      const { constraints, leveragePoints } = getUpstreamContext(node.id);
+      const { constraints, leveragePoints, competitors, flippedIdeas } = getUpstreamContext(node.id);
 
       const { data, error } = await invokeWithTimeout<any>(
         "generate-concept-space",
@@ -49,6 +71,8 @@ export function useConceptExpansion(graph: InsightGraph) {
             opportunityDetail: node.detail || node.reasoning || "",
             constraints,
             leveragePoints,
+            competitors,
+            flippedIdeas,
           },
         },
         120_000,
