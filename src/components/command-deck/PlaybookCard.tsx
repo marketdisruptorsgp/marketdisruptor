@@ -27,18 +27,75 @@ const MODE_COLORS: Record<EvidenceMode, { bg: string; text: string; label: strin
   business_model: { bg: "hsl(var(--success) / 0.1)", text: "hsl(var(--success))", label: "Business Model" },
 };
 
-function ImpactBar({ label, value, color }: { label: string; value: number; color: string }) {
+/** Mini SVG radar chart for impact dimensions */
+function ImpactRadar({ revenue, margin, capital, difficulty }: {
+  revenue: number; margin: number; capital: number; difficulty: number;
+}) {
+  const size = 140;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = 50;
+  const dims = [
+    { label: "Rev", value: revenue, angle: -90 },
+    { label: "Margin", value: margin, angle: 0 },
+    { label: "Capital", value: capital, angle: 90 },
+    { label: "Ease", value: 10 - difficulty, angle: 180 },
+  ];
+
+  const toXY = (angle: number, val: number) => {
+    const rad = (angle * Math.PI) / 180;
+    const s = (val / 10) * r;
+    return { x: cx + s * Math.cos(rad), y: cy + s * Math.sin(rad) };
+  };
+
+  const points = dims.map(d => toXY(d.angle, d.value));
+  const poly = points.map(p => `${p.x},${p.y}`).join(" ");
+
   return (
-    <div className="space-y-1">
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="opacity-90">
+      {/* Grid rings */}
+      {[0.33, 0.66, 1].map(s => (
+        <polygon
+          key={s}
+          points={dims.map(d => { const p = toXY(d.angle, s * 10); return `${p.x},${p.y}`; }).join(" ")}
+          fill="none" stroke="hsl(var(--border))" strokeWidth={0.5}
+        />
+      ))}
+      {/* Axes */}
+      {dims.map((d, i) => {
+        const end = toXY(d.angle, 10);
+        return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke="hsl(var(--border))" strokeWidth={0.5} />;
+      })}
+      {/* Data polygon */}
+      <polygon points={poly} fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth={1.5} />
+      {/* Data dots */}
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="hsl(var(--primary))" />
+      ))}
+      {/* Labels */}
+      {dims.map((d, i) => {
+        const lp = toXY(d.angle, 12.5);
+        return (
+          <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle"
+            className="fill-muted-foreground text-[9px] font-bold">
+            {d.label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+function ExecutionDimension({ label, value, level }: { label: string; value: number; level: string }) {
+  const color = value >= 7 ? "hsl(var(--destructive))" : value >= 4 ? "hsl(var(--warning))" : "hsl(var(--success))";
+  return (
+    <div className="space-y-0.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{label}</span>
-        <span className="text-[10px] font-extrabold" style={{ color }}>{value}/10</span>
+        <span className="text-[10px] font-bold text-muted-foreground">{label}</span>
+        <span className="text-[10px] font-extrabold" style={{ color }}>{level}</span>
       </div>
       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${value * 10}%`, background: color }}
-        />
+        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${value * 10}%`, background: color }} />
       </div>
     </div>
   );
@@ -169,13 +226,47 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
         </div>
       </div>
 
-      {/* ── Impact Scores ── */}
+      {/* ── Impact Radar + Execution Map ── */}
       <div className="px-5 pb-3">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-          <ImpactBar label="Revenue" value={playbook.impact.revenueExpansion} color="hsl(var(--success))" />
-          <ImpactBar label="Margin" value={playbook.impact.marginImprovement} color="hsl(var(--primary))" />
-          <ImpactBar label="Capital Efficiency" value={playbook.impact.capitalEfficiency} color="hsl(var(--warning))" />
-          <ImpactBar label="Execution Difficulty" value={playbook.impact.executionDifficulty} color="hsl(var(--destructive))" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Radar Chart */}
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground block mb-2">
+              Impact Profile
+            </span>
+            <div className="flex justify-center">
+              <ImpactRadar
+                revenue={playbook.impact.revenueExpansion}
+                margin={playbook.impact.marginImprovement}
+                capital={playbook.impact.capitalEfficiency}
+                difficulty={playbook.impact.executionDifficulty}
+              />
+            </div>
+          </div>
+
+          {/* Execution Map */}
+          <div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground block mb-2">
+              Execution Map
+            </span>
+            <div className="space-y-2">
+              <ExecutionDimension
+                label="Operational Complexity"
+                value={playbook.impact.executionDifficulty}
+                level={playbook.impact.executionDifficulty >= 7 ? "High" : playbook.impact.executionDifficulty >= 4 ? "Medium" : "Low"}
+              />
+              <ExecutionDimension
+                label="Capital Required"
+                value={10 - playbook.impact.capitalEfficiency}
+                level={playbook.impact.capitalEfficiency <= 3 ? "High" : playbook.impact.capitalEfficiency <= 6 ? "Medium" : "Low"}
+              />
+              <ExecutionDimension
+                label="Time to Realization"
+                value={playbook.impact.executionDifficulty >= 7 ? 8 : playbook.impact.executionDifficulty >= 4 ? 5 : 3}
+                level={playbook.impact.executionDifficulty >= 7 ? "18-36 months" : playbook.impact.executionDifficulty >= 4 ? "6-18 months" : "3-6 months"}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

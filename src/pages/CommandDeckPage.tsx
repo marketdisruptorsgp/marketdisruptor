@@ -39,6 +39,14 @@ import { StrategicLeverageSignals } from "@/components/command-deck/StrategicLev
 import { ActionPath } from "@/components/command-deck/ActionPath";
 import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
 import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
+import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
+import { StrategicPatternCard } from "@/components/command-deck/StrategicPatternCard";
+import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
+import {
+  saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
+  type ScenarioSnapshot,
+} from "@/lib/scenarioLabEngine";
+import { generatePlaybooks } from "@/lib/playbookEngine";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
   AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
@@ -294,13 +302,83 @@ export default function CommandDeckPage() {
     }, 800);
   }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
 
-  // ── Save Scenario ──
+  // ── Save Scenario (full snapshot) ──
+  const [savedLabScenarios, setSavedLabScenarios] = useState<ScenarioSnapshot[]>(() =>
+    getSavedScenarios(analysisId || "")
+  );
+  const [activeLabScenarioId, setActiveLabScenarioId] = useState<string | null>(null);
+
   const handleSaveScenario = useCallback(() => {
-    // Create a named scenario snapshot
-    const scenarioName = activeChallenges.map(c => `${c.stage}: ${c.value.slice(0, 40)}`).join(" + ");
-    addEvent(`Scenario saved: "${scenarioName}"`);
-    toast.success("Scenario saved to your analysis");
-  }, [activeChallenges, addEvent]);
+    if (activeChallenges.length === 0) return;
+
+    const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
+      analysis.activeMode === "service" ? "service"
+      : analysis.activeMode === "business" ? "business_model" : "product";
+
+    const playbooks = generatePlaybooks(
+      autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence,
+    );
+
+    const snapshot: ScenarioSnapshot = {
+      id: `scenario-${Date.now()}`,
+      name: activeChallenges.map(c => `${c.stage}: ${c.value.slice(0, 40)}`).join(" + "),
+      challenges: [...activeChallenges],
+      verdict: narrative?.strategicVerdict ?? null,
+      verdictConfidence: narrative?.verdictConfidence ?? 0,
+      primaryConstraint: narrative?.primaryConstraint ?? null,
+      breakthroughOpportunity: narrative?.breakthroughOpportunity ?? null,
+      trappedValue: narrative?.trappedValue ?? null,
+      trappedValueEstimate: narrative?.trappedValueEstimate ?? null,
+      topPlaybookTitle: playbooks[0]?.title ?? null,
+      leverageScore: playbooks[0]?.impact.leverageScore ?? 0,
+      strategicPotential,
+      timestamp: Date.now(),
+    };
+
+    saveScenarioSnapshot(analysisId || "", snapshot);
+    setSavedLabScenarios(getSavedScenarios(analysisId || ""));
+    setActiveLabScenarioId(snapshot.id);
+    addEvent(`Scenario saved: "${snapshot.name}"`);
+    toast.success("Scenario saved to Scenario Lab");
+  }, [activeChallenges, addEvent, analysis, autoAnalysis, narrative, strategicPotential, analysisId]);
+
+  const handleDeleteLabScenario = useCallback((id: string) => {
+    deleteScenarioSnapshot(analysisId || "", id);
+    setSavedLabScenarios(getSavedScenarios(analysisId || ""));
+    if (activeLabScenarioId === id) setActiveLabScenarioId(null);
+  }, [analysisId, activeLabScenarioId]);
+
+  const handleLoadLabScenario = useCallback((scenario: ScenarioSnapshot) => {
+    // Reload the challenges from the scenario
+    setActiveChallenges(scenario.challenges);
+    setActiveLabScenarioId(scenario.id);
+    // Re-apply the challenges as governed data
+    const governed = (analysis.governedData as Record<string, unknown>) || {};
+    const updatedGoverned = { ...governed, challenges: scenario.challenges };
+    setIsRecomputing(true);
+    try {
+      recomputeIntelligence({
+        products: analysis.products, selectedProduct,
+        disruptData: analysis.disruptData, redesignData: analysis.redesignData,
+        stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
+        governedData: updatedGoverned,
+        businessAnalysisData: analysis.businessAnalysisData, intelligence,
+        analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+        analysisId: analysisId || "", completedSteps,
+      });
+    } catch { /* silent */ }
+    try { runAnalysis(); } catch { /* silent */ }
+    setTimeout(() => {
+      setIsRecomputing(false);
+      toast.success(`Loaded scenario: "${scenario.name}"`);
+    }, 800);
+  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
+
+  // ── Strategic Pattern Detection ──
+  const detectedPatterns = useMemo(() =>
+    detectStructuralPattern(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative),
+    [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative],
+  );
 
   // ── AUTO-RECOMPUTE ──
   const lastRecomputeHash = useRef<string>("");
@@ -540,7 +618,17 @@ export default function CommandDeckPage() {
           />
         </div>
 
-        {/* ═══ TIER 2 — NARRATIVE SUMMARY ═══ */}
+        {/* ═══ STRATEGIC PATTERN DETECTION ═══ */}
+        <StrategicPatternCard patterns={detectedPatterns} />
+
+        {/* ═══ SCENARIO LAB — Multi-scenario comparison ═══ */}
+        <ScenarioLab
+          scenarios={savedLabScenarios}
+          activeScenarioId={activeLabScenarioId}
+          onLoadScenario={handleLoadLabScenario}
+          onDeleteScenario={handleDeleteLabScenario}
+        />
+
         <NarrativeSummary
           primaryConstraint={narrative?.primaryConstraint ?? null}
           keyDriver={narrative?.keyDriver ?? null}
