@@ -391,6 +391,7 @@ export default function CommandDeckPage() {
           insights={autoAnalysis.insights}
           flatEvidence={autoAnalysis.flatEvidence}
           onRecompute={handleRecomputeAll}
+          onChallenge={handleChallenge}
         />
 
         {/* ═══ TIER 1.6 — TRAPPED VALUE + KILL QUESTION ═══ */}
