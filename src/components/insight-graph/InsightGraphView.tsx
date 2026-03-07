@@ -110,18 +110,10 @@ const RELATION_LABELS: Record<EdgeRelation, string> = {
 
 function InsightNode({ data }: NodeProps) {
   const config = NODE_TYPE_CONFIG[data.nodeType as InsightNodeType];
-  const influence = data.influence as number;
-  const leverageScore = data.leverageScore as number;
   const isTopLeverage = data.isTopLeverage as boolean;
   const isBreakthrough = data.isBreakthrough as boolean;
   const isHighlighted = data.isHighlighted as boolean;
   const isDimmed = data.isDimmed as boolean;
-  const isHighLeverage = leverageScore >= 60;
-  const tier = data.tier as "structural" | "system" | "optimization" | undefined;
-  const tierMeta = tier ? TIER_META[tier === "structural" ? 1 : tier === "system" ? 2 : 3] : null;
-
-  // Size scales with leverage score
-  const sizeScale = 1 + (leverageScore / 100) * 0.15;
 
   return (
     <div
@@ -133,30 +125,15 @@ function InsightNode({ data }: NodeProps) {
           ? `0 0 28px ${config.color}40, 0 0 56px ${config.color}10`
           : isTopLeverage
             ? `0 0 24px ${config.color}40, 0 0 48px ${config.color}15`
-            : isHighLeverage
-              ? `0 0 16px ${config.color}20`
-              : "0 2px 8px hsl(0 0% 0% / 0.06)",
-        minWidth: Math.round(160 * sizeScale),
-        maxWidth: Math.round(220 * sizeScale),
+            : "0 2px 8px hsl(0 0% 0% / 0.06)",
+        width: 200,
         opacity: isDimmed ? 0.2 : 1,
-        transform: `scale(${isHighlighted ? sizeScale * 1.04 : sizeScale})`,
+        transform: isHighlighted ? "scale(1.04)" : "scale(1)",
         transition: "opacity 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease",
       }}
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0, width: 1, height: 1 }} />
       <Handle type="source" position={Position.Right} style={{ opacity: 0, width: 1, height: 1 }} />
-
-      {/* Tier ring — visual tier grouping */}
-      {tierMeta && (
-        <div
-          className="absolute -inset-0.5 rounded-xl pointer-events-none"
-          style={{
-            border: `2.5px solid ${tierMeta.color}`,
-            opacity: isDimmed ? 0.1 : 0.55,
-            borderRadius: "0.85rem",
-          }}
-        />
-      )}
 
       {/* Pulsing ring for top leverage or breakthrough */}
       {(isTopLeverage || isBreakthrough) && (
@@ -172,51 +149,21 @@ function InsightNode({ data }: NodeProps) {
       <div className="flex items-center gap-1.5 mb-1">
         <div
           className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-          style={{
-            background: config.color,
-            boxShadow: (isTopLeverage || isHighLeverage) ? `0 0 10px ${config.color}80` : "none",
-          }}
+          style={{ background: config.color }}
         />
-        <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
+        <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
           {config.label}
         </span>
-        {tierMeta && (
-          <span
-            className="text-[8px] font-bold px-1 py-0.5 rounded-full"
-            style={{ background: `${tierMeta.color}15`, color: tierMeta.color }}
-          >
-            T{tier === "structural" ? 1 : tier === "system" ? 2 : 3}
-          </span>
-        )}
         {isBreakthrough && (
           <span
-            className="text-xs font-bold px-1.5 py-0.5 rounded-full ml-auto"
+            className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-auto"
             style={{ background: `${config.color}20`, color: config.color }}
           >
-            ★ Breakthrough
-          </span>
-        )}
-        {isTopLeverage && !isBreakthrough && (
-          <span
-            className="text-xs font-bold px-1.5 py-0.5 rounded-full ml-auto"
-            style={{ background: `${config.color}20`, color: config.color }}
-          >
-            ★ TOP
+            ★
           </span>
         )}
       </div>
-      <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">{data.label}</p>
-      <div className="flex items-center gap-2 mt-1.5">
-        <span className="text-xs font-bold tabular-nums" style={{ color: config.color }}>
-          {data.impact}/10
-        </span>
-        {isHighLeverage && (
-          <span className="text-xs font-bold tabular-nums" style={{ color: config.color }}>
-            Lev. {leverageScore}
-          </span>
-        )}
-        <span className="text-xs text-muted-foreground capitalize ml-auto">{data.confidence}</span>
-      </div>
+      <p className="text-xs font-bold text-foreground leading-snug line-clamp-3">{data.label}</p>
     </div>
   );
 }
@@ -233,10 +180,6 @@ function GraphTooltip({ node, graph }: {
   const config = NODE_TYPE_CONFIG[node.type];
   const downstream = graph.edges.filter(e => e.source === node.id);
   const upstream = graph.edges.filter(e => e.target === node.id);
-  const downstreamOpps = downstream.filter(e => {
-    const t = graph.nodes.find(n => n.id === e.target);
-    return t && OPPORTUNITY_NODE_TYPES.includes(t.type);
-  }).length;
 
   return (
     <motion.div
@@ -264,29 +207,9 @@ function GraphTooltip({ node, graph }: {
         <p className="text-xs text-muted-foreground mb-2 line-clamp-2 italic">"{node.reasoning}"</p>
       )}
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-2">
-        <div>
-          <p className="text-xs font-bold text-muted-foreground">Impact</p>
-          <p className="text-sm font-extrabold" style={{ color: config.color }}>{node.impact}/10</p>
-        </div>
-        <div>
-          <p className="text-xs font-bold text-muted-foreground">Leverage</p>
-          <p className="text-sm font-extrabold" style={{ color: config.color }}>{node.leverageScore}</p>
-        </div>
-        <div>
-          <p className="text-xs font-bold text-muted-foreground">Influence</p>
-          <p className="text-sm font-extrabold" style={{ color: config.color }}>{node.influence}</p>
-        </div>
-        <div>
-          <p className="text-xs font-bold text-muted-foreground">Confidence</p>
-          <p className="text-sm font-extrabold capitalize" style={{ color: config.color }}>{node.confidence}</p>
-        </div>
-      </div>
-
       <div className="flex items-center gap-3 text-xs text-muted-foreground border-t border-border pt-2">
         {upstream.length > 0 && <span>↑ {upstream.length} upstream</span>}
         {downstream.length > 0 && <span>↓ {downstream.length} downstream</span>}
-        {downstreamOpps > 0 && <span className="font-bold" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>→ {downstreamOpps} opportunities</span>}
       </div>
 
       <p className="text-xs text-muted-foreground mt-1.5 font-semibold">Click to explore reasoning chain</p>
@@ -316,28 +239,19 @@ function layoutTiered(graphNodes: InsightGraphNode[]): Node[] {
   });
 
   columns.forEach((group, col) => {
-    // Sort by leverage score desc, then influence
     group.sort((a, b) => (b.leverageScore - a.leverageScore) || (b.influence - a.influence));
-    const colHeight = group.length * rowHeight;
-    const offsetY = -colHeight / 2; // center vertically
 
     group.forEach((gn, row) => {
-      const jitterX = Math.sin(row * 2.3 + col * 1.7) * 18;
-      const jitterY = Math.cos(row * 1.8 + col * 2.1) * 12;
       flowNodes.push({
         id: gn.id,
         type: "insightNode",
         position: {
-          x: col * colWidth + jitterX + 60,
-          y: offsetY + row * rowHeight + jitterY + 80,
+          x: col * colWidth + 60,
+          y: row * rowHeight + 80,
         },
         data: {
           label: gn.label,
           nodeType: gn.type,
-          impact: gn.impact,
-          confidence: gn.confidence,
-          influence: gn.influence,
-          leverageScore: gn.leverageScore,
           tier: gn.tier,
           isTopLeverage: false,
           isBreakthrough: false,
@@ -731,12 +645,6 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
               </p>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
-              <div className="text-center">
-                <p className="typo-meta">Leverage</p>
-                <p className="text-sm font-extrabold" style={{ color: NODE_TYPE_CONFIG[selectedNode.type].color }}>
-                  {selectedNode.leverageScore}
-                </p>
-              </div>
               <button
                 onClick={() => setSelectedNodeId(null)}
                 className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md text-xs font-bold bg-muted border border-border text-foreground hover:bg-card transition-colors"
@@ -915,19 +823,9 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
       {!isMobile && (
         <div className="flex flex-wrap items-center gap-4 px-2">
           <span className="typo-meta font-bold">
-            {ZOOM_LEVEL_CONFIG[zoomLevel].label} · {filteredNodes.length} nodes · {filteredEdges.length} edges
+            {filteredNodes.length} nodes · {filteredEdges.length} connections
             {showOpportunityPaths && " · Opportunity paths only"}
           </span>
-          {graph.topNodes.primaryConstraint && (
-            <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.constraint.color }}>
-              ★ Top Constraint: {graph.topNodes.primaryConstraint.label.slice(0, 35)}
-            </span>
-          )}
-          {graph.topNodes.breakthroughOpportunity && (
-            <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
-              ★ Breakthrough: {graph.topNodes.breakthroughOpportunity.label.slice(0, 35)}
-            </span>
-          )}
         </div>
       )}
       </>
