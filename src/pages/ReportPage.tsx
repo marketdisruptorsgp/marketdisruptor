@@ -116,7 +116,12 @@ export default function ReportPage() {
     }
   };
 
-  const { products, selectedProduct, analysisParams, analysisId } = analysis;
+  const { products, selectedProduct: rawSelectedProduct, analysisParams, analysisId } = analysis;
+  // Synthetic product for business model analyses
+  const selectedProduct = rawSelectedProduct || (analysis.businessAnalysisData ? {
+    id: analysisId || "business-model", name: (analysis.businessModelInput as any)?.type || "Business Model",
+    category: "Business", image: "", revivalScore: 0, flippedIdeas: [],
+  } as any : null);
   const { shouldRedirectHome } = useHydrationGuard();
   const isRunning = analysis.step === "scraping" || analysis.step === "analyzing";
   const autoAnalysis = useAutoAnalysis();
