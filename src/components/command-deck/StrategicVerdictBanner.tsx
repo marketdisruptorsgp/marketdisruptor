@@ -29,28 +29,20 @@ function confidenceBadge(c: number): { label: string; bg: string; text: string }
 export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props: StrategicVerdictBannerProps) {
   const { verdict, rationale, confidence, constraintLabel, opportunityLabel, completedSteps, totalSteps } = props;
 
-  if (!verdict && !constraintLabel) {
-    return (
-      <div
-        className="rounded-xl p-5"
-        style={{ background: "hsl(var(--muted) / 0.3)", border: "1px solid hsl(var(--border))" }}
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <Zap size={16} className="text-muted-foreground" />
-          <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">
-            Strategic Verdict
-          </span>
-        </div>
-        <p className="text-sm font-semibold text-muted-foreground">
-          {completedSteps > 0
-            ? `${completedSteps}/${totalSteps} pipeline steps complete. More evidence needed to identify the dominant strategic move.`
-            : "Run pipeline steps to collect evidence, then Recompute to generate the strategic verdict."}
-        </p>
-      </div>
-    );
-  }
-
   const badge = confidenceBadge(confidence);
+  const hasVerdict = !!verdict || !!constraintLabel;
+
+  // Always show a card — even with no data, show framing
+  const displayVerdict = verdict
+    || (constraintLabel ? `Address: ${constraintLabel}` : null)
+    || "Analyzing — building initial strategic hypothesis…";
+
+  const displayRationale = rationale
+    || (completedSteps > 0 && !hasVerdict
+      ? `Initial analysis underway with ${completedSteps}/${totalSteps} evidence sources. The strategic engine is forming a hypothesis as more signals are collected.`
+      : !hasVerdict
+        ? "The intelligence pipeline is collecting foundational evidence. A strategic hypothesis will form as signals are detected."
+        : null);
 
   return (
     <motion.div
@@ -78,16 +70,16 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
 
       {/* Verdict */}
       <div className="px-5 pb-2">
-        <p className="text-lg sm:text-xl font-black text-foreground leading-tight">
-          {verdict || `Address: ${constraintLabel}`}
+        <p className={`text-lg sm:text-xl font-black leading-tight ${hasVerdict ? 'text-foreground' : 'text-muted-foreground'}`}>
+          {displayVerdict}
         </p>
       </div>
 
       {/* Rationale */}
-      {rationale && (
+      {displayRationale && (
         <div className="px-5 pb-3">
           <p className="text-sm text-muted-foreground leading-relaxed">
-            {rationale}
+            {displayRationale}
           </p>
         </div>
       )}
