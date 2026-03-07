@@ -1,11 +1,9 @@
 /**
- * AUTO-ANALYSIS ENGINE — Manual Strategic Analysis Trigger
+ * AUTO-ANALYSIS ENGINE — Progressive Strategic Intelligence
  *
- * Watches for step completion to track pipeline state.
- * Intelligence is ONLY computed when the user explicitly clicks
- * "Run Strategic Analysis" on the Command Deck.
- *
- * No automatic insight generation. Steps only collect evidence.
+ * Automatically recomputes strategic intelligence whenever the
+ * evidence dataset changes (new pipeline steps complete).
+ * Also exposes a manual runAnalysis() for explicit recompute.
  */
 
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
@@ -166,13 +164,34 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,
   ]);
 
-  // Auto-run on first load if data exists (to show existing analysis results)
+  // ── Auto-recompute whenever evidence dataset changes ──
+  // Tracks a hash of completed steps so the engine re-runs each time
+  // new pipeline data arrives (progressive intelligence).
+  const evidenceHashRef = useRef<string>("");
+
   useEffect(() => {
     const hasComputableData = !!selectedProduct || !!businessAnalysisData || !!disruptData || !!redesignData || !!stressTestData;
-    if (analysisId && hasComputableData && !hasRun && !isComputing) {
+    if (!analysisId || !hasComputableData || isComputing) return;
+
+    const hash = [
+      completedSteps.size,
+      !!disruptData ? "d" : "",
+      !!redesignData ? "r" : "",
+      !!stressTestData ? "s" : "",
+      !!pitchDeckData ? "p" : "",
+      !!businessAnalysisData ? "b" : "",
+    ].join("|");
+
+    if (hash === evidenceHashRef.current) return;
+    evidenceHashRef.current = hash;
+
+    // Small delay to batch rapid state updates from pipeline
+    const timer = setTimeout(() => {
+      console.log("[StrategicEngine] Auto-recompute triggered — evidence changed:", hash);
       runAnalysis();
-    }
-  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, hasRun, isComputing, runAnalysis]);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [analysisId, selectedProduct, businessAnalysisData, disruptData, redesignData, stressTestData, pitchDeckData, completedSteps, isComputing, runAnalysis]);
 
   return {
     intelligence,

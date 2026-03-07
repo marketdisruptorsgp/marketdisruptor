@@ -32,6 +32,7 @@ const STEP_DEFS = [
 
 export function usePipelineOrchestrator(
   onRecompute?: () => void,
+  onStepComplete?: (stepKey: string) => void,
 ): PipelineProgress {
   const analysis = useAnalysis();
   const {
@@ -92,6 +93,7 @@ export function usePipelineOrchestrator(
         setDisruptData(disruptResult);
         await saveStepData("disrupt", disruptResult, analysisId);
         updateStatus("disrupt", "done");
+        onStepComplete?.("disrupt");
       }
     } catch (err) {
       console.warn("[Pipeline] Disrupt error:", err);
@@ -136,6 +138,7 @@ export function usePipelineOrchestrator(
         await saveStepData("redesign", redesignResult, analysisId);
         clearStepOutdated("redesign");
         updateStatus("redesign", "done");
+        onStepComplete?.("redesign");
       }
     } catch (err) {
       console.warn("[Pipeline] Redesign error:", err);
@@ -165,6 +168,7 @@ export function usePipelineOrchestrator(
         await saveStepData("stressTest", stressResult, analysisId);
         clearStepOutdated("stressTest");
         updateStatus("stressTest", "done");
+        onStepComplete?.("stressTest");
       }
     } catch (err) {
       console.warn("[Pipeline] Stress Test error:", err);
@@ -196,6 +200,7 @@ export function usePipelineOrchestrator(
         await saveStepData("pitchDeck", pitchResult, analysisId);
         clearStepOutdated("pitch");
         updateStatus("pitch", "done");
+        onStepComplete?.("pitch");
       }
     } catch (err) {
       console.warn("[Pipeline] Pitch error:", err);
