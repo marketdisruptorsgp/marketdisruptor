@@ -55,7 +55,8 @@ export default function DisruptPage() {
 
   const autoAnalysis = useAutoAnalysis();
 
-  if (analysis.step !== "done" || !selectedProduct) {
+  if (analysis.step !== "done" || (!selectedProduct && !analysis.businessAnalysisData)) {
+    if (shouldRedirectHome) return null;
     return <AnalysisLoadingSpinner />;
   }
 

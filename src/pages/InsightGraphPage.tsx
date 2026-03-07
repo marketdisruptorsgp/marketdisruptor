@@ -118,6 +118,16 @@ export default function InsightGraphPage() {
 
   if (!analysisId || analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
+    if (analysis.step === "done" && !analysis.isHydrating) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center px-4">
+          <div className="text-center space-y-3 max-w-md">
+            <p className="text-sm font-bold text-foreground">Analysis data incomplete</p>
+            <p className="text-xs text-muted-foreground">This analysis may need to be re-run.</p>
+          </div>
+        </div>
+      );
+    }
     return <AnalysisLoadingSpinner message="Loading analysis..." />;
   }
 

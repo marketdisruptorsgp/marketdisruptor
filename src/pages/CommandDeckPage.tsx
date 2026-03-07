@@ -493,8 +493,26 @@ export default function CommandDeckPage() {
   // (diagnostics removed from default view)
 
   // ── Guards ──
+  const isHydrating = analysis.isHydrating;
   if (analysis.step !== "done" || (!selectedProduct && !hasBusinessContext)) {
     if (shouldRedirectHome) return null;
+    // If hydration is done but data is still missing, show error state
+    if (analysis.step === "done" && !isHydrating) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center px-4">
+          <div className="text-center space-y-3 max-w-md">
+            <p className="text-sm font-bold text-foreground">Analysis data incomplete</p>
+            <p className="text-xs text-muted-foreground">This analysis may need to be re-run to populate missing data.</p>
+            <button
+              onClick={() => navigate(`/analysis/${analysisId}/report`)}
+              className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              Go to Report
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
