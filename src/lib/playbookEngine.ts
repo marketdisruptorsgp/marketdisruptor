@@ -53,6 +53,12 @@ export interface StrategicMove {
   evidenceIds: string[];
 }
 
+export interface ComparableTransformation {
+  from: string;
+  to: string;
+  example?: string;
+}
+
 export interface TransformationPlaybook {
   id: string;
   title: string;
@@ -70,8 +76,12 @@ export interface TransformationPlaybook {
   archetype: DisruptionArchetype | null;
   triggerConstraints: string[];
   triggerSignals: string[];
-  confidence: number; // 0-1
+  confidence: number;
   isRecommended: boolean;
+  /** Whether this playbook was triggered by a user challenge/hypothesis */
+  triggeredByHypothesis: boolean;
+  /** Comparable transformations for pattern recognition */
+  comparables: ComparableTransformation[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -316,6 +326,40 @@ function computeTemplateMatch(
 //  PLAYBOOK GENERATION
 // ═══════════════════════════════════════════════════════════════
 
+// ── Comparable Transformations Map ──
+const COMPARABLE_MAP: Record<string, ComparableTransformation[]> = {
+  "custom-to-productized": [
+    { from: "Custom Consulting", to: "Productized Services", example: "Accenture → pre-packaged digital transformation modules" },
+    { from: "Custom Manufacturing", to: "Modular Products", example: "Dell → build-to-order configurable systems" },
+    { from: "Agency Work", to: "SaaS Platform", example: "HubSpot started as a consulting firm → self-serve marketing platform" },
+  ],
+  "labor-to-process": [
+    { from: "Manual Underwriting", to: "Automated Scoring", example: "Lemonade → AI-driven insurance in seconds" },
+    { from: "Handcrafted Reports", to: "Automated Dashboards", example: "Tableau → self-serve analytics replacing analyst teams" },
+    { from: "Manual QA", to: "Automated Testing", example: "Tesla → software-defined quality checks" },
+  ],
+  "direct-to-channel": [
+    { from: "Direct Enterprise Sales", to: "Partner Ecosystem", example: "Salesforce → AppExchange partner network" },
+    { from: "Founder-Led Sales", to: "Marketplace Distribution", example: "Shopify → app store + partner program" },
+    { from: "Field Sales", to: "Inside Sales + Partners", example: "Zoom → channel-first GTM at scale" },
+  ],
+  "capex-to-asset-light": [
+    { from: "Hotel Ownership", to: "Platform Model", example: "Airbnb → zero-asset hospitality" },
+    { from: "Fleet Ownership", to: "Driver Network", example: "Uber → asset-light transportation" },
+    { from: "Server Farms", to: "Cloud Infrastructure", example: "Netflix → AWS migration from own data centers" },
+  ],
+  "broad-to-vertical": [
+    { from: "Generic CRM", to: "Vertical CRM", example: "Veeva → pharma-specific Salesforce vertical" },
+    { from: "General Contractor", to: "Healthcare Construction", example: "Skanska → hospital-specialized building" },
+    { from: "Horizontal SaaS", to: "Industry Platform", example: "Toast → restaurant-specific POS + operations" },
+  ],
+  "one-time-to-recurring": [
+    { from: "Software Licenses", to: "SaaS Subscription", example: "Adobe → Creative Cloud transformation" },
+    { from: "One-Time Projects", to: "Managed Services", example: "IBM → consulting to managed cloud services" },
+    { from: "Product Sales", to: "Subscription Box", example: "Dollar Shave Club → razors as a subscription" },
+  ],
+};
+
 function adaptTemplate(
   template: PlaybookTemplate,
   matchedSignals: string[],
@@ -324,11 +368,19 @@ function adaptTemplate(
   mode: EvidenceMode,
   confidence: number,
   isTop: boolean,
+  evidence: Evidence[] = [],
 ): TransformationPlaybook {
   const constraint = narrative?.primaryConstraint || "structural bottleneck";
   const opportunity = narrative?.breakthroughOpportunity || "strategic transformation";
 
-  // Generate context-specific moves
+  // Detect if triggered by user hypothesis
+  const triggeredByHypothesis = evidence.some(e =>
+    e.id?.startsWith("challenge-") &&
+    template.triggerKeywords.some(k =>
+      `${e.label} ${e.description || ""}`.toLowerCase().includes(k.toLowerCase())
+    )
+  );
+
   const moves: StrategicMove[] = [];
   const modeTag: EvidenceMode = mode;
 
@@ -371,7 +423,6 @@ function adaptTemplate(
     );
   }
 
-  // Context-specific validation question
   const validationQ = narrative?.killQuestion
     || `Will target customers accept the ${template.title.split("→")[1]?.trim() || "new"} model over the current approach?`;
 
@@ -406,6 +457,8 @@ function adaptTemplate(
     triggerSignals: matchedSignals,
     confidence,
     isRecommended: isTop,
+    triggeredByHypothesis,
+    comparables: COMPARABLE_MAP[template.id] || [],
   };
 }
 
@@ -436,14 +489,14 @@ export function generatePlaybooks(
         matchedEvidenceIds: evidence.slice(0, 3).map(e => e.id),
       }));
       return fallback.map((s, idx) =>
-        adaptTemplate(s.template, s.matchedSignals, s.matchedEvidenceIds, narrative, mode, s.score * 0.5, idx === 0)
+        adaptTemplate(s.template, s.matchedSignals, s.matchedEvidenceIds, narrative, mode, s.score * 0.5, idx === 0, evidence)
       );
     }
     return [];
   }
 
   return scored.map((s, idx) =>
-    adaptTemplate(s.template, s.matchedSignals, s.matchedEvidenceIds, narrative, mode, Math.min(s.score, 0.95), idx === 0)
+    adaptTemplate(s.template, s.matchedSignals, s.matchedEvidenceIds, narrative, mode, Math.min(s.score, 0.95), idx === 0, evidence)
   );
 }
 

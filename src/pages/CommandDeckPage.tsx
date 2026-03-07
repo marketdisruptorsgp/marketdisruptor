@@ -37,6 +37,8 @@ import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
 import { ConstraintRadar } from "@/components/command-deck/ConstraintRadar";
 import { StrategicLeverageSignals } from "@/components/command-deck/StrategicLeverageSignals";
 import { ActionPath } from "@/components/command-deck/ActionPath";
+import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
+import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
   AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
@@ -155,6 +157,50 @@ export default function CommandDeckPage() {
   // ── Recompute ──
   const [isRecomputing, setIsRecomputing] = useState(false);
 
+  // ── Scenario state (Challenge Mode) ──
+  const [activeChallenges, setActiveChallenges] = useState<ActiveChallenge[]>([]);
+  const [baselineNarrative, setBaselineNarrative] = useState<typeof narrative>(null);
+
+  // Compute delta changes when scenario is active
+  const deltaChanges = useMemo<DeltaItem[]>(() => {
+    if (activeChallenges.length === 0 || !baselineNarrative || !narrative) return [];
+    const deltas: DeltaItem[] = [];
+
+    if (baselineNarrative.primaryConstraint !== narrative.primaryConstraint && narrative.primaryConstraint) {
+      deltas.push({
+        label: "Constraint",
+        before: baselineNarrative.primaryConstraint || "None",
+        after: narrative.primaryConstraint,
+        direction: "changed",
+      });
+    }
+    if (baselineNarrative.strategicVerdict !== narrative.strategicVerdict && narrative.strategicVerdict) {
+      deltas.push({
+        label: "Verdict",
+        before: baselineNarrative.strategicVerdict || "None",
+        after: narrative.strategicVerdict,
+        direction: "changed",
+      });
+    }
+    if (baselineNarrative.verdictConfidence !== narrative.verdictConfidence) {
+      deltas.push({
+        label: "Confidence",
+        before: `${Math.round((baselineNarrative.verdictConfidence ?? 0) * 100)}%`,
+        after: `${Math.round((narrative.verdictConfidence ?? 0) * 100)}%`,
+        direction: (narrative.verdictConfidence ?? 0) > (baselineNarrative.verdictConfidence ?? 0) ? "up" : "down",
+      });
+    }
+    if (baselineNarrative.breakthroughOpportunity !== narrative.breakthroughOpportunity && narrative.breakthroughOpportunity) {
+      deltas.push({
+        label: "Opportunity",
+        before: baselineNarrative.breakthroughOpportunity || "None",
+        after: narrative.breakthroughOpportunity,
+        direction: "up",
+      });
+    }
+    return deltas;
+  }, [activeChallenges, baselineNarrative, narrative]);
+
   const handleScenarioSaved = useCallback((scenario: ToolScenario) => {
     setIsRecomputing(true);
     const newEvidence = scenarioToEvidence(scenario,
@@ -187,10 +233,16 @@ export default function CommandDeckPage() {
 
   // ── Challenge Mode: inject user override as evidence + recompute ──
   const handleChallenge = useCallback((nodeStage: string, newValue: string) => {
+    // Snapshot baseline before first challenge
+    if (activeChallenges.length === 0 && narrative) {
+      setBaselineNarrative(narrative);
+    }
+
+    const newChallenge: ActiveChallenge = { stage: nodeStage, value: newValue, timestamp: Date.now() };
+    setActiveChallenges(prev => [...prev, newChallenge]);
     setIsRecomputing(true);
     addEvent(`Challenge: overriding ${nodeStage} → "${newValue.slice(0, 60)}…"`);
 
-    // Store challenge in governed data so it persists across recomputes
     const currentGoverned = (analysis.governedData as Record<string, unknown>) || {};
     const challenges = ((currentGoverned.challenges as any[]) || []);
     challenges.push({ stage: nodeStage, value: newValue, timestamp: Date.now() });
@@ -211,9 +263,44 @@ export default function CommandDeckPage() {
 
     setTimeout(() => {
       setIsRecomputing(false);
-      toast.success(`Strategic model recomputed with your "${nodeStage}" override`);
+      toast.success(`Strategic scenario updated with your "${nodeStage}" hypothesis`);
     }, 1000);
-  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent, runAnalysis]);
+  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, addEvent, runAnalysis, activeChallenges, narrative]);
+
+  // ── Reset to Baseline ──
+  const handleResetScenario = useCallback(() => {
+    setActiveChallenges([]);
+    setBaselineNarrative(null);
+    // Clear challenges from governed data
+    const currentGoverned = (analysis.governedData as Record<string, unknown>) || {};
+    const { challenges: _, ...cleanGoverned } = currentGoverned;
+    // Recompute without challenges
+    setIsRecomputing(true);
+    try {
+      recomputeIntelligence({
+        products: analysis.products, selectedProduct,
+        disruptData: analysis.disruptData, redesignData: analysis.redesignData,
+        stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
+        governedData: cleanGoverned,
+        businessAnalysisData: analysis.businessAnalysisData, intelligence,
+        analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+        analysisId: analysisId || "", completedSteps,
+      });
+    } catch { /* silent */ }
+    try { runAnalysis(); } catch { /* silent */ }
+    setTimeout(() => {
+      setIsRecomputing(false);
+      toast.success("Reset to baseline — all scenario overrides removed");
+    }, 800);
+  }, [analysis, selectedProduct, intelligence, analysisId, completedSteps, runAnalysis]);
+
+  // ── Save Scenario ──
+  const handleSaveScenario = useCallback(() => {
+    // Create a named scenario snapshot
+    const scenarioName = activeChallenges.map(c => `${c.stage}: ${c.value.slice(0, 40)}`).join(" + ");
+    addEvent(`Scenario saved: "${scenarioName}"`);
+    toast.success("Scenario saved to your analysis");
+  }, [activeChallenges, addEvent]);
 
   // ── AUTO-RECOMPUTE ──
   const lastRecomputeHash = useRef<string>("");
@@ -371,6 +458,16 @@ export default function CommandDeckPage() {
             )}
           </div>
         )}
+
+        {/* ═══ SCENARIO BANNER — Active when user has challenged assumptions ═══ */}
+        <ScenarioBanner
+          challenges={activeChallenges}
+          onReset={handleResetScenario}
+          onSave={handleSaveScenario}
+        />
+
+        {/* ═══ DELTA CHANGES — What changed from baseline ═══ */}
+        <DeltaChanges deltas={deltaChanges} />
 
         {/* ═══ REASONING STAGES — visible during strategic engine computation ═══ */}
         <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />

@@ -2,7 +2,7 @@
  * PlaybookCard — Individual Transformation Path card
  *
  * Shows: Thesis → Constraint Logic → Moves → Day 1 Action → Impact Score
- * Expands to: Industry Logic, Phases, Evidence Trail, Kill Metric
+ * Now includes: Hypothesis trigger tag, Comparable Transformations
  */
 
 import { memo, useState } from "react";
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown, ChevronUp, Star, Zap, Target, TrendingUp,
   ArrowRight, Shield, AlertTriangle, Calendar, CheckCircle2,
+  FlaskConical, GitBranch,
 } from "lucide-react";
 import type { TransformationPlaybook } from "@/lib/playbookEngine";
 import type { EvidenceMode } from "@/lib/evidenceEngine";
@@ -66,7 +67,13 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              {playbook.isRecommended && (
+              {playbook.triggeredByHypothesis && (
+                <span className="flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{ background: "hsl(var(--warning) / 0.12)", color: "hsl(var(--warning))" }}>
+                  <FlaskConical size={10} /> Triggered by Your Hypothesis
+                </span>
+              )}
+              {playbook.isRecommended && !playbook.triggeredByHypothesis && (
                 <span className="flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                   <Star size={10} /> Recommended
                 </span>
@@ -109,7 +116,8 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
           </div>
           <div className="flex flex-wrap gap-1.5">
             {playbook.triggerConstraints.slice(0, 6).map((signal, idx) => (
-              <span key={idx} className="text-[11px] font-bold px-2 py-1 rounded-md bg-destructive/8 text-destructive capitalize">
+              <span key={idx} className="text-[11px] font-bold px-2 py-1 rounded-md capitalize"
+                style={{ background: "hsl(var(--destructive) / 0.08)", color: "hsl(var(--destructive))" }}>
                 {signal}
               </span>
             ))}
@@ -171,16 +179,44 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
         </div>
       </div>
 
+      {/* ── Comparable Transformations ── */}
+      {playbook.comparables.length > 0 && (
+        <div className="px-5 pb-3">
+          <div className="rounded-lg p-3" style={{ background: "hsl(var(--muted) / 0.3)" }}>
+            <div className="flex items-center gap-1.5 mb-2">
+              <GitBranch size={11} className="text-muted-foreground" />
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                Comparable Transformations
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {playbook.comparables.map((comp, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="text-[11px] font-semibold text-muted-foreground">{comp.from}</span>
+                  <ArrowRight size={10} className="text-muted-foreground flex-shrink-0" />
+                  <span className="text-[11px] font-bold text-foreground">{comp.to}</span>
+                  {comp.example && (
+                    <span className="text-[10px] text-muted-foreground italic ml-auto hidden sm:block truncate max-w-[200px]">
+                      {comp.example}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Validation & Kill Metric ── */}
       <div className="px-5 pb-3 space-y-2">
         <div className="px-3 py-2 rounded-lg bg-muted/50">
           <div className="flex items-center gap-1.5 mb-1">
-            <CheckCircle2 size={10} className="text-success" />
+            <CheckCircle2 size={10} style={{ color: "hsl(var(--success))" }} />
             <span className="text-[10px] font-bold text-muted-foreground uppercase">Validation Question</span>
           </div>
           <p className="text-[11px] font-semibold text-foreground italic">"{playbook.validationQuestion}"</p>
         </div>
-        <div className="px-3 py-2 rounded-lg bg-destructive/5">
+        <div className="px-3 py-2 rounded-lg" style={{ background: "hsl(var(--destructive) / 0.05)" }}>
           <div className="flex items-center gap-1.5 mb-1">
             <AlertTriangle size={10} className="text-destructive" />
             <span className="text-[10px] font-bold text-muted-foreground uppercase">Kill Metric</span>
@@ -229,7 +265,7 @@ export const PlaybookCard = memo(function PlaybookCard({ playbook, rank }: Playb
                 <div className="mt-1.5 space-y-1">
                   {playbook.whyThisWorks.map((reason, idx) => (
                     <div key={idx} className="flex items-center gap-2">
-                      <TrendingUp size={10} className="text-success flex-shrink-0" />
+                      <TrendingUp size={10} style={{ color: "hsl(var(--success))" }} className="flex-shrink-0" />
                       <span className="text-[12px] text-foreground">{reason}</span>
                     </div>
                   ))}
