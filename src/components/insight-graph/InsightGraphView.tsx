@@ -1,27 +1,16 @@
 /**
  * Insight Graph View — Interactive Reasoning Explorer
  *
- * Tiered horizontal layout: Signals → Constraints → Assumptions → Leverage → Opportunities
- * Features: path highlighting, leverage scoring, zoom levels, opportunity path filter,
- *           breakthrough opportunity badges, hover tooltips, expanded detail panel.
+ * Orchestrates the graph visualization and surrounding UI.
+ * Core renderer: CytoscapeReasoningMap (dagre layout, progressive reveal).
+ * Preserves: side panel, simulation panel, intelligence event feed, alternate views.
  */
 
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
-import { TIER_META } from "@/lib/tierDiscoveryEngine";
-import ReactFlow, {
-  Background,
-  Controls,
-  type Node,
-  type Edge,
-  MarkerType,
-  Handle,
-  Position,
-  type NodeProps,
-} from "reactflow";
-import "reactflow/dist/style.css";
 import { motion, AnimatePresence } from "framer-motion";
-import type { InsightGraph, InsightGraphNode, InsightNodeType, EdgeRelation } from "@/lib/insightGraph";
-import { NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES, getInsightChain, getOpportunityPathNodes } from "@/lib/insightGraph";
+import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
+import { NODE_TYPE_CONFIG, getInsightChain } from "@/lib/insightGraph";
+import { CytoscapeReasoningMap } from "./CytoscapeReasoningMap";
 import { InsightNodeCard } from "./InsightNodeCard";
 import { OpportunityLandscape } from "./OpportunityLandscape";
 import { ConstraintMap } from "./ConstraintMap";
@@ -34,238 +23,6 @@ import { type ToolScenario, scenarioToEvidence } from "@/lib/scenarioEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // ═══════════════════════════════════════════════════════════════
-//  CONSTANTS
-// ═══════════════════════════════════════════════════════════════
-
-const PIPELINE_STEPS = ["report", "disrupt", "redesign", "stress_test", "pitch"] as const;
-const ALL_NODE_TYPES: InsightNodeType[] = [
-  "signal", "constraint", "assumption", "driver", "outcome",
-  "leverage_point", "flipped_idea", "concept", "risk", "evidence",
-  "simulation", "insight", "pathway", "scenario",
-];
-
-/** Layer-based columns: Evidence → Insight → Opportunity → Simulation → Strategy */
-const TIER_CONFIG: { types: InsightNodeType[]; label: string; colIndex: number }[] = [
-  { types: ["signal", "evidence"],                 label: "Evidence",      colIndex: 0 },
-  { types: ["assumption", "friction"],             label: "Assumptions",   colIndex: 1 },
-  { types: ["constraint", "insight"],              label: "Insights",      colIndex: 2 },
-  { types: ["driver", "leverage_point"],           label: "Leverage",      colIndex: 3 },
-  { types: ["outcome", "flipped_idea", "concept"], label: "Opportunities", colIndex: 4 },
-  { types: ["risk", "competitor"],                 label: "Validation",    colIndex: 5 },
-  { types: ["simulation", "scenario"],             label: "Simulations",   colIndex: 6 },
-  { types: ["pathway"],                            label: "Strategy",      colIndex: 7 },
-];
-
-/** Zoom level definitions */
-type ZoomLevel = "overview" | "structural" | "full";
-const ZOOM_LEVEL_CONFIG: Record<ZoomLevel, { label: string; description: string; types: InsightNodeType[] }> = {
-  overview: {
-    label: "Overview",
-    description: "Key nodes: Constraints, Opportunities, Scenarios, Pathways",
-    types: ["constraint", "outcome", "flipped_idea", "concept", "scenario", "pathway", "insight"],
-  },
-  structural: {
-    label: "Structural",
-    description: "All reasoning layers",
-    types: ["signal", "constraint", "assumption", "driver", "leverage_point", "outcome", "flipped_idea", "concept", "simulation", "insight", "scenario", "pathway"],
-  },
-  full: {
-    label: "Full Reasoning",
-    description: "All nodes and evidence",
-    types: ALL_NODE_TYPES,
-  },
-};
-
-const RELATION_COLORS: Record<EdgeRelation, string> = {
-  causes: "hsl(0 72% 52%)",
-  leads_to: "hsl(229 89% 63%)",
-  contradicts: "hsl(14 90% 55%)",
-  supports: "hsl(152 60% 44%)",
-  unlocks: "hsl(262 83% 58%)",
-  depends_on: "hsl(210 14% 53%)",
-  invalidates: "hsl(0 72% 52%)",
-  creates: "hsl(172 66% 50%)",
-  enables: "hsl(152 60% 44%)",
-  blocks: "hsl(14 90% 55%)",
-  tests: "hsl(271 81% 55%)",
-};
-
-const RELATION_LABELS: Record<EdgeRelation, string> = {
-  causes: "causes",
-  leads_to: "leads to",
-  contradicts: "contradicts",
-  supports: "supports",
-  unlocks: "unlocks",
-  depends_on: "depends on",
-  invalidates: "invalidates",
-  creates: "creates",
-  enables: "enables",
-  blocks: "blocks",
-  tests: "tests",
-};
-
-// ═══════════════════════════════════════════════════════════════
-//  CUSTOM NODE — with leverage glow, breakthrough badge, sizing
-// ═══════════════════════════════════════════════════════════════
-
-function InsightNode({ data }: NodeProps) {
-  const config = NODE_TYPE_CONFIG[data.nodeType as InsightNodeType];
-  const isTopLeverage = data.isTopLeverage as boolean;
-  const isBreakthrough = data.isBreakthrough as boolean;
-  const isHighlighted = data.isHighlighted as boolean;
-  const isDimmed = data.isDimmed as boolean;
-
-  return (
-    <div
-      className="rounded-xl px-3.5 py-2.5 cursor-pointer relative"
-      style={{
-        background: config.bgColor,
-        border: `2px solid ${(isTopLeverage || isBreakthrough) ? config.color : config.borderColor}`,
-        boxShadow: isBreakthrough
-          ? `0 0 28px ${config.color}40, 0 0 56px ${config.color}10`
-          : isTopLeverage
-            ? `0 0 24px ${config.color}40, 0 0 48px ${config.color}15`
-            : "0 2px 8px hsl(0 0% 0% / 0.06)",
-        width: 200,
-        opacity: isDimmed ? 0.2 : 1,
-        transform: isHighlighted ? "scale(1.04)" : "scale(1)",
-        transition: "opacity 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease",
-      }}
-    >
-      <Handle type="target" position={Position.Left} style={{ opacity: 0, width: 1, height: 1 }} />
-      <Handle type="source" position={Position.Right} style={{ opacity: 0, width: 1, height: 1 }} />
-
-      {/* Pulsing ring for top leverage or breakthrough */}
-      {(isTopLeverage || isBreakthrough) && (
-        <div
-          className="absolute -inset-1.5 rounded-xl animate-pulse pointer-events-none"
-          style={{
-            border: `2px solid ${config.color}`,
-            opacity: 0.4,
-          }}
-        />
-      )}
-
-      <div className="flex items-center gap-1.5 mb-1">
-        <div
-          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-          style={{ background: config.color }}
-        />
-        <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
-          {config.label}
-        </span>
-        {isBreakthrough && (
-          <span
-            className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-auto"
-            style={{ background: `${config.color}20`, color: config.color }}
-          >
-            ★
-          </span>
-        )}
-      </div>
-      <p className="text-xs font-bold text-foreground leading-snug line-clamp-3">{data.label}</p>
-    </div>
-  );
-}
-
-const nodeTypes = { insightNode: InsightNode };
-
-// ═══════════════════════════════════════════════════════════════
-//  HOVER TOOLTIP — anchored relative to graph container, not mouse
-// ═══════════════════════════════════════════════════════════════
-
-function GraphTooltip({ node, graph }: {
-  node: InsightGraphNode; graph: InsightGraph;
-}) {
-  const config = NODE_TYPE_CONFIG[node.type];
-  const downstream = graph.edges.filter(e => e.source === node.id);
-  const upstream = graph.edges.filter(e => e.target === node.id);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      className="absolute z-40 pointer-events-none rounded-xl px-4 py-3 shadow-2xl"
-      style={{
-        top: 12,
-        left: 12,
-        maxWidth: 280,
-        background: "hsl(var(--card))",
-        border: `2px solid ${config.borderColor}`,
-      }}
-    >
-      <div className="flex items-center gap-1.5 mb-1.5">
-        <div className="w-3 h-3 rounded-full" style={{ background: config.color }} />
-        <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: config.color }}>
-          {config.label}
-        </span>
-      </div>
-      <p className="text-sm font-bold text-foreground leading-snug mb-2">{node.label}</p>
-
-      {node.reasoning && (
-        <p className="text-xs text-muted-foreground mb-2 line-clamp-2 italic">"{node.reasoning}"</p>
-      )}
-
-      <div className="flex items-center gap-3 text-xs text-muted-foreground border-t border-border pt-2">
-        {upstream.length > 0 && <span>↑ {upstream.length} upstream</span>}
-        {downstream.length > 0 && <span>↓ {downstream.length} downstream</span>}
-      </div>
-
-      <p className="text-xs text-muted-foreground mt-1.5 font-semibold">Click to explore reasoning chain</p>
-    </motion.div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  TIERED LAYOUT — Signals → Constraints → Assumptions → Leverage → Opportunities
-// ═══════════════════════════════════════════════════════════════
-
-function layoutTiered(graphNodes: InsightGraphNode[]): Node[] {
-  const colWidth = 420;
-  const rowHeight = 155;
-  const flowNodes: Node[] = [];
-
-  const tierMap = new Map<string, number>();
-  TIER_CONFIG.forEach(tier => {
-    tier.types.forEach(t => tierMap.set(t, tier.colIndex));
-  });
-
-  const columns = new Map<number, InsightGraphNode[]>();
-  graphNodes.forEach(n => {
-    const col = tierMap.get(n.type) ?? 2;
-    if (!columns.has(col)) columns.set(col, []);
-    columns.get(col)!.push(n);
-  });
-
-  columns.forEach((group, col) => {
-    group.sort((a, b) => (b.leverageScore - a.leverageScore) || (b.influence - a.influence));
-
-    group.forEach((gn, row) => {
-      flowNodes.push({
-        id: gn.id,
-        type: "insightNode",
-        position: {
-          x: col * colWidth + 60,
-          y: row * rowHeight + 80,
-        },
-        data: {
-          label: gn.label,
-          nodeType: gn.type,
-          tier: gn.tier,
-          isTopLeverage: false,
-          isBreakthrough: false,
-          isHighlighted: false,
-          isDimmed: false,
-        },
-      });
-    });
-  });
-
-  return flowNodes;
-}
-
-// ═══════════════════════════════════════════════════════════════
 //  MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
 
@@ -275,24 +32,9 @@ interface InsightGraphViewProps {
   onScenarioSaved?: (s: ToolScenario) => void;
 }
 
-type TierFilter = "all" | "structural" | "system" | "optimization";
-const TIER_FILTERS: { key: TierFilter; label: string; color: string }[] = [
-  { key: "all", label: "All Tiers", color: "hsl(var(--primary))" },
-  { key: "structural", label: "T1 Structural", color: "hsl(0 72% 52%)" },
-  { key: "system", label: "T2 System", color: "hsl(38 92% 50%)" },
-  { key: "optimization", label: "T3 Optimization", color: "hsl(229 89% 63%)" },
-];
-
 export const InsightGraphView = memo(function InsightGraphView({ graph, analysisId = "", onScenarioSaved }: InsightGraphViewProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"graph" | "landscape" | "constraints" | "pathways">("graph");
-  const [zoomLevel, setZoomLevel] = useState<ZoomLevel>("structural");
-  const [showOpportunityPaths, setShowOpportunityPaths] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [tierFilter, setTierFilter] = useState<TierFilter>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTypeFilters, setActiveTypeFilters] = useState<Set<InsightNodeType>>(new Set());
   const [simPanelOpen, setSimPanelOpen] = useState(false);
   const [simTool, setSimTool] = useState<LensTool | null>(null);
   const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
@@ -313,135 +55,24 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
     onScenarioSaved?.(scenario);
   }, [onScenarioSaved]);
 
-  // ── Auto-focus from URL ?node= param ──
+  // Auto-focus from URL ?node= param
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const nodeParam = params.get("node");
     if (nodeParam && graph.nodes.find(n => n.id === nodeParam)) {
       setSelectedNodeId(nodeParam);
-      setShowOnboarding(false);
     }
   }, [graph.nodes]);
-
-  // Toggle node type filter
-  const toggleTypeFilter = useCallback((type: InsightNodeType) => {
-    setActiveTypeFilters(prev => {
-      const next = new Set(prev);
-      if (next.has(type)) next.delete(type); else next.add(type);
-      return next;
-    });
-  }, []);
-
-  // Identify top leverage constraint + breakthrough opportunity
-  const topLeverageId = useMemo(() => graph.topNodes.primaryConstraint?.id ?? null, [graph.topNodes]);
-  const breakthroughId = useMemo(() => graph.topNodes.breakthroughOpportunity?.id ?? null, [graph.topNodes]);
-
-  // Opportunity path node IDs
-  const opportunityPathIds = useMemo(() => getOpportunityPathNodes(graph), [graph]);
-
-  // Compute highlighted chain when a node is selected
-  const highlightedIds = useMemo(() => {
-    if (!selectedNodeId) return null;
-    const chain = getInsightChain(graph, selectedNodeId);
-    return new Set(chain.map(n => n.id));
-  }, [selectedNodeId, graph]);
-
-  const highlightedEdgeIds = useMemo(() => {
-    if (!highlightedIds) return null;
-    const ids = new Set<string>();
-    graph.edges.forEach(e => {
-      if (highlightedIds.has(e.source) && highlightedIds.has(e.target)) ids.add(e.id);
-    });
-    return ids;
-  }, [highlightedIds, graph.edges]);
-
-  // Apply zoom level + opportunity path filter + tier filter + search + type filter
-  const filteredNodes = useMemo(() => {
-    const zoomTypes = new Set(ZOOM_LEVEL_CONFIG[zoomLevel].types);
-    const query = searchQuery.toLowerCase().trim();
-    return graph.nodes.filter(n => {
-      if (!zoomTypes.has(n.type)) return false;
-      if (showOpportunityPaths && !opportunityPathIds.has(n.id)) return false;
-      if (tierFilter !== "all" && n.tier !== tierFilter) return false;
-      if (activeTypeFilters.size > 0 && !activeTypeFilters.has(n.type)) return false;
-      if (query && !n.label.toLowerCase().includes(query) && !(n.detail?.toLowerCase().includes(query))) return false;
-      return true;
-    });
-  }, [graph.nodes, zoomLevel, showOpportunityPaths, opportunityPathIds, tierFilter, searchQuery, activeTypeFilters]);
-
-  const filteredNodeIds = useMemo(() => new Set(filteredNodes.map(n => n.id)), [filteredNodes]);
-
-  const filteredEdges = useMemo(() => {
-    return graph.edges.filter(e => filteredNodeIds.has(e.source) && filteredNodeIds.has(e.target));
-  }, [graph.edges, filteredNodeIds]);
-
-  // Build flow nodes with highlight/dim/leverage states
-  const flowNodes = useMemo(() => {
-    const base = layoutTiered(filteredNodes);
-    return base.map(n => ({
-      ...n,
-      data: {
-        ...n.data,
-        isTopLeverage: n.id === topLeverageId,
-        isBreakthrough: n.id === breakthroughId,
-        isHighlighted: highlightedIds ? highlightedIds.has(n.id) : false,
-        isDimmed: highlightedIds ? !highlightedIds.has(n.id) : false,
-      },
-    }));
-  }, [filteredNodes, topLeverageId, breakthroughId, highlightedIds]);
-
-  // Build edges with highlight states
-  const flowEdges: Edge[] = useMemo(() => {
-    return filteredEdges.map(e => {
-      const isHL = highlightedEdgeIds?.has(e.id) ?? false;
-      const isDim = highlightedEdgeIds ? !isHL : false;
-      return {
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        animated: isHL || e.relation === "unlocks" || e.relation === "leads_to",
-        label: isHL ? RELATION_LABELS[e.relation] : undefined,
-        labelStyle: { fontSize: 10, fontWeight: 700, fill: "hsl(var(--foreground))" },
-        style: {
-          stroke: isHL ? RELATION_COLORS[e.relation] : isDim ? "hsl(var(--border))" : RELATION_COLORS[e.relation],
-          strokeWidth: isHL ? 3 : Math.max(1, e.weight * 2),
-          opacity: isDim ? 0.1 : isHL ? 0.9 : 0.4,
-          transition: "opacity 0.4s, stroke-width 0.3s",
-        },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: isDim ? "hsl(var(--border))" : RELATION_COLORS[e.relation],
-          width: isHL ? 14 : 10,
-          height: isHL ? 14 : 10,
-        },
-      };
-    });
-  }, [filteredEdges, highlightedEdgeIds]);
 
   const selectedNode = useMemo(() => {
     return selectedNodeId ? graph.nodes.find(n => n.id === selectedNodeId) ?? null : null;
   }, [selectedNodeId, graph.nodes]);
 
-  const hoveredNode = useMemo(() => {
-    return hoveredNodeId ? graph.nodes.find(n => n.id === hoveredNodeId) ?? null : null;
-  }, [hoveredNodeId, graph.nodes]);
-
-  const onNodeClick = useCallback((_: any, node: Node) => {
-    setSelectedNodeId(prev => prev === node.id ? null : node.id);
-  }, []);
-
-  const onNodeMouseEnter = useCallback((_: any, node: Node) => {
-    setHoveredNodeId(node.id);
-  }, []);
-
-  const onNodeMouseLeave = useCallback(() => {
-    setHoveredNodeId(null);
-  }, []);
-
-  const onPaneClick = useCallback(() => {
-    setSelectedNodeId(null);
-  }, []);
-
+  const highlightedIds = useMemo(() => {
+    if (!selectedNodeId) return null;
+    const chain = getInsightChain(graph, selectedNodeId);
+    return new Set(chain.map(n => n.id));
+  }, [selectedNodeId, graph]);
 
   if (graph.nodes.length === 0) {
     return (
@@ -449,22 +80,21 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
         <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
         </div>
-        <p className="typo-body text-muted-foreground text-center max-w-xs">
+        <p className="text-sm text-muted-foreground text-center max-w-xs">
           Run the analysis pipeline to populate the Insight Graph.
         </p>
-        <p className="typo-meta text-center">Complete Report → Disrupt to generate graph nodes</p>
+        <p className="text-xs text-muted-foreground text-center">Complete Report → Disrupt to generate graph nodes</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full min-h-0 gap-2">
-      {/* ── Toolbar: Tabs + Controls (desktop only — mobile gets bottom bar) ── */}
-      <div className="rounded-xl border border-border bg-card p-2 space-y-2">
-        {/* Row 1: View tabs */}
+      {/* Toolbar: View Tabs */}
+      <div className="rounded-xl border border-border bg-card p-2">
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
           {([
-            { id: "graph", label: "Network Graph" },
+            { id: "graph", label: "Reasoning Map" },
             { id: "landscape", label: "Opportunity Landscape" },
             { id: "constraints", label: "Constraint Map" },
             { id: "pathways", label: "Strategic Pathways" },
@@ -483,135 +113,6 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
             </button>
           ))}
         </div>
-
-        {/* Row 2: Controls (desktop only — mobile uses bottom bar) */}
-        {activeTab === "graph" && !isMobile && (
-          <div className="space-y-2">
-            {/* Search + zoom */}
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Search */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search nodes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-8 w-44 rounded-lg border border-border bg-muted px-3 py-1 text-xs font-semibold text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-
-              {/* Zoom levels */}
-              <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                {(Object.keys(ZOOM_LEVEL_CONFIG) as ZoomLevel[]).map(level => (
-                  <button
-                    key={level}
-                    onClick={() => setZoomLevel(level)}
-                    className="px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all"
-                    style={{
-                      background: zoomLevel === level ? "hsl(var(--card))" : "transparent",
-                      color: zoomLevel === level ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                      boxShadow: zoomLevel === level ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
-                    }}
-                    title={ZOOM_LEVEL_CONFIG[level].description}
-                  >
-                    {ZOOM_LEVEL_CONFIG[level].label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tier filter chips */}
-              <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
-                {TIER_FILTERS.map(tf => {
-                  const count = tf.key === "all"
-                    ? graph.nodes.length
-                    : graph.nodes.filter(n => n.tier === tf.key).length;
-                  if (count === 0 && tf.key !== "all") return null;
-                  return (
-                    <button
-                      key={tf.key}
-                      onClick={() => setTierFilter(tf.key)}
-                      className="px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1"
-                      style={{
-                        background: tierFilter === tf.key ? "hsl(var(--card))" : "transparent",
-                        color: tierFilter === tf.key ? tf.color : "hsl(var(--muted-foreground))",
-                        boxShadow: tierFilter === tf.key ? "0 1px 3px hsl(0 0% 0% / 0.1)" : "none",
-                      }}
-                    >
-                      {tf.key !== "all" && <span className="w-2 h-2 rounded-full" style={{ background: tf.color }} />}
-                      {tf.label}
-                      {tf.key !== "all" && <span className="text-[10px] opacity-70">({count})</span>}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Opportunity paths toggle */}
-              <button
-                onClick={() => setShowOpportunityPaths(!showOpportunityPaths)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                style={{
-                  background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.bgColor : "hsl(var(--muted))",
-                  border: `1.5px solid ${showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.borderColor : "hsl(var(--border))"}`,
-                  color: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))",
-                }}
-              >
-                <div className="w-2 h-2 rounded-full" style={{ background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))" }} />
-                Opp. Paths
-              </button>
-
-              {selectedNodeId && (
-                <button
-                  onClick={() => setSelectedNodeId(null)}
-                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-muted border border-border text-foreground hover:bg-card transition-colors"
-                >
-                  ✕ Clear
-                </button>
-              )}
-            </div>
-
-            {/* Row 3: Node type filter toggles */}
-            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mr-1 flex-shrink-0">Filter:</span>
-              {(["signal", "constraint", "insight", "outcome", "scenario", "risk", "pathway", "simulation"] as InsightNodeType[]).map(type => {
-                const cfg = NODE_TYPE_CONFIG[type];
-                const count = graph.nodes.filter(n => n.type === type).length;
-                if (count === 0) return null;
-                const isActive = activeTypeFilters.has(type);
-                return (
-                  <button
-                    key={type}
-                    onClick={() => toggleTypeFilter(type)}
-                    className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold transition-all flex-shrink-0"
-                    style={{
-                      background: isActive ? cfg.bgColor : "transparent",
-                      color: isActive ? cfg.color : "hsl(var(--muted-foreground))",
-                      border: isActive ? `1px solid ${cfg.borderColor}` : "1px solid transparent",
-                    }}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: cfg.color }} />
-                    {cfg.label} ({count})
-                  </button>
-                );
-              })}
-              {activeTypeFilters.size > 0 && (
-                <button
-                  onClick={() => setActiveTypeFilters(new Set())}
-                  className="text-[10px] font-bold text-muted-foreground hover:text-foreground px-2 py-1 flex-shrink-0"
-                >
-                  Clear filters
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {activeTab === "landscape" ? (
@@ -621,217 +122,88 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
       ) : activeTab === "pathways" ? (
         <StrategicPathways graph={graph} onSelectNode={setSelectedNodeId} />
       ) : (
-      <>
-      {/* Active path indicator */}
-      <AnimatePresence>
-        {selectedNode && highlightedIds && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="rounded-xl px-4 py-3 flex items-center gap-3 overflow-hidden"
-            style={{
-              background: NODE_TYPE_CONFIG[selectedNode.type].bgColor,
-              border: `1.5px solid ${NODE_TYPE_CONFIG[selectedNode.type].borderColor}`,
-            }}
-          >
-            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: NODE_TYPE_CONFIG[selectedNode.type].color }} />
-            <div className="flex-1 min-w-0">
-              <p className="typo-meta font-bold uppercase tracking-widest" style={{ color: NODE_TYPE_CONFIG[selectedNode.type].color }}>
-                Reasoning Chain Active
-              </p>
-              <p className="typo-body font-bold text-foreground truncate">
-                Tracing {highlightedIds.size} connected nodes from "{selectedNode.label.slice(0, 50)}"
-              </p>
-            </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <button
-                onClick={() => setSelectedNodeId(null)}
-                className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md text-xs font-bold bg-muted border border-border text-foreground hover:bg-card transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Graph Canvas + Side Panel Layout */}
-      <div className="flex gap-3 flex-1 min-h-0 h-full">
-        {/* Graph Canvas */}
-        <div
-          className="relative rounded-2xl overflow-hidden flex-1"
-          style={{
-            height: "100%",
-            minHeight: isMobile ? 400 : 500,
-            background: "hsl(var(--card))",
-            border: "1.5px solid hsl(var(--border))",
-          }}
-        >
-          {/* Column labels at top */}
-          {!isMobile && (
-            <div className="absolute top-2 left-0 right-0 z-10 flex pointer-events-none" style={{ paddingLeft: 60 }}>
-              {TIER_CONFIG.map((tier) => {
-                const count = filteredNodes.filter(n => tier.types.includes(n.type)).length;
-                if (count === 0) return null;
-                return (
-                  <div key={tier.label} className="flex-1 text-center">
-                    <span className="typo-meta font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-card/80 backdrop-blur-sm border border-border/50" style={{ color: NODE_TYPE_CONFIG[tier.types[0]].color }}>
-                      {tier.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Onboarding overlay */}
-          {showOnboarding && !selectedNodeId && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+        <>
+          {/* Active path indicator */}
+          <AnimatePresence>
+            {selectedNode && highlightedIds && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-card/95 backdrop-blur-sm border border-border rounded-xl px-6 py-5 shadow-lg text-center max-w-sm pointer-events-auto"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="rounded-xl px-4 py-3 flex items-center gap-3 overflow-hidden"
+                style={{
+                  background: NODE_TYPE_CONFIG[selectedNode.type].bgColor,
+                  border: `1.5px solid ${NODE_TYPE_CONFIG[selectedNode.type].borderColor}`,
+                }}
               >
-                <p className="text-sm font-bold text-foreground mb-2">Your analysis as a connected system</p>
-                <p className="text-xs text-muted-foreground mb-1">Each node is a finding. Lines show cause-and-effect.</p>
-                <p className="text-xs text-muted-foreground mb-3">Click any node to trace its reasoning chain and find the highest-leverage moves.</p>
-                <div className="flex items-center justify-center gap-3 text-[10px] text-muted-foreground mb-3">
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(0 72% 52%)" }} /> Constraints</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(152 60% 44%)" }} /> Opportunities</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(262 83% 58%)" }} /> Pathways</span>
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: NODE_TYPE_CONFIG[selectedNode.type].color }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: NODE_TYPE_CONFIG[selectedNode.type].color }}>
+                    Reasoning Chain Active
+                  </p>
+                  <p className="text-xs font-bold text-foreground truncate">
+                    Tracing {highlightedIds.size} connected nodes from "{selectedNode.label.slice(0, 50)}"
+                  </p>
                 </div>
                 <button
-                  onClick={() => setShowOnboarding(false)}
-                  className="px-4 py-2 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                  onClick={() => setSelectedNodeId(null)}
+                  className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md text-xs font-bold bg-muted border border-border text-foreground hover:bg-card transition-colors"
                 >
-                  Explore
+                  ✕
                 </button>
               </motion.div>
-            </div>
-          )}
-
-          <ReactFlow
-            nodes={flowNodes}
-            edges={flowEdges}
-            nodeTypes={nodeTypes}
-            onNodeClick={onNodeClick}
-            onNodeMouseEnter={onNodeMouseEnter}
-            onNodeMouseLeave={onNodeMouseLeave}
-            onPaneClick={onPaneClick}
-            fitView
-            fitViewOptions={{ padding: isMobile ? 0.15 : 0.3 }}
-            minZoom={0.25}
-            maxZoom={2.5}
-            proOptions={{ hideAttribution: true }}
-          >
-            <Background gap={24} size={1} color="hsl(var(--border))" />
-            <Controls showInteractive={false} style={{ bottom: 12, left: 12 }} />
-          </ReactFlow>
-
-          {/* Hover Tooltip — anchored inside graph canvas */}
-          <AnimatePresence>
-            {hoveredNode && activeTab === "graph" && !selectedNodeId && !isMobile && (
-              <GraphTooltip node={hoveredNode} graph={graph} />
             )}
           </AnimatePresence>
-        </div>
 
-        {/* Side Panel — desktop only, renders beside graph instead of on top */}
-        {!isMobile && selectedNode && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="w-[360px] flex-shrink-0 max-h-[580px] overflow-y-auto"
-          >
-            <InsightNodeCard
-              node={selectedNode}
-              graph={graph}
-              onClose={() => setSelectedNodeId(null)}
-              onSelectNode={setSelectedNodeId}
-              onOpenTool={handleOpenTool}
-            />
-          </motion.div>
-        )}
-      </div>
+          {/* Graph Canvas + Side Panel */}
+          <div className="flex gap-3 flex-1 min-h-0 h-full">
+            {/* Cytoscape Reasoning Map */}
+            <div className="flex-1 min-h-0">
+              <CytoscapeReasoningMap
+                graph={graph}
+                onSelectNode={setSelectedNodeId}
+                selectedNodeId={selectedNodeId}
+              />
+            </div>
 
-      {/* Node detail card — mobile bottom sheet */}
-      {isMobile && (
-        <AnimatePresence>
-          {selectedNode && (
-            <InsightNodeCard
-              node={selectedNode}
-              graph={graph}
-              onClose={() => setSelectedNodeId(null)}
-              onSelectNode={setSelectedNodeId}
-              onOpenTool={handleOpenTool}
-              isMobile
-            />
+            {/* Side Panel — desktop only */}
+            {!isMobile && selectedNode && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="w-[360px] flex-shrink-0 max-h-[580px] overflow-y-auto"
+              >
+                <InsightNodeCard
+                  node={selectedNode}
+                  graph={graph}
+                  onClose={() => setSelectedNodeId(null)}
+                  onSelectNode={setSelectedNodeId}
+                  onOpenTool={handleOpenTool}
+                />
+              </motion.div>
+            )}
+          </div>
+
+          {/* Mobile bottom sheet */}
+          {isMobile && (
+            <AnimatePresence>
+              {selectedNode && (
+                <InsightNodeCard
+                  node={selectedNode}
+                  graph={graph}
+                  onClose={() => setSelectedNodeId(null)}
+                  onSelectNode={setSelectedNodeId}
+                  onOpenTool={handleOpenTool}
+                  isMobile
+                />
+              )}
+            </AnimatePresence>
           )}
-        </AnimatePresence>
+        </>
       )}
 
-      {/* Mobile Bottom Control Bar */}
-      {isMobile && activeTab === "graph" && (
-        <div
-          className="flex items-center gap-2 p-2 rounded-xl overflow-x-auto scrollbar-hide"
-          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
-        >
-          {/* Zoom levels */}
-          {(Object.keys(ZOOM_LEVEL_CONFIG) as ZoomLevel[]).map(level => (
-            <button
-              key={level}
-              onClick={() => setZoomLevel(level)}
-              className="min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-all"
-              style={{
-                background: zoomLevel === level ? "hsl(var(--primary) / 0.1)" : "hsl(var(--muted))",
-                color: zoomLevel === level ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                border: zoomLevel === level ? "1px solid hsl(var(--primary) / 0.3)" : "1px solid hsl(var(--border))",
-              }}
-            >
-              {ZOOM_LEVEL_CONFIG[level].label}
-            </button>
-          ))}
-          {/* Opp paths */}
-          <button
-            onClick={() => setShowOpportunityPaths(!showOpportunityPaths)}
-            className="min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-all"
-            style={{
-              background: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.bgColor : "hsl(var(--muted))",
-              border: `1px solid ${showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.borderColor : "hsl(var(--border))"}`,
-              color: showOpportunityPaths ? NODE_TYPE_CONFIG.outcome.color : "hsl(var(--muted-foreground))",
-            }}
-          >
-            Paths
-          </button>
-          {selectedNodeId && (
-            <button
-              onClick={() => setSelectedNodeId(null)}
-              className="min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold bg-muted border border-border text-foreground whitespace-nowrap flex-shrink-0"
-            >
-              ✕ Clear
-            </button>
-          )}
-          <span className="text-xs text-muted-foreground whitespace-nowrap ml-auto flex-shrink-0">
-            {filteredNodes.length}n · {filteredEdges.length}e
-          </span>
-        </div>
-      )}
-
-      {/* Stats Bar (desktop) */}
-      {!isMobile && (
-        <div className="flex flex-wrap items-center gap-4 px-2">
-          <span className="typo-meta font-bold">
-            {filteredNodes.length} nodes · {filteredEdges.length} connections
-            {showOpportunityPaths && " · Opportunity paths only"}
-          </span>
-        </div>
-      )}
-      </>
-      )}
-
-      {/* Simulation Panel — right-side workspace */}
+      {/* Simulation Panel */}
       <SimulationPanel
         isOpen={simPanelOpen}
         onClose={() => { setSimPanelOpen(false); setSimTool(null); }}
