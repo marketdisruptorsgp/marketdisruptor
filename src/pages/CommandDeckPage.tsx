@@ -687,16 +687,6 @@ export default function CommandDeckPage() {
           diagnosisEvidence={evidenceAttribution.diagnosisEvidence}
         />
 
-        {/* ══════════════════════════════════════════════════════════
-            THE ANALYSIS JOURNEY — Pipeline step cards
-           ══════════════════════════════════════════════════════════ */}
-        <PipelineJourneyCards
-          baseUrl={baseUrl}
-          completedSteps={completedSteps}
-          modeAccent={modeAccent}
-          findings={stepFindings}
-          isBusinessMode={modeKey === "business"}
-        />
 
 
         {/* ══════════════════════════════════════════════════════════
