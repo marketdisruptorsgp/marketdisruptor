@@ -140,7 +140,7 @@ export default function RedesignPage() {
         return (
           <div style={{ display: activeTab === "concept" ? undefined : "none" }}>
             <RedesignVisualGenerator
-              productName={selectedProduct.name}
+              productName={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
               concept={concept}
               accentColor="hsl(38 92% 50%)"
             />

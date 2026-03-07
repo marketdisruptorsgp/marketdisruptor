@@ -272,7 +272,7 @@ export default function ReportPage() {
       {activeSection === "dashboard" && (
         <StrategicDashboard
           analysisId={analysisId || ""}
-          analysisTitle={selectedProduct.name}
+          analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
           accentColor={modeAccent}
           graph={graph}
           commandDeck={intelligence?.commandDeck ?? null}
