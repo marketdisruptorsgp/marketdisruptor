@@ -49,6 +49,30 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
 
   // Concept expansion
   const { generateConceptSpace, getConceptSpace, toggleVariantSelection, loading: conceptLoading } = useConceptExpansion(graph);
+  // Handle sending selected concept variants to stress test
+  const handleStressTestSelected = useCallback((opportunityNodeId: string) => {
+    const space = getConceptSpace(opportunityNodeId);
+    if (!space) return;
+
+    const selected = space.variants.filter(v => v.selectedForStressTest);
+    if (selected.length === 0) return;
+
+    const summaries: ConceptVariantSummary[] = selected.map(v => ({
+      id: v.id,
+      name: v.name,
+      description: v.description,
+      formula: v.formula,
+      feasibility: v.feasibility,
+      novelty: v.novelty,
+      marketReadiness: v.marketReadiness,
+      dimensionValues: v.dimensionValues,
+      opportunityLabel: space.opportunityLabel,
+    }));
+
+    analysis.setConceptVariantsForStressTest(summaries);
+    toast.success(`${selected.length} concept${selected.length > 1 ? "s" : ""} queued for stress testing`);
+    navigate(`/analysis/${analysisId}/stress-test`);
+  }, [getConceptSpace, analysis, navigate, analysisId]);
 
   // Graph with concept variants injected
   const enrichedGraph = useMemo(() => {
