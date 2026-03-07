@@ -108,7 +108,7 @@ function EmptyState({ text }: { text: string }) {
 }
 
 export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
-  product, businessData, narrative, mode, completedSteps, totalSteps, modeAccent, evidenceCount,
+  product, businessData, narrative, mode, completedSteps, totalSteps, modeAccent, evidenceCount, onProblemLocked,
 }: ExecutiveSnapshotProps) {
   const p = product || {};
   const biz = businessData || {};
