@@ -41,9 +41,9 @@ const CHAIN = [
 ] as const;
 
 function confidenceLabel(score: number): { text: string; color: string } {
-  if (score >= 0.7) return { text: "High confidence", color: "hsl(var(--success))" };
-  if (score >= 0.4) return { text: "Medium confidence", color: "hsl(var(--warning))" };
-  return { text: "Low confidence", color: "hsl(var(--destructive))" };
+  if (score >= 0.7) return { text: "Supported by evidence", color: "hsl(var(--success))" };
+  if (score >= 0.4) return { text: "Partially supported", color: "hsl(var(--warning))" };
+  return { text: "Needs validation", color: "hsl(var(--destructive))" };
 }
 
 export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeSummaryProps) {
@@ -56,11 +56,11 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
   const hasChain = CHAIN.some(c => props[c.key]);
   const filledChainCount = CHAIN.filter(c => props[c.key]).length;
 
-  // Derive top recommendations from high-impact insights
+  // Derive top recommendations — require strong evidence backing
   const recommendations = useMemo(() => {
     if (!insights.length) return [];
     return insights
-      .filter(i => i.impact >= 6 && i.confidence >= 0.5)
+      .filter(i => i.impact >= 6 && i.confidence >= 0.4 && i.evidenceIds.length >= 2)
       .sort((a, b) => b.impact * b.confidence - a.impact * a.confidence)
       .slice(0, 3)
       .map(i => ({
@@ -69,6 +69,7 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
         type: i.insightType,
         impact: i.impact,
         confidence: i.confidence,
+        evidenceCount: i.evidenceIds.length,
       }));
   }, [insights]);
 
@@ -156,7 +157,7 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
             <div className="flex items-center gap-1.5 mb-2">
               <Sparkles size={12} className="text-primary" />
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">
-                Key Recommendations
+                Evidence-Backed Recommendations
               </span>
             </div>
             <div className="space-y-2">
@@ -187,12 +188,17 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
                         {rec.description}
                       </p>
                     </div>
-                    <span
-                      className="text-[9px] font-bold uppercase tracking-wider whitespace-nowrap mt-0.5 flex-shrink-0"
-                      style={{ color: conf.color }}
-                    >
-                      {conf.text}
-                    </span>
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-shrink-0">
+                      <span
+                        className="text-[9px] font-bold uppercase tracking-wider whitespace-nowrap"
+                        style={{ color: conf.color }}
+                      >
+                        {conf.text}
+                      </span>
+                      <span className="text-[9px] font-medium text-muted-foreground whitespace-nowrap">
+                        ({rec.evidenceCount} evidence)
+                      </span>
+                    </div>
                   </motion.div>
                 );
               })}
