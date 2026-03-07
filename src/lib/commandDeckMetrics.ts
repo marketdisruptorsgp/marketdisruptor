@@ -179,7 +179,7 @@ function computeFromEvidence(
   const oppVolumeFactor = Math.min(opportunities.length / 8, 1);
   const diversityBonus = Math.min(evidenceDiversity / 6, 1) * 0.15;
   const opportunityScore = clamp(Math.round(
-    (oppImpactFactor * 0.4 + oppVolumeFactor * 0.3 + avgConfidence * 0.15 + diversityBonus) * 10
+    (oppImpactFactor * 0.4 + oppVolumeFactor * 0.3 + avgConfidence * 0.15 + diversityBonus) * 10 * sourcePenalty
   ), 0, 10);
 
   // Multi-factor friction index
