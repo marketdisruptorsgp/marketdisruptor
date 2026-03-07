@@ -80,7 +80,7 @@ export default function StartPage() {
       <section className="pt-8 sm:pt-12 pb-4 sm:pb-6 px-4">
         <div className="max-w-5xl mx-auto text-left">
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1]">
-            Discover the hidden leverage inside your{" "}
+            Rethink any{" "}
           </h1>
           <motion.span
             key={wordIndex}
@@ -92,11 +92,11 @@ export default function StartPage() {
             style={{ color: ROTATING_WORDS[wordIndex].color }}
             onClick={() => setPaused((p) => !p)}
           >
-            {ROTATING_WORDS[wordIndex].word} model.
+            {ROTATING_WORDS[wordIndex].word}.
             {paused && <span className="inline-block ml-3 text-lg align-middle opacity-50">⏸</span>}
           </motion.span>
           <p className="text-base sm:text-lg text-foreground/70 mt-3 max-w-2xl">
-            This platform maps assumptions, constraints, and opportunity signals to help you redesign products, services, and business models.
+            Map assumptions, challenge constraints, and discover opportunity signals to redesign any product, service, or business model from first principles.
           </p>
           <div className="flex items-center gap-3 mt-6">
             <button
