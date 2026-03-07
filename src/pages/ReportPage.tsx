@@ -205,10 +205,12 @@ export default function ReportPage() {
 
   const isService = selectedProduct?.category === "Service" || isServiceCategory(selectedProduct?.category || "");
   const baseUrl = `/analysis/${analysisId}`;
-  const ci = (selectedProduct as any).communityInsights || (selectedProduct as any).customerSentiment;
-  const uw = (selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney;
+  const ci = selectedProduct ? ((selectedProduct as any).communityInsights || (selectedProduct as any).customerSentiment) : null;
+  const uw = selectedProduct ? ((selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney) : null;
   const uwSteps = uw?.stepByStep || uw?.steps;
-  const sectionTabs = getAvailableSections(selectedProduct, isService);
+  const sectionTabs = selectedProduct ? getAvailableSections(selectedProduct, isService) : [
+    { id: "dashboard", label: "Command Deck", icon: LayoutDashboard },
+  ];
 
   return (
     <AnalysisPageShell tier={tier}>
