@@ -247,7 +247,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
       transition={{ duration: 0.4 }}
       className="space-y-2"
     >
-      {/* ── Row 1: Key Insight headline ── */}
+      {/* ── Row 1: Problem Statement headline ── */}
       <div
         className="rounded-lg px-4 py-3"
         style={{ background: "hsl(var(--card))", border: `2px solid ${modeAccent}30` }}
@@ -255,14 +255,14 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
         <div className="flex items-center gap-2 mb-1">
           <Crosshair size={13} style={{ color: modeAccent }} />
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Key Insight
+            Problem Statement
           </span>
           <span className="text-[9px] font-bold text-muted-foreground ml-auto">
             {evidenceCount} signals · {completedSteps}/{totalSteps} steps
           </span>
         </div>
-        <p className={`text-sm sm:text-base font-black leading-snug ${keyInsight ? "text-foreground" : "text-muted-foreground italic"}`}>
-          {keyInsight || "Run the analysis to surface key insights."}
+        <p className={`text-sm sm:text-base font-black leading-snug ${problemStatement ? "text-foreground" : "text-muted-foreground italic"}`}>
+          {problemStatement || "Run the analysis to identify the core problem."}
         </p>
         {marketSize && (
           <div className="flex items-center gap-1.5 mt-1.5">
