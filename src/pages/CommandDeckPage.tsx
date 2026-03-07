@@ -571,6 +571,39 @@ export default function CommandDeckPage() {
         </div>
       );
     }
+    // Analysis is actively running (scraping/analyzing) — show loading tracker
+    const isActivelyRunning = analysis.step === "scraping" || analysis.step === "analyzing";
+    const activeTasks: StepTask[] = analysis.activeMode === "business"
+      ? [
+          { label: "Revenue Decomposition", detail: "Breaking down revenue streams" },
+          { label: "Cost Structure Audit", detail: "Analyzing cost layers & margins" },
+          { label: "Value Chain Mapping", detail: "Tracing value creation flow" },
+          { label: "Disruption Scanning", detail: "Identifying vulnerability vectors" },
+          { label: "Reinvention Engine", detail: "Generating alternative models" },
+        ]
+      : [
+          { label: "Market Intelligence", detail: "Scraping pricing, reviews & competitors" },
+          { label: "Supply Chain Mapping", detail: "Identifying manufacturers & distributors" },
+          { label: "Community Signals", detail: "Mining sentiment & demand patterns" },
+          { label: "Competitive Analysis", detail: "Cross-referencing market positioning" },
+          { label: "Deep Analysis", detail: "Synthesizing strategic insights" },
+        ];
+    if (isActivelyRunning) {
+      const modeLabel = analysis.activeMode === "business" ? "Business Model"
+        : analysis.activeMode === "service" ? "Service" : "Product";
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center px-4">
+          <div className="w-full max-w-lg">
+            <StepLoadingTracker
+              title={`Building ${modeLabel} Intelligence`}
+              tasks={activeTasks}
+              estimatedSeconds={90}
+            />
+          </div>
+        </div>
+      );
+    }
+    // Hydrating from DB — show simple spinner
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "hsl(var(--primary))" }} />
