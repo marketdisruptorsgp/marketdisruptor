@@ -116,7 +116,7 @@ export default function StartPage() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 sm:px-8">
+      <section className="max-w-6xl mx-auto px-6 sm:px-10">
         <ShowcaseGallery />
       </section>
 
