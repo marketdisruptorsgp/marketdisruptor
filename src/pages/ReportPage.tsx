@@ -231,7 +231,7 @@ export default function ReportPage() {
       />
 
       <AnalysisActionToolbar
-        analysisTitle={selectedProduct.name}
+        analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
         stepTitle="Intelligence Report"
         analysis={analysis}
         selectedProduct={selectedProduct}
