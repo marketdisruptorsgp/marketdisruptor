@@ -30,6 +30,7 @@ import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOu
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
 import { ExecutiveBrief } from "@/components/command-deck/ExecutiveBrief";
 import { ExecutiveSnapshot } from "@/components/command-deck/ExecutiveSnapshot";
+import { RecommendedMoveCard } from "@/components/command-deck/RecommendedMoveCard";
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
 import { BriefingSection } from "@/components/command-deck/BriefingSection";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
@@ -681,6 +682,11 @@ export default function CommandDeckPage() {
           evidenceCount={totalSignals}
         />
 
+
+        {/* ══════════════════════════════════════════════════════════
+            RECOMMENDED STRATEGIC MOVE — Top playbook above fold
+           ══════════════════════════════════════════════════════════ */}
+        <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
 
 
         {/* ══════════════════════════════════════════════════════════
