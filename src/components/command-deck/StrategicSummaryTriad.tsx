@@ -2,8 +2,7 @@
  * Strategic Summary Triad — Command Deck Section 1
  *
  * Three hero insight cards: Best Opportunity, Best Scenario, Largest Risk.
- * Each card shows title, description, primary metric, confidence score.
- * Pulls from scoring engine + scenario comparison engine.
+ * No numeric scores — uses qualitative evidence strength labels.
  */
 
 import { memo, useMemo } from "react";
@@ -26,17 +25,17 @@ interface TriadCard {
   description: string;
   metric: string;
   metricLabel: string;
-  confidence: "high" | "medium" | "low";
+  evidenceLevel: "strong" | "moderate" | "early";
   icon: React.ElementType;
   accentColor: string;
   bgGradient: string;
 }
 
-function ConfidenceIndicator({ level }: { level: "high" | "medium" | "low" }) {
+function EvidenceIndicator({ level }: { level: "strong" | "moderate" | "early" }) {
   const config = {
-    high: { color: "hsl(var(--success))", label: "High Confidence", dots: 3 },
-    medium: { color: "hsl(var(--warning))", label: "Medium Confidence", dots: 2 },
-    low: { color: "hsl(var(--destructive))", label: "Low Confidence", dots: 1 },
+    strong: { color: "hsl(var(--success))", label: "Strong Evidence", dots: 3 },
+    moderate: { color: "hsl(var(--warning))", label: "Moderate Evidence", dots: 2 },
+    early: { color: "hsl(var(--destructive))", label: "Early Signal", dots: 1 },
   };
   const { color, label, dots } = config[level];
   return (
@@ -57,6 +56,12 @@ function ConfidenceIndicator({ level }: { level: "high" | "medium" | "low" }) {
   );
 }
 
+function qualLabel(score: number): string {
+  if (score >= 7) return "Strong";
+  if (score >= 4) return "Moderate";
+  return "Limited";
+}
+
 export const StrategicSummaryTriad = memo(function StrategicSummaryTriad({
   metrics,
   opportunities,
@@ -70,13 +75,13 @@ export const StrategicSummaryTriad = memo(function StrategicSummaryTriad({
     // Card 1: Best Opportunity
     const bestOpp = opportunities[0];
     if (bestOpp) {
-      const confLevel = bestOpp.confidence === "high" ? "high" : bestOpp.confidence === "medium" ? "medium" : "low";
+      const evLevel = bestOpp.confidence === "high" ? "strong" : bestOpp.confidence === "medium" ? "moderate" : "early";
       result.push({
         title: bestOpp.label,
-        description: `Impact ${bestOpp.impact}/10 · ${bestOpp.source} · ${bestOpp.riskLevel || "moderate"} risk`,
-        metric: (bestOpp.opportunityScore ?? 0).toFixed(1),
-        metricLabel: "Opportunity Score",
-        confidence: confLevel as "high" | "medium" | "low",
+        description: `${qualLabel(bestOpp.impact)} impact · ${bestOpp.source} · ${bestOpp.riskLevel || "moderate"} risk`,
+        metric: qualLabel(bestOpp.impact),
+        metricLabel: "Impact Strength",
+        evidenceLevel: evLevel,
         icon: Lightbulb,
         accentColor: "hsl(var(--success))",
         bgGradient: "linear-gradient(135deg, hsl(var(--success) / 0.06) 0%, hsl(var(--card)) 100%)",
@@ -86,25 +91,26 @@ export const StrategicSummaryTriad = memo(function StrategicSummaryTriad({
     // Card 2: Best Scenario
     const bestScenario = scenarioComparison?.bestReturnScenario;
     if (bestScenario) {
-      const confLevel = bestScenario.feasibilityScore >= 7 ? "high" : bestScenario.feasibilityScore >= 4 ? "medium" : "low";
+      const evLevel = bestScenario.feasibilityScore >= 7 ? "strong" : bestScenario.feasibilityScore >= 4 ? "moderate" : "early";
       result.push({
         title: bestScenario.scenarioName,
-        description: `${bestScenario.toolId.replace(/-/g, " ")} · Risk ${bestScenario.riskScore.toFixed(1)}/10`,
-        metric: bestScenario.projectedReturn > 0 ? `${bestScenario.projectedReturn.toFixed(1)}%` : bestScenario.overallScore.toFixed(1),
-        metricLabel: bestScenario.projectedReturn > 0 ? "Projected Return" : "Overall Score",
-        confidence: confLevel as "high" | "medium" | "low",
+        description: `${bestScenario.toolId.replace(/-/g, " ")} · ${bestScenario.riskScore >= 7 ? "High" : bestScenario.riskScore >= 4 ? "Moderate" : "Low"} risk`,
+        metric: bestScenario.projectedReturn > 0 ? `${bestScenario.projectedReturn.toFixed(0)}%` : qualLabel(bestScenario.overallScore),
+        metricLabel: bestScenario.projectedReturn > 0 ? "Projected Return" : "Potential",
+        evidenceLevel: evLevel,
         icon: FlaskConical,
         accentColor: "hsl(172 66% 50%)",
         bgGradient: "linear-gradient(135deg, hsl(172 66% 50% / 0.06) 0%, hsl(var(--card)) 100%)",
       });
     } else {
       // Fallback: Strategic potential card
+      const potentialLevel = strategicPotential >= 7 ? "strong" : strategicPotential >= 4 ? "moderate" : "early";
       result.push({
         title: "Strategic Potential",
         description: `${metrics.totalEvidenceCount} evidence signals · ${metrics.opportunitiesIdentified} opportunities`,
-        metric: strategicPotential.toFixed(1),
-        metricLabel: "Potential Score",
-        confidence: metrics.totalEvidenceCount >= 15 ? "high" : metrics.totalEvidenceCount >= 5 ? "medium" : "low",
+        metric: qualLabel(strategicPotential),
+        metricLabel: "Potential",
+        evidenceLevel: potentialLevel,
         icon: TrendingUp,
         accentColor: "hsl(var(--primary))",
         bgGradient: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--card)) 100%)",
@@ -115,25 +121,26 @@ export const StrategicSummaryTriad = memo(function StrategicSummaryTriad({
     const allRisks = sensitivityReports.flatMap(r => r.riskFactors);
     const criticalRisk = allRisks.find(r => r.severity === "critical") || allRisks.find(r => r.severity === "high") || allRisks[0];
     if (criticalRisk) {
-      const confLevel = criticalRisk.severity === "critical" ? "high" : criticalRisk.severity === "high" ? "high" : "medium";
+      const evLevel = criticalRisk.severity === "critical" ? "strong" : criticalRisk.severity === "high" ? "strong" : "moderate";
       result.push({
         title: criticalRisk.label,
         description: criticalRisk.description,
-        metric: criticalRisk.severity.toUpperCase(),
+        metric: criticalRisk.severity === "critical" ? "CRITICAL" : criticalRisk.severity === "high" ? "HIGH" : "MODERATE",
         metricLabel: "Risk Severity",
-        confidence: confLevel as "high" | "medium" | "low",
+        evidenceLevel: evLevel,
         icon: AlertTriangle,
         accentColor: "hsl(var(--destructive))",
         bgGradient: "linear-gradient(135deg, hsl(var(--destructive) / 0.06) 0%, hsl(var(--card)) 100%)",
       });
     } else {
       // Fallback: friction-based risk
+      const riskLabel = metrics.frictionIndex >= 6 ? "High" : metrics.riskScore >= 5 ? "Elevated" : "Moderate";
       result.push({
         title: metrics.frictionIndex >= 6 ? "High System Friction" : metrics.riskScore >= 5 ? "Elevated Execution Risk" : "Risk Profile",
-        description: `${metrics.constraintsDetected} constraints · ${metrics.riskSignals} risk signals · friction index ${metrics.frictionIndex.toFixed(1)}`,
-        metric: metrics.riskScore.toFixed(1),
-        metricLabel: "Risk Score",
-        confidence: metrics.riskSignals >= 3 ? "high" : "medium",
+        description: `${metrics.constraintsDetected} constraints · ${metrics.riskSignals} risk signals`,
+        metric: riskLabel,
+        metricLabel: "Risk Level",
+        evidenceLevel: metrics.riskSignals >= 3 ? "strong" : "moderate",
         icon: Shield,
         accentColor: "hsl(var(--destructive))",
         bgGradient: "linear-gradient(135deg, hsl(var(--destructive) / 0.06) 0%, hsl(var(--card)) 100%)",
@@ -170,12 +177,12 @@ export const StrategicSummaryTriad = memo(function StrategicSummaryTriad({
               >
                 <CardIcon size={18} style={{ color: card.accentColor }} />
               </div>
-              <ConfidenceIndicator level={card.confidence} />
+              <EvidenceIndicator level={card.evidenceLevel} />
             </div>
 
             {/* Primary metric */}
             <div>
-              <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">
+              <p className="text-2xl font-extrabold text-foreground leading-none">
                 {card.metric}
               </p>
               <p className="text-[9px] font-extrabold uppercase tracking-widest mt-1" style={{ color: card.accentColor }}>

@@ -250,7 +250,7 @@ export const StrategicXRay = memo(function StrategicXRay({
                             </span>
                             {hasInsight && (
                               <span className="text-[9px] font-bold text-muted-foreground px-1.5 py-0.5 rounded bg-muted">
-                                {Math.round((node.insight?.confidence ?? 0) * 100)}% conf
+                                {(node.insight?.confidence ?? 0) >= 0.7 ? "Strong evidence" : (node.insight?.confidence ?? 0) >= 0.4 ? "Moderate evidence" : "Early signal"}
                               </span>
                             )}
                           </div>

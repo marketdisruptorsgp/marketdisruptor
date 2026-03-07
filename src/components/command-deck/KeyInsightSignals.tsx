@@ -40,6 +40,7 @@ const TYPE_LABELS: Record<string, string> = {
 function ImpactBar({ value, max = 10 }: { value: number; max?: number }) {
   const pct = Math.min((value / max) * 100, 100);
   const color = value >= 8 ? "hsl(var(--success))" : value >= 5 ? "hsl(var(--warning))" : "hsl(var(--muted-foreground))";
+  const label = value >= 8 ? "Strong" : value >= 5 ? "Moderate" : "Limited";
   return (
     <div className="flex items-center gap-2 w-full">
       <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-muted">
@@ -51,8 +52,8 @@ function ImpactBar({ value, max = 10 }: { value: number; max?: number }) {
           style={{ background: color }}
         />
       </div>
-      <span className="text-xs font-extrabold tabular-nums" style={{ color }}>
-        {value}
+      <span className="text-[11px] font-extrabold" style={{ color }}>
+        {label}
       </span>
     </div>
   );
@@ -112,7 +113,7 @@ export const KeyInsightSignals = memo(function KeyInsightSignals({
             : (insight.confidenceScore ?? 0) >= 0.4
               ? "hsl(var(--warning))"
               : "hsl(var(--destructive))";
-          const confLabel = (insight.confidenceScore ?? 0) >= 0.7 ? "High" : (insight.confidenceScore ?? 0) >= 0.4 ? "Med" : "Low";
+          const confLabel = (insight.confidenceScore ?? 0) >= 0.7 ? "Strong" : (insight.confidenceScore ?? 0) >= 0.4 ? "Moderate" : "Early";
 
           return (
             <motion.div
@@ -140,7 +141,7 @@ export const KeyInsightSignals = memo(function KeyInsightSignals({
                     className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                     style={{ background: `${confColor}12`, color: confColor }}
                   >
-                    {confLabel} Confidence
+                    {confLabel} Evidence
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground">

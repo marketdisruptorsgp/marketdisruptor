@@ -121,8 +121,8 @@ export const OpportunityMap = memo(function OpportunityMap({
                 }}
                 title={opp.label}
               >
-                <span className="text-[8px] font-extrabold tabular-nums" style={{ color: riskColor }}>
-                  {(opp.opportunityScore ?? 0).toFixed(1)}
+                <span className="text-[7px] font-extrabold" style={{ color: riskColor }}>
+                  {(opp.opportunityScore ?? 0) >= 7 ? "●" : (opp.opportunityScore ?? 0) >= 4 ? "◐" : "○"}
                 </span>
                 {/* Hover tooltip */}
                 <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
@@ -160,12 +160,12 @@ export const OpportunityMap = memo(function OpportunityMap({
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { l: "Impact", v: selected.impact },
-                    { l: "Score", v: selected.opportunityScore ?? 0 },
-                    { l: "Feasibility", v: 10 - (selected.executionDifficulty ?? 5) },
+                    { l: "Impact", v: selected.impact, q: (selected.impact ?? 0) >= 7 ? "Strong" : (selected.impact ?? 0) >= 4 ? "Moderate" : "Limited" },
+                    { l: "Opportunity", v: selected.opportunityScore ?? 0, q: (selected.opportunityScore ?? 0) >= 7 ? "Strong" : (selected.opportunityScore ?? 0) >= 4 ? "Moderate" : "Limited" },
+                    { l: "Feasibility", v: 10 - (selected.executionDifficulty ?? 5), q: (10 - (selected.executionDifficulty ?? 5)) >= 7 ? "Easy" : (10 - (selected.executionDifficulty ?? 5)) >= 4 ? "Moderate" : "Hard" },
                   ].map(m => (
                     <div key={m.l} className="text-center p-2 rounded-lg bg-background">
-                      <p className="text-lg font-extrabold tabular-nums text-foreground">{m.v.toFixed(1)}</p>
+                      <p className="text-sm font-extrabold text-foreground">{m.q}</p>
                       <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground">{m.l}</p>
                     </div>
                   ))}
