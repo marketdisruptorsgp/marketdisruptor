@@ -528,8 +528,11 @@ export default function CommandDeckPage() {
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4">
         {/* ═══ COMPACT HEADER ═══ */}
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <ModeBadge />
+            <h1 className="text-base sm:text-lg font-black text-foreground truncate max-w-[300px] sm:max-w-[500px]">
+              {analysisDisplayName}
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             {!pipelineProgress.isRunning && completedSteps.size < PIPELINE_STEPS.length && (
