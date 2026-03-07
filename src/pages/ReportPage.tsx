@@ -64,18 +64,27 @@ import {
 } from "@/components/analysis/AnalysisComponents";
 
 /* ── Section tab config ── */
-function getAvailableSections(selectedProduct: any, isService: boolean): TabDef[] {
+function getAvailableSections(selectedProduct: any, isService: boolean, businessAnalysisData?: any): TabDef[] {
   const tabs: TabDef[] = [
     { id: "dashboard", label: "Command Deck", icon: LayoutDashboard },
     { id: "overview", label: "Overview", icon: Target },
   ];
   const uw = (selectedProduct as any).userWorkflow || (selectedProduct as any).userJourney;
   const uwSteps = uw?.stepByStep || uw?.steps;
-  if (uwSteps?.length > 0) tabs.push({ id: "journey", label: "User Journey", icon: Clock });
-  const ci = (selectedProduct as any).communityInsights;
+  // Also check businessAnalysisData for user journey / workflow
+  const buw = businessAnalysisData?.userWorkflow || businessAnalysisData?.userJourney || businessAnalysisData?.customerJourney;
+  const buwSteps = buw?.stepByStep || buw?.steps || (Array.isArray(buw) ? buw : null);
+  if ((uwSteps?.length > 0) || (buwSteps?.length > 0)) tabs.push({ id: "journey", label: "User Journey", icon: Clock });
+
+  const ci = (selectedProduct as any).communityInsights || businessAnalysisData?.communityInsights || businessAnalysisData?.customerSentiment;
   if (ci) tabs.push({ id: "community", label: "Community Intel", icon: MessageSquare });
-  if (selectedProduct.pricingIntel) tabs.push({ id: "pricing", label: "Pricing Intel", icon: DollarSign });
-  if (!isService && selectedProduct.supplyChain) tabs.push({ id: "supply", label: "Supply Chain", icon: Package });
+
+  const pricing = selectedProduct.pricingIntel || businessAnalysisData?.pricingIntel || businessAnalysisData?.pricing || businessAnalysisData?.revenueModel;
+  if (pricing) tabs.push({ id: "pricing", label: "Pricing Intel", icon: DollarSign });
+
+  const supply = selectedProduct.supplyChain || businessAnalysisData?.supplyChain || businessAnalysisData?.valueChain;
+  if (!isService && supply) tabs.push({ id: "supply", label: "Supply Chain", icon: Package });
+
   if (!isService) tabs.push({ id: "patents", label: "Patent Intel", icon: ScrollText });
   return tabs;
 }
