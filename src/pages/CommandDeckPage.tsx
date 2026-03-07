@@ -668,23 +668,17 @@ export default function CommandDeckPage() {
 
         {/* ══════════════════════════════════════════════════════════
             EXECUTIVE SNAPSHOT — Dense above-fold intelligence grid
-            All key insights visible in one viewport, no scrolling needed
+            Shows actual product/business data, not abstract reasoning
            ══════════════════════════════════════════════════════════ */}
         <ExecutiveSnapshot
+          product={selectedProduct as any}
+          businessData={analysis.businessAnalysisData as Record<string, any> | null}
           narrative={narrative}
-          evidence={autoAnalysis.flatEvidence}
-          insights={autoAnalysis.insights}
           mode={modeKey}
           completedSteps={completedSteps.size}
           totalSteps={PIPELINE_STEPS.length}
           modeAccent={modeAccent}
-          strongCategories={evidenceAttribution.strong}
-          weakCategories={evidenceAttribution.weak}
-          trappedValue={narrative?.trappedValue ?? null}
-          trappedValueEstimate={narrative?.trappedValueEstimate ?? null}
-          trappedValueDrivers={evidenceAttribution.trappedValueDrivers}
-          patterns={detectedPatterns}
-          diagnosisEvidence={evidenceAttribution.diagnosisEvidence}
+          evidenceCount={totalSignals}
         />
 
 

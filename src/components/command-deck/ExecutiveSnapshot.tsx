@@ -1,64 +1,65 @@
 /**
- * ExecutiveSnapshot — Dense above-fold strategic intelligence grid
+ * ExecutiveSnapshot — Dense above-fold intelligence from ACTUAL data
  * 
- * 6 compact panels in a 3x2 grid showing all key intelligence at a glance.
- * Each panel has a bold headline + 2-3 key bullets. Click to expand.
+ * Surfaces real product/business intel: pricing, complaints, supply chain,
+ * key insights, constraints — not abstract reasoning engine outputs.
+ * 6 compact panels in a 3x2 grid. Each shows real data immediately.
  */
 
 import { memo, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Crosshair, Shield, Lock, Zap, Radar, Fingerprint,
-  ChevronDown, ChevronUp, TrendingUp, AlertTriangle,
-  Eye, Target, ArrowRight,
+  Crosshair, DollarSign, MessageSquare, Package, Lightbulb,
+  AlertTriangle, ChevronDown, ChevronUp, ArrowRight, TrendingUp,
+  Users, Zap, Lock,
 } from "lucide-react";
 import { humanizeLabel } from "@/lib/humanize";
-import type { Evidence } from "@/lib/evidenceEngine";
-import type { StrategicInsight, StrategicNarrative } from "@/lib/strategicEngine";
-import type { StructuralPattern } from "@/lib/strategicPatternEngine";
+import type { StrategicNarrative } from "@/lib/strategicEngine";
+
+interface ProductData {
+  name?: string;
+  keyInsight?: string;
+  description?: string;
+  trendAnalysis?: string;
+  marketSizeEstimate?: string;
+  pricingIntel?: any;
+  supplyChain?: any;
+  communityInsights?: any;
+  customerSentiment?: any;
+  userWorkflow?: any;
+  userJourney?: any;
+  confidenceScores?: any;
+  [key: string]: any;
+}
 
 interface ExecutiveSnapshotProps {
+  product: ProductData | null;
+  businessData: Record<string, any> | null;
   narrative: StrategicNarrative | null;
-  evidence: Evidence[];
-  insights: StrategicInsight[];
   mode: "product" | "service" | "business";
   completedSteps: number;
   totalSteps: number;
   modeAccent: string;
-  strongCategories: string[];
-  weakCategories: string[];
-  trappedValue: string | null;
-  trappedValueEstimate: string | null;
-  trappedValueDrivers: string[];
-  patterns: StructuralPattern[];
-  diagnosisEvidence: Array<{ category: string; detail: string }>;
+  evidenceCount: number;
 }
 
-function strengthBadge(c: number): { label: string; color: string } {
-  if (c >= 0.7) return { label: "Strong", color: "hsl(var(--success))" };
-  if (c >= 0.4) return { label: "Moderate", color: "hsl(var(--warning))" };
-  if (c >= 0.15) return { label: "Early", color: "hsl(var(--muted-foreground))" };
-  return { label: "Preliminary", color: "hsl(var(--muted-foreground))" };
-}
-
-/* ── Individual Panel ── */
-function SnapshotPanel({
-  icon: Icon, title, badgeLabel, badgeColor, children, accent, expandedContent,
+/* ── Panel wrapper ── */
+function Panel({
+  icon: Icon, title, accent, children, expandedContent,
 }: {
   icon: React.ElementType;
   title: string;
-  badgeLabel?: string;
-  badgeColor?: string;
-  children: React.ReactNode;
   accent: string;
+  children: React.ReactNode;
   expandedContent?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const hasExpanded = !!expandedContent;
   return (
     <div
-      className="rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+      className={`rounded-lg overflow-hidden transition-shadow ${hasExpanded ? "cursor-pointer hover:shadow-md" : ""}`}
       style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
-      onClick={() => expandedContent && setOpen(o => !o)}
+      onClick={() => hasExpanded && setOpen(o => !o)}
     >
       <div className="px-3 py-2.5">
         <div className="flex items-center gap-2 mb-1.5">
@@ -66,16 +67,8 @@ function SnapshotPanel({
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground truncate">
             {title}
           </span>
-          {badgeLabel && (
-            <span
-              className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ml-auto flex-shrink-0"
-              style={{ color: badgeColor, background: `${badgeColor}15` }}
-            >
-              {badgeLabel}
-            </span>
-          )}
-          {expandedContent && (
-            <span className="ml-auto text-muted-foreground">
+          {hasExpanded && (
+            <span className="ml-auto text-muted-foreground flex-shrink-0">
               {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             </span>
           )}
@@ -99,7 +92,6 @@ function SnapshotPanel({
   );
 }
 
-/* ── Bullet item ── */
 function Bullet({ text, color }: { text: string; color?: string }) {
   return (
     <div className="flex items-start gap-1.5 py-0.5">
@@ -109,64 +101,111 @@ function Bullet({ text, color }: { text: string; color?: string }) {
   );
 }
 
+function EmptyState({ text }: { text: string }) {
+  return <p className="text-[11px] text-muted-foreground italic">{text}</p>;
+}
+
 export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
-  narrative, evidence, insights, mode, completedSteps, totalSteps, modeAccent,
-  strongCategories, weakCategories, trappedValue, trappedValueEstimate,
-  trappedValueDrivers, patterns, diagnosisEvidence,
+  product, businessData, narrative, mode, completedSteps, totalSteps, modeAccent, evidenceCount,
 }: ExecutiveSnapshotProps) {
-  const confidence = narrative?.verdictConfidence ?? 0;
-  const strength = strengthBadge(confidence);
-  const constraint = humanizeLabel(narrative?.primaryConstraint) || null;
-  const opportunity = humanizeLabel(narrative?.breakthroughOpportunity) || null;
-  const verdict = narrative?.strategicVerdict || null;
+  const p = product || {};
+  const biz = businessData || {};
+  const governed = (biz as any)?.governed || {};
 
-  // Top signals from evidence
-  const topSignals = useMemo(() => {
-    const byImpact = [...evidence].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
-    return byImpact.slice(0, 4).map(e => humanizeLabel(e.label || e.description || "") || "Signal detected");
-  }, [evidence]);
+  // ── Extract real data ──
 
-  // Top drivers from insights
-  const topDrivers = useMemo(() => {
-    return insights
-      .filter(i => i.insightType === "driver" || i.insightType === "leverage_point" || i.insightType === "constraint_cluster")
-      .slice(0, 4)
-      .map(i => humanizeLabel(i.label) || i.description?.slice(0, 60) || "Driver identified");
-  }, [insights]);
+  // Key Insight / Diagnosis
+  const keyInsight = useMemo(() => {
+    if (narrative?.whyThisMatters && narrative.whyThisMatters.length > 20) return narrative.whyThisMatters;
+    if (narrative?.strategicVerdict) return narrative.strategicVerdict;
+    if (p.keyInsight) return p.keyInsight;
+    if ((biz as any)?.summary || (biz as any)?.overview) return (biz as any).summary || (biz as any).overview;
+    if (p.description) return p.description.length > 150 ? p.description.slice(0, 147) + "…" : p.description;
+    return null;
+  }, [narrative, p, biz]);
 
-  // X-ray chain summary
-  const xrayChain = useMemo(() => {
-    const parts: string[] = [];
-    if (constraint) parts.push(`Constraint: ${constraint}`);
-    if (narrative?.keyDriver) parts.push(`Driver: ${humanizeLabel(narrative.keyDriver)}`);
-    if (opportunity) parts.push(`Opportunity: ${opportunity}`);
-    if (narrative?.whyThisMatters) parts.push(narrative.whyThisMatters);
-    return parts.slice(0, 3);
-  }, [constraint, opportunity, narrative]);
+  // Pricing
+  const pricing = useMemo(() => {
+    const pi = p.pricingIntel || (biz as any)?.pricingIntel || (biz as any)?.pricing;
+    if (!pi) return null;
+    const bullets: string[] = [];
+    if (pi.priceRange) bullets.push(`Price range: ${pi.priceRange}`);
+    else if (pi.averagePrice) bullets.push(`Avg price: ${pi.averagePrice}`);
+    if (pi.strategy) bullets.push(pi.strategy);
+    if (pi.competitorPricing) bullets.push(`Competitor: ${typeof pi.competitorPricing === "string" ? pi.competitorPricing : "mapped"}`);
+    if (pi.marginEstimate) bullets.push(`Margin: ${pi.marginEstimate}`);
+    if (pi.pricingModel) bullets.push(pi.pricingModel);
+    return bullets.length > 0 ? bullets : null;
+  }, [p, biz]);
 
-  const primaryPattern = patterns.length > 0 ? patterns[0] : null;
-  const hasData = !!constraint || !!verdict || confidence >= 0.15;
-
-  const diagnosis = useMemo(() => {
-    // Only show the verdict rationale if it's genuinely different from the constraint
-    if (narrative?.verdictRationale
-      && narrative.verdictRationale.length > 20
-      && narrative.verdictRationale.length < 200
-      && constraint
-      && !narrative.verdictRationale.toLowerCase().includes(constraint.toLowerCase().slice(0, 30))
-    ) {
-      return narrative.verdictRationale;
+  // Community / Customer
+  const community = useMemo(() => {
+    const ci = p.communityInsights || p.customerSentiment || (biz as any)?.communityInsights || (biz as any)?.customerSentiment;
+    if (!ci) return null;
+    const bullets: string[] = [];
+    const complaints = ci.topComplaints || [];
+    const requests = ci.improvementRequests || ci.marketGaps || [];
+    complaints.slice(0, 2).forEach((c: any) => bullets.push(typeof c === "string" ? c : c.text || c.label || ""));
+    requests.slice(0, 2).forEach((r: any) => bullets.push(typeof r === "string" ? r : r.text || r.label || ""));
+    if (ci.communitySentiment || ci.redditSentiment) {
+      const s = ci.communitySentiment || ci.redditSentiment;
+      if (!/no direct.*found|not found/i.test(s)) bullets.unshift(s.length > 80 ? s.slice(0, 77) + "…" : s);
     }
-    // Use whyThisMatters if available — it's the most insightful field
-    if (narrative?.whyThisMatters && narrative.whyThisMatters.length > 20) {
-      return narrative.whyThisMatters;
+    return bullets.filter(Boolean).length > 0 ? bullets.filter(Boolean) : null;
+  }, [p, biz]);
+
+  // Supply Chain
+  const supplyChain = useMemo(() => {
+    const sc = p.supplyChain || (biz as any)?.supplyChain || (biz as any)?.valueChain;
+    if (!sc) return null;
+    const bullets: string[] = [];
+    const mfrs = sc.manufacturers || [];
+    const dists = sc.distributors || [];
+    mfrs.slice(0, 2).forEach((m: any) => {
+      const name = typeof m === "string" ? m : m.name;
+      if (name) bullets.push(`Mfr: ${name}${m.region ? ` (${m.region})` : ""}`);
+    });
+    dists.slice(0, 1).forEach((d: any) => {
+      const name = typeof d === "string" ? d : d.name;
+      if (name) bullets.push(`Dist: ${name}`);
+    });
+    return bullets.length > 0 ? bullets : null;
+  }, [p, biz]);
+
+  // Constraints (from governed data for business model, or narrative)
+  const constraints = useMemo(() => {
+    const items: string[] = [];
+    // From governed constraint map
+    const cm = governed?.constraint_map;
+    if (cm?.binding_constraint?.label) items.push(cm.binding_constraint.label);
+    const chains = cm?.causal_chains || [];
+    chains.slice(0, 2).forEach((c: any) => {
+      if (c.constraint_label) items.push(c.constraint_label);
+    });
+    // From narrative
+    if (items.length === 0 && narrative?.primaryConstraint) {
+      items.push(humanizeLabel(narrative.primaryConstraint) || narrative.primaryConstraint);
     }
-    // Fall back to just the constraint as a clean label — no filler
-    if (constraint) return constraint;
-    if (verdict) return verdict;
-    if (completedSteps > 0) return "Initial signals detected — run more steps to strengthen diagnosis.";
-    return "Run analysis to generate strategic diagnosis.";
-  }, [constraint, verdict, narrative, completedSteps]);
+    // From friction tiers
+    const ft = governed?.friction_tiers;
+    if (ft?.tier_1?.length > 0 && items.length < 3) {
+      ft.tier_1.slice(0, 2).forEach((f: any) => {
+        const label = typeof f === "string" ? f : f.label || f.name;
+        if (label && !items.includes(label)) items.push(label);
+      });
+    }
+    return items.length > 0 ? items.slice(0, 4) : null;
+  }, [governed, narrative]);
+
+  // Trapped Value
+  const trappedValue = narrative?.trappedValue || null;
+  const trappedEstimate = narrative?.trappedValueEstimate || null;
+
+  // Trend / Market signal
+  const trend = p.trendAnalysis || (biz as any)?.trend || null;
+  const marketSize = p.marketSizeEstimate || null;
+
+  const hasAnyData = !!(keyInsight || pricing || community || supplyChain || constraints);
 
   return (
     <motion.div
@@ -175,7 +214,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
       transition={{ duration: 0.4 }}
       className="space-y-2"
     >
-      {/* ── Row 1: Diagnosis headline (full width) ── */}
+      {/* ── Row 1: Key Insight headline ── */}
       <div
         className="rounded-lg px-4 py-3"
         style={{ background: "hsl(var(--card))", border: `2px solid ${modeAccent}30` }}
@@ -183,160 +222,98 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
         <div className="flex items-center gap-2 mb-1">
           <Crosshair size={13} style={{ color: modeAccent }} />
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Strategic Diagnosis
+            Key Insight
           </span>
-          <span
-            className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ml-auto"
-            style={{ color: strength.color, background: `${strength.color}15` }}
-          >
-            {strength.label} Evidence · {evidence.length} signals · {completedSteps}/{totalSteps} steps
+          <span className="text-[9px] font-bold text-muted-foreground ml-auto">
+            {evidenceCount} signals · {completedSteps}/{totalSteps} steps
           </span>
         </div>
-        <p className={`text-sm sm:text-base font-black leading-snug ${hasData ? "text-foreground" : "text-muted-foreground italic"}`}>
-          {diagnosis}
+        <p className={`text-sm sm:text-base font-black leading-snug ${keyInsight ? "text-foreground" : "text-muted-foreground italic"}`}>
+          {keyInsight || "Run the analysis to surface key insights."}
         </p>
-        {opportunity && (
+        {marketSize && (
           <div className="flex items-center gap-1.5 mt-1.5">
-            <ArrowRight size={11} style={{ color: modeAccent }} />
-            <span className="text-[11px] font-bold text-muted-foreground">Unlock:</span>
-            <span className="text-[11px] font-bold text-foreground">{opportunity}</span>
+            <TrendingUp size={11} style={{ color: modeAccent }} />
+            <span className="text-[11px] font-bold text-foreground">TAM: {marketSize}</span>
           </div>
+        )}
+        {trend && !keyInsight?.includes(trend.slice(0, 30)) && (
+          <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{trend}</p>
         )}
       </div>
 
-      {/* ── Row 2: 3x2 dense grid ── */}
+      {/* ── Row 2: 3x2 intelligence grid from actual data ── */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
 
-        {/* 1. Evidence Confidence */}
-        <SnapshotPanel
-          icon={Shield}
-          title="Evidence"
-          badgeLabel={strength.label}
-          badgeColor={strength.color}
-          accent={modeAccent}
-          expandedContent={
-            weakCategories.length > 0 ? (
-              <div>
-                <p className="text-[10px] font-bold text-muted-foreground mb-1">Missing data:</p>
-                {weakCategories.map(w => <Bullet key={w} text={w} color="hsl(var(--destructive))" />)}
-              </div>
-            ) : undefined
-          }
-        >
-          {strongCategories.length > 0 ? (
-            strongCategories.slice(0, 3).map(cat => (
-              <Bullet key={cat} text={cat} color="hsl(var(--success))" />
-            ))
+        {/* 1. Pricing Intel */}
+        <Panel icon={DollarSign} title="Pricing" accent={modeAccent}>
+          {pricing ? (
+            pricing.slice(0, 3).map((b, i) => <Bullet key={i} text={b} color={modeAccent} />)
           ) : (
-            <p className="text-[11px] text-muted-foreground italic">Run more steps to build evidence</p>
+            <EmptyState text="Run Understand step for pricing data" />
           )}
-        </SnapshotPanel>
+        </Panel>
 
-        {/* 2. Trapped Value */}
-        <SnapshotPanel
-          icon={Lock}
-          title="Trapped Value"
-          badgeLabel={trappedValueEstimate || undefined}
-          badgeColor={modeAccent}
+        {/* 2. Customer / Community */}
+        <Panel
+          icon={Users}
+          title="Customer Intel"
           accent={modeAccent}
-          expandedContent={
-            trappedValueDrivers.length > 1 ? (
-              <div>
-                {trappedValueDrivers.slice(1).map((d, i) => <Bullet key={i} text={d} color={modeAccent} />)}
-              </div>
-            ) : undefined
-          }
+          expandedContent={community && community.length > 3 ? (
+            <div>{community.slice(3).map((b, i) => <Bullet key={i} text={b} color="hsl(var(--warning))" />)}</div>
+          ) : undefined}
         >
+          {community ? (
+            community.slice(0, 3).map((b, i) => <Bullet key={i} text={b} color="hsl(var(--warning))" />)
+          ) : (
+            <EmptyState text="Run Understand step for customer data" />
+          )}
+        </Panel>
+
+        {/* 3. Constraints / Friction */}
+        <Panel icon={AlertTriangle} title="Constraints" accent="hsl(var(--destructive))">
+          {constraints ? (
+            constraints.slice(0, 3).map((c, i) => <Bullet key={i} text={c} color="hsl(var(--destructive))" />)
+          ) : (
+            <EmptyState text="Run Disrupt step to identify constraints" />
+          )}
+        </Panel>
+
+        {/* 4. Supply Chain / Value Chain */}
+        <Panel icon={Package} title={mode === "business" ? "Value Chain" : "Supply Chain"} accent={modeAccent}>
+          {supplyChain ? (
+            supplyChain.map((b, i) => <Bullet key={i} text={b} color={modeAccent} />)
+          ) : (
+            <EmptyState text={`Run Understand step for ${mode === "business" ? "value chain" : "supply chain"}`} />
+          )}
+        </Panel>
+
+        {/* 5. Trapped Value (from reasoning — shows when available) */}
+        <Panel icon={Lock} title="Trapped Value" accent={modeAccent}>
           {trappedValue ? (
-            <p className="text-[11px] text-foreground/80 leading-snug line-clamp-3">{trappedValue}</p>
-          ) : (
-            <p className="text-[11px] text-muted-foreground italic">No trapped value identified yet</p>
-          )}
-        </SnapshotPanel>
-
-        {/* 3. Key Drivers */}
-        <SnapshotPanel
-          icon={Zap}
-          title="Drivers"
-          badgeLabel={topDrivers.length > 0 ? `${topDrivers.length}` : undefined}
-          badgeColor={modeAccent}
-          accent={modeAccent}
-        >
-          {topDrivers.length > 0 ? (
-            topDrivers.slice(0, 3).map((d, i) => <Bullet key={i} text={d} color={modeAccent} />)
-          ) : (
-            <p className="text-[11px] text-muted-foreground italic">Drivers emerge after analysis</p>
-          )}
-        </SnapshotPanel>
-
-        {/* 4. Market Signals */}
-        <SnapshotPanel
-          icon={Radar}
-          title="Key Signals"
-          badgeLabel={topSignals.length > 0 ? `${evidence.length}` : undefined}
-          badgeColor={modeAccent}
-          accent={modeAccent}
-          expandedContent={
-            topSignals.length > 3 ? (
-              <div>
-                {topSignals.slice(3).map((s, i) => <Bullet key={i} text={s} color="hsl(var(--warning))" />)}
-              </div>
-            ) : undefined
-          }
-        >
-          {topSignals.length > 0 ? (
-            topSignals.slice(0, 3).map((s, i) => <Bullet key={i} text={s} color="hsl(var(--warning))" />)
-          ) : (
-            <p className="text-[11px] text-muted-foreground italic">Signals detected after analysis</p>
-          )}
-        </SnapshotPanel>
-
-        {/* 5. Structural Pattern */}
-        <SnapshotPanel
-          icon={Fingerprint}
-          title="Pattern"
-          badgeLabel={primaryPattern ? (primaryPattern.matchScore >= 0.6 ? "Strong" : "Moderate") : undefined}
-          badgeColor={primaryPattern?.matchScore && primaryPattern.matchScore >= 0.6 ? "hsl(var(--success))" : "hsl(var(--warning))"}
-          accent={modeAccent}
-          expandedContent={
-            patterns.length > 1 ? (
-              <div>
-                {patterns.slice(1, 3).map((p, i) => <Bullet key={i} text={`${p.name}: ${p.characteristics?.[0] || "detected"}`} color="hsl(var(--muted-foreground))" />)}
-              </div>
-            ) : undefined
-          }
-        >
-          {primaryPattern ? (
             <>
-              <p className="text-[11px] font-bold text-foreground leading-snug">{primaryPattern.name}</p>
-              <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2 mt-0.5">
-                {primaryPattern.characteristics?.[0] || "Structural archetype detected"}
-              </p>
+              <p className="text-[11px] text-foreground/80 leading-snug line-clamp-3">{trappedValue}</p>
+              {trappedEstimate && (
+                <span className="text-[10px] font-bold mt-1 inline-block" style={{ color: modeAccent }}>{trappedEstimate}</span>
+              )}
             </>
           ) : (
-            <p className="text-[11px] text-muted-foreground italic">Patterns detected after deeper analysis</p>
+            <EmptyState text="Emerges after Disrupt + Reimagine steps" />
           )}
-        </SnapshotPanel>
+        </Panel>
 
-        {/* 6. X-Ray Insights */}
-        <SnapshotPanel
-          icon={Eye}
-          title="X-Ray"
-          accent={modeAccent}
-          expandedContent={
-            xrayChain.length > 2 ? (
-              <div>
-                {xrayChain.slice(2).map((c, i) => <Bullet key={i} text={c} color={modeAccent} />)}
-              </div>
-            ) : undefined
-          }
-        >
-          {xrayChain.length > 0 ? (
-            xrayChain.slice(0, 2).map((c, i) => <Bullet key={i} text={c} color={modeAccent} />)
+        {/* 6. Opportunities / Ideas */}
+        <Panel icon={Lightbulb} title="Opportunities" accent="hsl(var(--success))">
+          {narrative?.breakthroughOpportunity ? (
+            <Bullet text={humanizeLabel(narrative.breakthroughOpportunity) || narrative.breakthroughOpportunity} color="hsl(var(--success))" />
           ) : (
-            <p className="text-[11px] text-muted-foreground italic">Causal chain builds after analysis</p>
+            <EmptyState text="Run Reimagine step to generate opportunities" />
           )}
-        </SnapshotPanel>
+          {narrative?.strategicPathway && (
+            <Bullet text={humanizeLabel(narrative.strategicPathway) || narrative.strategicPathway} color="hsl(var(--success))" />
+          )}
+        </Panel>
+
       </div>
     </motion.div>
   );
