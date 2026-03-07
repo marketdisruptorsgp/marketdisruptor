@@ -289,16 +289,19 @@ export default function CommandDeckPage() {
         />
 
         {/* ═══ TIER 2 — NARRATIVE SUMMARY ═══ */}
-        {narrative && (
-          <NarrativeSummary
-            primaryConstraint={narrative.primaryConstraint}
-            keyDriver={narrative.keyDriver}
-            leveragePoint={narrative.leveragePoint}
-            breakthroughOpportunity={narrative.breakthroughOpportunity}
-            strategicPathway={narrative.strategicPathway}
-            narrativeSummary={narrative.narrativeSummary}
-          />
-        )}
+        <NarrativeSummary
+          primaryConstraint={narrative?.primaryConstraint ?? null}
+          keyDriver={narrative?.keyDriver ?? null}
+          leveragePoint={narrative?.leveragePoint ?? null}
+          breakthroughOpportunity={narrative?.breakthroughOpportunity ?? null}
+          strategicPathway={narrative?.strategicPathway ?? null}
+          narrativeSummary={narrative?.narrativeSummary ?? ""}
+          insights={autoAnalysis.insights}
+          diagnostic={diagnostic}
+          completedSteps={completedSteps.size}
+          totalSteps={PIPELINE_STEPS.length}
+          onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
+        />
 
         {/* ═══ TIER 3 — METRICS STRIP ═══ */}
         <MetricsStrip
