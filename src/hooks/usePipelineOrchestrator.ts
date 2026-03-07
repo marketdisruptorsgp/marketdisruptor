@@ -168,6 +168,7 @@ export function usePipelineOrchestrator(
         await saveStepData("stressTest", stressResult, analysisId);
         clearStepOutdated("stressTest");
         updateStatus("stressTest", "done");
+        onStepComplete?.("stressTest");
       }
     } catch (err) {
       console.warn("[Pipeline] Stress Test error:", err);
