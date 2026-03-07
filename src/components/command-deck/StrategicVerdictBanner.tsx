@@ -1,18 +1,11 @@
 /**
  * Strategic Verdict Banner — Diagnosis → Direction → Impact
- *
- * Mirrors consulting firm format:
- *   1. Executive Summary — one-line strategic conclusion
- *   2. Strategic Diagnosis — what's the structural problem + evidence
- *   3. Strategic Direction — what should change
- *   4. Expected Impact — what it unlocks
- *   5. Evidence Sources — what data supports this
+ * No numeric scores. Uses qualitative evidence labels.
  */
 
 import { memo, useMemo } from "react";
 import { Zap, AlertTriangle, TrendingUp, Crosshair, Database, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
-
 import { humanizeLabel } from "@/lib/humanize";
 
 interface StrategicVerdictBannerProps {
@@ -25,17 +18,15 @@ interface StrategicVerdictBannerProps {
   totalSteps: number;
   whyThisMatters: string | null;
   verdictBenchmark: string | null;
-  /** Evidence source categories backing this verdict */
   evidenceSources?: string[];
-  /** Specific evidence bullets for the diagnosis */
   diagnosisEvidence?: Array<{ category: string; detail: string }>;
 }
 
-function confidenceBadge(c: number) {
-  if (c >= 0.7) return { label: "High confidence", bg: "hsl(var(--success) / 0.12)", text: "hsl(var(--success))" };
-  if (c >= 0.4) return { label: "Moderate confidence", bg: "hsl(var(--warning) / 0.12)", text: "hsl(var(--warning))" };
-  if (c >= 0.15) return { label: "Preliminary — needs validation", bg: "hsl(var(--destructive) / 0.1)", text: "hsl(var(--destructive))" };
-  return { label: "Early hypothesis", bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))" };
+function evidenceBadge(c: number) {
+  if (c >= 0.7) return { label: "Strong evidence", bg: "hsl(var(--success) / 0.12)", text: "hsl(var(--success))" };
+  if (c >= 0.4) return { label: "Moderate evidence", bg: "hsl(var(--warning) / 0.12)", text: "hsl(var(--warning))" };
+  if (c >= 0.15) return { label: "Early signal", bg: "hsl(var(--destructive) / 0.1)", text: "hsl(var(--destructive))" };
+  return { label: "Preliminary", bg: "hsl(var(--muted))", text: "hsl(var(--muted-foreground))" };
 }
 
 function buildDiagnosis(constraintLabel: string | null, rationale: string | null, completedSteps: number): string | null {
@@ -43,34 +34,18 @@ function buildDiagnosis(constraintLabel: string | null, rationale: string | null
     if (rationale.length > 20 && rationale.length < 200) return rationale;
     return `Growth constrained by ${constraintLabel.toLowerCase()}.`;
   }
-  if (constraintLabel) {
-    return `Key structural constraint: ${constraintLabel.toLowerCase()}.`;
-  }
-  if (completedSteps > 0) {
-    return "Initial evidence suggests structural constraints on the current business model. Run the full analysis to identify specific bottlenecks.";
-  }
+  if (constraintLabel) return `Key structural constraint: ${constraintLabel.toLowerCase()}.`;
+  if (completedSteps > 0) return "Initial evidence suggests structural constraints on the current business model.";
   return "No analysis data available yet. Run the analysis pipeline to generate strategic insights.";
 }
 
-/** Build a single-line executive summary from diagnosis + direction */
 function buildExecutiveSummary(
-  constraintLabel: string | null,
-  verdict: string | null,
-  opportunityLabel: string | null,
-  completedSteps: number,
+  constraintLabel: string | null, verdict: string | null, opportunityLabel: string | null, completedSteps: number,
 ): string | null {
-  if (constraintLabel && verdict) {
-    return `Your business is constrained by ${constraintLabel.toLowerCase()}. ${verdict}.`;
-  }
-  if (constraintLabel && opportunityLabel) {
-    return `${constraintLabel} is limiting growth. Resolving it could unlock ${opportunityLabel.toLowerCase()}.`;
-  }
-  if (verdict) {
-    return verdict;
-  }
-  if (completedSteps > 0) {
-    return "Preliminary signals detected — run the full analysis to generate a strategic recommendation.";
-  }
+  if (constraintLabel && verdict) return `Your business is constrained by ${constraintLabel.toLowerCase()}. ${verdict}.`;
+  if (constraintLabel && opportunityLabel) return `${constraintLabel} is limiting growth. Resolving it could unlock ${opportunityLabel.toLowerCase()}.`;
+  if (verdict) return verdict;
+  if (completedSteps > 0) return "Preliminary signals detected — run the full analysis to generate a strategic recommendation.";
   return "Run the analysis pipeline to generate a strategic briefing.";
 }
 
@@ -81,11 +56,10 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
     evidenceSources = [], diagnosisEvidence = [],
   } = props;
 
-  // Humanize all user-facing labels
   const constraintLabel = humanizeLabel(props.constraintLabel) || null;
   const opportunityLabel = humanizeLabel(props.opportunityLabel) || null;
 
-  const badge = confidenceBadge(confidence);
+  const badge = evidenceBadge(confidence);
   const hasVerdict = !!verdict || !!constraintLabel;
 
   const executiveSummary = useMemo(
@@ -112,7 +86,6 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
       className="rounded-xl overflow-hidden"
       style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}
     >
-      {/* Header */}
       <div className="px-5 pt-4 pb-1 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Zap size={14} style={{ color: "hsl(var(--primary))" }} />
@@ -128,7 +101,6 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
         </span>
       </div>
 
-      {/* ── EXECUTIVE SUMMARY — single-line strategic conclusion ── */}
       {executiveSummary && (
         <div className="px-5 pb-3">
           <p className={`text-base sm:text-lg font-black leading-snug ${hasVerdict ? 'text-foreground' : 'text-muted-foreground italic'}`}>
@@ -137,7 +109,6 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
         </div>
       )}
 
-      {/* ── 1. DIAGNOSIS ── */}
       {diagnosis && (
         <div className="px-5 pb-2">
           <div className="rounded-lg p-3" style={{ background: "hsl(var(--destructive) / 0.04)", border: "1px solid hsl(var(--destructive) / 0.1)" }}>
@@ -147,10 +118,7 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
                 Diagnosis
               </span>
             </div>
-            <p className="text-sm font-semibold text-foreground leading-snug">
-              {diagnosis}
-            </p>
-            {/* Evidence bullets for diagnosis */}
+            <p className="text-sm font-semibold text-foreground leading-snug">{diagnosis}</p>
             {diagnosisEvidence.length > 0 && (
               <div className="mt-2 space-y-1">
                 {diagnosisEvidence.slice(0, 4).map((ev, idx) => (
@@ -167,7 +135,6 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
         </div>
       )}
 
-      {/* ── 2. DIRECTION ── */}
       <div className="px-5 pb-2">
         <div className="rounded-lg p-3" style={{ background: "hsl(var(--primary) / 0.04)", border: "1px solid hsl(var(--primary) / 0.1)" }}>
           <div className="flex items-center gap-1.5 mb-1.5">
@@ -182,7 +149,6 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
         </div>
       </div>
 
-      {/* ── 3. IMPACT ── */}
       {(whyThisMatters || verdictBenchmark) && (
         <div className="px-5 pb-3">
           <div className="rounded-lg p-3" style={{ background: "hsl(var(--success) / 0.04)", border: "1px solid hsl(var(--success) / 0.1)" }}>
@@ -199,7 +165,6 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
         </div>
       )}
 
-      {/* Constraint → Opportunity flow (compact) */}
       {constraintLabel && opportunityLabel && (
         <div className="px-5 pb-3">
           <div className="flex items-center gap-2 flex-wrap">
@@ -218,7 +183,6 @@ export const StrategicVerdictBanner = memo(function StrategicVerdictBanner(props
         </div>
       )}
 
-      {/* Evidence Source Attribution */}
       {evidenceSources.length > 0 && (
         <div className="px-5 pb-4">
           <div className="flex items-center gap-1.5 flex-wrap">

@@ -2,13 +2,12 @@
  * TransformationPaths — Strategic Playbook Comparison Panel
  *
  * Shows the #1 recommended playbook as "Recommended Strategic Move"
- * with Impact/Difficulty/Time Horizon visible immediately.
- * Additional paths are expandable below.
+ * with Strategy Profile (qualitative, no numeric scores).
  */
 
 import { memo, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Route, Sparkles, ChevronDown, ChevronUp, TrendingUp, Clock, Gauge } from "lucide-react";
+import { Route, Sparkles, ChevronDown, ChevronUp, TrendingUp, Clock, Gauge, Shield, DollarSign, Zap } from "lucide-react";
 import type { Evidence, EvidenceMode } from "@/lib/evidenceEngine";
 import type { StrategicInsight, StrategicNarrative } from "@/lib/strategicEngine";
 import { generatePlaybooks, type TransformationPlaybook } from "@/lib/playbookEngine";
@@ -21,10 +20,16 @@ interface TransformationPathsProps {
   mode: "product" | "service" | "business";
 }
 
-function difficultyLabel(d: number): { label: string; desc: string; color: string } {
-  if (d >= 7) return { label: "High", desc: "Requires significant structural change", color: "hsl(var(--destructive))" };
-  if (d >= 4) return { label: "Moderate", desc: "Requires process standardization", color: "hsl(var(--warning))" };
-  return { label: "Low", desc: "Incremental changes to existing operations", color: "hsl(var(--success))" };
+function qualitativeLabel(score: number): { label: string; color: string } {
+  if (score >= 7) return { label: "Strong", color: "hsl(var(--success))" };
+  if (score >= 4) return { label: "Moderate", color: "hsl(var(--warning))" };
+  return { label: "Limited", color: "hsl(var(--muted-foreground))" };
+}
+
+function difficultyLabel(d: number): { label: string; color: string } {
+  if (d >= 7) return { label: "High", color: "hsl(var(--destructive))" };
+  if (d >= 4) return { label: "Moderate", color: "hsl(var(--warning))" };
+  return { label: "Low", color: "hsl(var(--success))" };
 }
 
 function timeHorizon(d: number): string {
@@ -33,11 +38,10 @@ function timeHorizon(d: number): string {
   return "3–6 months";
 }
 
-function impactLabel(pb: TransformationPlaybook): { label: string; desc: string } {
-  const avg = (pb.impact.revenueExpansion + pb.impact.marginImprovement) / 2;
-  if (avg >= 7) return { label: "High", desc: "Unlocks scalable revenue and margin expansion" };
-  if (avg >= 4) return { label: "Moderate", desc: "Meaningful improvement to current economics" };
-  return { label: "Low", desc: "Incremental gains within existing model" };
+function speedLabel(d: number): { label: string; color: string } {
+  if (d <= 3) return { label: "Fast", color: "hsl(var(--success))" };
+  if (d <= 6) return { label: "Medium", color: "hsl(var(--warning))" };
+  return { label: "Slow", color: "hsl(var(--muted-foreground))" };
 }
 
 export const TransformationPaths = memo(function TransformationPaths({
@@ -58,8 +62,11 @@ export const TransformationPaths = memo(function TransformationPaths({
 
   const topPlaybook = playbooks[0];
   const alternates = playbooks.slice(1);
-  const impact = impactLabel(topPlaybook);
+  const revenue = qualitativeLabel(topPlaybook.impact.revenueExpansion);
+  const cost = qualitativeLabel(topPlaybook.impact.marginImprovement);
+  const moat = qualitativeLabel(topPlaybook.impact.capitalEfficiency);
   const difficulty = difficultyLabel(topPlaybook.impact.executionDifficulty);
+  const speed = speedLabel(topPlaybook.impact.executionDifficulty);
   const horizon = timeHorizon(topPlaybook.impact.executionDifficulty);
 
   return (
@@ -73,19 +80,13 @@ export const TransformationPaths = memo(function TransformationPaths({
         style={{ background: "hsl(var(--card))", border: "2px solid hsl(var(--primary) / 0.3)" }}
       >
         {/* Header */}
-        <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Sparkles size={14} className="text-primary" />
-            </div>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-              Recommended Strategic Move
-            </span>
+        <div className="px-5 pt-4 pb-2 flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Sparkles size={14} className="text-primary" />
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-lg font-black text-primary">{topPlaybook.impact.leverageScore}</span>
-            <span className="text-[9px] font-bold text-muted-foreground uppercase">Leverage</span>
-          </div>
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            Recommended Strategic Move
+          </span>
         </div>
 
         {/* Title */}
@@ -98,44 +99,43 @@ export const TransformationPaths = memo(function TransformationPaths({
           </p>
         </div>
 
-        {/* ═══ Impact / Difficulty / Time Horizon — always visible ═══ */}
+        {/* ═══ STRATEGY PROFILE — qualitative attributes ═══ */}
         <div className="px-5 pb-4">
-          <div className="grid grid-cols-3 gap-3">
-            {/* Impact */}
-            <div className="rounded-lg p-3" style={{ background: "hsl(var(--success) / 0.06)", border: "1px solid hsl(var(--success) / 0.12)" }}>
-              <div className="flex items-center gap-1.5 mb-1">
-                <TrendingUp size={11} style={{ color: "hsl(var(--success))" }} />
-                <span className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: "hsl(var(--success))" }}>
-                  Impact
-                </span>
+          <div className="flex items-center gap-1.5 mb-3">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+              Strategy Profile
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {[
+              { label: "Revenue Expansion", val: revenue, Icon: TrendingUp },
+              { label: "Cost Advantage", val: cost, Icon: DollarSign },
+              { label: "Market Control", val: moat, Icon: Shield },
+              { label: "Execution Complexity", val: difficulty, Icon: Gauge },
+              { label: "Speed to Impact", val: speed, Icon: Zap },
+            ].map(attr => (
+              <div
+                key={attr.label}
+                className="rounded-lg p-2.5 text-center"
+                style={{ background: `${attr.val.color}08`, border: `1px solid ${attr.val.color}18` }}
+              >
+                <attr.Icon size={12} className="mx-auto mb-1" style={{ color: attr.val.color }} />
+                <p className="text-xs font-black" style={{ color: attr.val.color }}>
+                  {attr.val.label}
+                </p>
+                <p className="text-[9px] font-bold text-muted-foreground mt-0.5 leading-tight">
+                  {attr.label}
+                </p>
               </div>
-              <p className="text-sm font-black text-foreground">{impact.label}</p>
-              <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{impact.desc}</p>
-            </div>
+            ))}
+          </div>
 
-            {/* Difficulty */}
-            <div className="rounded-lg p-3" style={{ background: `${difficulty.color}08`, border: `1px solid ${difficulty.color}18` }}>
-              <div className="flex items-center gap-1.5 mb-1">
-                <Gauge size={11} style={{ color: difficulty.color }} />
-                <span className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: difficulty.color }}>
-                  Difficulty
-                </span>
-              </div>
-              <p className="text-sm font-black text-foreground">{difficulty.label}</p>
-              <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{difficulty.desc}</p>
-            </div>
-
-            {/* Time Horizon */}
-            <div className="rounded-lg p-3" style={{ background: "hsl(var(--muted) / 0.4)", border: "1px solid hsl(var(--border))" }}>
-              <div className="flex items-center gap-1.5 mb-1">
-                <Clock size={11} className="text-muted-foreground" />
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                  Time Horizon
-                </span>
-              </div>
-              <p className="text-sm font-black text-foreground">{horizon}</p>
-              <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">Estimated execution timeline</p>
-            </div>
+          {/* Time Horizon */}
+          <div className="mt-3 flex items-center gap-2">
+            <Clock size={11} className="text-muted-foreground" />
+            <span className="text-[11px] font-bold text-muted-foreground">
+              Estimated timeline: {horizon}
+            </span>
           </div>
         </div>
       </motion.div>

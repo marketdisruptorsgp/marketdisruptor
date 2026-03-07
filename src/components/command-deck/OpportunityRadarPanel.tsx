@@ -1,8 +1,6 @@
 /**
  * OpportunityMapPanel — 2-Axis Strategic Opportunity Map
- *
- * Plots opportunities across Impact × Difficulty with quadrant labels:
- *   Immediate Priority | Transformation Path | Quick Win | Avoid
+ * No numeric scores. Uses qualitative quadrant labels only.
  */
 
 import { memo } from "react";
@@ -95,14 +93,6 @@ export const OpportunityMapPanel = memo(function OpportunityMapPanel({ items }: 
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-foreground">{item.label}</p>
                       <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{item.description}</p>
-                    </div>
-                    <div className="flex flex-col items-end flex-shrink-0 gap-0.5">
-                      <span className="text-[9px] font-bold" style={{ color: cfg.color }}>
-                        Impact {item.impact.toFixed(0)}/10
-                      </span>
-                      <span className="text-[9px] text-muted-foreground">
-                        Difficulty {item.difficulty.toFixed(0)}/10
-                      </span>
                     </div>
                   </div>
                 ))}
