@@ -165,12 +165,24 @@ function detectJourneyType(steps: string[], contextOfUse?: string, category?: st
   return best[1] >= 2 ? best[0] : "default";
 }
 
-function detectPhase(stepText: string): Phase {
+function detectPhase(stepText: string, stepIndex: number, totalSteps: number): Phase {
   const lower = stepText.toLowerCase();
+  // Score each phase by keyword matches
+  const scores: Partial<Record<Phase, number>> = {};
   for (const [phase, keywords] of Object.entries(PHASE_KEYWORDS) as [Phase, string[]][]) {
-    if (keywords.some(kw => lower.includes(kw))) return phase;
+    const matches = keywords.filter(kw => lower.includes(kw)).length;
+    if (matches > 0) scores[phase] = matches;
   }
-  return "CORE USAGE";
+  // Pick best match
+  const sorted = Object.entries(scores).sort((a, b) => (b[1] as number) - (a[1] as number));
+  if (sorted.length > 0 && (sorted[0][1] as number) > 0) return sorted[0][0] as Phase;
+  // Position-aware fallback
+  const ratio = stepIndex / Math.max(totalSteps - 1, 1);
+  if (ratio <= 0.15) return "DISCOVERY";
+  if (ratio <= 0.3) return "EVALUATION";
+  if (ratio <= 0.5) return "CORE USAGE";
+  if (ratio <= 0.8) return "FULFILLMENT";
+  return "RETENTION";
 }
 
 function getFriction(stepIndex: number, stepName: string, frictionPoints: FrictionPoint[]): FrictionPoint | undefined {
