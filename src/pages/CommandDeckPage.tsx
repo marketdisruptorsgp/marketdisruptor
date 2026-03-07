@@ -718,6 +718,8 @@ export default function CommandDeckPage() {
         {/* ── Recommended Move ── */}
         <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
 
+import { StepLoadingTracker, type StepTask } from "@/components/StepLoadingTracker";
+
 
         {/* ══════════════════════════════════════════════════════════
             PROGRESSIVE EXPLORATION — Collapsible deeper layers
