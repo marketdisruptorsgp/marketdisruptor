@@ -332,12 +332,12 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     const challenges = governed.challenges as any[];
     if (Array.isArray(challenges)) {
       challenges.forEach((ch: any, i: number) => {
-        const label = ch.value || `Challenge override ${i + 1}`;
+        const label = ch.value || "User-defined strategic assumption";
         const stage = ch.stage || "constraint";
         items.push({
           id: makeId("challenge"),
           type: stage === "opportunity" ? "opportunity" : stage === "driver" ? "friction" : "constraint",
-          label: `Override: ${label}`,
+          label,
           description: `User-challenged ${stage} assumption: ${label}`,
           pipelineStep: "disrupt",
           tier: "structural" as const,
