@@ -61,7 +61,7 @@ export function useConceptExpansion(graph: InsightGraph) {
     setLoading(node.id);
 
     try {
-      const { constraints, leveragePoints } = getUpstreamContext(node.id);
+      const { constraints, leveragePoints, competitors, flippedIdeas } = getUpstreamContext(node.id);
 
       const { data, error } = await invokeWithTimeout<any>(
         "generate-concept-space",
@@ -71,6 +71,8 @@ export function useConceptExpansion(graph: InsightGraph) {
             opportunityDetail: node.detail || node.reasoning || "",
             constraints,
             leveragePoints,
+            competitors,
+            flippedIdeas,
           },
         },
         120_000,
