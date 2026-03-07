@@ -24,6 +24,8 @@ import { type LensTool } from "@/lib/lensToolkitRegistry";
 import { type ToolScenario, scenarioToEvidence } from "@/lib/scenarioEngine";
 import { useConceptExpansion } from "@/hooks/useConceptExpansion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAnalysis, type ConceptVariantSummary } from "@/contexts/AnalysisContext";
+import { toast } from "sonner";
 
 // ═══════════════════════════════════════════════════════════════
 //  MAIN COMPONENT
