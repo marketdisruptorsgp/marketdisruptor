@@ -138,7 +138,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
   const xrayChain = useMemo(() => {
     const parts: string[] = [];
     if (constraint) parts.push(`Constraint: ${constraint}`);
-    if (narrative?.strategicDirection) parts.push(`Direction: ${humanizeLabel(narrative.strategicDirection)}`);
+    if (narrative?.keyDriver) parts.push(`Driver: ${humanizeLabel(narrative.keyDriver)}`);
     if (opportunity) parts.push(`Opportunity: ${opportunity}`);
     if (narrative?.whyThisMatters) parts.push(narrative.whyThisMatters);
     return parts.slice(0, 3);
