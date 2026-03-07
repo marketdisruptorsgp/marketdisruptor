@@ -377,7 +377,10 @@ function StrategicSnapshotSection({ data }: { data: Record<string, unknown> }) {
 function DisruptSection({ data }: { data: Record<string, unknown> }) {
   const assumptions = (data.hiddenAssumptions as any[]) || [];
   const flippedLogic = (data.flippedLogic as any[]) || [];
+  const flippedIdeas = (data.flippedIdeas || data.ideas || data.paths) as any[] | undefined;
   const concept = data.redesignedConcept as Record<string, any> | undefined;
+  const constraints = (data.constraints || data.bindingConstraints) as any[] | undefined;
+  const revenueReinvention = data.revenueReinvention as Record<string, any> | undefined;
 
   return (
     <PrintSection title="Disruption Analysis" icon={<Brain size={14} />}>
@@ -446,6 +449,69 @@ function DisruptSection({ data }: { data: Record<string, unknown> }) {
               )}
             </PrintCard>
           ))}
+        </div>
+      )}
+
+      {/* Flipped Ideas (alternative shape) */}
+      {flippedIdeas && Array.isArray(flippedIdeas) && flippedIdeas.length > 0 && flippedLogic.length === 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title">
+            <Sparkles size={12} /> Disruption Ideas
+          </h3>
+          {flippedIdeas.map((idea: any, i: number) => (
+            <PrintCard key={i} accent="hsl(271 81% 55%)">
+              <p className="print-card-title">
+                <span className="print-card-number">{i + 1}</span>
+                {idea.title || idea.idea || idea.boldAlternative || idea.name || `Idea ${i + 1}`}
+              </p>
+              {(idea.description || idea.rationale) && <p className="print-body-sm">{idea.description || idea.rationale}</p>}
+              {idea.mechanism && <p className="print-body-sm">Mechanism: {idea.mechanism}</p>}
+              {idea.marketPotential && <p className="print-body-sm">Market: {idea.marketPotential}</p>}
+              {idea.physicalMechanism && <p className="print-body-sm">Physical: {idea.physicalMechanism}</p>}
+            </PrintCard>
+          ))}
+        </div>
+      )}
+
+      {/* Constraints */}
+      {constraints && Array.isArray(constraints) && constraints.length > 0 && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title">
+            <AlertTriangle size={12} /> Binding Constraints
+          </h3>
+          {constraints.map((c: any, i: number) => (
+            <PrintCard key={i} accent="hsl(0 72% 51%)">
+              <p className="print-card-title">{typeof c === "string" ? c : c.label || c.constraint || c.name || `Constraint ${i + 1}`}</p>
+              {c.description && <p className="print-body-sm">{c.description}</p>}
+              {c.impact && <PrintTag label={`Impact: ${c.impact}`} color="hsl(0 72% 51%)" />}
+            </PrintCard>
+          ))}
+        </div>
+      )}
+
+      {/* Revenue Reinvention */}
+      {revenueReinvention && (
+        <div className="print-subsection">
+          <h3 className="print-subsection-title">
+            <TrendingUp size={12} /> Revenue Reinvention
+          </h3>
+          {revenueReinvention.currentRevenueMix && (
+            <PrintCard>
+              <p className="print-label">Current Revenue Mix</p>
+              <p className="print-body-sm">{revenueReinvention.currentRevenueMix}</p>
+            </PrintCard>
+          )}
+          {revenueReinvention.newRevenueStreams?.length > 0 && (
+            <div>
+              {revenueReinvention.newRevenueStreams.map((s: any, i: number) => (
+                <PrintCard key={i} accent="hsl(142 70% 40%)">
+                  <p className="print-card-title">{typeof s === "string" ? s : s.name || s.title || `Stream ${i + 1}`}</p>
+                  {s.description && <p className="print-body-sm">{s.description}</p>}
+                  {s.potential && <p className="print-body-sm">Potential: {s.potential}</p>}
+                </PrintCard>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
