@@ -34,33 +34,26 @@ import { DSCRCalculator } from "@/components/tools/DSCRCalculator";
 import { InnovationPathwayMapper } from "@/components/tools/InnovationPathwayMapper";
 import { AssumptionStressTester } from "@/components/tools/AssumptionStressTester";
 
-/* ── Tool Card ── */
+/* ── Compact Tool Card (grid-optimized) ── */
 function ToolCard({
-  tool, recommended, reason, onOpen,
+  tool, recommended, onOpen,
 }: {
-  tool: LensTool; recommended?: boolean; reason?: string; onOpen: (tool: LensTool) => void;
+  tool: LensTool; recommended?: boolean; onOpen: (tool: LensTool) => void;
 }) {
   const Icon = tool.icon;
   return (
     <button onClick={() => onOpen(tool)}
-      className="w-full text-left rounded-xl p-4 border border-border bg-card transition-all hover:border-primary/30 hover:shadow-sm active:scale-[0.99] min-h-[88px]">
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${tool.accentColor}12` }}>
-          <Icon size={16} style={{ color: tool.accentColor }} />
+      className="text-left rounded-lg p-3 border border-border bg-card transition-all hover:border-primary/30 hover:shadow-sm active:scale-[0.99]">
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${tool.accentColor}12` }}>
+          <Icon size={14} style={{ color: tool.accentColor }} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-bold text-foreground leading-snug">{tool.title}</p>
-            {recommended && (
-              <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary/10 text-primary">
-                <Sparkles size={8} /> Suggested
-              </span>
-            )}
-          </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">{tool.description}</p>
-          {reason && <p className="text-[10px] font-semibold mt-1" style={{ color: tool.accentColor }}>{reason}</p>}
+          <p className="text-xs font-bold text-foreground leading-snug truncate">{tool.title}</p>
+          <p className="text-[10px] text-muted-foreground leading-snug line-clamp-1 mt-0.5">{tool.description}</p>
         </div>
-        <ChevronRight size={14} className="text-muted-foreground flex-shrink-0 mt-1" />
+        {recommended && <Sparkles size={10} className="text-primary flex-shrink-0" />}
+        <ChevronRight size={12} className="text-muted-foreground flex-shrink-0" />
       </div>
     </button>
   );
