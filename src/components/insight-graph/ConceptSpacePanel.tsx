@@ -113,6 +113,8 @@ export const ConceptSpacePanel = memo(function ConceptSpacePanel({
                 variant={variant}
                 rank={i + 1}
                 onToggle={() => onToggleVariant(variant.id)}
+                onDismiss={onDismissVariant ? () => onDismissVariant(variant.id) : undefined}
+              />
               />
             ))}
           </div>
