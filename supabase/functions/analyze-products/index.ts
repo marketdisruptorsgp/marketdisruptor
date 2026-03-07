@@ -347,11 +347,11 @@ For each product, return an object with this EXACT structure:
   },
   
   "supplyChain": {
-    "suppliers": [{"name": "Supplier Name", "region": "Country/Region", "url": "https://url.com", "role": "What they supply"}],
-    "manufacturers": [{"name": "Manufacturer", "region": "Country", "url": "https://url.com", "moq": "Min order qty"}],
-    "vendors": [{"name": "Vendor Name", "type": "Specialty/Mass/Import", "url": "https://url.com", "notes": "Context"}],
-    "retailers": [{"name": "Retailer", "type": "E-commerce/Mass/Specialty", "url": "https://url.com", "marketShare": "X%"}],
-    "distributors": [{"name": "Distributor", "region": "Region", "url": "https://url.com", "notes": "Context"}]
+    "suppliers": [{"name": "e.g. Dongguan Huiyang Plastics Co.", "region": "Guangdong, China", "url": "https://alibaba.com/...", "role": "Injection-molded ABS shells"}],
+    "manufacturers": [{"name": "e.g. Hasbro Manufacturing (East Longmeadow)", "region": "USA / Shenzhen", "url": "https://...", "moq": "5,000 units"}],
+    "vendors": [{"name": "e.g. Uline", "type": "Packaging/Specialty", "url": "https://uline.com", "notes": "Clamshell packaging supplier"}],
+    "retailers": [{"name": "e.g. Target, Walmart, Amazon", "type": "Mass/E-commerce", "url": "https://...", "marketShare": "35%"}],
+    "distributors": [{"name": "e.g. Alliance Entertainment", "region": "North America", "url": "https://...", "notes": "Toy/hobby distribution"}]
   },
   "trendAnalysis": "Detailed 4-5 sentence trend analysis with SPECIFIC data: search volumes, YoY growth rates, community post velocity, key events driving interest, search index trends, social engagement metrics, demographic shift data",
   "actionPlan": {
