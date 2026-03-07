@@ -459,6 +459,41 @@ export const InsightNodeCard = memo(function InsightNodeCard({
       )}
 
 
+      {/* ── CONCEPT EXPANSION — Design Space for Opportunity Nodes ── */}
+      {OPPORTUNITY_NODE_TYPES.includes(node.type) && (
+        <div className="px-4 pb-3">
+          {conceptSpace ? (
+            <ConceptSpacePanel
+              conceptSpace={conceptSpace}
+              onToggleVariant={(variantId) => onToggleConceptVariant?.(node.id, variantId)}
+            />
+          ) : (
+            <button
+              onClick={() => onExpandDesignSpace?.(node)}
+              disabled={!!conceptExpansionLoading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: NODE_TYPE_CONFIG["concept_variant"].bgColor,
+                border: `1.5px solid ${NODE_TYPE_CONFIG["concept_variant"].borderColor}`,
+                color: NODE_TYPE_CONFIG["concept_variant"].color,
+              }}
+            >
+              {conceptExpansionLoading ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Generating Design Space…
+                </>
+              ) : (
+                <>
+                  <Sparkles size={14} />
+                  Expand Design Space
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Strategic Actions */}
       <div className="px-4 pb-3">
         <p className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground mb-2">
