@@ -683,6 +683,11 @@ export default function CommandDeckPage() {
         />
 
 
+        {/* ══════════════════════════════════════════════════════════
+            RECOMMENDED STRATEGIC MOVE — Top playbook above fold
+           ══════════════════════════════════════════════════════════ */}
+        <RecommendedMoveCard playbook={topPlaybook} modeAccent={modeAccent} />
+
 
         {/* ══════════════════════════════════════════════════════════
             PROGRESSIVE EXPLORATION — Collapsible deeper layers
