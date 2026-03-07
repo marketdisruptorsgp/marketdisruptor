@@ -228,7 +228,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
 
   // All slides: cover + SLIDE_TABS
   const ALL_SLIDES = ["cover" as const, ...SLIDE_TABS.map(t => t.id)];
-  const allCurrentIdx = ALL_SLIDES.indexOf(activeSlide as string);
+  const allCurrentIdx = ALL_SLIDES.indexOf(activeSlide);
   const allTotal = ALL_SLIDES.length;
 
   const goNext = () => {
