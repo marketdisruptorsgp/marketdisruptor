@@ -53,7 +53,8 @@ export type EdgeRelation =
   | "creates"
   | "enables"
   | "blocks"
-  | "tests";
+  | "tests"
+  | "variant_of";
 
 export interface InsightGraphNode {
   id: string;
