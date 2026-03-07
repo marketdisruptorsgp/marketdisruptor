@@ -921,7 +921,7 @@ export const PitchDeck = ({ product, analysisId, onSave, externalData, disruptDa
       <div className="flex items-center justify-between gap-3 px-1">
         <button
           onClick={goPrev}
-          disabled={!prevSlide}
+          disabled={allCurrentIdx <= 0}
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted border border-border text-foreground"
         >
           <ArrowRight size={14} className="rotate-180" /> Prev
