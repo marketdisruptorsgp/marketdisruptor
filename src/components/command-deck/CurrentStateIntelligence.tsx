@@ -33,7 +33,7 @@ interface CurrentStateIntelligenceProps {
   narrative: StrategicNarrative | null;
   governedData: Record<string, any> | null;
   flatEvidence: Array<{ label?: string; description?: string; category?: string; impact?: number; type?: string }>;
-  detectedPatterns: Array<{ label: string; description?: string }>;
+  detectedPatterns: Array<{ name?: string; label?: string; description?: string }>;
 }
 
 interface InsightBullet {
