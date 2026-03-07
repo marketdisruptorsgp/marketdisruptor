@@ -3,7 +3,7 @@ import { TierKey } from "@/hooks/useSubscription";
 
 interface HeroSectionProps {
   tier: TierKey;
-  remainingAnalyses: number | null;
+  remainingAnalyses?: number | null;
   profileFirstName?: string;
   onOpenSaved?: () => void;
   savedCount?: number;
