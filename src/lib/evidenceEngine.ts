@@ -247,6 +247,16 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
       const label = typeof f === "string" ? f : (f.text || f.label || `Friction ${i + 1}`);
       items.push({ id: makeId("fric-fp"), type: "friction", label, pipelineStep: "report", tier: autoTier(label, undefined, "system"), mode, sourceEngine: "pipeline" });
     });
+    // Also extract from userJourney.frictionPoints (product analyses)
+    const uj = product.userJourney;
+    if (uj?.frictionPoints) {
+      safeArr(uj.frictionPoints).forEach((fp: any, i: number) => {
+        const label = typeof fp === "string" ? fp : (fp.friction || fp.text || fp.label || `Journey Friction ${i + 1}`);
+        if (!items.some(e => e.label === label)) {
+          items.push({ id: makeId("fric-uj"), type: "friction", label, pipelineStep: "report", tier: autoTier(label, undefined, "system"), mode, sourceEngine: "pipeline" });
+        }
+      });
+    }
   }
 
   const disrupt = input.disruptData;
@@ -261,8 +271,8 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // ── Business Model: governed friction tiers ──
-  const bizGov = input.businessAnalysisData?.governed;
+  // ── Governed friction tiers (from business model OR product disrupt) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
   if (bizGov?.friction_tiers) {
     const ft = bizGov.friction_tiers;
     safeArr(ft.tier_1).forEach((f: any, i: number) => {
@@ -349,8 +359,8 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     }
   }
 
-  // ── Business Model: governed constraint_map ──
-  const bizGov = input.businessAnalysisData?.governed;
+  // ── Governed constraint_map + first_principles (from business model OR product disrupt) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
   if (bizGov) {
     // Causal chains from constraint_map
     const cm = bizGov.constraint_map;
@@ -525,8 +535,8 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // ── Business Model: counterfactual removal as leverage signal ──
-  const bizGov = input.businessAnalysisData?.governed;
+  // ── Governed: counterfactual removal as leverage signal (business model OR product disrupt) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
   if (bizGov?.constraint_map?.counterfactual_removal_result) {
     const cfText = String(bizGov.constraint_map.counterfactual_removal_result);
     // Use the actual counterfactual text as the label (trimmed to readable length)
@@ -577,8 +587,8 @@ function extractRiskEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // ── Business Model: governed decision_synthesis blocking uncertainties ──
-  const bizGov = input.businessAnalysisData?.governed;
+  // ── Governed decision_synthesis blocking uncertainties (business model OR product disrupt) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
   if (bizGov?.decision_synthesis) {
     const ds = bizGov.decision_synthesis;
     safeArr(ds.blocking_uncertainties).forEach((u: any, i: number) => {
