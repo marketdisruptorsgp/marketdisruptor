@@ -48,6 +48,9 @@ import { OpportunityMapPanel } from "@/components/command-deck/OpportunityRadarP
 import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
 import { ConfidenceExplanationPanel } from "@/components/command-deck/ConfidenceExplanationPanel";
 import { PipelineJourneyCards } from "@/components/command-deck/PipelineJourneyCards";
+import { CurrentStateIntelligence } from "@/components/command-deck/CurrentStateIntelligence";
+import { ValuePillarTabs } from "@/components/command-deck/ValuePillarTabs";
+import { ProblemStatementCard } from "@/components/command-deck/ProblemStatementCard";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
 import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine";
 import {
