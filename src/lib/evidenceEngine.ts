@@ -310,7 +310,7 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
       });
     });
     safeArr(disrupt.structuralBlockers).forEach((b: any, i: number) => {
-      const label = typeof b === "string" ? b : (b.name || b.label || `Blocker ${i + 1}`);
+      const label = typeof b === "string" ? b : (b.name || b.label || "Structural scaling limitation");
       items.push({ id: makeId("con-blk"), type: "constraint", label, pipelineStep: "disrupt", tier: "structural", mode, sourceEngine: "pipeline" });
     });
   }
@@ -320,7 +320,8 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     const synopsis = governed.reasoning_synopsis as any;
     if (synopsis?.key_assumptions) {
       safeArr(synopsis.key_assumptions).forEach((a: any, i: number) => {
-        const label = typeof a === "string" ? a : (a.text || a.label || `Governed Assumption ${i + 1}`);
+        const raw = typeof a === "string" ? a : (a.text || a.label || "");
+        const label = raw || `Key assumption from structural analysis`;
         if (!items.some(e => e.label === label)) {
           items.push({ id: makeId("con-gov"), type: "assumption", label, pipelineStep: "disrupt", tier: autoTier(label, undefined, "system"), mode, sourceEngine: "pipeline" });
         }
@@ -331,12 +332,12 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
     const challenges = governed.challenges as any[];
     if (Array.isArray(challenges)) {
       challenges.forEach((ch: any, i: number) => {
-        const label = ch.value || `Challenge override ${i + 1}`;
+        const label = ch.value || "User-defined strategic assumption";
         const stage = ch.stage || "constraint";
         items.push({
           id: makeId("challenge"),
           type: stage === "opportunity" ? "opportunity" : stage === "driver" ? "friction" : "constraint",
-          label: `Override: ${label}`,
+          label,
           description: `User-challenged ${stage} assumption: ${label}`,
           pipelineStep: "disrupt",
           tier: "structural" as const,

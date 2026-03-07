@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { StrategicInsight, StrategicNarrative } from "@/lib/strategicEngine";
 import type { Evidence } from "@/lib/evidenceEngine";
+import { humanizeLabel } from "@/lib/humanize";
 
 interface XRayNode {
   stage: string;
@@ -83,7 +84,7 @@ export const StrategicXRay = memo(function StrategicXRay({
       {
         stage: "evidence",
         label: `${evidenceForConstraint.length} supporting signals`,
-        description: evidenceForConstraint.map(e => e.label).join("; ") || "No evidence collected yet",
+        description: evidenceForConstraint.map(e => humanizeLabel(e.label)).join("; ") || "No evidence collected yet",
         icon: Search,
         color: "hsl(var(--muted-foreground))",
         bgColor: "hsl(var(--muted))",
@@ -275,7 +276,7 @@ export const StrategicXRay = memo(function StrategicXRay({
                                   {relatedEvidence.slice(0, 4).map(ev => (
                                     <div key={ev.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-muted/50">
                                       <Search size={10} className="text-muted-foreground flex-shrink-0" />
-                                      <span className="text-[11px] text-foreground truncate">{ev.label}</span>
+                                      <span className="text-[11px] text-foreground truncate">{humanizeLabel(ev.label)}</span>
                                       <span className="text-[9px] text-muted-foreground flex-shrink-0 ml-auto">
                                         {ev.pipelineStep}
                                       </span>
@@ -295,7 +296,7 @@ export const StrategicXRay = memo(function StrategicXRay({
                                   {flatEvidence.slice(0, 6).map(ev => (
                                     <div key={ev.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-muted/50">
                                       <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} />
-                                      <span className="text-[11px] text-foreground truncate">{ev.label}</span>
+                                      <span className="text-[11px] text-foreground truncate">{humanizeLabel(ev.label)}</span>
                                       <span className="text-[9px] text-muted-foreground flex-shrink-0 ml-auto capitalize">
                                         {ev.type?.replace(/_/g, " ")}
                                       </span>

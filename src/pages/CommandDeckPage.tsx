@@ -59,6 +59,7 @@ import {
 import { extractAllEvidence, type EvidenceTier } from "@/lib/evidenceEngine";
 import { getScenarios, scenarioToEvidence, type ToolScenario } from "@/lib/scenarioEngine";
 import { recomputeIntelligence } from "@/lib/recomputeIntelligence";
+import { humanizeLabel } from "@/lib/humanize";
 
 const PIPELINE_STEPS = [
   { key: "report", label: "Report", icon: Target, route: "report" },
@@ -446,13 +447,7 @@ export default function CommandDeckPage() {
     // Diagnosis evidence bullets — top evidence categories with example signals
     const diagnosisEvidence = sorted.slice(0, 4).map(([cat]) => {
       const rawDetail = categoryExamples.get(cat) || `${categories.get(cat)} indicators detected`;
-      // Humanize: strip internal IDs like "Governed Assumption 1", "C1:", etc.
-      const detail = rawDetail
-        .replace(/^(C\d+|F_?\d+|L\d+|O\d+|Governed Assumption \d+)[:\s-]*/gi, "")
-        .replace(/^Binding Constraint:\s*/i, "")
-        .replace(/^Counterfactual:\s*/i, "")
-        .replace(/\s*\(\+\d+ related\)\s*/g, "")
-        .trim() || `${categories.get(cat)} indicators detected`;
+      const detail = humanizeLabel(rawDetail) || `${categories.get(cat)} indicators detected`;
       return { category: cat, detail };
     });
 
