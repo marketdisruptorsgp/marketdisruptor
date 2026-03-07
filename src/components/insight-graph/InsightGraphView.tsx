@@ -299,8 +299,8 @@ function GraphTooltip({ node, graph }: {
 // ═══════════════════════════════════════════════════════════════
 
 function layoutTiered(graphNodes: InsightGraphNode[]): Node[] {
-  const colWidth = 310;
-  const rowHeight = 115;
+  const colWidth = 420;
+  const rowHeight = 155;
   const flowNodes: Node[] = [];
 
   const tierMap = new Map<string, number>();
