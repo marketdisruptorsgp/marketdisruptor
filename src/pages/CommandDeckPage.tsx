@@ -37,10 +37,11 @@ import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
 import { StrategicScenarioSimulator } from "@/components/command-deck/StrategicScenarioSimulator";
 import { StrategicPatternCard } from "@/components/command-deck/StrategicPatternCard";
 import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchmarkPanel";
-import { OpportunityRadarPanel } from "@/components/command-deck/OpportunityRadarPanel";
+import { OpportunityMapPanel } from "@/components/command-deck/OpportunityRadarPanel";
 import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
+import { ConfidenceExplanationPanel } from "@/components/command-deck/ConfidenceExplanationPanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
-import { computeBenchmarks, computeOpportunityRadar, generateStrategicStory } from "@/lib/benchmarkEngine";
+import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine";
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
   type ScenarioSnapshot,
@@ -402,8 +403,12 @@ export default function CommandDeckPage() {
     [autoAnalysis.flatEvidence, narrative, topPlaybook],
   );
   const opportunityRadar = useMemo(() =>
-    computeOpportunityRadar(allPlaybooks, autoAnalysis.flatEvidence, narrative),
+    computeOpportunityMap(allPlaybooks, autoAnalysis.flatEvidence, narrative),
     [allPlaybooks, autoAnalysis.flatEvidence, narrative],
+  );
+  const confidenceExplanation = useMemo(() =>
+    computeConfidenceExplanation(autoAnalysis.flatEvidence),
+    [autoAnalysis.flatEvidence],
   );
   const strategicStory = useMemo(() =>
     generateStrategicStory(narrative, topPlaybook, autoAnalysis.flatEvidence),
@@ -629,7 +634,10 @@ export default function CommandDeckPage() {
           weakCategories={evidenceAttribution.weak}
         />
 
-        {/* Strategic Verdict — THE most important component */}
+        {/* Confidence Explanation — Why trust this? */}
+        <ConfidenceExplanationPanel explanation={confidenceExplanation} />
+
+
         <StrategicVerdictBanner
           verdict={narrative?.strategicVerdict ?? null}
           rationale={narrative?.verdictRationale ?? null}
@@ -690,7 +698,7 @@ export default function CommandDeckPage() {
         {/* Industry Benchmarks + Opportunity Radar */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <IndustryBenchmarkPanel benchmark={benchmark} />
-          <OpportunityRadarPanel items={opportunityRadar} />
+          <OpportunityMapPanel items={opportunityRadar} />
         </div>
 
         {/* Strategic Pattern Detection */}

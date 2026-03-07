@@ -1,5 +1,5 @@
 /**
- * IndustryBenchmarkPanel — How this business compares to similar models
+ * IndustryBenchmarkPanel — Archetype-based benchmark comparisons
  */
 
 import { memo } from "react";
@@ -30,21 +30,24 @@ export const IndustryBenchmarkPanel = memo(function IndustryBenchmarkPanel({ ben
 
   return (
     <div className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
-      {/* Header */}
       <div className="px-5 pt-4 pb-2 flex items-center gap-2">
         <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
           <BarChart3 size={14} className="text-primary" />
         </div>
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-          Benchmark Insights
-        </span>
+        <div>
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+            Industry Benchmark
+          </span>
+          <span className="text-[9px] font-bold text-primary ml-2">
+            vs. {benchmark.modelType}
+          </span>
+        </div>
       </div>
 
       <div className="px-5 pb-2">
         <p className="text-xs text-muted-foreground leading-relaxed">{benchmark.summary}</p>
       </div>
 
-      {/* Metrics */}
       <div className="px-5 pb-4">
         <div className="space-y-2">
           {benchmark.metrics.map((m, i) => (

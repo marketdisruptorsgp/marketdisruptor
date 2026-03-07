@@ -1,66 +1,91 @@
 /**
- * OpportunityRadarPanel — Prioritized opportunity landscape
- * Shows High / Moderate / Low leverage moves.
+ * OpportunityMapPanel — 2-Axis Strategic Opportunity Map
+ *
+ * Plots opportunities across Impact × Difficulty with quadrant labels:
+ *   Immediate Priority | Transformation Path | Quick Win | Avoid
  */
 
 import { memo } from "react";
-import { Radar, Zap, TrendingUp, ArrowRight } from "lucide-react";
-import type { OpportunityRadarItem } from "@/lib/benchmarkEngine";
+import { Radar, Zap, TrendingUp, ArrowRight, XCircle } from "lucide-react";
+import type { OpportunityMapItem, OpportunityQuadrant } from "@/lib/benchmarkEngine";
 
-interface OpportunityRadarPanelProps {
-  items: OpportunityRadarItem[];
+interface OpportunityMapPanelProps {
+  items: OpportunityMapItem[];
 }
 
-function leverageConfig(level: "high" | "moderate" | "low") {
-  const map = {
-    high: { color: "hsl(var(--success))", bg: "hsl(var(--success) / 0.08)", border: "hsl(var(--success) / 0.15)", label: "High Leverage", Icon: Zap },
-    moderate: { color: "hsl(var(--warning))", bg: "hsl(var(--warning) / 0.08)", border: "hsl(var(--warning) / 0.15)", label: "Moderate Leverage", Icon: TrendingUp },
-    low: { color: "hsl(var(--muted-foreground))", bg: "hsl(var(--muted) / 0.3)", border: "hsl(var(--border))", label: "Low Leverage", Icon: ArrowRight },
-  };
-  return map[level];
-}
+const QUADRANT_CONFIG: Record<OpportunityQuadrant, {
+  label: string; sublabel: string;
+  color: string; bg: string; border: string;
+  Icon: typeof Zap;
+}> = {
+  immediate_priority: {
+    label: "Immediate Priorities",
+    sublabel: "High Impact · Low Difficulty",
+    color: "hsl(var(--success))", bg: "hsl(var(--success) / 0.08)", border: "hsl(var(--success) / 0.15)",
+    Icon: Zap,
+  },
+  transformation: {
+    label: "Transformation Paths",
+    sublabel: "High Impact · High Difficulty",
+    color: "hsl(var(--primary))", bg: "hsl(var(--primary) / 0.08)", border: "hsl(var(--primary) / 0.15)",
+    Icon: TrendingUp,
+  },
+  quick_win: {
+    label: "Quick Wins",
+    sublabel: "Lower Impact · Low Difficulty",
+    color: "hsl(var(--warning))", bg: "hsl(var(--warning) / 0.08)", border: "hsl(var(--warning) / 0.15)",
+    Icon: ArrowRight,
+  },
+  avoid: {
+    label: "Low Priority",
+    sublabel: "Lower Impact · High Difficulty",
+    color: "hsl(var(--muted-foreground))", bg: "hsl(var(--muted) / 0.3)", border: "hsl(var(--border))",
+    Icon: XCircle,
+  },
+};
 
-export const OpportunityRadarPanel = memo(function OpportunityRadarPanel({ items }: OpportunityRadarPanelProps) {
+const QUADRANT_ORDER: OpportunityQuadrant[] = ["immediate_priority", "transformation", "quick_win", "avoid"];
+
+export const OpportunityMapPanel = memo(function OpportunityMapPanel({ items }: OpportunityMapPanelProps) {
   if (items.length === 0) return null;
 
-  const grouped = {
-    high: items.filter(i => i.leverage === "high"),
-    moderate: items.filter(i => i.leverage === "moderate"),
-    low: items.filter(i => i.leverage === "low"),
-  };
+  const grouped = new Map<OpportunityQuadrant, OpportunityMapItem[]>();
+  for (const item of items) {
+    const list = grouped.get(item.quadrant) || [];
+    list.push(item);
+    grouped.set(item.quadrant, list);
+  }
 
-  const tiers = ([
-    { key: "high" as const, items: grouped.high },
-    { key: "moderate" as const, items: grouped.moderate },
-    { key: "low" as const, items: grouped.low },
-  ]).filter(t => t.items.length > 0);
+  const filledQuadrants = QUADRANT_ORDER.filter(q => grouped.has(q));
 
   return (
     <div className="rounded-xl overflow-hidden" style={{ background: "hsl(var(--card))", border: "1.5px solid hsl(var(--border))" }}>
-      {/* Header */}
       <div className="px-5 pt-4 pb-2 flex items-center gap-2">
         <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
           <Radar size={14} className="text-primary" />
         </div>
         <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-          Opportunity Landscape
+          Strategic Opportunity Map
         </span>
       </div>
 
-      {/* Tiers */}
       <div className="px-5 pb-4 space-y-3">
-        {tiers.map(tier => {
-          const cfg = leverageConfig(tier.key);
+        {filledQuadrants.map(qKey => {
+          const cfg = QUADRANT_CONFIG[qKey];
+          const qItems = grouped.get(qKey) || [];
           return (
-            <div key={tier.key}>
-              <div className="flex items-center gap-1.5 mb-1.5">
+            <div key={qKey}>
+              <div className="flex items-center gap-1.5 mb-1">
                 <cfg.Icon size={11} style={{ color: cfg.color }} />
                 <span className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: cfg.color }}>
-                  {cfg.label} Moves
+                  {cfg.label}
+                </span>
+                <span className="text-[9px] text-muted-foreground ml-1">
+                  {cfg.sublabel}
                 </span>
               </div>
               <div className="space-y-1.5">
-                {tier.items.map((item, i) => (
+                {qItems.map((item, i) => (
                   <div
                     key={i}
                     className="rounded-lg px-3 py-2.5 flex items-start gap-2"
@@ -71,9 +96,14 @@ export const OpportunityRadarPanel = memo(function OpportunityRadarPanel({ items
                       <p className="text-xs font-bold text-foreground">{item.label}</p>
                       <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{item.description}</p>
                     </div>
-                    <span className="text-[10px] font-black flex-shrink-0 mt-0.5" style={{ color: cfg.color }}>
-                      {item.score.toFixed(1)}
-                    </span>
+                    <div className="flex flex-col items-end flex-shrink-0 gap-0.5">
+                      <span className="text-[9px] font-bold" style={{ color: cfg.color }}>
+                        Impact {item.impact.toFixed(0)}/10
+                      </span>
+                      <span className="text-[9px] text-muted-foreground">
+                        Difficulty {item.difficulty.toFixed(0)}/10
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
