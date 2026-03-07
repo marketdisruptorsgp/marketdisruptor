@@ -148,10 +148,21 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
   const hasData = !!constraint || !!verdict || confidence >= 0.15;
 
   const diagnosis = useMemo(() => {
-    if (narrative?.verdictRationale && narrative.verdictRationale.length > 20 && narrative.verdictRationale.length < 200)
+    // Only show the verdict rationale if it's genuinely different from the constraint
+    if (narrative?.verdictRationale
+      && narrative.verdictRationale.length > 20
+      && narrative.verdictRationale.length < 200
+      && constraint
+      && !narrative.verdictRationale.toLowerCase().includes(constraint.toLowerCase().slice(0, 30))
+    ) {
       return narrative.verdictRationale;
-    if (constraint && verdict) return `${constraint} is constraining growth. ${verdict}.`;
-    if (constraint) return `Key structural constraint: ${constraint.toLowerCase()}.`;
+    }
+    // Use whyThisMatters if available — it's the most insightful field
+    if (narrative?.whyThisMatters && narrative.whyThisMatters.length > 20) {
+      return narrative.whyThisMatters;
+    }
+    // Fall back to just the constraint as a clean label — no filler
+    if (constraint) return constraint;
     if (verdict) return verdict;
     if (completedSteps > 0) return "Initial signals detected — run more steps to strengthen diagnosis.";
     return "Run analysis to generate strategic diagnosis.";
