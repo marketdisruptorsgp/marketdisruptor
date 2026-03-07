@@ -27,6 +27,7 @@ interface InsightNodeCardProps {
   conceptSpace?: ConceptSpace | null;
   onExpandDesignSpace?: (node: InsightGraphNode) => void;
   onToggleConceptVariant?: (opportunityNodeId: string, variantId: string) => void;
+  onStressTestSelected?: (opportunityNodeId: string) => void;
   conceptExpansionLoading?: boolean;
 }
 
