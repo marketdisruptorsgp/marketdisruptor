@@ -507,6 +507,37 @@ export default function CommandDeckPage() {
   const modeKey: "product" | "service" | "business" = analysis.activeMode === "service" ? "service"
     : analysis.activeMode === "business" ? "business" : "product";
 
+  // ── Step findings for journey cards ──
+  const stepFindings = useMemo(() => {
+    const f: Record<string, { headline: string } | null> = {};
+    // Report
+    if (selectedProduct?.pricingIntel || selectedProduct?.supplyChain) {
+      const parts: string[] = [];
+      if (selectedProduct?.pricingIntel?.priceRange) parts.push(`Price range: ${selectedProduct.pricingIntel.priceRange}`);
+      if (selectedProduct?.supplyChain?.manufacturers?.[0]) parts.push(`Key manufacturer: ${selectedProduct.supplyChain.manufacturers[0]}`);
+      f.report = parts.length ? { headline: parts.join(" · ") } : null;
+    }
+    // Disrupt
+    if (narrative?.primaryConstraint) {
+      f.disrupt = { headline: `Core constraint: ${humanizeLabel(narrative.primaryConstraint)}` };
+    }
+    // Redesign
+    if (analysis.redesignData) {
+      const ideas = (analysis.redesignData as any)?.flippedIdeas;
+      f.redesign = ideas?.length ? { headline: `${ideas.length} reimagined concepts generated` } : null;
+    }
+    // Stress Test
+    if (analysis.stressTestData) {
+      const verdict = (analysis.stressTestData as any)?.verdict;
+      f.stressTest = verdict ? { headline: verdict } : null;
+    }
+    // Pitch
+    if (analysis.pitchDeckData) {
+      f.pitch = { headline: "Pitch deck ready for review" };
+    }
+    return f;
+  }, [selectedProduct, narrative, analysis.redesignData, analysis.stressTestData, analysis.pitchDeckData]);
+
   // Derive industry / date for header context (must be before guard — hooks)
   const industryLabel = useMemo(() => {
     if (businessModelInput?.type) return businessModelInput.type;
