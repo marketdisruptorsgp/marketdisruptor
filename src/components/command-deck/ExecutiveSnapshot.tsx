@@ -129,7 +129,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
   // Top drivers from insights
   const topDrivers = useMemo(() => {
     return insights
-      .filter(i => i.type === "driver" || i.type === "leverage" || i.type === "constraint")
+      .filter(i => i.insightType === "driver" || i.insightType === "leverage_point" || i.insightType === "constraint_cluster")
       .slice(0, 4)
       .map(i => humanizeLabel(i.label) || i.description?.slice(0, 60) || "Driver identified");
   }, [insights]);
