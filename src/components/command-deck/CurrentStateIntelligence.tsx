@@ -117,7 +117,8 @@ function extractBullets(props: CurrentStateIntelligenceProps): Record<string, In
 
   // ── Emerging Patterns ──
   detectedPatterns.slice(0, 3).forEach(pat => {
-    groups.patterns.push({ text: humanizeLabel(pat.label), category: "patterns" });
+    const text = pat.label || pat.name || "";
+    if (text) groups.patterns.push({ text: humanizeLabel(text), category: "patterns" });
   });
   // Evidence clusters as patterns
   if (groups.patterns.length < 2) {
