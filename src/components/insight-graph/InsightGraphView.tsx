@@ -545,7 +545,7 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 gap-2">
+    <div className="flex flex-col h-full min-h-0 gap-2">
       {/* ── Toolbar: Tabs + Controls (desktop only — mobile gets bottom bar) ── */}
       <div className="rounded-xl border border-border bg-card p-2 space-y-2">
         {/* Row 1: View tabs */}
