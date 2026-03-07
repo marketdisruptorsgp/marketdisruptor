@@ -296,7 +296,7 @@ export const StrategicXRay = memo(function StrategicXRay({
                                   {flatEvidence.slice(0, 6).map(ev => (
                                     <div key={ev.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-muted/50">
                                       <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "hsl(var(--primary))" }} />
-                                      <span className="text-[11px] text-foreground truncate">{ev.label}</span>
+                                      <span className="text-[11px] text-foreground truncate">{humanizeLabel(ev.label)}</span>
                                       <span className="text-[9px] text-muted-foreground flex-shrink-0 ml-auto capitalize">
                                         {ev.type?.replace(/_/g, " ")}
                                       </span>
