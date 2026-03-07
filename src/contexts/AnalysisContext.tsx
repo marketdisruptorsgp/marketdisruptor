@@ -172,6 +172,10 @@ interface AnalysisContextType {
   scoutedCompetitors: unknown[];
   setScoutedCompetitors: (d: unknown[]) => void;
 
+  // Concept variants selected for stress testing (from Insight Graph → Stress Test)
+  conceptVariantsForStressTest: ConceptVariantSummary[];
+  setConceptVariantsForStressTest: (d: ConceptVariantSummary[]) => void;
+
   // Mode routing
   modeRouting: RoutingResult | null;
   setModeRouting: (r: RoutingResult | null) => void;
