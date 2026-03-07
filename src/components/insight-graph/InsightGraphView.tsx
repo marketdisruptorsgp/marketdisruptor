@@ -42,6 +42,22 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
   const [intelligenceEvents, setIntelligenceEvents] = useState<string[]>([]);
   const isMobile = useIsMobile();
 
+  // Concept expansion
+  const { generateConceptSpace, getConceptSpace, toggleVariantSelection, loading: conceptLoading } = useConceptExpansion(graph);
+
+  // Graph with concept variants injected
+  const enrichedGraph = useMemo(() => {
+    let g = graph;
+    // Inject any generated concept variants
+    for (const node of graph.nodes) {
+      const space = getConceptSpace(node.id);
+      if (space) {
+        g = injectConceptVariants(g, space);
+      }
+    }
+    return g;
+  }, [graph, getConceptSpace]);
+
   const handleOpenTool = useCallback((tool: LensTool) => {
     setSimTool(tool);
     setSimPanelOpen(true);
