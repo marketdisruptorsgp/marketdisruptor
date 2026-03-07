@@ -157,7 +157,7 @@ export const NarrativeSummary = memo(function NarrativeSummary(props: NarrativeS
             <div className="flex items-center gap-1.5 mb-2">
               <Sparkles size={12} className="text-primary" />
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">
-                Key Recommendations
+                Evidence-Backed Recommendations
               </span>
             </div>
             <div className="space-y-2">
