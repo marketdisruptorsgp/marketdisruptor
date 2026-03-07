@@ -14,7 +14,7 @@ import { CriticalValidation } from "@/components/CriticalValidation";
 import { getStepConfigs } from "@/lib/stepConfigs";
 import { NextStepButton } from "@/components/SectionNav";
 import { scrollToTop } from "@/utils/scrollToTop";
-import { Swords, XCircle, BarChart3, Crosshair, LayoutDashboard } from "lucide-react";
+import { Swords, XCircle, BarChart3, Crosshair, LayoutDashboard, Boxes, X } from "lucide-react";
 import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { type LensType } from "@/lib/multiLensEngine";
 import { StrategicCommandDeck } from "@/components/StrategicCommandDeck";
