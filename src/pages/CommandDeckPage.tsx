@@ -36,7 +36,7 @@ import { StrategicLeverageSignals } from "@/components/command-deck/StrategicLev
 import { ActionPath } from "@/components/command-deck/ActionPath";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
-  AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp,
+  AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
