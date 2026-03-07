@@ -101,7 +101,7 @@ export default function DisruptPage() {
       />
 
       <AnalysisActionToolbar
-        analysisTitle={selectedProduct.name}
+        analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
         stepTitle="Strategic Intelligence"
         analysis={analysis}
         selectedProduct={selectedProduct}

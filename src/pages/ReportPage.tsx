@@ -172,10 +172,12 @@ export default function ReportPage() {
     );
   }
 
-  if (analysis.step !== "done" || products.length === 0 || !selectedProduct) {
+  // Business model analyses don't have selectedProduct — use businessAnalysisData as fallback
+  const hasData = !!selectedProduct || !!analysis.businessAnalysisData;
+  if (analysis.step !== "done" || (!hasData && products.length === 0)) {
     if (shouldRedirectHome) return null;
     // Show meaningful empty state instead of infinite spinner
-    if (analysis.step === "done" && products.length === 0) {
+    if (analysis.step === "done" && !hasData) {
       return (
         <AnalysisPageShell tier={tier}>
           <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -183,16 +185,16 @@ export default function ReportPage() {
               <Target size={24} className="text-muted-foreground" />
             </div>
             <div className="text-center space-y-2">
-              <p className="text-lg font-bold text-foreground">No Analysis Data</p>
+              <p className="text-lg font-bold text-foreground">Analysis Not Yet Complete</p>
               <p className="text-sm text-muted-foreground max-w-md">
-                This analysis doesn't contain any product data yet. It may have been created but not completed.
+                This analysis hasn't been completed yet. Return to the Command Deck to run the full analysis.
               </p>
             </div>
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate(analysisId ? `/analysis/${analysisId}/command-deck` : "/")}
               className="mt-2 px-5 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
             >
-              Back to Home
+              Go to Command Deck
             </button>
           </div>
         </AnalysisPageShell>
