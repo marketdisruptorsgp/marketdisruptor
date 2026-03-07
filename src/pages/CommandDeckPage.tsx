@@ -37,6 +37,8 @@ import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
 import { ConstraintRadar } from "@/components/command-deck/ConstraintRadar";
 import { StrategicLeverageSignals } from "@/components/command-deck/StrategicLeverageSignals";
 import { ActionPath } from "@/components/command-deck/ActionPath";
+import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
+import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
 import {
   LayoutDashboard, GitBranch, Target, Crosshair, Lightbulb,
   AlertTriangle, Rocket, RefreshCw, ChevronDown, ChevronUp, Play,
