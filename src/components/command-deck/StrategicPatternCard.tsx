@@ -1,9 +1,10 @@
 /**
  * Strategic Pattern Card — Shows detected structural business archetype
+ * with credibility scoring (Strong / Moderate / Weak) and signal attribution.
  */
 
 import { memo } from "react";
-import { Fingerprint, ArrowRight, AlertTriangle, TrendingUp } from "lucide-react";
+import { Fingerprint, AlertTriangle, TrendingUp, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import type { StructuralPattern } from "@/lib/strategicPatternEngine";
 
@@ -11,12 +12,32 @@ interface StrategicPatternCardProps {
   patterns: StructuralPattern[];
 }
 
+function patternStrength(score: number): { label: string; color: string; desc: string } {
+  if (score >= 0.6) return {
+    label: "Strong",
+    color: "hsl(var(--success))",
+    desc: "Multiple converging signals confirm this pattern",
+  };
+  if (score >= 0.35) return {
+    label: "Moderate",
+    color: "hsl(var(--warning))",
+    desc: "Several indicators suggest this pattern — more data would increase certainty",
+  };
+  return {
+    label: "Weak",
+    color: "hsl(var(--muted-foreground))",
+    desc: "Early indicators only — treat as a hypothesis to validate",
+  };
+}
+
 export const StrategicPatternCard = memo(function StrategicPatternCard({ patterns }: StrategicPatternCardProps) {
   if (patterns.length === 0) return null;
 
   const primary = patterns[0];
   const secondary = patterns.slice(1);
-  const matchPct = Math.round(primary.matchScore * 100);
+  const strength = patternStrength(primary.matchScore);
+  const signalCount = primary.matchedSignalCount ?? Math.round(primary.matchScore * 15);
+  const matchedCategories = primary.matchedCategories ?? [];
 
   return (
     <motion.div
@@ -34,17 +55,36 @@ export const StrategicPatternCard = memo(function StrategicPatternCard({ pattern
             <Fingerprint size={15} style={{ color: "hsl(var(--primary))" }} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-                Structural Pattern Detected
+                Structural Pattern
               </span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))" }}>
-                {matchPct}% match
+              {/* Credibility badge */}
+              <span className="flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                style={{ background: `${strength.color}12`, color: strength.color }}>
+                <Shield size={9} />
+                {strength.label}
               </span>
             </div>
             <h3 className="text-lg font-black text-foreground">{primary.name}</h3>
           </div>
+        </div>
+
+        {/* Pattern Strength explanation */}
+        <div className="mb-3 px-3 py-2 rounded-lg" style={{ background: `${strength.color}06`, border: `1px solid ${strength.color}12` }}>
+          <p className="text-[11px] font-medium leading-snug" style={{ color: strength.color }}>
+            {strength.desc}
+          </p>
+          {matchedCategories.length > 0 && (
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Detected across {signalCount} signals in {matchedCategories.slice(0, 3).join(", ").toLowerCase()}.
+            </p>
+          )}
+          {matchedCategories.length === 0 && signalCount > 0 && (
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Based on {signalCount} matching indicators across the analysis.
+            </p>
+          )}
         </div>
 
         {/* Characteristics */}
@@ -99,12 +139,15 @@ export const StrategicPatternCard = memo(function StrategicPatternCard({ pattern
           <div className="pt-2 border-t border-border mt-3">
             <span className="text-[10px] font-bold text-muted-foreground">
               Also resembles:{" "}
-              {secondary.map((s, idx) => (
-                <span key={s.id}>
-                  {s.name} ({Math.round(s.matchScore * 100)}%)
-                  {idx < secondary.length - 1 ? ", " : ""}
-                </span>
-              ))}
+              {secondary.map((s, idx) => {
+                const str = patternStrength(s.matchScore);
+                return (
+                  <span key={s.id}>
+                    {s.name} <span style={{ color: str.color }}>({str.label})</span>
+                    {idx < secondary.length - 1 ? ", " : ""}
+                  </span>
+                );
+              })}
             </span>
           </div>
         )}
