@@ -1,5 +1,4 @@
 import React from "react";
-import { InsightSnapshotPanel } from "@/components/analysis/InsightSnapshotPanel";
 import { PipelineProgressBar } from "@/components/analysis/PipelineProgressBar";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
 import { SplitStepLayout } from "@/components/analysis/SplitStepLayout";
