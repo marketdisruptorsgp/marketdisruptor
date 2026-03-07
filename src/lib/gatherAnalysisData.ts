@@ -1,6 +1,8 @@
 /**
  * Gathers all step data from the AnalysisContext into a single Record
  * suitable for passing to downloadFullAnalysisPDF.
+ * Includes EVERY analysis step: intel report, disrupt, stress test,
+ * pitch deck, redesign, governed, geo, regulatory, patents, scores, and more.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function gatherAllAnalysisData(analysis: any): Record<string, unknown> {
@@ -25,6 +27,36 @@ export function gatherAllAnalysisData(analysis: any): Record<string, unknown> {
   // Patent data from selected product
   if (analysis.selectedProduct?.patentData) {
     data.patentData = analysis.selectedProduct.patentData;
+  }
+
+  // Adaptive context (problem analysis, entity, challenges)
+  if (analysis.adaptiveContext) {
+    data.adaptiveContext = analysis.adaptiveContext;
+  }
+
+  // Scouted competitors
+  if (analysis.scoutedCompetitors?.length > 0) {
+    data.scoutedCompetitors = analysis.scoutedCompetitors;
+  }
+
+  // Mode routing intelligence
+  if (analysis.modeRouting) {
+    data.modeRouting = analysis.modeRouting;
+  }
+
+  // Strategic profile
+  if (analysis.strategicProfile) {
+    data.strategicProfile = analysis.strategicProfile;
+  }
+
+  // Insight preferences (liked/dismissed)
+  if (analysis.insightPreferences && Object.keys(analysis.insightPreferences).length > 0) {
+    data.insightPreferences = analysis.insightPreferences;
+  }
+
+  // Steering text
+  if (analysis.steeringText) {
+    data.steeringText = analysis.steeringText;
   }
 
   return data;
