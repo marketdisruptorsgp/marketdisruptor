@@ -148,24 +148,36 @@ export function detectStructuralPattern(
 ): StructuralPattern[] {
   const corpus = buildCorpus(evidence, insights, narrative);
 
+  // Build per-category corpus for attribution
+  const categoryCorpus = new Map<string, string>();
+  for (const e of evidence) {
+    const cat = (e.category || "general").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    categoryCorpus.set(cat, (categoryCorpus.get(cat) || "") + ` ${e.label} ${e.description || ""}`);
+  }
+
   const scored = PATTERN_TEMPLATES.map(template => {
     let score = 0;
     let matchCount = 0;
+    const matchedCats = new Set<string>();
 
     for (const keyword of template.keywords) {
       const regex = new RegExp(`\\b${keyword}\\b`, "gi");
       const matches = corpus.match(regex);
       if (matches) {
         matchCount += matches.length;
-        score += Math.min(matches.length * 0.1, 0.3); // Cap per keyword
+        score += Math.min(matches.length * 0.1, 0.3);
+      }
+      // Track which evidence categories matched
+      for (const [cat, text] of categoryCorpus) {
+        if (new RegExp(`\\b${keyword}\\b`, "gi").test(text)) {
+          matchedCats.add(cat);
+        }
       }
     }
 
-    // Bonus for high match density
     if (matchCount >= 5) score += 0.15;
     if (matchCount >= 10) score += 0.1;
 
-    // Narrative alignment bonus
     if (narrative) {
       const narrativeText = `${narrative.primaryConstraint} ${narrative.strategicVerdict} ${narrative.breakthroughOpportunity}`.toLowerCase();
       for (const kw of template.keywords) {
@@ -180,6 +192,8 @@ export function detectStructuralPattern(
       characteristics: template.characteristics,
       commonTransformations: template.commonTransformations,
       riskFactors: template.riskFactors,
+      matchedSignalCount: matchCount,
+      matchedCategories: [...matchedCats],
     };
   });
 
