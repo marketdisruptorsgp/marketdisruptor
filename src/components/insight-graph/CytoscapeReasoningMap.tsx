@@ -46,6 +46,7 @@ const EDGE_RELATION_COLORS: Record<string, string> = {
   enables: "hsl(152, 60%, 44%)",
   blocks: "hsl(14, 90%, 55%)",
   tests: "hsl(271, 81%, 55%)",
+  variant_of: "hsl(180, 65%, 45%)",
 };
 
 // ═══════════════════════════════════════════════════════════════
