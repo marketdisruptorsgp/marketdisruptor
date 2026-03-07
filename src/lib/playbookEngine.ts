@@ -505,17 +505,29 @@ export function generatePlaybooks(
     const match = computeTemplateMatch(template, evidence, insights, narrative);
     return { template, ...match };
   })
-    .filter(s => s.score > 0.05) // Must match at least something
+    .filter(s => s.score > 0.08) // Must match at least 2+ keywords meaningfully
     .sort((a, b) => b.score - a.score)
     .slice(0, 3); // Top 3
 
   if (scored.length === 0) {
-    // Fallback: generate from top 2 templates if we have enough evidence
+    // Context-aware fallback: pick the template whose category best fits the mode
+    // instead of always defaulting to the first 2 templates
     if (evidence.length >= 5) {
-      const fallback = PLAYBOOK_TEMPLATES.slice(0, 2).map((t, idx) => ({
+      const modePriority: Record<string, string[]> = {
+        product: ["modularization", "experience_redesign", "cost_collapse"],
+        service: ["experience_redesign", "cost_collapse", "modularization"],
+        business_model: ["unbundling", "cost_collapse", "modularization"],
+      };
+      const priorities = modePriority[mode] || modePriority.product;
+      const sortedByMode = [...PLAYBOOK_TEMPLATES].sort((a, b) => {
+        const aIdx = priorities.indexOf(a.archetype || "");
+        const bIdx = priorities.indexOf(b.archetype || "");
+        return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
+      });
+      const fallback = sortedByMode.slice(0, 2).map((t, idx) => ({
         template: t,
-        score: 0.15 - idx * 0.05,
-        matchedSignals: [],
+        score: 0.12 - idx * 0.04,
+        matchedSignals: [] as string[],
         matchedEvidenceIds: evidence.slice(0, 3).map(e => e.id),
       }));
       return fallback.map((s, idx) =>
