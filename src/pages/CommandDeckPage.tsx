@@ -40,6 +40,7 @@ import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchm
 import { OpportunityRadarPanel } from "@/components/command-deck/OpportunityRadarPanel";
 import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
+import { computeBenchmarks, computeOpportunityRadar, generateStrategicStory } from "@/lib/benchmarkEngine";
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
   type ScenarioSnapshot,
