@@ -341,7 +341,6 @@ function extractConstraintEvidence(input: EvidenceInput): Evidence[] {
           pipelineStep: "disrupt",
           tier: "structural" as const,
           impact: 9,
-          confidence: 0.85,
           mode,
           sourceEngine: "pipeline",
         });
