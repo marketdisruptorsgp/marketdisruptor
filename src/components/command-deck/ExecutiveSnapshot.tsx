@@ -290,7 +290,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
           expandedContent={
             patterns.length > 1 ? (
               <div>
-                {patterns.slice(1, 3).map((p, i) => <Bullet key={i} text={`${p.name}: ${p.description?.slice(0, 60) || "detected"}`} color="hsl(var(--muted-foreground))" />)}
+                {patterns.slice(1, 3).map((p, i) => <Bullet key={i} text={`${p.name}: ${p.characteristics?.[0] || "detected"}`} color="hsl(var(--muted-foreground))" />)}
               </div>
             ) : undefined
           }
@@ -299,7 +299,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
             <>
               <p className="text-[11px] font-bold text-foreground leading-snug">{primaryPattern.name}</p>
               <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2 mt-0.5">
-                {primaryPattern.description?.slice(0, 80) || "Structural archetype detected"}
+                {primaryPattern.characteristics?.[0] || "Structural archetype detected"}
               </p>
             </>
           ) : (
