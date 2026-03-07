@@ -26,6 +26,7 @@ import { ReasoningStagesOverlay } from "@/components/command-deck/ReasoningStage
 import { ConfidenceMeter } from "@/components/command-deck/ConfidenceMeter";
 import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
 import { TransformationPaths } from "@/components/command-deck/TransformationPaths";
+import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
 import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
 import { KillQuestionCard } from "@/components/command-deck/KillQuestionCard";
