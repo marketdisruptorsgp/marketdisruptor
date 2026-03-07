@@ -34,7 +34,7 @@ export function PrintableReport({ product, analysisData, analysisTitle, mode }: 
   return (
     <div className="print-report">
       {/* ── Cover Page ── */}
-      <div className="print-cover">
+      <div className="print-cover" data-pdf-section="cover">
         <div className="print-cover-inner">
           <p className="print-cover-label">Intelligence Report</p>
           <h1 className="print-cover-title">{analysisTitle || product?.name || "Analysis Report"}</h1>
