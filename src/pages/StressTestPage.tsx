@@ -123,7 +123,7 @@ export default function StressTestPage() {
       />
 
       <AnalysisActionToolbar
-        analysisTitle={selectedProduct.name}
+        analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
         stepTitle="Strategy Development"
         analysis={analysis}
         selectedProduct={selectedProduct}

@@ -62,7 +62,7 @@ export default function PitchPage() {
       />
 
       <AnalysisActionToolbar
-        analysisTitle={selectedProduct.name}
+        analysisTitle={selectedProduct?.name || (analysis.businessModelInput as any)?.type || "Business Analysis"}
         stepTitle="Pitch Deck"
         analysis={analysis}
         selectedProduct={selectedProduct}
