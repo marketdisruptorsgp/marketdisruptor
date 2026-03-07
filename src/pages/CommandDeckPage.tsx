@@ -18,6 +18,7 @@ import { useHydrationGuard } from "@/hooks/useHydrationGuard";
 import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
 import { WorkspaceThemeToggle } from "@/components/WorkspaceThemeToggle";
 import { useAutoAnalysis } from "@/hooks/useAutoAnalysis";
+import { usePipelineOrchestrator, type PipelineProgress } from "@/hooks/usePipelineOrchestrator";
 import { ModeBadge } from "@/components/ModeBadge";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
