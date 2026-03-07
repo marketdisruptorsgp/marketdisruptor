@@ -12,9 +12,11 @@ import { buildInsightGraph } from "@/lib/insightGraph";
 import { extractAllEvidence } from "@/lib/evidenceEngine";
 import { buildSystemIntelligence, type SystemIntelligenceInput } from "@/lib/systemIntelligence";
 import { InsightGraphView } from "@/components/insight-graph/InsightGraphView";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspaceTheme } from "@/hooks/useWorkspaceTheme";
+import { downloadReportAsPDF } from "@/lib/downloadReportPDF";
+import { gatherAllAnalysisData } from "@/lib/gatherAnalysisData";
 
 export default function InsightGraphPage() {
   const analysis = useAnalysis();
