@@ -823,19 +823,9 @@ export const InsightGraphView = memo(function InsightGraphView({ graph, analysis
       {!isMobile && (
         <div className="flex flex-wrap items-center gap-4 px-2">
           <span className="typo-meta font-bold">
-            {ZOOM_LEVEL_CONFIG[zoomLevel].label} · {filteredNodes.length} nodes · {filteredEdges.length} edges
+            {filteredNodes.length} nodes · {filteredEdges.length} connections
             {showOpportunityPaths && " · Opportunity paths only"}
           </span>
-          {graph.topNodes.primaryConstraint && (
-            <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.constraint.color }}>
-              ★ Top Constraint: {graph.topNodes.primaryConstraint.label.slice(0, 35)}
-            </span>
-          )}
-          {graph.topNodes.breakthroughOpportunity && (
-            <span className="typo-meta font-bold flex items-center gap-1" style={{ color: NODE_TYPE_CONFIG.outcome.color }}>
-              ★ Breakthrough: {graph.topNodes.breakthroughOpportunity.label.slice(0, 35)}
-            </span>
-          )}
         </div>
       )}
       </>
