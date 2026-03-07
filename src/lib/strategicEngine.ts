@@ -1053,7 +1053,7 @@ function buildValidationSteps(
 function estimateTrappedValue(constraint: StrategicInsight, evidence: Evidence[]): string {
   // Derive estimate from constraint severity and evidence patterns
   const frictionCount = evidence.filter(e => e.type === "friction" || e.type === "constraint").length;
-  const costCount = evidence.filter(e => e.type === "cost_structure" || (e.description?.match(/cost|expense|spend|waste/i))).length;
+  const costCount = evidence.filter(e => (e.description?.match(/cost|expense|spend|waste/i))).length;
 
   if (constraint.impact >= 8 && frictionCount >= 5) return "Est. 15-30% of revenue at risk";
   if (constraint.impact >= 6 && frictionCount >= 3) return "Est. 10-20% margin opportunity";
