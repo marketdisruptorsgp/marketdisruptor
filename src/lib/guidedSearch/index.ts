@@ -5,6 +5,7 @@
 export { runGuidedSearch } from "./engine";
 export { getMutationProfile } from "./mutationProfiles";
 export { generateInitialPopulation, mutate, recombine, generateFresh } from "./operators";
+export { selectDiverseSurvivors, pickUnderexploredSeed, selectDiverseFinalOutput, featureDistance } from "./diversity";
 
 export type {
   SearchConfig,
