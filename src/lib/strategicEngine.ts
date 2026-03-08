@@ -1278,12 +1278,16 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     events.push(`Leverage: need ${THRESHOLDS.leverage} evidence + constraints/drivers`);
   }
 
-  // ── Stage 7: Generate Opportunities ──
+  // ── Stage 7: Generate Opportunities (Morphological Search or Fallback) ──
   let opportunities: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.opportunities && leveragePoints.length > 0) {
-    const { result: opps, stage: s7 } = traceStage("Opportunity Generation", leveragePoints.length, () =>
-      generateOpportunities(leveragePoints, constraints, input.analysisId)
-    );
+    const { result: opps, stage: s7 } = traceStage("Opportunity Generation", leveragePoints.length, () => {
+      // Morphological search runs synchronously with any pre-existing alternatives.
+      // AI-assisted alternative generation is async and wired externally.
+      // Here we use the fallback (legacy) path. The full morphological pipeline
+      // is invoked from the Command Deck orchestrator when AI alternatives are available.
+      return generateOpportunitiesFallback(leveragePoints, constraints, input.analysisId);
+    });
     stages.push(s7);
     opportunities = opps;
     events.push(`${opportunities.length} opportunities generated`);
