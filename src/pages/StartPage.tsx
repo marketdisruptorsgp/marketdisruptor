@@ -81,7 +81,7 @@ export default function StartPage() {
       <section className="pt-4 sm:pt-8 pb-8 sm:pb-12 px-6 sm:px-10">
         <div className="max-w-6xl mx-auto text-left">
           <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[6.5rem] font-extrabold tracking-tight text-foreground leading-[1.08]">
-            Rethink any.
+            Rethink any
           </h1>
           <motion.p
             key={wordIndex}
@@ -93,7 +93,7 @@ export default function StartPage() {
             style={{ color: ROTATING_WORDS[wordIndex].color }}
             onClick={() => setPaused((p) => !p)}
           >
-            {ROTATING_WORDS[wordIndex].word}.
+            {ROTATING_WORDS[wordIndex].word}
             {paused && <span className="inline-block ml-3 text-lg align-middle opacity-50">⏸</span>}
           </motion.p>
           <p className="text-lg sm:text-xl text-muted-foreground mt-5 max-w-2xl leading-relaxed">
