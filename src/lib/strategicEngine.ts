@@ -202,6 +202,12 @@ export interface StrategicAnalysisOutput {
   legacyConstraints: StrategicInsight[];
   /** Active constraints: union of legacy + strong/moderate hypotheses for downstream use */
   activeConstraints: StrategicInsight[];
+  /** Stage 4c: Constraint interaction pairs */
+  constraintInteractions: ConstraintInteractionSet | null;
+  /** Stage 5: Constraint severity scores */
+  severityReport: SeverityReport | null;
+  /** Stage 8: Viability scores for opportunity concepts */
+  viabilityReport: ViabilityReport | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
