@@ -1281,17 +1281,19 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     events.push(`Leverage: need ${THRESHOLDS.leverage} evidence + constraints/drivers`);
   }
 
-  // ── Stage 7: Generate Opportunities (Morphological Search or Fallback) ──
+  // ── Stage 7: Generate Opportunities (Pattern Library + Morphological Search or Fallback) ──
   let opportunities: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.opportunities && leveragePoints.length > 0) {
     const { result: opps, stage: s7 } = traceStage("Opportunity Generation", leveragePoints.length, () => {
       // If AI alternatives were provided, run the full morphological pipeline
+      // (which now includes pattern library application before AI alternatives)
       if (input.aiAlternatives && input.aiAlternatives.length > 0) {
         const searchResult = runMorphologicalSearch(
           flat, constraints, leveragePoints, input.aiAlternatives
         );
 
         if (searchResult.vectors.length > 0) {
+          events.push(`${searchResult.patternVectorCount} pattern vectors + ${searchResult.vectors.length - searchResult.patternVectorCount} morphological vectors`);
           return generateOpportunitiesFromVectors(
             searchResult.vectors,
             searchResult.zones,
@@ -1308,7 +1310,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     });
     stages.push(s7);
     opportunities = opps;
-    events.push(`${opportunities.length} opportunities generated${input.aiAlternatives?.length ? " (morphological)" : " (fallback)"}`);
+    events.push(`${opportunities.length} opportunities generated${input.aiAlternatives?.length ? " (morphological+patterns)" : " (fallback)"}`);
   } else {
     events.push(`Opportunities: need ${THRESHOLDS.opportunities} evidence + leverage`);
   }
