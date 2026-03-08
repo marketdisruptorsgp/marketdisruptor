@@ -491,17 +491,19 @@ export default function CommandDeckPage() {
     lastRecomputeHash.current = hash;
     if (completedSteps.size === 0) return;
 
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       try {
-        const result = recomputeIntelligence({
+        const input = {
           products: analysis.products, selectedProduct,
           disruptData: analysis.disruptData, redesignData: analysis.redesignData,
           stressTestData: analysis.stressTestData, pitchDeckData: analysis.pitchDeckData,
           governedData: analysis.governedData as Record<string, unknown> | null,
           businessAnalysisData: analysis.businessAnalysisData, intelligence,
-          analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+          analysisType: (analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product") as "product" | "service" | "business_model",
           analysisId: analysisId || "", completedSteps,
-        });
+        };
+        // Use async path for full morphological pipeline with AI alternatives
+        const result = await recomputeIntelligenceAsync(input);
         if (result.flatEvidence.length > 0 && result.insights.length > 0) {
           addEvent(`Intelligence: ${result.insights.length} insights from ${result.flatEvidence.length} evidence`);
         }
