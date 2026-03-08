@@ -40,7 +40,8 @@ export type InsightNodeType =
   | "insight"
   | "pathway"
   | "scenario"
-  | "concept_variant";
+  | "concept_variant"
+  | "opportunity_vector";
 
 export type EdgeRelation =
   | "causes"
@@ -91,6 +92,13 @@ export interface InsightGraphNode {
     marketReadiness: "strong" | "moderate" | "early";
     selectedForStressTest: boolean;
     conceptSpaceId: string;
+  };
+  /** Opportunity vector data (morphological search) */
+  opportunityVectorData?: {
+    changedDimensions: { dimension: string; from: string; to: string }[];
+    baselineSnapshot: Record<string, string>;
+    triggerConstraintIds: string[];
+    explorationMode: "constraint" | "adjacency";
   };
 }
 
@@ -144,10 +152,11 @@ export const NODE_TYPE_CONFIG: Record<InsightNodeType, {
   pathway:        { color: "hsl(45 93% 47%)",   bgColor: "hsl(45 93% 47% / 0.10)",  borderColor: "hsl(45 93% 47% / 0.30)",  icon: "Route",         label: "Strategic Pathway" },
   scenario:       { color: "hsl(271 81% 55%)",  bgColor: "hsl(271 81% 55% / 0.08)", borderColor: "hsl(271 81% 55% / 0.25)", icon: "FlaskConical",  label: "Scenario" },
   concept_variant: { color: "hsl(180 65% 45%)", bgColor: "hsl(180 65% 45% / 0.10)", borderColor: "hsl(180 65% 45% / 0.30)", icon: "Boxes",         label: "Concept Variant" },
+  opportunity_vector: { color: "hsl(160 70% 40%)", bgColor: "hsl(160 70% 40% / 0.10)", borderColor: "hsl(160 70% 40% / 0.30)", icon: "GitBranch", label: "Opportunity Vector" },
 };
 
 export const OPPORTUNITY_NODE_TYPES: InsightNodeType[] = [
-  "outcome", "flipped_idea", "concept",
+  "outcome", "flipped_idea", "concept", "opportunity_vector",
 ];
 
 // ═══════════════════════════════════════════════════════════════

@@ -55,6 +55,13 @@ export type StrategicInsightType =
   | "emerging_opportunity"
   | "strategic_pathway";
 
+export interface OpportunityVectorData {
+  changedDimensions: { dimension: string; from: string; to: string }[];
+  baselineSnapshot: Record<string, string>;
+  triggerConstraintIds: string[];
+  explorationMode: "constraint" | "adjacency";
+}
+
 export interface StrategicInsight {
   id: string;
   analysisId: string;
@@ -71,6 +78,8 @@ export interface StrategicInsight {
   mode: import("@/lib/evidenceEngine").EvidenceMode;
   confidenceScore?: number;
   recommendedTools?: string[];
+  /** Morphological search metadata — only for opportunity vectors */
+  opportunityVectorData?: OpportunityVectorData;
 }
 
 export interface StrategicSignal {
@@ -674,7 +683,75 @@ function discoverLeverage(
 //  STAGE 7: OPPORTUNITY GENERATION
 // ═══════════════════════════════════════════════════════════════
 
-function generateOpportunities(
+/**
+ * STAGE 7 — Morphological Search (replaces old generateOpportunities).
+ *
+ * When sufficient evidence exists, runs the morphological search pipeline
+ * to produce opportunity vectors expressed as baseline deltas.
+ * Falls back to legacy label-based generation if insufficient dimensions.
+ *
+ * Note: This is the synchronous/deterministic part. AI-assisted alternative
+ * generation happens asynchronously via the edge function and is wired at
+ * the call site in runStrategicAnalysis or the Command Deck orchestrator.
+ */
+export function generateOpportunitiesFromVectors(
+  vectors: import("@/lib/opportunityDesignEngine").OpportunityVector[],
+  zones: import("@/lib/opportunityDesignEngine").OpportunityZone[],
+  baseline: import("@/lib/opportunityDesignEngine").BusinessBaseline,
+  constraints: StrategicInsight[],
+  leveragePoints: StrategicInsight[],
+  analysisId: string,
+): StrategicInsight[] {
+  const now = Date.now();
+  const insights: StrategicInsight[] = [];
+
+  // Build baseline snapshot for metadata
+  const baselineSnapshot: Record<string, string> = {};
+  for (const [key, dim] of Object.entries(baseline)) {
+    baselineSnapshot[dim.name] = dim.currentValue;
+  }
+
+  for (const vector of vectors) {
+    const shifts = vector.changedDimensions
+      .map(d => `${d.dimension}: ${d.from} → ${d.to}`)
+      .join("; ");
+
+    const label = vector.changedDimensions.length === 1
+      ? `Shift ${vector.changedDimensions[0].dimension.toLowerCase()} from ${vector.changedDimensions[0].from.slice(0, 30)} to ${vector.changedDimensions[0].to.slice(0, 30)}`
+      : `Combined shift: ${vector.changedDimensions.map(d => d.dimension.toLowerCase()).join(" + ")}`;
+
+    if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
+
+    // Find related constraint/leverage IDs
+    const relatedInsightIds = vector.triggerIds.filter(tid =>
+      [...constraints, ...leveragePoints].some(i => i.id === tid)
+    );
+
+    insights.push(makeInsight({
+      id: nextId("opportunity"),
+      analysisId,
+      insightType: "emerging_opportunity",
+      label,
+      description: `${vector.rationale} (${shifts})`,
+      evidenceIds: vector.evidenceIds,
+      relatedInsightIds,
+      impact: 5, // Neutral default — not surfaced in UI
+      confidence: 0.5, // Neutral default — not surfaced in UI
+      createdAt: now,
+      opportunityVectorData: {
+        changedDimensions: vector.changedDimensions,
+        baselineSnapshot,
+        triggerConstraintIds: vector.triggerIds,
+        explorationMode: vector.explorationMode,
+      },
+    }));
+  }
+
+  return insights;
+}
+
+/** Legacy fallback when morphological search can't run (insufficient dimensions) */
+function generateOpportunitiesFallback(
   leveragePoints: StrategicInsight[],
   constraints: StrategicInsight[],
   analysisId: string,
@@ -682,14 +759,12 @@ function generateOpportunities(
   const now = Date.now();
   const insights: StrategicInsight[] = [];
 
-  // Opportunities from leverage points
   for (const lev of leveragePoints) {
     const relatedConstraints = constraints.filter(c => lev.relatedInsightIds.includes(c.id));
     const con = relatedConstraints[0];
 
     const conText = con ? humanize(con.label).slice(0, 55) : "";
     const levText = humanize(lev.label).slice(0, 55);
-    // Lowercase the first char when embedding in a sentence
     const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
     const label = con
@@ -704,7 +779,7 @@ function generateOpportunities(
       insightType: "emerging_opportunity",
       label,
       description: con
-      ? `Addressing "${humanize(con.label)}" through "${humanize(lev.label)}" may create strategic value — requires further validation.`
+        ? `Addressing "${humanize(con.label)}" through "${humanize(lev.label)}" may create strategic value — requires further validation.`
         : `"${humanize(lev.label)}" appears to be an emerging opportunity, though confidence depends on additional evidence.`,
       evidenceIds: [...new Set([...lev.evidenceIds, ...(con?.evidenceIds ?? [])])],
       relatedInsightIds: [lev.id, ...(con ? [con.id] : [])],
@@ -1203,12 +1278,16 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     events.push(`Leverage: need ${THRESHOLDS.leverage} evidence + constraints/drivers`);
   }
 
-  // ── Stage 7: Generate Opportunities ──
+  // ── Stage 7: Generate Opportunities (Morphological Search or Fallback) ──
   let opportunities: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.opportunities && leveragePoints.length > 0) {
-    const { result: opps, stage: s7 } = traceStage("Opportunity Generation", leveragePoints.length, () =>
-      generateOpportunities(leveragePoints, constraints, input.analysisId)
-    );
+    const { result: opps, stage: s7 } = traceStage("Opportunity Generation", leveragePoints.length, () => {
+      // Morphological search runs synchronously with any pre-existing alternatives.
+      // AI-assisted alternative generation is async and wired externally.
+      // Here we use the fallback (legacy) path. The full morphological pipeline
+      // is invoked from the Command Deck orchestrator when AI alternatives are available.
+      return generateOpportunitiesFallback(leveragePoints, constraints, input.analysisId);
+    });
     stages.push(s7);
     opportunities = opps;
     events.push(`${opportunities.length} opportunities generated`);
