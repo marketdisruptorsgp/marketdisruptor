@@ -156,7 +156,7 @@ export const NODE_TYPE_CONFIG: Record<InsightNodeType, {
 };
 
 export const OPPORTUNITY_NODE_TYPES: InsightNodeType[] = [
-  "outcome", "flipped_idea", "concept",
+  "outcome", "flipped_idea", "concept", "opportunity_vector",
 ];
 
 // ═══════════════════════════════════════════════════════════════
