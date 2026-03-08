@@ -135,6 +135,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         analysisType: analysisMode,
         analysisId,
         completedSteps,
+        geoMarketData: geoData,
+        regulatoryData,
       };
 
       const result = runStrategicAnalysis(input);
