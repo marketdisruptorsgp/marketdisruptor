@@ -1481,5 +1481,6 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     scenarioComparison,
     sensitivityReports,
     events,
+    constraintHypotheses,
   };
 }
