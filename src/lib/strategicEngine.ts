@@ -9,23 +9,28 @@
  *   4. detectConstraints — Legacy signal-based constraint detection
  *   4b. detectConstraintHypotheses — Facet-rule-based constraint hypotheses
  *   → activeConstraints — Union of legacy + strong/moderate hypotheses (ID-based dedup)
- *   5. identifyDrivers — Root causes behind constraints
- *   6. calculateLeveragePoints — Structural intervention opportunities
- *   7. generateOpportunities — Derived from leverage points
- *   8. constructStrategicPathways — constraint → driver → leverage → opportunity
- *   9. generateStrategicNarrative — Reasoning chain summary
- *   10. buildInsightGraph — Graph nodes from real insights only
- *   11. calculateCommandDeckMetrics — Dashboard metrics
+ *   4c. discoverConstraintInteractions — Pairwise constraint interaction analysis
+ *   5. scoreConstraintSeverity — Evidence strength × centrality × impact scoring
+ *   6. identifyDrivers — Root causes behind constraints
+ *   7. discoverLeverage — Structural intervention opportunities
+ *   8. generateOpportunities — Pattern library + morphological search
+ *   → graceful degradation — Exploratory opportunities if pipeline yields 0
+ *   9. scoreViability — Feasibility, capital, market readiness, complexity
+ *   10. constructStrategicPathways — constraint → driver → leverage → opportunity
+ *   11. generateStrategicNarrative — Reasoning chain summary
+ *   12. buildInsightGraph — Graph nodes from real insights only
+ *   13. calculateCommandDeckMetrics — Dashboard metrics
  *
  * Progressive thresholds:
- *   5 evidence → signals
- *   10 evidence → constraints
- *   14 evidence → drivers
- *   18 evidence → leverage
- *   22 evidence → opportunities
- *   26 evidence → pathways
+ *   4 evidence → signals
+ *   8 evidence → constraints
+ *   11 evidence → drivers
+ *   15 evidence → leverage
+ *   18 evidence → opportunities
+ *   22 evidence → pathways
  *
- * NO FALLBACK/SYNTHETIC INSIGHTS.
+ * Confidence propagation: Evidence → Signal → Constraint → Opportunity
+ * Graceful degradation: Always returns ≥1 opportunity (exploratory if needed)
  */
 
 import {
