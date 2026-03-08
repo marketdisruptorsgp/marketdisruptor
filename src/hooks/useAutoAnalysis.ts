@@ -169,6 +169,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   }, [
     analysisId, selectedProduct, governedData, disruptData, businessAnalysisData,
     products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,
+    geoData, regulatoryData,
   ]);
 
   // ── Auto-recompute whenever evidence dataset changes ──
