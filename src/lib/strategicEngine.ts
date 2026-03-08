@@ -55,6 +55,13 @@ export type StrategicInsightType =
   | "emerging_opportunity"
   | "strategic_pathway";
 
+export interface OpportunityVectorData {
+  changedDimensions: { dimension: string; from: string; to: string }[];
+  baselineSnapshot: Record<string, string>;
+  triggerConstraintIds: string[];
+  explorationMode: "constraint" | "adjacency";
+}
+
 export interface StrategicInsight {
   id: string;
   analysisId: string;
@@ -71,6 +78,8 @@ export interface StrategicInsight {
   mode: import("@/lib/evidenceEngine").EvidenceMode;
   confidenceScore?: number;
   recommendedTools?: string[];
+  /** Morphological search metadata — only for opportunity vectors */
+  opportunityVectorData?: OpportunityVectorData;
 }
 
 export interface StrategicSignal {
