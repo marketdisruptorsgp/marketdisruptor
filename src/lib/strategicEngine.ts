@@ -43,6 +43,7 @@ import { compareScenarios, type ScenarioComparison } from "@/lib/scenarioCompari
 import { computeAllSensitivityReports, type SensitivityReport } from "@/lib/sensitivityEngine";
 import { traceStage, buildDiagnostic, type PipelineStageResult } from "@/lib/pipelineDiagnostics";
 import type { SystemIntelligence } from "@/lib/systemIntelligence";
+import { runMorphologicalSearch } from "@/lib/opportunityDesignEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
