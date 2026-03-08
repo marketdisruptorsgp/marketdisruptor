@@ -9,23 +9,28 @@
  *   4. detectConstraints — Legacy signal-based constraint detection
  *   4b. detectConstraintHypotheses — Facet-rule-based constraint hypotheses
  *   → activeConstraints — Union of legacy + strong/moderate hypotheses (ID-based dedup)
- *   5. identifyDrivers — Root causes behind constraints
- *   6. calculateLeveragePoints — Structural intervention opportunities
- *   7. generateOpportunities — Derived from leverage points
- *   8. constructStrategicPathways — constraint → driver → leverage → opportunity
- *   9. generateStrategicNarrative — Reasoning chain summary
- *   10. buildInsightGraph — Graph nodes from real insights only
- *   11. calculateCommandDeckMetrics — Dashboard metrics
+ *   4c. discoverConstraintInteractions — Pairwise constraint interaction analysis
+ *   5. scoreConstraintSeverity — Evidence strength × centrality × impact scoring
+ *   6. identifyDrivers — Root causes behind constraints
+ *   7. discoverLeverage — Structural intervention opportunities
+ *   8. generateOpportunities — Pattern library + morphological search
+ *   → graceful degradation — Exploratory opportunities if pipeline yields 0
+ *   9. scoreViability — Feasibility, capital, market readiness, complexity
+ *   10. constructStrategicPathways — constraint → driver → leverage → opportunity
+ *   11. generateStrategicNarrative — Reasoning chain summary
+ *   12. buildInsightGraph — Graph nodes from real insights only
+ *   13. calculateCommandDeckMetrics — Dashboard metrics
  *
  * Progressive thresholds:
- *   5 evidence → signals
- *   10 evidence → constraints
- *   14 evidence → drivers
- *   18 evidence → leverage
- *   22 evidence → opportunities
- *   26 evidence → pathways
+ *   4 evidence → signals
+ *   8 evidence → constraints
+ *   11 evidence → drivers
+ *   15 evidence → leverage
+ *   18 evidence → opportunities
+ *   22 evidence → pathways
  *
- * NO FALLBACK/SYNTHETIC INSIGHTS.
+ * Confidence propagation: Evidence → Signal → Constraint → Opportunity
+ * Graceful degradation: Always returns ≥1 opportunity (exploratory if needed)
  */
 
 import {
@@ -49,6 +54,21 @@ import type { SystemIntelligence } from "@/lib/systemIntelligence";
 import { runMorphologicalSearch } from "@/lib/opportunityDesignEngine";
 import { populateFacets } from "@/lib/evidenceFacets";
 import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
+import {
+  discoverConstraintInteractions,
+  type ConstraintInteractionSet,
+} from "@/lib/constraintInteractionEngine";
+import {
+  scoreConstraintSeverity,
+  type SeverityReport,
+  type SeverityScore,
+} from "@/lib/constraintSeverityEngine";
+import {
+  scoreViability,
+  generateExploratoryOpportunities,
+  type ViabilityReport,
+  type ViabilityScore,
+} from "@/lib/viabilityEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -187,6 +207,12 @@ export interface StrategicAnalysisOutput {
   legacyConstraints: StrategicInsight[];
   /** Active constraints: union of legacy + strong/moderate hypotheses for downstream use */
   activeConstraints: StrategicInsight[];
+  /** Stage 4c: Constraint interaction pairs */
+  constraintInteractions: ConstraintInteractionSet | null;
+  /** Stage 5: Constraint severity scores */
+  severityReport: SeverityReport | null;
+  /** Stage 8: Viability scores for opportunity concepts */
+  viabilityReport: ViabilityReport | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1323,38 +1349,61 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // Use activeConstraints for all downstream stages
   const constraints = activeConstraints;
 
-  // ── Stage 5: Identify Drivers ──
+  // ── Stage 4c: Constraint Interaction Discovery ──
+  let constraintInteractions: ConstraintInteractionSet | null = null;
+  if (constraints.length >= 2) {
+    const { result: interactions, stage: s4c } = traceStage("Constraint Interactions", constraints.length, () =>
+      discoverConstraintInteractions(constraints, constraintHypotheses)
+    );
+    stages.push(s4c);
+    constraintInteractions = interactions;
+    events.push(`${interactions.interactions.length} constraint interactions found (${interactions.pairsEvaluated} pairs evaluated)${interactions.hasReinforcingLoops ? " — reinforcing loops detected" : ""}`);
+  }
+
+  // ── Stage 5: Constraint Severity Scoring ──
+  let severityReport: SeverityReport | null = null;
+  if (constraints.length > 0) {
+    const { result: severity, stage: s5sev } = traceStage("Severity Scoring", constraints.length, () =>
+      scoreConstraintSeverity(constraints, signals, flat, constraintInteractions)
+    );
+    stages.push(s5sev);
+    severityReport = severity;
+    if (severity.primaryBottleneck) {
+      events.push(`Primary bottleneck: ${severity.primaryBottleneck.constraintLabel} (${severity.primaryBottleneck.severityLabel} severity)`);
+    }
+    events.push(`Average constraint severity: ${severity.averageSeverity}`);
+  }
+
+  // ── Stage 6: Identify Drivers ──
   let drivers: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.drivers && constraints.length > 0) {
-    const { result: drvs, stage: s5 } = traceStage("Driver Identification", constraints.length, () =>
+    const { result: drvs, stage: s6drv } = traceStage("Driver Identification", constraints.length, () =>
       identifyDrivers(signals, constraints, flat, input.analysisId)
     );
-    stages.push(s5);
+    stages.push(s6drv);
     drivers = drvs;
     events.push(`${drivers.length} drivers identified`);
   } else {
     events.push(`Drivers: need ${THRESHOLDS.drivers} evidence + constraints`);
   }
 
-  // ── Stage 6: Discover Leverage ──
+  // ── Stage 7: Discover Leverage ──
   let leveragePoints: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.leverage && (constraints.length > 0 || drivers.length > 0)) {
-    const { result: levs, stage: s6 } = traceStage("Leverage Discovery", constraints.length + drivers.length, () =>
+    const { result: levs, stage: s7lev } = traceStage("Leverage Discovery", constraints.length + drivers.length, () =>
       discoverLeverage(signals, constraints, drivers, flat, input.analysisId)
     );
-    stages.push(s6);
+    stages.push(s7lev);
     leveragePoints = levs;
     events.push(`${leveragePoints.length} leverage points discovered`);
   } else {
     events.push(`Leverage: need ${THRESHOLDS.leverage} evidence + constraints/drivers`);
   }
 
-  // ── Stage 7: Generate Opportunities (Pattern Library + Morphological Search or Fallback) ──
+  // ── Stage 8: Generate Opportunities (Pattern Library + Morphological Search or Fallback) ──
   let opportunities: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.opportunities && leveragePoints.length > 0) {
-    const { result: opps, stage: s7 } = traceStage("Opportunity Generation", leveragePoints.length, () => {
-      // If AI alternatives were provided, run the full morphological pipeline
-      // (which now includes pattern library application before AI alternatives)
+    const { result: opps, stage: s8opp } = traceStage("Opportunity Generation", leveragePoints.length, () => {
       if (input.aiAlternatives && input.aiAlternatives.length > 0) {
         const searchResult = runMorphologicalSearch(
           flat, constraints, leveragePoints, input.aiAlternatives
@@ -1373,30 +1422,48 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
         }
       }
 
-      // Fallback: legacy path when no AI alternatives or insufficient dimensions
       return generateOpportunitiesFallback(leveragePoints, constraints, input.analysisId);
     });
-    stages.push(s7);
+    stages.push(s8opp);
     opportunities = opps;
     events.push(`${opportunities.length} opportunities generated${input.aiAlternatives?.length ? " (morphological+patterns)" : " (fallback)"}`);
   } else {
     events.push(`Opportunities: need ${THRESHOLDS.opportunities} evidence + leverage`);
   }
 
-  // ── Stage 8: Strategic Pathways ──
+  // ── Graceful Degradation: Never return zero opportunities ──
+  if (opportunities.length === 0 && signals.length > 0) {
+    const exploratory = generateExploratoryOpportunities(signals, flat, input.analysisId);
+    opportunities = exploratory;
+    events.push(`${exploratory.length} exploratory opportunities generated (graceful degradation)`);
+  }
+
+  // ── Stage 9: Viability Scoring ──
+  let viabilityReport: ViabilityReport | null = null;
+  if (opportunities.length > 0) {
+    const sevScores = severityReport?.scores ?? [];
+    const { result: viability, stage: s9v } = traceStage("Viability Scoring", opportunities.length, () =>
+      scoreViability(opportunities, constraints, flat, sevScores)
+    );
+    stages.push(s9v);
+    viabilityReport = viability;
+    events.push(`${viability.viableCount} viable + ${viability.exploratoryCount} exploratory opportunities`);
+  }
+
+  // ── Stage 10: Strategic Pathways ──
   let pathways: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.pathways && constraints.length > 0 && opportunities.length > 0) {
-    const { result: paths, stage: s8 } = traceStage("Pathway Construction", constraints.length + opportunities.length, () =>
+    const { result: paths, stage: s10p } = traceStage("Pathway Construction", constraints.length + opportunities.length, () =>
       constructStrategicPathways(constraints, drivers, leveragePoints, opportunities, input.analysisId)
     );
-    stages.push(s8);
+    stages.push(s10p);
     pathways = paths;
     events.push(`${pathways.length} strategic pathways constructed`);
   } else {
     events.push(`Pathways: need ${THRESHOLDS.pathways} evidence + constraints + opportunities`);
   }
 
-  // ── Stage 9: Strategic Narrative ──
+  // ── Stage 11: Strategic Narrative ──
   const narrative = buildStrategicNarrative(constraints, drivers, leveragePoints, opportunities, pathways, flat);
 
   // ── Combine all insights ──
@@ -1408,7 +1475,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     ...pathways,
   ];
 
-  // ── Stage 10: Build Insight Graph ──
+  // ── Stage 12: Build Insight Graph ──
   const insightsForGraph = allInsights.map(i => ({
     id: i.id,
     label: i.label,
@@ -1420,7 +1487,6 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     recommendedTools: [] as string[],
   }));
 
-  // Also add signals as graph-compatible insight nodes
   const signalInsightsForGraph = signals.map(s => ({
     id: s.id,
     label: s.label,
@@ -1447,7 +1513,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   );
   stages.push(sg);
 
-  // ── Stage 11: Command Deck Metrics ──
+  // ── Stage 13: Command Deck Metrics ──
   const metricsInput = {
     products: input.products,
     selectedProduct: input.selectedProduct,
@@ -1517,5 +1583,8 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     facetedEvidence,
     legacyConstraints,
     activeConstraints,
+    constraintInteractions,
+    severityReport,
+    viabilityReport,
   };
 }
