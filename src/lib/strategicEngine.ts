@@ -1511,5 +1511,8 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     sensitivityReports,
     events,
     constraintHypotheses,
+    facetedEvidence,
+    legacyConstraints,
+    activeConstraints,
   };
 }
