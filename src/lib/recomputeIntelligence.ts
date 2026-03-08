@@ -59,6 +59,8 @@ export interface IntelligenceInput {
   completedSteps: Set<string>;
   force?: boolean;
   lensState?: string;
+  geoMarketData?: any | null;
+  regulatoryData?: any | null;
 }
 
 export interface IntelligenceOutput {
