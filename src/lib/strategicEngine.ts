@@ -1246,6 +1246,9 @@ function deriveTrappedValueBenchmark(evidence: Evidence[], constraint: Strategic
 // ═══════════════════════════════════════════════════════════════
 
 export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAnalysisOutput {
+  // Run-scoped ID factory — all IDs valid only within this execution
+  const runFactory = createRunIdFactory();
+  activeRunFactory = runFactory;
   idCounter = 0;
   const events: string[] = [];
   const stages: PipelineStageResult[] = [];
