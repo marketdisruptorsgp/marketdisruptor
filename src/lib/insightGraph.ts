@@ -40,7 +40,8 @@ export type InsightNodeType =
   | "insight"
   | "pathway"
   | "scenario"
-  | "concept_variant";
+  | "concept_variant"
+  | "opportunity_vector";
 
 export type EdgeRelation =
   | "causes"
