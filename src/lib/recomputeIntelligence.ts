@@ -141,7 +141,7 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
       governedData: input.governedData,
       businessAnalysisData: input.businessAnalysisData,
       intelligence: input.intelligence,
-      completedSteps: input.completedSteps,
+      analysisType: input.analysisType,
     });
     const flat = flattenEvidence(evidenceResult);
 
