@@ -93,6 +93,13 @@ export interface InsightGraphNode {
     selectedForStressTest: boolean;
     conceptSpaceId: string;
   };
+  /** Opportunity vector data (morphological search) */
+  opportunityVectorData?: {
+    changedDimensions: { dimension: string; from: string; to: string }[];
+    baselineSnapshot: Record<string, string>;
+    triggerConstraintIds: string[];
+    explorationMode: "constraint" | "adjacency";
+  };
 }
 
 export type EdgeCategory = "discovered" | "inherited" | "design";
