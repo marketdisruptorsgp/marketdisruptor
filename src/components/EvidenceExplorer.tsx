@@ -50,7 +50,7 @@ const STEP_LABELS: Record<string, string> = {
 };
 
 const MODE_LABELS: Record<EvidenceMode, string> = {
-  product: "Product", service: "Service", business_model: "Business Model",
+  product: "Product", service: "Service", business_model: "Business Model", object_reinvention: "Object Reinvention",
 };
 
 const ENGINE_LABELS: Record<string, string> = {

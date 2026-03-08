@@ -23,6 +23,7 @@ const MODE_COLORS: Record<EvidenceMode, { bg: string; text: string; label: strin
   product: { bg: "hsl(var(--primary) / 0.1)", text: "hsl(var(--primary))", label: "Product" },
   service: { bg: "hsl(var(--warning) / 0.1)", text: "hsl(var(--warning))", label: "Service" },
   business_model: { bg: "hsl(var(--success) / 0.1)", text: "hsl(var(--success))", label: "Business Model" },
+  object_reinvention: { bg: "hsl(var(--accent) / 0.1)", text: "hsl(var(--accent))", label: "Object Reinvention" },
 };
 
 function qualLabel(score: number): { label: string; color: string } {

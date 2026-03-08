@@ -315,7 +315,7 @@ function computeFromLegacy(input: CommandDeckMetricsInput): CommandDeckMetrics {
     isPartial: sources.length < 3,
     stepSignals,
     tierBreakdown: { structural: 0, system: 0, optimization: 0 },
-    modeBreakdown: { product: 0, service: 0, business_model: 0 },
+    modeBreakdown: { product: 0, service: 0, business_model: 0, object_reinvention: 0 },
     totalEvidenceCount: 0,
     opportunityScore: 0,
     frictionIndex: 0,
