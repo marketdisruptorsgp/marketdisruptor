@@ -82,6 +82,8 @@ export interface OpportunityVector {
   evidenceIds: string[];
   /** Reserved for future opportunity surface detection */
   surfaceId?: string;
+  /** Constraint hypothesis that generated this vector (Phase 1) */
+  constraintHypothesisId?: string;
 }
 
 export interface OpportunityZone {
