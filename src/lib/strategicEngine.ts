@@ -36,6 +36,7 @@
 import {
   extractAllEvidence,
   flattenEvidence,
+  deduplicateEvidenceWithRemap,
   type Evidence,
   type MetricDomain,
   type MetricEvidence,
@@ -69,6 +70,8 @@ import {
   type ViabilityReport,
   type ViabilityScore,
 } from "@/lib/viabilityEngine";
+import { analyzeMarketStructure, type MarketStructureReport } from "@/lib/marketStructureEngine";
+import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
