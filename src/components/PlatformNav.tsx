@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, FolderOpen, PlusCircle, Radar,
-  BookOpen, HelpCircle, Lightbulb, BarChart3, Code2, Info,
+  BookOpen, HelpCircle, Lightbulb, BarChart3, Code2, Info, Sparkles,
   Menu, ChevronDown,
 } from "lucide-react";
 
