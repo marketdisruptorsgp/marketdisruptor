@@ -106,6 +106,8 @@ function buildEngineInput(
     analysisId: input.analysisId,
     completedSteps: input.completedSteps,
     aiAlternatives,
+    geoMarketData: input.geoMarketData,
+    regulatoryData: input.regulatoryData,
   };
 }
 
