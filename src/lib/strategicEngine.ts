@@ -387,7 +387,7 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
 
       for (const candidate of items) {
         if (used.has(candidate.id)) continue;
-        if (jaccard(anchor.label, candidate.label) >= 0.25) {
+        if (jaccard(anchor.label, candidate.label) >= 0.35) {
           cluster.push(candidate);
           used.add(candidate.id);
         }
