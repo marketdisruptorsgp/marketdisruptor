@@ -1,8 +1,9 @@
 /**
  * Guided Search Loop — Main Engine
  *
- * Implements: generate → evaluate → select survivors →
- * mutate + recombine + fresh → evaluate → repeat until convergence.
+ * Implements: generate → evaluate → select diverse survivors →
+ * mutate + recombine + exploration-balanced fresh → evaluate →
+ * repeat until convergence → diversity-enforced final selection.
  */
 
 import type { EvaluationContext, ConceptEvaluationResult, EvaluableConcept } from "@/lib/conceptEvaluation";
@@ -15,6 +16,7 @@ import type {
 } from "./types";
 import { DEFAULT_SEARCH_CONFIG } from "./types";
 import { generateInitialPopulation, mutate, recombine, generateFresh } from "./operators";
+import { selectDiverseSurvivors, pickUnderexploredSeed, selectDiverseFinalOutput } from "./diversity";
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -39,7 +41,10 @@ export function runGuidedSearch(
   let stopReason: GuidedSearchResult["stopReason"] = "max_iterations";
 
   // Track all evaluated concepts with their scores
-  let allEvaluated: { concept: EvaluableConcept; evaluation: ConceptEvaluationResult }[] = [];
+  const allEvaluated: { concept: EvaluableConcept; evaluation: ConceptEvaluationResult }[] = [];
+
+  // Track cumulative population for exploration balancing
+  const cumulativePopulation: EvaluableConcept[] = [];
 
   // ── Initial population ────────────────────────────────────
   let population = generateInitialPopulation(seeds, cfg.populationSize);
@@ -54,24 +59,24 @@ export function runGuidedSearch(
     const results = evaluateConceptBatch(population, context);
     totalEvaluated += results.length;
 
-    // Merge into all-time tracked
+    // Merge into tracking
     for (let i = 0; i < population.length; i++) {
-      allEvaluated.push({
-        concept: population[i],
-        evaluation: results[i],
-      });
+      allEvaluated.push({ concept: population[i], evaluation: results[i] });
+      cumulativePopulation.push(population[i]);
     }
 
     const bestScore = results[0]?.weightedComposite ?? 0;
     const avgScore =
       results.reduce((s, r) => s + r.weightedComposite, 0) / results.length;
 
+    const survivorCount = Math.max(2, Math.ceil(population.length * cfg.survivorRate));
+
     iterations.push({
       iteration: iter,
       populationSize: population.length,
       bestScore,
       avgScore,
-      survivorCount: Math.ceil(population.length * cfg.survivorRate),
+      survivorCount,
     });
 
     // ── Convergence check ───────────────────────────────────
@@ -87,12 +92,12 @@ export function runGuidedSearch(
     }
     previousBest = bestScore;
 
-    // ── Select survivors ────────────────────────────────────
-    const survivorCount = Math.max(2, Math.ceil(population.length * cfg.survivorRate));
-    const survivors = results.slice(0, survivorCount);
-    const survivorConcepts = survivors.map((r) =>
-      population.find((c) => c.id === r.conceptId)!
-    ).filter(Boolean);
+    // ── Diversity-aware survivor selection ───────────────────
+    const survivorConcepts = selectDiverseSurvivors(
+      population,
+      results,
+      survivorCount
+    );
 
     // ── Build next generation ───────────────────────────────
     const nextGen: EvaluableConcept[] = [];
@@ -117,12 +122,10 @@ export function runGuidedSearch(
         if (a.id !== b.id) {
           nextGen.push(recombine(a, b, seed));
         } else {
-          // Same parent picked twice → mutate instead
           nextGen.push(mutate(a, seed, iter));
         }
       }
     } else {
-      // Not enough survivors for recombination → fill with mutations
       for (let i = 0; i < recombCount; i++) {
         const parent = pickRandom(survivorConcepts);
         const seed = seeds.find((s) => s.opportunity_zone_id === parent.opportunity_zone_id) ?? pickRandom(seeds);
@@ -130,30 +133,22 @@ export function runGuidedSearch(
       }
     }
 
-    // Fresh random for diversity
+    // Exploration-balanced fresh generation
     for (let i = 0; i < freshCount; i++) {
-      nextGen.push(generateFresh(pickRandom(seeds)));
+      const seed = pickUnderexploredSeed(seeds, cumulativePopulation);
+      nextGen.push(generateFresh(seed));
     }
 
     population = nextGen;
   }
 
-  // ── Select final outputs ──────────────────────────────────
-  // De-duplicate by picking the best evaluation per unique feature fingerprint
-  const seen = new Map<string, { concept: EvaluableConcept; evaluation: ConceptEvaluationResult }>();
-  const sorted = allEvaluated.sort(
-    (a, b) => b.evaluation.weightedComposite - a.evaluation.weightedComposite
+  // ── Diversity-enforced final selection ─────────────────────
+  const finalEntries = selectDiverseFinalOutput(
+    allEvaluated,
+    cfg.finalOutputCount
   );
 
-  for (const entry of sorted) {
-    const fingerprint = JSON.stringify(entry.concept.structural_features);
-    if (!seen.has(fingerprint)) {
-      seen.set(fingerprint, entry);
-    }
-    if (seen.size >= cfg.finalOutputCount) break;
-  }
-
-  const finalConcepts = [...seen.values()].map((e) => ({
+  const finalConcepts = finalEntries.map((e) => ({
     ...e.concept,
     evaluation: e.evaluation,
   }));
