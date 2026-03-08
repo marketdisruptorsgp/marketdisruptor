@@ -238,7 +238,10 @@ const THRESHOLDS = {
 // ═══════════════════════════════════════════════════════════════
 
 let idCounter = 0;
+let activeRunFactory: RunIdFactory | null = null;
+
 function nextId(prefix: string): string {
+  if (activeRunFactory) return activeRunFactory.next(prefix);
   return `${prefix}-${++idCounter}`;
 }
 
