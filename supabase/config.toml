@@ -51,3 +51,6 @@ verify_jwt = false
 [functions.geo-market-data]
 verify_jwt = false
 
+[functions.generate-opportunity-vectors]
+verify_jwt = false
+
