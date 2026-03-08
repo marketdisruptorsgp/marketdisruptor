@@ -80,6 +80,8 @@ export interface VectorInteraction {
   relation: VectorRelation;
 }
 
+export type ConstraintStrength = "high" | "medium" | "low";
+
 export interface StrategicPattern {
   id: string;
   name: string;
@@ -110,6 +112,21 @@ export interface StrategicPattern {
   transformValue: (currentValue: string, dimName: string) => string;
   /** Rationale template — filled per application */
   rationaleTemplate: string;
+
+  // ── Phase 1 Constraint-First Fields ──
+
+  /** Constraint types this pattern resolves, with strength per constraint */
+  strengthByConstraint: Record<string, ConstraintStrength>;
+  /** Constraint types where this pattern FAILS — reject if detected */
+  contraindications: string[];
+  /** Evidence facet types that must exist for this pattern to fire */
+  minimumEvidenceRequired: string[];
+  /** Industries where this pattern works best */
+  strongestIn?: string[];
+  /** Industries where this pattern tends to fail */
+  weakestIn?: string[];
+  /** Pre-conditions that must hold for this pattern to succeed */
+  prerequisiteConditions?: string[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -147,6 +164,9 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Access-based model: on-demand usage replacing ${cv.slice(0, 50)}`,
     rationaleTemplate: "Structural shift from ownership to access reduces customer commitment barrier and expands addressable market by lowering entry cost.",
+    strengthByConstraint: { capital_barrier: "high", forced_bundling: "medium", transactional_revenue: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["pricing_model"],
   },
 
   // ── 2. Bundled → Unbundled ──
@@ -166,6 +186,9 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Unbundled: individually purchasable components from ${cv.slice(0, 50)}`,
     rationaleTemplate: "Unbundling the current offering allows customers to select and pay for individual value components, reducing waste and improving price-to-value alignment.",
+    strengthByConstraint: { forced_bundling: "high", capital_barrier: "medium", perceived_value_mismatch: "medium" },
+    contraindications: [],
+    minimumEvidenceRequired: ["pricing_model"],
   },
 
   // ── 3. Closed System → Platform ──
@@ -185,6 +208,9 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Open platform: third-party participation replacing ${cv.slice(0, 50)}`,
     rationaleTemplate: "Opening the system to third-party contributors creates network effects and shifts value creation from internal capacity to ecosystem scale.",
+    strengthByConstraint: { capacity_ceiling: "high", linear_scaling: "high", supply_fragmentation: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["distribution_channel", "technology_dependency"],
   },
 
   // ── 4. Service → Productized System ──
@@ -204,6 +230,9 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Productized system: standardized, self-serve replacing ${cv.slice(0, 50)}`,
     rationaleTemplate: "Productizing the service removes linear labor scaling constraints and enables margin expansion through repeatability.",
+    strengthByConstraint: { labor_intensity: "high", owner_dependency: "high", manual_process: "high", linear_scaling: "high", skill_scarcity: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["operational_dependency"],
   },
 
   // ── 5. Fragmented Supply → Aggregated Marketplace ──
@@ -223,6 +252,9 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Aggregated marketplace: unified discovery replacing ${cv.slice(0, 50)}`,
     rationaleTemplate: "Aggregating fragmented supply reduces customer search costs and creates a defensible position through supply-side network effects.",
+    strengthByConstraint: { supply_fragmentation: "high", geographic_constraint: "medium", information_asymmetry: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["distribution_channel"],
   },
 
   // ── 6. Linear Value Chain → Ecosystem Network ──
@@ -242,6 +274,9 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Ecosystem network: multi-sided value creation replacing ${cv.slice(0, 50)}`,
     rationaleTemplate: "Replacing the linear chain with an ecosystem network creates compounding value through multi-directional participant interactions.",
+    strengthByConstraint: { channel_dependency: "high", linear_scaling: "medium", capacity_ceiling: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["distribution_channel"],
   },
 
   // ── 7. Manual Service → Automated Software ──
@@ -261,6 +296,9 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Software-automated: zero-marginal-cost system replacing ${cv.slice(0, 50)}`,
     rationaleTemplate: "Automating the manual process eliminates the labor-cost scaling constraint and creates margin expansion at volume.",
+    strengthByConstraint: { manual_process: "high", labor_intensity: "high", skill_scarcity: "medium", operational_bottleneck: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["operational_dependency"],
   },
 
   // ── 8. One-Time Sale → Recurring Relationship ──
@@ -280,6 +318,9 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Recurring relationship: ongoing value delivery replacing ${cv.slice(0, 50)}`,
     rationaleTemplate: "Converting to recurring revenue increases customer lifetime value and creates predictable cash flows that reduce business fragility.",
+    strengthByConstraint: { transactional_revenue: "high", motivation_decay: "medium", commoditized_pricing: "low" },
+    contraindications: [],
+    minimumEvidenceRequired: ["pricing_model"],
   },
 
   // ── 9. Intermediated → Direct-to-Consumer ──
@@ -299,6 +340,9 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Direct-to-consumer: removing intermediaries from ${cv.slice(0, 50)}`,
     rationaleTemplate: "Disintermediating the distribution chain captures margin currently lost to middlemen and establishes a direct customer relationship for data and retention advantages.",
+    strengthByConstraint: { channel_dependency: "high", margin_compression: "medium", information_asymmetry: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["distribution_channel"],
   },
 
   // ── 10. Fixed Pricing → Usage-Based ──
@@ -318,6 +362,237 @@ export const STRATEGIC_PATTERNS: StrategicPattern[] = [
     transformValue: (cv) =>
       `Usage-based pricing: pay-per-consumption replacing ${cv.slice(0, 50)}`,
     rationaleTemplate: "Usage-based pricing aligns cost to value received, lowering the adoption barrier and enabling organic revenue expansion with usage growth.",
+    strengthByConstraint: { capital_barrier: "high", perceived_value_mismatch: "high", forced_bundling: "medium" },
+    contraindications: [],
+    minimumEvidenceRequired: ["pricing_model"],
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  //  NEW PATTERNS (Phase 1) — 10 additional structural transformations
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── 11. Expert → Guided Self-Service ──
+  {
+    id: "expert_to_guided",
+    name: "Expert → Guided Self-Service",
+    transformation: "Replace expert-performed tasks with guided user self-service",
+    mechanism: "Codify domain knowledge into step-by-step guidance that enables non-experts to achieve expert-level outcomes.",
+    applicableDimensions: ["operational_dependency", "customer_behavior", "cost_structure"],
+    magnitude: "structural",
+    marketMaturity: "growing",
+    mechanismProfile: { economicLeverage: true, scalability: true, defensibility: false },
+    precedentExamples: ["TurboTax (accountant → guided tax filing)", "Wix (web developer → guided website builder)", "Robinhood (broker → guided investing)"],
+    baseFeasibility: { regulatoryRisk: "moderate", implementationComplexity: "high", switchingFriction: "low", operationalBurden: "low" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /expert|specialist|professional|certified|trained|licensed|qualified|advisor/g),
+    transformValue: (cv) =>
+      `Guided self-service: user-driven with expert guidance replacing ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Replacing expert-performed tasks with guided self-service democratizes access and eliminates the expertise bottleneck on scaling.",
+    strengthByConstraint: { expertise_barrier: "high", skill_scarcity: "high", labor_intensity: "medium", access_constraint: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["operational_dependency"],
+    prerequisiteConditions: ["domain knowledge can be codified", "error tolerance exists"],
+  },
+
+  // ── 12. Synchronous → Asynchronous ──
+  {
+    id: "synchronous_to_async",
+    name: "Synchronous → Asynchronous",
+    transformation: "Convert real-time delivery requirements to on-demand access",
+    mechanism: "Remove time-coordination burden by enabling consumption at the user's pace and schedule.",
+    applicableDimensions: ["operational_dependency", "customer_behavior", "distribution_channel"],
+    magnitude: "structural",
+    marketMaturity: "growing",
+    mechanismProfile: { economicLeverage: true, scalability: true, defensibility: false },
+    precedentExamples: ["Masterclass (live instruction → recorded courses)", "Loom (live meetings → async video)", "Coursera (classroom → on-demand learning)"],
+    baseFeasibility: { regulatoryRisk: "low", implementationComplexity: "moderate", switchingFriction: "low", operationalBurden: "low" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /real.?time|live|synchronous|scheduled|appointment|in.?person|simultaneous|session/g),
+    transformValue: (cv) =>
+      `Asynchronous: on-demand access replacing ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Converting synchronous delivery to async removes scheduling friction and enables geographic independence.",
+    strengthByConstraint: { geographic_constraint: "high", capacity_ceiling: "medium", operational_bottleneck: "medium" },
+    contraindications: [],
+    minimumEvidenceRequired: ["operational_dependency"],
+  },
+
+  // ── 13. Centralized → Distributed ──
+  {
+    id: "centralized_to_distributed",
+    name: "Centralized → Distributed",
+    transformation: "Replace single-point facilities with distributed networks",
+    mechanism: "Distribute value delivery across multiple nodes to improve resilience, proximity, and scale.",
+    applicableDimensions: ["distribution_channel", "operational_dependency", "cost_structure"],
+    magnitude: "structural",
+    marketMaturity: "growing",
+    mechanismProfile: { economicLeverage: false, scalability: true, defensibility: true },
+    precedentExamples: ["CloudKitchens (central restaurant → distributed ghost kitchens)", "AWS (central datacenter → edge computing)", "Faire (centralized wholesale → distributed marketplace)"],
+    baseFeasibility: { regulatoryRisk: "moderate", implementationComplexity: "high", switchingFriction: "moderate", operationalBurden: "high" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /centralized|single[\s-]?location|headquarter|main[\s-]?facility|hub|single[\s-]?point/g),
+    transformValue: (cv) =>
+      `Distributed network: multi-node delivery replacing ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Distributing from a central point to a network improves resilience, customer proximity, and removes single-point capacity constraints.",
+    strengthByConstraint: { geographic_constraint: "high", capacity_ceiling: "high", operational_bottleneck: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["distribution_channel"],
+  },
+
+  // ── 14. Inventory → On-Demand ──
+  {
+    id: "inventory_to_on_demand",
+    name: "Inventory → On-Demand",
+    transformation: "Replace pre-stocked inventory with on-demand production/delivery",
+    mechanism: "Eliminate carrying costs and waste by producing or fulfilling only when demand materializes.",
+    applicableDimensions: ["cost_structure", "operational_dependency", "distribution_channel"],
+    magnitude: "structural",
+    marketMaturity: "growing",
+    mechanismProfile: { economicLeverage: true, scalability: false, defensibility: false },
+    precedentExamples: ["Printful (print inventory → print-on-demand)", "Dell (retail inventory → build-to-order)", "Zara (seasonal inventory → fast fashion responsiveness)"],
+    baseFeasibility: { regulatoryRisk: "low", implementationComplexity: "moderate", switchingFriction: "moderate", operationalBurden: "moderate" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /inventory|stock|warehouse|carrying[\s-]?cost|overstock|dead[\s-]?stock|spoilage|shelf[\s-]?life/g),
+    transformValue: (cv) =>
+      `On-demand: produce/deliver when needed replacing ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Shifting from inventory to on-demand eliminates carrying costs and waste while enabling greater customization.",
+    strengthByConstraint: { inventory_burden: "high", capital_barrier: "medium", asset_underutilization: "medium" },
+    contraindications: [],
+    minimumEvidenceRequired: ["cost_structure"],
+  },
+
+  // ── 15. Linear → Circular ──
+  {
+    id: "linear_to_circular",
+    name: "Linear → Circular",
+    transformation: "Replace consume-and-discard with reuse/recycle loops",
+    mechanism: "Create closed-loop systems that recapture value from waste streams and reduce resource dependency.",
+    applicableDimensions: ["cost_structure", "operational_dependency", "demand_signal"],
+    magnitude: "structural",
+    marketMaturity: "emerging",
+    mechanismProfile: { economicLeverage: true, scalability: false, defensibility: true },
+    precedentExamples: ["Patagonia (linear fashion → repair/resale)", "Loop (single-use packaging → reusable containers)", "Caterpillar (discard → remanufacturing)"],
+    baseFeasibility: { regulatoryRisk: "low", implementationComplexity: "high", switchingFriction: "moderate", operationalBurden: "high" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /waste|discard|disposable|single.?use|throwaway|landfill|pollution|resource[\s-]?depletion/g),
+    transformValue: (cv) =>
+      `Circular model: reuse/recycle loop replacing ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Transitioning from linear to circular captures value from waste streams, reduces input costs, and creates sustainability-driven differentiation.",
+    strengthByConstraint: { inventory_burden: "medium", margin_compression: "medium", asset_underutilization: "high" },
+    contraindications: [],
+    minimumEvidenceRequired: ["cost_structure"],
+    strongestIn: ["manufacturing", "consumer goods", "packaging"],
+  },
+
+  // ── 16. Single-Use → Multi-Use ──
+  {
+    id: "single_use_to_multi_use",
+    name: "Single-Use → Multi-Use",
+    transformation: "Expand a single-function asset to serve multiple functions or markets",
+    mechanism: "Increase utilization and revenue from existing assets by finding additional use cases.",
+    applicableDimensions: ["demand_signal", "operational_dependency", "pricing_model"],
+    magnitude: "structural",
+    marketMaturity: "emerging",
+    mechanismProfile: { economicLeverage: true, scalability: false, defensibility: false },
+    precedentExamples: ["Amazon (retail infrastructure → AWS cloud)", "Uber (ride network → UberEats delivery)", "Peloton (bike hardware → content/community platform)"],
+    baseFeasibility: { regulatoryRisk: "low", implementationComplexity: "moderate", switchingFriction: "low", operationalBurden: "moderate" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /single[\s-]?use|one[\s-]?function|narrow|specialized|dedicated|purpose[\s-]?built|idle/g),
+    transformValue: (cv) =>
+      `Multi-use: additional functions/markets from ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Expanding from single-use to multi-use increases asset utilization and creates new revenue streams from existing infrastructure.",
+    strengthByConstraint: { asset_underutilization: "high", capacity_ceiling: "medium", linear_scaling: "medium" },
+    contraindications: ["regulatory_barrier"],
+    minimumEvidenceRequired: ["demand_signal"],
+  },
+
+  // ── 17. Analog → Digital Twin ──
+  {
+    id: "analog_to_digital_twin",
+    name: "Analog → Digital Twin",
+    transformation: "Add a digital information layer to physical-only systems",
+    mechanism: "Create a digital representation that enables data capture, remote monitoring, and predictive capabilities.",
+    applicableDimensions: ["technology_dependency", "operational_dependency", "cost_structure"],
+    magnitude: "structural",
+    marketMaturity: "growing",
+    mechanismProfile: { economicLeverage: false, scalability: true, defensibility: true },
+    precedentExamples: ["GE (jet engines → digital twin monitoring)", "Tesla (car → over-the-air software updates)", "Matterport (physical space → 3D digital scan)"],
+    baseFeasibility: { regulatoryRisk: "low", implementationComplexity: "high", switchingFriction: "moderate", operationalBurden: "moderate" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /analog|physical[\s-]?only|no[\s-]?data|untracked|paper|manual[\s-]?inspection|no[\s-]?visibility/g),
+    transformValue: (cv) =>
+      `Digital twin: data-enriched layer over ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Adding a digital layer to the physical system enables data capture, predictive maintenance, and new data-driven revenue streams.",
+    strengthByConstraint: { analog_process: "high", information_asymmetry: "high", operational_bottleneck: "medium" },
+    contraindications: [],
+    minimumEvidenceRequired: ["technology_dependency"],
+    strongestIn: ["manufacturing", "real estate", "industrial equipment"],
+  },
+
+  // ── 18. Complex → Simplified ──
+  {
+    id: "complex_to_simplified",
+    name: "Complex → Simplified",
+    transformation: "Reduce complexity to make products accessible to non-experts",
+    mechanism: "Remove unnecessary complexity from the user experience, expanding the addressable market to non-specialists.",
+    applicableDimensions: ["customer_behavior", "demand_signal", "operational_dependency"],
+    magnitude: "structural",
+    marketMaturity: "growing",
+    mechanismProfile: { economicLeverage: false, scalability: true, defensibility: false },
+    precedentExamples: ["Squarespace (web development → drag-and-drop)", "Stripe (payment integration → simple API)", "Notion (enterprise software → simple workspace)"],
+    baseFeasibility: { regulatoryRisk: "low", implementationComplexity: "moderate", switchingFriction: "low", operationalBurden: "low" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /complex|complicated|steep[\s-]?learning|confusing|overwhelming|expert[\s-]?only|technical[\s-]?barrier/g),
+    transformValue: (cv) =>
+      `Simplified: accessible to non-experts replacing ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Simplifying the complex experience opens the market to a much larger population of non-expert users.",
+    strengthByConstraint: { expertise_barrier: "high", awareness_gap: "medium", access_constraint: "medium" },
+    contraindications: [],
+    minimumEvidenceRequired: ["customer_behavior"],
+  },
+
+  // ── 19. Individual → Community ──
+  {
+    id: "individual_to_community",
+    name: "Individual → Community",
+    transformation: "Transform solo experiences into shared/social experiences",
+    mechanism: "Add community and social dynamics to create retention, accountability, and network effects.",
+    applicableDimensions: ["customer_behavior", "demand_signal", "pricing_model"],
+    magnitude: "structural",
+    marketMaturity: "growing",
+    mechanismProfile: { economicLeverage: false, scalability: true, defensibility: true },
+    precedentExamples: ["Peloton (solo exercise → live community classes)", "Strava (solo running → social fitness)", "Discord (solo gaming → community platforms)"],
+    baseFeasibility: { regulatoryRisk: "low", implementationComplexity: "moderate", switchingFriction: "moderate", operationalBurden: "moderate" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /individual|solo|alone|isolated|personal|private|single[\s-]?user|lonely/g),
+    transformValue: (cv) =>
+      `Community-driven: shared experience replacing ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Adding community dynamics creates retention through social accountability, generates network effects, and increases switching costs.",
+    strengthByConstraint: { motivation_decay: "high", trust_deficit: "medium", commoditized_pricing: "medium" },
+    contraindications: [],
+    minimumEvidenceRequired: ["customer_behavior"],
+  },
+
+  // ── 20. Reactive → Predictive ──
+  {
+    id: "reactive_to_predictive",
+    name: "Reactive → Predictive",
+    transformation: "Shift from fixing after failure to preventing before failure",
+    mechanism: "Use data and patterns to predict problems and intervene proactively, reducing downtime and cost.",
+    applicableDimensions: ["operational_dependency", "technology_dependency", "cost_structure"],
+    magnitude: "structural",
+    marketMaturity: "emerging",
+    mechanismProfile: { economicLeverage: true, scalability: true, defensibility: true },
+    precedentExamples: ["Uptake (reactive maintenance → predictive IoT)", "Tempus (reactive diagnosis → predictive health)", "Palantir (reactive analysis → predictive intelligence)"],
+    baseFeasibility: { regulatoryRisk: "low", implementationComplexity: "high", switchingFriction: "high", operationalBurden: "moderate" },
+    triggerCondition: (dim) =>
+      triggerStrength(dim, /reactive|break[\s-]?fix|after[\s-]?failure|unplanned|emergency|downtime|fire[\s-]?fighting|crisis/g),
+    transformValue: (cv) =>
+      `Predictive: proactive prevention replacing ${cv.slice(0, 50)}`,
+    rationaleTemplate: "Shifting from reactive to predictive eliminates unplanned downtime costs and creates premium pricing power through superior outcomes.",
+    strengthByConstraint: { operational_bottleneck: "high", analog_process: "medium", information_asymmetry: "high", margin_compression: "medium" },
+    contraindications: [],
+    minimumEvidenceRequired: ["operational_dependency", "technology_dependency"],
+    strongestIn: ["manufacturing", "healthcare", "industrial equipment", "infrastructure"],
   },
 ];
 

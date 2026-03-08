@@ -137,7 +137,7 @@ function computeFromEvidence(
 
   // Tier breakdown
   const tierBreakdown: Record<EvidenceTier, number> = { structural: 0, system: 0, optimization: 0 };
-  const modeBreakdown: Record<EvidenceMode, number> = { product: 0, service: 0, business_model: 0 };
+  const modeBreakdown: Record<EvidenceMode, number> = { product: 0, service: 0, business_model: 0, object_reinvention: 0 };
   all.forEach(e => {
     tierBreakdown[e.tier]++;
     if (e.mode) modeBreakdown[e.mode]++;
@@ -315,7 +315,7 @@ function computeFromLegacy(input: CommandDeckMetricsInput): CommandDeckMetrics {
     isPartial: sources.length < 3,
     stepSignals,
     tierBreakdown: { structural: 0, system: 0, optimization: 0 },
-    modeBreakdown: { product: 0, service: 0, business_model: 0 },
+    modeBreakdown: { product: 0, service: 0, business_model: 0, object_reinvention: 0 },
     totalEvidenceCount: 0,
     opportunityScore: 0,
     frictionIndex: 0,
