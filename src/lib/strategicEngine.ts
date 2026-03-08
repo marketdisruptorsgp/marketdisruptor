@@ -44,6 +44,8 @@ import { computeAllSensitivityReports, type SensitivityReport } from "@/lib/sens
 import { traceStage, buildDiagnostic, type PipelineStageResult } from "@/lib/pipelineDiagnostics";
 import type { SystemIntelligence } from "@/lib/systemIntelligence";
 import { runMorphologicalSearch } from "@/lib/opportunityDesignEngine";
+import { populateFacets } from "@/lib/evidenceFacets";
+import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -174,6 +176,8 @@ export interface StrategicAnalysisOutput {
   scenarioComparison: ScenarioComparison | null;
   sensitivityReports: SensitivityReport[];
   events: string[];
+  /** Phase 1: Constraint hypotheses from structured detection engine */
+  constraintHypotheses: ConstraintHypothesisSet | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1242,7 +1246,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     events.push(`Signals: need ${THRESHOLDS.signals} evidence (have ${evCount})`);
   }
 
-  // ── Stage 4: Detect Constraints ──
+  // ── Stage 4: Detect Constraints (legacy signal-based) ──
   let constraints: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.constraints && signals.length >= 2) {
     const { result: cons, stage: s4 } = traceStage("Constraint Detection", signals.length, () =>
@@ -1253,6 +1257,38 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     events.push(`${constraints.length} constraints detected`);
   } else {
     events.push(`Constraints: need ${THRESHOLDS.constraints} evidence + 2 signals (have ${evCount}ev, ${signals.length}sig)`);
+  }
+
+  // ── Stage 4b: Constraint Hypothesis Detection (Phase 1 — facet-based) ──
+  let constraintHypotheses: ConstraintHypothesisSet | null = null;
+  if (evCount >= THRESHOLDS.constraints) {
+    const { result: hypotheses, stage: s4b } = traceStage("Constraint Hypotheses", flat.length, () => {
+      const facetedEvidence = populateFacets(flat);
+      return detectConstraintHypotheses(facetedEvidence);
+    });
+    stages.push(s4b);
+    constraintHypotheses = hypotheses;
+
+    // Merge hypothesis-detected constraints into the constraint list (avoid duplicates)
+    for (const hyp of hypotheses.hypotheses) {
+      const alreadyExists = constraints.some(c => jaccard(c.label, hyp.definition.description) >= 0.5);
+      if (!alreadyExists) {
+        constraints.push(makeInsight({
+          id: nextId("constraint-hyp"),
+          analysisId: input.analysisId,
+          insightType: "constraint_cluster",
+          label: hyp.definition.description,
+          description: `${hyp.explanation} [${hyp.constraintId}: ${hyp.constraintName}, confidence: ${hyp.confidence}]`,
+          evidenceIds: hyp.evidenceIds,
+          relatedInsightIds: [],
+          impact: hyp.tier === 1 ? 8 : hyp.tier === 2 ? 6 : 4,
+          confidence: hyp.confidence === "strong" ? 0.8 : hyp.confidence === "moderate" ? 0.6 : 0.35,
+          createdAt: Date.now(),
+        }));
+      }
+    }
+
+    events.push(`${hypotheses.hypotheses.length} constraint hypotheses (${hypotheses.totalCandidates} candidates, ${hypotheses.evidenceGaps.length} gaps)`);
   }
 
   // ── Stage 5: Identify Drivers ──
@@ -1445,5 +1481,6 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     scenarioComparison,
     sensitivityReports,
     events,
+    constraintHypotheses,
   };
 }
