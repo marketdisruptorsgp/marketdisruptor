@@ -508,6 +508,7 @@ export default function CommandDeckPage() {
           businessAnalysisData: analysis.businessAnalysisData, intelligence,
           analysisType: (analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product") as "product" | "service" | "business_model",
           analysisId: analysisId || "", completedSteps,
+          geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
         };
         // Use async path for full morphological pipeline with AI alternatives
         const result = await recomputeIntelligenceAsync(input);
