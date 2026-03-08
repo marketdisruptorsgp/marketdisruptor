@@ -318,6 +318,8 @@ function collectEvidence(input: StrategicAnalysisInput): { structured: Record<Me
     businessAnalysisData: input.businessAnalysisData,
     intelligence: input.intelligence,
     analysisType: input.analysisType,
+    geoMarketData: input.geoMarketData,
+    regulatoryData: input.regulatoryData,
   });
 
   const flat = flattenEvidence(structured);
