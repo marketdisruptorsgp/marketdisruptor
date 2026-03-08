@@ -544,12 +544,27 @@ export function runMorphologicalSearch(
   // Stage 3b: Generate AI alternative vectors (morphological shifts)
   const aiVectors = generateOpportunityVectors(baseline, aiAlternatives, constraints, leveragePoints);
 
-  // Tag AI vectors with morphological origin
+  // Tag AI vectors with morphological origin (default safeguard metadata)
   const allOrigins = new Map(patternOrigins);
   for (const v of aiVectors) {
     allOrigins.set(v.id, {
       source: "morphological" as const,
       noveltyTag: "structural" as const,
+      mechanismStrength: 2, // Default for AI-generated — lower than pattern-derived
+      feasibilityFlags: {
+        regulatoryRisk: "low" as const,
+        implementationComplexity: "moderate" as const,
+        switchingFriction: "moderate" as const,
+        operationalBurden: "moderate" as const,
+      },
+      precedentSignals: [],
+      reasoningChain: {
+        signal: "AI-generated morphological shift",
+        constraint: v.triggerIds.length > 0 ? "Linked to detected constraint" : "Adjacency exploration",
+        pattern: "Morphological search",
+        mechanism: v.rationale.slice(0, 100),
+        opportunity: v.changedDimensions.map(d => d.to).join("; "),
+      },
     });
   }
 
