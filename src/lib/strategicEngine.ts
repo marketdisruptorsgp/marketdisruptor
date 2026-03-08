@@ -4,8 +4,11 @@
  * Pipeline (sequential):
  *   1. collectEvidence — Extract canonical evidence from all pipeline steps
  *   2. normalizeEvidence — Deduplicate, classify, assign scores
- *   3. formSignals — Cluster evidence into interpretable signals (NEW)
- *   4. detectConstraints — Structural barriers revealed by signals
+ *   3. formSignals — Cluster evidence into interpretable signals
+ *   3b. populateFacets — Compute & cache structured facets on evidence
+ *   4. detectConstraints — Legacy signal-based constraint detection
+ *   4b. detectConstraintHypotheses — Facet-rule-based constraint hypotheses
+ *   → activeConstraints — Union of legacy + strong/moderate hypotheses (ID-based dedup)
  *   5. identifyDrivers — Root causes behind constraints
  *   6. calculateLeveragePoints — Structural intervention opportunities
  *   7. generateOpportunities — Derived from leverage points
