@@ -37,7 +37,7 @@ export type EvidenceType =
   | "competitor"
   | "simulation";
 
-export type EvidenceMode = "product" | "service" | "business_model";
+export type EvidenceMode = "product" | "service" | "business_model" | "object_reinvention";
 
 export type EvidenceLens = "market" | "product" | "economics" | "operations" | "distribution";
 

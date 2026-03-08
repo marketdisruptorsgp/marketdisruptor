@@ -80,6 +80,8 @@ export interface VectorInteraction {
   relation: VectorRelation;
 }
 
+export type ConstraintStrength = "high" | "medium" | "low";
+
 export interface StrategicPattern {
   id: string;
   name: string;
@@ -110,6 +112,21 @@ export interface StrategicPattern {
   transformValue: (currentValue: string, dimName: string) => string;
   /** Rationale template — filled per application */
   rationaleTemplate: string;
+
+  // ── Phase 1 Constraint-First Fields ──
+
+  /** Constraint types this pattern resolves, with strength per constraint */
+  strengthByConstraint: Record<string, ConstraintStrength>;
+  /** Constraint types where this pattern FAILS — reject if detected */
+  contraindications: string[];
+  /** Evidence facet types that must exist for this pattern to fire */
+  minimumEvidenceRequired: string[];
+  /** Industries where this pattern works best */
+  strongestIn?: string[];
+  /** Industries where this pattern tends to fail */
+  weakestIn?: string[];
+  /** Pre-conditions that must hold for this pattern to succeed */
+  prerequisiteConditions?: string[];
 }
 
 // ═══════════════════════════════════════════════════════════════
