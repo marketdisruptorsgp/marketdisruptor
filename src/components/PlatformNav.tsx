@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Zap, FolderOpen, PlusCircle, Radar,
-  BookOpen, HelpCircle, Lightbulb, BarChart3, Code2, Info,
+  BookOpen, HelpCircle, Lightbulb, BarChart3, Code2, Info, Sparkles,
   Menu, ChevronDown,
 } from "lucide-react";
 
@@ -26,6 +26,7 @@ const RESOURCES_ITEMS = [
   { label: "Methodology", desc: "How the analysis pipeline works", icon: Lightbulb, path: "/methodology" },
   { label: "Intelligence", desc: "Market signals & platform insights", icon: Radar, path: "/intelligence" },
   { label: "FAQs", desc: "Common questions answered", icon: HelpCircle, path: "/faqs" },
+  { label: "New Releases", desc: "Latest platform updates", icon: Sparkles, path: "/releases" },
   { label: "API & Integrations", desc: "Connect your tools via REST API", icon: Code2, path: "/api" },
   { label: "Pricing", desc: "Plans and billing", icon: BarChart3, path: "/pricing" },
 ];
