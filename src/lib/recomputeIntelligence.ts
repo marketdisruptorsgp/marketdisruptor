@@ -8,6 +8,7 @@
  */
 
 import { type Evidence, type MetricDomain, type MetricEvidence } from "@/lib/evidenceEngine";
+import type { ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 import { type Insight } from "@/lib/insightLayer";
 import { type InsightGraph } from "@/lib/insightGraph";
 import { type CommandDeckMetrics } from "@/lib/commandDeckMetrics";
@@ -65,6 +66,12 @@ export interface IntelligenceOutput {
   scenarioComparison: ScenarioComparison | null;
   sensitivityReports: SensitivityReport[];
   skipped?: boolean;
+  /** Phase 1: Constraint hypotheses with evidence chains */
+  constraintHypotheses: ConstraintHypothesisSet | null;
+  /** Legacy signal-derived constraints */
+  legacyConstraints: StrategicInsight[];
+  /** Active constraints used by downstream stages */
+  activeConstraints: StrategicInsight[];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -104,6 +111,9 @@ function buildOutput(result: ReturnType<typeof runStrategicAnalysis>): Intellige
     scenarioCount: result.scenarioComparison?.scenarios?.length ?? 0,
     scenarioComparison: result.scenarioComparison,
     sensitivityReports: result.sensitivityReports,
+    constraintHypotheses: result.constraintHypotheses,
+    legacyConstraints: result.legacyConstraints,
+    activeConstraints: result.activeConstraints,
   };
 }
 
