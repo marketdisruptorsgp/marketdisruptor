@@ -93,7 +93,7 @@ export default function StartPage() {
             style={{ color: ROTATING_WORDS[wordIndex].color }}
             onClick={() => setPaused((p) => !p)}
           >
-            {ROTATING_WORDS[wordIndex].word}.
+            {ROTATING_WORDS[wordIndex].word}
             {paused && <span className="inline-block ml-3 text-lg align-middle opacity-50">⏸</span>}
           </motion.p>
           <p className="text-lg sm:text-xl text-muted-foreground mt-5 max-w-2xl leading-relaxed">
