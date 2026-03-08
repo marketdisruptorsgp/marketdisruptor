@@ -8,6 +8,7 @@
  */
 
 import { type Evidence, type MetricDomain, type MetricEvidence } from "@/lib/evidenceEngine";
+import type { ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 import { type Insight } from "@/lib/insightLayer";
 import { type InsightGraph } from "@/lib/insightGraph";
 import { type CommandDeckMetrics } from "@/lib/commandDeckMetrics";
