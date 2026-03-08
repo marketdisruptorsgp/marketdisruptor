@@ -47,27 +47,45 @@ function randomDimensionValue(
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * Mutate a survivor by changing 1-2 primary dimensions.
- * 20% chance of also mutating a secondary dimension.
+ * Mutate a survivor with adaptive strength.
+ * Early iterations: 1-2 primary mutations, 20% secondary.
+ * Later iterations: 2-3 primary mutations, 40%+ secondary.
+ * maxIterations defaults to 8 if not provided.
  */
 export function mutate(
   parent: EvaluableConcept,
   seed: ConceptSeed,
-  iteration: number
+  iteration: number,
+  maxIterations: number = 8
 ): EvaluableConcept {
   const profile = getMutationProfile(seed.archetype);
   const features = { ...parent.structural_features };
 
-  // Pick 1-2 primary dimensions to mutate
-  const mutationCount = Math.random() < 0.6 ? 1 : 2;
-  const dims = pickRandomN(profile.primaryDimensions, mutationCount);
+  // Adaptive mutation strength: increases with iteration progress
+  const progress = Math.min(1, iteration / Math.max(1, maxIterations - 1));
+
+  // Base: 60% chance of 1, 40% chance of 2
+  // At max progress: 20% chance of 1, 50% chance of 2, 30% chance of 3
+  let mutationCount: number;
+  const roll = Math.random();
+  if (progress < 0.3) {
+    mutationCount = roll < 0.6 ? 1 : 2;
+  } else if (progress < 0.7) {
+    mutationCount = roll < 0.35 ? 1 : roll < 0.85 ? 2 : 3;
+  } else {
+    mutationCount = roll < 0.2 ? 1 : roll < 0.7 ? 2 : 3;
+  }
+
+  const capped = Math.min(mutationCount, profile.primaryDimensions.length);
+  const dims = pickRandomN(profile.primaryDimensions, capped);
 
   for (const dim of dims) {
     features[dim] = randomDimensionValue(dim, profile, features[dim]);
   }
 
-  // 20% chance of secondary mutation
-  if (Math.random() < 0.2 && profile.secondaryDimensions.length > 0) {
+  // Secondary mutation probability scales with progress (20% → 45%)
+  const secondaryProb = 0.2 + progress * 0.25;
+  if (Math.random() < secondaryProb && profile.secondaryDimensions.length > 0) {
     const secDim = pickRandom(profile.secondaryDimensions);
     features[secDim] = randomDimensionValue(secDim, profile, features[secDim]);
   }
