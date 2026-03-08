@@ -1287,12 +1287,6 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     const { result: opps, stage: s7 } = traceStage("Opportunity Generation", leveragePoints.length, () => {
       // If AI alternatives were provided, run the full morphological pipeline
       if (input.aiAlternatives && input.aiAlternatives.length > 0) {
-        const {
-          extractBaseline,
-          identifyActiveDimensions,
-          runMorphologicalSearch,
-        } = require("@/lib/opportunityDesignEngine");
-
         const searchResult = runMorphologicalSearch(
           flat, constraints, leveragePoints, input.aiAlternatives
         );
