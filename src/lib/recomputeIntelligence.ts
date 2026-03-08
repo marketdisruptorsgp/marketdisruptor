@@ -124,6 +124,9 @@ function buildOutput(result: ReturnType<typeof runStrategicAnalysis>): Intellige
     constraintHypotheses: result.constraintHypotheses,
     legacyConstraints: result.legacyConstraints,
     activeConstraints: result.activeConstraints,
+    constraintInteractions: result.constraintInteractions,
+    severityReport: result.severityReport,
+    viabilityReport: result.viabilityReport,
   };
 }
 
