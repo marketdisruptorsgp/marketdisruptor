@@ -111,6 +111,9 @@ function buildOutput(result: ReturnType<typeof runStrategicAnalysis>): Intellige
     scenarioCount: result.scenarioComparison?.scenarios?.length ?? 0,
     scenarioComparison: result.scenarioComparison,
     sensitivityReports: result.sensitivityReports,
+    constraintHypotheses: result.constraintHypotheses,
+    legacyConstraints: result.legacyConstraints,
+    activeConstraints: result.activeConstraints,
   };
 }
 
