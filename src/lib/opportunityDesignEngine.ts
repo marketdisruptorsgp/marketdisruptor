@@ -80,6 +80,8 @@ export interface OpportunityVector {
   explorationMode: ExplorationMode;
   rationale: string;
   evidenceIds: string[];
+  /** Reserved for future opportunity surface detection */
+  surfaceId?: string;
 }
 
 export interface OpportunityZone {
