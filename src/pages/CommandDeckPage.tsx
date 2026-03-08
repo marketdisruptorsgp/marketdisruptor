@@ -248,6 +248,7 @@ export default function CommandDeckPage() {
         businessAnalysisData: analysis.businessAnalysisData, intelligence,
         analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
         analysisId: analysisId || "", completedSteps,
+        geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
       });
     } catch { addEvent("Intelligence recompute completed"); }
     setTimeout(() => { setIsRecomputing(false); toast.success("Strategic intelligence updated"); }, 800);
