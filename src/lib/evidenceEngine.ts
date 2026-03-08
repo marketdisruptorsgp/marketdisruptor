@@ -565,6 +565,262 @@ function extractLeverageEvidence(input: EvidenceInput): Evidence[] {
   return items;
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  REAL-WORLD DATA EXTRACTION — Patent, Supply Chain, Geo, Regulatory
+// ═══════════════════════════════════════════════════════════════
+
+function extractPatentEvidence(input: EvidenceInput): Evidence[] {
+  const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
+  const patent = input.selectedProduct?.patentData;
+  if (!patent) return items;
+
+  // Patent thicket risk → constraint
+  if (patent.thicketRisk === "high" || patent.thicketRisk === "medium") {
+    items.push({
+      id: makeId("pat-thicket"), type: "constraint",
+      label: `Patent thicket risk: ${patent.thicketRisk}`,
+      description: patent.thicketRiskExplanation || `Dense IP landscape restricts freedom to operate`,
+      pipelineStep: "report", tier: "structural", impact: patent.thicketRisk === "high" ? 9 : 6,
+      mode, sourceEngine: "pipeline", category: "regulatory_constraint",
+    });
+  }
+
+  // Key holders → competitive pressure constraints
+  safeArr(patent.keyHolders).slice(0, 5).forEach((holder: any, i: number) => {
+    if (holder.dominance === "high" || holder.dominance === "medium") {
+      items.push({
+        id: makeId("pat-holder"), type: "constraint",
+        label: `IP controlled by ${holder.name || "major holder"} (${holder.dominance} dominance)`,
+        description: `${holder.focus || "Core technology patents"}. Threat: ${holder.threat || "market entry barrier"}`,
+        pipelineStep: "report", tier: "structural", impact: holder.dominance === "high" ? 8 : 5,
+        mode, sourceEngine: "pipeline", category: "competitive_pressure",
+        competitorReferences: [{ name: holder.name }],
+      });
+    }
+  });
+
+  // Expired goldmines → leverage/opportunity
+  safeArr(patent.expiredGoldmines).slice(0, 5).forEach((gold: any, i: number) => {
+    items.push({
+      id: makeId("pat-expired"), type: "leverage",
+      label: `Expired IP: ${gold.title || "public domain technology"}`,
+      description: `${gold.whatItCovers || ""}. Commercial opportunity: ${gold.commercialOpportunity || "free to use"}`,
+      pipelineStep: "report", tier: "structural", impact: 7,
+      mode, sourceEngine: "pipeline", category: "technology_dependency",
+    });
+  });
+
+  // Patent gaps → opportunity signals
+  safeArr(patent.patentGaps).slice(0, 5).forEach((gap: any, i: number) => {
+    items.push({
+      id: makeId("pat-gap"), type: "opportunity",
+      label: `Patent white space: ${gap.gap || "unprotected area"}`,
+      description: `${gap.why || ""}. Opportunity: ${gap.opportunity || "defensible market entry"}`,
+      pipelineStep: "report", tier: "structural", impact: 7,
+      mode, sourceEngine: "pipeline", category: "demand_signal",
+    });
+  });
+
+  // Innovation angles → opportunity
+  safeArr(patent.innovationAngles).slice(0, 3).forEach((angle: any) => {
+    items.push({
+      id: makeId("pat-innov"), type: "opportunity",
+      label: `Patent-informed innovation: ${angle.angle || "novel approach"}`,
+      description: `Based on: ${angle.basedOn || "prior art analysis"}. ${angle.competitiveAdvantage || ""}`,
+      pipelineStep: "report", tier: "structural", impact: 6,
+      mode, sourceEngine: "pipeline", category: "demand_signal",
+    });
+  });
+
+  return items;
+}
+
+function extractSupplyChainEvidence(input: EvidenceInput): Evidence[] {
+  const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
+  const sc = input.selectedProduct?.supplyChain;
+  if (!sc) return items;
+
+  // Supplier concentration → constraint
+  const suppliers = safeArr(sc.suppliers || []);
+  if (suppliers.length > 0 && suppliers.length <= 2) {
+    items.push({
+      id: makeId("sc-conc"), type: "constraint",
+      label: `Supplier concentration risk: only ${suppliers.length} known supplier(s)`,
+      description: `Key suppliers: ${suppliers.map((s: any) => `${s.name} (${s.region})`).join(", ")}`,
+      pipelineStep: "report", tier: "system", impact: 7,
+      mode, sourceEngine: "pipeline", category: "operational_dependency",
+    });
+  }
+
+  // Supplier info → operational signals
+  suppliers.slice(0, 5).forEach((s: any) => {
+    items.push({
+      id: makeId("sc-sup"), type: "signal",
+      label: `Supplier: ${s.name} (${s.region}, ${s.role || "general"})`,
+      description: s.moq ? `MOQ: ${s.moq}` : `Supply chain participant`,
+      pipelineStep: "report", tier: "system", impact: 4,
+      mode, sourceEngine: "pipeline", category: "operational_dependency",
+    });
+  });
+
+  // Manufacturer info → feasibility signals
+  safeArr(sc.manufacturers || []).slice(0, 5).forEach((m: any) => {
+    items.push({
+      id: makeId("sc-mfg"), type: "signal",
+      label: `Manufacturer: ${m.name} (${m.region})`,
+      description: m.moq ? `MOQ: ${m.moq}` : `Manufacturing capability`,
+      pipelineStep: "report", tier: "system", impact: 4,
+      mode, sourceEngine: "pipeline", category: "operational_dependency",
+    });
+  });
+
+  // Distributor channels → distribution signals
+  safeArr(sc.distributors || []).slice(0, 3).forEach((d: any) => {
+    items.push({
+      id: makeId("sc-dist"), type: "signal",
+      label: `Distributor: ${d.name} (${d.region})`,
+      pipelineStep: "report", tier: "system", impact: 4,
+      mode, sourceEngine: "pipeline", category: "distribution_channel",
+    });
+  });
+
+  return items;
+}
+
+function extractGeoMarketEvidence(input: EvidenceInput): Evidence[] {
+  const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
+  const geo = input.geoMarketData;
+  if (!geo) return items;
+
+  // Top opportunity markets → demand signals
+  safeArr(geo.topMarkets || geo.opportunities).slice(0, 5).forEach((mkt: any, i: number) => {
+    const label = mkt.state || mkt.name || mkt.market || `Market ${i + 1}`;
+    items.push({
+      id: makeId("geo-mkt"), type: "signal",
+      label: `High-opportunity market: ${label}`,
+      description: mkt.score ? `Opportunity score: ${mkt.score}` : `${mkt.population ? `Pop: ${mkt.population.toLocaleString()}` : ""} ${mkt.medianIncome ? `Income: $${mkt.medianIncome.toLocaleString()}` : ""}`.trim(),
+      pipelineStep: "report", tier: "optimization", impact: 5,
+      mode, sourceEngine: "pipeline", category: "demand_signal",
+    });
+  });
+
+  // Business density data → competitive pressure
+  if (geo.businessPatterns) {
+    const totalEstablishments = safeArr(geo.businessPatterns).reduce((s: number, b: any) => s + (b.establishments || 0), 0);
+    if (totalEstablishments > 0) {
+      items.push({
+        id: makeId("geo-biz"), type: "signal",
+        label: `Industry has ${totalEstablishments.toLocaleString()} establishments (Census CBP)`,
+        description: `NAICS ${geo.naicsCode || "sector"}: real business density data from US Census County Business Patterns`,
+        pipelineStep: "report", tier: "system", impact: 5,
+        mode, sourceEngine: "pipeline", category: "competitive_pressure",
+      });
+    }
+  }
+
+  return items;
+}
+
+function extractRegulatoryEvidence(input: EvidenceInput): Evidence[] {
+  const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
+  const reg = input.regulatoryData;
+  if (!reg || reg.regulatoryRelevance === "none") return items;
+
+  // Regulatory relevance → constraint
+  const impactMap = { high: 9, medium: 6, low: 3 };
+  items.push({
+    id: makeId("reg-rel"), type: "constraint",
+    label: `Regulatory complexity: ${reg.regulatoryRelevance} (${reg.matchedCategory || "general"})`,
+    description: `Oversight by: ${(reg.agencies || []).join(", ")}`,
+    pipelineStep: "report", tier: "structural",
+    impact: impactMap[reg.regulatoryRelevance as keyof typeof impactMap] || 5,
+    mode, sourceEngine: "pipeline", category: "regulatory_constraint",
+  });
+
+  // Active rulemaking → risk
+  safeArr(reg.activeRulemaking).slice(0, 3).forEach((rule: any) => {
+    items.push({
+      id: makeId("reg-rule"), type: "risk",
+      label: `Active rulemaking: ${(rule.title || "").slice(0, 80)}`,
+      description: `${rule.type || "RULE"} — ${rule.agencyNames?.join(", ") || "federal agency"}. ${(rule.abstractSnippet || "").slice(0, 200)}`,
+      pipelineStep: "report", tier: "structural", impact: rule.type === "PROPOSED_RULE" ? 8 : 6,
+      mode, sourceEngine: "pipeline", category: "regulatory_constraint",
+    });
+  });
+
+  // Risk signals
+  safeArr(reg.risks).slice(0, 3).forEach((risk: any) => {
+    const label = typeof risk === "string" ? risk : (risk.label || "Regulatory risk");
+    items.push({
+      id: makeId("reg-risk"), type: "risk", label,
+      pipelineStep: "report", tier: "structural", impact: 7,
+      mode, sourceEngine: "pipeline", category: "regulatory_constraint",
+    });
+  });
+
+  // State variance → constraint
+  if (safeArr(reg.stateVariance).length > 0) {
+    items.push({
+      id: makeId("reg-var"), type: "constraint",
+      label: `State-by-state regulatory variance for ${reg.matchedCategory || "this category"}`,
+      description: reg.stateVariance.slice(0, 2).join("; "),
+      pipelineStep: "report", tier: "system", impact: 6,
+      mode, sourceEngine: "pipeline", category: "regulatory_constraint",
+    });
+  }
+
+  return items;
+}
+
+function extractPricingEvidence(input: EvidenceInput): Evidence[] {
+  const items: Evidence[] = [];
+  const mode = inferMode(input.analysisType);
+  const pricing = input.selectedProduct?.pricingIntel;
+  if (!pricing) return items;
+
+  // Price range → cost structure signal
+  if (pricing.priceRange || pricing.averagePrice) {
+    items.push({
+      id: makeId("price-range"), type: "signal",
+      label: `Market pricing: ${pricing.priceRange || `avg $${pricing.averagePrice}`}`,
+      description: pricing.pricingStrategy || "Real market pricing data from competitive analysis",
+      pipelineStep: "report", tier: "system", impact: 6,
+      mode, sourceEngine: "pipeline", category: "pricing_model",
+    });
+  }
+
+  // Margin data → cost structure
+  if (pricing.estimatedMargin || pricing.marginRange) {
+    items.push({
+      id: makeId("price-margin"), type: "signal",
+      label: `Estimated margin: ${pricing.estimatedMargin || pricing.marginRange}`,
+      pipelineStep: "report", tier: "system", impact: 6,
+      mode, sourceEngine: "pipeline", category: "cost_structure",
+    });
+  }
+
+  // Competitor pricing
+  safeArr(pricing.competitors || pricing.competitorPricing).slice(0, 5).forEach((comp: any) => {
+    const name = typeof comp === "string" ? comp : (comp.name || comp.competitor);
+    const price = comp.price || comp.pricePoint;
+    if (name) {
+      items.push({
+        id: makeId("price-comp"), type: "signal",
+        label: `Competitor pricing: ${name}${price ? ` at ${price}` : ""}`,
+        pipelineStep: "report", tier: "optimization", impact: 4,
+        mode, sourceEngine: "pipeline", category: "competitive_pressure",
+        competitorReferences: [{ name }],
+      });
+    }
+  });
+
+  return items;
+}
+
 function extractRiskEvidence(input: EvidenceInput): Evidence[] {
   const items: Evidence[] = [];
   const mode = inferMode(input.analysisType);
