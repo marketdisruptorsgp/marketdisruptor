@@ -76,6 +76,12 @@ export interface IntelligenceOutput {
   legacyConstraints: StrategicInsight[];
   /** Active constraints used by downstream stages */
   activeConstraints: StrategicInsight[];
+  /** Constraint interaction pairs */
+  constraintInteractions: ConstraintInteractionSet | null;
+  /** Constraint severity report */
+  severityReport: SeverityReport | null;
+  /** Viability scores for opportunities */
+  viabilityReport: ViabilityReport | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
