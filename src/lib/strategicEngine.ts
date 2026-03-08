@@ -1252,15 +1252,26 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     events.push(`Signals: need ${THRESHOLDS.signals} evidence (have ${evCount})`);
   }
 
+  // ── Stage 3b: Facet Population (cached for downstream reuse) ──
+  let facetedEvidence: Evidence[] = flat;
+  if (evCount >= THRESHOLDS.constraints) {
+    const { result: faceted, stage: s3b } = traceStage("Facet Population", flat.length, () =>
+      populateFacets(flat)
+    );
+    stages.push(s3b);
+    facetedEvidence = faceted;
+    events.push(`Facets populated on ${faceted.filter((e: any) => e.facets).length}/${faceted.length} evidence items`);
+  }
+
   // ── Stage 4: Detect Constraints (legacy signal-based) ──
-  let constraints: StrategicInsight[] = [];
+  let legacyConstraints: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.constraints && signals.length >= 2) {
     const { result: cons, stage: s4 } = traceStage("Constraint Detection", signals.length, () =>
       detectConstraints(signals, flat, input.analysisId)
     );
     stages.push(s4);
-    constraints = cons;
-    events.push(`${constraints.length} constraints detected`);
+    legacyConstraints = cons;
+    events.push(`${legacyConstraints.length} legacy constraints detected`);
   } else {
     events.push(`Constraints: need ${THRESHOLDS.constraints} evidence + 2 signals (have ${evCount}ev, ${signals.length}sig)`);
   }
@@ -1268,34 +1279,46 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // ── Stage 4b: Constraint Hypothesis Detection (Phase 1 — facet-based) ──
   let constraintHypotheses: ConstraintHypothesisSet | null = null;
   if (evCount >= THRESHOLDS.constraints) {
-    const { result: hypotheses, stage: s4b } = traceStage("Constraint Hypotheses", flat.length, () => {
-      const facetedEvidence = populateFacets(flat);
-      return detectConstraintHypotheses(facetedEvidence);
-    });
+    const { result: hypotheses, stage: s4b } = traceStage("Constraint Hypotheses", facetedEvidence.length, () =>
+      detectConstraintHypotheses(facetedEvidence)
+    );
     stages.push(s4b);
     constraintHypotheses = hypotheses;
+    events.push(`${hypotheses.hypotheses.length} constraint hypotheses (${hypotheses.totalCandidates} candidates, ${hypotheses.evidenceGaps.length} gaps, ${hypotheses.evidenceRequests.length} requests)`);
+  }
 
-    // Merge hypothesis-detected constraints into the constraint list (avoid duplicates)
-    for (const hyp of hypotheses.hypotheses) {
-      const alreadyExists = constraints.some(c => jaccard(c.label, hyp.definition.description) >= 0.5);
-      if (!alreadyExists) {
-        constraints.push(makeInsight({
-          id: nextId("constraint-hyp"),
-          analysisId: input.analysisId,
-          insightType: "constraint_cluster",
-          label: hyp.definition.description,
-          description: `${hyp.explanation} [${hyp.constraintId}: ${hyp.constraintName}, confidence: ${hyp.confidence}]`,
-          evidenceIds: hyp.evidenceIds,
-          relatedInsightIds: [],
-          impact: hyp.tier === 1 ? 8 : hyp.tier === 2 ? 6 : 4,
-          confidence: hyp.confidence === "strong" ? 0.8 : hyp.confidence === "moderate" ? 0.6 : 0.35,
-          createdAt: Date.now(),
-        }));
-      }
+  // ── Compose activeConstraints: legacy + strong/moderate hypotheses (ID-based dedup) ──
+  const activeConstraints: StrategicInsight[] = [...legacyConstraints];
+  if (constraintHypotheses) {
+    const existingConstraintIds = new Set<string>();
+    // Extract constraintIds from legacy constraints (stored in description meta)
+    for (const lc of legacyConstraints) {
+      const idMatch = lc.description.match(/\[(C-[A-Z]+-\d+):/);
+      if (idMatch) existingConstraintIds.add(idMatch[1]);
     }
 
-    events.push(`${hypotheses.hypotheses.length} constraint hypotheses (${hypotheses.totalCandidates} candidates, ${hypotheses.evidenceGaps.length} gaps)`);
+    for (const hyp of constraintHypotheses.hypotheses) {
+      // Skip if already covered by a legacy constraint with same stable ID
+      if (existingConstraintIds.has(hyp.constraintId)) continue;
+      // Only promote strong and moderate hypotheses; limited stay advisory-only
+      if (hyp.confidence === "limited") continue;
+
+      activeConstraints.push(makeInsight({
+        id: nextId("constraint-hyp"),
+        analysisId: input.analysisId,
+        insightType: "constraint_cluster",
+        label: hyp.definition.description,
+        description: `${hyp.explanation} [${hyp.constraintId}: ${hyp.constraintName}, confidence: ${hyp.confidence}]`,
+        evidenceIds: hyp.evidenceIds,
+        relatedInsightIds: [],
+        impact: hyp.tier === 1 ? 8 : hyp.tier === 2 ? 6 : 4,
+        confidence: hyp.confidence === "strong" ? 0.8 : 0.6,
+        createdAt: Date.now(),
+      }));
+    }
   }
+  // Use activeConstraints for all downstream stages
+  const constraints = activeConstraints;
 
   // ── Stage 5: Identify Drivers ──
   let drivers: StrategicInsight[] = [];
