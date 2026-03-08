@@ -111,10 +111,13 @@ export default function CommandDeckPage() {
     governedData: analysis.governedData as Record<string, unknown> | null,
     businessAnalysisData: analysis.businessAnalysisData, intelligence,
     analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+    geoMarketData: analysis.geoData,
+    regulatoryData: analysis.regulatoryData,
   }), [
     analysis.products, selectedProduct, analysis.disruptData, analysis.redesignData,
     analysis.stressTestData, analysis.pitchDeckData, analysis.governedData,
     analysis.businessAnalysisData, intelligence, analysis.activeMode,
+    analysis.geoData, analysis.regulatoryData,
   ]);
 
   const metricsInput = useMemo(() => ({
@@ -245,6 +248,7 @@ export default function CommandDeckPage() {
         businessAnalysisData: analysis.businessAnalysisData, intelligence,
         analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
         analysisId: analysisId || "", completedSteps,
+        geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
       });
     } catch { addEvent("Intelligence recompute completed"); }
     setTimeout(() => { setIsRecomputing(false); toast.success("Strategic intelligence updated"); }, 800);
@@ -284,6 +288,7 @@ export default function CommandDeckPage() {
         businessAnalysisData: analysis.businessAnalysisData, intelligence,
         analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
         analysisId: analysisId || "", completedSteps,
+        geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
@@ -312,6 +317,7 @@ export default function CommandDeckPage() {
         businessAnalysisData: analysis.businessAnalysisData, intelligence,
         analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
         analysisId: analysisId || "", completedSteps,
+        geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
@@ -384,6 +390,7 @@ export default function CommandDeckPage() {
         businessAnalysisData: analysis.businessAnalysisData, intelligence,
         analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
         analysisId: analysisId || "", completedSteps,
+        geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
       });
     } catch { /* silent */ }
     try { runAnalysis(); } catch { /* silent */ }
@@ -501,6 +508,7 @@ export default function CommandDeckPage() {
           businessAnalysisData: analysis.businessAnalysisData, intelligence,
           analysisType: (analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product") as "product" | "service" | "business_model",
           analysisId: analysisId || "", completedSteps,
+          geoMarketData: analysis.geoData, regulatoryData: analysis.regulatoryData,
         };
         // Use async path for full morphological pipeline with AI alternatives
         const result = await recomputeIntelligenceAsync(input);

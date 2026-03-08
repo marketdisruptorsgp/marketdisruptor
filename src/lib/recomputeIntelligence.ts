@@ -59,6 +59,8 @@ export interface IntelligenceInput {
   completedSteps: Set<string>;
   force?: boolean;
   lensState?: string;
+  geoMarketData?: any | null;
+  regulatoryData?: any | null;
 }
 
 export interface IntelligenceOutput {
@@ -104,6 +106,8 @@ function buildEngineInput(
     analysisId: input.analysisId,
     completedSteps: input.completedSteps,
     aiAlternatives,
+    geoMarketData: input.geoMarketData,
+    regulatoryData: input.regulatoryData,
   };
 }
 

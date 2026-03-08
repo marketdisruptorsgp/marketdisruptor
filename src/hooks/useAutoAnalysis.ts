@@ -63,6 +63,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
     analysisId, products, selectedProduct,
     governedData, disruptData, redesignData,
     stressTestData, pitchDeckData, businessAnalysisData,
+    geoData, regulatoryData,
   } = analysis;
 
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
@@ -134,6 +135,8 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         analysisType: analysisMode,
         analysisId,
         completedSteps,
+        geoMarketData: geoData,
+        regulatoryData,
       };
 
       const result = runStrategicAnalysis(input);
@@ -166,6 +169,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   }, [
     analysisId, selectedProduct, governedData, disruptData, businessAnalysisData,
     products, redesignData, stressTestData, pitchDeckData, analysisMode, completedSteps,
+    geoData, regulatoryData,
   ]);
 
   // ── Auto-recompute whenever evidence dataset changes ──
