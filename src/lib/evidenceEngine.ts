@@ -741,7 +741,7 @@ export function deduplicateEvidence(items: Evidence[], threshold = 0.85): Eviden
 
 function buildMetricEvidence(domain: MetricDomain, items: Evidence[]): MetricEvidence {
   const tierBreakdown: Record<EvidenceTier, number> = { structural: 0, system: 0, optimization: 0 };
-  const modeBreakdown: Record<EvidenceMode, number> = { product: 0, service: 0, business_model: 0 };
+  const modeBreakdown: Record<EvidenceMode, number> = { product: 0, service: 0, business_model: 0, object_reinvention: 0 };
 
   items.forEach(item => {
     tierBreakdown[item.tier]++;
