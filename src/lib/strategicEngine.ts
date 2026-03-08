@@ -1577,6 +1577,25 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
   events.push("Strategic intelligence computed");
 
+  // ── Market Structure Analysis ──
+  let marketStructure: MarketStructureReport | null = null;
+  if (flat.length >= THRESHOLDS.constraints) {
+    const { result: mktResult, stage: sMkt } = traceStage("Market Structure", flat.length, () =>
+      analyzeMarketStructure(flat, input.analysisId, (prefix) => runFactory.next(prefix))
+    );
+    stages.push(sMkt);
+    marketStructure = mktResult;
+
+    // Merge market-level insights into the pipeline
+    if (mktResult.constraints.length > 0) {
+      allInsights.push(...mktResult.constraints, ...mktResult.drivers, ...mktResult.opportunities);
+      events.push(`Market structure: ${mktResult.patterns.length} patterns, ${mktResult.archetypes.length} archetypes, ${mktResult.constraints.length} market constraints`);
+    }
+  }
+
+  // Clean up run factory
+  activeRunFactory = null;
+
   return {
     evidence,
     flatEvidence: flat,
@@ -1597,5 +1616,6 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     constraintInteractions,
     severityReport,
     viabilityReport,
+    marketStructure,
   };
 }
