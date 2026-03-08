@@ -1060,9 +1060,15 @@ export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, M
   const constraint = extractConstraintEvidence(input);
   const leverage = extractLeverageEvidence(input);
   const risk = extractRiskEvidence(input);
+  const patent = extractPatentEvidence(input);
+  const supplyChain = extractSupplyChainEvidence(input);
+  const geo = extractGeoMarketEvidence(input);
+  const regulatory = extractRegulatoryEvidence(input);
+  const pricing = extractPricingEvidence(input);
 
   // Combine ALL items for cross-domain processing
-  const allRaw = [...opportunity, ...friction, ...constraint, ...leverage, ...risk];
+  const allRaw = [...opportunity, ...friction, ...constraint, ...leverage, ...risk,
+    ...patent, ...supplyChain, ...geo, ...regulatory, ...pricing];
 
   // Deduplication pass
   const allDeduped = deduplicateEvidence(allRaw);
