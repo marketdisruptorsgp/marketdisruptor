@@ -187,6 +187,10 @@ export interface StrategicAnalysisInput {
   completedSteps: Set<string>;
   /** Pre-fetched AI alternatives for morphological search (from edge function) */
   aiAlternatives?: import("@/lib/opportunityDesignEngine").DimensionAlternative[];
+  /** Geo market data (Census, CBP, World Bank) */
+  geoMarketData?: any | null;
+  /** Regulatory intelligence profile */
+  regulatoryData?: any | null;
 }
 
 export interface StrategicAnalysisOutput {
