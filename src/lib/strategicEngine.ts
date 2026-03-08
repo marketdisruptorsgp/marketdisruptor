@@ -214,8 +214,10 @@ export interface StrategicAnalysisOutput {
   constraintInteractions: ConstraintInteractionSet | null;
   /** Stage 5: Constraint severity scores */
   severityReport: SeverityReport | null;
-  /** Stage 8: Viability scores for opportunity concepts */
+  /** Stage 9: Viability scores for opportunity concepts */
   viabilityReport: ViabilityReport | null;
+  /** Market structure analysis */
+  marketStructure: MarketStructureReport | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
