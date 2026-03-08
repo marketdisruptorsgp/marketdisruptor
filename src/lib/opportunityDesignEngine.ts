@@ -17,7 +17,7 @@
 
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { StrategicInsight, StrategicSignal } from "@/lib/strategicEngine";
-import { applyPatterns, type VectorOrigin } from "@/lib/strategicPatternLibrary";
+import { applyPatterns, detectInteractions, type VectorOrigin, type VectorInteraction } from "@/lib/strategicPatternLibrary";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -80,6 +80,8 @@ export interface OpportunityVector {
   explorationMode: ExplorationMode;
   rationale: string;
   evidenceIds: string[];
+  /** Reserved for future opportunity surface detection */
+  surfaceId?: string;
 }
 
 export interface OpportunityZone {
@@ -499,6 +501,8 @@ export interface MorphologicalSearchResult {
   warmCount: number;
   /** Origin metadata for each vector — keyed by vector ID */
   vectorOrigins: Map<string, import("@/lib/strategicPatternLibrary").VectorOrigin>;
+  /** Interaction map between vectors (reinforcing/conflicting/orthogonal) */
+  vectorInteractions: Map<string, import("@/lib/strategicPatternLibrary").VectorInteraction[]>;
   patternVectorCount: number;
 }
 
@@ -542,12 +546,27 @@ export function runMorphologicalSearch(
   // Stage 3b: Generate AI alternative vectors (morphological shifts)
   const aiVectors = generateOpportunityVectors(baseline, aiAlternatives, constraints, leveragePoints);
 
-  // Tag AI vectors with morphological origin
+  // Tag AI vectors with morphological origin (default safeguard metadata)
   const allOrigins = new Map(patternOrigins);
   for (const v of aiVectors) {
     allOrigins.set(v.id, {
       source: "morphological" as const,
       noveltyTag: "structural" as const,
+      mechanismStrength: 2, // Default for AI-generated — lower than pattern-derived
+      feasibilityFlags: {
+        regulatoryRisk: "low" as const,
+        implementationComplexity: "moderate" as const,
+        switchingFriction: "moderate" as const,
+        operationalBurden: "moderate" as const,
+      },
+      precedentSignals: [],
+      reasoningChain: {
+        signal: "AI-generated morphological shift",
+        constraint: v.triggerIds.length > 0 ? "Linked to detected constraint" : "Adjacency exploration",
+        pattern: "Morphological search",
+        mechanism: v.rationale.slice(0, 100),
+        opportunity: v.changedDimensions.map(d => d.to).join("; "),
+      },
     });
   }
 
@@ -557,7 +576,10 @@ export function runMorphologicalSearch(
   // Stage 5: Apply qualification gates (uniform across all sources)
   const qualifiedVectors = applyQualificationGates(allVectors, constraints, flatEvidence, baseline);
 
-  // Stage 6: Cluster into zones
+  // Stage 6: Detect interactions between qualified vectors
+  const vectorInteractions = detectInteractions(qualifiedVectors);
+
+  // Stage 7: Cluster into zones
   const zones = clusterIntoZones(qualifiedVectors);
 
   return {
@@ -568,6 +590,7 @@ export function runMorphologicalSearch(
     hotCount: hotDims.length,
     warmCount: warmDims.length,
     vectorOrigins: allOrigins,
+    vectorInteractions,
     patternVectorCount: patternVectors.length,
   };
 }
