@@ -9,7 +9,11 @@
 
 import { type Evidence, type MetricDomain, type MetricEvidence } from "@/lib/evidenceEngine";
 import type { ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
+import type { ConstraintInteractionSet } from "@/lib/constraintInteractionEngine";
+import type { SeverityReport } from "@/lib/constraintSeverityEngine";
+import type { ViabilityReport } from "@/lib/viabilityEngine";
 import { type Insight } from "@/lib/insightLayer";
+
 import { type InsightGraph } from "@/lib/insightGraph";
 import { type CommandDeckMetrics } from "@/lib/commandDeckMetrics";
 import { type ScenarioComparison } from "@/lib/scenarioComparisonEngine";
