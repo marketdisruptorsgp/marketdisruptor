@@ -1042,6 +1042,10 @@ export interface EvidenceInput {
   intelligence: any | null;
   /** Analysis type for mode inference */
   analysisType?: string;
+  /** Geo market data (Census, CBP, World Bank) */
+  geoMarketData?: any | null;
+  /** Regulatory intelligence profile */
+  regulatoryData?: any | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
