@@ -563,6 +563,18 @@ export interface ConstraintHypothesis {
   counterfactualExplanation: string;
 }
 
+/** Structured prompt guiding users to resolve evidence uncertainty */
+export interface EvidenceRequest {
+  /** Which constraint category has the gap */
+  constraintCategory: ConstraintCategory;
+  /** Human-readable prompt (e.g., "Collect labor cost as % of revenue") */
+  prompt: string;
+  /** What type of data would resolve the gap */
+  dataType: "metric" | "operational_property" | "market_data" | "customer_data";
+  /** Priority based on how many patterns depend on this category */
+  priority: "high" | "medium" | "low";
+}
+
 export interface ConstraintHypothesisSet {
   /** Ranked hypotheses (2-3 max) */
   hypotheses: ConstraintHypothesis[];
@@ -570,6 +582,8 @@ export interface ConstraintHypothesisSet {
   totalCandidates: number;
   /** Evidence gaps: constraint categories with no candidates */
   evidenceGaps: string[];
+  /** Structured evidence requests to resolve gaps */
+  evidenceRequests: EvidenceRequest[];
 }
 
 /**
