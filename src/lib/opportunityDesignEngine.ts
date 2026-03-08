@@ -17,6 +17,7 @@
 
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { StrategicInsight, StrategicSignal } from "@/lib/strategicEngine";
+import { applyPatterns, type VectorOrigin } from "@/lib/strategicPatternLibrary";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -496,11 +497,23 @@ export interface MorphologicalSearchResult {
   activeDimensionCount: number;
   hotCount: number;
   warmCount: number;
+  /** Origin metadata for each vector — keyed by vector ID */
+  vectorOrigins: Map<string, import("@/lib/strategicPatternLibrary").VectorOrigin>;
+  patternVectorCount: number;
 }
 
 /**
  * Run the complete morphological search pipeline.
  * Called by strategicEngine Stage 7 after receiving AI alternatives.
+ *
+ * Execution order:
+ *   1. Extract baseline
+ *   2. Identify active dimensions
+ *   3. Apply structural patterns (pattern library) → candidate vectors
+ *   4. Generate AI alternative vectors (morphological shifts)
+ *   5. Merge all vectors
+ *   6. Qualification gates (uniform)
+ *   7. Cluster into zones
  */
 export function runMorphologicalSearch(
   flatEvidence: Evidence[],
@@ -519,13 +532,32 @@ export function runMorphologicalSearch(
   const hotDims = getDimensionsByStatus(baseline, "hot");
   const warmDims = getDimensionsByStatus(baseline, "warm");
 
-  // Stage 3: Generate vectors from baseline + AI alternatives
-  const rawVectors = generateOpportunityVectors(baseline, aiAlternatives, constraints, leveragePoints);
+  // Stage 3a: Apply structural patterns FIRST (deterministic, mechanism-tagged)
+  const constraintInputs = constraints.map(c => ({ id: c.id, evidenceIds: c.evidenceIds }));
+  const leverageInputs = leveragePoints.map(l => ({ id: l.id, evidenceIds: l.evidenceIds }));
+  const { vectors: patternVectors, origins: patternOrigins } = applyPatterns(
+    baseline, constraintInputs, leverageInputs, flatEvidence
+  );
 
-  // Stage 4: Apply qualification gates
-  const qualifiedVectors = applyQualificationGates(rawVectors, constraints, flatEvidence, baseline);
+  // Stage 3b: Generate AI alternative vectors (morphological shifts)
+  const aiVectors = generateOpportunityVectors(baseline, aiAlternatives, constraints, leveragePoints);
 
-  // Stage 5: Cluster into zones
+  // Tag AI vectors with morphological origin
+  const allOrigins = new Map(patternOrigins);
+  for (const v of aiVectors) {
+    allOrigins.set(v.id, {
+      source: "morphological" as const,
+      noveltyTag: "structural" as const,
+    });
+  }
+
+  // Stage 4: Merge all vectors, pattern-first
+  const allVectors = [...patternVectors, ...aiVectors];
+
+  // Stage 5: Apply qualification gates (uniform across all sources)
+  const qualifiedVectors = applyQualificationGates(allVectors, constraints, flatEvidence, baseline);
+
+  // Stage 6: Cluster into zones
   const zones = clusterIntoZones(qualifiedVectors);
 
   return {
@@ -535,6 +567,8 @@ export function runMorphologicalSearch(
     activeDimensionCount: hotDims.length + warmDims.length,
     hotCount: hotDims.length,
     warmCount: warmDims.length,
+    vectorOrigins: allOrigins,
+    patternVectorCount: patternVectors.length,
   };
 }
 
