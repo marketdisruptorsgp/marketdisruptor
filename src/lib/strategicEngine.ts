@@ -178,6 +178,12 @@ export interface StrategicAnalysisOutput {
   events: string[];
   /** Phase 1: Constraint hypotheses from structured detection engine */
   constraintHypotheses: ConstraintHypothesisSet | null;
+  /** Faceted evidence (cached from Stage 3b) */
+  facetedEvidence: Evidence[];
+  /** Legacy signal-derived constraints (separate provenance) */
+  legacyConstraints: StrategicInsight[];
+  /** Active constraints: union of legacy + strong/moderate hypotheses for downstream use */
+  activeConstraints: StrategicInsight[];
 }
 
 // ═══════════════════════════════════════════════════════════════
