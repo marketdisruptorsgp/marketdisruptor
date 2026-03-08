@@ -533,7 +533,7 @@ export function runMorphologicalSearch(
   const warmDims = getDimensionsByStatus(baseline, "warm");
 
   // Stage 3a: Apply structural patterns FIRST (deterministic, mechanism-tagged)
-  const { applyPatterns } = require("@/lib/strategicPatternLibrary") as typeof import("@/lib/strategicPatternLibrary");
+  const constraintInputs = constraints.map(c => ({ id: c.id, evidenceIds: c.evidenceIds }));
   const constraintInputs = constraints.map(c => ({ id: c.id, evidenceIds: c.evidenceIds }));
   const leverageInputs = leveragePoints.map(l => ({ id: l.id, evidenceIds: l.evidenceIds }));
   const { vectors: patternVectors, origins: patternOrigins } = applyPatterns(
