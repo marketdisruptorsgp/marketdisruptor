@@ -290,11 +290,13 @@ export function generateOpportunityVectors(
   const hotDims = getDimensionsByStatus(baseline, "hot");
   const warmDims = getDimensionsByStatus(baseline, "warm");
 
-  // Group alternatives by dimension
+  // Group alternatives by dimension — normalize IDs (AI may return "pricing_model" or "dim-pricing_model")
   const altsByDim: Record<string, DimensionAlternative[]> = {};
   for (const alt of alternatives) {
-    if (!altsByDim[alt.dimensionId]) altsByDim[alt.dimensionId] = [];
-    altsByDim[alt.dimensionId].push(alt);
+    // Try exact match first, then with "dim-" prefix, then without prefix
+    const normalizedId = alt.dimensionId.startsWith("dim-") ? alt.dimensionId : `dim-${alt.dimensionId}`;
+    if (!altsByDim[normalizedId]) altsByDim[normalizedId] = [];
+    altsByDim[normalizedId].push(alt);
   }
 
   // ── Single-dimension shifts ──
