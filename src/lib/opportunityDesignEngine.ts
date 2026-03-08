@@ -576,7 +576,10 @@ export function runMorphologicalSearch(
   // Stage 5: Apply qualification gates (uniform across all sources)
   const qualifiedVectors = applyQualificationGates(allVectors, constraints, flatEvidence, baseline);
 
-  // Stage 6: Cluster into zones
+  // Stage 6: Detect interactions between qualified vectors
+  const vectorInteractions = detectInteractions(qualifiedVectors);
+
+  // Stage 7: Cluster into zones
   const zones = clusterIntoZones(qualifiedVectors);
 
   return {
@@ -587,6 +590,7 @@ export function runMorphologicalSearch(
     hotCount: hotDims.length,
     warmCount: warmDims.length,
     vectorOrigins: allOrigins,
+    vectorInteractions,
     patternVectorCount: patternVectors.length,
   };
 }
