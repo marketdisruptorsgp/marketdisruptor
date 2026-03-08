@@ -66,6 +66,12 @@ export interface IntelligenceOutput {
   scenarioComparison: ScenarioComparison | null;
   sensitivityReports: SensitivityReport[];
   skipped?: boolean;
+  /** Phase 1: Constraint hypotheses with evidence chains */
+  constraintHypotheses: ConstraintHypothesisSet | null;
+  /** Legacy signal-derived constraints */
+  legacyConstraints: StrategicInsight[];
+  /** Active constraints used by downstream stages */
+  activeConstraints: StrategicInsight[];
 }
 
 // ═══════════════════════════════════════════════════════════════
