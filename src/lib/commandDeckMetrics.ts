@@ -137,7 +137,7 @@ function computeFromEvidence(
 
   // Tier breakdown
   const tierBreakdown: Record<EvidenceTier, number> = { structural: 0, system: 0, optimization: 0 };
-  const modeBreakdown: Record<EvidenceMode, number> = { product: 0, service: 0, business_model: 0 };
+  const modeBreakdown: Record<EvidenceMode, number> = { product: 0, service: 0, business_model: 0, object_reinvention: 0 };
   all.forEach(e => {
     tierBreakdown[e.tier]++;
     if (e.mode) modeBreakdown[e.mode]++;
