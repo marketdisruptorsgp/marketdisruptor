@@ -156,6 +156,8 @@ export interface StrategicAnalysisInput {
   analysisType: "product" | "service" | "business_model";
   analysisId: string;
   completedSteps: Set<string>;
+  /** Pre-fetched AI alternatives for morphological search (from edge function) */
+  aiAlternatives?: import("@/lib/opportunityDesignEngine").DimensionAlternative[];
 }
 
 export interface StrategicAnalysisOutput {
