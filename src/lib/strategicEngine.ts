@@ -44,6 +44,8 @@ import { computeAllSensitivityReports, type SensitivityReport } from "@/lib/sens
 import { traceStage, buildDiagnostic, type PipelineStageResult } from "@/lib/pipelineDiagnostics";
 import type { SystemIntelligence } from "@/lib/systemIntelligence";
 import { runMorphologicalSearch } from "@/lib/opportunityDesignEngine";
+import { populateFacets } from "@/lib/evidenceFacets";
+import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
