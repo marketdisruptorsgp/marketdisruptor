@@ -49,6 +49,21 @@ import type { SystemIntelligence } from "@/lib/systemIntelligence";
 import { runMorphologicalSearch } from "@/lib/opportunityDesignEngine";
 import { populateFacets } from "@/lib/evidenceFacets";
 import { detectConstraintHypotheses, type ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
+import {
+  discoverConstraintInteractions,
+  type ConstraintInteractionSet,
+} from "@/lib/constraintInteractionEngine";
+import {
+  scoreConstraintSeverity,
+  type SeverityReport,
+  type SeverityScore,
+} from "@/lib/constraintSeverityEngine";
+import {
+  scoreViability,
+  generateExploratoryOpportunities,
+  type ViabilityReport,
+  type ViabilityScore,
+} from "@/lib/viabilityEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
