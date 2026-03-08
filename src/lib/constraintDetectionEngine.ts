@@ -563,6 +563,18 @@ export interface ConstraintHypothesis {
   counterfactualExplanation: string;
 }
 
+/** Structured prompt guiding users to resolve evidence uncertainty */
+export interface EvidenceRequest {
+  /** Which constraint category has the gap */
+  constraintCategory: ConstraintCategory;
+  /** Human-readable prompt (e.g., "Collect labor cost as % of revenue") */
+  prompt: string;
+  /** What type of data would resolve the gap */
+  dataType: "metric" | "operational_property" | "market_data" | "customer_data";
+  /** Priority based on how many patterns depend on this category */
+  priority: "high" | "medium" | "low";
+}
+
 export interface ConstraintHypothesisSet {
   /** Ranked hypotheses (2-3 max) */
   hypotheses: ConstraintHypothesis[];
@@ -570,6 +582,8 @@ export interface ConstraintHypothesisSet {
   totalCandidates: number;
   /** Evidence gaps: constraint categories with no candidates */
   evidenceGaps: string[];
+  /** Structured evidence requests to resolve gaps */
+  evidenceRequests: EvidenceRequest[];
 }
 
 /**
@@ -660,9 +674,61 @@ export function detectConstraintHypotheses(evidence: EvidenceWithFacets[]): Cons
   const allCategories: ConstraintCategory[] = ["labor_operations", "revenue_pricing", "supply_distribution", "technology_information", "market_adoption", "structural_economic", "demand"];
   const evidenceGaps = allCategories.filter(cat => !detectedCategories.has(cat));
 
+  // Generate structured evidence requests from gaps
+  const evidenceRequests = generateEvidenceRequests(evidenceGaps);
+
   return {
     hypotheses,
     totalCandidates: candidates.length,
     evidenceGaps,
+    evidenceRequests,
   };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EVIDENCE REQUEST GENERATION
+// ═══════════════════════════════════════════════════════════════
+
+const GAP_REQUEST_MAP: Record<ConstraintCategory, EvidenceRequest[]> = {
+  labor_operations: [
+    { constraintCategory: "labor_operations", prompt: "Collect labor cost as % of revenue", dataType: "metric", priority: "high" },
+    { constraintCategory: "labor_operations", prompt: "Verify whether key functions depend on a single person", dataType: "operational_property", priority: "high" },
+    { constraintCategory: "labor_operations", prompt: "Identify roles that are difficult to hire or retain", dataType: "operational_property", priority: "medium" },
+  ],
+  revenue_pricing: [
+    { constraintCategory: "revenue_pricing", prompt: "Collect top-customer revenue concentration (% from top 3)", dataType: "metric", priority: "high" },
+    { constraintCategory: "revenue_pricing", prompt: "Verify pricing model type and price-setting power", dataType: "operational_property", priority: "high" },
+    { constraintCategory: "revenue_pricing", prompt: "Collect gross margin and margin trend over 3 years", dataType: "metric", priority: "medium" },
+  ],
+  supply_distribution: [
+    { constraintCategory: "supply_distribution", prompt: "Verify geographic delivery constraints or service radius", dataType: "operational_property", priority: "medium" },
+    { constraintCategory: "supply_distribution", prompt: "Collect vendor dependency data (single-source suppliers)", dataType: "operational_property", priority: "medium" },
+  ],
+  technology_information: [
+    { constraintCategory: "technology_information", prompt: "Identify legacy systems creating switching costs", dataType: "operational_property", priority: "medium" },
+    { constraintCategory: "technology_information", prompt: "Verify whether key workflows are analog-only", dataType: "operational_property", priority: "low" },
+  ],
+  market_adoption: [
+    { constraintCategory: "market_adoption", prompt: "Assess customer switching costs from existing solutions", dataType: "customer_data", priority: "medium" },
+    { constraintCategory: "market_adoption", prompt: "Verify regulatory or licensing requirements", dataType: "market_data", priority: "medium" },
+  ],
+  structural_economic: [
+    { constraintCategory: "structural_economic", prompt: "Collect EBITDA margin and trend direction", dataType: "metric", priority: "high" },
+    { constraintCategory: "structural_economic", prompt: "Verify whether growth requires proportional resource increase", dataType: "operational_property", priority: "medium" },
+  ],
+  demand: [
+    { constraintCategory: "demand", prompt: "Assess target audience awareness of the solution", dataType: "customer_data", priority: "medium" },
+    { constraintCategory: "demand", prompt: "Verify customer access constraints (geographic, financial, credential)", dataType: "customer_data", priority: "low" },
+  ],
+};
+
+function generateEvidenceRequests(gaps: ConstraintCategory[]): EvidenceRequest[] {
+  const requests: EvidenceRequest[] = [];
+  for (const gap of gaps) {
+    const categoryRequests = GAP_REQUEST_MAP[gap];
+    if (categoryRequests) requests.push(...categoryRequests);
+  }
+  // Sort by priority
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  return requests.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 }
