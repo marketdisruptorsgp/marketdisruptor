@@ -43,6 +43,7 @@ import { compareScenarios, type ScenarioComparison } from "@/lib/scenarioCompari
 import { computeAllSensitivityReports, type SensitivityReport } from "@/lib/sensitivityEngine";
 import { traceStage, buildDiagnostic, type PipelineStageResult } from "@/lib/pipelineDiagnostics";
 import type { SystemIntelligence } from "@/lib/systemIntelligence";
+import { runMorphologicalSearch } from "@/lib/opportunityDesignEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -156,6 +157,8 @@ export interface StrategicAnalysisInput {
   analysisType: "product" | "service" | "business_model";
   analysisId: string;
   completedSteps: Set<string>;
+  /** Pre-fetched AI alternatives for morphological search (from edge function) */
+  aiAlternatives?: import("@/lib/opportunityDesignEngine").DimensionAlternative[];
 }
 
 export interface StrategicAnalysisOutput {
@@ -1282,15 +1285,30 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   let opportunities: StrategicInsight[] = [];
   if (evCount >= THRESHOLDS.opportunities && leveragePoints.length > 0) {
     const { result: opps, stage: s7 } = traceStage("Opportunity Generation", leveragePoints.length, () => {
-      // Morphological search runs synchronously with any pre-existing alternatives.
-      // AI-assisted alternative generation is async and wired externally.
-      // Here we use the fallback (legacy) path. The full morphological pipeline
-      // is invoked from the Command Deck orchestrator when AI alternatives are available.
+      // If AI alternatives were provided, run the full morphological pipeline
+      if (input.aiAlternatives && input.aiAlternatives.length > 0) {
+        const searchResult = runMorphologicalSearch(
+          flat, constraints, leveragePoints, input.aiAlternatives
+        );
+
+        if (searchResult.vectors.length > 0) {
+          return generateOpportunitiesFromVectors(
+            searchResult.vectors,
+            searchResult.zones,
+            searchResult.baseline,
+            constraints,
+            leveragePoints,
+            input.analysisId,
+          );
+        }
+      }
+
+      // Fallback: legacy path when no AI alternatives or insufficient dimensions
       return generateOpportunitiesFallback(leveragePoints, constraints, input.analysisId);
     });
     stages.push(s7);
     opportunities = opps;
-    events.push(`${opportunities.length} opportunities generated`);
+    events.push(`${opportunities.length} opportunities generated${input.aiAlternatives?.length ? " (morphological)" : " (fallback)"}`);
   } else {
     events.push(`Opportunities: need ${THRESHOLDS.opportunities} evidence + leverage`);
   }
