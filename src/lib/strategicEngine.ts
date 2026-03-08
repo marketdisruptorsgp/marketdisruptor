@@ -176,6 +176,8 @@ export interface StrategicAnalysisOutput {
   scenarioComparison: ScenarioComparison | null;
   sensitivityReports: SensitivityReport[];
   events: string[];
+  /** Phase 1: Constraint hypotheses from structured detection engine */
+  constraintHypotheses: ConstraintHypothesisSet | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
