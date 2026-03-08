@@ -694,7 +694,7 @@ function discoverLeverage(
  * generation happens asynchronously via the edge function and is wired at
  * the call site in runStrategicAnalysis or the Command Deck orchestrator.
  */
-function generateOpportunitiesFromVectors(
+export function generateOpportunitiesFromVectors(
   vectors: import("@/lib/opportunityDesignEngine").OpportunityVector[],
   zones: import("@/lib/opportunityDesignEngine").OpportunityZone[],
   baseline: import("@/lib/opportunityDesignEngine").BusinessBaseline,
