@@ -692,9 +692,20 @@ function jaccardSimilarity(a: Set<string>, b: Set<string>): number {
   return union === 0 ? 0 : intersection / union;
 }
 
+export interface DeduplicationResult {
+  evidence: Evidence[];
+  /** Map of removed ID → canonical surviving ID for downstream remapping */
+  idRemapping: Map<string, string>;
+}
+
 export function deduplicateEvidence(items: Evidence[], threshold = 0.85): Evidence[] {
+  return deduplicateEvidenceWithRemap(items, threshold).evidence;
+}
+
+export function deduplicateEvidenceWithRemap(items: Evidence[], threshold = 0.85): DeduplicationResult {
   const result: Evidence[] = [];
   const tokenCache = new Map<string, Set<string>>();
+  const idRemapping = new Map<string, string>();
 
   for (const item of items) {
     const tokens = tokenize(item.label + " " + (item.description || ""));
@@ -704,6 +715,8 @@ export function deduplicateEvidence(items: Evidence[], threshold = 0.85): Eviden
     for (const existing of result) {
       const existingTokens = tokenCache.get(existing.id)!;
       if (jaccardSimilarity(tokens, existingTokens) >= threshold) {
+        // Record the remapping: this item's ID → the surviving canonical ID
+        idRemapping.set(item.id, existing.id);
         // Merge: increase source count, combine engines
         existing.sourceCount = (existing.sourceCount ?? 1) + 1;
         if (item.sourceEngine && item.sourceEngine !== existing.sourceEngine) {
@@ -732,7 +745,7 @@ export function deduplicateEvidence(items: Evidence[], threshold = 0.85): Eviden
     }
   }
 
-  return result;
+  return { evidence: result, idRemapping };
 }
 
 // ═══════════════════════════════════════════════════════════════

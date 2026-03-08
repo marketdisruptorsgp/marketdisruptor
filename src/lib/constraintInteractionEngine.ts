@@ -169,7 +169,31 @@ function extractConstraintCategory(constraint: StrategicInsight): string | null 
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  CATEGORY GROUPING — Reduces O(N²) to O(group pairs)
+// ═══════════════════════════════════════════════════════════════
+
+/** Categories that are "related" and should be evaluated against each other */
+const RELATED_CATEGORY_GROUPS: string[][] = [
+  ["labor_operations", "revenue_pricing", "structural_economic"],
+  ["supply_distribution", "market_adoption", "demand"],
+  ["technology_information", "labor_operations", "market_adoption"],
+  ["revenue_pricing", "demand", "market_adoption"],
+];
+
+function getRelatedCategories(category: string): Set<string> {
+  const related = new Set<string>([category]);
+  for (const group of RELATED_CATEGORY_GROUPS) {
+    if (group.includes(category)) {
+      group.forEach(c => related.add(c));
+    }
+  }
+  return related;
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  MAIN: DISCOVER CONSTRAINT INTERACTIONS
+//  Groups constraints by category first, then evaluates pairs
+//  only within related groups to avoid O(N²) over all constraints.
 // ═══════════════════════════════════════════════════════════════
 
 export function discoverConstraintInteractions(
@@ -183,51 +207,80 @@ export function discoverConstraintInteractions(
     return { interactions: [], pairsEvaluated: 0, hasReinforcingLoops: false };
   }
 
-  // Evaluate all pairs
-  for (let i = 0; i < activeConstraints.length; i++) {
-    for (let j = i + 1; j < activeConstraints.length; j++) {
-      pairsEvaluated++;
-      const a = activeConstraints[i];
-      const b = activeConstraints[j];
+  // Categorize all constraints
+  const categorized = activeConstraints.map(c => ({
+    constraint: c,
+    category: extractConstraintCategory(c),
+  }));
 
-      const catA = extractConstraintCategory(a);
-      const catB = extractConstraintCategory(b);
+  // Build category → constraint index
+  const byCat = new Map<string, typeof categorized>();
+  for (const entry of categorized) {
+    const cat = entry.category ?? "unknown";
+    if (!byCat.has(cat)) byCat.set(cat, []);
+    byCat.get(cat)!.push(entry);
+  }
 
-      // Evidence overlap indicates potential interaction
-      const evidenceOverlap = computeEvidenceOverlap(a, b);
+  // Track evaluated pairs to avoid duplicates
+  const evaluatedPairs = new Set<string>();
 
-      // Check against known interaction rules
-      let matchedRule: InteractionRule | null = null;
-      if (catA && catB) {
-        matchedRule = INTERACTION_RULES.find(
-          r =>
-            (r.categories[0] === catA && r.categories[1] === catB) ||
-            (r.categories[0] === catB && r.categories[1] === catA)
-        ) || null;
-      }
+  function pairKey(a: string, b: string): string {
+    return a < b ? `${a}|${b}` : `${b}|${a}`;
+  }
 
-      // Determine interaction
-      if (matchedRule || evidenceOverlap >= 0.15) {
-        const interactionType: InteractionType = matchedRule?.interactionType
-          ?? (evidenceOverlap >= 0.3 ? "reinforcing" : "causal");
+  // Evaluate pairs within related category groups
+  for (const entry of categorized) {
+    const catA = entry.category ?? "unknown";
+    const relatedCats = getRelatedCategories(catA);
 
-        const strength = matchedRule
-          ? Math.min(1, 0.5 + evidenceOverlap * 2)
-          : evidenceOverlap;
+    for (const relCat of relatedCats) {
+      const candidates = byCat.get(relCat) ?? [];
+      for (const candidate of candidates) {
+        if (candidate.constraint.id === entry.constraint.id) continue;
+        const pk = pairKey(entry.constraint.id, candidate.constraint.id);
+        if (evaluatedPairs.has(pk)) continue;
+        evaluatedPairs.add(pk);
+        pairsEvaluated++;
 
-        const explanation = matchedRule?.explanation
-          ?? `Constraints share ${Math.round(evidenceOverlap * 100)}% evidence overlap, suggesting a ${interactionType} relationship`;
+        const a = entry.constraint;
+        const b = candidate.constraint;
+        const catB = candidate.category;
 
-        const candidatePatterns = matchedRule?.candidatePatterns ?? [];
+        // Evidence overlap
+        const evidenceOverlap = computeEvidenceOverlap(a, b);
 
-        interactions.push({
-          constraintIds: [a.id, b.id],
-          constraintLabels: [a.label, b.label],
-          interactionType,
-          strength,
-          explanation,
-          candidatePatterns,
-        });
+        // Check interaction rules
+        let matchedRule: InteractionRule | null = null;
+        if (catA && catB) {
+          matchedRule = INTERACTION_RULES.find(
+            r =>
+              (r.categories[0] === catA && r.categories[1] === catB) ||
+              (r.categories[0] === catB && r.categories[1] === catA)
+          ) || null;
+        }
+
+        if (matchedRule || evidenceOverlap >= 0.15) {
+          const interactionType: InteractionType = matchedRule?.interactionType
+            ?? (evidenceOverlap >= 0.3 ? "reinforcing" : "causal");
+
+          const strength = matchedRule
+            ? Math.min(1, 0.5 + evidenceOverlap * 2)
+            : evidenceOverlap;
+
+          const explanation = matchedRule?.explanation
+            ?? `Constraints share ${Math.round(evidenceOverlap * 100)}% evidence overlap, suggesting a ${interactionType} relationship`;
+
+          const candidatePatterns = matchedRule?.candidatePatterns ?? [];
+
+          interactions.push({
+            constraintIds: [a.id, b.id],
+            constraintLabels: [a.label, b.label],
+            interactionType,
+            strength,
+            explanation,
+            candidatePatterns,
+          });
+        }
       }
     }
   }

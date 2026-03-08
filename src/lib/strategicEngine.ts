@@ -36,6 +36,7 @@
 import {
   extractAllEvidence,
   flattenEvidence,
+  deduplicateEvidenceWithRemap,
   type Evidence,
   type MetricDomain,
   type MetricEvidence,
@@ -69,6 +70,8 @@ import {
   type ViabilityReport,
   type ViabilityScore,
 } from "@/lib/viabilityEngine";
+import { analyzeMarketStructure, type MarketStructureReport } from "@/lib/marketStructureEngine";
+import { createRunIdFactory, type RunIdFactory } from "@/lib/runIdFactory";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -211,8 +214,10 @@ export interface StrategicAnalysisOutput {
   constraintInteractions: ConstraintInteractionSet | null;
   /** Stage 5: Constraint severity scores */
   severityReport: SeverityReport | null;
-  /** Stage 8: Viability scores for opportunity concepts */
+  /** Stage 9: Viability scores for opportunity concepts */
   viabilityReport: ViabilityReport | null;
+  /** Market structure analysis */
+  marketStructure: MarketStructureReport | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -233,7 +238,10 @@ const THRESHOLDS = {
 // ═══════════════════════════════════════════════════════════════
 
 let idCounter = 0;
+let activeRunFactory: RunIdFactory | null = null;
+
 function nextId(prefix: string): string {
+  if (activeRunFactory) return activeRunFactory.next(prefix);
   return `${prefix}-${++idCounter}`;
 }
 
@@ -379,7 +387,7 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
 
       for (const candidate of items) {
         if (used.has(candidate.id)) continue;
-        if (jaccard(anchor.label, candidate.label) >= 0.25) {
+        if (jaccard(anchor.label, candidate.label) >= 0.35) {
           cluster.push(candidate);
           used.add(candidate.id);
         }
@@ -1238,6 +1246,9 @@ function deriveTrappedValueBenchmark(evidence: Evidence[], constraint: Strategic
 // ═══════════════════════════════════════════════════════════════
 
 export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAnalysisOutput {
+  // Run-scoped ID factory — all IDs valid only within this execution
+  const runFactory = createRunIdFactory();
+  activeRunFactory = runFactory;
   idCounter = 0;
   const events: string[] = [];
   const stages: PipelineStageResult[] = [];
@@ -1566,6 +1577,25 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
 
   events.push("Strategic intelligence computed");
 
+  // ── Market Structure Analysis ──
+  let marketStructure: MarketStructureReport | null = null;
+  if (flat.length >= THRESHOLDS.constraints) {
+    const { result: mktResult, stage: sMkt } = traceStage("Market Structure", flat.length, () =>
+      analyzeMarketStructure(flat, input.analysisId, (prefix) => runFactory.next(prefix))
+    );
+    stages.push(sMkt);
+    marketStructure = mktResult;
+
+    // Merge market-level insights into the pipeline
+    if (mktResult.constraints.length > 0) {
+      allInsights.push(...mktResult.constraints, ...mktResult.drivers, ...mktResult.opportunities);
+      events.push(`Market structure: ${mktResult.patterns.length} patterns, ${mktResult.archetypes.length} archetypes, ${mktResult.constraints.length} market constraints`);
+    }
+  }
+
+  // Clean up run factory
+  activeRunFactory = null;
+
   return {
     evidence,
     flatEvidence: flat,
@@ -1586,5 +1616,6 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     constraintInteractions,
     severityReport,
     viabilityReport,
+    marketStructure,
   };
 }

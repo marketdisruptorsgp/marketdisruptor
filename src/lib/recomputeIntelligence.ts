@@ -3,8 +3,11 @@
  *
  * Single entry point for full intelligence recomputation.
  * Provides both sync (fallback) and async (morphological) paths.
- * The async path fetches AI alternatives from the edge function
- * before running the strategic engine with the full morphological pipeline.
+ *
+ * The async path:
+ *   1. Runs deterministic analysis FIRST (evidence → constraints)
+ *   2. Uses constraint results to inform AI alternative generation
+ *   3. Re-runs full pipeline with AI alternatives injected
  */
 
 import { type Evidence, type MetricDomain, type MetricEvidence } from "@/lib/evidenceEngine";
@@ -12,7 +15,7 @@ import type { ConstraintHypothesisSet } from "@/lib/constraintDetectionEngine";
 import type { ConstraintInteractionSet } from "@/lib/constraintInteractionEngine";
 import type { SeverityReport } from "@/lib/constraintSeverityEngine";
 import type { ViabilityReport } from "@/lib/viabilityEngine";
-import { type Insight } from "@/lib/insightLayer";
+import type { MarketStructureReport } from "@/lib/marketStructureEngine";
 
 import { type InsightGraph } from "@/lib/insightGraph";
 import { type CommandDeckMetrics } from "@/lib/commandDeckMetrics";
@@ -70,22 +73,17 @@ export interface IntelligenceOutput {
   scenarioComparison: ScenarioComparison | null;
   sensitivityReports: SensitivityReport[];
   skipped?: boolean;
-  /** Phase 1: Constraint hypotheses with evidence chains */
   constraintHypotheses: ConstraintHypothesisSet | null;
-  /** Legacy signal-derived constraints */
   legacyConstraints: StrategicInsight[];
-  /** Active constraints used by downstream stages */
   activeConstraints: StrategicInsight[];
-  /** Constraint interaction pairs */
   constraintInteractions: ConstraintInteractionSet | null;
-  /** Constraint severity report */
   severityReport: SeverityReport | null;
-  /** Viability scores for opportunities */
   viabilityReport: ViabilityReport | null;
+  marketStructure: MarketStructureReport | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BUILD ENGINE INPUT (shared between sync and async paths)
+//  BUILD ENGINE INPUT
 // ═══════════════════════════════════════════════════════════════
 
 function buildEngineInput(
@@ -127,6 +125,7 @@ function buildOutput(result: ReturnType<typeof runStrategicAnalysis>): Intellige
     constraintInteractions: result.constraintInteractions,
     severityReport: result.severityReport,
     viabilityReport: result.viabilityReport,
+    marketStructure: result.marketStructure,
   };
 }
 
@@ -140,51 +139,46 @@ export function recomputeIntelligence(input: IntelligenceInput): IntelligenceOut
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ASYNC RECOMPUTE — Full morphological pipeline with AI
+//  ASYNC RECOMPUTE — Constraints-first, then AI exploration
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * Fetches AI-generated dimension alternatives from the edge function,
- * then runs the full strategic analysis with morphological search.
+ * Two-pass pipeline:
+ *   Pass 1: Run deterministic analysis to get constraints and leverage
+ *   Pass 2: Use constraint structure to target AI alternative generation
+ *   Pass 3: Re-run full pipeline with AI alternatives injected
  *
- * Falls back to sync path if the edge function fails or returns no alternatives.
+ * Falls back to sync (Pass 1) result if AI step fails.
  */
 export async function recomputeIntelligenceAsync(input: IntelligenceInput): Promise<IntelligenceOutput> {
+  // Pass 1: Full deterministic analysis (no AI)
+  const syncResult = runStrategicAnalysis(buildEngineInput(input));
+  const syncOutput = buildOutput(syncResult);
+
+  // Only attempt AI exploration if we have sufficient structure
+  const constraints = syncResult.activeConstraints;
+  const leveragePoints = syncResult.insights.filter(i => i.insightType === "leverage_point");
+  const flat = syncResult.flatEvidence;
+
+  if (constraints.length < 1 || flat.length < 18) {
+    console.log(`[Morphological] Skipping AI: ${constraints.length} constraints, ${flat.length} evidence`);
+    return syncOutput;
+  }
+
   let aiAlternatives: DimensionAlternative[] | undefined;
 
   try {
-    // Pre-compute a quick evidence pass to extract baseline dimensions
-    const evidenceResult = extractAllEvidence({
-      products: input.products,
-      selectedProduct: input.selectedProduct,
-      disruptData: input.disruptData,
-      redesignData: input.redesignData,
-      stressTestData: input.stressTestData,
-      pitchDeckData: input.pitchDeckData,
-      governedData: input.governedData,
-      businessAnalysisData: input.businessAnalysisData,
-      intelligence: input.intelligence,
-      analysisType: input.analysisType,
-    });
-    const flat = flattenEvidence(evidenceResult);
-
-    // We need constraints and leverage from a preliminary sync run to build baseline
-    // But that's expensive — instead, build baseline from evidence alone with empty constraints
-    // The baseline extraction only needs evidence + constraint/leverage overlap checks
-    const emptyConstraints: StrategicInsight[] = [];
-    const emptyLeverage: StrategicInsight[] = [];
-
-    const rawBaseline = extractBaseline(flat, emptyConstraints, emptyLeverage);
-    const baseline = identifyActiveDimensions(rawBaseline, emptyConstraints, emptyLeverage);
+    // Build baseline from Pass 1 results (with real constraints/leverage)
+    const rawBaseline = extractBaseline(flat, constraints, leveragePoints);
+    const baseline = identifyActiveDimensions(rawBaseline, constraints, leveragePoints);
 
     const hotDims = getDimensionsByStatus(baseline, "hot");
     const warmDims = getDimensionsByStatus(baseline, "warm");
     const activeDimCount = hotDims.length + warmDims.length;
 
-    // Only call edge function if we have ≥2 active dimensions and enough evidence
-    if (activeDimCount >= 2 && flat.length >= 18) {
+    if (activeDimCount >= 2) {
       const payload = prepareEdgeFunctionPayload(
-        baseline, emptyConstraints, emptyLeverage, input.analysisType
+        baseline, constraints, leveragePoints, input.analysisType
       );
 
       const { data, error } = await invokeWithTimeout<{ alternatives: DimensionAlternative[] }>(
@@ -195,18 +189,23 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
 
       if (!error && data?.alternatives && data.alternatives.length > 0) {
         aiAlternatives = data.alternatives;
-        console.log(`[Morphological] Received ${aiAlternatives.length} AI alternatives for ${activeDimCount} dimensions`);
+        console.log(`[Morphological] Received ${aiAlternatives.length} AI alternatives for ${activeDimCount} dimensions (constraint-informed)`);
       } else {
-        console.warn("[Morphological] Edge function returned no alternatives, using fallback", error);
+        console.warn("[Morphological] Edge function returned no alternatives", error);
       }
     } else {
-      console.log(`[Morphological] Skipping edge function: ${activeDimCount} active dims, ${flat.length} evidence`);
+      console.log(`[Morphological] Only ${activeDimCount} active dims, skipping AI`);
     }
   } catch (err) {
-    console.warn("[Morphological] Failed to fetch AI alternatives, falling back to sync:", err);
+    console.warn("[Morphological] Failed to fetch AI alternatives:", err);
   }
 
-  // Run strategic analysis — with or without AI alternatives
-  const result = runStrategicAnalysis(buildEngineInput(input, aiAlternatives));
-  return buildOutput(result);
+  // If no AI alternatives, return the sync result
+  if (!aiAlternatives || aiAlternatives.length === 0) {
+    return syncOutput;
+  }
+
+  // Pass 2: Re-run full pipeline with AI alternatives injected
+  const enhancedResult = runStrategicAnalysis(buildEngineInput(input, aiAlternatives));
+  return buildOutput(enhancedResult);
 }
