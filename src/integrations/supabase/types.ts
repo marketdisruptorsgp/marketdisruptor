@@ -236,6 +236,233 @@ export type Database = {
         }
         Relationships: []
       }
+      business_analogs: {
+        Row: {
+          business_model: string | null
+          capital_intensity: string | null
+          created_at: string
+          customer_segment: string | null
+          distribution_model: string | null
+          domain: string | null
+          employee_range: string | null
+          id: string
+          name: string
+          outcome: string | null
+          outcome_notes: string | null
+          pricing_model: string | null
+          regulatory_class: string | null
+          revenue_range: string | null
+          source: string | null
+          source_url: string | null
+          structural_features: Json | null
+        }
+        Insert: {
+          business_model?: string | null
+          capital_intensity?: string | null
+          created_at?: string
+          customer_segment?: string | null
+          distribution_model?: string | null
+          domain?: string | null
+          employee_range?: string | null
+          id?: string
+          name: string
+          outcome?: string | null
+          outcome_notes?: string | null
+          pricing_model?: string | null
+          regulatory_class?: string | null
+          revenue_range?: string | null
+          source?: string | null
+          source_url?: string | null
+          structural_features?: Json | null
+        }
+        Update: {
+          business_model?: string | null
+          capital_intensity?: string | null
+          created_at?: string
+          customer_segment?: string | null
+          distribution_model?: string | null
+          domain?: string | null
+          employee_range?: string | null
+          id?: string
+          name?: string
+          outcome?: string | null
+          outcome_notes?: string | null
+          pricing_model?: string | null
+          regulatory_class?: string | null
+          revenue_range?: string | null
+          source?: string | null
+          source_url?: string | null
+          structural_features?: Json | null
+        }
+        Relationships: []
+      }
+      concept_evaluations: {
+        Row: {
+          concept_id: string
+          confidence_score: number | null
+          created_at: string
+          evaluation_type: string
+          id: string
+          nearest_analogs: Json | null
+          nearest_prior_art: Json | null
+          reasoning: string | null
+          score: number | null
+          signal_strengths: Json | null
+          tam_basis: string | null
+          tam_estimate_high: number | null
+          tam_estimate_low: number | null
+          user_id: string
+        }
+        Insert: {
+          concept_id: string
+          confidence_score?: number | null
+          created_at?: string
+          evaluation_type: string
+          id?: string
+          nearest_analogs?: Json | null
+          nearest_prior_art?: Json | null
+          reasoning?: string | null
+          score?: number | null
+          signal_strengths?: Json | null
+          tam_basis?: string | null
+          tam_estimate_high?: number | null
+          tam_estimate_low?: number | null
+          user_id: string
+        }
+        Update: {
+          concept_id?: string
+          confidence_score?: number | null
+          created_at?: string
+          evaluation_type?: string
+          id?: string
+          nearest_analogs?: Json | null
+          nearest_prior_art?: Json | null
+          reasoning?: string | null
+          score?: number | null
+          signal_strengths?: Json | null
+          tam_basis?: string | null
+          tam_estimate_high?: number | null
+          tam_estimate_low?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_evaluations_concept_id_fkey"
+            columns: ["concept_id"]
+            isOneToOne: false
+            referencedRelation: "concepts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      concept_outcomes: {
+        Row: {
+          concept_id: string
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          concept_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          concept_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_outcomes_concept_id_fkey"
+            columns: ["concept_id"]
+            isOneToOne: false
+            referencedRelation: "concepts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      concepts: {
+        Row: {
+          analysis_id: string | null
+          concept_type: string | null
+          created_at: string
+          description: string | null
+          domain: string | null
+          evaluation_verdict: string | null
+          generation_iteration: number | null
+          id: string
+          memo_snapshot: Json | null
+          opportunity_zone_id: string | null
+          parent_concept_id: string | null
+          structural_features: Json | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id?: string | null
+          concept_type?: string | null
+          created_at?: string
+          description?: string | null
+          domain?: string | null
+          evaluation_verdict?: string | null
+          generation_iteration?: number | null
+          id?: string
+          memo_snapshot?: Json | null
+          opportunity_zone_id?: string | null
+          parent_concept_id?: string | null
+          structural_features?: Json | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string | null
+          concept_type?: string | null
+          created_at?: string
+          description?: string | null
+          domain?: string | null
+          evaluation_verdict?: string | null
+          generation_iteration?: number | null
+          id?: string
+          memo_snapshot?: Json | null
+          opportunity_zone_id?: string | null
+          parent_concept_id?: string | null
+          structural_features?: Json | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concepts_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "saved_analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "concepts_opportunity_zone_id_fkey"
+            columns: ["opportunity_zone_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "concepts_parent_concept_id_fkey"
+            columns: ["parent_concept_id"]
+            isOneToOne: false
+            referencedRelation: "concepts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       explorer_conversations: {
         Row: {
           created_at: string
@@ -366,6 +593,153 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      market_signals: {
+        Row: {
+          analysis_id: string | null
+          asset_intensity_score: number | null
+          created_at: string
+          distribution_control_score: number | null
+          fragmentation_index: number | null
+          id: string
+          margin_distribution: number | null
+          market_id: string
+          ownership_demographics_score: number | null
+          pricing_model_age: number | null
+          productizability_score: number | null
+          raw_evidence: Json | null
+        }
+        Insert: {
+          analysis_id?: string | null
+          asset_intensity_score?: number | null
+          created_at?: string
+          distribution_control_score?: number | null
+          fragmentation_index?: number | null
+          id?: string
+          margin_distribution?: number | null
+          market_id: string
+          ownership_demographics_score?: number | null
+          pricing_model_age?: number | null
+          productizability_score?: number | null
+          raw_evidence?: Json | null
+        }
+        Update: {
+          analysis_id?: string | null
+          asset_intensity_score?: number | null
+          created_at?: string
+          distribution_control_score?: number | null
+          fragmentation_index?: number | null
+          id?: string
+          margin_distribution?: number | null
+          market_id?: string
+          ownership_demographics_score?: number | null
+          pricing_model_age?: number | null
+          productizability_score?: number | null
+          raw_evidence?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_signals_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "saved_analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_signals_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      markets: {
+        Row: {
+          canonical_slug: string
+          created_at: string
+          description: string | null
+          geography: string | null
+          id: string
+          industry_vertical: string | null
+          market_size_estimate: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          canonical_slug: string
+          created_at?: string
+          description?: string | null
+          geography?: string | null
+          id?: string
+          industry_vertical?: string | null
+          market_size_estimate?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          canonical_slug?: string
+          created_at?: string
+          description?: string | null
+          geography?: string | null
+          id?: string
+          industry_vertical?: string | null
+          market_size_estimate?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      opportunity_zones: {
+        Row: {
+          archetype: string
+          contributing_signals: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          market_id: string
+          signal_id: string | null
+          signal_strength: number | null
+          status: string
+        }
+        Insert: {
+          archetype: string
+          contributing_signals?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          market_id: string
+          signal_id?: string | null
+          signal_strength?: number | null
+          status?: string
+        }
+        Update: {
+          archetype?: string
+          contributing_signals?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          market_id?: string
+          signal_id?: string | null
+          signal_strength?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_zones_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_zones_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "market_signals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patent_filings: {
         Row: {
