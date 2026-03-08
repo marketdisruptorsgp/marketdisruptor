@@ -17,6 +17,7 @@
 
 import type { Evidence } from "@/lib/evidenceEngine";
 import type { StrategicInsight, StrategicSignal } from "@/lib/strategicEngine";
+import { applyPatterns, type VectorOrigin } from "@/lib/strategicPatternLibrary";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
