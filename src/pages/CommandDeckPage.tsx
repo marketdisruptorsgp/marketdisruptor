@@ -111,10 +111,13 @@ export default function CommandDeckPage() {
     governedData: analysis.governedData as Record<string, unknown> | null,
     businessAnalysisData: analysis.businessAnalysisData, intelligence,
     analysisType: analysis.activeMode === "service" ? "service" : analysis.activeMode === "business" ? "business_model" : "product",
+    geoMarketData: analysis.geoData,
+    regulatoryData: analysis.regulatoryData,
   }), [
     analysis.products, selectedProduct, analysis.disruptData, analysis.redesignData,
     analysis.stressTestData, analysis.pitchDeckData, analysis.governedData,
     analysis.businessAnalysisData, intelligence, analysis.activeMode,
+    analysis.geoData, analysis.regulatoryData,
   ]);
 
   const metricsInput = useMemo(() => ({
