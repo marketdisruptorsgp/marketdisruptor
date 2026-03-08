@@ -501,6 +501,8 @@ export interface MorphologicalSearchResult {
   warmCount: number;
   /** Origin metadata for each vector — keyed by vector ID */
   vectorOrigins: Map<string, import("@/lib/strategicPatternLibrary").VectorOrigin>;
+  /** Interaction map between vectors (reinforcing/conflicting/orthogonal) */
+  vectorInteractions: Map<string, import("@/lib/strategicPatternLibrary").VectorInteraction[]>;
   patternVectorCount: number;
 }
 
