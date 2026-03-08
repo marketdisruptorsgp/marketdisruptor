@@ -107,11 +107,11 @@ export function runGuidedSearch(
     const recombCount = Math.floor(targetSize * cfg.recombinationRate);
     const freshCount = targetSize - mutationCount - recombCount;
 
-    // Mutations from survivors
+    // Mutations from survivors (adaptive strength via maxIterations)
     for (let i = 0; i < mutationCount; i++) {
       const parent = pickRandom(survivorConcepts);
       const seed = seeds.find((s) => s.opportunity_zone_id === parent.opportunity_zone_id) ?? pickRandom(seeds);
-      nextGen.push(mutate(parent, seed, iter));
+      nextGen.push(mutate(parent, seed, iter, cfg.maxIterations));
     }
 
     // Recombinations between survivors
@@ -122,14 +122,14 @@ export function runGuidedSearch(
         if (a.id !== b.id) {
           nextGen.push(recombine(a, b, seed));
         } else {
-          nextGen.push(mutate(a, seed, iter));
+          nextGen.push(mutate(a, seed, iter, cfg.maxIterations));
         }
       }
     } else {
       for (let i = 0; i < recombCount; i++) {
         const parent = pickRandom(survivorConcepts);
         const seed = seeds.find((s) => s.opportunity_zone_id === parent.opportunity_zone_id) ?? pickRandom(seeds);
-        nextGen.push(mutate(parent, seed, iter));
+        nextGen.push(mutate(parent, seed, iter, cfg.maxIterations));
       }
     }
 

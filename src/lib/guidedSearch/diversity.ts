@@ -13,25 +13,43 @@ import type { ConceptSeed } from "./types";
 //  STRUCTURAL SIMILARITY
 // ═══════════════════════════════════════════════════════════════
 
-const FEATURE_KEYS: (keyof StructuralFeatures)[] = [
-  "function", "customer", "workflow_stage",
-  "pricing_model", "distribution", "regulatory_class",
-];
+/**
+ * Dimension weights reflecting strategic significance.
+ * Larger weights = bigger strategic shift when values differ.
+ */
+const DIMENSION_WEIGHTS: Record<string, number> = {
+  concept_type:   0.30,
+  distribution:   0.25,
+  customer:       0.20,
+  function:       0.15,
+  pricing_model:  0.10,
+  workflow_stage: 0.08,
+  regulatory_class: 0.05,
+  capital_intensity: 0.05,
+};
+
+const WEIGHTED_DIMS = Object.keys(DIMENSION_WEIGHTS);
 
 /**
- * Feature overlap ratio between two concepts (0 = identical, 1 = fully different).
+ * Weighted feature distance between two concepts (0 = identical, 1 = fully different).
+ * Dimensions with higher strategic significance contribute more to distance.
  */
 export function featureDistance(a: StructuralFeatures, b: StructuralFeatures): number {
-  let matches = 0;
-  let total = 0;
-  for (const key of FEATURE_KEYS) {
+  let weightedDiff = 0;
+  let totalWeight = 0;
+
+  for (const key of WEIGHTED_DIMS) {
     const va = a[key];
     const vb = b[key];
     if (!va && !vb) continue;
-    total++;
-    if (va && vb && va.toLowerCase() === vb.toLowerCase()) matches++;
+    const w = DIMENSION_WEIGHTS[key] ?? 0.1;
+    totalWeight += w;
+    if (!va || !vb || va.toLowerCase() !== vb.toLowerCase()) {
+      weightedDiff += w;
+    }
   }
-  return total === 0 ? 1 : 1 - matches / total;
+
+  return totalWeight === 0 ? 1 : weightedDiff / totalWeight;
 }
 
 /**
