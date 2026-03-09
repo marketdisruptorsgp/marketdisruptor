@@ -84,15 +84,28 @@ export const HeroInsightCard = memo(function HeroInsightCard({
   modeAccent,
   analysisId,
   onNavigateToGraph,
+  isPipelineRunning,
 }: HeroInsightCardProps) {
   const hero = pickHeroInsight(narrative);
 
   if (!hero) {
     return (
       <div className="rounded-xl border border-border bg-card px-6 py-8 text-center">
-        <p className="text-sm text-muted-foreground">
-          Run the analysis pipeline to surface your biggest insight.
-        </p>
+        {isPipelineRunning ? (
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.2s" }} />
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.4s" }} />
+            </div>
+            <p className="text-sm font-semibold text-foreground">Analyzing your data…</p>
+            <p className="text-xs text-muted-foreground">Your strategic briefing will appear here in moments.</p>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Run the analysis pipeline to surface your biggest insight.
+          </p>
+        )}
       </div>
     );
   }
