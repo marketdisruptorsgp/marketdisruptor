@@ -89,11 +89,16 @@ Each evidence item should be a distinct, specific signal — not a generic categ
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
+      const locationContext = businessDescription || "";
+      const userContent = locationContext
+        ? `Analyze: ${businessName}. Geographic/Market Context: ${locationContext}`
+        : `Analyze: ${businessName}`;
+
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Analyze: ${businessName}${businessDescription ? `. Context: ${businessDescription}` : ""}` },
+          { role: "user", content: userContent },
         ],
       }),
     });
