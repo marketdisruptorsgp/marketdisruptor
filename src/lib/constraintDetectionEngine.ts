@@ -512,15 +512,113 @@ export function detectCandidateConstraints(evidence: EvidenceWithFacets[]): Cons
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  LAYER 2: RANKING (Deterministic fallback — AI stub)
+//  STRUCTURAL ARCHETYPE PRIORS
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Structural archetypes bias constraint ranking based on known
+ * domain patterns. These adjust scoring probabilities without
+ * overriding evidence — they act as Bayesian priors.
+ */
+export type StructuralArchetype =
+  | "physical_service"    // Restaurant, dental, salon, car wash
+  | "asset_fleet"         // Logistics, airline, equipment rental
+  | "marketplace"         // Two-sided platforms
+  | "subscription"        // SaaS, gym, membership
+  | "brokerage"           // Insurance, real estate, staffing
+  | "inventory_flow";     // Retail, wholesale, manufacturing
+
+interface ArchetypePrior {
+  /** Constraints that are structurally likely for this archetype */
+  likelyConstraints: string[];
+  /** Constraints that are structurally unlikely (deprioritize) */
+  unlikelyConstraints: string[];
+}
+
+const ARCHETYPE_PRIORS: Record<StructuralArchetype, ArchetypePrior> = {
+  physical_service: {
+    likelyConstraints: ["capacity_ceiling", "operational_bottleneck", "owner_dependency", "geographic_constraint"],
+    unlikelyConstraints: ["legacy_lock_in", "inventory_burden", "supply_fragmentation"],
+  },
+  asset_fleet: {
+    likelyConstraints: ["asset_underutilization", "capacity_ceiling", "geographic_constraint", "linear_scaling"],
+    unlikelyConstraints: ["trust_deficit", "awareness_gap", "forced_bundling"],
+  },
+  marketplace: {
+    likelyConstraints: ["supply_fragmentation", "trust_deficit", "awareness_gap", "motivation_decay"],
+    unlikelyConstraints: ["capacity_ceiling", "owner_dependency", "inventory_burden"],
+  },
+  subscription: {
+    likelyConstraints: ["motivation_decay", "capacity_ceiling", "asset_underutilization", "switching_friction"],
+    unlikelyConstraints: ["transactional_revenue", "supply_fragmentation"],
+  },
+  brokerage: {
+    likelyConstraints: ["commoditized_pricing", "channel_dependency", "information_asymmetry", "switching_friction"],
+    unlikelyConstraints: ["capacity_ceiling", "inventory_burden", "asset_underutilization"],
+  },
+  inventory_flow: {
+    likelyConstraints: ["inventory_burden", "margin_compression", "supply_fragmentation", "capital_barrier"],
+    unlikelyConstraints: ["owner_dependency", "motivation_decay", "trust_deficit"],
+  },
+};
+
+/**
+ * Infer structural archetype from evidence text corpus.
+ * Returns the best-matching archetype or null.
+ */
+export function inferArchetype(evidence: { label: string; description?: string }[]): StructuralArchetype | null {
+  const text = evidence.map(e => `${e.label} ${e.description || ""}`).join(" ").toLowerCase();
+
+  const archetypeSignals: { archetype: StructuralArchetype; score: number }[] = [
+    {
+      archetype: "physical_service",
+      score: countMatches(text, /restaurant|dental|salon|clinic|spa|barber|repair[\s-]?shop|car[\s-]?wash|laundry|veterinar|table|chair|seat|appointment|walk[\s-]?in|waiting[\s-]?room|booking/g),
+    },
+    {
+      archetype: "asset_fleet",
+      score: countMatches(text, /fleet|truck|vehicle|aircraft|airplane|ship|equipment[\s-]?rental|logistics|freight|hauling|empty[\s-]?miles|route|dispatch/g),
+    },
+    {
+      archetype: "marketplace",
+      score: countMatches(text, /marketplace|platform|two[\s-]?sided|supply[\s-]?and[\s-]?demand|provider|buyer[\s-]?seller|chicken[\s-]?and[\s-]?egg|network[\s-]?effect|liquidity/g),
+    },
+    {
+      archetype: "subscription",
+      score: countMatches(text, /subscription|membership|recurring|monthly[\s-]?fee|annual[\s-]?plan|gym|fitness|saas|churn|retention/g),
+    },
+    {
+      archetype: "brokerage",
+      score: countMatches(text, /broker|insurance|agent|commission|lead|intermediar|aggregator|comparison|referral|premium/g),
+    },
+    {
+      archetype: "inventory_flow",
+      score: countMatches(text, /inventory|warehouse|stock|wholesale|retail|manufacturing|supply[\s-]?chain|sku|fulfillment|distribution[\s-]?center/g),
+    },
+  ];
+
+  const best = archetypeSignals.sort((a, b) => b.score - a.score)[0];
+  return best.score >= 2 ? best.archetype : null;
+}
+
+function countMatches(text: string, pattern: RegExp): number {
+  return (text.match(pattern) || []).length;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LAYER 2: RANKING (with archetype priors)
 // ═══════════════════════════════════════════════════════════════
 
 /**
  * Rank constraint candidates by system-limiting impact.
- * Currently uses deterministic heuristic; will be extended with
- * AI-assisted ranking via edge function in Phase 2.
+ * Uses archetype priors to bias ranking when evidence is ambiguous.
  */
-export function rankConstraintCandidates(candidates: ConstraintCandidate[]): ConstraintCandidate[] {
+export function rankConstraintCandidates(
+  candidates: ConstraintCandidate[],
+  evidence?: { label: string; description?: string }[]
+): ConstraintCandidate[] {
+  const archetype = evidence ? inferArchetype(evidence) : null;
+  const priors = archetype ? ARCHETYPE_PRIORS[archetype] : null;
+
   return [...candidates].sort((a, b) => {
     // Priority 1: Tier (lower tier = more structural = higher priority)
     if (a.tier !== b.tier) return a.tier - b.tier;
@@ -531,10 +629,20 @@ export function rankConstraintCandidates(candidates: ConstraintCandidate[]): Con
       return confOrder[a.confidence] - confOrder[b.confidence];
     }
 
-    // Priority 3: Evidence count (more evidence = stronger signal)
+    // Priority 3: Archetype prior bias (likely constraints rank higher)
+    if (priors) {
+      const aLikely = priors.likelyConstraints.includes(a.constraintName) ? 1 : 0;
+      const bLikely = priors.likelyConstraints.includes(b.constraintName) ? 1 : 0;
+      const aUnlikely = priors.unlikelyConstraints.includes(a.constraintName) ? 1 : 0;
+      const bUnlikely = priors.unlikelyConstraints.includes(b.constraintName) ? 1 : 0;
+      const aScore = aLikely - aUnlikely;
+      const bScore = bLikely - bUnlikely;
+      if (aScore !== bScore) return bScore - aScore;
+    }
+
+    // Priority 4: Evidence count (more evidence = stronger signal)
     return b.evidenceIds.length - a.evidenceIds.length;
   });
-}
 
 // ═══════════════════════════════════════════════════════════════
 //  LAYER 3: COUNTERFACTUAL VALIDATION + PROBABILISTIC STACK
