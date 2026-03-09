@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Focus, ChevronDown, Plus, Pencil, Trash2, Building2, Star } from "lucide-react";
+import { Focus, ChevronDown, Plus, Pencil, Trash2, Building2, Star, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnalysis } from "@/contexts/AnalysisContext";
 import { LensEditor } from "@/components/LensEditor";
-import { ETA_LENS, getLensType } from "@/lib/etaLens";
+import { ETA_LENS, getEtaLensWithContext, getLensType } from "@/lib/etaLens";
+import { OperatorContextEditor } from "@/components/OperatorContextEditor";
 import { toast } from "sonner";
 
 const PRIMARY_LENS_KEY = "primary-lens-type";
