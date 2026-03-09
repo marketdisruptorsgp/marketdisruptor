@@ -267,7 +267,7 @@ function tryExtractMarketFacets(text: string): MarketFacets | null {
   } else if (text.match(/monopol|dominat|single[\s-]?player|duopoly|oligopol|(?:few|2|3|two|three)\s+(?:major|large|dominant)\s+(?:player|competitor|company)/)) {
     facets.competitiveDensity = "monopolistic"; matched = true;
   } else if (text.match(/dso[\s-]?(?:chain|group|corporate)|corporate[\s-]?(?:chain|consolidat|roll[\s-]?up)|private[\s-]?equity|consolidat[\w]*[\s-]?(?:trend|wave|pressure)|roll[\s-]?up|aggregat/)) {
-    facets.competitiveDensity = "consolidating"; matched = true;
+    facets.competitiveDensity = "concentrated"; matched = true;
   }
 
   if (text.match(/heavily[\s-]?regulat|strict[\s-]?compliance|regulatory[\s-]?burden|license[\s-]?required|licens[\w]+|permit[\s-]?required|(?:state|federal|government|hipaa|osha)\s+(?:regulat|compliance|requirement|mandated)|compliance[\s-]?(?:cost|burden|requirement|complex)|zoning|inspection[\s-]?(?:required|mandate)/)) {
