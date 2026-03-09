@@ -194,6 +194,17 @@ import { humanizeLabel as humanizeGraphLabel } from "@/lib/humanize";
  * Build insight graph from Evidence objects (canonical pipeline).
  * Optionally accepts insights and scenarios to generate higher-level nodes.
  */
+/** Minimal deepened opportunity shape for graph injection */
+interface DeepOpportunityInput {
+  id: string;
+  reconfigurationLabel: string;
+  summary: string;
+  causalChain: { constraint: string; driver?: string; };
+  resolvesConstraints?: string[];
+  evidenceIds?: string[];
+  signalDensity?: number;
+}
+
 export function buildInsightGraph(
   productsOrEvidence: any[] | Record<MetricDomain, MetricEvidence>,
   intelligence?: any,
@@ -204,6 +215,8 @@ export function buildInsightGraph(
   insights?: Array<{ id: string; label: string; description?: string; insightType: string; impact?: number; confidenceScore?: number; evidenceIds: string[]; recommendedTools?: string[] }>,
   /** Optional: ranked scenarios from the comparison engine */
   scenarios?: Array<{ scenarioId: string; scenarioName: string; toolId: string; projectedReturn: number; riskScore: number; capitalRequired: number; feasibilityScore: number; overallScore: number; strategicImpact: string }>,
+  /** Optional: deepened opportunities from the reconfiguration engine */
+  deepenedOpportunities?: DeepOpportunityInput[],
 ): InsightGraph {
   edgeCounter = 0;
 
@@ -215,7 +228,7 @@ export function buildInsightGraph(
     allEvidence = buildLegacyEvidence(productsOrEvidence as any[], intelligence, disruptData, redesignData, stressTestData);
   }
 
-  return buildGraphFromEvidence(allEvidence, insights, scenarios);
+  return buildGraphFromEvidence(allEvidence, insights, scenarios, deepenedOpportunities);
 }
 
 function buildGraphFromEvidence(
