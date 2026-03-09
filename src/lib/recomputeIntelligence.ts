@@ -172,14 +172,9 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
   const leveragePoints = asyncResult.insights.filter(i => i.insightType === "leverage_point");
   const flat = asyncResult.flatEvidence;
 
-  // Only attempt AI exploration if we have sufficient structure
-  const constraints = syncResult.activeConstraints;
-  const leveragePoints = syncResult.insights.filter(i => i.insightType === "leverage_point");
-  const flat = syncResult.flatEvidence;
-
   if (constraints.length < 1 || flat.length < 18) {
     console.log(`[Morphological] Skipping AI: ${constraints.length} constraints, ${flat.length} evidence`);
-    return syncOutput;
+    return asyncOutput;
   }
 
   let aiAlternatives: DimensionAlternative[] | undefined;
