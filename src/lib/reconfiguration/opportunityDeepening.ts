@@ -303,7 +303,7 @@ export async function deepenOpportunitiesAsync(
 /** Extract rough business context from evidence labels for AI prompt enrichment */
 function buildBusinessContextFromEvidence(evidence: Evidence[]): string {
   const labels = evidence
-    .filter(e => e.type === "strength" || e.type === "opportunity" || e.type === "constraint")
+    .filter(e => e.type === "signal" || e.type === "opportunity" || e.type === "constraint")
     .slice(0, 15)
     .map(e => e.label);
   return labels.length > 0 ? `Key business signals: ${labels.join("; ")}` : "";
