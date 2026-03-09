@@ -222,7 +222,7 @@ export function StepLoadingTracker({
 
 export const DISRUPT_TASKS: StepTask[] = [
   { label: "Assumption Mining", detail: "Hidden assumptions & biases" },
-  { label: "Leverage Scoring", detail: "Ranking disruption potential" },
+  { label: "Leverage Analysis", detail: "Identifying structural leverage" },
   { label: "Constraint Mapping", detail: "Structural dependencies" },
 ];
 
