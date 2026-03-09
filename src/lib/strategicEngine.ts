@@ -1871,5 +1871,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     severityReport,
     viabilityReport,
     marketStructure,
+    structuralProfile,
+    qualifiedPatterns: qualifiedPatternsResult,
   };
 }
