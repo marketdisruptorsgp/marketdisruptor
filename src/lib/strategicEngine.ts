@@ -948,21 +948,37 @@ function buildStrategicNarrative(
     clean = clean.replace(/^(?:Step\s*\d+\s*:\s*)+/i, "");
     clean = clean.replace(/^[A-Z]\d+\s*:\s*/i, "");
 
+    // Strip inline internal IDs like "(C1)", "(Removing C1)"
+    clean = clean.replace(/\s*\((?:Removing\s+)?[A-Z]_?\d+\)\s*/gi, " ");
+
     // If label contains "→" (chained labels), take only the final segment
     if (clean.includes("→")) {
       const segments = clean.split("→").map(seg => seg.trim()).filter(Boolean);
       clean = segments[segments.length - 1] || clean;
     }
 
-    // Clean up any "... to apply if..." fragments that read as incomplete
-    // These happen when constraint/opportunity labels are raw concatenations
+    // Clean up any "..." fragments
     clean = clean.replace(/\.\.\./g, "").trim();
 
     if (clean.length <= max) return clean;
 
+    // Try sentence boundary first
+    const sentenceCut = Math.max(
+      clean.lastIndexOf(". ", max),
+      clean.lastIndexOf("; ", max),
+    );
+    if (sentenceCut > max * 0.4) {
+      return clean.slice(0, sentenceCut + 1);
+    }
+
+    // Try clause boundary
+    const clauseCut = clean.lastIndexOf(", ", max);
+    if (clauseCut > max * 0.5) {
+      return clean.slice(0, clauseCut);
+    }
+
     // Find the last space before max
     const cut = clean.lastIndexOf(" ", max);
-    // If no reasonable word boundary found, extend to next word end
     if (cut < max * 0.4) {
       const nextSpace = clean.indexOf(" ", max);
       return nextSpace > 0 ? clean.slice(0, nextSpace) : clean;
