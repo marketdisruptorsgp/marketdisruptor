@@ -40,7 +40,7 @@ export default function PipelineTestRunner() {
   const [error, setError] = useState<string | null>(null);
   const [aiRaw, setAiRaw] = useState<BusinessDecomposition | null>(null);
 
-  const runTest = useCallback(async (name: string) => {
+  const runTest = useCallback(async (name: string, description?: string) => {
     setBusinessName(name);
     setError(null);
     setReport(null);
@@ -50,7 +50,7 @@ export default function PipelineTestRunner() {
     setIsGenerating(true);
     try {
       const { data, error: fnError } = await supabase.functions.invoke("analyze-business-structure", {
-        body: { businessName: name },
+        body: { businessName: name, businessDescription: description || "" },
       });
 
       if (fnError) throw new Error(fnError.message);
