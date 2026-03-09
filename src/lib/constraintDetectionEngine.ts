@@ -361,7 +361,7 @@ const DETECTION_RULES: ConstraintRule[] = [
   },
   {
     constraintName: "asset_underutilization",
-    keywordPattern: /underutiliz|idle[\s-]?asset|unused[\s-]?capacity|low[\s-]?utilization|wasted[\s-]?resource|empty[\s-]?capacity/,
+    keywordPattern: /underutiliz|idle[\s-]?(?:asset|time|capacity|resource)|unused[\s-]?capacity|low[\s-]?utilization|wasted[\s-]?resource|empty[\s-]?capacity|off[\s-]?peak|runs[\s-]?at[\s-]?\d+%|idle[\s-]?\d+|empty[\s-]?(?:miles|seats|rooms)/,
     keywordExplanation: "Text evidence suggests owned assets not fully utilized",
   },
   {
