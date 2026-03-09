@@ -199,6 +199,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.supplyFragmentation === "consolidated" && profile.switchingCosts === "high") {
         return { qualifies: false, reason: "Consolidated market with high switching costs — no unbundled fragments to rebundle.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: consolidated supply in general — need prior fragmentation for rebundling to make sense
+      if (profile.supplyFragmentation === "consolidated") {
+        return { qualifies: false, reason: "Consolidated supply — rebundling requires prior unbundling or fragmentation.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: labor-heavy + high switching costs — rebundling is unlikely to work when delivery is bespoke and sticky
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.switchingCosts === "high") {
+        return { qualifies: false, reason: "Labor-heavy delivery with high switching costs — rebundling adds insufficient value over incumbent relationships.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.supplyFragmentation === "fragmented" || profile.supplyFragmentation === "atomized") {
         strengths.push("Fragmented supply suggests prior unbundling — rebundling opportunity exists");
@@ -210,8 +218,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (cNames.has("access_constraint")) { resolves.push("access_constraint"); strengths.push("Unified bundle improves access to currently scattered capabilities"); }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports rebundling." : "Insufficient signals for rebundling.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports rebundling." : "Insufficient signal density for rebundling.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
