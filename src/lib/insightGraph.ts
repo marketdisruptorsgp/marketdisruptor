@@ -1,11 +1,12 @@
 /**
- * INSIGHT GRAPH ENGINE — Evidence-First Architecture
+ * INSIGHT GRAPH ENGINE — Pipeline-Driven Reasoning Graph
  *
- * Builds a navigable graph from canonical Evidence objects.
- * Every node is backed by an Evidence item. Edges represent
- * causal relationships between evidence signals.
+ * Builds a navigable graph from the full analysis pipeline output.
+ * The graph represents the reasoning chain, not just evidence:
+ *   Evidence → Constraints → Insights → Reconfigurations → Opportunities → Scenarios
  *
- * Graph flow: signal → assumption → constraint → friction → leverage → opportunity
+ * Every layer is a required input (nullable but always passed).
+ * Opportunity generation is a structural guarantee, not a fallback.
  */
 
 import type {
