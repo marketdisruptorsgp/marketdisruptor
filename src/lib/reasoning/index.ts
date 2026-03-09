@@ -10,4 +10,5 @@ export {
   type PipelineTrace,
   type TransformationQuality,
   type SystemicAnalysis,
+  type BenchmarkComparison,
 } from "./diagnosticHarness";
