@@ -41,6 +41,9 @@ import {
 import { invokeWithTimeout } from "@/lib/invokeWithTimeout";
 import { extractConstraintShapes, findAnalogs } from "@/lib/analogEngine";
 import { generateInversions } from "@/lib/constraintInverter";
+import { generateSecondOrderUnlocks } from "@/lib/secondOrderEngine";
+import { generateTemporalUnlocks } from "@/lib/temporalArbitrageEngine";
+import { exploreNegativeSpace } from "@/lib/negativeSpaceEngine";
 
 // ═══════════════════════════════════════════════════════════════
 //  TYPES
@@ -196,7 +199,19 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
       // Generate inversions — exploring if constraints can become competitive advantages
       const inversions = generateInversions(constraintShapes, 2, 4);
 
-      // Enrich payload with analog and inversion context
+      // ── Layer 4: Inject second-order unlocks ────────────────────────
+      // Explore what becomes possible if constraints were removed
+      const unlocks = generateSecondOrderUnlocks(constraintShapes, 2, 4);
+
+      // ── Layer 5: Inject temporal arbitrage ──────────────────────────
+      // Find ideas that exploit recent changes (were impossible 1-2 years ago)
+      const temporalUnlocks = generateTemporalUnlocks(constraintShapes, [...hotDims, ...warmDims], 5);
+
+      // ── Layer 6: Explore competitive negative space ─────────────────
+      // Identify what NO competitor is doing and why
+      const gaps = exploreNegativeSpace(flat, [...hotDims, ...warmDims], 4);
+
+      // Enrich payload with all strategic reasoning layers
       const enrichedPayload = {
         ...payload,
         crossIndustryAnalogs: analogMatches.map(m => ({
@@ -215,9 +230,29 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
           precedent: inv.precedent,
           viability: inv.viability,
         })),
+        secondOrderUnlocks: unlocks.map(u => ({
+          sourceConstraintLabel: u.sourceConstraint.sourceConstraintLabel,
+          unlockedBusinessModel: u.unlockedBusinessModel,
+          valueMechanism: u.valueMechanism,
+          precedents: u.precedents,
+          viability: u.viability,
+        })),
+        temporalUnlocks: temporalUnlocks.map(t => ({
+          recentChange: t.recentChange,
+          previouslyImpossible: t.previouslyImpossible,
+          nowPossible: t.nowPossible,
+          timingEvidence: t.timingEvidence,
+          timingWindow: t.timingWindow,
+        })),
+        competitiveGaps: gaps.map(g => ({
+          gapDescription: g.gapDescription,
+          opportunityHypothesis: g.opportunityHypothesis,
+          gapReason: g.gapReason,
+          opportunityConfidence: g.opportunityConfidence,
+        })),
       };
 
-      console.log(`[Morphological] Injecting ${analogMatches.length} analogs and ${inversions.length} inversions into AI prompt`);
+      console.log(`[Morphological] Injecting ${analogMatches.length} analogs + ${inversions.length} inversions + ${unlocks.length} unlocks + ${temporalUnlocks.length} temporal + ${gaps.length} gaps into AI prompt`);
 
       const { data, error } = await invokeWithTimeout<{ alternatives: DimensionAlternative[] }>(
         "generate-opportunity-vectors",
@@ -227,7 +262,7 @@ export async function recomputeIntelligenceAsync(input: IntelligenceInput): Prom
 
       if (!error && data?.alternatives && data.alternatives.length > 0) {
         aiAlternatives = data.alternatives;
-        console.log(`[Morphological] Received ${aiAlternatives.length} AI alternatives for ${activeDimCount} dimensions (constraint-informed + analog-enriched)`);
+        console.log(`[Morphological] Received ${aiAlternatives.length} AI alternatives for ${activeDimCount} dimensions (full multi-lens enrichment)`);
       } else {
         console.warn("[Morphological] Edge function returned no alternatives", error);
       }

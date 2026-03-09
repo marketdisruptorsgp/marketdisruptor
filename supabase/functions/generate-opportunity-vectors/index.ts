@@ -19,6 +19,9 @@ serve(async (req) => {
       analysisType,
       crossIndustryAnalogs,
       constraintInversions,
+      secondOrderUnlocks,
+      temporalUnlocks,
+      competitiveGaps,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -88,6 +91,27 @@ Return ONLY valid JSON using the tool schema provided.`;
         ).join("\n\n")}`
       : "";
 
+    // Second-order unlocks injected by the client
+    const unlockSection = (secondOrderUnlocks && secondOrderUnlocks.length > 0)
+      ? `\nSECOND-ORDER UNLOCKS (business models that become possible if constraints were removed — work backwards from these):\n${secondOrderUnlocks.map((unlock: any, i: number) =>
+          `${i + 1}. IF "${unlock.sourceConstraintLabel}" WAS REMOVED: ${unlock.unlockedBusinessModel}\n   VALUE MECHANISM: ${unlock.valueMechanism}\n   PRECEDENTS: ${unlock.precedents.join("; ")}`
+        ).join("\n\n")}`
+      : "";
+
+    // Temporal arbitrage injected by the client  
+    const temporalSection = (temporalUnlocks && temporalUnlocks.length > 0)
+      ? `\nTEMPORAL ARBITRAGE (ideas that exploit recent changes — were impossible 1-2 years ago, viable NOW):\n${temporalUnlocks.map((temporal: any, i: number) =>
+          `${i + 1}. RECENT CHANGE: ${temporal.recentChange}\n   PREVIOUSLY IMPOSSIBLE: ${temporal.previouslyImpossible}\n   NOW POSSIBLE: ${temporal.nowPossible}\n   TIMING EVIDENCE: ${temporal.timingEvidence.join("; ")}`
+        ).join("\n\n")}`
+      : "";
+
+    // Competitive gaps injected by the client
+    const gapSection = (competitiveGaps && competitiveGaps.length > 0)
+      ? `\nCOMPETITIVE GAPS (what NO major player is doing — explore these negative spaces):\n${competitiveGaps.map((gap: any, i: number) =>
+          `${i + 1}. GAP: ${gap.gapDescription}\n   OPPORTUNITY: ${gap.opportunityHypothesis}\n   WHY GAP EXISTS: ${gap.gapReason.replace(/_/g, " ")}\n   CONFIDENCE: ${gap.opportunityConfidence}`
+        ).join("\n\n")}`
+      : "";
+
     const userPrompt = `ANALYSIS TYPE: ${analysisType || "business_model"}
 
 CURRENT BUSINESS CONFIGURATION (dimensions to explore — generate alternatives for EACH dimension):
@@ -100,6 +124,9 @@ LEVERAGE POINTS (existing strengths to amplify):
 ${leverageList}
 ${analogSection}
 ${inversionSection}
+${unlockSection}
+${temporalSection}
+${gapSection}
 
 Now generate alternatives for each dimension. Apply all three lenses (cross-industry analogy, constraint inversion, second-order thinking). For each alternative, name a specific company from a different industry that proves the structural logic. The goal: every alternative should make the user think "I never would have thought of that, but it could actually work."`;
 
