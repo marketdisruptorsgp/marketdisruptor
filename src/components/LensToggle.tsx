@@ -31,6 +31,7 @@ export function LensToggle() {
   const [lenses, setLenses] = useState<UserLens[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+  const [showOperatorEditor, setShowOperatorEditor] = useState(false);
   const [editingLens, setEditingLens] = useState<UserLens | null>(null);
   const [primaryType, setPrimaryType] = useState<string>(() => localStorage.getItem(PRIMARY_LENS_KEY) || "default");
   const [primaryId, setPrimaryId] = useState<string | null>(() => localStorage.getItem(PRIMARY_LENS_ID_KEY));
