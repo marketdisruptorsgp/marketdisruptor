@@ -675,8 +675,8 @@ function ProcessingHeatmap() {
         })}
       </div>
       <p className="text-[10px] text-muted-foreground mt-3">
-        Most AI/processing: <strong className="text-red-400">Stage 4 (AI Deepening)</strong> and <strong className="text-red-400">Stage 5 (Pipeline)</strong>. 
-        Stages 2, 3, 6, 7 are deterministic with zero AI cost.
+        Most AI/processing: <strong className="text-red-400">Stage 4 (AI Deepening)</strong> and <strong className="text-red-400">Stage 5 (Pipeline Steps)</strong>. 
+        Stages 2, 3, 6 are 100% deterministic with zero AI cost. Stage 7 uses AI for interrogation conversations only.
       </p>
     </div>
   );
