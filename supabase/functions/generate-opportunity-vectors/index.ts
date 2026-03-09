@@ -19,6 +19,9 @@ serve(async (req) => {
       analysisType,
       crossIndustryAnalogs,
       constraintInversions,
+      secondOrderUnlocks,
+      temporalUnlocks,
+      competitiveGaps,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
