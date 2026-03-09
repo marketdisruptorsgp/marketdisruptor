@@ -406,7 +406,7 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
       // Derive signal label from highest-impact evidence
       const sorted = [...cluster].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
       const primary = sorted[0];
-      const categoryLabel = category.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const categoryLabel = category.replace(/_/g, " ").replace(/^./, c => c.toUpperCase());
 
       signals.push({
         id: nextId("signal"),
