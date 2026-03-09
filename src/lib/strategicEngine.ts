@@ -37,6 +37,7 @@ import {
   diagnoseStructuralProfile,
   qualifyPatterns,
   deepenOpportunities,
+  deepenOpportunitiesAsync,
   type StructuralProfile,
   type QualifiedPattern,
   type DeepenedOpportunity,

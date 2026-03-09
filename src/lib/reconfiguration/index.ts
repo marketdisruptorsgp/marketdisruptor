@@ -36,7 +36,7 @@ export type {
 export { qualifyPatterns, qualifyPatternsWithDiagnostics } from "./patternQualification";
 export type { QualifiedPattern } from "./patternQualification";
 
-export { deepenOpportunities } from "./opportunityDeepening";
+export { deepenOpportunities, deepenOpportunitiesAsync } from "./opportunityDeepening";
 export type {
   DeepenedOpportunity,
   CausalChain,
