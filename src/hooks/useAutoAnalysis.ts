@@ -209,8 +209,10 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         })));
       }
 
-      // ── Persist strategic engine output for thesis auditing ──
-      if (analysisId) {
+      // ── Persist strategic engine + insight graph ──
+      // CRITICAL: Capture analysisId at call time to prevent async drift
+      const capturedAnalysisId = analysisId;
+      if (capturedAnalysisId) {
         const strategicEnginePayload = {
           structuralProfile: result.structuralProfile ?? null,
           qualifiedPatterns: (result.qualifiedPatterns ?? []).map(qp => ({
@@ -233,9 +235,48 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           aiGateResult: (result.diagnostic as any).aiGateResult ?? null,
           computedAt: new Date().toISOString(),
         };
-        saveStepData("strategicEngine", strategicEnginePayload).catch(err => {
-          console.warn("[StrategicEngine] Failed to persist thesis data:", err);
-        });
+
+        // Persist graph alongside engine state
+        const insightGraphPayload = result.graph ? {
+          nodes: result.graph.nodes,
+          edges: result.graph.edges,
+          metadata: {
+            generatedAt: new Date().toISOString(),
+            version: 1,
+            nodeCount: result.graph.nodes.length,
+            edgeCount: result.graph.edges.length,
+          },
+        } : null;
+
+        // Save engine state with explicit targetAnalysisId
+        const engineSave = saveStepData("strategicEngine", strategicEnginePayload, capturedAnalysisId)
+          .then(() => {
+            console.log("[StrategicEngine] ✓ Persisted strategicEngine for", capturedAnalysisId);
+          })
+          .catch(err => {
+            console.error("[StrategicEngine] ✗ Failed to persist strategicEngine:", err);
+            // Retry once after 2s
+            setTimeout(() => {
+              saveStepData("strategicEngine", strategicEnginePayload, capturedAnalysisId).catch(retryErr => {
+                console.error("[StrategicEngine] ✗ Retry also failed:", retryErr);
+              });
+            }, 2000);
+          });
+
+        // Save graph state with explicit targetAnalysisId
+        const graphSave = insightGraphPayload
+          ? saveStepData("insightGraph", insightGraphPayload, capturedAnalysisId)
+              .then(() => {
+                console.log("[StrategicEngine] ✓ Persisted insightGraph for", capturedAnalysisId,
+                  `(${insightGraphPayload.metadata.nodeCount} nodes, ${insightGraphPayload.metadata.edgeCount} edges)`);
+              })
+              .catch(err => {
+                console.error("[StrategicEngine] ✗ Failed to persist insightGraph:", err);
+              })
+          : Promise.resolve();
+
+        // Wait for both (non-blocking for UI)
+        Promise.all([engineSave, graphSave]).catch(() => {});
       }
     };
 
