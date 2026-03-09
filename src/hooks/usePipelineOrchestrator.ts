@@ -229,13 +229,14 @@ export function usePipelineOrchestrator(
     // Trigger strategic recompute
     onRecompute?.();
     toast.success("Full pipeline complete — strategic intelligence updated.");
-  }, [selectedProduct, analysisId, analysis.adaptiveContext, analysis.governedData]);
+  }, [effectiveProduct, analysisId, analysis.adaptiveContext, analysis.governedData]);
 
-  // Auto-trigger when analysis is done with product but no step data
+  // Auto-trigger when analysis is done with product/business data but no step data
   useEffect(() => {
+    const hasAnalyzableData = !!selectedProduct || !!businessAnalysisData;
     if (
       step === "done" &&
-      selectedProduct &&
+      hasAnalyzableData &&
       analysisId &&
       !disruptData &&
       !redesignData &&
@@ -251,7 +252,7 @@ export function usePipelineOrchestrator(
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [step, selectedProduct, analysisId, disruptData, redesignData, stressTestData, pitchDeckData, runPipeline]);
+  }, [step, selectedProduct, businessAnalysisData, analysisId, disruptData, redesignData, stressTestData, pitchDeckData, runPipeline]);
 
   const steps = STEP_DEFS.map(d => ({
     key: d.key,
