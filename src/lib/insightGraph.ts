@@ -474,37 +474,95 @@ function buildGraphFromPipeline(
     }
   }
 
-  // ── Step 1e: Synthesize opportunity nodes from constraints when pipeline underproduces ──
+  // ── Step 1e: OPPORTUNITY GUARANTEE — Pipeline failure if < 2 opportunity nodes ──
+  // This is NOT a fallback — it's a required stage of graph construction.
+  // If any constraints or insights exist but opportunities are missing, synthesize them.
   const currentOpps = nodes.filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type));
-  if (currentOpps.length < 2 && nodes.filter(n => n.type === "constraint").length >= 2) {
-    const topConstraints = nodes
-      .filter(n => n.type === "constraint")
-      .sort((a, b) => b.impact - a.impact)
-      .slice(0, 3);
+  const constraintNodes = nodes.filter(n => n.type === "constraint");
+  const insightNodesForSynth = nodes.filter(n => n.type === "insight" || n.type === "leverage_point" || n.type === "driver");
+  const hasReasoningLayers = constraintNodes.length > 0 || insightNodesForSynth.length > 0;
 
-    for (const con of topConstraints) {
+  if (currentOpps.length < 2 && hasReasoningLayers) {
+    // Source pool: constraints first, then insights, then deepened opportunities' causal chains
+    const synthesisPool: Array<{ id: string; label: string; detail?: string; impact: number; confidence: "high" | "medium" | "low"; evidenceCount: number; pipelineStep: EvidencePipelineStep; evidence: string[] }> = [];
+
+    // Priority 1: Constraints
+    for (const con of constraintNodes.sort((a, b) => b.impact - a.impact).slice(0, 4)) {
+      synthesisPool.push(con);
+    }
+    // Priority 2: Insights
+    for (const ins of insightNodesForSynth.sort((a, b) => b.impact - a.impact).slice(0, 3)) {
+      synthesisPool.push(ins);
+    }
+    // Priority 3: Deepened opportunity causal chains (if present but not yet as nodes)
+    if (deepenedOpportunities) {
+      for (const dop of deepenedOpportunities) {
+        if (dop.causalChain?.constraint) {
+          synthesisPool.push({
+            id: `dop-source-${dop.id}`,
+            label: dop.causalChain.constraint,
+            detail: dop.summary,
+            impact: 7,
+            confidence: "medium",
+            evidenceCount: dop.evidenceIds?.length ?? 1,
+            pipelineStep: "disrupt" as EvidencePipelineStep,
+            evidence: dop.evidenceIds ?? [],
+          });
+        }
+      }
+    }
+
+    for (const source of synthesisPool) {
       if (currentOpps.length >= 3) break;
-      const synthId = `synth-opp-${con.id}`;
+      const synthId = `synth-opp-${source.id}`;
       if (nodeIndex.has(synthId)) continue;
-      const oppLabel = `Address: ${con.label}`;
+      const oppLabel = `Address: ${source.label}`;
       addNode({
         id: synthId,
         type: "outcome",
         label: humanizeGraphLabel(oppLabel).slice(0, 120),
-        detail: `Strategic opportunity derived from constraint: ${con.label}`,
-        reasoning: con.detail || `Resolving this constraint could unlock new value`,
-        impact: Math.max(5, con.impact - 1),
-        confidence: con.confidence,
-        evidenceCount: con.evidenceCount,
+        detail: `Strategic opportunity derived from: ${source.label}`,
+        reasoning: source.detail || `Resolving this could unlock new value`,
+        impact: Math.max(5, source.impact - 1),
+        confidence: source.confidence,
+        evidenceCount: source.evidenceCount,
         influence: 30,
         leverageScore: 0,
-        pipelineStep: con.pipelineStep,
-        evidence: con.evidence,
-        relatedNodeIds: [con.id],
+        pipelineStep: source.pipelineStep,
+        evidence: source.evidence,
+        relatedNodeIds: [source.id],
         intelligenceLayer: "opportunity",
       });
-      addEdge(con.id, synthId, "unlocks", 0.7);
+      if (nodeIndex.has(source.id)) {
+        addEdge(source.id, synthId, "unlocks", 0.7);
+      }
       currentOpps.push(nodes[nodes.length - 1]);
+    }
+
+    // Generate a pathway node connecting strongest constraint → best opportunity
+    if (constraintNodes.length > 0 && currentOpps.length > 0) {
+      const topConstraint = constraintNodes.sort((a, b) => b.impact - a.impact)[0];
+      const topOpp = currentOpps.sort((a, b) => b.impact - a.impact)[0];
+      const pathwayId = `synth-pathway-${topConstraint.id}`;
+      if (!nodeIndex.has(pathwayId)) {
+        addNode({
+          id: pathwayId,
+          type: "pathway",
+          label: `${topConstraint.label} → ${topOpp.label}`.slice(0, 120),
+          detail: `Strategic pathway: resolving "${topConstraint.label}" enables "${topOpp.label}"`,
+          impact: Math.max(topConstraint.impact, topOpp.impact),
+          confidence: topConstraint.confidence,
+          evidenceCount: topConstraint.evidenceCount + topOpp.evidenceCount,
+          influence: 40,
+          leverageScore: 0,
+          pipelineStep: "disrupt" as EvidencePipelineStep,
+          evidence: [...topConstraint.evidence, ...topOpp.evidence],
+          relatedNodeIds: [topConstraint.id, topOpp.id],
+          intelligenceLayer: "strategy",
+        });
+        addEdge(topConstraint.id, pathwayId, "leads_to", 0.8);
+        addEdge(pathwayId, topOpp.id, "unlocks", 0.8);
+      }
     }
   }
 

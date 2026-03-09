@@ -873,8 +873,13 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
     id: i.id, label: i.label, description: i.description, insightType: i.insightType,
     impact: i.impact, confidenceScore: i.confidence, evidenceIds: i.evidenceIds, recommendedTools: [] as string[],
   }));
+  const deepenedForGraph = deepenedOpps.map(d => ({
+    id: d.id, reconfigurationLabel: d.reconfigurationLabel, summary: d.summary,
+    causalChain: d.causalChain, resolvesConstraints: d.resolvesConstraints,
+    evidenceIds: d.evidenceIds, signalDensity: d.signalDensity,
+  }));
   const { result: graph, stage: sg } = traceStage("Graph Construction", flat.length + insights.length, () =>
-    buildInsightGraph(flat, undefined, undefined, undefined, undefined, insightsForGraph.length > 0 ? insightsForGraph : undefined, scenarioComparison?.scenarios, undefined)
+    buildInsightGraph(flat, undefined, undefined, undefined, undefined, insightsForGraph.length > 0 ? insightsForGraph : undefined, scenarioComparison?.scenarios, deepenedForGraph.length > 0 ? deepenedForGraph : undefined)
   );
   stages.push(sg);
 

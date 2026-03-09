@@ -165,7 +165,7 @@ export function hydrateFromRow(analysisRow: any, setters: HydrationSetters) {
   // Business model routing
   if (analysisRow.analysis_type === "business_model") {
     // Extract businessAnalysis from nested key; fall back to full blob for legacy records
-    const internalKeys = new Set(["governed","activeLensId","outdatedSteps","governedHashes","previousSnapshot","adaptiveContext","disrupt","stressTest","pitchDeck","redesign","businessStressTest","businessPitchDeck","geoOpportunity","regulatoryContext","userScores","insightPreferences","steeringText","pitchDeckImages","pitchDeckExclusions","scoutedCompetitors","activeBranchId","strategicProfile"]);
+    const internalKeys = new Set(["governed","activeLensId","outdatedSteps","governedHashes","previousSnapshot","adaptiveContext","disrupt","stressTest","pitchDeck","redesign","businessStressTest","businessPitchDeck","geoOpportunity","regulatoryContext","userScores","insightPreferences","steeringText","pitchDeckImages","pitchDeckExclusions","scoutedCompetitors","activeBranchId","strategicProfile","strategicEngine"]);
     const bizData = ad?.businessAnalysis
       ? (ad.businessAnalysis as BusinessModelAnalysisData)
       : (ad && Object.keys(ad).some(k => !internalKeys.has(k)))
