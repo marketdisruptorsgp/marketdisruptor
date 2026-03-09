@@ -286,30 +286,6 @@ export default function StressTestPage() {
         )}
       </SplitStepLayout>
 
-      {/* ── Red Team / Validate Tabs (original stress test content) ── */}
-      {(activeTab === "debate" || activeTab === "validate") && (
-        <div style={{ display: analysisLoading ? "none" : undefined }}>
-          <AnalysisContentCard>
-            <CriticalValidation
-              product={selectedProduct}
-              analysisData={selectedProduct}
-              activeTab={activeTab === "debate" ? "debate" : "validate"}
-              externalData={analysis.stressTestData}
-              runTrigger={runTrigger}
-              onLoadingChange={setAnalysisLoading}
-              competitorIntel={analysis.scoutedCompetitors}
-              conceptVariants={analysis.conceptVariantsForStressTest.length > 0 ? analysis.conceptVariantsForStressTest : undefined}
-              onDataLoaded={(d) => {
-                analysis.setStressTestData(d);
-                analysis.saveStepData("stressTest", d);
-                analysis.clearStepOutdated("stressTest");
-                analysis.markStepOutdated("pitchDeck");
-              }}
-            />
-          </AnalysisContentCard>
-        </div>
-      )}
-
       <PipelineProgressBar
         completedSteps={autoAnalysis.completedSteps}
         outdatedSteps={analysis.outdatedSteps}

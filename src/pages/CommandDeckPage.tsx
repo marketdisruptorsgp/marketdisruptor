@@ -24,40 +24,20 @@ import { ModeBadge } from "@/components/ModeBadge";
 import { LensIntelligencePanel } from "@/components/LensIntelligencePanel";
 import { RecomputeOverlay } from "@/components/RecomputeOverlay";
 import { ReasoningStagesOverlay } from "@/components/command-deck/ReasoningStagesOverlay";
-import { ConfidenceMeter } from "@/components/command-deck/ConfidenceMeter";
 import { StrategicXRay } from "@/components/command-deck/StrategicXRay";
-import { TransformationPaths } from "@/components/command-deck/TransformationPaths";
 import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
-import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
-import { ExecutiveBrief } from "@/components/command-deck/ExecutiveBrief";
-import { ExecutiveSummary } from "@/components/command-deck/ExecutiveSummary";
-import { ExecutiveSnapshot } from "@/components/command-deck/ExecutiveSnapshot";
+import { SoWhatHeader } from "@/components/command-deck/SoWhatHeader";
+import { WhatsNextPanel } from "@/components/command-deck/WhatsNextPanel";
 import { OneThesisCard } from "@/components/command-deck/OneThesisCard";
-import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
-import { BriefingSection } from "@/components/command-deck/BriefingSection";
-import { TrappedValueCard } from "@/components/command-deck/TrappedValueCard";
-import { AdaptiveJourneyMap } from "@/components/AdaptiveJourneyMap";
-import { KillQuestionCard } from "@/components/command-deck/KillQuestionCard";
-import { OpportunityMap } from "@/components/command-deck/OpportunityMap";
 import { ScenarioBanner, type ActiveChallenge } from "@/components/command-deck/ScenarioBanner";
 import { DeltaChanges, type DeltaItem } from "@/components/command-deck/DeltaChanges";
 import { ScenarioLab } from "@/components/command-deck/ScenarioLab";
 import { StrategicScenarioSimulator } from "@/components/command-deck/StrategicScenarioSimulator";
-import { StrategicPatternCard } from "@/components/command-deck/StrategicPatternCard";
-import { IndustryBenchmarkPanel } from "@/components/command-deck/IndustryBenchmarkPanel";
-import { OpportunityMapPanel } from "@/components/command-deck/OpportunityRadarPanel";
-import { StrategicNarrativeStory } from "@/components/command-deck/StrategicNarrativeStory";
-import { ConfidenceExplanationPanel } from "@/components/command-deck/ConfidenceExplanationPanel";
-import { PipelineJourneyCards } from "@/components/command-deck/PipelineJourneyCards";
 import { CurrentStateIntelligence } from "@/components/command-deck/CurrentStateIntelligence";
-import { ValuePillarTabs } from "@/components/command-deck/ValuePillarTabs";
 import { ProblemStatementCard } from "@/components/command-deck/ProblemStatementCard";
-import { HeroInsightCard } from "@/components/command-deck/HeroInsightCard";
-import { MetricRow } from "@/components/command-deck/MetricRow";
-import { IntelligenceFeed } from "@/components/command-deck/IntelligenceFeed";
 import { PowerToolsPanel } from "@/components/command-deck/PowerToolsPanel";
 import { detectStructuralPattern } from "@/lib/strategicPatternEngine";
-import { computeBenchmarks, computeOpportunityMap, generateStrategicStory, computeConfidenceExplanation } from "@/lib/benchmarkEngine";
+
 import {
   saveScenarioSnapshot, getSavedScenarios, deleteScenarioSnapshot,
   type ScenarioSnapshot,
@@ -420,69 +400,8 @@ export default function CommandDeckPage() {
     return pbs.length > 0 ? pbs[0] : null;
   }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
-  // ── All playbooks for radar ──
-  const allPlaybooks = useMemo(() => {
-    const modeEvidence: import("@/lib/evidenceEngine").EvidenceMode =
-      analysis.activeMode === "service" ? "service"
-      : analysis.activeMode === "business" ? "business_model" : "product";
-    return generatePlaybooks(autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, modeEvidence);
-  }, [autoAnalysis.flatEvidence, autoAnalysis.insights, narrative, analysis.activeMode]);
 
-  // ── Benchmark, Opportunity Radar, Strategic Story ──
-  const benchmark = useMemo(() =>
-    computeBenchmarks(autoAnalysis.flatEvidence, narrative, topPlaybook),
-    [autoAnalysis.flatEvidence, narrative, topPlaybook],
-  );
-  const opportunityRadar = useMemo(() =>
-    computeOpportunityMap(allPlaybooks, autoAnalysis.flatEvidence, narrative),
-    [allPlaybooks, autoAnalysis.flatEvidence, narrative],
-  );
-  const confidenceExplanation = useMemo(() =>
-    computeConfidenceExplanation(autoAnalysis.flatEvidence),
-    [autoAnalysis.flatEvidence],
-  );
-  const strategicStory = useMemo(() =>
-    generateStrategicStory(narrative, topPlaybook, autoAnalysis.flatEvidence),
-    [narrative, topPlaybook, autoAnalysis.flatEvidence],
-  );
 
-  // ── Evidence Attribution (drives Confidence Meter, Verdict, Trapped Value) ──
-  const evidenceAttribution = useMemo(() => {
-    const categories: globalThis.Map<string, number> = new globalThis.Map();
-    const categoryExamples: globalThis.Map<string, string> = new globalThis.Map();
-    for (const e of autoAnalysis.flatEvidence) {
-      const cat = (e.category || "general").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-      categories.set(cat, (categories.get(cat) || 0) + 1);
-      // Keep the highest-impact example per category for diagnosis evidence
-      if (!categoryExamples.has(cat) || (e.impact ?? 0) > 5) {
-        categoryExamples.set(cat, e.label || e.description || "");
-      }
-    }
-    const sorted = [...categories.entries()].sort((a, b) => b[1] - a[1]);
-    const strong = sorted.filter(([, c]) => c >= 3).map(([k]) => k);
-    const weak = sorted.length > 0
-      ? ["Demand Signal", "Cost Structure", "Competitive Pressure", "Customer Behavior", "Distribution Channel"]
-          .map(k => k.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))
-          .filter(k => !categories.has(k) || (categories.get(k) || 0) < 2)
-          .slice(0, 2)
-      : [];
-    const sources = sorted.slice(0, 5).map(([k]) => k);
-
-    // Trapped value drivers from narrative + evidence
-    const trappedValueDrivers: string[] = [];
-    if (narrative?.primaryConstraint) trappedValueDrivers.push(`${narrative.primaryConstraint} constraining current structure`);
-    if (strong.length > 0) trappedValueDrivers.push(`${strong[0]} patterns detected across ${categories.get(strong[0]) || 0} signals`);
-    if (narrative?.breakthroughOpportunity) trappedValueDrivers.push(`Opportunity: ${narrative.breakthroughOpportunity}`);
-
-    // Diagnosis evidence bullets — top evidence categories with example signals
-    const diagnosisEvidence = sorted.slice(0, 4).map(([cat]) => {
-      const rawDetail = categoryExamples.get(cat) || `${categories.get(cat)} indicators detected`;
-      const detail = humanizeLabel(rawDetail) || `${categories.get(cat)} indicators detected`;
-      return { category: cat, detail };
-    });
-
-    return { strong, weak, sources, trappedValueDrivers, diagnosisEvidence };
-  }, [autoAnalysis.flatEvidence, narrative]);
 
   const lastRecomputeHash = useRef<string>("");
   const savedScenarios = useMemo(() => {
@@ -746,36 +665,18 @@ export default function CommandDeckPage() {
         <ReasoningStagesOverlay isComputing={engineComputing || isRecomputing} />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 0 — HERO INSIGHT
-            The single most surprising finding. Full-width, large type.
+            SECTION 0 — "SO WHAT?" DECISION HEADER
+            Binary consequence of inaction vs action.
            ══════════════════════════════════════════════════════════ */}
-        <HeroInsightCard
+        <SoWhatHeader
           narrative={narrative}
+          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
           modeAccent={modeAccent}
-          analysisId={analysisId || ""}
-          onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
-          isPipelineRunning={pipelineProgress.isRunning || engineComputing}
-        />
-
-        {/* ── EXECUTIVE SUMMARY — One-paragraph CEO brief ── */}
-        <ExecutiveSummary narrative={narrative} modeAccent={modeAccent} />
-
-        {/* ══════════════════════════════════════════════════════════
-            TIER 1 — EXECUTIVE METRICS
-            4 compact metric cards. Glanceable.
-           ══════════════════════════════════════════════════════════ */}
-        <MetricRow
-          opportunityScore={metrics.opportunityScore}
-          riskScore={metrics.riskScore}
-          confidence={narrative?.verdictConfidence ?? Math.min(1, metrics.totalEvidenceCount / 30)}
-          evidenceCount={totalSignals}
-          completedSteps={completedSteps.size}
-          totalSteps={PIPELINE_STEPS.length}
         />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 2 — STRATEGIC THESIS
-            Core constraint → contrarian belief → strategic move → economics → first move
+            SECTION 1 — THE THESIS
+            Core product: constraint → belief → move → economics → first move
            ══════════════════════════════════════════════════════════ */}
         <OneThesisCard
           thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
@@ -784,26 +685,32 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 2b — INTELLIGENCE FEED
-            Single scrollable feed with tagged, filterable cards.
+            SECTION 2 — THE EVIDENCE (Strategic X-Ray)
+            Interactive reasoning chain with challenge mode.
            ══════════════════════════════════════════════════════════ */}
-        <IntelligenceFeed
+        <StrategicXRay
           narrative={narrative}
-          flatEvidence={autoAnalysis.flatEvidence}
           insights={autoAnalysis.insights}
-          topPlaybook={topPlaybook}
-          deepenedOpportunities={autoAnalysis.deepenedOpportunities}
-          mode={modeKey}
-          modeAccent={modeAccent}
-          detectedPatterns={detectedPatterns}
-          isPipelineRunning={pipelineProgress.isRunning || engineComputing}
+          flatEvidence={autoAnalysis.flatEvidence}
+          onRecompute={handleRecomputeAll}
+          onChallenge={handleChallenge}
         />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 3 — POWER TOOLS
-            Collapsed by default. Scenario Lab, Challenge Mode, etc.
+            SECTION 3 — WHAT'S NEXT
+            Kill question + first move + scenario trigger
            ══════════════════════════════════════════════════════════ */}
-        <PowerToolsPanel toolCount={5}>
+        <WhatsNextPanel
+          narrative={narrative}
+          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
+          modeAccent={modeAccent}
+          onChallenge={handleChallenge}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            POWER TOOLS — Collapsed advanced tools
+           ══════════════════════════════════════════════════════════ */}
+        <PowerToolsPanel toolCount={6}>
           {/* Problem Statement */}
           {(() => {
             const p = selectedProduct as any || {};
@@ -841,39 +748,34 @@ export default function CommandDeckPage() {
             detectedPatterns={detectedPatterns}
           />
 
-
-          {/* Scenario & Challenge Tools */}
-          <ValuePillarTabs
+          {/* Scenario Simulator */}
+          <StrategicScenarioSimulator
+            evidence={autoAnalysis.flatEvidence}
             narrative={narrative}
-            flatEvidence={autoAnalysis.flatEvidence}
-            insights={autoAnalysis.insights}
-            mode={modeKey}
-            modeAccent={modeAccent}
-            completedSteps={completedSteps.size}
-            totalSteps={PIPELINE_STEPS.length}
-            totalSignals={totalSignals}
-            topPlaybook={topPlaybook}
-            strategicStory={strategicStory}
-            evidenceAttribution={evidenceAttribution}
-            confidenceExplanation={confidenceExplanation}
-            benchmark={benchmark}
-            opportunityRadar={opportunityRadar}
-            detectedPatterns={detectedPatterns}
-            engineComputing={engineComputing}
-            savedLabScenarios={savedLabScenarios}
-            activeLabScenarioId={activeLabScenarioId}
-            filteredOpps={filteredOpps}
+          />
+
+          {/* Scenario Lab */}
+          <ScenarioLab
+            scenarios={savedLabScenarios}
+            activeScenarioId={activeLabScenarioId}
+            onLoadScenario={handleLoadLabScenario}
+            onDeleteScenario={handleDeleteLabScenario}
+          />
+
+          {/* Outcome Simulator */}
+          <StrategicOutcomeSimulator
+            playbook={topPlaybook}
+            evidence={autoAnalysis.flatEvidence}
+            narrative={narrative}
+          />
+
+          {/* Lens Intelligence */}
+          <LensIntelligencePanel
             analysisMode={analysis.activeMode || "product"}
             signalKeywords={lensSignalKeywords}
             analysisId={analysisId || ""}
-            reasoningToolRecs={reasoningToolRecs}
-            baseUrl={baseUrl}
-            onRecomputeAll={handleRecomputeAll}
-            onChallenge={handleChallenge}
-            onLoadScenario={handleLoadLabScenario}
-            onDeleteScenario={handleDeleteLabScenario}
+            recommendedToolIds={reasoningToolRecs}
             onScenarioSaved={handleScenarioSaved}
-            onNavigate={(path) => navigate(path)}
           />
         </PowerToolsPanel>
 
