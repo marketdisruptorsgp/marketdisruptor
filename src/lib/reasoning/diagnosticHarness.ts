@@ -932,10 +932,34 @@ export function printDiagnosticReport(report: DiagnosticReport): void {
     console.log(`    Possibly Reproducible: ${domain.opportunityQuality.llmDifferentiation.possible}`);
     console.log(`    Very Likely Generic: ${domain.opportunityQuality.llmDifferentiation.generic}`);
     
+    console.log("\n  BENCHMARK COMPARISON vs ChatGPT:");
+    console.log(`    Novelty Score: ${domain.benchmarkComparison.comparison.noveltyScore}%`);
+    console.log(`    Constraint Traceability: ${domain.benchmarkComparison.comparison.constraintTraceabilityScore}%`);
+    console.log(`    Evidence Grounding: ${domain.benchmarkComparison.comparison.evidenceGroundingScore}%`);
+    console.log(`    Overall: ${domain.benchmarkComparison.comparison.overallDifferentiation.toUpperCase()}`);
+    if (domain.benchmarkComparison.comparison.analysis) {
+      console.log(`    Analysis: ${domain.benchmarkComparison.comparison.analysis}`);
+    }
+    
+    console.log("\n  MATCHED SUGGESTIONS (Pipeline vs LLM Baseline):");
+    for (const match of domain.benchmarkComparison.matchedSuggestions.slice(0, 5)) {
+      const icon = match.similarity === "none" ? "✓" : match.similarity === "semantic" ? "~" : "✗";
+      console.log(`    ${icon} "${match.pipelineSuggestion.slice(0, 50)}..." → ${match.similarity === "none" ? "NOVEL" : `matches "${match.llmMatch}"`}`);
+    }
+    
     console.log("\n  GAPS:");
     console.log(`    ${domain.analogValidation.note}`);
     console.log(`    ${domain.structuralImportReview.note}`);
   }
+  
+  console.log("\n" + "═".repeat(80));
+  console.log("  LLM DIFFERENTIATION SUMMARY (CROSS-DOMAIN)");
+  console.log("═".repeat(80));
+  const { llmDifferentiationSummary } = report.systemicAnalysis;
+  console.log(`  Average Novelty: ${llmDifferentiationSummary.avgNovelty}%`);
+  console.log(`  Average Constraint Traceability: ${llmDifferentiationSummary.avgConstraintTraceability}%`);
+  console.log(`  Average Evidence Grounding: ${llmDifferentiationSummary.avgEvidenceGrounding}%`);
+  console.log(`  VERDICT: ${llmDifferentiationSummary.overallVerdict}`);
   
   console.log("\n" + "═".repeat(80));
   console.log("  SYSTEMIC WEAKNESS ANALYSIS");
