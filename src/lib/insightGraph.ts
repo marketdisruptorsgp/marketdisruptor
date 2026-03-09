@@ -209,10 +209,6 @@ function confidenceLabel(score?: number): "high" | "medium" | "low" {
 /** Strip internal ID prefixes and code artifacts from user-facing labels */
 import { humanizeLabel as humanizeGraphLabel } from "@/lib/humanize";
 
-/**
- * Build insight graph from Evidence objects (canonical pipeline).
- * Optionally accepts insights and scenarios to generate higher-level nodes.
- */
 /** Minimal deepened opportunity shape for graph injection */
 interface DeepOpportunityInput {
   id: string;
@@ -224,30 +220,44 @@ interface DeepOpportunityInput {
   signalDensity?: number;
 }
 
+/**
+ * Build insight graph from full pipeline output.
+ * Accepts either the new PipelineOutput interface or legacy positional args for backward compat.
+ */
 export function buildInsightGraph(
-  productsOrEvidence: any[] | Record<MetricDomain, MetricEvidence>,
+  productsOrEvidence: any[] | Record<MetricDomain, MetricEvidence> | PipelineOutput,
   intelligence?: any,
   disruptData?: unknown,
   redesignData?: unknown,
   stressTestData?: unknown,
-  /** Optional: clustered insights from the insight layer */
   insights?: Array<{ id: string; label: string; description?: string; insightType: string; impact?: number; confidenceScore?: number; evidenceIds: string[]; recommendedTools?: string[] }>,
-  /** Optional: ranked scenarios from the comparison engine */
   scenarios?: Array<{ scenarioId: string; scenarioName: string; toolId: string; projectedReturn: number; riskScore: number; capitalRequired: number; feasibilityScore: number; overallScore: number; strategicImpact: string }>,
-  /** Optional: deepened opportunities from the reconfiguration engine */
   deepenedOpportunities?: DeepOpportunityInput[],
 ): InsightGraph {
   edgeCounter = 0;
 
-  // Determine if called with Evidence or legacy args
+  // ── Detect PipelineOutput interface ──
+  if (productsOrEvidence && typeof productsOrEvidence === "object" && "evidence" in productsOrEvidence && !Array.isArray(productsOrEvidence)) {
+    const po = productsOrEvidence as PipelineOutput;
+    let allEvidence: Evidence[];
+    if (po.evidence && !Array.isArray(po.evidence) && "opportunity" in po.evidence) {
+      allEvidence = flattenEvidence(po.evidence as Record<MetricDomain, MetricEvidence>);
+    } else if (Array.isArray(po.evidence)) {
+      allEvidence = po.evidence;
+    } else {
+      allEvidence = buildLegacyEvidence(po.legacyProducts ?? [], po.legacyIntelligence, po.legacyDisruptData, po.legacyRedesignData, po.legacyStressTestData);
+    }
+    return buildGraphFromPipeline(allEvidence, po.insights, po.scenarios, po.deepenedOpportunities);
+  }
+
+  // ── Legacy positional args path ──
   let allEvidence: Evidence[];
   if (productsOrEvidence && !Array.isArray(productsOrEvidence) && "opportunity" in productsOrEvidence) {
     allEvidence = flattenEvidence(productsOrEvidence as Record<MetricDomain, MetricEvidence>);
   } else {
     allEvidence = buildLegacyEvidence(productsOrEvidence as any[], intelligence, disruptData, redesignData, stressTestData);
   }
-
-  return buildGraphFromEvidence(allEvidence, insights, scenarios, deepenedOpportunities);
+  return buildGraphFromPipeline(allEvidence, insights, scenarios, deepenedOpportunities);
 }
 
 function buildGraphFromEvidence(
