@@ -73,6 +73,16 @@ function tryExtractBusinessFacets(text: string): BusinessFacets | null {
     matched = true;
   }
 
+  // Detect weak price-setting power independently (may overlap with pricing model)
+  if (text.match(/weak[\s-]?price[\s-]?setting|no[\s-]?pricing[\s-]?power|race[\s-]?to[\s-]?(?:the[\s-]?)?bottom|commoditized[\s-]?pric|price[\s-]?taker/)) {
+    if (!facets.pricingArchitecture) {
+      facets.pricingArchitecture = { model: "fixed", priceSettingPower: "weak", switchingCost: "low" };
+    } else {
+      facets.pricingArchitecture = { ...facets.pricingArchitecture, priceSettingPower: "weak" };
+    }
+    matched = true;
+  }
+
   if (text.match(/margin[\s-]?compress|margin[\s-]?declin|shrinking[\s-]?margin|race[\s-]?to[\s-]?bottom/)) {
     facets.marginStructure = { marginTrend: "declining", marginDriver: "competitive pressure" };
     matched = true;
