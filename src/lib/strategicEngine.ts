@@ -1885,5 +1885,6 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     marketStructure,
     structuralProfile,
     qualifiedPatterns: qualifiedPatternsResult,
+    deepenedOpportunities: deepenedOpps,
   };
 }
