@@ -756,6 +756,9 @@ export default function CommandDeckPage() {
           onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
         />
 
+        {/* ── EXECUTIVE SUMMARY — One-paragraph CEO brief ── */}
+        <ExecutiveSummary narrative={narrative} modeAccent={modeAccent} />
+
         {/* ══════════════════════════════════════════════════════════
             TIER 1 — EXECUTIVE METRICS
             4 compact metric cards. Glanceable.
