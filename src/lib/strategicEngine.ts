@@ -327,6 +327,32 @@ function jaccard(a: string, b: string): number {
   return inter / (tokA.size + tokB.size - inter);
 }
 
+function cleanStrategicPhrase(text: string | null | undefined): string {
+  if (!text) return "";
+  return humanize(text)
+    .replace(/\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\b/gi, "")
+    .replace(/[.,]?\s+and\s+\d+\s+(?:related|additional|further|other)\s+\w+s?\.?$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function lowerFirst(text: string): string {
+  return text ? text.charAt(0).toLowerCase() + text.slice(1) : text;
+}
+
+function dedupeStrategicInsightsByLabel(items: StrategicInsight[]): StrategicInsight[] {
+  const unique: StrategicInsight[] = [];
+  for (const item of items) {
+    const canonical = cleanStrategicPhrase(item.label).toLowerCase();
+    const isDup = unique.some(existing => {
+      const existingCanonical = cleanStrategicPhrase(existing.label).toLowerCase();
+      return existingCanonical === canonical || jaccard(existingCanonical, canonical) >= 0.85;
+    });
+    if (!isDup) unique.push(item);
+  }
+  return unique;
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  STRATEGIC CATEGORIES — For evidence classification
 // ═══════════════════════════════════════════════════════════════
@@ -512,10 +538,8 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
       const sorted = [...uncovered].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
       const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
       // Use the highest-impact item's label for specificity, not a generic "X Cluster"
-      const primaryLabel = humanize(sorted[0].label);
-      const signalLabel = uncovered.length > 2
-        ? `${primaryLabel} and ${uncovered.length - 1} related ${type}s`
-        : primaryLabel;
+      const primaryLabel = cleanStrategicPhrase(sorted[0].label);
+      const signalLabel = primaryLabel;
 
       signals.push({
         id: nextId("signal"),
@@ -741,8 +765,8 @@ function discoverLeverage(
 
       if (sharedEvidence.length > 0 || semanticOverlap) {
         // Generate a human-readable leverage label
-        const conText = humanize(constraint.label);
-        const drvText = humanize(driver.label);
+        const conText = lowerFirst(cleanStrategicPhrase(constraint.label));
+        const drvText = lowerFirst(cleanStrategicPhrase(driver.label));
         const label = `Address ${conText} through ${drvText}`;
         if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
@@ -767,9 +791,9 @@ function discoverLeverage(
     ["demand_signal", "distribution_channel", "pricing_model"].includes(s.category) && s.strength >= 5
   );
   for (const gs of growthSignals.slice(0, 3)) {
-    const oppLabel = humanize(gs.label.replace(/^[^:]+:\s*/, ""));
+    const oppLabel = lowerFirst(cleanStrategicPhrase(gs.label.replace(/^[^:]+:\s*/, "")));
     const dimVerb = DIMENSION_ACTION_VERBS[gs.category] || "Capitalize on";
-    const label = `${dimVerb} ${oppLabel.charAt(0).toLowerCase() + oppLabel.slice(1)}`;
+    const label = `${dimVerb} ${oppLabel}`;
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
     insights.push(makeInsight({
@@ -871,13 +895,12 @@ function generateOpportunitiesFallback(
     const relatedConstraints = constraints.filter(c => lev.relatedInsightIds.includes(c.id));
     const con = relatedConstraints[0];
 
-    const conText = con ? humanize(con.label) : "";
-    const levText = humanize(lev.label);
-    const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+    const conText = con ? lowerFirst(cleanStrategicPhrase(con.label)) : "";
+    const levText = lowerFirst(cleanStrategicPhrase(lev.label));
 
     const label = con
       ? `Resolve ${conText} to unlock growth`
-      : `Apply ${lowerFirst(levText)} for strategic advantage`;
+      : `Apply ${levText} for strategic advantage`;
 
     if (insights.some(i => jaccard(i.label, label) >= 0.5)) continue;
 
@@ -1569,7 +1592,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
       return generateOpportunitiesFallback(leveragePoints, constraints, input.analysisId);
     });
     stages.push(s8opp);
-    opportunities = opps;
+    opportunities = dedupeStrategicInsightsByLabel(opps);
     events.push(`${opportunities.length} opportunities generated${input.aiAlternatives?.length ? " (morphological+patterns)" : " (fallback)"}`);
   } else {
     events.push(`Opportunities: need ${THRESHOLDS.opportunities} evidence + leverage`);
@@ -1578,7 +1601,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   // ── Graceful Degradation: Never return zero opportunities ──
   if (opportunities.length === 0 && signals.length > 0) {
     const exploratory = generateExploratoryOpportunities(signals, flat, input.analysisId);
-    opportunities = exploratory;
+    opportunities = dedupeStrategicInsightsByLabel(exploratory);
     events.push(`${exploratory.length} exploratory opportunities generated (graceful degradation)`);
   }
 
