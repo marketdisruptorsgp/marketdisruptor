@@ -535,6 +535,8 @@ export function runFullPipelineBenchmark(
     reasoningTrace: traces,
     totalEvidenceItems: rawEvidence.length,
     facetedEvidenceCount: facetedCount,
+    facetDiagnostics,
+    inferredConstraintCount,
     pipelineEvents: events,
   };
 }
