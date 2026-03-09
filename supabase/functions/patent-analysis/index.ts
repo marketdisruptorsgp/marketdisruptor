@@ -212,8 +212,33 @@ Be specific, bold, and commercial. This analysis should fundamentally change how
 function buildSearchTerms(
   productName: string,
   category: string,
-  industryContext?: { industry?: string; products?: string[]; processes?: string[]; materials?: string[] } | null,
+  industryContext?: { industry?: string; products?: string[]; processes?: string[]; materials?: string[]; businessDescription?: string } | null,
 ): { primary: string; secondary: string } {
+  // For business model analyses, productName is often the business name (e.g., "CK Woodworks")
+  // which returns irrelevant patent results. Use business description and category instead.
+  if (industryContext?.businessDescription) {
+    // Extract key industry terms from the description, not the company name
+    const desc = industryContext.businessDescription;
+    const parts: string[] = [];
+    if (industryContext.industry) parts.push(industryContext.industry);
+    if (industryContext.products?.length) parts.push(industryContext.products.slice(0, 2).join(" "));
+    if (industryContext.processes?.length) parts.push(industryContext.processes[0]);
+    // Fallback: extract key terms from description
+    if (parts.length === 0) {
+      // Use category + first meaningful words from description
+      parts.push(category);
+      const descWords = desc.split(/\s+/).filter(w => w.length > 4).slice(0, 3);
+      if (descWords.length > 0) parts.push(descWords.join(" "));
+    }
+
+    const primary = parts.join(" ");
+    const secondary = industryContext.materials?.length
+      ? industryContext.materials.slice(0, 2).join(" ")
+      : category;
+
+    return { primary, secondary };
+  }
+
   if (!industryContext) {
     return { primary: productName, secondary: category };
   }

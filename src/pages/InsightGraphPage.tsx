@@ -83,8 +83,17 @@ export default function InsightGraphPage() {
       recommendedTools: i.recommendedTools ?? [],
     }));
     const scenariosData = autoAnalysis.scenarioComparison?.scenarios;
-    return buildInsightGraph(evidenceData, undefined, undefined, undefined, undefined, insightsData, scenariosData);
-  }, [products, selectedProduct, intelligence, disruptData, redesignData, stressTestData, analysis.pitchDeckData, analysis.governedData, businessAnalysisData, (analysis as any).activeMode, autoAnalysis.insights, autoAnalysis.scenarioComparison]);
+    const deepenedData = autoAnalysis.deepenedOpportunities?.map(d => ({
+      id: d.id,
+      reconfigurationLabel: d.reconfigurationLabel,
+      summary: d.summary,
+      causalChain: d.causalChain,
+      resolvesConstraints: d.resolvesConstraints,
+      evidenceIds: d.evidenceIds,
+      signalDensity: d.signalDensity,
+    }));
+    return buildInsightGraph(evidenceData, undefined, undefined, undefined, undefined, insightsData, scenariosData, deepenedData);
+  }, [products, selectedProduct, intelligence, disruptData, redesignData, stressTestData, analysis.pitchDeckData, analysis.governedData, businessAnalysisData, (analysis as any).activeMode, autoAnalysis.insights, autoAnalysis.scenarioComparison, autoAnalysis.deepenedOpportunities]);
 
   const { completedSteps } = autoAnalysis;
 

@@ -194,6 +194,17 @@ import { humanizeLabel as humanizeGraphLabel } from "@/lib/humanize";
  * Build insight graph from Evidence objects (canonical pipeline).
  * Optionally accepts insights and scenarios to generate higher-level nodes.
  */
+/** Minimal deepened opportunity shape for graph injection */
+interface DeepOpportunityInput {
+  id: string;
+  reconfigurationLabel: string;
+  summary: string;
+  causalChain: { constraint: string; driver?: string; };
+  resolvesConstraints?: string[];
+  evidenceIds?: string[];
+  signalDensity?: number;
+}
+
 export function buildInsightGraph(
   productsOrEvidence: any[] | Record<MetricDomain, MetricEvidence>,
   intelligence?: any,
@@ -204,6 +215,8 @@ export function buildInsightGraph(
   insights?: Array<{ id: string; label: string; description?: string; insightType: string; impact?: number; confidenceScore?: number; evidenceIds: string[]; recommendedTools?: string[] }>,
   /** Optional: ranked scenarios from the comparison engine */
   scenarios?: Array<{ scenarioId: string; scenarioName: string; toolId: string; projectedReturn: number; riskScore: number; capitalRequired: number; feasibilityScore: number; overallScore: number; strategicImpact: string }>,
+  /** Optional: deepened opportunities from the reconfiguration engine */
+  deepenedOpportunities?: DeepOpportunityInput[],
 ): InsightGraph {
   edgeCounter = 0;
 
@@ -215,13 +228,14 @@ export function buildInsightGraph(
     allEvidence = buildLegacyEvidence(productsOrEvidence as any[], intelligence, disruptData, redesignData, stressTestData);
   }
 
-  return buildGraphFromEvidence(allEvidence, insights, scenarios);
+  return buildGraphFromEvidence(allEvidence, insights, scenarios, deepenedOpportunities);
 }
 
 function buildGraphFromEvidence(
   allEvidence: Evidence[],
   insights?: Array<{ id: string; label: string; description?: string; insightType: string; impact?: number; confidenceScore?: number; evidenceIds: string[]; recommendedTools?: string[] }>,
   scenarios?: Array<{ scenarioId: string; scenarioName: string; toolId: string; projectedReturn: number; riskScore: number; capitalRequired: number; feasibilityScore: number; overallScore: number; strategicImpact: string }>,
+  deepenedOpportunities?: DeepOpportunityInput[],
 ): InsightGraph {
   const nodes: InsightGraphNode[] = [];
   const edges: InsightGraphEdge[] = [];
@@ -388,7 +402,83 @@ function buildGraphFromEvidence(
     }
   }
 
-  // ── Deduplicate nodes with similar labels ──
+  // ── Step 1d: Inject DeepenedOpportunities as concept nodes ──
+  // These are AI-generated strategic theses with rich causal chains
+  if (deepenedOpportunities && deepenedOpportunities.length > 0) {
+    for (const dop of deepenedOpportunities.slice(0, 4)) {
+      const dopId = `thesis-${dop.id}`;
+      const label = humanizeGraphLabel(dop.reconfigurationLabel || dop.id).slice(0, 120);
+      addNode({
+        id: dopId,
+        type: "concept",
+        label,
+        detail: dop.summary,
+        reasoning: dop.summary,
+        impact: 8, // Deepened theses are high-impact by definition
+        confidence: dop.signalDensity && dop.signalDensity >= 3 ? "high" : "medium",
+        evidenceCount: dop.evidenceIds?.length ?? dop.signalDensity ?? 2,
+        influence: 50,
+        leverageScore: 0,
+        pipelineStep: "disrupt",
+        evidence: dop.evidenceIds ?? [],
+        relatedNodeIds: [],
+        intelligenceLayer: "opportunity",
+      });
+
+      // Link thesis to its source constraint if one was created
+      if (dop.causalChain?.constraint) {
+        const constraintLabel = dop.causalChain.constraint.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const matchingConstraint = nodes.find(
+          n => n.type === "constraint" && n.label.toLowerCase().replace(/[^a-z0-9]/g, "").includes(constraintLabel.slice(0, 30))
+        );
+        if (matchingConstraint) {
+          addEdge(matchingConstraint.id, dopId, "unlocks", 0.8);
+        }
+      }
+
+      // Link to supporting evidence
+      for (const evId of (dop.evidenceIds ?? []).slice(0, 3)) {
+        if (nodeIndex.has(evId)) {
+          addEdge(evId, dopId, "supports", 0.7);
+        }
+      }
+    }
+  }
+
+  // ── Step 1e: Synthesize opportunity nodes from constraints when pipeline underproduces ──
+  const currentOpps = nodes.filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type));
+  if (currentOpps.length < 2 && nodes.filter(n => n.type === "constraint").length >= 2) {
+    const topConstraints = nodes
+      .filter(n => n.type === "constraint")
+      .sort((a, b) => b.impact - a.impact)
+      .slice(0, 3);
+
+    for (const con of topConstraints) {
+      if (currentOpps.length >= 3) break;
+      const synthId = `synth-opp-${con.id}`;
+      if (nodeIndex.has(synthId)) continue;
+      const oppLabel = `Address: ${con.label}`;
+      addNode({
+        id: synthId,
+        type: "outcome",
+        label: humanizeGraphLabel(oppLabel).slice(0, 120),
+        detail: `Strategic opportunity derived from constraint: ${con.label}`,
+        reasoning: con.detail || `Resolving this constraint could unlock new value`,
+        impact: Math.max(5, con.impact - 1),
+        confidence: con.confidence,
+        evidenceCount: con.evidenceCount,
+        influence: 30,
+        leverageScore: 0,
+        pipelineStep: con.pipelineStep,
+        evidence: con.evidence,
+        relatedNodeIds: [con.id],
+        intelligenceLayer: "opportunity",
+      });
+      addEdge(con.id, synthId, "unlocks", 0.7);
+      currentOpps.push(nodes[nodes.length - 1]);
+    }
+  }
+
   const seen = new Map<string, string>();
   const dupeIds = new Set<string>();
   for (const n of nodes) {

@@ -256,7 +256,7 @@ describe("Insight Graph — Large (40+ nodes)", () => {
 
   it("all edges have valid relation types", () => {
     graph = buildLargeGraph();
-    const validRelations = ["causes", "leads_to", "contradicts", "supports", "unlocks", "depends_on", "invalidates"];
+    const validRelations = ["causes", "leads_to", "contradicts", "supports", "unlocks", "depends_on", "invalidates", "creates", "enables", "tests"];
     graph.edges.forEach(e => {
       expect(validRelations).toContain(e.relation);
     });

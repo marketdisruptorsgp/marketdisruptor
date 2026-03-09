@@ -596,11 +596,21 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     recommendedTools: [] as string[],
   }));
 
+  const deepenedForGraph = deepenedOpps.map(d => ({
+    id: d.id,
+    reconfigurationLabel: d.reconfigurationLabel,
+    summary: d.summary,
+    causalChain: d.causalChain,
+    resolvesConstraints: d.resolvesConstraints,
+    evidenceIds: d.evidenceIds,
+    signalDensity: d.signalDensity,
+  }));
   const { result: graph, stage: sg } = traceStage("Graph Construction", flat.length + insights.length, () =>
     buildInsightGraph(
       flat, undefined, undefined, undefined, undefined,
       insightsForGraph.length > 0 ? insightsForGraph : undefined,
       scenarioComparison?.scenarios,
+      deepenedForGraph.length > 0 ? deepenedForGraph : undefined,
     )
   );
   stages.push(sg);
@@ -864,7 +874,7 @@ export async function runStrategicAnalysisAsync(input: StrategicAnalysisInput): 
     impact: i.impact, confidenceScore: i.confidence, evidenceIds: i.evidenceIds, recommendedTools: [] as string[],
   }));
   const { result: graph, stage: sg } = traceStage("Graph Construction", flat.length + insights.length, () =>
-    buildInsightGraph(flat, undefined, undefined, undefined, undefined, insightsForGraph.length > 0 ? insightsForGraph : undefined, scenarioComparison?.scenarios)
+    buildInsightGraph(flat, undefined, undefined, undefined, undefined, insightsForGraph.length > 0 ? insightsForGraph : undefined, scenarioComparison?.scenarios, undefined)
   );
   stages.push(sg);
 
