@@ -24,6 +24,7 @@ import { type SensitivityReport } from "@/lib/sensitivityEngine";
 import type { SystemIntelligence } from "@/lib/systemIntelligence";
 import {
   runStrategicAnalysis,
+  runStrategicAnalysisAsync,
   type StrategicAnalysisInput,
   type StrategicInsight,
 } from "@/lib/strategicEngine";
