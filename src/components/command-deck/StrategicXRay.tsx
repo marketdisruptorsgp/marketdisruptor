@@ -145,7 +145,7 @@ export const StrategicXRay = memo(function StrategicXRay({
         evidenceIds: topPathway?.evidenceIds || [],
       },
     ];
-  }, [narrative, topConstraint, topDriver, topLeverage, topOpp, topPathway, flatEvidence, constraintEvidenceIds]);
+  }, [narrative, topConstraint, topDriver, topLeverage, topOpp, topPathway, flatEvidence, constraintEvidenceIds, thesis]);
 
   const handleNodeClick = useCallback((stage: string) => {
     setSelectedNode(prev => prev === stage ? null : stage);
