@@ -183,12 +183,12 @@ export const OpportunityRadar = memo(function OpportunityRadar({
 
                 {/* Overall score */}
                 <div className="flex items-center gap-4 px-4 py-3 rounded-xl" style={{ background: "hsl(var(--muted) / 0.5)" }}>
-                  <div>
-                    <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">
-                      {(selectedOpp.opportunityScore ?? 0).toFixed(1)}
+                <div>
+                    <p className="text-xl font-extrabold text-foreground leading-none">
+                      {(selectedOpp.opportunityScore ?? 0) >= 7 ? "Strong Signal" : (selectedOpp.opportunityScore ?? 0) >= 4 ? "Moderate Signal" : "Early Signal"}
                     </p>
                     <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1">
-                      Opportunity Score
+                      Opportunity Strength
                     </p>
                   </div>
                   <div className="flex-1 h-2 rounded-full overflow-hidden bg-muted">
