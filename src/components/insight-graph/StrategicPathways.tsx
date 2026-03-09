@@ -100,9 +100,6 @@ function PathwayNode({ node, index }: { node: InsightGraphNode; index: number })
         <span className="text-xs font-bold" style={{ color: cfg.color }}>
           {node.impact >= 8 ? "Strong" : node.impact >= 5 ? "Moderate" : "Early"}
         </span>
-        <span className="text-xs font-bold tabular-nums text-muted-foreground">
-          Inf. {node.influence}
-        </span>
       </div>
     </motion.div>
   );
