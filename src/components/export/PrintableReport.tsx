@@ -300,7 +300,7 @@ function StrategicSnapshotSection({ data }: { data: Record<string, unknown> }) {
                   {opp.label || `Opportunity ${index + 1}`}
                 </p>
                 <div className="print-tag-row">
-                  {opp.impact != null && <PrintTag label={`Impact ${opp.impact}/10`} color="hsl(217 91% 55%)" />}
+                  {opp.impact != null && <PrintTag label={opp.impact >= 8 ? "High impact" : opp.impact >= 5 ? "Moderate impact" : "Low impact"} color="hsl(217 91% 55%)" />}
                   {opp.confidence && <PrintTag label={`Confidence ${opp.confidence}`} color="hsl(142 70% 40%)" />}
                   {opp.source && <PrintTag label={String(opp.source)} color="hsl(220 10% 45%)" />}
                 </div>

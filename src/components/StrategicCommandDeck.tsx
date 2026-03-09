@@ -30,14 +30,20 @@ interface StrategicCommandDeckProps {
   insightGraph?: InsightGraph | null;
 }
 
+function impactLabel(impact: number): { text: string; color: string } {
+  if (impact >= 8) return { text: "Critical", color: "hsl(0 70% 50%)" };
+  if (impact >= 5) return { text: "Significant", color: "hsl(38 92% 50%)" };
+  return { text: "Moderate", color: "hsl(var(--foreground) / 0.5)" };
+}
+
 function ImpactBadge({ impact, confidence }: { impact: number; confidence: string }) {
-  const color = impact >= 8 ? "hsl(0 70% 50%)" : impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--foreground) / 0.5)";
+  const level = impactLabel(impact);
   return (
     <span
-      className="text-xs font-bold tabular-nums px-2 py-0.5 rounded-full"
-      style={{ background: `${color}18`, color }}
+      className="text-xs font-bold px-2 py-0.5 rounded-full"
+      style={{ background: `${level.color}18`, color: level.color }}
     >
-      {impact}/10{confidence !== "high" && ` · ${confidence}`}
+      {level.text}{confidence !== "high" && ` · ${confidence}`}
     </span>
   );
 }

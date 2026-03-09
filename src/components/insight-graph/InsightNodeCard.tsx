@@ -184,9 +184,9 @@ export const InsightNodeCard = memo(function InsightNodeCard({
 
       {/* Metrics Row */}
       <div className="px-4 pb-3 grid grid-cols-4 gap-1.5">
-        <MetricPill label="Impact" value={`${node.impact}/10`} color={config.color} />
-        <MetricPill label="Leverage" value={`${node.leverageScore}`} color={config.color} />
-        <MetricPill label="Influence" value={`${node.influence}`} color={config.color} />
+        <MetricPill label="Impact" value={node.impact >= 8 ? "Strong" : node.impact >= 5 ? "Moderate" : "Early"} color={config.color} />
+        <MetricPill label="Leverage" value={node.leverageScore >= 8 ? "High" : node.leverageScore >= 5 ? "Moderate" : "Low"} color={config.color} />
+        <MetricPill label="Influence" value={node.influence >= 8 ? "Strong" : node.influence >= 5 ? "Moderate" : "Limited"} color={config.color} />
         <MetricPill label="Conf." value={node.confidence} color={config.color} />
       </div>
 

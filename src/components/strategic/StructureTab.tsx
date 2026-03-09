@@ -344,7 +344,7 @@ function AssumptionCard({ item, leverageColor, reasonColor, status, hasDeepInsig
         {/* Tags row — always visible */}
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           <span className="text-[10px] font-bold tabular-nums px-2 py-0.5 rounded-full" style={{ background: leverageColor + "18", color: leverageColor }}>
-            Leverage: {item.leverage}/10
+            Leverage: {item.leverage >= 8 ? "High" : item.leverage >= 5 ? "Moderate" : "Low"}
           </span>
           {status && (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: status.bg, color: status.text }}>

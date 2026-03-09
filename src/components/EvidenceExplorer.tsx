@@ -91,7 +91,7 @@ function EvidenceItemContent({ item, tierChip, metaColor }: { item: Evidence; ti
           {item.confidenceScore != null && <ConfidenceBadge score={item.confidenceScore} />}
           {item.impact != null && (
             <span className="text-[9px] font-bold tabular-nums" style={{ color: metaColor }}>
-              Impact: {item.impact}/10
+              {item.impact >= 8 ? "High impact" : item.impact >= 5 ? "Moderate impact" : "Low impact"}
             </span>
           )}
           {item.mode && (

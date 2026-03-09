@@ -97,8 +97,8 @@ function PathwayNode({ node, index }: { node: InsightGraphNode; index: number })
       </div>
       <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">{node.label}</p>
       <div className="flex items-center gap-1.5 mt-1">
-        <span className="text-xs font-bold tabular-nums" style={{ color: cfg.color }}>
-          {node.impact}/10
+        <span className="text-xs font-bold" style={{ color: cfg.color }}>
+          {node.impact >= 8 ? "Strong" : node.impact >= 5 ? "Moderate" : "Early"}
         </span>
         <span className="text-xs font-bold tabular-nums text-muted-foreground">
           Inf. {node.influence}

@@ -225,13 +225,13 @@ export const StrategicSummaryPanel = memo(function StrategicSummaryPanel({
               <p className="text-sm font-bold text-foreground leading-snug truncate">{opp.label}</p>
             </div>
             <span
-              className="text-xs font-bold tabular-nums px-2 py-0.5 rounded-full flex-shrink-0"
+              className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0"
               style={{
-                background: opp.impact >= 8 ? "hsl(var(--success) / 0.15)" : "hsl(var(--muted))",
-                color: opp.impact >= 8 ? "hsl(var(--success))" : "hsl(var(--foreground) / 0.6)",
+                background: opp.impact >= 8 ? "hsl(var(--success) / 0.15)" : opp.impact >= 5 ? "hsl(38 92% 50% / 0.12)" : "hsl(var(--muted))",
+                color: opp.impact >= 8 ? "hsl(var(--success))" : opp.impact >= 5 ? "hsl(38 92% 50%)" : "hsl(var(--foreground) / 0.6)",
               }}
             >
-              {opp.impact}/10
+              {opp.impact >= 8 ? "High leverage" : opp.impact >= 5 ? "Significant" : "Moderate"}
             </span>
           </div>
         ))}

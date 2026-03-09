@@ -429,7 +429,7 @@ function PathwayChip({ node, onClick }: { node: InsightGraphNode; onClick: () =>
     >
       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cfg.color }} />
       <span className="text-foreground max-w-[120px] truncate">{node.label}</span>
-      <span className="tabular-nums opacity-70">{node.impact}/10</span>
+      <span className="opacity-70">{node.impact >= 8 ? "Strong" : node.impact >= 5 ? "Moderate" : "Early"}</span>
     </button>
   );
 }

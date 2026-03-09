@@ -258,8 +258,8 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
               <div className="flex-1">
                 <ScoreBar value={value} max={10} color={dimColor} />
               </div>
-              <span className="text-xs font-bold tabular-nums w-6 text-right" style={{ color: dimColor }}>
-                {value}
+              <span className="text-xs font-bold w-16 text-right" style={{ color: dimColor }}>
+                {value >= 7 ? "High" : value >= 4 ? "Moderate" : "Low"}
               </span>
             </div>
           );
