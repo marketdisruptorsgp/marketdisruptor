@@ -5,6 +5,7 @@
 
 import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { ValidationStep } from "@/lib/strategicEngine";
 import {
   Crosshair, Play, Beaker, CheckCircle2, Clock,
   ChevronDown, ChevronUp, Target,
