@@ -166,7 +166,7 @@ export const StrategicXRay = memo(function StrategicXRay({
     }
   }, [challengeNode, challengeValue, onChallenge]);
 
-  const hasContent = narrative?.primaryConstraint || insights.length > 0;
+  const hasContent = narrative?.primaryConstraint || insights.length > 0 || !!thesis;
 
   return (
     <div

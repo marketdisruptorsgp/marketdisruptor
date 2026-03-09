@@ -718,6 +718,7 @@ export default function CommandDeckPage() {
           narrative={narrative}
           insights={autoAnalysis.insights}
           flatEvidence={autoAnalysis.flatEvidence}
+          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
           onRecompute={handleRecomputeAll}
           onChallenge={handleChallenge}
         />
