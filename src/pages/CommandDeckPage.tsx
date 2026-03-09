@@ -638,7 +638,7 @@ export default function CommandDeckPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex-1 bg-background overflow-y-auto">
       <main className="max-w-[1100px] mx-auto px-3 sm:px-6 py-3 sm:py-4 space-y-3">
 
         {/* ══════════════════════════════════════════════════════════
