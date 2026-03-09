@@ -786,8 +786,30 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       // ── Background: Auto-run patent analysis for richer Command Deck data ──
       const primaryProduct = liveProducts[0];
       if (primaryProduct && !isServiceMode) {
+        // Build industry context from the product data for grounded patent search
+        const industryContext: Record<string, unknown> = {};
+        const pp = primaryProduct as any;
+        if (pp.category) industryContext.industry = pp.category;
+        if (pp.description) industryContext.businessDescription = pp.description;
+        if (pp.supplyChain) {
+          const sc = pp.supplyChain;
+          const products: string[] = [];
+          const processes: string[] = [];
+          const materials: string[] = [];
+          if (sc.manufacturers?.length) materials.push(...sc.manufacturers.map((m: any) => m.name || m).slice(0, 3));
+          if (sc.distributors?.length) processes.push("distribution");
+          if (pp.name) products.push(pp.name);
+          if (products.length) industryContext.products = products;
+          if (processes.length) industryContext.processes = processes;
+          if (materials.length) industryContext.materials = materials;
+        }
         invokeWithTimeout("patent-analysis", {
-          body: { productName: primaryProduct.name, category: params.category, era: params.era },
+          body: {
+            productName: primaryProduct.name,
+            category: params.category,
+            era: params.era,
+            industryContext: Object.keys(industryContext).length > 0 ? industryContext : undefined,
+          },
         }, 90_000).then(({ data: patentResult, error: patentErr }) => {
           if (!patentErr && patentResult?.success && patentResult.patentData) {
             const enriched = { ...primaryProduct, patentData: patentResult.patentData } as Product;

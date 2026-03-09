@@ -114,8 +114,22 @@ export function PatentIntelligence({ product, onSave }: Props) {
   const runAnalysis = async () => {
     setLoading(true);
     try {
+      // Build industry context from product data for grounded patent search
+      const pp = product as any;
+      const industryContext: Record<string, unknown> = {};
+      if (pp.category) industryContext.industry = pp.category;
+      if (pp.description) industryContext.businessDescription = pp.description;
+      if (pp.supplyChain) {
+        const products: string[] = [product.name];
+        industryContext.products = products;
+      }
       const { data, error } = await invokeWithTimeout("patent-analysis", {
-        body: { productName: product.name, category: product.category, era: product.era },
+        body: {
+          productName: product.name,
+          category: product.category,
+          era: product.era,
+          industryContext: Object.keys(industryContext).length > 0 ? industryContext : undefined,
+        },
       }, 90_000);
       if (error || !data?.success) throw new Error(data?.error || error?.message || "Patent analysis failed");
       setPatentData(data.patentData);

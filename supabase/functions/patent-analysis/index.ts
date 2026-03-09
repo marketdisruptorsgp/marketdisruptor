@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { productName, category, era } = await req.json();
+    const { productName, category, era, industryContext } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -19,16 +19,18 @@ serve(async (req) => {
     if (!FIRECRAWL_API_KEY) throw new Error("FIRECRAWL_API_KEY not configured");
 
     console.log(`Running patent analysis for: ${productName} (${category}, ${era})`);
+    if (industryContext) {
+      console.log(`Industry context provided:`, JSON.stringify(industryContext).slice(0, 300));
+    }
 
     // === STEP 1: Gather patent data from multiple sources in parallel ===
+    // Use industry context to build better search queries
+    const searchTerms = buildSearchTerms(productName, category, industryContext);
 
     const [usptoData, googlePatentsData, freeIpData] = await Promise.allSettled([
-      // USPTO PatentsView API — completely free, no key needed
-      fetchUSPTOPatents(productName, category),
-      // Google Patents via Firecrawl
-      fetchGooglePatents(productName, category, FIRECRAWL_API_KEY),
-      // Lens.org / Espacenet via Firecrawl for expired patents
-      fetchExpiredPatents(productName, category, FIRECRAWL_API_KEY),
+      fetchUSPTOPatents(searchTerms.primary, searchTerms.secondary),
+      fetchGooglePatents(searchTerms.primary, searchTerms.secondary, FIRECRAWL_API_KEY),
+      fetchExpiredPatents(searchTerms.primary, searchTerms.secondary, FIRECRAWL_API_KEY),
     ]);
 
     const usptoRaw = usptoData.status === "fulfilled" ? usptoData.value : "";
@@ -37,14 +39,21 @@ serve(async (req) => {
 
     console.log(`Data gathered — USPTO: ${usptoRaw.length} chars, Google: ${googleRaw.length} chars, Expired: ${expiredRaw.length} chars`);
 
-    // === STEP 2: Deep AI analysis of patent landscape ===
+    // === STEP 2: Build industry-grounded prompt ===
+    const industryGrounding = buildIndustryGrounding(productName, category, industryContext);
 
-    const systemPrompt = `You are a world-class patent intelligence analyst and innovation strategist. You analyze patent data to uncover:
-1. Who controls IP in a space and whether it's accessible
+    const systemPrompt = `You are a world-class patent intelligence analyst and innovation strategist.
+
+${industryGrounding}
+
+You analyze patent data to uncover:
+1. Who controls IP in this specific industry and whether it's accessible
 2. Expired patents = public domain goldmines anyone can use FREE
 3. Patent gaps = unprotected opportunities with clear white space
 4. Filing trends = where smart money is heading RIGHT NOW
 5. Radical innovation angles inspired by prior art and gaps
+
+CRITICAL: Your analysis MUST be specific to the industry context above. Do NOT generate generic software/AI/blockchain patents unless the business is actually a software or AI company. Focus on patents relevant to the actual products, processes, and materials this business works with.
 
 You MUST return ONLY valid JSON. No markdown, no explanation.
 
@@ -130,11 +139,13 @@ CRITICAL RULES:
 - innovationAngles MUST be bold, specific, and actionable — not generic advice
 - quickActions MUST be executable this week with specific details
 - ALL dollar figures must be specific ranges
-- Be provocative and specific — vague generalities are useless`;
+- Be provocative and specific — vague generalities are useless
+- STAY IN THE INDUSTRY CONTEXT — if this is a manufacturing company, focus on manufacturing patents, processes, materials, equipment`;
 
     const userPrompt = `Analyze the patent landscape for: ${productName}
 Category: ${category}
 Era of origin: ${era}
+${industryGrounding ? `\nINDUSTRY CONTEXT (use this to focus your analysis):\n${industryGrounding}` : ""}
 
 USPTO PATENT DATA:
 ${usptoRaw || "No USPTO data retrieved — infer from your knowledge"}
@@ -197,6 +208,58 @@ Be specific, bold, and commercial. This analysis should fundamentally change how
   }
 });
 
+// ---- Build industry-specific search terms ----
+function buildSearchTerms(
+  productName: string,
+  category: string,
+  industryContext?: { industry?: string; products?: string[]; processes?: string[]; materials?: string[] } | null,
+): { primary: string; secondary: string } {
+  if (!industryContext) {
+    return { primary: productName, secondary: category };
+  }
+
+  const parts: string[] = [];
+  if (industryContext.industry) parts.push(industryContext.industry);
+  if (industryContext.products?.length) parts.push(industryContext.products.slice(0, 2).join(" "));
+  if (industryContext.processes?.length) parts.push(industryContext.processes[0]);
+
+  const primary = parts.length > 0 ? parts.join(" ") : productName;
+  const secondary = industryContext.materials?.length
+    ? industryContext.materials.slice(0, 2).join(" ")
+    : category;
+
+  return { primary, secondary };
+}
+
+// ---- Build industry grounding text for the prompt ----
+function buildIndustryGrounding(
+  productName: string,
+  category: string,
+  industryContext?: {
+    industry?: string;
+    products?: string[];
+    processes?: string[];
+    materials?: string[];
+    businessDescription?: string;
+  } | null,
+): string {
+  if (!industryContext) return "";
+
+  const lines: string[] = ["INDUSTRY GROUNDING (this is the actual business being analyzed):"];
+  if (industryContext.industry) lines.push(`Industry: ${industryContext.industry}`);
+  if (industryContext.businessDescription) lines.push(`Business: ${industryContext.businessDescription.slice(0, 300)}`);
+  if (industryContext.products?.length) lines.push(`Products/Services: ${industryContext.products.join(", ")}`);
+  if (industryContext.processes?.length) lines.push(`Key Processes: ${industryContext.processes.join(", ")}`);
+  if (industryContext.materials?.length) lines.push(`Materials/Inputs: ${industryContext.materials.join(", ")}`);
+
+  if (lines.length <= 1) return "";
+
+  lines.push("");
+  lines.push("Focus your patent analysis on IP relevant to THESE specific products, processes, and materials. Do NOT default to software, AI, or blockchain patents unless this business actually operates in those domains.");
+
+  return lines.join("\n");
+}
+
 // ---- Robust JSON extraction with truncation repair ----
 function extractAndParseJson(raw: string): unknown {
   let cleaned = raw
@@ -249,9 +312,9 @@ function extractAndParseJson(raw: string): unknown {
 }
 
 // ---- Helper: USPTO PatentsView API (free, no key needed) ----
-async function fetchUSPTOPatents(productName: string, category: string): Promise<string> {
+async function fetchUSPTOPatents(primary: string, secondary: string): Promise<string> {
   try {
-    const query = `${productName} ${category}`.replace(/[^a-zA-Z0-9 ]/g, "").trim();
+    const query = `${primary} ${secondary}`.replace(/[^a-zA-Z0-9 ]/g, "").trim();
     
     // Use USPTO PatentsView full-text search
     const url = `https://search.patentsview.org/api/v1/patent/?q={"_text_all":{"patent_abstract":"${encodeURIComponent(query)}"}}&f=["patent_id","patent_title","patent_abstract","patent_date","assignees","inventors"]&o={"per_page":15}`;
@@ -262,14 +325,13 @@ async function fetchUSPTOPatents(productName: string, category: string): Promise
     
     if (!res.ok) {
       console.log("USPTO PatentsView failed:", res.status);
-      // Fallback: try the simpler patents.google.com via fetch
-      return await fetchUSPTOFallback(productName, category);
+      return await fetchUSPTOFallback(primary, secondary);
     }
     
     const data = await res.json();
     const patents = data?.patents || [];
     
-    if (!patents.length) return await fetchUSPTOFallback(productName, category);
+    if (!patents.length) return await fetchUSPTOFallback(primary, secondary);
     
     return patents.map((p: { patent_id: string; patent_title: string; patent_abstract: string; patent_date: string; assignees?: { assignee_organization?: string }[] }) =>
       `ID: ${p.patent_id}\nTitle: ${p.patent_title}\nDate: ${p.patent_date}\nAssignee: ${p.assignees?.[0]?.assignee_organization || "Individual"}\nAbstract: ${(p.patent_abstract || "").slice(0, 400)}`
@@ -280,10 +342,9 @@ async function fetchUSPTOPatents(productName: string, category: string): Promise
   }
 }
 
-async function fetchUSPTOFallback(productName: string, category: string): Promise<string> {
+async function fetchUSPTOFallback(primary: string, secondary: string): Promise<string> {
   try {
-    // Try the Open Patent Services endpoint
-    const query = encodeURIComponent(`${productName} ${category}`);
+    const query = encodeURIComponent(`${primary} ${secondary}`);
     const url = `https://api.patentsview.org/patents/query?q={"_text_all":{"patent_title":"${query}"}}&f=["patent_id","patent_title","patent_date","assignee_organization"]&o={"per_page":10}`;
     
     const res = await fetch(url);
@@ -299,9 +360,9 @@ async function fetchUSPTOFallback(productName: string, category: string): Promis
 }
 
 // ---- Helper: Google Patents via Firecrawl ----
-async function fetchGooglePatents(productName: string, category: string, apiKey: string): Promise<string> {
+async function fetchGooglePatents(primary: string, secondary: string, apiKey: string): Promise<string> {
   try {
-    const searchQuery = `${productName} ${category} patent site:patents.google.com`;
+    const searchQuery = `${primary} ${secondary} patent site:patents.google.com`;
     
     const res = await fetch("https://api.firecrawl.dev/v1/search", {
       method: "POST",
@@ -330,12 +391,11 @@ async function fetchGooglePatents(productName: string, category: string, apiKey:
 }
 
 // ---- Helper: Expired patents via Firecrawl ----
-async function fetchExpiredPatents(productName: string, category: string, apiKey: string): Promise<string> {
+async function fetchExpiredPatents(primary: string, secondary: string, apiKey: string): Promise<string> {
   try {
-    // Search for expired patents + free-to-use IP 
     const queries = [
-      `"${productName}" expired patent public domain free to use`,
-      `${category} ${productName} patent prior art expired 20 years`,
+      `"${primary}" expired patent public domain free to use`,
+      `${secondary} ${primary} patent prior art expired 20 years`,
     ];
     
     const results: string[] = [];
