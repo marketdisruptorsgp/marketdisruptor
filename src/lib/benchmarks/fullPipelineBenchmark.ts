@@ -365,7 +365,7 @@ export function runFullPipelineBenchmark(
 
   if (facetedEvidence.length >= 10 && constraints.length > 0) {
     // Pre-compute baseline to generate deterministic alternatives for benchmark mode
-    const { extractBaseline, identifyActiveDimensions, getDimensionsByStatus } = await import("@/lib/opportunityDesignEngine");
+    const { extractBaseline, identifyActiveDimensions, getDimensionsByStatus } = require("@/lib/opportunityDesignEngine") as typeof import("@/lib/opportunityDesignEngine");
     const preBaseline = identifyActiveDimensions(
       extractBaseline(facetedEvidence, constraints, leveragePoints),
       constraints,
