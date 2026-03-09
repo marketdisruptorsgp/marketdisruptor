@@ -1530,6 +1530,32 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
   );
   stages.push(sg);
 
+  // ── Inject generated opportunities into evidence for metrics ──
+  // Strategic insights (opportunities, leverage) aren't in the raw evidence,
+  // so we inject them so the metrics layer can aggregate them.
+  for (const opp of opportunities) {
+    const vectorData = opp.opportunityVectorData;
+    const sourceEngine: string = vectorData?.explorationMode === "constraint"
+      ? "morphological_constraint"
+      : vectorData?.explorationMode === "adjacency"
+        ? "morphological_adjacency"
+        : input.aiAlternatives?.length
+          ? "morphological"
+          : "pipeline";
+    
+    evidence.opportunity.items.push({
+      id: opp.id,
+      type: "opportunity" as any,
+      label: opp.label,
+      description: opp.description,
+      pipelineStep: "disrupt" as any,
+      tier: "structural" as any,
+      impact: opp.impact,
+      confidenceScore: opp.confidence,
+      sourceEngine: sourceEngine as any,
+    });
+  }
+
   // ── Stage 13: Command Deck Metrics ──
   const metricsInput = {
     products: input.products,
