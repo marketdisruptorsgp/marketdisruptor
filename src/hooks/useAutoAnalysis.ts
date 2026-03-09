@@ -220,7 +220,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
             causalChain: d.causalChain,
             economicMechanism: d.economicMechanism,
             firstMove: d.firstMove,
-            aiDeepened: d.aiDeepened ?? false,
+            aiDeepened: (d as any).aiDeepened ?? false,
           })),
           pipelineEvents: result.events ?? [],
           evidenceCount: result.flatEvidence.length,
