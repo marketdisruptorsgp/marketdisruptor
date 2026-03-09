@@ -83,17 +83,17 @@ Be specific and quantitative where possible. Use realistic numbers and percentag
 Include evidence that explicitly describes constraints, not just neutral observations.
 Each evidence item should be a distinct, specific signal — not a generic category label.`;
 
+    const locationContext = businessDescription || "";
+    const userContent = locationContext
+      ? `Analyze: ${businessName}. Geographic/Market Context: ${locationContext}`
+      : `Analyze: ${businessName}`;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      const locationContext = businessDescription || "";
-      const userContent = locationContext
-        ? `Analyze: ${businessName}. Geographic/Market Context: ${locationContext}`
-        : `Analyze: ${businessName}`;
-
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
