@@ -305,6 +305,14 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       if (profile.marginStructure === "negative_margin" && profile.assetUtilization === "high") {
         return { qualifies: false, reason: "Negative margins with fully utilized assets — no latent value to monetize.", strengthSignals: [], resolvesConstraints: [] };
       }
+      // Gate: labor-heavy with high utilization — no spare capacity or latent asset to monetize
+      if ((profile.laborIntensity === "labor_heavy" || profile.laborIntensity === "artisan") && profile.assetUtilization === "high") {
+        return { qualifies: false, reason: "Labor-heavy with fully utilized capacity — no latent asset to monetize.", strengthSignals: [], resolvesConstraints: [] };
+      }
+      // Gate: thin margins + high utilization — the business is already squeezing everything
+      if (profile.marginStructure === "thin_margin" && profile.assetUtilization === "high" && !cNames.has("asset_underutilization")) {
+        return { qualifies: false, reason: "Thin margins with high asset utilization — no hidden value to extract.", strengthSignals: [], resolvesConstraints: [] };
+      }
 
       if (profile.assetUtilization === "underutilized" || profile.assetUtilization === "idle") {
         strengths.push("Underutilized assets suggest hidden monetization opportunity");
@@ -320,8 +328,8 @@ export const STRUCTURAL_PATTERNS: StructuralPattern[] = [
       }
 
       return {
-        qualifies: strengths.length >= 1,
-        reason: strengths.length >= 1 ? "Structural profile supports stakeholder monetization." : "Insufficient signals for stakeholder monetization.",
+        qualifies: strengths.length >= 2,
+        reason: strengths.length >= 2 ? "Structural profile supports stakeholder monetization." : "Insufficient signal density for stakeholder monetization.",
         strengthSignals: strengths,
         resolvesConstraints: resolves,
       };
