@@ -1,247 +1,282 @@
 /**
- * Opportunity Landscape — Narrative Strategic Move Cards
+ * Opportunity Landscape — Interactive React Flow Cluster Visualization
  *
- * Each card tells a story:
- *   "We found [constraint] → This suggests [move] → Because [reasoning]"
+ * Renders opportunity nodes as focal clusters connected to their
+ * upstream constraints/assumptions. Visual reasoning, not text lists.
  *
- * No internal jargon (CONCEPT, LEVERAGE, etc.) — users see strategic narratives.
- * Cards are always shown (no scatter chart) since density is rarely >10.
+ * Uses graphQuery.ts as single source of truth for node selection.
  */
 
-import { memo, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Zap, ArrowRight, ChevronDown, ChevronUp,
-  TrendingUp, Lightbulb, Search, ArrowDown,
-} from "lucide-react";
-import type { InsightGraph, InsightGraphNode } from "@/lib/insightGraph";
-import { NODE_TYPE_CONFIG, OPPORTUNITY_NODE_TYPES } from "@/lib/insightGraph";
+import { memo, useMemo, useState, useCallback } from "react";
+import ReactFlow, {
+  Background,
+  Controls,
+  type Node,
+  type Edge,
+  MarkerType,
+  Position,
+  ConnectionLineType,
+  Handle,
+  type NodeProps,
+} from "reactflow";
+import "reactflow/dist/style.css";
+import { motion } from "framer-motion";
+import { Lightbulb, Zap } from "lucide-react";
+import type { InsightGraph, InsightGraphNode, InsightNodeType } from "@/lib/insightGraph";
+import { NODE_TYPE_CONFIG } from "@/lib/insightGraph";
+import { getOpportunityNodes, getUpstreamNodes, getUpstreamConstraints } from "@/lib/graphQuery";
 
 /* ═══════════════════════════════════════════════════════
-   HELPERS — trace the reasoning chain for each opportunity
+   CUSTOM NODE COMPONENTS
    ═══════════════════════════════════════════════════════ */
 
-/** Walk backwards through the graph to find the constraint/signal that led to this opportunity */
-function findSourceChain(node: InsightGraphNode, graph: InsightGraph): {
-  sourceConstraint: InsightGraphNode | null;
-  sourceSignal: InsightGraphNode | null;
-  leveragePoint: InsightGraphNode | null;
-} {
-  const visited = new Set<string>();
-  const queue = [node.id];
-  let sourceConstraint: InsightGraphNode | null = null;
-  let sourceSignal: InsightGraphNode | null = null;
-  let leveragePoint: InsightGraphNode | null = null;
+/** Opportunity node — large focal card */
+const OpportunityNode = memo(({ data, selected }: NodeProps) => {
+  const [hovered, setHovered] = useState(false);
+  const config = NODE_TYPE_CONFIG[data.nodeType as InsightNodeType] || NODE_TYPE_CONFIG.outcome;
 
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    if (visited.has(current)) continue;
-    visited.add(current);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered
+          ? `linear-gradient(135deg, ${config.bgColor}, ${config.color}15)`
+          : config.bgColor,
+        border: `2px solid ${hovered || selected ? config.color : config.borderColor}`,
+        borderRadius: 16,
+        padding: "16px 20px",
+        minWidth: 200,
+        maxWidth: 280,
+        boxShadow: hovered
+          ? `0 8px 32px ${config.color}20, 0 2px 8px hsl(var(--foreground) / 0.05)`
+          : `0 2px 8px hsl(var(--foreground) / 0.04)`,
+        transition: "all 0.2s ease",
+        cursor: "pointer",
+        transform: hovered ? "translateY(-2px)" : "none",
+      }}
+    >
+      <Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />
 
-    const incomingEdges = graph.edges.filter(e => e.target === current);
-    for (const edge of incomingEdges) {
-      const src = graph.nodes.find(n => n.id === edge.source);
-      if (!src) continue;
+      {/* Type badge */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        <span
+          style={{
+            padding: "3px 10px",
+            borderRadius: 8,
+            fontSize: 9,
+            fontWeight: 800,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            color: config.color,
+            background: `${config.color}12`,
+          }}
+        >
+          {config.label}
+        </span>
+        {data.confidence && (
+          <span style={{
+            fontSize: 9, fontWeight: 600,
+            color: "hsl(var(--muted-foreground))",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+          }}>
+            {data.confidence}
+          </span>
+        )}
+      </div>
 
-      if (src.type === "constraint" && !sourceConstraint) sourceConstraint = src;
-      else if ((src.type === "signal" || src.type === "evidence" || src.type === "friction") && !sourceSignal) sourceSignal = src;
-      else if (src.type === "leverage_point" && !leveragePoint) leveragePoint = src;
+      {/* Label */}
+      <p style={{
+        margin: 0, fontSize: 13, fontWeight: 700,
+        lineHeight: 1.4, color: "hsl(var(--foreground))",
+      }}>
+        {data.label}
+      </p>
 
-      if (visited.size < 12) queue.push(src.id);
+      {/* Reasoning — on hover */}
+      {data.reasoning && hovered && (
+        <p style={{
+          margin: "8px 0 0", fontSize: 11, lineHeight: 1.5,
+          color: "hsl(var(--muted-foreground))",
+          borderTop: "1px solid hsl(var(--border) / 0.5)",
+          paddingTop: 8,
+        }}>
+          {data.reasoning}
+        </p>
+      )}
+
+      {/* Evidence count */}
+      {data.evidenceCount > 0 && (
+        <p style={{
+          margin: "6px 0 0", fontSize: 10, fontWeight: 700,
+          color: "hsl(var(--muted-foreground))",
+        }}>
+          {data.evidenceCount} evidence signal{data.evidenceCount !== 1 ? "s" : ""}
+        </p>
+      )}
+
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0, width: 1, height: 1 }} />
+    </div>
+  );
+});
+OpportunityNode.displayName = "OpportunityNode";
+
+/** Supporting node — constraint, assumption, etc. */
+const SupportingNode = memo(({ data, selected }: NodeProps) => {
+  const [hovered, setHovered] = useState(false);
+  const config = NODE_TYPE_CONFIG[data.nodeType as InsightNodeType] || NODE_TYPE_CONFIG.constraint;
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? `${config.bgColor}` : "hsl(var(--card))",
+        border: `1.5px ${data.nodeType === "assumption" ? "dashed" : "solid"} ${hovered || selected ? config.color : config.borderColor}`,
+        borderRadius: 12,
+        padding: "10px 14px",
+        minWidth: 160,
+        maxWidth: 220,
+        boxShadow: hovered
+          ? `0 4px 16px ${config.color}15`
+          : "0 1px 4px hsl(var(--foreground) / 0.03)",
+        transition: "all 0.2s ease",
+        cursor: "pointer",
+      }}
+    >
+      <Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />
+
+      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
+        <div style={{
+          width: 8, height: 8, borderRadius: "50%",
+          background: config.color, flexShrink: 0,
+        }} />
+        <span style={{
+          fontSize: 9, fontWeight: 700, textTransform: "uppercase",
+          letterSpacing: "0.06em", color: config.color,
+        }}>
+          {config.label}
+        </span>
+      </div>
+
+      <p style={{
+        margin: 0, fontSize: 11, fontWeight: 600,
+        lineHeight: 1.4, color: "hsl(var(--foreground))",
+      }}>
+        {data.label}
+      </p>
+
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0, width: 1, height: 1 }} />
+    </div>
+  );
+});
+SupportingNode.displayName = "SupportingNode";
+
+const nodeTypes = {
+  opportunityNode: OpportunityNode,
+  supportingNode: SupportingNode,
+};
+
+/* ═══════════════════════════════════════════════════════
+   LAYOUT ENGINE — Radial cluster layout
+   ═══════════════════════════════════════════════════════ */
+
+function buildClusterLayout(
+  graph: InsightGraph,
+  opportunities: InsightGraphNode[],
+): { nodes: Node[]; edges: Edge[] } {
+  const rfNodes: Node[] = [];
+  const rfEdges: Edge[] = [];
+  const placedIds = new Set<string>();
+
+  const CLUSTER_SPACING_X = 420;
+  const CLUSTER_SPACING_Y = 380;
+  const COLS = Math.min(3, Math.ceil(Math.sqrt(opportunities.length)));
+
+  opportunities.forEach((opp, idx) => {
+    const col = idx % COLS;
+    const row = Math.floor(idx / COLS);
+    const centerX = col * CLUSTER_SPACING_X + 200;
+    const centerY = row * CLUSTER_SPACING_Y + 60;
+
+    // Place opportunity node at cluster center
+    rfNodes.push({
+      id: opp.id,
+      type: "opportunityNode",
+      position: { x: centerX, y: centerY },
+      data: {
+        label: opp.label,
+        nodeType: opp.type,
+        confidence: opp.confidence,
+        reasoning: opp.reasoning,
+        evidenceCount: opp.evidenceCount,
+      },
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
+    });
+    placedIds.add(opp.id);
+
+    // Get upstream nodes (constraints, assumptions, signals that feed this opportunity)
+    const upstreams = getUpstreamNodes(graph, opp.id);
+    const uniqueUpstreams = upstreams.filter(n => !placedIds.has(n.id)).slice(0, 5);
+
+    const UPSTREAM_RADIUS_X = 160;
+    const UPSTREAM_RADIUS_Y = 130;
+
+    uniqueUpstreams.forEach((upstream, uIdx) => {
+      const angle = ((uIdx / Math.max(uniqueUpstreams.length, 1)) * Math.PI) + Math.PI;
+      const ux = centerX + Math.cos(angle) * UPSTREAM_RADIUS_X;
+      const uy = centerY + Math.sin(angle) * UPSTREAM_RADIUS_Y - 120;
+
+      rfNodes.push({
+        id: upstream.id,
+        type: "supportingNode",
+        position: { x: ux, y: uy },
+        data: {
+          label: upstream.label,
+          nodeType: upstream.type,
+        },
+        sourcePosition: Position.Bottom,
+        targetPosition: Position.Top,
+      });
+      placedIds.add(upstream.id);
+
+      // Edge from upstream → opportunity
+      const edgeConfig = NODE_TYPE_CONFIG[upstream.type as InsightNodeType] || NODE_TYPE_CONFIG.constraint;
+      rfEdges.push({
+        id: `e-${upstream.id}-${opp.id}`,
+        source: upstream.id,
+        target: opp.id,
+        type: "smoothstep",
+        animated: true,
+        markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: edgeConfig.color },
+        style: { stroke: edgeConfig.color, strokeWidth: 1.5, opacity: 0.6 },
+      });
+    });
+  });
+
+  // Add cross-cluster edges between opportunities if they share connections
+  for (let i = 0; i < opportunities.length; i++) {
+    for (let j = i + 1; j < opportunities.length; j++) {
+      const edge = graph.edges.find(
+        e => (e.source === opportunities[i].id && e.target === opportunities[j].id) ||
+             (e.source === opportunities[j].id && e.target === opportunities[i].id)
+      );
+      if (edge) {
+        rfEdges.push({
+          id: `cross-${i}-${j}`,
+          source: edge.source,
+          target: edge.target,
+          type: "smoothstep",
+          style: { stroke: "hsl(var(--muted-foreground))", strokeWidth: 1, strokeDasharray: "6 4", opacity: 0.3 },
+          markerEnd: { type: MarkerType.ArrowClosed, width: 12, height: 12, color: "hsl(var(--muted-foreground))" },
+        });
+      }
     }
   }
 
-  return { sourceConstraint, sourceSignal, leveragePoint };
-}
-
-/* ═══════════════════════════════════════════════════════
-   CARD — One strategic move, told as a narrative
-   ═══════════════════════════════════════════════════════ */
-
-function OpportunityCard({
-  node, rank, graph, isExpanded, onToggle, onSelect,
-}: {
-  node: InsightGraphNode;
-  rank: number;
-  graph: InsightGraph;
-  isExpanded: boolean;
-  onToggle: () => void;
-  onSelect?: (id: string) => void;
-}) {
-  const { sourceConstraint, sourceSignal } = useMemo(
-    () => findSourceChain(node, graph), [node, graph]
-  );
-  const isPrimary = rank === 1;
-
-  // Build a one-line "origin" sentence — WHERE did this idea come from?
-  const originText = sourceConstraint?.label
-    ? `Based on: ${sourceConstraint.label}`
-    : sourceSignal?.label
-      ? `Based on: ${sourceSignal.label}`
-      : null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: rank * 0.08, duration: 0.35 }}
-      className="rounded-xl overflow-hidden"
-      style={{
-        background: "hsl(var(--card))",
-        border: isPrimary
-          ? "1.5px solid hsl(var(--primary) / 0.4)"
-          : "1.5px solid hsl(var(--border))",
-        boxShadow: isPrimary
-          ? "0 4px 24px hsl(var(--primary) / 0.08)"
-          : "none",
-      }}
-    >
-      <button
-        onClick={onToggle}
-        className="w-full text-left px-4 py-3.5 flex items-start gap-3 cursor-pointer hover:bg-muted/30 transition-colors"
-      >
-        {/* Rank */}
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-          style={{
-            background: isPrimary ? "hsl(var(--primary) / 0.15)" : "hsl(var(--muted))",
-            color: isPrimary ? "hsl(var(--primary))" : "hsl(var(--foreground))",
-          }}
-        >
-          <span className="text-xs font-extrabold">{rank}</span>
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {/* Origin — WHERE this idea came from (always visible, replaces jargon badges) */}
-          {originText && (
-            <p className="text-[11px] text-muted-foreground leading-snug mb-1 flex items-center gap-1">
-              <Search size={10} className="flex-shrink-0 opacity-60" />
-              <span className="line-clamp-1">{originText}</span>
-            </p>
-          )}
-
-          {/* The strategic move itself */}
-          <p className="text-sm font-bold text-foreground leading-snug">
-            {node.label}
-          </p>
-
-          {/* Reasoning preview — WHY this matters (always visible, not hidden) */}
-          {node.reasoning && !isExpanded && (
-            <p className="text-xs text-muted-foreground leading-relaxed mt-1.5 line-clamp-2">
-              {node.reasoning}
-            </p>
-          )}
-        </div>
-
-        <div className="flex-shrink-0 mt-1">
-          {isExpanded
-            ? <ChevronUp size={14} className="text-muted-foreground" />
-            : <ChevronDown size={14} className="text-muted-foreground" />
-          }
-        </div>
-      </button>
-
-      {/* Expanded: full reasoning chain */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-4 space-y-3" style={{ borderTop: "1px solid hsl(var(--border) / 0.5)" }}>
-
-              {/* Reasoning chain visualization */}
-              <div className="mt-3 space-y-0">
-                {/* Step 1: What we found (constraint/signal) */}
-                {sourceConstraint && (
-                  <ReasoningStep
-                    step="We found"
-                    content={sourceConstraint.label}
-                    color="hsl(var(--destructive))"
-                    isFirst
-                  />
-                )}
-
-                {/* Step 2: The strategic move */}
-                <ReasoningStep
-                  step="This suggests"
-                  content={node.label}
-                  color="hsl(var(--primary))"
-                  isFirst={!sourceConstraint}
-                />
-
-                {/* Step 3: Why it matters */}
-                {node.reasoning && (
-                  <ReasoningStep
-                    step="Because"
-                    content={node.reasoning}
-                    color="hsl(var(--success))"
-                  />
-                )}
-              </div>
-
-              {/* Evidence basis */}
-              {node.evidenceCount > 0 && (
-                <p className="text-[10px] font-bold text-muted-foreground px-1">
-                  Derived from {node.evidenceCount} evidence signal{node.evidenceCount !== 1 ? "s" : ""} in the analysis
-                </p>
-              )}
-
-              {/* CTA */}
-              {onSelect && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onSelect(node.id); }}
-                  className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-2 rounded-lg transition-colors"
-                  style={{
-                    background: "hsl(var(--primary) / 0.08)",
-                    color: "hsl(var(--primary))",
-                    border: "1px solid hsl(var(--primary) / 0.15)",
-                  }}
-                >
-                  <TrendingUp size={10} />
-                  Trace reasoning in map
-                  <ArrowRight size={10} />
-                </button>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-/** Single step in the reasoning chain */
-function ReasoningStep({ step, content, color, isFirst = false }: {
-  step: string;
-  content: string;
-  color: string;
-  isFirst?: boolean;
-}) {
-  return (
-    <div className="flex items-start gap-2">
-      {/* Vertical connector line */}
-      <div className="flex flex-col items-center flex-shrink-0 w-4">
-        {!isFirst && (
-          <ArrowDown size={10} className="text-muted-foreground opacity-40 mb-0.5" />
-        )}
-        <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5" style={{ background: color }} />
-      </div>
-
-      <div
-        className="rounded-lg p-2.5 flex-1 mb-1"
-        style={{ background: `${color}08`, border: `1px solid ${color}18` }}
-      >
-        <span className="text-[10px] font-extrabold uppercase tracking-widest block mb-0.5" style={{ color }}>
-          {step}
-        </span>
-        <p className="text-xs text-foreground leading-relaxed">{content}</p>
-      </div>
-    </div>
-  );
+  return { nodes: rfNodes, edges: rfEdges };
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -257,32 +292,50 @@ interface OpportunityLandscapeProps {
 export const OpportunityLandscape = memo(function OpportunityLandscape({
   graph, onSelectNode, compact = false,
 }: OpportunityLandscapeProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
+  // Use graph query layer as single source of truth
   const opportunities = useMemo(
-    () => graph.nodes
-      .filter(n => OPPORTUNITY_NODE_TYPES.includes(n.type))
+    () => getOpportunityNodes(graph)
       .sort((a, b) => {
-        // Sort by impact desc, then evidence count desc, then influence desc
         if (b.impact !== a.impact) return b.impact - a.impact;
         if (b.evidenceCount !== a.evidenceCount) return b.evidenceCount - a.evidenceCount;
         return b.influence - a.influence;
       }),
-    [graph.nodes],
+    [graph],
   );
+
+  const { nodes, edges } = useMemo(
+    () => buildClusterLayout(graph, opportunities),
+    [graph, opportunities],
+  );
+
+  const handleNodeClick = useCallback((_: any, node: Node) => {
+    onSelectNode?.(node.id);
+  }, [onSelectNode]);
 
   if (opportunities.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl py-10 gap-2" style={{ background: "hsl(var(--muted))", border: "1.5px solid hsl(var(--border))" }}>
+      <div
+        className="flex flex-col items-center justify-center rounded-xl py-10 gap-2"
+        style={{ background: "hsl(var(--muted))", border: "1.5px solid hsl(var(--border))" }}
+      >
         <Zap size={20} className="text-muted-foreground" />
         <p className="text-sm font-bold text-foreground">Strategic moves will appear here</p>
-        <p className="text-xs text-muted-foreground">Run the analysis pipeline to identify opportunity spaces</p>
+        <p className="text-xs text-muted-foreground">
+          The analysis pipeline will identify opportunity spaces from structural reasoning
+        </p>
       </div>
     );
   }
 
+  const clusterRows = Math.ceil(opportunities.length / 3);
+  const containerH = Math.max(400, clusterRows * 380 + 120);
+
   return (
-    <div className="space-y-3">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-3"
+    >
       {/* Header */}
       <div className="flex items-center gap-2">
         <div
@@ -293,28 +346,66 @@ export const OpportunityLandscape = memo(function OpportunityLandscape({
         </div>
         <div>
           <p className="text-xs font-extrabold uppercase tracking-widest text-foreground">
-            Strategic Moves
+            Opportunity Landscape
           </p>
           <p className="text-xs text-muted-foreground">
-            {opportunities.length} idea{opportunities.length !== 1 ? "s" : ""} derived from structural analysis — expand any card to see the full reasoning chain
+            {opportunities.length} strategic move{opportunities.length !== 1 ? "s" : ""} · click any node to trace reasoning
           </p>
         </div>
       </div>
 
-      {/* Cards — always cards, narrative-driven */}
-      <div className="space-y-2">
-        {opportunities.map((opp, idx) => (
-          <OpportunityCard
-            key={opp.id}
-            node={opp}
-            rank={idx + 1}
-            graph={graph}
-            isExpanded={expandedId === opp.id}
-            onToggle={() => setExpandedId(prev => prev === opp.id ? null : opp.id)}
-            onSelect={onSelectNode}
+      {/* React Flow Canvas */}
+      <div
+        className="rounded-xl overflow-hidden relative group"
+        style={{
+          height: containerH,
+          background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--background)))",
+          border: "1.5px solid hsl(var(--border))",
+          boxShadow: "0 2px 12px hsl(var(--foreground) / 0.03)",
+        }}
+      >
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodeClick={handleNodeClick}
+          fitView
+          fitViewOptions={{ padding: 0.3 }}
+          connectionLineType={ConnectionLineType.SmoothStep}
+          proOptions={{ hideAttribution: true }}
+          nodesDraggable={true}
+          nodesConnectable={false}
+          elementsSelectable={true}
+          panOnDrag={true}
+          zoomOnScroll={true}
+          zoomOnPinch={true}
+          preventScrolling={false}
+          minZoom={0.3}
+          maxZoom={2}
+        >
+          <Background gap={28} size={1} color="hsl(var(--border) / 0.15)" />
+          <Controls
+            showInteractive={false}
+            position="bottom-right"
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 2,
+              background: "hsl(var(--card) / 0.9)",
+              borderRadius: 8,
+              border: "1px solid hsl(var(--border))",
+              padding: 2,
+            }}
           />
-        ))}
+        </ReactFlow>
+
+        {/* Interaction hint */}
+        <div className="absolute bottom-3 left-3 opacity-60 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none">
+          <span className="text-[10px] font-semibold text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md">
+            Drag nodes · Scroll to zoom · Click to explore
+          </span>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 });
