@@ -125,14 +125,31 @@ Each evidence item should be a distinct, specific signal — not a generic categ
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
     
-    // Parse the JSON from the response, handling potential markdown fences
+    // Parse the JSON from the response, handling potential markdown fences and truncation
     let parsed;
     try {
-      const jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      parsed = JSON.parse(jsonStr);
+      let jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch {
+        // Attempt to repair truncated JSON by closing open braces/brackets
+        let openBraces = 0, openBrackets = 0;
+        for (const ch of jsonStr) {
+          if (ch === "{") openBraces++;
+          else if (ch === "}") openBraces--;
+          else if (ch === "[") openBrackets++;
+          else if (ch === "]") openBrackets--;
+        }
+        // Trim trailing incomplete string/value
+        jsonStr = jsonStr.replace(/,\s*$/, "").replace(/,\s*"[^"]*$/, "");
+        for (let i = 0; i < openBrackets; i++) jsonStr += "]";
+        for (let i = 0; i < openBraces; i++) jsonStr += "}";
+        parsed = JSON.parse(jsonStr);
+        console.log("Recovered truncated JSON response");
+      }
     } catch (parseErr) {
       console.error("Failed to parse AI response:", content.slice(0, 500));
-      return new Response(JSON.stringify({ error: "Failed to parse AI response", raw: content.slice(0, 1000) }), {
+      return new Response(JSON.stringify({ error: "Failed to parse AI response — likely truncated. Try again.", raw: content.slice(0, 1000) }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
