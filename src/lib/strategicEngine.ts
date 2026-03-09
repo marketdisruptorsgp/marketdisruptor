@@ -881,8 +881,13 @@ function constructStrategicPathways(
     const trimWord = (s: string, max: number) => {
       const clean = humanize(s);
       if (clean.length <= max) return clean;
+      // Cut at sentence boundary first, then clause, then word
+      const sentenceCut = Math.max(clean.lastIndexOf(". ", max), clean.lastIndexOf("; ", max));
+      if (sentenceCut > max * 0.4) return clean.slice(0, sentenceCut + 1);
+      const clauseCut = clean.lastIndexOf(", ", max);
+      if (clauseCut > max * 0.5) return clean.slice(0, clauseCut);
       const cut = clean.lastIndexOf(" ", max);
-      return clean.slice(0, cut > max * 0.4 ? cut : max) + "…";
+      return clean.slice(0, cut > max * 0.4 ? cut : max);
     };
     const parts = [trimWord(con.label, 40)];
     if (driver) parts.push(trimWord(driver.label, 40));
