@@ -754,6 +754,7 @@ export default function CommandDeckPage() {
           modeAccent={modeAccent}
           analysisId={analysisId || ""}
           onNavigateToGraph={() => navigate(`${baseUrl}/insight-graph`)}
+          isPipelineRunning={pipelineProgress.isRunning || engineComputing}
         />
 
         {/* ── EXECUTIVE SUMMARY — One-paragraph CEO brief ── */}
@@ -795,6 +796,7 @@ export default function CommandDeckPage() {
           mode={modeKey}
           modeAccent={modeAccent}
           detectedPatterns={detectedPatterns}
+          isPipelineRunning={pipelineProgress.isRunning || engineComputing}
         />
 
         {/* ══════════════════════════════════════════════════════════

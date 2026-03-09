@@ -55,6 +55,7 @@ interface IntelligenceFeedProps {
   mode: "product" | "service" | "business";
   modeAccent: string;
   detectedPatterns: DetectedPatternForFeed[];
+  isPipelineRunning?: boolean;
 }
 
 const TAG_CONFIG: Record<Exclude<FeedTag, "all">, { label: string; color: string; bg: string }> = {
@@ -329,9 +330,21 @@ export const IntelligenceFeed = memo(function IntelligenceFeed(props: Intelligen
   if (allCards.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card px-6 py-8 text-center">
-        <p className="text-sm text-muted-foreground">
-          Complete analysis steps to populate your intelligence feed.
-        </p>
+        {props.isPipelineRunning ? (
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.2s" }} />
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.4s" }} />
+            </div>
+            <p className="text-sm font-semibold text-foreground">Building intelligence feed…</p>
+            <p className="text-xs text-muted-foreground">Strategic insights will populate as analysis completes.</p>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Complete analysis steps to populate your intelligence feed.
+          </p>
+        )}
       </div>
     );
   }
