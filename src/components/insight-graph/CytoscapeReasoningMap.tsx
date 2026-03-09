@@ -424,9 +424,9 @@ export const CytoscapeReasoningMap = memo(function CytoscapeReasoningMap({
       layout: {
         name: "dagre",
         rankDir: "LR",
-        nodeSep: 60,
-        rankSep: 220,
-        edgeSep: 30,
+        nodeSep: 70,
+        rankSep: 280,
+        edgeSep: 40,
         padding: 50,
         animate: true,
         animationDuration: 600,
