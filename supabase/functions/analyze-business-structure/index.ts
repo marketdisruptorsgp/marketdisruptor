@@ -56,8 +56,8 @@ Return a JSON object with these exact keys:
   },
   "evidence": [
     {
-      "label": "short signal label",
-      "description": "detailed description of this evidence signal",
+      "label": "short label (3-6 words)",
+      "description": "one sentence, max 20 words",
       "type": "signal|constraint|friction|assumption|leverage|risk",
       "category": "demand_signal|cost_structure|distribution_channel|pricing_model|operational_dependency|regulatory_constraint|technology_dependency|customer_behavior|competitive_pressure",
       "tier": "structural|system|optimization",
@@ -67,21 +67,10 @@ Return a JSON object with these exact keys:
   ]
 }
 
-Generate 25-35 evidence items that cover:
-- Structural constraints (capacity limits, asset utilization, labor dependencies)
-- Operational friction (bottlenecks, manual processes, scheduling inefficiencies)
-- Revenue model characteristics (pricing power, recurring vs transactional, concentration)
-- Cost structure details (fixed vs variable, labor %, overhead)
-- Distribution and customer acquisition patterns
-- Competitive dynamics
-- Technology dependencies
-- Regulatory environment
-- Customer behavior patterns
-- Geographic/demographic factors (when location provided): population density, income levels, insurance coverage rates, commute patterns, local competition density
-
-Be specific and quantitative where possible. Use realistic numbers and percentages.
-Include evidence that explicitly describes constraints, not just neutral observations.
-Each evidence item should be a distinct, specific signal — not a generic category label.`;
+CRITICAL: Keep ALL string values SHORT. Labels max 6 words. Descriptions max 20 words. Array items max 12 words each.
+Keep competitor names to 2-3 per tier. Keep supply chain / cost structure to 4-5 items each.
+Generate exactly 25 evidence items covering constraints, friction, revenue, costs, competition, and local market factors.
+Be specific and quantitative. Include evidence that explicitly describes constraints.`;
 
     const locationContext = businessDescription || "";
     const userContent = locationContext
