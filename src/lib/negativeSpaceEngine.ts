@@ -52,6 +52,7 @@ export type GapReason =
   | "oversight"               // Simply haven't thought of it
   | "assumed_unprofitable"    // Think it won't make money
   | "assumed_impossible"      // Think it can't be done
+  | "structural_assumption"   // Industry-wide belief about how things must work
   | "regulatory_fear"         // Avoiding perceived regulatory risk
   | "customer_prejudice"      // Believe customers won't want it
   | "capabilities_lack"       // Don't have skills/assets to execute
