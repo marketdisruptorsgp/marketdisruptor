@@ -574,5 +574,6 @@ export function runFullPipelineBenchmark(
     inferredConstraintCount,
     morphologicalDiagnostics,
     pipelineEvents: events,
+    businessAssumptions: getBusinessAssumptions(businessName),
   };
 }
