@@ -537,10 +537,8 @@ function formSignals(flat: Evidence[], analysisId: string): StrategicSignal[] {
       const sorted = [...uncovered].sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0));
       const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
       // Use the highest-impact item's label for specificity, not a generic "X Cluster"
-      const primaryLabel = humanize(sorted[0].label);
-      const signalLabel = uncovered.length > 2
-        ? `${primaryLabel} and ${uncovered.length - 1} related ${type}s`
-        : primaryLabel;
+      const primaryLabel = cleanStrategicPhrase(sorted[0].label);
+      const signalLabel = primaryLabel;
 
       signals.push({
         id: nextId("signal"),
