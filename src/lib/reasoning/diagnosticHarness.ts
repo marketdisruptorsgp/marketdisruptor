@@ -470,7 +470,7 @@ function runDomainDiagnostic(testDomain: TestDomainInput): DomainDiagnostic {
   const qualifiedVectors = applyQualificationGates(vectors, constraints, evidence, baseline);
   
   // Stage 6: Clustering
-  const zones = clusterIntoZones(qualifiedVectors, baseline);
+  const zones = clusterIntoZones(qualifiedVectors);
   
   // Build trace
   const trace: PipelineTrace = {
