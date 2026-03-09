@@ -280,6 +280,10 @@ export interface StrategicAnalysisOutput {
   viabilityReport: ViabilityReport | null;
   /** Market structure analysis */
   marketStructure: MarketStructureReport | null;
+  /** Stage 2R: Structural profile from reconfiguration pipeline */
+  structuralProfile: StructuralProfile | null;
+  /** Stage 3R: Qualified structural patterns */
+  qualifiedPatterns: QualifiedPattern[];
 }
 
 // ═══════════════════════════════════════════════════════════════
