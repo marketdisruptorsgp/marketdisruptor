@@ -773,7 +773,17 @@ export default function CommandDeckPage() {
         />
 
         {/* ══════════════════════════════════════════════════════════
-            TIER 2 — INTELLIGENCE FEED
+            TIER 2 — STRATEGIC THESIS
+            Core constraint → contrarian belief → strategic move → economics → first move
+           ══════════════════════════════════════════════════════════ */}
+        <OneThesisCard
+          thesis={autoAnalysis.deepenedOpportunities[0] ?? null}
+          alternative={autoAnalysis.deepenedOpportunities[1] ?? null}
+          modeAccent={modeAccent}
+        />
+
+        {/* ══════════════════════════════════════════════════════════
+            TIER 2b — INTELLIGENCE FEED
             Single scrollable feed with tagged, filterable cards.
            ══════════════════════════════════════════════════════════ */}
         <IntelligenceFeed
