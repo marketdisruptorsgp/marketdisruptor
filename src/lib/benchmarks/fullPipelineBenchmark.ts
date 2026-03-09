@@ -28,7 +28,7 @@ import {
   generateExploratoryOpportunities,
   type ViabilityReport,
 } from "@/lib/viabilityEngine";
-import { runMorphologicalSearch, type OpportunityVector, type OpportunityZone, type BusinessBaseline, type MorphologicalSearchDiagnostics, type ConstraintStrength } from "@/lib/opportunityDesignEngine";
+import { runMorphologicalSearch, extractBaseline, identifyActiveDimensions, getDimensionsByStatus, type OpportunityVector, type OpportunityZone, type BusinessBaseline, type MorphologicalSearchDiagnostics, type ConstraintStrength } from "@/lib/opportunityDesignEngine";
 import { analyzeMarketStructure, type MarketStructureReport } from "@/lib/marketStructureEngine";
 import type { EvidenceFacets } from "@/lib/facets";
 import { extractFacetsFromEvidence } from "@/lib/facets";
