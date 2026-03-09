@@ -30,8 +30,8 @@ import { TransformationPaths } from "@/components/command-deck/TransformationPat
 import { StrategicOutcomeSimulator } from "@/components/command-deck/StrategicOutcomeSimulator";
 import { StrategicVerdictBanner } from "@/components/command-deck/StrategicVerdictBanner";
 import { ExecutiveBrief } from "@/components/command-deck/ExecutiveBrief";
-import { ExecutiveSummary } from "@/components/command-deck/ExecutiveSummary";
-import { ExecutiveSnapshot } from "@/components/command-deck/ExecutiveSnapshot";
+import { SoWhatHeader } from "@/components/command-deck/SoWhatHeader";
+import { WhatsNextPanel } from "@/components/command-deck/WhatsNextPanel";
 import { OneThesisCard } from "@/components/command-deck/OneThesisCard";
 import { EconomicImpactSnapshot } from "@/components/command-deck/EconomicImpactSnapshot";
 import { BriefingSection } from "@/components/command-deck/BriefingSection";
