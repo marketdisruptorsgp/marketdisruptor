@@ -817,6 +817,27 @@ export function runFullDiagnostic(): DiagnosticReport {
     d.transformationReview.filter(t => t.grade === "C" || t.grade === "D")
   );
   
+  // Calculate LLM differentiation summary
+  const avgNovelty = domainResults.length > 0
+    ? Math.round(domainResults.reduce((sum, d) => sum + d.benchmarkComparison.comparison.noveltyScore, 0) / domainResults.length)
+    : 0;
+  const avgConstraintTraceability = domainResults.length > 0
+    ? Math.round(domainResults.reduce((sum, d) => sum + d.benchmarkComparison.comparison.constraintTraceabilityScore, 0) / domainResults.length)
+    : 0;
+  const avgEvidenceGrounding = domainResults.length > 0
+    ? Math.round(domainResults.reduce((sum, d) => sum + d.benchmarkComparison.comparison.evidenceGroundingScore, 0) / domainResults.length)
+    : 0;
+  
+  const avgScore = (avgNovelty + avgConstraintTraceability + avgEvidenceGrounding) / 3;
+  let overallVerdict: string;
+  if (avgScore >= 70) {
+    overallVerdict = "STRONG: Pipeline produces meaningfully differentiated output from generic LLM responses";
+  } else if (avgScore >= 40) {
+    overallVerdict = "MODERATE: Some differentiation but significant overlap with what a ChatGPT prompt would produce";
+  } else {
+    overallVerdict = "WEAK: Pipeline output largely reproducible by a well-crafted ChatGPT prompt. Priority: integrate analog validation and improve constraint detection.";
+  }
+  
   const systemicAnalysis: SystemicAnalysis = {
     recurringWeakTransformations: [
       weakTransformations.length > 5 
@@ -839,6 +860,12 @@ export function runFullDiagnostic(): DiagnosticReport {
       "No constraint stack ranking (primary/secondary/tertiary)",
       "No status quo explanation (why current structure persists)",
     ],
+    llmDifferentiationSummary: {
+      avgNovelty,
+      avgConstraintTraceability,
+      avgEvidenceGrounding,
+      overallVerdict,
+    },
   };
   
   const recommendedFixes: string[] = [
