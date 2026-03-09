@@ -12,7 +12,14 @@ serve(async (req) => {
   }
 
   try {
-    const { dimensions, constraints, leveragePoints, analysisType } = await req.json();
+    const {
+      dimensions,
+      constraints,
+      leveragePoints,
+      analysisType,
+      crossIndustryAnalogs,
+      constraintInversions,
+    } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -24,18 +31,34 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are a strategic business architect. Given a company's current business configuration (expressed as dimensions with current values), generate realistic alternative values for each dimension.
+    const systemPrompt = `You are a structural innovation architect specializing in finding non-obvious strategic pivots. You do NOT generate MBA-textbook suggestions. You generate genuine "aha moments" — ideas that users would never think of on their own but that could actually work.
 
-CONTEXT: This is a morphological analysis of a business model. Each dimension represents an axis of the business (e.g., Pricing Model, Distribution Channel, Operational Model). The current value shows how the business currently operates along that axis. Your job is to generate 2-4 concrete alternative states for each dimension.
+YOUR MANDATE:
+You are generating alternatives for specific business dimensions. But you are NOT doing simple parameter swaps ("change the price model"). You are doing STRUCTURAL REASONING across three lenses:
 
-RULES:
-1. Alternatives must be CONCRETE operational states, not vague aspirations. "Usage-based pricing with per-seat tiers" is good. "Better pricing" is bad.
-2. Each alternative needs a one-sentence rationale explaining why it's viable given the constraints and leverage points.
-3. Do NOT generate scores, rankings, or numeric assessments of any kind.
-4. Alternatives should range from incremental shifts to more radical reconfigurations.
-5. Consider the upstream constraints — alternatives should address or work around them, not ignore them.
-6. Consider the leverage points — alternatives should amplify existing strengths where possible.
-7. For "hot" dimensions (constraint-linked), generate 3-4 alternatives. For "warm" dimensions (evidence-dense but no constraint), generate 2-3 alternatives.
+LENS 1 — CROSS-INDUSTRY ANALOGY:
+Find businesses in COMPLETELY DIFFERENT industries that solved the same structural constraint. A dental practice has the same capacity bottleneck as a cloud kitchen. A craft brewery has the same trust-deficit problem as a first-time surgeon. The solution from one industry often transfers perfectly to another — and that transfer is always surprising.
+
+LENS 2 — CONSTRAINT INVERSION:
+Sometimes a constraint is best flipped into a competitive advantage instead of solved. High labor cost → premium artisan positioning. Regulatory burden → barrier to entry for competitors. Limited capacity → engineered scarcity and waitlists. Ask: "What if this constraint IS the advantage we've been ignoring?"
+
+LENS 3 — SECOND-ORDER THINKING:
+Go one level deeper. Don't ask "how do we fix the distribution problem?" Ask "if distribution weren't a problem, what entirely new business becomes possible?" Then work backwards to how to get there. The answer is always more surprising than the first-order fix.
+
+CRITICAL RULES:
+1. NEVER generate the obvious, first-order fix (e.g., "add a subscription model" for a transactional business — that's the first thing anyone thinks of).
+2. Every alternative MUST cite structural reasoning. Not "this is a good idea" but "this works because [mechanism] — and here's a company in a different industry that proved it."
+3. Alternatives MUST range from "surprising but near-term feasible" to "structurally radical but has real precedent."
+4. Do NOT generate alternatives that start with "Automate," "Optimize," or "Leverage technology" — these are generic and add no value.
+5. Each alternative needs ONE specific named company from a different industry as a structural precedent, even if the analogy isn't obvious.
+
+THE DIFFERENCE BETWEEN WHAT WE WANT AND WHAT TO AVOID:
+❌ BAD: "Transition to a subscription/recurring revenue model" — everyone knows this, no insight
+❌ BAD: "Implement usage-based pricing" — first-order, no structural reasoning  
+❌ BAD: "Automate your workflow" — generic, not actionable
+✅ GOOD: "Create a 'dark kitchen' version of your service — a back-office production layer that serves 3-4 revenue streams simultaneously, like how CloudKitchens gets one kitchen to power 5 virtual restaurant brands. Your skilled capacity becomes a platform, not a bottleneck."
+✅ GOOD: "Hermès-ify your constraint — treat your inability to scale as engineered scarcity. Build a waitlist. Let 'too busy to take new clients' become the premium signal. Firms like McKinsey deliberately turn away work to sustain rate integrity."
+✅ GOOD: "Decouple your expertise from your geography, the way Toptal built a pre-vetted global talent pool. Instead of expanding your team locally, create a credentialed remote network where you only do final quality control — you become the brand, not the bottleneck."
 
 Return ONLY valid JSON using the tool schema provided.`;
 
@@ -51,18 +74,34 @@ Return ONLY valid JSON using the tool schema provided.`;
       `${i + 1}. ${l.label}: ${l.description}`
     ).join("\n") || "None identified";
 
+    // Cross-industry analogs injected by the client
+    const analogSection = (crossIndustryAnalogs && crossIndustryAnalogs.length > 0)
+      ? `\nCROSS-INDUSTRY ANALOGS (these are businesses in different industries that solved structurally similar constraints — use them as inspiration for surprising alternatives):\n${crossIndustryAnalogs.map((a: any, i: number) =>
+          `${i + 1}. ${a.company} (${a.industry})\n   Their constraint: "${a.constraintShape}"\n   How they solved it: ${a.solutionMechanism}\n   Structural shift: ${a.structuralShift}\n   Transferable insight: ${a.transferInsight}`
+        ).join("\n\n")}`
+      : "";
+
+    // Constraint inversions injected by the client
+    const inversionSection = (constraintInversions && constraintInversions.length > 0)
+      ? `\nCONSTRAINT INVERSIONS (consider alternatives where these constraints become advantages instead of problems to solve):\n${constraintInversions.map((inv: any, i: number) =>
+          `${i + 1}. CONSTRAINT: "${inv.sourceConstraintLabel}"\n   FLIP: ${inv.invertedFrame}\n   MECHANISM: ${inv.mechanism}\n   PRECEDENT: ${inv.precedent}`
+        ).join("\n\n")}`
+      : "";
+
     const userPrompt = `ANALYSIS TYPE: ${analysisType || "business_model"}
 
-CURRENT BUSINESS CONFIGURATION (dimensions to explore):
+CURRENT BUSINESS CONFIGURATION (dimensions to explore — generate alternatives for EACH dimension):
 ${dimensionList}
 
-UPSTREAM CONSTRAINTS:
+BINDING CONSTRAINTS (structural problems, not symptoms):
 ${constraintList}
 
-UPSTREAM LEVERAGE POINTS:
+LEVERAGE POINTS (existing strengths to amplify):
 ${leverageList}
+${analogSection}
+${inversionSection}
 
-Generate alternative values for each dimension now.`;
+Now generate alternatives for each dimension. Apply all three lenses (cross-industry analogy, constraint inversion, second-order thinking). For each alternative, name a specific company from a different industry that proves the structural logic. The goal: every alternative should make the user think "I never would have thought of that, but it could actually work."`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120000);
@@ -79,13 +118,13 @@ Generate alternative values for each dimension now.`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.7,
+        temperature: 0.9,
         tools: [
           {
             type: "function",
             function: {
               name: "generate_alternatives",
-              description: "Generate alternative values for business dimensions",
+              description: "Generate cross-industry, structurally surprising alternative values for business dimensions",
               parameters: {
                 type: "object",
                 properties: {
@@ -100,14 +139,27 @@ Generate alternative values for each dimension now.`;
                         },
                         value: {
                           type: "string",
-                          description: "A concrete alternative state for this dimension",
+                          description: "A specific, concrete, non-obvious alternative state for this dimension. Must be actionable and surprising.",
                         },
                         rationale: {
                           type: "string",
-                          description: "One-sentence rationale for why this alternative is viable",
+                          description: "Structural reasoning for why this works. Must name a specific company from a DIFFERENT industry that proves the logic. Format: '[Structural mechanism]. Precedent: [Company] proved this works in [industry] by [what they did].'",
+                        },
+                        analogCompany: {
+                          type: "string",
+                          description: "The specific real company from a different industry that provides the structural precedent for this alternative.",
+                        },
+                        analogIndustry: {
+                          type: "string",
+                          description: "The industry of the analog company.",
+                        },
+                        lens: {
+                          type: "string",
+                          enum: ["cross_industry_analog", "constraint_inversion", "second_order"],
+                          description: "Which reasoning lens produced this alternative.",
                         },
                       },
-                      required: ["dimensionId", "value", "rationale"],
+                      required: ["dimensionId", "value", "rationale", "lens"],
                       additionalProperties: false,
                     },
                   },
