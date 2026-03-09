@@ -17,16 +17,19 @@ import { Loader2, ChevronDown, ChevronRight, Play, AlertTriangle, CheckCircle, Z
 import { runFullPipelineBenchmark, type PipelineReport, type BusinessDecomposition } from "@/lib/benchmarks/fullPipelineBenchmark";
 
 const PRESET_BUSINESSES = [
-  "Independent Dental Practice",
-  "Automatic Car Wash",
-  "Local Gym / Fitness Center",
-  "Regional Trucking / Logistics Fleet",
-  "Insurance Brokerage",
-  "Full-Service Restaurant",
-  "Marketplace Startup",
-  "Commercial Cleaning Company",
-  "SaaS B2B Startup",
-  "Independent Pharmacy",
+  {
+    name: "Independent Dental Practice — St. Louis Metro",
+    description: "St. Louis MSA (population ~2.8M, 15-county metro). Median household income ~$65,000. Population growth flat (~0.1% annually). ~1,800 active dentists in metro (1 per 1,555 residents). Aging population — 16.5% over 65. Dental insurance coverage ~64% of adults. Major employers: BJC HealthCare, SSM Health, Washington University. Cost of living index ~91 (below national avg). Significant suburban sprawl — St. Charles, O'Fallon, Chesterfield growing fastest. Inner-city population declining. High dental school output from SLU and UMKC within recruiting range.",
+  },
+  { name: "Automatic Car Wash", description: "" },
+  { name: "Local Gym / Fitness Center", description: "" },
+  { name: "Regional Trucking / Logistics Fleet", description: "" },
+  { name: "Insurance Brokerage", description: "" },
+  { name: "Full-Service Restaurant", description: "" },
+  { name: "Marketplace Startup", description: "" },
+  { name: "Commercial Cleaning Company", description: "" },
+  { name: "SaaS B2B Startup", description: "" },
+  { name: "Independent Pharmacy", description: "" },
 ];
 
 export default function PipelineTestRunner() {
@@ -37,7 +40,7 @@ export default function PipelineTestRunner() {
   const [error, setError] = useState<string | null>(null);
   const [aiRaw, setAiRaw] = useState<BusinessDecomposition | null>(null);
 
-  const runTest = useCallback(async (name: string) => {
+  const runTest = useCallback(async (name: string, description?: string) => {
     setBusinessName(name);
     setError(null);
     setReport(null);
@@ -47,7 +50,7 @@ export default function PipelineTestRunner() {
     setIsGenerating(true);
     try {
       const { data, error: fnError } = await supabase.functions.invoke("analyze-business-structure", {
-        body: { businessName: name },
+        body: { businessName: name, businessDescription: description || "" },
       });
 
       if (fnError) throw new Error(fnError.message);
@@ -97,8 +100,8 @@ export default function PipelineTestRunner() {
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
               {PRESET_BUSINESSES.map((biz) => (
-                <Button key={biz} variant="outline" size="sm" onClick={() => runTest(biz)} disabled={isGenerating || isRunning}>
-                  {biz}
+                <Button key={biz.name} variant="outline" size="sm" onClick={() => runTest(biz.name, biz.description)} disabled={isGenerating || isRunning}>
+                  {biz.name}
                 </Button>
               ))}
             </div>
