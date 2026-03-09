@@ -1055,22 +1055,26 @@ export interface EvidenceInput {
 export function extractAllEvidence(input: EvidenceInput): Record<MetricDomain, MetricEvidence> {
   eid = 0; // reset counter per call
 
-  const opportunity = extractOpportunityEvidence(input);
-  const friction = extractFrictionEvidence(input);
-  const constraint = extractConstraintEvidence(input);
-  const leverage = extractLeverageEvidence(input);
-  const risk = extractRiskEvidence(input);
-  const patent = extractPatentEvidence(input);
-  const supplyChain = extractSupplyChainEvidence(input);
-  const geo = extractGeoMarketEvidence(input);
-  const regulatory = extractRegulatoryEvidence(input);
-  const pricing = extractPricingEvidence(input);
+  // Tag each extractor with a distinct sourceEngine for cross-engine corroboration tracking
+  const tagEngine = (items: Evidence[], engine: EvidenceSourceEngine): Evidence[] =>
+    items.map(e => ({ ...e, sourceEngine: e.sourceEngine ?? engine, sourceCount: e.sourceCount ?? 1 }));
+
+  const opportunity = tagEngine(extractOpportunityEvidence(input), "pipeline");
+  const friction = tagEngine(extractFrictionEvidence(input), "pipeline");
+  const constraint = tagEngine(extractConstraintEvidence(input), "constraint_engine");
+  const leverage = tagEngine(extractLeverageEvidence(input), "pattern_library");
+  const risk = tagEngine(extractRiskEvidence(input), "pipeline");
+  const patent = tagEngine(extractPatentEvidence(input), "pattern_library");
+  const supplyChain = tagEngine(extractSupplyChainEvidence(input), "pipeline");
+  const geo = tagEngine(extractGeoMarketEvidence(input), "geo_market");
+  const regulatory = tagEngine(extractRegulatoryEvidence(input), "pipeline");
+  const pricing = tagEngine(extractPricingEvidence(input), "pipeline");
 
   // Combine ALL items for cross-domain processing
   const allRaw = [...opportunity, ...friction, ...constraint, ...leverage, ...risk,
     ...patent, ...supplyChain, ...geo, ...regulatory, ...pricing];
 
-  // Deduplication pass
+  // Deduplication pass — merges duplicates across extractors and increments sourceCount
   const allDeduped = deduplicateEvidence(allRaw);
 
   // Confidence scoring across ALL items
