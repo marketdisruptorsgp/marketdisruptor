@@ -276,8 +276,8 @@ function extractFrictionEvidence(input: EvidenceInput): Evidence[] {
     });
   }
 
-  // ── Governed friction tiers (from business model OR product disrupt) ──
-  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed;
+  // ── Governed friction tiers (from business model OR product disrupt OR top-level governed) ──
+  const bizGov = input.businessAnalysisData?.governed || (input.disruptData as any)?.governed || (input.governedData as any);
   if (bizGov?.friction_tiers) {
     const ft = bizGov.friction_tiers;
     safeArr(ft.tier_1).forEach((f: any, i: number) => {
