@@ -70,6 +70,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   const [diagnostic, setDiagnostic] = useState<StrategicDiagnostic | null>(null);
   const [scenarioComparison, setScenarioComparison] = useState<ScenarioComparison | null>(null);
   const [sensitivityReports, setSensitivityReports] = useState<SensitivityReport[]>([]);
+  const [deepenedOpportunities, setDeepenedOpportunities] = useState<DeepenedOpportunity[]>([]);
   const [isComputing, setIsComputing] = useState(false);
   const [hasRun, setHasRun] = useState(false);
 
