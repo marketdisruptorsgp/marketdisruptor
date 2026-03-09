@@ -241,6 +241,7 @@ export async function deepenOpportunitiesAsync(
           evidenceSummary,
           analysisType,
           businessContext: businessContext ?? buildBusinessContextFromEvidence(evidence),
+          operatorLens: operatorLens || null,
         },
       },
       120_000,
