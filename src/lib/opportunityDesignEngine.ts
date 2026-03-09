@@ -73,11 +73,22 @@ export interface DimensionShift {
 
 export type ExplorationMode = "constraint" | "adjacency";
 
+/** Exploration type label for UI transparency */
+export type ExplorationType = "constraint_resolution" | "pattern_import" | "structural_exploration";
+
+export interface DimensionShift {
+  dimension: string;
+  from: string;
+  to: string;
+}
+
 export interface OpportunityVector {
   id: string;
   changedDimensions: DimensionShift[];
   triggerIds: string[];
   explorationMode: ExplorationMode;
+  /** UI-facing exploration type label for explainability */
+  explorationType: ExplorationType;
   rationale: string;
   evidenceIds: string[];
   /** Reserved for future opportunity surface detection */
