@@ -90,45 +90,45 @@ function ScenarioCard({
         </div>
       </div>
 
-      {/* Metric grid */}
+      {/* Qualitative assessment grid */}
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-lg p-2.5 text-center" style={{ background: "hsl(var(--background))" }}>
           <TrendingUp size={12} className="mx-auto mb-1" style={{ color: "hsl(var(--success))" }} />
-          <p className="text-lg font-extrabold tabular-nums text-foreground leading-none">
-            {scenario.projectedReturn > 0 ? `${scenario.projectedReturn.toFixed(1)}%` : "—"}
+          <p className="text-sm font-extrabold text-foreground leading-none">
+            {scenario.projectedReturn > 15 ? "High Potential" : scenario.projectedReturn > 5 ? "Moderate" : scenario.projectedReturn > 0 ? "Incremental" : "—"}
           </p>
-          <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-1">Return</p>
+          <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-1">Return Potential</p>
         </div>
         <div className="rounded-lg p-2.5 text-center" style={{ background: "hsl(var(--background))" }}>
           <Shield size={12} className="mx-auto mb-1" style={{ color: riskColor }} />
-          <p className="text-lg font-extrabold tabular-nums text-foreground leading-none">
-            {scenario.riskScore.toFixed(1)}
+          <p className="text-sm font-extrabold text-foreground leading-none">
+            {scenario.riskScore <= 3 ? "Low Risk" : scenario.riskScore <= 6 ? "Moderate Risk" : "High Risk"}
           </p>
-          <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-1">Risk Score</p>
+          <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-1">Risk Level</p>
         </div>
         <div className="rounded-lg p-2.5 text-center" style={{ background: "hsl(var(--background))" }}>
           <DollarSign size={12} className="mx-auto mb-1" style={{ color: "hsl(var(--warning))" }} />
-          <p className="text-lg font-extrabold tabular-nums text-foreground leading-none">
+          <p className="text-sm font-extrabold text-foreground leading-none">
             {formatCurrency(scenario.capitalRequired)}
           </p>
           <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-1">Capital Req.</p>
         </div>
         <div className="rounded-lg p-2.5 text-center" style={{ background: "hsl(var(--background))" }}>
           <Zap size={12} className="mx-auto mb-1" style={{ color: "hsl(var(--primary))" }} />
-          <p className="text-lg font-extrabold tabular-nums text-foreground leading-none">
-            {scenario.feasibilityScore.toFixed(1)}
+          <p className="text-sm font-extrabold text-foreground leading-none">
+            {scenario.feasibilityScore >= 7 ? "Highly Feasible" : scenario.feasibilityScore >= 4 ? "Feasible" : "Challenging"}
           </p>
           <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-1">Feasibility</p>
         </div>
       </div>
 
-      {/* Overall score */}
+      {/* Strategic assessment */}
       <div className="flex items-center justify-between px-2 py-2 rounded-lg" style={{ background: "hsl(var(--primary) / 0.05)" }}>
         <span className="text-[9px] font-extrabold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
-          Overall Score
+          Strategic Assessment
         </span>
-        <span className="text-sm font-extrabold tabular-nums" style={{ color: "hsl(var(--primary))" }}>
-          {scenario.overallScore.toFixed(1)}
+        <span className="text-sm font-extrabold" style={{ color: "hsl(var(--primary))" }}>
+          {scenario.overallScore >= 7 ? "Strong Opportunity" : scenario.overallScore >= 4 ? "Worth Exploring" : "Needs Validation"}
         </span>
       </div>
     </motion.div>

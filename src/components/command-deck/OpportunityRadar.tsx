@@ -33,7 +33,7 @@ function ScoreRow({ label, value, max = 10, color, icon: Icon }: {
           <Icon size={11} style={{ color }} />
           <span className="text-[10px] font-bold text-muted-foreground">{label}</span>
         </div>
-        <span className="text-xs font-extrabold tabular-nums" style={{ color }}>{value.toFixed(1)}</span>
+        <span className="text-xs font-extrabold" style={{ color }}>{value >= 7 ? "Strong" : value >= 4 ? "Moderate" : "Early"}</span>
       </div>
       <div className="h-1.5 rounded-full overflow-hidden bg-muted">
         <motion.div
@@ -183,12 +183,12 @@ export const OpportunityRadar = memo(function OpportunityRadar({
 
                 {/* Overall score */}
                 <div className="flex items-center gap-4 px-4 py-3 rounded-xl" style={{ background: "hsl(var(--muted) / 0.5)" }}>
-                  <div>
-                    <p className="text-3xl font-extrabold tabular-nums text-foreground leading-none">
-                      {(selectedOpp.opportunityScore ?? 0).toFixed(1)}
+                <div>
+                    <p className="text-xl font-extrabold text-foreground leading-none">
+                      {(selectedOpp.opportunityScore ?? 0) >= 7 ? "Strong Signal" : (selectedOpp.opportunityScore ?? 0) >= 4 ? "Moderate Signal" : "Early Signal"}
                     </p>
                     <p className="text-[9px] font-extrabold uppercase tracking-widest text-muted-foreground mt-1">
-                      Opportunity Score
+                      Opportunity Strength
                     </p>
                   </div>
                   <div className="flex-1 h-2 rounded-full overflow-hidden bg-muted">
@@ -214,7 +214,7 @@ export const OpportunityRadar = memo(function OpportunityRadar({
                     <ScoreRow label="Execution Difficulty" value={selectedOpp.executionDifficulty ?? 0} color="hsl(var(--destructive))" icon={ShieldAlert} />
                     <div className="flex items-center gap-2 pt-1">
                       <BarChart3 size={11} className="text-muted-foreground" />
-                      <span className="text-[10px] text-muted-foreground">Impact: <span className="font-bold text-foreground">{selectedOpp.impact}/10</span></span>
+                      <span className="text-[10px] text-muted-foreground">Impact: <span className="font-bold text-foreground">{(selectedOpp.impact ?? 0) >= 7 ? "High" : (selectedOpp.impact ?? 0) >= 4 ? "Moderate" : "Low"}</span></span>
                       <span className="text-[10px] text-muted-foreground">· Sims: <span className="font-bold text-foreground">{selectedOpp.simulationCount ?? 0}</span></span>
                     </div>
                   </div>

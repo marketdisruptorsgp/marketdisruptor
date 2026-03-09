@@ -274,7 +274,7 @@ export const ExecutiveSnapshot = memo(function ExecutiveSnapshot({
           {constraints ? (
             constraints.slice(0, 3).map((c, i) => <Bullet key={i} text={c} color="hsl(var(--destructive))" />)
           ) : (
-            <EmptyState text="Run Disrupt step to identify constraints" />
+            <EmptyState text="Identifying structural constraints and hidden assumptions…" />
           )}
         </Panel>
 

@@ -209,8 +209,10 @@ export function useAutoAnalysis(): AutoAnalysisResult {
         })));
       }
 
-      // ── Persist strategic engine output for thesis auditing ──
-      if (analysisId) {
+      // ── Persist strategic engine + insight graph ──
+      // CRITICAL: Capture analysisId at call time to prevent async drift
+      const capturedAnalysisId = analysisId;
+      if (capturedAnalysisId) {
         const strategicEnginePayload = {
           structuralProfile: result.structuralProfile ?? null,
           qualifiedPatterns: (result.qualifiedPatterns ?? []).map(qp => ({
@@ -233,9 +235,48 @@ export function useAutoAnalysis(): AutoAnalysisResult {
           aiGateResult: (result.diagnostic as any).aiGateResult ?? null,
           computedAt: new Date().toISOString(),
         };
-        saveStepData("strategicEngine", strategicEnginePayload).catch(err => {
-          console.warn("[StrategicEngine] Failed to persist thesis data:", err);
-        });
+
+        // Persist graph alongside engine state
+        const insightGraphPayload = result.graph ? {
+          nodes: result.graph.nodes,
+          edges: result.graph.edges,
+          metadata: {
+            generatedAt: new Date().toISOString(),
+            version: 1,
+            nodeCount: result.graph.nodes.length,
+            edgeCount: result.graph.edges.length,
+          },
+        } : null;
+
+        // Save engine state with explicit targetAnalysisId
+        const engineSave = saveStepData("strategicEngine", strategicEnginePayload, capturedAnalysisId)
+          .then(() => {
+            console.log("[StrategicEngine] ✓ Persisted strategicEngine for", capturedAnalysisId);
+          })
+          .catch(err => {
+            console.error("[StrategicEngine] ✗ Failed to persist strategicEngine:", err);
+            // Retry once after 2s
+            setTimeout(() => {
+              saveStepData("strategicEngine", strategicEnginePayload, capturedAnalysisId).catch(retryErr => {
+                console.error("[StrategicEngine] ✗ Retry also failed:", retryErr);
+              });
+            }, 2000);
+          });
+
+        // Save graph state with explicit targetAnalysisId
+        const graphSave = insightGraphPayload
+          ? saveStepData("insightGraph", insightGraphPayload, capturedAnalysisId)
+              .then(() => {
+                console.log("[StrategicEngine] ✓ Persisted insightGraph for", capturedAnalysisId,
+                  `(${insightGraphPayload.metadata.nodeCount} nodes, ${insightGraphPayload.metadata.edgeCount} edges)`);
+              })
+              .catch(err => {
+                console.error("[StrategicEngine] ✗ Failed to persist insightGraph:", err);
+              })
+          : Promise.resolve();
+
+        // Wait for both (non-blocking for UI)
+        Promise.all([engineSave, graphSave]).catch(() => {});
       }
     };
 
@@ -264,21 +305,40 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   useEffect(() => {
     if (!loadedFromSaved || !analysisId || hydratedRef.current || hasRun) return;
 
-    // Try to restore persisted strategic engine state from DB
+    // Try to restore persisted strategic engine + graph state from DB
     import("@/integrations/supabase/client").then(({ supabase }) => {
       Promise.resolve(
         supabase.from("saved_analyses").select("analysis_data").eq("id", analysisId).maybeSingle()
       ).then(({ data }) => {
-          const se = (data?.analysis_data as any)?.strategicEngine;
-          if (se && se.structuralProfile) {
+          const ad = data?.analysis_data as any;
+          const se = ad?.strategicEngine;
+          const persistedGraph = ad?.insightGraph;
+
+          // Hydrate graph first (instant display)
+          if (persistedGraph?.nodes?.length > 0) {
+            hydratedRef.current = true;
+            setGraph({ nodes: persistedGraph.nodes, edges: persistedGraph.edges, topNodes: { primaryConstraint: null, keyDriver: null, breakthroughOpportunity: null, highestConfidence: null } });
+            console.log("[StrategicEngine] ✓ Hydrated graph from DB:",
+              `${persistedGraph.nodes.length} nodes, ${persistedGraph.edges.length} edges`);
+          }
+
+          // Hydrate engine state
+          if (se?.structuralProfile) {
             hydratedRef.current = true;
             setStructuralProfile(se.structuralProfile);
             if (se.deepenedOpportunities?.length > 0) {
               setDeepenedOpportunities(se.deepenedOpportunities);
             }
             setHasRun(true);
-            console.log("[StrategicEngine] Hydrated from persisted strategicEngine state");
-            setTimeout(() => runAnalysis(), 1500);
+            console.log("[StrategicEngine] ✓ Hydrated strategicEngine from DB");
+
+            // Only recompute if graph wasn't persisted (fallback path)
+            if (!persistedGraph?.nodes?.length) {
+              setTimeout(() => runAnalysis(), 1500);
+            }
+          } else if (!persistedGraph?.nodes?.length) {
+            // Neither graph nor engine state — trigger full recompute
+            // (handled by auto-recompute effect below)
           }
         })
         .catch(() => { /* non-critical */ });

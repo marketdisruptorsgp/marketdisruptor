@@ -52,7 +52,7 @@ function FrictionMeter({ friction }: { friction: FrictionScore }) {
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Friction</span>
-        <span className="text-xs font-bold tabular-nums" style={{ color }}>{friction.index.toFixed(1)}/5</span>
+        <span className="text-xs font-bold" style={{ color }}>{friction.index <= 2.5 ? "Low" : friction.index <= 3.5 ? "Moderate" : "High"}</span>
       </div>
       {DIMS.map(d => (
         <div key={d.key} className="flex items-center gap-2">
@@ -78,7 +78,7 @@ function LeverageMeter({ leverage }: { leverage: LeverageScore }) {
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-extrabold uppercase tracking-widest text-muted-foreground">Leverage</span>
-        <span className="text-xs font-bold tabular-nums" style={{ color }}>{leverage.index.toFixed(1)}/5</span>
+        <span className="text-xs font-bold" style={{ color }}>{leverage.index >= 4 ? "Strong" : leverage.index >= 3 ? "Moderate" : "Limited"}</span>
       </div>
       {DIMS.map(d => (
         <div key={d.key} className="flex items-center gap-2">
@@ -278,7 +278,7 @@ export const ExpandedFrictionDashboard = memo(function ExpandedFrictionDashboard
                 color: f.score >= 7 ? "hsl(0 72% 50%)" : "hsl(38 92% 50%)",
               }}
             >
-              {EXPANDED_DIM_LABELS[f.dimension] || f.dimension}: {f.score}/10
+              {EXPANDED_DIM_LABELS[f.dimension] || f.dimension}: {f.score >= 7 ? "High" : f.score >= 4 ? "Moderate" : "Low"}
             </span>
           ))}
         </div>
