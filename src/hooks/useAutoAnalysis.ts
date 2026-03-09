@@ -64,6 +64,7 @@ export function useAutoAnalysis(): AutoAnalysisResult {
   } = analysis;
 
   const [intelligence, setIntelligence] = useState<SystemIntelligence | null>(null);
+  const [structuralProfile, setStructuralProfile] = useState<StructuralProfile | null>(null);
   const [graph, setGraph] = useState<InsightGraph | null>(null);
   const [evidence, setEvidence] = useState<Record<MetricDomain, MetricEvidence> | null>(null);
   const [flatEvidenceState, setFlatEvidenceState] = useState<Evidence[]>([]);
