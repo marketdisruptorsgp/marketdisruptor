@@ -747,7 +747,7 @@ function ShareAnalysisCTA({ result, modeColor, mode }: {result: PhotoAnalysisRes
   filter(Boolean);
 
   const shareUrl = buildPublicUrl("/instant-analysis");
-  const shareText = `🔥 Just analyzed "${result.name}" with Market Disruptor — got ${insightCount.length} deep intelligence layers from a single photo!\n\nRevival Score: ${result.revivalScore}/10\n\nKey insight: "${result.keyInsight}"\n\nTry it free (no signup):\n${shareUrl}`;
+  const shareText = `🔥 Just analyzed "${result.name}" with Market Disruptor — got ${insightCount.length} deep intelligence layers from a single photo!\n\nKey insight: "${result.keyInsight}"\n\nTry it free (no signup):\n${shareUrl}`;
 
   const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
