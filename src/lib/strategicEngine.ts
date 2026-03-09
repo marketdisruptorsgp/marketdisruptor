@@ -489,7 +489,7 @@ export function runStrategicAnalysis(input: StrategicAnalysisInput): StrategicAn
     );
     stages.push(s4);
     structuralProfile = profile;
-    events.push(`Structural profile: ${profile.supplyFragmentation} fragmentation, ${profile.laborIntensity} labor, ${profile.revenueModel} revenue, ${profile.distributionControl} distribution`);
+    events.push(`Structural profile: ${profile.supplyFragmentation} fragmentation, ${profile.laborIntensity} labor, ${profile.revenueModel} revenue, ${profile.distributionControl} distribution${profile.etaActive ? ` | ETA: owner=${profile.ownerDependency}, complexity=${profile.acquisitionComplexity}, runway=${profile.improvementRunway}` : ""}`);
   }
 
   // ── Stage 5: Pattern Qualification (max 2) ──
