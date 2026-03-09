@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Brain, Flame } from "lucide-react";
+import { PipelineProcessingState } from "@/components/PipelineProcessingState";
 import { PitchDeckToggle } from "@/components/PitchDeckToggle";
 import { AnalysisVisualLayer } from "@/components/AnalysisVisualLayer";
 import { StructuralDiagnosisPanel } from "@/components/StructuralDiagnosisPanel";
