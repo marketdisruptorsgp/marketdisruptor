@@ -1,0 +1,442 @@
+/**
+ * Full Pipeline Test Runner — /admin/pipeline-test
+ * 
+ * Generates structured evidence for a business via AI,
+ * then runs it through the complete deterministic pipeline.
+ */
+
+import { useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Loader2, ChevronDown, ChevronRight, Play, AlertTriangle, CheckCircle, Zap, Target, Layers, FlaskConical, TrendingUp, Award, Route } from "lucide-react";
+import { runFullPipelineBenchmark, type PipelineReport, type BusinessDecomposition } from "@/lib/benchmarks/fullPipelineBenchmark";
+
+const PRESET_BUSINESSES = [
+  "Independent Dental Practice",
+  "Automatic Car Wash",
+  "Local Gym / Fitness Center",
+  "Regional Trucking / Logistics Fleet",
+  "Insurance Brokerage",
+  "Full-Service Restaurant",
+  "Marketplace Startup",
+  "Commercial Cleaning Company",
+  "SaaS B2B Startup",
+  "Independent Pharmacy",
+];
+
+export default function PipelineTestRunner() {
+  const [businessName, setBusinessName] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [report, setReport] = useState<PipelineReport | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [aiRaw, setAiRaw] = useState<BusinessDecomposition | null>(null);
+
+  const runTest = useCallback(async (name: string) => {
+    setBusinessName(name);
+    setError(null);
+    setReport(null);
+    setAiRaw(null);
+
+    // Step 1: Generate evidence via AI
+    setIsGenerating(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("analyze-business-structure", {
+        body: { businessName: name },
+      });
+
+      if (fnError) throw new Error(fnError.message);
+      if (data?.error) throw new Error(data.error);
+
+      const decomposition = data as BusinessDecomposition;
+      setAiRaw(decomposition);
+      setIsGenerating(false);
+
+      // Step 2: Run through pipeline
+      setIsRunning(true);
+      const pipelineReport = runFullPipelineBenchmark(name, decomposition);
+      setReport(pipelineReport);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setIsGenerating(false);
+      setIsRunning(false);
+    }
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Full Pipeline Diagnostic</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            End-to-end strategic reasoning test: AI evidence → constraints → opportunities → stress test → recommendation
+          </p>
+        </div>
+
+        {/* Input */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex gap-3">
+              <Input
+                placeholder="Enter a business type (e.g., 'independent dental practice')"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && businessName && runTest(businessName)}
+                disabled={isGenerating || isRunning}
+              />
+              <Button onClick={() => runTest(businessName)} disabled={!businessName || isGenerating || isRunning}>
+                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : isRunning ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                {isGenerating ? "Generating Evidence…" : isRunning ? "Running Pipeline…" : "Run Test"}
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {PRESET_BUSINESSES.map((biz) => (
+                <Button key={biz} variant="outline" size="sm" onClick={() => runTest(biz)} disabled={isGenerating || isRunning}>
+                  {biz}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {error && (
+          <Card className="border-destructive">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="font-medium">Error:</span> {error}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {report && <ReportView report={report} />}
+      </div>
+    </div>
+  );
+}
+
+function ReportView({ report }: { report: PipelineReport }) {
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>{report.businessName} — Pipeline Report</span>
+            <div className="flex gap-2">
+              <Badge variant="outline">{report.totalEvidenceItems} evidence</Badge>
+              <Badge variant="outline">{report.facetedEvidenceCount} faceted</Badge>
+              <Badge variant="outline">{report.constraints.length} constraints</Badge>
+              <Badge variant="outline">{report.morphologicalVectors.length} vectors</Badge>
+              <Badge variant="outline">{report.stressTests.length} tested</Badge>
+            </div>
+          </CardTitle>
+        </CardHeader>
+      </Card>
+
+      {/* Reasoning Trace */}
+      <ReportSection title="Reasoning Trace" icon={<Route className="w-4 h-4" />} defaultOpen>
+        <div className="space-y-1">
+          {report.reasoningTrace.map((t, i) => (
+            <div key={i} className="flex items-center justify-between text-sm py-1.5 px-3 rounded bg-muted/50">
+              <span className="font-mono text-xs text-muted-foreground w-8">{i + 1}.</span>
+              <span className="flex-1 font-medium">{t.stage}</span>
+              <span className="text-muted-foreground text-xs">{t.inputCount} → {t.outputCount}</span>
+              <span className="text-muted-foreground text-xs ml-4">{t.durationMs}ms</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 text-xs text-muted-foreground space-y-0.5">
+          {report.pipelineEvents.map((ev, i) => (
+            <div key={i}>• {ev}</div>
+          ))}
+        </div>
+      </ReportSection>
+
+      {/* Section 1: System Decomposition */}
+      <ReportSection title="1. Business System Decomposition" icon={<Layers className="w-4 h-4" />}>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <h4 className="font-semibold mb-1">Supply Chain</h4>
+            <ol className="list-decimal list-inside space-y-0.5 text-muted-foreground">
+              {report.systemDecomposition.supplyChain.map((s, i) => <li key={i}>{s}</li>)}
+            </ol>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-1">Value Creation Steps</h4>
+            <ol className="list-decimal list-inside space-y-0.5 text-muted-foreground">
+              {report.systemDecomposition.valueCreationSteps.map((s, i) => <li key={i}>{s}</li>)}
+            </ol>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-1">Revenue Architecture</h4>
+            <p className="text-muted-foreground">{report.systemDecomposition.revenueArchitecture}</p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-1">Customer Acquisition</h4>
+            <p className="text-muted-foreground">{report.systemDecomposition.customerAcquisition}</p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-1">Cost Structure</h4>
+            <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
+              {report.systemDecomposition.costStructure.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-1">Operational Assets</h4>
+            <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
+              {report.systemDecomposition.operationalAssets.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-1">Distribution Channels</h4>
+            <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
+              {report.systemDecomposition.distributionChannels.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-1">Labor Dependencies</h4>
+            <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
+              {report.systemDecomposition.laborDependencies.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+          </div>
+        </div>
+      </ReportSection>
+
+      {/* Section 2: First Principles */}
+      <ReportSection title="2. First Principles Breakdown" icon={<Target className="w-4 h-4" />}>
+        <div className="space-y-3 text-sm">
+          {Object.entries(report.firstPrinciples).map(([key, val]) => (
+            <div key={key} className="flex gap-3">
+              <span className="font-semibold min-w-[180px]">{key.replace(/([A-Z])/g, " $1").replace(/^./, c => c.toUpperCase())}:</span>
+              <span className="text-muted-foreground">{val}</span>
+            </div>
+          ))}
+        </div>
+      </ReportSection>
+
+      {/* Section 3: Constraints */}
+      <ReportSection title="3. Constraint Detection (Tiered)" icon={<AlertTriangle className="w-4 h-4" />} defaultOpen>
+        {[1, 2, 3].map(tier => {
+          const tierConstraints = report.constraints.filter(c => c.tier === tier);
+          if (tierConstraints.length === 0) return null;
+          return (
+            <div key={tier} className="mb-4">
+              <h4 className="font-semibold text-sm mb-2">
+                Tier {tier} — {tier === 1 ? "Structural System Limits" : tier === 2 ? "Operational Friction" : "Surface Problems"}
+              </h4>
+              <div className="space-y-2">
+                {tierConstraints.map((c, i) => (
+                  <div key={i} className="border rounded p-3 text-sm">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-mono text-xs">{c.constraintId}</span>
+                      <div className="flex gap-2">
+                        <Badge variant={c.confidence === "strong" ? "default" : c.confidence === "moderate" ? "secondary" : "outline"}>
+                          {c.confidence}
+                        </Badge>
+                        <Badge variant="outline">{c.constraintName}</Badge>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground mb-2">{c.explanation}</p>
+                    <div className="text-xs">
+                      <span className="font-medium">Evidence:</span>
+                      <ul className="list-disc list-inside text-muted-foreground mt-0.5">
+                        {c.evidenceSignals.map((s, j) => <li key={j}>{s}</li>)}
+                      </ul>
+                    </div>
+                    {c.facetBasis.length > 0 && (
+                      <div className="text-xs mt-1">
+                        <span className="font-medium">Facet basis:</span>{" "}
+                        <span className="text-muted-foreground">{c.facetBasis.join(", ")}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        {report.severityReport?.primaryBottleneck && (
+          <div className="mt-3 p-3 bg-destructive/10 rounded text-sm">
+            <span className="font-semibold">Primary Bottleneck:</span>{" "}
+            {report.severityReport.primaryBottleneck.constraintLabel} ({report.severityReport.primaryBottleneck.severityLabel} severity)
+          </div>
+        )}
+      </ReportSection>
+
+      {/* Section 4: Competitors */}
+      <ReportSection title="4. Competitor Landscape" icon={<Zap className="w-4 h-4" />}>
+        <div className="grid grid-cols-3 gap-4 text-sm">
+          {(["tier1", "tier2", "tier3"] as const).map(tier => (
+            <div key={tier}>
+              <h4 className="font-semibold mb-2">
+                {tier === "tier1" ? "Tier 1 — Direct" : tier === "tier2" ? "Tier 2 — Alternative" : "Tier 3 — Substitutes"}
+              </h4>
+              {report.competitors[tier]?.map((c, i) => (
+                <div key={i} className="mb-2 p-2 bg-muted/50 rounded">
+                  <div className="font-medium">{c.name}</div>
+                  <div className="text-xs text-muted-foreground">{c.model}</div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </ReportSection>
+
+      {/* Section 5: Morphological Opportunities */}
+      <ReportSection title="5. Morphological Opportunity Vectors" icon={<Layers className="w-4 h-4" />}>
+        {report.morphologicalVectors.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No morphological vectors generated (evidence threshold not met or insufficient dimensions)</p>
+        ) : (
+          <div className="space-y-2">
+            {report.morphologicalVectors.map((v, i) => (
+              <div key={i} className="border rounded p-3 text-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="outline" className="text-xs">{v.explorationType}</Badge>
+                  <Badge variant="outline" className="text-xs">{v.explorationMode}</Badge>
+                </div>
+                <div className="space-y-0.5">
+                  {v.shifts.map((s, j) => (
+                    <div key={j} className="text-muted-foreground">
+                      <span className="font-medium">{s.dimension}:</span> {s.from} → <span className="text-foreground">{s.to}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{v.rationale}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </ReportSection>
+
+      {/* Section 6: Flipped Constraints */}
+      <ReportSection title="6. Flipped Constraint Opportunities" icon={<Zap className="w-4 h-4" />}>
+        <div className="space-y-2">
+          {report.flippedConstraints.map((f, i) => (
+            <div key={i} className="border rounded p-3 text-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="outline">{f.constraintName}</Badge>
+                <span className="text-muted-foreground">→</span>
+                <span className="font-medium">{f.flip}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{f.rationale}</p>
+              {f.analogs.length > 0 && (
+                <div className="text-xs mt-1">
+                  <span className="font-medium">Analogs:</span> {f.analogs.join(", ")}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </ReportSection>
+
+      {/* Section 7: Stress Tests */}
+      <ReportSection title="7. Stress Testing" icon={<FlaskConical className="w-4 h-4" />}>
+        {report.stressTests.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No opportunities reached stress testing</p>
+        ) : (
+          <div className="space-y-2">
+            {report.stressTests.map((st, i) => (
+              <div key={i} className="border rounded p-3 text-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium truncate max-w-[60%]">{st.opportunityLabel}</span>
+                  <Badge variant={st.viabilityLabel === "strong" ? "default" : st.viabilityLabel === "moderate" ? "secondary" : "outline"}>
+                    {st.viabilityLabel} ({st.viabilityScore.toFixed(2)})
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-xs">
+                  <div>Feasibility: <span className="font-mono">{st.feasibility.toFixed(2)}</span></div>
+                  <div>Capital: <span className="font-mono">{st.capitalRequirement.toFixed(2)}</span></div>
+                  <div>Market: <span className="font-mono">{st.marketReadiness.toFixed(2)}</span></div>
+                  <div>Complexity: <span className="font-mono">{st.implementationComplexity.toFixed(2)}</span></div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{st.explanation}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </ReportSection>
+
+      {/* Section 9: Ranking */}
+      <ReportSection title="9. Idea Ranking" icon={<TrendingUp className="w-4 h-4" />}>
+        {report.rankedOpportunities.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No opportunities to rank</p>
+        ) : (
+          <div className="space-y-1">
+            {report.rankedOpportunities.map((r, i) => (
+              <div key={i} className="flex items-center gap-3 text-sm py-2 px-3 rounded bg-muted/50">
+                <span className="font-bold text-lg w-8 text-center">#{r.rank}</span>
+                <div className="flex-1">
+                  <div className="font-medium truncate">{r.label}</div>
+                  <div className="text-xs text-muted-foreground">{r.shifts}</div>
+                </div>
+                <Badge variant={r.viabilityLabel === "strong" ? "default" : r.viabilityLabel === "moderate" ? "secondary" : "outline"}>
+                  {r.viabilityScore.toFixed(2)}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </ReportSection>
+
+      {/* Section 10: Final Recommendation */}
+      <ReportSection title="10. Final Recommendation" icon={<Award className="w-4 h-4" />} defaultOpen>
+        {report.recommendation ? (
+          <div className="space-y-3 text-sm">
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <h4 className="font-bold text-lg mb-2">{report.recommendation.selectedIdea}</h4>
+              <p className="text-muted-foreground">{report.recommendation.whyItWins}</p>
+            </div>
+            <div>
+              <span className="font-semibold">Constraint Exploited:</span>{" "}
+              <Badge variant="outline">{report.recommendation.constraintExploited}</Badge>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-1">Key Assumptions</h4>
+              <ul className="list-disc list-inside text-muted-foreground text-xs space-y-0.5">
+                {report.recommendation.keyAssumptions.map((a, i) => <li key={i}>{a}</li>)}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-1">Biggest Risks</h4>
+              <ul className="list-disc list-inside text-muted-foreground text-xs space-y-0.5">
+                {report.recommendation.biggestRisks.map((r, i) => <li key={i}>{r}</li>)}
+              </ul>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Insufficient data to generate recommendation</p>
+        )}
+      </ReportSection>
+    </div>
+  );
+}
+
+function ReportSection({ title, icon, children, defaultOpen = false }: { title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Card>
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {icon}
+              {title}
+            </CardTitle>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="pt-0">{children}</CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
