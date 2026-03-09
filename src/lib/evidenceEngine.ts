@@ -52,7 +52,10 @@ export type EvidenceSourceEngine =
   | "financial_model"
   | "competitor_scout"
   | "system_intelligence"
-  | "scenario_engine";
+  | "scenario_engine"
+  | "constraint_engine"
+  | "pattern_library"
+  | "geo_market";
 
 export interface Evidence {
   id: string;
